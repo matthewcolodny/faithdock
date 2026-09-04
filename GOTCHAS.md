@@ -78,6 +78,16 @@ At one point the pricing page cards said "Medium"/"Large" while the button IDs, 
 
 ---
 
+## Turnstile "flexible" sizing has a hard 300px floor — check your container width first
+
+The auth card and the two Profile-page cards in this app have only **216px of actual content width** (confirmed via DevTools box-model inspection: 36px padding + 1px border on each side of a narrow mobile card). Cloudflare Turnstile's `data-size="flexible"` mode looks like the right answer for a narrow, variable-width container — it isn't, here, because it still enforces `min-width:300px` as a hard floor via inline style on the iframe itself. No external CSS can shrink it below that: `min-width` beats `max-width` when they conflict, and a plain (non-`!important`) inline style is still enough to win against a same-specificity external rule. Three separate attempts to fix this by overriding `overflow`, `padding`, and `max-width` on our own CSS all failed for this reason — none of them touched the actual constraint.
+
+**`data-size="compact"` (150px wide, 140px tall — it stacks its content vertically instead of horizontally) is the only official Turnstile size that actually fits inside 216px without a fight.** All three Turnstile widgets in this app use it for that reason. Don't switch any of them back to `"flexible"` or `"normal"` (both effectively need ≥300px) without first confirming the container's actual content width in DevTools — not just eyeballing it, and not just trusting a percentage-based CSS value, since box-sizing and nested padding can make the real number surprisingly different from what the layout looks like it should provide.
+
+If you're ever debugging a third-party embedded widget that won't respect a CSS override: check the element's actual inline style in DevTools before assuming your CSS specificity is the problem. `width`, `max-width`, and `min-width` can all be set independently by the same script, and only one of the three might actually be the binding constraint — overriding the wrong one (as happened here, twice) looks like it should work and does nothing.
+
+---
+
 ## Working conventions worth restating
 
 - **Bump the footer build stamp** (`build YYYY-MM-DD-vNNN`) after every round of changes — it's the fastest way to confirm whether what's live actually reflects the latest work, or whether a browser is just caching an old version.
