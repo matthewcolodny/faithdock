@@ -2066,7 +2066,7 @@
       <div id="profile-email-hint" style="font-size:12px;color:var(--ink-mute);margin-bottom:6px;" data-i18n="profile.emailHintPassword">Requires confirming your current password. A confirmation link goes to the new address — the change doesn't take effect until that link is clicked.</div>
       <input class="field" type="password" id="profile-email-current-password-input" placeholder="Current password" style="margin-bottom:8px;" data-i18n-placeholder="profile.currentPasswordPlaceholder" autocomplete="current-password">
       <input class="field" type="email" id="profile-new-email-input" placeholder="New email address" data-i18n-placeholder="profile.newEmailPlaceholder" autocomplete="off">
-      <div id="profile-email-turnstile" class="cf-turnstile" data-sitekey="0x4AAAAAAEPCzYa8RdIrXXzR" data-callback="onProfileEmailCaptchaSuccess" data-expired-callback="onProfileEmailCaptchaExpired" style="margin-top:12px;"></div>
+      <div id="profile-email-turnstile" class="cf-turnstile" data-sitekey="0x4AAAAAAEPCzYa8RdIrXXzR" data-size="flexible" data-callback="onProfileEmailCaptchaSuccess" data-expired-callback="onProfileEmailCaptchaExpired" style="margin-top:12px;"></div>
       <button class="export-btn" id="profile-email-save-btn" style="margin-top:8px;" data-i18n="profile.updateEmail">Update email</button>
       <div id="profile-email-status" style="display:none;font-size:12px;margin-top:8px;"></div>
 
@@ -2077,7 +2077,7 @@
         <input class="field" type="password" id="profile-new-password-input" placeholder="New password" style="flex:1;min-width:140px;" data-i18n-placeholder="profile.newPasswordPlaceholder" autocomplete="new-password">
         <input class="field" type="password" id="profile-confirm-password-input" placeholder="Confirm new password" style="flex:1;min-width:140px;" data-i18n-placeholder="profile.confirmNewPasswordPlaceholder" autocomplete="new-password">
       </div>
-      <div id="profile-password-turnstile" class="cf-turnstile" data-sitekey="0x4AAAAAAEPCzYa8RdIrXXzR" data-callback="onProfilePasswordCaptchaSuccess" data-expired-callback="onProfilePasswordCaptchaExpired" style="margin-top:12px;"></div>
+      <div id="profile-password-turnstile" class="cf-turnstile" data-sitekey="0x4AAAAAAEPCzYa8RdIrXXzR" data-size="flexible" data-callback="onProfilePasswordCaptchaSuccess" data-expired-callback="onProfilePasswordCaptchaExpired" style="margin-top:12px;"></div>
       <button class="export-btn" id="profile-password-save-btn" style="margin-top:8px;" data-i18n="profile.updatePassword">Update password</button>
       <div id="profile-password-status" style="display:none;font-size:12px;margin-top:8px;"></div>
     </div>
@@ -2525,7 +2525,7 @@
         <div class="auth-note"><a href="#" id="back-to-login-link" style="border-bottom:1px solid var(--gold);" data-i18n="auth.backToLogin">← Back to log in</a></div>
       </div>
       <div id="auth-turnstile-wrap">
-        <div class="cf-turnstile" id="auth-turnstile" data-sitekey="0x4AAAAAAEPCzYa8RdIrXXzR" data-callback="onTurnstileSuccess" data-expired-callback="onTurnstileExpired" style="margin-top:12px;"></div>
+        <div class="cf-turnstile" id="auth-turnstile" data-sitekey="0x4AAAAAAEPCzYa8RdIrXXzR" data-size="flexible" data-callback="onTurnstileSuccess" data-expired-callback="onTurnstileExpired" style="margin-top:12px;"></div>
       </div>
       <div id="auth-error" style="display:none;color:var(--clay);font-size:13px;margin-top:14px;"></div>
       <button class="auth-submit" id="auth-submit-btn" data-i18n="auth.continue">Continue</button>
@@ -3692,7 +3692,7 @@
 
 </main>
 
-<footer>FaithDock prototype — visual concept, not a live product · build 2026-09-04-v154 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;">Terms</a></footer>
+<footer>FaithDock prototype — visual concept, not a live product · build 2026-09-04-v155 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;">Terms</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
