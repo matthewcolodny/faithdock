@@ -1038,6 +1038,13 @@
      actual content width in DevTools before changing anything —
      see GOTCHAS.md. */
   .cf-turnstile{max-width:100%;}
+  /* The auth widget's own container (not #auth-turnstile-wrap, which
+     exists only to give it enough width to clear the 300px floor
+     above) is capped narrower and centered so flexible mode doesn't
+     stretch the iframe to the wrap's full breakout width. 320px stays
+     safely above the 300px floor — don't drop this near 300 without
+     re-verifying real content width per GOTCHAS.md. */
+  #auth-turnstile{max-width:320px;margin:0 auto;}
   .char-count{font-size:11.5px;color:var(--ink-mute);text-align:right;margin-top:4px;font-family:'IBM Plex Mono';}
   .autocomplete-wrap{position:relative;}
   .autocomplete-list{
@@ -3717,7 +3724,7 @@
 
 </main>
 
-<footer>FaithDock prototype — visual concept, not a live product · build 2026-09-04-v159 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;">Terms</a></footer>
+<footer>FaithDock prototype — visual concept, not a live product · build 2026-09-04-v160 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;">Terms</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
