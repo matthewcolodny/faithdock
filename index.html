@@ -987,8 +987,16 @@
   .back-link svg{width:13px;height:13px;}
 
   /* ---- sign up ---- */
-  .auth-wrap{max-width:420px;margin:70px auto;padding:0 28px;}
+  .auth-wrap{max-width:420px;margin:70px auto;padding:0 16px;}
   .auth-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:36px;}
+  /* Confirmed via DevTools that this card's real content width is
+     only 216px on a common mobile viewport — Turnstile's "flexible"
+     size needs at least 300px (see GOTCHAS.md). Rather than shrink
+     .auth-card's padding everywhere (which would tighten every field
+     in the form, not just this one), only the Turnstile row breaks
+     out of the card's own padding and uses the wrap's full width
+     instead — every other element keeps its current spacing. */
+  #auth-turnstile-wrap{margin-left:-36px;margin-right:-36px;}
   .auth-toggle{display:flex;background:var(--paper);border-radius:9px;padding:4px;margin-bottom:28px;}
   .auth-toggle button{flex:1;padding:10px;border:none;background:transparent;border-radius:7px;font-weight:600;font-size:14px;color:var(--ink-mute);}
   .auth-toggle button.active{background:var(--card);color:var(--ink);}
@@ -1012,18 +1020,15 @@
      unstyled trades a minor visual mismatch (sharp corners against
      this app's rounded aesthetic) for not cutting off real content,
      which is the safer failure mode of the two. */
-  /* Confirmed via live DOM inspection: this app's auth card has only
-     216px of actual content width (36px padding + 1px border on each
-     side of a narrow mobile card). Turnstile's "flexible" size still
-     enforces min-width:300px as a hard floor via inline style — no
-     external CSS can shrink it below that, since min-width beats
-     max-width when they conflict, and a non-important inline style is
-     still enough to beat a same-specificity external rule. "Compact"
-     (150px, taller instead of wider) is the only official Turnstile
-     size that actually fits inside 216px without a fight. All three
-     widgets in this app use data-size="compact" for this reason —
-     don't switch back to "flexible" or "normal" without confirming
-     the container is at least 300px wide first. */
+  /* Widgets use data-size="flexible". The auth card's real content
+     width was only 216px (confirmed via DevTools) — short of the
+     300px flexible mode requires — so #auth-turnstile-wrap breaks out
+     of .auth-card's own padding specifically for this row (see that
+     rule). Profile page's .side-note cards have less padding
+     overhead and weren't confirmed to have the same problem. If this
+     ever overflows again on a real device, measure the container's
+     actual content width in DevTools before changing anything —
+     see GOTCHAS.md. */
   .cf-turnstile{max-width:100%;}
   .char-count{font-size:11.5px;color:var(--ink-mute);text-align:right;margin-top:4px;font-family:'IBM Plex Mono';}
   .autocomplete-wrap{position:relative;}
@@ -2078,7 +2083,7 @@
       <div id="profile-email-hint" style="font-size:12px;color:var(--ink-mute);margin-bottom:6px;" data-i18n="profile.emailHintPassword">Requires confirming your current password. A confirmation link goes to the new address — the change doesn't take effect until that link is clicked.</div>
       <input class="field" type="password" id="profile-email-current-password-input" placeholder="Current password" style="margin-bottom:8px;" data-i18n-placeholder="profile.currentPasswordPlaceholder" autocomplete="current-password">
       <input class="field" type="email" id="profile-new-email-input" placeholder="New email address" data-i18n-placeholder="profile.newEmailPlaceholder" autocomplete="off">
-      <div id="profile-email-turnstile" class="cf-turnstile" data-sitekey="0x4AAAAAAEPCzYa8RdIrXXzR" data-size="compact" data-callback="onProfileEmailCaptchaSuccess" data-expired-callback="onProfileEmailCaptchaExpired" style="margin-top:12px;"></div>
+      <div id="profile-email-turnstile" class="cf-turnstile" data-sitekey="0x4AAAAAAEPCzYa8RdIrXXzR" data-size="flexible" data-callback="onProfileEmailCaptchaSuccess" data-expired-callback="onProfileEmailCaptchaExpired" style="margin-top:12px;"></div>
       <button class="export-btn" id="profile-email-save-btn" style="margin-top:8px;" data-i18n="profile.updateEmail">Update email</button>
       <div id="profile-email-status" style="display:none;font-size:12px;margin-top:8px;"></div>
 
@@ -2089,7 +2094,7 @@
         <input class="field" type="password" id="profile-new-password-input" placeholder="New password" style="flex:1;min-width:140px;" data-i18n-placeholder="profile.newPasswordPlaceholder" autocomplete="new-password">
         <input class="field" type="password" id="profile-confirm-password-input" placeholder="Confirm new password" style="flex:1;min-width:140px;" data-i18n-placeholder="profile.confirmNewPasswordPlaceholder" autocomplete="new-password">
       </div>
-      <div id="profile-password-turnstile" class="cf-turnstile" data-sitekey="0x4AAAAAAEPCzYa8RdIrXXzR" data-size="compact" data-callback="onProfilePasswordCaptchaSuccess" data-expired-callback="onProfilePasswordCaptchaExpired" style="margin-top:12px;"></div>
+      <div id="profile-password-turnstile" class="cf-turnstile" data-sitekey="0x4AAAAAAEPCzYa8RdIrXXzR" data-size="flexible" data-callback="onProfilePasswordCaptchaSuccess" data-expired-callback="onProfilePasswordCaptchaExpired" style="margin-top:12px;"></div>
       <button class="export-btn" id="profile-password-save-btn" style="margin-top:8px;" data-i18n="profile.updatePassword">Update password</button>
       <div id="profile-password-status" style="display:none;font-size:12px;margin-top:8px;"></div>
     </div>
@@ -2537,7 +2542,7 @@
         <div class="auth-note"><a href="#" id="back-to-login-link" style="border-bottom:1px solid var(--gold);" data-i18n="auth.backToLogin">← Back to log in</a></div>
       </div>
       <div id="auth-turnstile-wrap">
-        <div class="cf-turnstile" id="auth-turnstile" data-sitekey="0x4AAAAAAEPCzYa8RdIrXXzR" data-size="compact" data-callback="onTurnstileSuccess" data-expired-callback="onTurnstileExpired" style="margin-top:12px;"></div>
+        <div class="cf-turnstile" id="auth-turnstile" data-sitekey="0x4AAAAAAEPCzYa8RdIrXXzR" data-size="flexible" data-callback="onTurnstileSuccess" data-expired-callback="onTurnstileExpired" style="margin-top:12px;"></div>
       </div>
       <div id="auth-error" style="display:none;color:var(--clay);font-size:13px;margin-top:14px;"></div>
       <button class="auth-submit" id="auth-submit-btn" data-i18n="auth.continue">Continue</button>
@@ -3704,7 +3709,7 @@
 
 </main>
 
-<footer>FaithDock prototype — visual concept, not a live product · build 2026-09-04-v157 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;">Terms</a></footer>
+<footer>FaithDock prototype — visual concept, not a live product · build 2026-09-04-v158 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;">Terms</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
