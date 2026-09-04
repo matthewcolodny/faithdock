@@ -1004,7 +1004,15 @@
      our field radius, and framing it with the same border/background
      as the rest of the form, keeps it from reading as a foreign,
      bolted-on box on mobile. */
-  .cf-turnstile{border-radius:10px;overflow:hidden;border:1px solid var(--line);background:var(--card);display:inline-block;max-width:100%;padding:3px;}
+  /* Deliberately minimal. Two earlier attempts to round this
+     widget's corners (border-radius + overflow:hidden, then adding
+     padding on top of that) both risked or caused real clipping of
+     the widget's own Cloudflare logo/text — confirmed live, twice.
+     The widget doesn't tolerate being clipped. Leaving it essentially
+     unstyled trades a minor visual mismatch (sharp corners against
+     this app's rounded aesthetic) for not cutting off real content,
+     which is the safer failure mode of the two. */
+  .cf-turnstile{max-width:100%;}
   .char-count{font-size:11.5px;color:var(--ink-mute);text-align:right;margin-top:4px;font-family:'IBM Plex Mono';}
   .autocomplete-wrap{position:relative;}
   .autocomplete-list{
@@ -3684,7 +3692,7 @@
 
 </main>
 
-<footer>FaithDock prototype — visual concept, not a live product · build 2026-09-04-v153 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;">Terms</a></footer>
+<footer>FaithDock prototype — visual concept, not a live product · build 2026-09-04-v154 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;">Terms</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
