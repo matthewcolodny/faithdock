@@ -1012,7 +1012,16 @@
      unstyled trades a minor visual mismatch (sharp corners against
      this app's rounded aesthetic) for not cutting off real content,
      which is the safer failure mode of the two. */
-  .cf-turnstile{max-width:100%;}
+  .cf-turnstile{width:100%;max-width:100%;}
+  /* data-size="flexible" measured 364px live on a mobile card whose
+     sibling .field inputs render narrower — Cloudflare's own sizing
+     script isn't matching this app's actual layout for reasons that
+     aren't visible from outside the iframe. Rather than trust that
+     calculation, force a hard ceiling: max-width on the iframe
+     element itself overrides an explicit width by normal CSS cascade
+     rules, regardless of what pixel value a third-party script sets
+     via inline style or attribute. */
+  .cf-turnstile iframe{max-width:100% !important;}
   .char-count{font-size:11.5px;color:var(--ink-mute);text-align:right;margin-top:4px;font-family:'IBM Plex Mono';}
   .autocomplete-wrap{position:relative;}
   .autocomplete-list{
@@ -3692,7 +3701,7 @@
 
 </main>
 
-<footer>FaithDock prototype — visual concept, not a live product · build 2026-09-04-v155 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;">Terms</a></footer>
+<footer>FaithDock prototype — visual concept, not a live product · build 2026-09-04-v156 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;">Terms</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
