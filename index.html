@@ -996,7 +996,15 @@
      in the form, not just this one), only the Turnstile row breaks
      out of the card's own padding and uses the wrap's full width
      instead — every other element keeps its current spacing. */
-  #auth-turnstile-wrap{margin-left:-36px;margin-right:-36px;}
+  /* -28px rather than the full -36px of .auth-card's padding —
+     leaves 8px of breathing room so the widget doesn't sit flush
+     against the card's own border, while keeping real content width
+     comfortably over Turnstile's 300px minimum (see the .cf-turnstile
+     comment below and GOTCHAS.md). Don't reduce this further without
+     re-checking actual content width in DevTools on a narrow phone —
+     every extra pixel of breathing room here is a pixel closer back
+     to the 216px-content-width bug this was built to fix. */
+  #auth-turnstile-wrap{margin-left:-28px;margin-right:-28px;}
   .auth-toggle{display:flex;background:var(--paper);border-radius:9px;padding:4px;margin-bottom:28px;}
   .auth-toggle button{flex:1;padding:10px;border:none;background:transparent;border-radius:7px;font-weight:600;font-size:14px;color:var(--ink-mute);}
   .auth-toggle button.active{background:var(--card);color:var(--ink);}
@@ -3709,7 +3717,7 @@
 
 </main>
 
-<footer>FaithDock prototype — visual concept, not a live product · build 2026-09-04-v158 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;">Terms</a></footer>
+<footer>FaithDock prototype — visual concept, not a live product · build 2026-09-04-v159 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;">Terms</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
