@@ -175,6 +175,7 @@
       'rc.website': 'Website', 'rc.freeListing': 'Free listing', 'rc.registerHeading': 'Register your church', 'rc.editHeading': 'Edit your church',
       'rc.publicNotice': "This is what shows publicly on your church's page.", 'rc.phone': 'Church phone number',
       'rc.description': 'Description', 'rc.logo': 'Logo', 'rc.removeLogo': 'Remove logo',
+      'rc.chooseFile': 'Choose file', 'rc.noFileChosen': 'No file chosen',
       'rc.createChurch': 'Create church', 'rc.saveChanges': 'Save changes',
       'rc.updateLater': 'You can update any of this later from this same page.', 'rc.createFirstEvent': 'Create your first event →',
       'rc.descriptionPlaceholder': "A short welcome for visitors — service times, what makes your church unique, what to expect if it's someone's first visit.",
@@ -434,6 +435,7 @@
       'rc.website': 'Sitio web', 'rc.freeListing': 'Listado gratuito', 'rc.registerHeading': 'Registra tu iglesia', 'rc.editHeading': 'Edita tu iglesia',
       'rc.publicNotice': 'Esto es lo que se muestra públicamente en la página de tu iglesia.', 'rc.phone': 'Teléfono de la iglesia',
       'rc.description': 'Descripción', 'rc.logo': 'Logotipo', 'rc.removeLogo': 'Quitar logotipo',
+      'rc.chooseFile': 'Elegir archivo', 'rc.noFileChosen': 'Ningún archivo seleccionado',
       'rc.createChurch': 'Crear iglesia', 'rc.saveChanges': 'Guardar cambios',
       'rc.updateLater': 'Puedes actualizar todo esto más tarde desde esta misma página.', 'rc.createFirstEvent': 'Crea tu primer evento →',
       'rc.descriptionPlaceholder': 'Un breve mensaje de bienvenida para visitantes — horarios de servicio, qué hace única a tu iglesia, qué esperar si es la primera visita de alguien.',
@@ -2732,15 +2734,15 @@
       <label data-i18n="rc.denomination">Denomination</label>
       <select class="field" id="rc-denomination">
         <option value="" data-i18n="rc.selectOne">Select one</option>
-        <option>Non-denominational</option>
-        <option>Baptist</option>
-        <option>Episcopal</option>
-        <option>Lutheran</option>
-        <option>Pentecostal</option>
-        <option>Presbyterian</option>
-        <option>Catholic</option>
-        <option>Methodist</option>
-        <option data-i18n="rc.other">Other</option>
+        <option value="Non-denominational" data-i18n="denom.nonDenominational">Non-denominational</option>
+        <option value="Baptist" data-i18n="denom.baptist">Baptist</option>
+        <option value="Episcopal" data-i18n="denom.episcopal">Episcopal</option>
+        <option value="Lutheran" data-i18n="denom.lutheran">Lutheran</option>
+        <option value="Pentecostal" data-i18n="denom.pentecostal">Pentecostal</option>
+        <option value="Presbyterian" data-i18n="denom.presbyterian">Presbyterian</option>
+        <option value="Catholic" data-i18n="denom.catholic">Catholic</option>
+        <option value="Methodist" data-i18n="denom.methodist">Methodist</option>
+        <option value="Other" data-i18n="rc.other">Other</option>
       </select>
       <input class="field" type="text" id="rc-denomination-other" placeholder="Enter your denomination" style="display:none;margin-top:8px;" data-i18n-placeholder="rc.enterDenomination">
 
@@ -2773,9 +2775,19 @@
       <div class="char-count" id="rc-description-count">0 / 600</div>
 
       <label data-i18n="rc.logo">Logo</label>
-      <div style="display:flex;align-items:center;gap:14px;">
+      <!-- Native <input type="file"> renders its "Choose File" /
+           "No file chosen" text from the BROWSER's own locale, not
+           this page's language — there's no HTML/CSS way to override
+           that text directly. Standard fix: hide the real input,
+           trigger it via a styled <label for="rc-logo"> (works with no
+           JS — clicking a label opens the file picker for its
+           associated input natively), and show the actual state in a
+           plain, fully translatable span instead. -->
+      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
         <div id="rc-logo-preview" style="width:56px;height:56px;border-radius:10px;background:var(--paper);border:1px solid var(--line);flex-shrink:0;background-size:cover;background-position:center;"></div>
-        <input class="field" type="file" id="rc-logo" accept="image/*" style="padding:9px 10px;">
+        <input type="file" id="rc-logo" accept="image/*" style="position:absolute;width:1px;height:1px;overflow:hidden;opacity:0;">
+        <label for="rc-logo" class="export-btn" style="cursor:pointer;padding:9px 14px;white-space:nowrap;" data-i18n="rc.chooseFile">Choose file</label>
+        <span id="rc-logo-filename" style="font-size:13px;color:var(--ink-mute);" data-i18n="rc.noFileChosen">No file chosen</span>
         <button type="button" id="rc-logo-remove-btn" class="export-btn" style="display:none;padding:9px 14px;color:var(--clay);white-space:nowrap;" data-i18n="rc.removeLogo">Remove logo</button>
       </div>
 
@@ -3893,7 +3905,7 @@
 
 </main>
 
-<footer>FaithDock prototype — visual concept, not a live product · build 2026-09-04-v169 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;">Accessibility</a></footer>
+<footer>FaithDock prototype — visual concept, not a live product · build 2026-09-04-v170 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -6375,8 +6387,10 @@
     document.getElementById('rc-facebook').value = '';
     document.getElementById('rc-instagram').value = '';
     document.getElementById('rc-description-count').textContent = '0 / 600';
+    document.getElementById('rc-logo').value = '';
     document.getElementById('rc-logo-preview').style.backgroundImage = '';
     document.getElementById('rc-logo-remove-btn').style.display = 'none';
+    resetRcLogoFilename();
     window.rcLogoMarkedForRemoval = false;
   }
 
@@ -6490,7 +6504,20 @@
       // both happened in the same visit.
       window.rcLogoMarkedForRemoval = false;
       document.getElementById('rc-logo-remove-btn').style.display = 'none';
+      // A real filename, not a translatable placeholder — remove
+      // data-i18n so a later language switch doesn't stomp it back to
+      // "No file chosen" (restored in resetRcLogoFilename() below,
+      // the only place this text goes back to being a placeholder).
+      var filenameEl = document.getElementById('rc-logo-filename');
+      filenameEl.removeAttribute('data-i18n');
+      filenameEl.textContent = file.name;
     });
+  }
+
+  function resetRcLogoFilename(){
+    var filenameEl = document.getElementById('rc-logo-filename');
+    filenameEl.setAttribute('data-i18n', 'rc.noFileChosen');
+    filenameEl.textContent = window.t('rc.noFileChosen');
   }
 
   var rcLogoRemoveBtn = document.getElementById('rc-logo-remove-btn');
@@ -6499,6 +6526,7 @@
       window.rcLogoMarkedForRemoval = true;
       document.getElementById('rc-logo-preview').style.backgroundImage = '';
       document.getElementById('rc-logo').value = '';
+      resetRcLogoFilename();
       rcLogoRemoveBtn.style.display = 'none';
     });
   }
