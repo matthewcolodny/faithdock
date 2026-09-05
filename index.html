@@ -146,7 +146,9 @@
       'dir.showingDistancesYourLocation': 'Showing distances from your location.', 'dir.showingDistancesThisLocation': 'Showing distances from this location.',
       'dir.couldNotGetLocation': 'Could not get your location — try typing it instead.', 'dir.mapServiceLoading': 'Map service still loading — try again in a moment.',
       'dir.searching': 'Searching...', 'dir.couldNotFindLocation': "Couldn't find that location — try a different search.",
+      'dir.enterCityOrAddress': 'Enter a city or address',
       'auth.signupTab': 'Sign up', 'auth.loginTab': 'Log in', 'auth.fullName': 'Full name', 'auth.email': 'Email',
+      'auth.namePlaceholder': 'Jamie Rivera', 'auth.emailPlaceholder': 'jamie@email.com',
       'auth.password': 'Password', 'auth.passwordPlaceholder': 'At least 10 characters', 'auth.confirmPassword': 'Confirm password',
       'auth.confirmPasswordPlaceholder': 'Type it again', 'auth.forgotPassword': 'Forgot password?',
       'auth.sendResetLink': 'Send reset link', 'auth.backToLogin': '← Back to log in', 'auth.continue': 'Continue',
@@ -364,6 +366,9 @@
       'dashSettings.addStaffByEmail': 'Add staff by email',
       'dashSettings.addStaffHint': "If they already have a FaithDock account, they're added right away. If not, they'll get an email invite and join automatically once they sign up.",
       'dashSettings.addToTeam': 'Add to team',
+      'dashSettings.staffEmailPlaceholder': 'staffmember@email.com',
+      'dashSettings.staffFreeLocked': "Adding team members isn't included on the Free plan.",
+      'dashSettings.upgradeToAddTeam': 'Upgrade to add your team',
       'dashSettings.deleteChurch': 'Delete church',
       'dashSettings.deleteChurchWarningPre': 'This permanently deletes',
       'dashSettings.deleteChurchWarningPost': "and everything tied to it — events, groups, giving history, staff, and its public page. This can't be undone.",
@@ -407,7 +412,9 @@
       'dir.showingDistancesYourLocation': 'Mostrando distancias desde tu ubicación.', 'dir.showingDistancesThisLocation': 'Mostrando distancias desde esta ubicación.',
       'dir.couldNotGetLocation': 'No pudimos obtener tu ubicación — intenta escribirla.', 'dir.mapServiceLoading': 'El servicio de mapas aún se está cargando — intenta de nuevo en un momento.',
       'dir.searching': 'Buscando...', 'dir.couldNotFindLocation': 'No pudimos encontrar esa ubicación — intenta con otra búsqueda.',
+      'dir.enterCityOrAddress': 'Ingresa una ciudad o dirección',
       'auth.signupTab': 'Registrarse', 'auth.loginTab': 'Iniciar sesión', 'auth.fullName': 'Nombre completo', 'auth.email': 'Correo electrónico',
+      'auth.namePlaceholder': 'María López', 'auth.emailPlaceholder': 'maria@email.com',
       'auth.password': 'Contraseña', 'auth.passwordPlaceholder': 'Al menos 10 caracteres', 'auth.confirmPassword': 'Confirmar contraseña',
       'auth.confirmPasswordPlaceholder': 'Escríbela de nuevo', 'auth.forgotPassword': '¿Olvidaste tu contraseña?',
       'auth.sendResetLink': 'Enviar enlace', 'auth.backToLogin': '← Volver a iniciar sesión', 'auth.continue': 'Continuar',
@@ -625,6 +632,9 @@
       'dashSettings.addStaffByEmail': 'Agregar personal por correo electrónico',
       'dashSettings.addStaffHint': 'Si ya tienen una cuenta de FaithDock, se agregan de inmediato. Si no, recibirán una invitación por correo y se unirán automáticamente al registrarse.',
       'dashSettings.addToTeam': 'Agregar al equipo',
+      'dashSettings.staffEmailPlaceholder': 'personal@email.com',
+      'dashSettings.staffFreeLocked': 'Agregar miembros del equipo no está incluido en el plan Gratis.',
+      'dashSettings.upgradeToAddTeam': 'Mejora tu plan para agregar tu equipo',
       'dashSettings.deleteChurch': 'Eliminar iglesia',
       'dashSettings.deleteChurchWarningPre': 'Esto elimina permanentemente',
       'dashSettings.deleteChurchWarningPost': 'y todo lo relacionado — eventos, grupos, historial de donaciones, personal y su página pública. Esto no se puede deshacer.',
@@ -667,6 +677,15 @@
     document.querySelectorAll('[data-i18n-title]').forEach(function(el){
       var key = el.getAttribute('data-i18n-title');
       if (dict[key]) { el.setAttribute('title', dict[key]); el.setAttribute('aria-label', dict[key]); }
+    });
+    // contenteditable fields (.rte-editable) show their placeholder via
+    // CSS — :empty:before{content:attr(data-placeholder)} — not the
+    // real placeholder attribute, since contenteditable divs don't
+    // have one. Same idea as data-i18n-placeholder above, just a
+    // different HTML attribute underneath.
+    document.querySelectorAll('[data-i18n-data-placeholder]').forEach(function(el){
+      var key = el.getAttribute('data-i18n-data-placeholder');
+      if (dict[key]) el.setAttribute('data-placeholder', dict[key]);
     });
     // rc-heading / rc-submit-btn carry data-i18n for their default
     // (create-church) text, but switch to edit-church wording via JS
@@ -1512,7 +1531,7 @@
 
     <div class="location-row">
       <div class="autocomplete-wrap" style="flex:1;max-width:340px;display:flex;">
-        <input class="field" type="text" id="dir-location-input" placeholder="Enter a city or address" autocomplete="off" style="border-radius:8px 0 0 8px;border-right:none;">
+        <input class="field" type="text" id="dir-location-input" placeholder="Enter a city or address" data-i18n-placeholder="dir.enterCityOrAddress" autocomplete="off" style="border-radius:8px 0 0 8px;border-right:none;">
         <button id="dir-location-search-btn" style="background:var(--brand);color:#fff;border:none;padding:0 16px;border-radius:0 8px 8px 0;cursor:pointer;" aria-label="Search location"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;display:block;"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></button>
         <div class="autocomplete-list" id="dir-location-list"></div>
       </div>
@@ -2675,9 +2694,9 @@
       </div>
       <div id="signup-fields">
         <label data-i18n="auth.fullName">Full name</label>
-        <input class="field" type="text" id="signup-name" placeholder="Jamie Rivera" autocomplete="name">
+        <input class="field" type="text" id="signup-name" placeholder="Jamie Rivera" data-i18n-placeholder="auth.namePlaceholder" autocomplete="name">
         <label data-i18n="auth.email">Email</label>
-        <input class="field" type="email" id="signup-email" placeholder="jamie@email.com" autocomplete="email">
+        <input class="field" type="email" id="signup-email" placeholder="jamie@email.com" data-i18n-placeholder="auth.emailPlaceholder" autocomplete="email">
         <label data-i18n="auth.password">Password</label>
         <input class="field" type="password" id="signup-password" placeholder="At least 10 characters" data-i18n-placeholder="auth.passwordPlaceholder" autocomplete="new-password">
         <label data-i18n="auth.confirmPassword">Confirm password</label>
@@ -2685,14 +2704,14 @@
       </div>
       <div id="login-fields" style="display:none;">
         <label data-i18n="auth.email">Email</label>
-        <input class="field" type="email" id="login-email" placeholder="jamie@email.com" autocomplete="email">
+        <input class="field" type="email" id="login-email" placeholder="jamie@email.com" data-i18n-placeholder="auth.emailPlaceholder" autocomplete="email">
         <label data-i18n="auth.password">Password</label>
         <input class="field" type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
         <div style="text-align:right;margin-top:8px;"><a href="#" id="forgot-password-link" style="font-size:12.5px;color:var(--ink-mute);border-bottom:1px solid var(--line);" data-i18n="auth.forgotPassword">Forgot password?</a></div>
       </div>
       <div id="forgot-password-fields" style="display:none;">
         <label data-i18n="auth.email">Email</label>
-        <input class="field" type="email" id="forgot-password-email" placeholder="jamie@email.com" autocomplete="email">
+        <input class="field" type="email" id="forgot-password-email" placeholder="jamie@email.com" data-i18n-placeholder="auth.emailPlaceholder" autocomplete="email">
         <div id="forgot-password-status" style="display:none;font-size:12.5px;margin-top:10px;"></div>
         <button class="auth-submit" id="send-reset-link-btn" data-i18n="auth.sendResetLink">Send reset link</button>
         <div class="auth-note"><a href="#" id="back-to-login-link" style="border-bottom:1px solid var(--gold);" data-i18n="auth.backToLogin">← Back to log in</a></div>
@@ -3442,7 +3461,7 @@
             <button type="button" class="rte-btn" data-rte-cmd="link" data-rte-target="msg-body" aria-label="Add link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M10 13a5 5 0 0 0 7.5.5l2-2a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7.5-.5l-2 2a5 5 0 0 0 7 7l1-1"/></svg></button>
             <button type="button" class="rte-btn" data-rte-cmd="unlink" data-rte-target="msg-body" aria-label="Remove link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M10 13a5 5 0 0 0 7.5.5l2-2a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7.5-.5l-2 2a5 5 0 0 0 7 7l1-1"/><path d="M3 3l18 18"/></svg></button>
           </div>
-          <div class="field rte-editable" id="msg-body" contenteditable="true" data-placeholder="Write your announcement..." style="min-height:140px;border-radius:0 0 8px 8px;overflow-y:auto;max-height:340px;line-height:1.5;"></div>
+          <div class="field rte-editable" id="msg-body" contenteditable="true" data-placeholder="Write your announcement..." data-i18n-data-placeholder="dashMsg.writeAnnouncement" style="min-height:140px;border-radius:0 0 8px 8px;overflow-y:auto;max-height:340px;line-height:1.5;"></div>
 
           <div id="msg-recipient-count" style="font-size:12.5px;color:var(--ink-mute);margin-top:10px;"></div>
 
@@ -3797,7 +3816,7 @@
             <div id="team-owner-controls" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--line);">
               <label style="font-size:12.5px;" data-i18n="dashSettings.addStaffByEmail">Add staff by email</label>
               <div style="font-size:11.5px;color:var(--ink-mute);margin-bottom:6px;" data-i18n="dashSettings.addStaffHint">If they already have a FaithDock account, they're added right away. If not, they'll get an email invite and join automatically once they sign up.</div>
-              <input class="field" type="email" id="team-invite-email" placeholder="staffmember@email.com" style="font-size:13px;padding:9px 10px;">
+              <input class="field" type="email" id="team-invite-email" placeholder="staffmember@email.com" data-i18n-placeholder="dashSettings.staffEmailPlaceholder" style="font-size:13px;padding:9px 10px;">
               <button class="export-btn" id="team-invite-btn" style="width:100%;justify-content:center;margin-top:8px;" data-i18n="dashSettings.addToTeam">Add to team</button>
               <div id="team-invite-status" style="display:none;font-size:12px;margin-top:8px;"></div>
             </div>
@@ -3907,7 +3926,7 @@
 
 </main>
 
-<footer>FaithDock prototype — visual concept, not a live product · build 2026-09-04-v171 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;">Accessibility</a></footer>
+<footer>FaithDock prototype — visual concept, not a live product · build 2026-09-04-v172 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -9382,14 +9401,19 @@
     // plan.
     if (isOwner) {
       if (staffLimit === 0) {
-        ownerControls.innerHTML = '<p style="font-size:13px;color:var(--ink-mute);margin-bottom:10px;">Adding team members isn\'t included on the Free plan.</p>'
-          + '<a href="#pricing" data-route="pricing" class="export-btn" style="width:100%;justify-content:center;display:flex;">Upgrade to add your team</a>'
+        ownerControls.innerHTML = '<p style="font-size:13px;color:var(--ink-mute);margin-bottom:10px;">' + window.t('dashSettings.staffFreeLocked') + '</p>'
+          + '<a href="#pricing" data-route="pricing" class="export-btn" style="width:100%;justify-content:center;display:flex;">' + window.t('dashSettings.upgradeToAddTeam') + '</a>'
           + '<div id="team-invite-status" style="display:none;font-size:12px;margin-top:8px;"></div>';
       } else {
-        ownerControls.innerHTML = '<label style="font-size:12.5px;">Add staff by email</label>'
-          + '<div style="font-size:11.5px;color:var(--ink-mute);margin-bottom:6px;">If they already have a FaithDock account, they\'re added right away. If not, they\'ll get an email invite and join automatically once they sign up.</div>'
-          + '<input class="field" type="email" id="team-invite-email" placeholder="staffmember@email.com" style="font-size:13px;padding:9px 10px;">'
-          + '<button class="export-btn" id="team-invite-btn" style="width:100%;justify-content:center;margin-top:8px;">Add to team</button>'
+        // Mirrors the static #team-owner-controls markup on the
+        // Settings page (same labels/placeholder, same i18n keys) —
+        // this JS-built version is what actually renders when this
+        // function runs, so it needs the same translation, not just
+        // the static HTML template it's built to match.
+        ownerControls.innerHTML = '<label style="font-size:12.5px;">' + window.t('dashSettings.addStaffByEmail') + '</label>'
+          + '<div style="font-size:11.5px;color:var(--ink-mute);margin-bottom:6px;">' + window.t('dashSettings.addStaffHint') + '</div>'
+          + '<input class="field" type="email" id="team-invite-email" placeholder="staffmember@email.com" data-i18n-placeholder="dashSettings.staffEmailPlaceholder" style="font-size:13px;padding:9px 10px;">'
+          + '<button class="export-btn" id="team-invite-btn" style="width:100%;justify-content:center;margin-top:8px;">' + window.t('dashSettings.addToTeam') + '</button>'
           + '<div id="team-invite-status" style="display:none;font-size:12px;margin-top:8px;"></div>';
         // The click handler below is bound once at page-load time,
         // to the original HTML element — replacing this element's
