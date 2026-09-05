@@ -142,6 +142,10 @@
       'home.locationPlaceholder': 'Enter your city or zip code', 'home.browseBtn': 'Browse churches',
       'home.viewDirectory': 'View directory', 'home.upcomingEvents': 'Upcoming events', 'home.viewAllEvents': 'View all events',
       'home.churchesNearYou': 'Churches near you', 'home.churchesNear': 'Churches near', 'home.upcomingEventsNear': 'Upcoming events near',
+      'dir.geoNotSupported': 'Geolocation not supported by this browser.', 'dir.findingYou': 'Finding you...',
+      'dir.showingDistancesYourLocation': 'Showing distances from your location.', 'dir.showingDistancesThisLocation': 'Showing distances from this location.',
+      'dir.couldNotGetLocation': 'Could not get your location — try typing it instead.', 'dir.mapServiceLoading': 'Map service still loading — try again in a moment.',
+      'dir.searching': 'Searching...', 'dir.couldNotFindLocation': "Couldn't find that location — try a different search.",
       'auth.signupTab': 'Sign up', 'auth.loginTab': 'Log in', 'auth.fullName': 'Full name', 'auth.email': 'Email',
       'auth.password': 'Password', 'auth.passwordPlaceholder': 'At least 10 characters', 'auth.confirmPassword': 'Confirm password',
       'auth.confirmPasswordPlaceholder': 'Type it again', 'auth.forgotPassword': 'Forgot password?',
@@ -161,6 +165,9 @@
       'filters.noCategoriesYet': 'No categories yet.', 'filters.noEventsMatch': 'No events match these filters. Try widening your search.',
       'filters.filterSearches': 'Filter searches',
       'filters.noneSelected': 'None selected', 'filters.allSelected': 'All selected', 'filters.nSelected': 'selected',
+      'denom.baptist': 'Baptist', 'denom.catholic': 'Catholic', 'denom.episcopal': 'Episcopal', 'denom.lutheran': 'Lutheran',
+      'denom.methodist': 'Methodist', 'denom.nonDenominational': 'Non-denominational', 'denom.pentecostal': 'Pentecostal',
+      'denom.presbyterian': 'Presbyterian', 'denom.other': 'Other',
       'filters.oneChurchFound': 'church found', 'filters.manyChurchesFound': 'churches found',
       'filters.noChurchesMatch': 'No churches match these filters. Try widening your search.',
       'rc.churchName': 'Church name', 'rc.denomination': 'Denomination', 'rc.selectOne': 'Select one', 'rc.other': 'Other',
@@ -394,6 +401,10 @@
       'home.locationPlaceholder': 'Ingresa tu ciudad o código postal', 'home.browseBtn': 'Explorar iglesias',
       'home.viewDirectory': 'Ver directorio', 'home.upcomingEvents': 'Próximos eventos', 'home.viewAllEvents': 'Ver todos los eventos',
       'home.churchesNearYou': 'Iglesias cerca de ti', 'home.churchesNear': 'Iglesias cerca de', 'home.upcomingEventsNear': 'Próximos eventos cerca de',
+      'dir.geoNotSupported': 'Este navegador no admite geolocalización.', 'dir.findingYou': 'Buscándote...',
+      'dir.showingDistancesYourLocation': 'Mostrando distancias desde tu ubicación.', 'dir.showingDistancesThisLocation': 'Mostrando distancias desde esta ubicación.',
+      'dir.couldNotGetLocation': 'No pudimos obtener tu ubicación — intenta escribirla.', 'dir.mapServiceLoading': 'El servicio de mapas aún se está cargando — intenta de nuevo en un momento.',
+      'dir.searching': 'Buscando...', 'dir.couldNotFindLocation': 'No pudimos encontrar esa ubicación — intenta con otra búsqueda.',
       'auth.signupTab': 'Registrarse', 'auth.loginTab': 'Iniciar sesión', 'auth.fullName': 'Nombre completo', 'auth.email': 'Correo electrónico',
       'auth.password': 'Contraseña', 'auth.passwordPlaceholder': 'Al menos 10 caracteres', 'auth.confirmPassword': 'Confirmar contraseña',
       'auth.confirmPasswordPlaceholder': 'Escríbela de nuevo', 'auth.forgotPassword': '¿Olvidaste tu contraseña?',
@@ -413,6 +424,9 @@
       'filters.noCategoriesYet': 'Aún no hay categorías.', 'filters.noEventsMatch': 'Ningún evento coincide con estos filtros. Intenta ampliar tu búsqueda.',
       'filters.filterSearches': 'Filtrar búsqueda',
       'filters.noneSelected': 'Ninguna seleccionada', 'filters.allSelected': 'Todas seleccionadas', 'filters.nSelected': 'seleccionadas',
+      'denom.baptist': 'Bautista', 'denom.catholic': 'Católica', 'denom.episcopal': 'Episcopal', 'denom.lutheran': 'Luterana',
+      'denom.methodist': 'Metodista', 'denom.nonDenominational': 'No denominacional', 'denom.pentecostal': 'Pentecostal',
+      'denom.presbyterian': 'Presbiteriana', 'denom.other': 'Otra',
       'filters.oneChurchFound': 'iglesia encontrada', 'filters.manyChurchesFound': 'iglesias encontradas',
       'filters.noChurchesMatch': 'Ninguna iglesia coincide con estos filtros. Intenta ampliar tu búsqueda.',
       'rc.churchName': 'Nombre de la iglesia', 'rc.denomination': 'Denominación', 'rc.selectOne': 'Selecciona una', 'rc.other': 'Otra',
@@ -660,9 +674,31 @@
       var rcSubmitEl = document.getElementById('rc-submit-btn');
       if (rcSubmitEl && dict['rc.saveChanges']) rcSubmitEl.textContent = dict['rc.saveChanges'];
     }
+    // Same reasoning as rc-heading/rc-submit-btn above: this text is
+    // set dynamically by loadProfilePage() (from a DB value, not a
+    // static data-i18n span), so switching language while already on
+    // the Profile page left it stuck in whatever language it was last
+    // rendered in until a full page reload re-ran that function.
+    // window.userAccountType (set in updateAuthUI, not re-queried
+    // here) is the same "is this a church account" flag that function
+    // itself reads.
+    var profileAccountTypeEl = document.getElementById('profile-account-type');
+    if (profileAccountTypeEl) {
+      profileAccountTypeEl.textContent = (window.userAccountType === 'church') ? dict['profile.churchPartnerAccount'] : dict['profile.individualAccount'];
+    }
     document.documentElement.setAttribute('lang', lang);
     window.currentLang = lang;
     try { localStorage.setItem('faithdock_lang', lang); } catch (e) {}
+    // #denom-dropdown-label carries data-i18n="filters.allSelected" as
+    // its default text, so the generic [data-i18n] pass above always
+    // resets it to "All selected" — wrong whenever some denominations
+    // are actually unchecked ("3 selected"/"None selected"). Recompute
+    // it for real, the same way toggling any one checkbox already
+    // does. Must run after window.currentLang is updated just above —
+    // it calls window.t() internally, which reads that value; calling
+    // this any earlier silently used the OLD language regardless of
+    // what dict was passed in here.
+    if (typeof window.updateDenomDropdownLabel === 'function') window.updateDenomDropdownLabel();
   }
   window.applyTranslations = applyTranslations;
   window.t = function(key){
@@ -1495,15 +1531,15 @@
           <div id="denom-dropdown-panel" style="display:none;position:fixed;background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,0.16);padding:12px;z-index:200;max-height:320px;overflow-y:auto;">
             <input class="field" type="text" id="filter-denom-search" placeholder="Search denomination..." style="margin-bottom:10px;" data-i18n-placeholder="filters.searchDenomination">
             <div id="filter-denom-checks">
-              <label class="filter-check"><input type="checkbox" class="denom-filter" value="Baptist" checked> Baptist</label>
-              <label class="filter-check"><input type="checkbox" class="denom-filter" value="Catholic" checked> Catholic</label>
-              <label class="filter-check"><input type="checkbox" class="denom-filter" value="Episcopal" checked> Episcopal</label>
-              <label class="filter-check"><input type="checkbox" class="denom-filter" value="Lutheran" checked> Lutheran</label>
-              <label class="filter-check"><input type="checkbox" class="denom-filter" value="Methodist" checked> Methodist</label>
-              <label class="filter-check"><input type="checkbox" class="denom-filter" value="Non-denominational" checked> Non-denominational</label>
-              <label class="filter-check"><input type="checkbox" class="denom-filter" value="Pentecostal" checked> Pentecostal</label>
-              <label class="filter-check"><input type="checkbox" class="denom-filter" value="Presbyterian" checked> Presbyterian</label>
-              <label class="filter-check"><input type="checkbox" class="denom-filter" value="Other" checked id="denom-other-checkbox"> Other</label>
+              <label class="filter-check"><input type="checkbox" class="denom-filter" value="Baptist" checked> <span data-i18n="denom.baptist">Baptist</span></label>
+              <label class="filter-check"><input type="checkbox" class="denom-filter" value="Catholic" checked> <span data-i18n="denom.catholic">Catholic</span></label>
+              <label class="filter-check"><input type="checkbox" class="denom-filter" value="Episcopal" checked> <span data-i18n="denom.episcopal">Episcopal</span></label>
+              <label class="filter-check"><input type="checkbox" class="denom-filter" value="Lutheran" checked> <span data-i18n="denom.lutheran">Lutheran</span></label>
+              <label class="filter-check"><input type="checkbox" class="denom-filter" value="Methodist" checked> <span data-i18n="denom.methodist">Methodist</span></label>
+              <label class="filter-check"><input type="checkbox" class="denom-filter" value="Non-denominational" checked> <span data-i18n="denom.nonDenominational">Non-denominational</span></label>
+              <label class="filter-check"><input type="checkbox" class="denom-filter" value="Pentecostal" checked> <span data-i18n="denom.pentecostal">Pentecostal</span></label>
+              <label class="filter-check"><input type="checkbox" class="denom-filter" value="Presbyterian" checked> <span data-i18n="denom.presbyterian">Presbyterian</span></label>
+              <label class="filter-check"><input type="checkbox" class="denom-filter" value="Other" checked id="denom-other-checkbox"> <span data-i18n="denom.other">Other</span></label>
             </div>
           </div>
         </div>
@@ -3842,7 +3878,7 @@
 
 </main>
 
-<footer>FaithDock prototype — visual concept, not a live product · build 2026-09-04-v166 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;">Accessibility</a></footer>
+<footer>FaithDock prototype — visual concept, not a live product · build 2026-09-04-v167 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -5786,6 +5822,28 @@
     langToggleBtn.addEventListener('click', function(){
       var nextLang = window.currentLang === 'es' ? 'en' : 'es';
       applyTranslations(nextLang);
+      // applyTranslations() only fixes static [data-i18n] elements
+      // (plus a couple of known-dynamic spots it special-cases
+      // directly, like rc-heading and the denomination dropdown
+      // label). Whole pages that build their content by concatenating
+      // window.t() into HTML strings at fetch-time — My Churches, My
+      // Events, My Groups, Profile, Pricing — need to actually
+      // re-render, not just have their now-stale strings left in
+      // place until a full reload. Re-running the currently active
+      // one is cheap (all five are simple, already-idempotent page
+      // loaders called this same way elsewhere) and safe (each is a
+      // no-op if its own page isn't currently showing). Deliberately
+      // NOT including Directory/Events search results here — those
+      // re-renders are full server-side re-fetches that would also
+      // reset in-progress pagination, a worse tradeoff for a translation
+      // fix than leaving already-rendered card text as-is until the
+      // next real search.
+      var currentBase = (typeof window.resolveRouteFromHash === 'function') ? window.resolveRouteFromHash(location.hash).base : null;
+      if (currentBase === 'my-churches' && typeof window.loadMyChurches === 'function') window.loadMyChurches();
+      if (currentBase === 'my-events' && typeof window.loadMyEvents === 'function') window.loadMyEvents();
+      if (currentBase === 'my-groups' && typeof window.loadMyGroups === 'function') window.loadMyGroups();
+      if (currentBase === 'profile' && typeof window.loadProfilePage === 'function') window.loadProfilePage();
+      if (currentBase === 'pricing' && typeof window.populatePricingPage === 'function') window.populatePricingPage();
     });
   }
 
@@ -6095,10 +6153,10 @@
     dirUseLocationBtn.addEventListener('click', function(){
       var statusEl = document.getElementById('dir-location-status');
       if (!navigator.geolocation) {
-        statusEl.textContent = 'Geolocation not supported by this browser.';
+        statusEl.textContent = window.t('dir.geoNotSupported');
         return;
       }
-      statusEl.textContent = 'Finding you...';
+      statusEl.textContent = window.t('dir.findingYou');
       navigator.geolocation.getCurrentPosition(function(pos){
         var lat = pos.coords.latitude, lng = pos.coords.longitude;
         if (window.google && google.maps) {
@@ -6106,14 +6164,14 @@
           geocoder.geocode({ location: { lat: lat, lng: lng } }, function(results, status){
             var label = (status === 'OK' && results && results[0]) ? results[0].formatted_address : (lat.toFixed(3) + ', ' + lng.toFixed(3));
             setDirLocation(lat, lng, label);
-            statusEl.textContent = 'Showing distances from your location.';
+            statusEl.textContent = window.t('dir.showingDistancesYourLocation');
           });
         } else {
           setDirLocation(lat, lng, 'Your location');
-          statusEl.textContent = 'Showing distances from your location.';
+          statusEl.textContent = window.t('dir.showingDistancesYourLocation');
         }
       }, function(err){
-        statusEl.textContent = 'Could not get your location — try typing it instead.';
+        statusEl.textContent = window.t('dir.couldNotGetLocation');
       });
     });
   }
@@ -6127,7 +6185,7 @@
       var place = autocomplete.getPlace();
       if (place.geometry && place.geometry.location) {
         setDirLocation(place.geometry.location.lat(), place.geometry.location.lng(), place.formatted_address || dirLocationInput.value);
-        document.getElementById('dir-location-status').textContent = 'Showing distances from this location.';
+        document.getElementById('dir-location-status').textContent = window.t('dir.showingDistancesThisLocation');
       }
     });
   }
@@ -6144,17 +6202,17 @@
     var query = dirLocationInput.value;
     var statusEl = document.getElementById('dir-location-status');
     if (!query || query.length < 2) { return; }
-    if (!(window.google && google.maps)) { statusEl.textContent = 'Map service still loading — try again in a moment.'; return; }
-    statusEl.textContent = 'Searching...';
+    if (!(window.google && google.maps)) { statusEl.textContent = window.t('dir.mapServiceLoading'); return; }
+    statusEl.textContent = window.t('dir.searching');
     var geocoder = new google.maps.Geocoder();
     geocoder.geocode({ address: query }, function(results, status){
       if (status !== 'OK' || !results.length) {
-        statusEl.textContent = 'Couldn\'t find that location — try a different search.';
+        statusEl.textContent = window.t('dir.couldNotFindLocation');
         return;
       }
       var loc = results[0].geometry.location;
       setDirLocation(loc.lat(), loc.lng(), results[0].formatted_address);
-      statusEl.textContent = 'Showing distances from this location.';
+      statusEl.textContent = window.t('dir.showingDistancesThisLocation');
     });
   }
   var dirLocationSearchBtn = document.getElementById('dir-location-search-btn');
@@ -6174,10 +6232,10 @@
     eventsUseLocationBtn.addEventListener('click', function(){
       var statusEl = document.getElementById('events-location-status');
       if (!navigator.geolocation) {
-        statusEl.textContent = 'Geolocation not supported by this browser.';
+        statusEl.textContent = window.t('dir.geoNotSupported');
         return;
       }
-      statusEl.textContent = 'Finding you...';
+      statusEl.textContent = window.t('dir.findingYou');
       navigator.geolocation.getCurrentPosition(function(pos){
         var lat = pos.coords.latitude, lng = pos.coords.longitude;
         if (window.google && google.maps) {
@@ -6185,14 +6243,14 @@
           geocoder.geocode({ location: { lat: lat, lng: lng } }, function(results, status){
             var label = (status === 'OK' && results && results[0]) ? results[0].formatted_address : (lat.toFixed(3) + ', ' + lng.toFixed(3));
             setDirLocation(lat, lng, label);
-            statusEl.textContent = 'Showing distances from your location.';
+            statusEl.textContent = window.t('dir.showingDistancesYourLocation');
           });
         } else {
           setDirLocation(lat, lng, 'Your location');
-          statusEl.textContent = 'Showing distances from your location.';
+          statusEl.textContent = window.t('dir.showingDistancesYourLocation');
         }
       }, function(err){
-        statusEl.textContent = 'Could not get your location — try typing it instead.';
+        statusEl.textContent = window.t('dir.couldNotGetLocation');
       });
     });
   }
@@ -6206,7 +6264,7 @@
       var place = autocomplete.getPlace();
       if (place.geometry && place.geometry.location) {
         setDirLocation(place.geometry.location.lat(), place.geometry.location.lng(), place.formatted_address || eventsLocationInput.value);
-        document.getElementById('events-location-status').textContent = 'Showing distances from this location.';
+        document.getElementById('events-location-status').textContent = window.t('dir.showingDistancesThisLocation');
       }
     });
   }
@@ -6216,17 +6274,17 @@
     var query = eventsLocationInput.value;
     var statusEl = document.getElementById('events-location-status');
     if (!query || query.length < 2) { return; }
-    if (!(window.google && google.maps)) { statusEl.textContent = 'Map service still loading — try again in a moment.'; return; }
-    statusEl.textContent = 'Searching...';
+    if (!(window.google && google.maps)) { statusEl.textContent = window.t('dir.mapServiceLoading'); return; }
+    statusEl.textContent = window.t('dir.searching');
     var geocoder = new google.maps.Geocoder();
     geocoder.geocode({ address: query }, function(results, status){
       if (status !== 'OK' || !results.length) {
-        statusEl.textContent = 'Couldn\'t find that location — try a different search.';
+        statusEl.textContent = window.t('dir.couldNotFindLocation');
         return;
       }
       var loc = results[0].geometry.location;
       setDirLocation(loc.lat(), loc.lng(), results[0].formatted_address);
-      statusEl.textContent = 'Showing distances from this location.';
+      statusEl.textContent = window.t('dir.showingDistancesThisLocation');
     });
   }
   var eventsLocationSearchBtn = document.getElementById('events-location-search-btn');
