@@ -1979,13 +1979,17 @@
          admin accounts (see updateAuthUI's dashLink comment) even
          when that account also owns a church — this is the one place
          left to reach it, since typing #dashboard into the address
-         bar is the only other way in. Shown unconditionally rather
-         than gated on window.hasChurchAccess: that flag isn't
-         guaranteed fresh yet when loadAdminPanel() runs (it's resolved
-         by a separate query later in the same updateAuthUI call), and
-         the dashboard itself already shows a graceful "No church
-         found" state for an admin who hasn't registered one. -->
-    <a href="#dashboard" data-route="dashboard" style="display:inline-block;margin-top:8px;font-size:13.5px;font-weight:600;color:var(--ink);border-bottom:1px solid var(--gold);padding-bottom:2px;">My church dashboard →</a>
+         bar is the only other way in.
+         Deliberately NOT a plain data-route="dashboard" link: go()
+         itself silently redirects #dashboard to #home whenever
+         window.hasChurchAccess === false (confirmed, not just
+         unresolved) — correct as a general rule, but a platform admin
+         clicking this specific link almost certainly hasn't registered
+         a church under this account yet, and landing silently on the
+         marketing hero with zero explanation is useless. The dedicated
+         click handler below (search admin-my-church-dashboard-link)
+         sends them to register one instead when that's the case. -->
+    <a href="#dashboard" id="admin-my-church-dashboard-link" style="display:inline-block;margin-top:8px;font-size:13.5px;font-weight:600;color:var(--ink);border-bottom:1px solid var(--gold);padding-bottom:2px;">My church dashboard →</a>
 
     <h2 style="font-size:20px;margin-top:36px;margin-bottom:16px;">Pending church verifications</h2>
     <div id="admin-verifications-list">
@@ -3889,7 +3893,7 @@
 
 </main>
 
-<footer>FaithDock prototype — visual concept, not a live product · build 2026-09-04-v168 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;">Accessibility</a></footer>
+<footer>FaithDock prototype — visual concept, not a live product · build 2026-09-04-v169 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13638,6 +13642,17 @@
     loadAdminFeedbackList();
   }
   window.loadAdminPanel = loadAdminPanel;
+
+  var adminMyChurchDashboardLink = document.getElementById('admin-my-church-dashboard-link');
+  if (adminMyChurchDashboardLink) {
+    adminMyChurchDashboardLink.addEventListener('click', function(ev){
+      ev.preventDefault();
+      // === false specifically (not just falsy) — same leniency as
+      // go()'s own dashboard guard: if this hasn't resolved yet, try
+      // the dashboard as normal rather than assuming "no church."
+      go(window.hasChurchAccess === false ? 'register-church' : 'dashboard');
+    });
+  }
 
   var adminSupportOffset = 0;
   async function loadAdminSupportList(append){
