@@ -260,7 +260,7 @@
       'profile.yesSaveIt': 'Yes, save it', 'profile.cancel': 'Cancel',
       'pricing.eyebrow': 'Pricing', 'pricing.title': 'Become a Partner Church',
       'pricing.subtitle': 'Free to be listed. Upgrade for tools that help you grow and stay connected with your congregation.',
-      'pricing.compareLink': 'See how FaithDock compares to Breeze & Planning Center →', 'pricing.perMonth': ' / month',
+      'pricing.compareLink': 'See how FaithDock compares to Breeze & Planning Center →', 'pricing.perMonth': ' / month', 'pricing.mostPopular': 'Most popular',
       'pricing.free.name': 'Free', 'pricing.free.f1': 'Listing in the public directory', 'pricing.free.f2': 'Dashboard access',
       'pricing.free.f3': 'Up to 8 events / month, 3 groups', 'pricing.free.f4': 'Unlimited donations via Giving',
       'pricing.free.f5': 'Event reminders', 'pricing.free.cta': 'Get started free',
@@ -512,20 +512,20 @@
       'profile.yesSaveIt': 'Sí, guardarlo', 'profile.cancel': 'Cancelar',
       'pricing.eyebrow': 'Precios', 'pricing.title': 'Únete como iglesia asociada',
       'pricing.subtitle': 'Gratis para aparecer en el directorio. Mejora tu plan para obtener herramientas que te ayuden a crecer y a mantenerte conectado con tu congregación.',
-      'pricing.compareLink': 'Mira cómo se compara FaithDock con Breeze y Planning Center →', 'pricing.perMonth': ' / mes',
+      'pricing.compareLink': 'Mira cómo se compara FaithDock con Breeze y Planning Center →', 'pricing.perMonth': ' / mes', 'pricing.mostPopular': 'Más popular',
       'pricing.free.name': 'Gratis', 'pricing.free.f1': 'Listado en el directorio público', 'pricing.free.f2': 'Acceso al panel',
       'pricing.free.f3': 'Hasta 8 eventos al mes, 3 grupos', 'pricing.free.f4': 'Donaciones ilimitadas mediante Donaciones',
       'pricing.free.f5': 'Recordatorios de eventos', 'pricing.free.cta': 'Comenzar gratis',
-      'pricing.starter.name': 'Starter', 'pricing.starter.f1': 'Todo lo del plan Gratis', 'pricing.starter.f2': 'Hasta 20 eventos al mes, 6 grupos',
+      'pricing.starter.name': 'Inicial', 'pricing.starter.f1': 'Todo lo del plan Gratis', 'pricing.starter.f2': 'Hasta 20 eventos al mes, 6 grupos',
       'pricing.starter.f3': 'Hasta 2 invitaciones de personal', 'pricing.starter.f4': 'Importaci\u00f3n de miembros de la congregaci\u00f3n',
       'pricing.starter.f5': 'Eventos de pago con precio de entrada', 'pricing.starter.cta': 'Comenzar plan Starter',
       'pricing.medium.name': 'Est\u00e1ndar', 'pricing.medium.f1': 'Todo lo del plan Starter', 'pricing.medium.f2': 'Hasta 50 eventos al mes, 12 grupos',
       'pricing.medium.f3': 'Hasta 8 invitaciones de personal', 'pricing.medium.f4': 'Importaci\u00f3n de miembros de la congregaci\u00f3n',
       'pricing.medium.f5': 'Correo masivo a miembros, grupos y eventos', 'pricing.medium.f6': 'Asistente de escritura con IA para descripciones de eventos', 'pricing.medium.cta': 'Comenzar plan Est\u00e1ndar',
-      'pricing.large.name': 'Premium', 'pricing.large.f1': 'Todo lo del plan Est\u00e1ndar', 'pricing.large.f2': 'Hasta 75 eventos al mes, 30 grupos \u2014 por iglesia',
+      'pricing.large.name': 'Avanzado', 'pricing.large.f1': 'Todo lo del plan Est\u00e1ndar', 'pricing.large.f2': 'Hasta 75 eventos al mes, 30 grupos \u2014 por iglesia',
       'pricing.large.churchCap': 'Hasta 5 iglesias', 'pricing.large.f3': 'Invitaciones de personal ilimitadas', 'pricing.large.f4': 'Rotaci\u00f3n prioritaria en la b\u00fasqueda de eventos',
       'pricing.multiChurch.name': 'Multi-Iglesia', 'pricing.multiChurch.price': 'Personalizado',
-      'pricing.multiChurch.f1': 'Todo lo del plan Premium', 'pricing.multiChurch.f2': 'Iglesias ilimitadas',
+      'pricing.multiChurch.f1': 'Todo lo del plan Avanzado', 'pricing.multiChurch.f2': 'Iglesias ilimitadas',
       'pricing.multiChurch.f3': 'L\u00edmites de eventos y grupos personalizados por iglesia', 'pricing.multiChurch.f4': 'Precios y facturaci\u00f3n negociados',
       'pricing.multiChurch.cta': 'Contactar a Ventas',
       'pricing.large.cta': 'Comenzar plan Premium', 'pricing.yourCurrentPlan': 'Tu plan actual',
@@ -963,25 +963,48 @@
     #events-filter-body{display:none;margin-top:18px;}
     #events-filter-body.open{display:block;}
   }
-  /* auto-fit rather than a hardcoded column count — 5 tiers (Phase 2)
-     don't fit legibly in 5 equal columns at this page's ~1024px content
-     width (each would land under 190px, too narrow for multi-line
-     feature lists); this wraps to however many 240px+ cards actually
-     fit per row instead of cramming all of them into one. */
+  /* Generic default — auto-fit so the unrelated Conference-page ticket
+     grid (3 cards, also .pricing-grid/.price-card) still lays out
+     reasonably without being tied to the pricing page's 5-tier count. */
   .pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:24px;margin-top:36px;}
   @media (max-width:860px){.pricing-grid{grid-template-columns:1fr;}}
+  /* Pricing page specifically: all 5 tiers in one row on desktop, per
+     request — needs real room to not look cramped, so the page's own
+     .wrap is widened (scoped by #page-pricing, not the shared .wrap
+     class every other page uses) rather than force-fitting 5 columns
+     into the standard 1080px content width. */
+  #page-pricing .wrap{max-width:1320px;}
+  #page-pricing .pricing-grid{grid-template-columns:repeat(5,1fr);}
+  /* Grid items default to min-width:auto, meaning a track can't shrink
+     below its content's natural minimum width — confirmed live: the
+     Spanish "Personalizado" (Multi-Church's price, replacing English's
+     shorter "Custom") is one long unbreakable word at 38px font-size
+     that was forcing that one column wider than its fair 1fr share,
+     squeezing the other four. min-width:0 here (paired with
+     overflow-wrap on .price-amount so a long word wraps instead of
+     overflowing) lets all 5 columns actually stay equal width. */
+  #page-pricing .price-card{min-width:0;}
+  @media (max-width:1100px){#page-pricing .pricing-grid{grid-template-columns:repeat(3,1fr);}}
+  @media (max-width:860px){#page-pricing .pricing-grid{grid-template-columns:1fr;}}
   .price-card{
     background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
     padding:32px 26px;display:flex;flex-direction:column;
   }
   .price-card.featured{border:2px solid var(--gold);position:relative;}
-  .price-card.featured::before{
-    content:"Most popular";position:absolute;top:-13px;left:26px;background:var(--gold);
+  /* A real element with data-i18n, not ::before content — CSS pseudo-
+     element content is a static string with no language-switch hook,
+     which is exactly why this badge stayed English-only in Spanish
+     mode until this fix. Shared with the unrelated Conference-page
+     ticket grid (also .price-card.featured) — that page isn't
+     internationalized at all, so its badge keeps plain hardcoded text
+     rather than a data-i18n key. */
+  .featured-badge{
+    position:absolute;top:-13px;left:26px;background:var(--gold);
     color:var(--brand);font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;
     font-family:'IBM Plex Mono';letter-spacing:.04em;text-transform:uppercase;
   }
   .price-card h3{font-size:19px;}
-  .price-amount{font-family:'Fraunces';font-size:38px;color:var(--ink);margin:14px 0 4px;font-weight:600;}
+  .price-amount{font-family:'Fraunces';font-size:38px;color:var(--ink);margin:14px 0 4px;font-weight:600;overflow-wrap:break-word;}
   .price-amount span{font-size:15px;color:var(--ink-mute);font-family:'IBM Plex Sans';font-weight:400;}
   .price-card ul{list-style:none;padding:0;margin:20px 0;flex:1;}
   .price-card li{padding:8px 0;border-top:1px solid var(--line);font-size:14.5px;display:flex;gap:8px;}
@@ -2196,7 +2219,7 @@
       </div>
       <div class="price-card">
         <h3 data-i18n="pricing.starter.name">Starter</h3>
-        <div class="price-amount">$15<span data-i18n="pricing.perMonth"> / month</span></div>
+        <div class="price-amount">$19<span data-i18n="pricing.perMonth"> / month</span></div>
         <ul>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> <span data-i18n="pricing.starter.f1">Everything in Free</span></li>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> <span data-i18n="pricing.starter.f2">Up to 20 events / month, 6 groups</span></li>
@@ -2207,6 +2230,7 @@
         <button class="price-btn" id="pricing-starter-btn" onclick="window.startPlanCheckout && window.startPlanCheckout('starter')" data-i18n="pricing.starter.cta">Start Starter plan</button>
       </div>
       <div class="price-card featured">
+        <span class="featured-badge" data-i18n="pricing.mostPopular">Most popular</span>
         <h3 data-i18n="pricing.medium.name">Standard</h3>
         <div class="price-amount">$39<span data-i18n="pricing.perMonth"> / month</span></div>
         <ul>
@@ -2416,6 +2440,7 @@
         <button class="price-btn">Join the waitlist</button>
       </div>
       <div class="price-card featured">
+        <span class="featured-badge">Most popular</span>
         <h3>Church Group</h3>
         <div class="price-amount">$35<span> / person</span></div>
         <ul>
@@ -3641,9 +3666,9 @@
           <h4 data-i18n="dashBilling.currentPlan">Current plan</h4>
           <div class="info-row" id="billing-plan-row">Loading...</div>
           <div class="info-row" id="billing-period-row" style="display:none;"></div>
-          <div id="billing-past-due-warning" style="display:none;color:var(--clay);font-size:13px;margin-top:8px;" data-i18n="dashBilling.pastDueWarning">Your last payment didn't go through — please update your card to avoid losing Standard/Premium features.</div>
+          <div id="billing-past-due-warning" style="display:none;color:var(--clay);font-size:13px;margin-top:8px;" data-i18n="dashBilling.pastDueWarning">Your last payment didn't go through — please update your card to avoid losing paid-plan features.</div>
           <button class="btn-gold" id="billing-manage-btn" style="margin-top:14px;display:none;" data-i18n="dashBilling.manageBilling">Manage billing</button>
-          <a href="#pricing" data-route="pricing" id="billing-upgrade-link" class="btn-gold" style="margin-top:14px;display:none;text-decoration:none;" data-i18n="dashBilling.viewPlans">View plans</a>
+          <a href="#pricing" data-route="pricing" id="billing-upgrade-link" class="btn-gold" style="margin-top:14px;margin-left:10px;display:none;text-decoration:none;" data-i18n="dashBilling.viewPlans">View plans</a>
           <div id="billing-status" style="display:none;font-size:12.5px;margin-top:10px;color:var(--clay);"></div>
         </div>
       </div>
@@ -3816,7 +3841,7 @@
 
 </main>
 
-<footer>FaithDock prototype — visual concept, not a live product · build 2026-09-04-v163 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;">Accessibility</a></footer>
+<footer>FaithDock prototype — visual concept, not a live product · build 2026-09-04-v164 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12768,7 +12793,7 @@
   }
   window.checkForCompletedSubscription = checkForCompletedSubscription;
 
-  var planLabels = { free: 'Free', starter: 'Starter — $15 / month', standard: 'Medium — $39 / month', premium: 'Large — $79 / month', multi_church: 'Multi-Church — Custom' };
+  var planLabels = { free: 'Free', starter: 'Starter — $19 / month', standard: 'Medium — $39 / month', premium: 'Large — $79 / month', multi_church: 'Multi-Church — Custom' };
 
   async function loadBillingPanel(){
     var planRow = document.getElementById('billing-plan-row');
@@ -12795,7 +12820,16 @@
     }
     pastDueWarning.style.display = (row && row.subscription_status === 'past_due') ? 'block' : 'none';
     manageBtn.style.display = (planType !== 'free') ? 'inline-flex' : 'none';
-    upgradeLink.style.display = (planType === 'free') ? 'inline-block' : 'none';
+    // Previously only Free ever saw "View plans" — once paid, this
+    // link vanished entirely, meaning a Starter/Medium/Large
+    // subscriber wanting to move up a tier had no visible path from
+    // Billing itself, only "Manage billing" (the Stripe portal, which
+    // may or may not itself support changing plans depending on how
+    // it's configured server-side — not something this file controls).
+    // Phase 2 (5-tier): show it for everyone except multi_church,
+    // the actual top tier now that Large isn't — same "not already on
+    // top tier" rule as the dashboard sidebar's upgrade link.
+    upgradeLink.style.display = (planType === 'multi_church') ? 'none' : 'inline-block';
   }
   window.loadBillingPanel = loadBillingPanel;
 
