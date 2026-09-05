@@ -255,6 +255,12 @@
       'regQuestions.codePlaceholder': 'CODE', 'regQuestions.answerAllRequired': 'Please answer every required question (marked with *).',
       'church.unclaimedNotice': "This listing hasn't been claimed yet.", 'church.claimThisChurch': 'Claim this church',
       'church.setAsChurchHome': 'Set as your Church Home!',
+      'give.supportMinistry': "Support this church's ministry directly — donations go straight to their account.",
+      'give.whatIsThisFor': 'What is this gift for?', 'give.generalFund': 'General Fund',
+      'give.customAmount': 'Or enter a custom amount', 'give.amountInDollars': 'Amount in dollars',
+      'give.emailForReceipt': 'Email (for your receipt)', 'give.donorEmailPlaceholder': 'you@email.com',
+      'give.giveNow': 'Give now', 'give.enterAtLeast1': 'Enter an amount of at least $1.',
+      'give.thankYou': 'Thank you for your generosity — your donation went through successfully!',
       'groupPage.loading': 'Loading group...', 'groupPage.notFound': 'Group not found.',
       'groupPage.noDescriptionYet': 'No description yet.', 'groupPage.through': 'through',
       'groupPage.backTo': 'Back to', 'groupPage.backToChurch': 'Back to church',
@@ -654,6 +660,12 @@
       'regQuestions.codePlaceholder': 'CÓDIGO', 'regQuestions.answerAllRequired': 'Por favor responde todas las preguntas obligatorias (marcadas con *).',
       'church.unclaimedNotice': 'Este listado aún no ha sido reclamado.', 'church.claimThisChurch': 'Reclamar esta iglesia',
       'church.setAsChurchHome': '¡Establecida como tu Iglesia Principal!',
+      'give.supportMinistry': 'Apoya el ministerio de esta iglesia directamente — las donaciones van directo a su cuenta.',
+      'give.whatIsThisFor': '¿Para qué es esta donación?', 'give.generalFund': 'Fondo General',
+      'give.customAmount': 'O ingresa un monto personalizado', 'give.amountInDollars': 'Monto en dólares',
+      'give.emailForReceipt': 'Correo electrónico (para tu recibo)', 'give.donorEmailPlaceholder': 'tu@correo.com',
+      'give.giveNow': 'Donar ahora', 'give.enterAtLeast1': 'Ingresa un monto de al menos $1.',
+      'give.thankYou': '¡Gracias por tu generosidad — tu donación se procesó exitosamente!',
       'groupPage.loading': 'Cargando grupo...', 'groupPage.notFound': 'Grupo no encontrado.',
       'groupPage.noDescriptionYet': 'Aún no hay descripción.', 'groupPage.through': 'hasta',
       'groupPage.backTo': 'Volver a', 'groupPage.backToChurch': 'Volver a la iglesia',
@@ -2036,11 +2048,11 @@
         </div>
         <div id="church-tab-give" class="church-tab-panel" style="display:none;max-width:420px;">
           <div id="give-thank-you" style="display:none;background:var(--sage-bg);border:1px solid var(--sage);border-radius:12px;padding:16px 18px;margin-bottom:18px;color:var(--sage);font-size:14px;font-weight:500;"></div>
-          <p style="color:var(--ink-mute);font-size:14px;margin-bottom:16px;">Support this church's ministry directly — donations go straight to their account.</p>
+          <p style="color:var(--ink-mute);font-size:14px;margin-bottom:16px;" data-i18n="give.supportMinistry">Support this church's ministry directly — donations go straight to their account.</p>
           <div id="give-fund-wrap" style="display:none;margin-bottom:12px;">
-            <label>What is this gift for?</label>
+            <label data-i18n="give.whatIsThisFor">What is this gift for?</label>
             <select class="field" id="give-fund-select">
-              <option value="">General Fund</option>
+              <option value="" data-i18n="give.generalFund">General Fund</option>
             </select>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;" id="give-amount-presets">
@@ -2049,11 +2061,11 @@
             <button type="button" class="export-btn give-amount-btn" data-amount="100">$100</button>
             <button type="button" class="export-btn give-amount-btn" data-amount="250">$250</button>
           </div>
-          <label>Or enter a custom amount</label>
-          <input class="field" type="number" id="give-custom-amount" placeholder="Amount in dollars" min="1" step="1">
-          <label style="margin-top:12px;">Email (for your receipt)</label>
-          <input class="field" type="email" id="give-donor-email" placeholder="you@email.com">
-          <button class="btn-gold" id="give-submit-btn" style="width:100%;justify-content:center;margin-top:16px;">Give now</button>
+          <label data-i18n="give.customAmount">Or enter a custom amount</label>
+          <input class="field" type="number" id="give-custom-amount" placeholder="Amount in dollars" data-i18n-placeholder="give.amountInDollars" min="1" step="1">
+          <label style="margin-top:12px;" data-i18n="give.emailForReceipt">Email (for your receipt)</label>
+          <input class="field" type="email" id="give-donor-email" placeholder="you@email.com" data-i18n-placeholder="give.donorEmailPlaceholder">
+          <button class="btn-gold" id="give-submit-btn" style="width:100%;justify-content:center;margin-top:16px;" data-i18n="give.giveNow">Give now</button>
           <div id="give-status" style="display:none;font-size:12.5px;color:var(--clay);margin-top:10px;"></div>
         </div>
         <div id="church-tab-location" class="church-tab-panel" style="display:none;">
@@ -13005,7 +13017,7 @@
     if (fundWrap && fundSelect) {
       var { data: funds } = await supabase.from('giving_funds').select('id, name').eq('church_id', churchId).eq('is_active', true).order('name');
       if (funds && funds.length) {
-        fundSelect.innerHTML = '<option value="">General Fund</option>' + funds.map(function(f){
+        fundSelect.innerHTML = '<option value="">' + window.t('give.generalFund') + '</option>' + funds.map(function(f){
           return '<option value="' + f.id + '">' + f.name.replace(/</g, '&lt;') + '</option>';
         }).join('');
         fundWrap.style.display = 'block';
@@ -13181,7 +13193,7 @@
 
       var amountDollars = parseFloat(document.getElementById('give-custom-amount').value);
       if (!amountDollars || amountDollars < 1) {
-        statusEl.textContent = 'Enter an amount of at least $1.';
+        statusEl.textContent = window.t('give.enterAtLeast1');
         statusEl.style.display = 'block';
         return;
       }
@@ -13233,7 +13245,7 @@
     if (data && data.success) {
       var thankYouEl = document.getElementById('give-thank-you');
       if (thankYouEl) {
-        thankYouEl.textContent = 'Thank you for your generosity — your donation went through successfully!';
+        thankYouEl.textContent = window.t('give.thankYou');
         thankYouEl.style.display = 'block';
       }
       if (typeof window.switchChurchTab === 'function') window.switchChurchTab('give');
