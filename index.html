@@ -223,7 +223,7 @@
       'myChurches.nothingYet': 'Nothing here yet — search for a church to follow or call home.',
       'myChurches.registerInstead': 'Registering your own church instead?',
       'myChurches.labelOwned': 'Owned', 'myChurches.labelStaff': 'Staff', 'myChurches.labelHome': 'Home', 'myChurches.labelFollowing': 'Following',
-      'myChurches.unfollow': 'Unfollow',
+      'myChurches.unfollow': 'Unfollow', 'myChurches.manage': 'Manage',
       'profile.eyebrow': 'Your account', 'profile.heading': 'Profile', 'profile.changePhoto': 'Change photo',
       'profile.churchPartnerAccount': 'Church partner account', 'profile.individualAccount': 'Individual account',
       'profile.addChurch': 'Add a church', 'profile.churchHomeSuffix': '(Church Home)',
@@ -475,7 +475,7 @@
       'myChurches.nothingYet': 'Nada por aqu\u00ed todav\u00eda — busca una iglesia para seguir o llamar tu iglesia principal.',
       'myChurches.registerInstead': '\u00bfRegistrando tu propia iglesia en su lugar?',
       'myChurches.labelOwned': 'Propietario', 'myChurches.labelStaff': 'Personal', 'myChurches.labelHome': 'Principal', 'myChurches.labelFollowing': 'Siguiendo',
-      'myChurches.unfollow': 'Dejar de seguir',
+      'myChurches.unfollow': 'Dejar de seguir', 'myChurches.manage': 'Administrar',
       'profile.eyebrow': 'Tu cuenta', 'profile.heading': 'Perfil', 'profile.changePhoto': 'Cambiar foto',
       'profile.churchPartnerAccount': 'Cuenta de iglesia asociada', 'profile.individualAccount': 'Cuenta individual',
       'profile.addChurch': 'Agregar una iglesia', 'profile.churchHomeSuffix': '(Iglesia Principal)',
@@ -2961,6 +2961,7 @@
     <div class="dash-side">
       <div class="dash-church" id="dash-church-name">Loading...</div>
       <div class="dash-tag" id="dash-church-tag"></div>
+      <select id="dash-church-switcher" style="display:none;width:100%;margin-top:8px;margin-bottom:8px;background:#1a2740;color:#fff;border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:6px 8px;font-size:12.5px;"></select>
       <a href="#register-church" data-route="register-church" id="dash-edit-profile-sidebar-link" style="display:block;font-size:12px;color:#CBD2DE;margin-top:-20px;margin-bottom:24px;border-bottom:1px solid rgba(255,255,255,0.2);width:fit-content;padding-bottom:1px;" data-i18n="dash.editChurchProfile">Edit church profile →</a>
       <div class="dash-nav">
         <a data-dash="events" class="active" data-i18n="dash.events">Events</a>
@@ -3841,7 +3842,7 @@
 
 </main>
 
-<footer>FaithDock prototype — visual concept, not a live product · build 2026-09-04-v165 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;">Accessibility</a></footer>
+<footer>FaithDock prototype — visual concept, not a live product · build 2026-09-04-v166 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -4796,6 +4797,17 @@
               return;
             }
           }
+        }
+        // checkExistingChurch() only ever runs at page-load / auth-
+        // state-change, never reactively on a plain SPA click like
+        // this one — without calling it here directly, "Add a church"
+        // would just reveal whatever the register-church form was
+        // last showing (someone's existing church, mid-edit), not a
+        // blank one. Matches how the church/event/group branches below
+        // populate their target page inline before go() reveals it.
+        fullRoute = 'register-church/new';
+        if (typeof window.checkExistingChurch === 'function') {
+          await window.checkExistingChurch(undefined, 'new');
         }
       }
       if(route === 'church' && el.hasAttribute('data-church-name')){
@@ -5912,12 +5924,14 @@
   // deliberately deferred, not something to rush in alongside a fix
   // for where this declaration sits in the file).
   // Phase 2 (5-tier) additions: starter and multi_church. No `churches`
-  // dimension here on purpose — nothing client-side can yet enforce a
-  // per-account church count (see the comment on checkExistingChurch())
-  // so a number here would look enforced without actually being so.
-  // multi_church's events/groups are genuinely "negotiated" per the
-  // pricing spec, not a real client-side number — Infinity is a
-  // placeholder meaning "no client-side cap", not a promised limit.
+  // dimension here on purpose — this object is per-church limits
+  // (events/groups/staff for one church), not the account-level
+  // church count. That count is enforced separately, server-side, via
+  // the get_my_plan_and_usage() RPC (see checkExistingChurch() and the
+  // "Add a church" click handler). multi_church's events/groups are
+  // genuinely "negotiated" per the pricing spec, not a real
+  // client-side number — Infinity is a placeholder meaning "no
+  // client-side cap", not a promised limit.
   var planLimits = {
     free:         { events: 8,        groups: 3,        staff: 0 },
     starter:      { events: 20,       groups: 6,        staff: 2 },
@@ -5951,7 +5965,7 @@
   // module script finishes its own setup, narrowing the window
   // where the form could sit blank.
   if (typeof window.checkExistingChurch === 'function' && typeof window.resolveRouteFromHash === 'function' && window.resolveRouteFromHash(location.hash).base === 'register-church') {
-    window.checkExistingChurch();
+    window.checkExistingChurch(undefined, window.resolveRouteFromHash(location.hash).key);
   }
 
   // Pull real churches from the database and blend them into the same
@@ -6223,31 +6237,77 @@
     });
   }
 
+  // Multi-church ownership: which of an owner's several churches the
+  // dashboard, register-church form, etc. currently operate on. Only
+  // meaningful for someone who owns more than one church (Large's new
+  // "up to 5 churches" / Multi-Church) — for everyone else this is
+  // either unset or trivially matches their one owned church, so
+  // getMyChurch()'s behavior is unchanged for the common case.
+  function getActiveChurchId(){
+    try { return localStorage.getItem('fd-active-church-id'); } catch (e) { return null; }
+  }
+  window.getActiveChurchId = getActiveChurchId;
+  function setActiveChurchId(id){
+    try { localStorage.setItem('fd-active-church-id', id); } catch (e) {}
+  }
+  window.setActiveChurchId = setActiveChurchId;
+  // Shared by the dashboard church switcher and the My Churches
+  // "Manage" button. A full reload rather than an in-place SPA
+  // refresh is deliberate — dozens of dashboard panels cache myChurch
+  // in their own closures during a session, and reloading sidesteps
+  // that whole class of stale-state bugs instead of hot-refreshing
+  // every one of them individually.
+  function setActiveChurchAndReload(id){
+    setActiveChurchId(id);
+    location.reload();
+  }
+  window.setActiveChurchAndReload = setActiveChurchAndReload;
+
   // If the signed-in user already registered a church, switch the
   // form into edit mode: pre-fill every field with their real data,
   // relabel the page, and remember the church id for the submit
   // handler so it updates instead of inserting.
   //
-  // Known Phase 2 gap, deliberately not fixed here: this always looks
-  // up "the" one owned church via .limit(1) and always switches into
-  // EDIT mode if one exists — so a Large ($79, up to 5 churches) or
-  // Multi-Church owner clicking "Add a church" a second time lands on
-  // an edit form for their FIRST church, not a blank form for a new
-  // one. The pricing page (Phase 2, 5-tier sweep) advertises "up to 5
-  // churches" for Large and unlimited for Multi-Church, and the
-  // `get_my_plan_and_usage` RPC already gates that click on
-  // max_churches/churches_owned server-side — but nothing client-side
-  // can yet create a genuinely second owned church. Real multi-church
-  // support needs this function to branch create-vs-edit by whether
-  // the account is under its cap (not just "does a church exist at
-  // all"), plus a way to pick which owned church a specific edit
-  // targets, plus a "which of my churches am I managing" concept in
-  // getMyChurch() and the ~70 places that call it. That's a
-  // dashboard-shaped feature of its own, out of scope for the pricing
-  // page front-end pass that added the 5-tier plan structure.
+  // Multi-church ownership (Large's "up to 5 churches" / Multi-
+  // Church): `routeKey` distinguishes "create another" from "edit
+  // whichever church is active" — see getActiveChurchId() above and
+  // getMyChurch() below, which resolves the same way. A bare
+  // #register-church visit (routeKey undefined, e.g. the dashboard
+  // sidebar's "Edit church profile →" link) resolves to the active
+  // church exactly like getMyChurch() does; for anyone who has never
+  // owned more than one church this is identical to the old
+  // .limit(1) behavior. routeKey === 'new' (only reachable via the
+  // "Add a church" click handler) forces a blank create form
+  // regardless of any existing church, after re-verifying the plan
+  // cap server-side — the "Add a church" link already checks this
+  // before navigating, but a direct URL shouldn't bypass it (same
+  // belt-and-suspenders pattern as updatePaidEventsAccess()'s client
+  // gate plus its own save-time backstop).
   var rcEditingChurchId = null;
 
-  async function checkExistingChurch(knownUserId){
+  function resetRegisterChurchFormToBlank(){
+    rcEditingChurchId = null;
+    window.rcIsEditing = false;
+    document.getElementById('rc-heading').textContent = window.t('rc.registerHeading');
+    document.getElementById('rc-submit-btn').textContent = window.t('rc.createChurch');
+    document.getElementById('rc-next-step').style.display = 'none';
+    document.getElementById('rc-name').value = '';
+    document.getElementById('rc-address').value = '';
+    document.getElementById('rc-description').value = '';
+    document.getElementById('rc-denomination').value = '';
+    document.getElementById('rc-denomination-other').value = '';
+    document.getElementById('rc-denomination-other').style.display = 'none';
+    document.getElementById('rc-website').value = '';
+    document.getElementById('rc-phone').value = '';
+    document.getElementById('rc-facebook').value = '';
+    document.getElementById('rc-instagram').value = '';
+    document.getElementById('rc-description-count').textContent = '0 / 600';
+    document.getElementById('rc-logo-preview').style.backgroundImage = '';
+    document.getElementById('rc-logo-remove-btn').style.display = 'none';
+    window.rcLogoMarkedForRemoval = false;
+  }
+
+  async function checkExistingChurch(knownUserId, routeKey){
     var userId = knownUserId;
     if (!userId) {
       var { data: userData } = await supabase.auth.getUser();
@@ -6265,35 +6325,43 @@
       return;
     }
 
-    var { data } = await supabase.from('churches').select('*').eq('owner_id', userId).limit(1);
+    if (routeKey === 'new') {
+      var { data: usageRowsForNew } = await supabase.rpc('get_my_plan_and_usage');
+      if (usageRowsForNew && usageRowsForNew.length) {
+        var limitsForNew = usageRowsForNew[0];
+        if (limitsForNew.max_churches !== null && limitsForNew.churches_owned >= limitsForNew.max_churches) {
+          go('pricing');
+          return;
+        }
+      }
+      resetRegisterChurchFormToBlank();
+      return;
+    }
+
+    var activeId = getActiveChurchId();
+    var ownedQuery = supabase.from('churches').select('*').eq('owner_id', userId);
+    if (activeId) ownedQuery = ownedQuery.eq('id', activeId);
+    var { data } = await ownedQuery.limit(1);
+
+    if ((!data || !data.length) && activeId) {
+      // Stored active id didn't match an owned church (stale after a
+      // church was deleted, or never actually theirs) — fall back to
+      // any owned church rather than incorrectly landing on "create
+      // new" for someone who does own a church, just not that one.
+      var fallback = await supabase.from('churches').select('*').eq('owner_id', userId).order('name').limit(1);
+      data = fallback.data;
+    }
 
     if (!data || !data.length) {
       // No church for this user — reset to a genuinely blank "create
       // new church" state, rather than silently leaving whatever was
       // last in these fields from a previous session/user.
-      rcEditingChurchId = null;
-      window.rcIsEditing = false;
-      document.getElementById('rc-heading').textContent = window.t('rc.registerHeading');
-      document.getElementById('rc-submit-btn').textContent = window.t('rc.createChurch');
-      document.getElementById('rc-next-step').style.display = 'none';
-      document.getElementById('rc-name').value = '';
-      document.getElementById('rc-address').value = '';
-      document.getElementById('rc-description').value = '';
-      document.getElementById('rc-denomination').value = '';
-      document.getElementById('rc-denomination-other').value = '';
-      document.getElementById('rc-denomination-other').style.display = 'none';
-      document.getElementById('rc-website').value = '';
-      document.getElementById('rc-phone').value = '';
-      document.getElementById('rc-facebook').value = '';
-      document.getElementById('rc-instagram').value = '';
-      document.getElementById('rc-description-count').textContent = '0 / 600';
-      document.getElementById('rc-logo-preview').style.backgroundImage = '';
-      document.getElementById('rc-logo-remove-btn').style.display = 'none';
-      window.rcLogoMarkedForRemoval = false;
+      resetRegisterChurchFormToBlank();
       return;
     }
 
     var church = data[0];
+    setActiveChurchId(church.id);
     rcEditingChurchId = church.id;
     window.rcIsEditing = true;
 
@@ -6332,7 +6400,7 @@
   // Same reasoning as the guarded call in updateAuthUI below — only
   // meaningful on the register-church page itself.
   if (typeof window.resolveRouteFromHash === 'function' && window.resolveRouteFromHash(location.hash).base === 'register-church') {
-    checkExistingChurch();
+    checkExistingChurch(undefined, window.resolveRouteFromHash(location.hash).key);
   }
   window.checkExistingChurch = checkExistingChurch;
 
@@ -6393,9 +6461,21 @@
       userId = userData.user.id;
     }
 
-    var { data: owned, error: ownedError } = await supabase.from('churches').select('id, name, denomination, plan_type').eq('owner_id', userId).limit(1);
+    // No .limit(1) — an owner can have several churches (Large's "up
+    // to 5", Multi-Church unlimited). getActiveChurchId() picks which
+    // one this call resolves to; ownedChurches carries the full list
+    // so the dashboard switcher and the create-church form (plan_type
+    // inheritance for a 2nd+ church) don't need a second query. For
+    // anyone with 0 or 1 owned churches this resolves identically to
+    // the old .limit(1) behavior.
+    var { data: owned, error: ownedError } = await supabase.from('churches').select('id, name, denomination, plan_type').eq('owner_id', userId).order('name');
     if (ownedError) { console.error('getMyChurch (owned lookup):', ownedError); }
-    if (owned && owned.length) return { id: owned[0].id, name: owned[0].name, denomination: owned[0].denomination, planType: owned[0].plan_type, role: 'owner', canManageEvents: true, canManageGiving: true, canManageBilling: true, canEditProfile: true };
+    if (owned && owned.length) {
+      var activeChurchIdForOwned = getActiveChurchId();
+      var chosenChurch = (activeChurchIdForOwned && owned.filter(function(c){ return c.id === activeChurchIdForOwned; })[0]) || owned[0];
+      if (chosenChurch.id !== activeChurchIdForOwned) setActiveChurchId(chosenChurch.id);
+      return { id: chosenChurch.id, name: chosenChurch.name, denomination: chosenChurch.denomination, planType: chosenChurch.plan_type, role: 'owner', canManageEvents: true, canManageGiving: true, canManageBilling: true, canEditProfile: true, ownedChurches: owned };
+    }
 
     var { data: staffRow, error: staffError } = await supabase.from('church_staff').select('church_id, can_manage_events, can_manage_giving, can_manage_billing, can_edit_profile, churches(id, name, denomination, plan_type)').eq('user_id', userId).limit(1);
     if (staffError) { console.error('getMyChurch (staff lookup):', staffError); }
@@ -6451,6 +6531,27 @@
     var roleLabel = myChurch.role === 'staff' ? ' · STAFF' : ' · OWNER';
     document.getElementById('dash-church-tag').textContent = 'PARTNER CHURCH' + (myChurch.denomination ? ' · ' + myChurch.denomination.toUpperCase() : '') + roleLabel;
 
+    // Multi-church ownership: only ever shown for an owner of more
+    // than one church (Large's "up to 5" / Multi-Church) — everyone
+    // else never sees this, and #dash-edit-profile-sidebar-link's own
+    // -20px margin-top (tuned to sit right under .dash-tag) is
+    // restored to a normal gap only while the switcher is actually
+    // taking up space above it.
+    var churchSwitcher = document.getElementById('dash-church-switcher');
+    if (churchSwitcher) {
+      if (myChurch.role === 'owner' && myChurch.ownedChurches && myChurch.ownedChurches.length > 1) {
+        churchSwitcher.innerHTML = myChurch.ownedChurches.map(function(c){
+          return '<option value="' + c.id + '"' + (c.id === myChurch.id ? ' selected' : '') + '>' + c.name + '</option>';
+        }).join('');
+        churchSwitcher.style.display = 'block';
+        if (sidebarEditLink) sidebarEditLink.style.marginTop = '0';
+      } else {
+        churchSwitcher.style.display = 'none';
+        churchSwitcher.innerHTML = '';
+        if (sidebarEditLink) sidebarEditLink.style.marginTop = '-20px';
+      }
+    }
+
     // Editing the church profile — visible only to the owner or
     // staff specifically granted that permission, not staff broadly.
     if (sidebarEditLink) sidebarEditLink.style.display = myChurch.canEditProfile ? 'block' : 'none';
@@ -6490,6 +6591,13 @@
   }
   loadDashboardHeader();
   window.loadDashboardHeader = loadDashboardHeader;
+
+  var dashChurchSwitcherEl = document.getElementById('dash-church-switcher');
+  if (dashChurchSwitcherEl) {
+    dashChurchSwitcherEl.addEventListener('change', function(){
+      window.setActiveChurchAndReload(this.value);
+    });
+  }
 
   // Dashboard Events table — real data for the signed-in owner's
   // church. Replaces the old fake rows entirely, since this is the
@@ -7311,7 +7419,7 @@
       // terms — wasted queries and silent background state resets —
       // just not the direct cause of the reported redirect.
       if (typeof window.checkExistingChurch === 'function' && typeof window.resolveRouteFromHash === 'function' && window.resolveRouteFromHash(location.hash).base === 'register-church') {
-        window.checkExistingChurch(uid);
+        window.checkExistingChurch(uid, window.resolveRouteFromHash(location.hash).key);
       }
       if (typeof window.loadMyGroups === 'function') window.loadMyGroups();
       if (typeof window.loadMyChurches === 'function') window.loadMyChurches();
@@ -7965,9 +8073,24 @@
         }
       } else {
         payload.owner_id = userData.user.id;
+        // Multi-church ownership: a 2nd–5th church under an existing
+        // Large/Multi-Church plan should inherit that plan, not
+        // silently default to Free via the churches table's own
+        // column default — that default is only correct for someone's
+        // very first church. getMyChurch() already resolves to one of
+        // this user's existing owned churches if they have any.
+        var myChurchForPlanInherit = await getMyChurch(userData.user.id);
+        if (myChurchForPlanInherit && myChurchForPlanInherit.role === 'owner' && myChurchForPlanInherit.planType) {
+          payload.plan_type = myChurchForPlanInherit.planType;
+        }
         // eslint-disable-next-line no-redeclare -- see the matching comment in the if-branch above; this is the other half of that same mutually-exclusive pair.
         var { data, error } = await supabase.from('churches').insert(payload).select();
         if (error) { showRcError(error.message); return; }
+        // Make the just-created church the active one — otherwise the
+        // dashboard that immediately follows resolves via
+        // getActiveChurchId()'s existing fallback (alphabetically
+        // first owned church), which usually isn't the one just made.
+        window.setActiveChurchId(data[0].id);
         // Registering a church IS what makes an account a church
         // account — this has to happen before go('dashboard') below,
         // not just on next sign-in, or the dashboard's own route
@@ -13381,11 +13504,20 @@
       var unfollowBtn = entry.labels.indexOf('Following') !== -1
         ? '<button class="export-btn" data-unfollow-church-id="' + c.id + '" style="flex-shrink:0;">' + window.t('myChurches.unfollow') + '</button>'
         : '';
+      // Multi-church ownership: an owner of more than one church needs
+      // a way to switch which one the dashboard operates on — this is
+      // the one it reaches from outside the dashboard itself (the
+      // in-dashboard switcher, #dash-church-switcher, only appears
+      // once you're already looking at one of them).
+      var manageBtn = entry.labels.indexOf('Owned') !== -1
+        ? '<button class="export-btn" data-manage-church-id="' + c.id + '" style="flex-shrink:0;">' + window.t('myChurches.manage') + '</button>'
+        : '';
       return '<div class="group-card" style="display:flex;align-items:center;gap:14px;justify-content:space-between;margin-bottom:10px;">'
         + '<a href="#" data-route="church" data-church-name="' + c.name.replace(/"/g, '&quot;') + '" style="display:flex;align-items:center;gap:14px;text-decoration:none;color:inherit;flex:1;min-width:0;">'
         + logoHtml
         + '<div style="min-width:0;"><h4 style="margin-bottom:2px;">' + c.name + '</h4><div>' + labelsHtml + '</div></div>'
         + '</a>'
+        + manageBtn
         + unfollowBtn
         + '</div>';
     }).join('');
@@ -14141,6 +14273,17 @@
     unfollowBtn.disabled = true;
     await supabase.from('church_follows').delete().eq('user_id', userData.user.id).eq('church_id', unfollowBtn.getAttribute('data-unfollow-church-id'));
     loadMyChurches();
+  });
+
+  // Multi-church ownership: switches which owned church the dashboard
+  // operates on, then goes there — the entry point for someone who
+  // owns more than one church and is currently looking at a different
+  // one (or is on My Churches, outside the dashboard entirely).
+  document.addEventListener('click', function(ev){
+    var manageBtn = ev.target.closest ? ev.target.closest('[data-manage-church-id]') : null;
+    if (!manageBtn) return;
+    location.hash = '#dashboard';
+    window.setActiveChurchAndReload(manageBtn.getAttribute('data-manage-church-id'));
   });
 
   var myEventsRaw = [];
