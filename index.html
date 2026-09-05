@@ -454,6 +454,7 @@
       'dashGiving.connectBankHint': 'Donations go straight to your account — FaithDock never holds the funds.',
       'dashGiving.givenThisYear': 'GIVEN THIS YEAR', 'dashGiving.givers': 'GIVERS', 'dashGiving.averageGift': 'AVERAGE GIFT',
       'dashGiving.donor': 'Donor', 'dashGiving.amount': 'Amount', 'dashGiving.loadingHistory': 'Loading giving history...',
+      'dashGiving.noDonationsYet': 'No donations yet.', 'dashGiving.guestSuffix': '(guest)', 'dashGiving.anonymous': 'Anonymous', 'dashGiving.unknownFund': 'Unknown fund', 'dashGiving.generalFund': 'General Fund',
       'dashBilling.currentPlan': 'Current plan',
       'dashBilling.pastDueWarning': "Your last payment didn't go through — please update your card to avoid losing paid-plan features.",
       'dashBilling.manageBilling': 'Manage billing', 'dashBilling.viewPlans': 'View plans',
@@ -558,7 +559,29 @@
       'reports.run': 'Run', 'reports.archive': 'Archive', 'reports.unarchive': 'Unarchive', 'reports.delete': 'Delete',
       'reports.deleteSavedReportConfirm': 'Delete this saved report? This only removes the bookmark — no underlying data is affected.',
       'reports.nameThisSavedReport': 'Name this saved report:', 'reports.couldNotSaveReport': 'Could not save this report: {error}', 'reports.personFallback': 'Person',
-      'reports.noEventsInDateRange': 'No events in that date range.', 'reports.scheduleSuffix': ' Schedule', 'reports.time': 'Time', 'reports.primaryLocation': 'Primary Location', 'reports.additionalLocations': 'Additional Locations'
+      'reports.noEventsInDateRange': 'No events in that date range.', 'reports.scheduleSuffix': ' Schedule', 'reports.time': 'Time', 'reports.primaryLocation': 'Primary Location', 'reports.additionalLocations': 'Additional Locations',
+      'insights.title': 'Insights', 'insights.savedReports': 'Saved reports', 'insights.active': 'Active', 'insights.archived': 'Archived',
+      'insights.printPeopleStatsReport': 'Print people statistics report', 'insights.printPaymentReports': 'Print payment reports', 'insights.printAttendanceReports': 'Print group attendance reports',
+      'insights.giving': 'Giving', 'insights.allTimeGiven': 'ALL-TIME GIVEN', 'insights.totalDonors': 'TOTAL DONORS', 'insights.averageGift': 'AVERAGE GIFT', 'insights.last12Months': 'Last 12 months',
+      'insights.byAgeGroupDonors': "By age group (self-reported, optional — many donors won't have shared this)",
+      'insights.eventAttendance': 'Event attendance', 'insights.totalCheckedIn': 'TOTAL CHECKED IN', 'insights.checkInRate': 'CHECK-IN RATE', 'insights.checkedInLast8': 'Checked in, last 8 past events', 'insights.byAgeGroupOptional': 'By age group (self-reported, optional)',
+      'insights.consecutiveAbsences': 'Consecutive absences',
+      'insights.consecutiveAbsencesHint': "Regulars — for a recurring event or a group — who've missed several in a row, worth a check-in call. Recurring events only work if created after this feature shipped (older ones have no way to be grouped into a series after the fact); groups just need at least one meeting's attendance taken.",
+      'insights.selectRecurringSeriesOrGroup': 'Select a recurring series or group...', 'insights.threshold3': '3+ in a row', 'insights.threshold5': '5+ in a row', 'insights.threshold7': '7+ in a row', 'insights.threshold10': '10+ in a row',
+      'insights.pickRecurringSeriesAbove': 'Pick a recurring series or group above.',
+      'insights.noRecurringSeriesOrGroupsYet': 'No recurring series or tracked groups yet', 'insights.nothingToCheckYet': "Nothing to check yet — this covers recurring events created after that feature shipped, and groups with at least one meeting's attendance taken.",
+      'insights.recurringEvents': 'Recurring events', 'insights.noOneMeetsThreshold': 'No one currently meets that threshold — nice.', 'insights.nInARow': '{n} in a row',
+      'insights.checking': 'Checking...', 'insights.notEnoughOccurrences': 'Not enough past occurrences yet to spot a pattern.', 'insights.notEnoughMeetings': 'Not enough meetings tracked yet to spot a pattern.',
+      'insights.categoryNew': 'New', 'insights.categoryDisengaged': 'Disengaged', 'insights.categorySporadic': 'Sporadic', 'insights.categoryActive': 'Active', 'insights.categoryVeryActive': 'Very Active',
+      'insights.computeNextMonthScores': "Compute next month's scores to start seeing movement.", 'insights.movementUp': 'Up', 'insights.movementSame': 'Same', 'insights.movementDown': 'Down',
+      'insights.computing': 'Computing...', 'insights.scoredNForThisMonth': 'Scored {n} {personWord} for this month.', 'insights.personWord': 'person', 'insights.peopleWord': 'people',
+      'insights.totalGroups': 'TOTAL GROUPS', 'insights.activeGroups': 'ACTIVE GROUPS', 'insights.inactiveGroups': 'INACTIVE GROUPS', 'insights.peopleInAGroup': 'PEOPLE IN A GROUP', 'insights.peopleNotInAGroup': 'PEOPLE NOT IN A GROUP',
+      'insights.averageSize': 'AVERAGE SIZE', 'insights.notInAHousehold': 'NOT IN A HOUSEHOLD',
+      'insights.involvement': 'Involvement',
+      'insights.involvementHint': 'A transparent point score, not a hidden algorithm: up to 6 points for event check-ins in the last 30 days, +3 for giving at least once, +3 for active group membership. Someone whose first connection to the church is this recent counts as "New" regardless of score. This now runs automatically every day — the button below is just for an immediate refresh, not something you need to remember.',
+      'insights.refreshNow': 'Refresh now', 'insights.thisMonth': 'This month', 'insights.movementVsLastMonth': 'Movement vs. last month', 'insights.worthCheckIn': 'Worth a check-in — moved to a less-engaged category this month',
+      'insights.byAgeGroupBasedOn': "By age group — based on the {shared} of {total} gifts from donors who've shared an age range",
+      'insights.byAgeGroupCheckInsBasedOn': "By age group — based on the {shared} of {total} check-ins from people who've shared an age range"
     },
     es: {
       'nav.churches': 'Iglesias', 'nav.events': 'Eventos', 'nav.pricing': 'Precios',
@@ -884,6 +907,7 @@
       'dashGiving.connectBankHint': 'Las donaciones van directamente a tu cuenta — FaithDock nunca retiene los fondos.',
       'dashGiving.givenThisYear': 'DONADO ESTE AÑO', 'dashGiving.givers': 'DONANTES', 'dashGiving.averageGift': 'DONACIÓN PROMEDIO',
       'dashGiving.donor': 'Donante', 'dashGiving.amount': 'Monto', 'dashGiving.loadingHistory': 'Cargando historial de donaciones...',
+      'dashGiving.noDonationsYet': 'Aún no hay donaciones.', 'dashGiving.guestSuffix': '(invitado)', 'dashGiving.anonymous': 'Anónimo', 'dashGiving.unknownFund': 'Fondo desconocido', 'dashGiving.generalFund': 'Fondo general',
       'dashBilling.currentPlan': 'Plan actual',
       'dashBilling.pastDueWarning': 'Tu último pago no se procesó — actualiza tu tarjeta para no perder las funciones de los planes de pago.',
       'dashBilling.manageBilling': 'Administrar facturación', 'dashBilling.viewPlans': 'Ver planes',
@@ -988,7 +1012,29 @@
       'reports.run': 'Ejecutar', 'reports.archive': 'Archivar', 'reports.unarchive': 'Desarchivar', 'reports.delete': 'Eliminar',
       'reports.deleteSavedReportConfirm': '¿Eliminar este informe guardado? Esto solo elimina el marcador — no afecta los datos subyacentes.',
       'reports.nameThisSavedReport': 'Nombra este informe guardado:', 'reports.couldNotSaveReport': 'No se pudo guardar este informe: {error}', 'reports.personFallback': 'Persona',
-      'reports.noEventsInDateRange': 'No hay eventos en ese rango de fechas.', 'reports.scheduleSuffix': ' — Horario', 'reports.time': 'Hora', 'reports.primaryLocation': 'Ubicación principal', 'reports.additionalLocations': 'Ubicaciones adicionales'
+      'reports.noEventsInDateRange': 'No hay eventos en ese rango de fechas.', 'reports.scheduleSuffix': ' — Horario', 'reports.time': 'Hora', 'reports.primaryLocation': 'Ubicación principal', 'reports.additionalLocations': 'Ubicaciones adicionales',
+      'insights.title': 'Estadísticas', 'insights.savedReports': 'Informes guardados', 'insights.active': 'Activos', 'insights.archived': 'Archivados',
+      'insights.printPeopleStatsReport': 'Imprimir informe de estadísticas de personas', 'insights.printPaymentReports': 'Imprimir informes de pagos', 'insights.printAttendanceReports': 'Imprimir informes de asistencia de grupos',
+      'insights.giving': 'Donaciones', 'insights.allTimeGiven': 'TOTAL DONADO', 'insights.totalDonors': 'TOTAL DE DONANTES', 'insights.averageGift': 'DONACIÓN PROMEDIO', 'insights.last12Months': 'Últimos 12 meses',
+      'insights.byAgeGroupDonors': 'Por grupo de edad (autoinformado, opcional — muchos donantes no habrán compartido esto)',
+      'insights.eventAttendance': 'Asistencia a eventos', 'insights.totalCheckedIn': 'TOTAL REGISTRADOS', 'insights.checkInRate': 'TASA DE REGISTRO', 'insights.checkedInLast8': 'Registrados, últimos 8 eventos pasados', 'insights.byAgeGroupOptional': 'Por grupo de edad (autoinformado, opcional)',
+      'insights.consecutiveAbsences': 'Ausencias consecutivas',
+      'insights.consecutiveAbsencesHint': 'Habituales — de un evento recurrente o un grupo — que han faltado varias veces seguidas, dignos de una llamada de seguimiento. Los eventos recurrentes solo funcionan si se crearon después del lanzamiento de esta función (los anteriores no se pueden agrupar en una serie retroactivamente); los grupos solo necesitan al menos una reunión con asistencia registrada.',
+      'insights.selectRecurringSeriesOrGroup': 'Selecciona una serie recurrente o un grupo...', 'insights.threshold3': '3+ seguidas', 'insights.threshold5': '5+ seguidas', 'insights.threshold7': '7+ seguidas', 'insights.threshold10': '10+ seguidas',
+      'insights.pickRecurringSeriesAbove': 'Elige una serie recurrente o un grupo arriba.',
+      'insights.noRecurringSeriesOrGroupsYet': 'Aún no hay series recurrentes ni grupos con seguimiento', 'insights.nothingToCheckYet': 'Aún no hay nada que verificar — esto cubre eventos recurrentes creados después del lanzamiento de esta función, y grupos con al menos una reunión con asistencia registrada.',
+      'insights.recurringEvents': 'Eventos recurrentes', 'insights.noOneMeetsThreshold': 'Nadie cumple actualmente con ese umbral — muy bien.', 'insights.nInARow': '{n} seguidas',
+      'insights.checking': 'Verificando...', 'insights.notEnoughOccurrences': 'Aún no hay suficientes eventos pasados para detectar un patrón.', 'insights.notEnoughMeetings': 'Aún no hay suficientes reuniones registradas para detectar un patrón.',
+      'insights.categoryNew': 'Nuevo', 'insights.categoryDisengaged': 'Desconectado', 'insights.categorySporadic': 'Esporádico', 'insights.categoryActive': 'Activo', 'insights.categoryVeryActive': 'Muy activo',
+      'insights.computeNextMonthScores': 'Calcula los puntajes del próximo mes para empezar a ver los cambios.', 'insights.movementUp': 'Subió', 'insights.movementSame': 'Igual', 'insights.movementDown': 'Bajó',
+      'insights.computing': 'Calculando...', 'insights.scoredNForThisMonth': 'Se calificó a {n} {personWord} este mes.', 'insights.personWord': 'persona', 'insights.peopleWord': 'personas',
+      'insights.totalGroups': 'TOTAL DE GRUPOS', 'insights.activeGroups': 'GRUPOS ACTIVOS', 'insights.inactiveGroups': 'GRUPOS INACTIVOS', 'insights.peopleInAGroup': 'PERSONAS EN UN GRUPO', 'insights.peopleNotInAGroup': 'PERSONAS SIN GRUPO',
+      'insights.averageSize': 'TAMAÑO PROMEDIO', 'insights.notInAHousehold': 'SIN GRUPO FAMILIAR',
+      'insights.involvement': 'Participación',
+      'insights.involvementHint': 'Un puntaje transparente, no un algoritmo oculto: hasta 6 puntos por registros de asistencia a eventos en los últimos 30 días, +3 por donar al menos una vez, +3 por membresía activa en un grupo. Alguien cuya primera conexión con la iglesia es tan reciente cuenta como "Nuevo" sin importar el puntaje. Esto ahora se ejecuta automáticamente todos los días — el botón de abajo es solo para una actualización inmediata, no algo que debas recordar.',
+      'insights.refreshNow': 'Actualizar ahora', 'insights.thisMonth': 'Este mes', 'insights.movementVsLastMonth': 'Cambio respecto al mes pasado', 'insights.worthCheckIn': 'Vale la pena un seguimiento — se movieron a una categoría menos comprometida este mes',
+      'insights.byAgeGroupBasedOn': 'Por grupo de edad — basado en {shared} de {total} donaciones de donantes que compartieron su rango de edad',
+      'insights.byAgeGroupCheckInsBasedOn': 'Por grupo de edad — basado en {shared} de {total} registros de personas que compartieron su rango de edad'
     }
   };
 
@@ -3967,106 +4013,106 @@
       </div>
 
       <div class="dash-content" id="dash-insights">
-        <h2 style="font-size:24px;margin-bottom:24px;">Insights</h2>
+        <h2 style="font-size:24px;margin-bottom:24px;" data-i18n="insights.title">Insights</h2>
 
         <div class="side-note" style="margin-top:0;max-width:640px;">
-          <h4>Saved reports</h4>
+          <h4 data-i18n="insights.savedReports">Saved reports</h4>
           <div style="display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:14px;">
-            <button class="saved-reports-tab active" id="saved-reports-tab-active" style="background:none;border:none;padding:8px 14px 10px;font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid var(--gold);color:var(--ink);">Active</button>
-            <button class="saved-reports-tab" id="saved-reports-tab-archived" style="background:none;border:none;padding:8px 14px 10px;font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;color:var(--ink-mute);">Archived</button>
+            <button class="saved-reports-tab active" id="saved-reports-tab-active" style="background:none;border:none;padding:8px 14px 10px;font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid var(--gold);color:var(--ink);" data-i18n="insights.active">Active</button>
+            <button class="saved-reports-tab" id="saved-reports-tab-archived" style="background:none;border:none;padding:8px 14px 10px;font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;color:var(--ink-mute);" data-i18n="insights.archived">Archived</button>
           </div>
-          <div id="saved-reports-list"><p style="color:var(--ink-mute);font-size:13px;">Loading...</p></div>
+          <div id="saved-reports-list"><p style="color:var(--ink-mute);font-size:13px;" data-i18n="common.loading">Loading...</p></div>
         </div>
 
-        <button class="export-btn" id="people-stats-open-btn" style="margin-bottom:20px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Print people statistics report</button>
-        <button class="export-btn" id="payment-reports-open-btn" style="margin-bottom:20px;margin-left:8px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Print payment reports</button>
-        <button class="export-btn" id="attendance-reports-open-btn" style="margin-bottom:20px;margin-left:8px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Print group attendance reports</button>
+        <button class="export-btn" id="people-stats-open-btn" style="margin-bottom:20px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> <span data-i18n="insights.printPeopleStatsReport">Print people statistics report</span></button>
+        <button class="export-btn" id="payment-reports-open-btn" style="margin-bottom:20px;margin-left:8px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> <span data-i18n="insights.printPaymentReports">Print payment reports</span></button>
+        <button class="export-btn" id="attendance-reports-open-btn" style="margin-bottom:20px;margin-left:8px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> <span data-i18n="insights.printAttendanceReports">Print group attendance reports</span></button>
 
         <div class="side-note" style="margin-top:0;max-width:640px;">
-          <h4>Giving</h4>
+          <h4 data-i18n="insights.giving">Giving</h4>
           <div class="stat-row" style="margin-top:10px;margin-bottom:10px;">
-            <div class="stat"><div class="num" id="insights-giving-total">—</div><div class="lbl">ALL-TIME GIVEN</div></div>
-            <div class="stat"><div class="num" id="insights-giving-donors">—</div><div class="lbl">TOTAL DONORS</div></div>
-            <div class="stat"><div class="num" id="insights-giving-average">—</div><div class="lbl">AVERAGE GIFT</div></div>
+            <div class="stat"><div class="num" id="insights-giving-total">—</div><div class="lbl" data-i18n="insights.allTimeGiven">ALL-TIME GIVEN</div></div>
+            <div class="stat"><div class="num" id="insights-giving-donors">—</div><div class="lbl" data-i18n="insights.totalDonors">TOTAL DONORS</div></div>
+            <div class="stat"><div class="num" id="insights-giving-average">—</div><div class="lbl" data-i18n="insights.averageGift">AVERAGE GIFT</div></div>
           </div>
-          <p style="font-size:11.5px;color:var(--ink-mute);margin-bottom:4px;">Last 12 months</p>
+          <p style="font-size:11.5px;color:var(--ink-mute);margin-bottom:4px;" data-i18n="insights.last12Months">Last 12 months</p>
           <div class="mini-chart" id="insights-giving-chart"></div>
-          <p style="font-size:11.5px;color:var(--ink-mute);margin-top:16px;margin-bottom:4px;" id="insights-giving-age-note">By age group (self-reported, optional — many donors won't have shared this)</p>
+          <p style="font-size:11.5px;color:var(--ink-mute);margin-top:16px;margin-bottom:4px;" id="insights-giving-age-note" data-i18n="insights.byAgeGroupDonors">By age group (self-reported, optional — many donors won't have shared this)</p>
           <div class="mini-chart" id="insights-giving-age-chart"></div>
         </div>
 
         <div class="side-note" style="max-width:640px;">
-          <h4>Event attendance</h4>
+          <h4 data-i18n="insights.eventAttendance">Event attendance</h4>
           <div class="stat-row" style="grid-template-columns:1fr 1fr;margin-top:10px;margin-bottom:10px;">
-            <div class="stat"><div class="num" id="insights-attendance-total">—</div><div class="lbl">TOTAL CHECKED IN</div></div>
-            <div class="stat"><div class="num" id="insights-attendance-rate">—</div><div class="lbl">CHECK-IN RATE</div></div>
+            <div class="stat"><div class="num" id="insights-attendance-total">—</div><div class="lbl" data-i18n="insights.totalCheckedIn">TOTAL CHECKED IN</div></div>
+            <div class="stat"><div class="num" id="insights-attendance-rate">—</div><div class="lbl" data-i18n="insights.checkInRate">CHECK-IN RATE</div></div>
           </div>
-          <p style="font-size:11.5px;color:var(--ink-mute);margin-bottom:4px;">Checked in, last 8 past events</p>
+          <p style="font-size:11.5px;color:var(--ink-mute);margin-bottom:4px;" data-i18n="insights.checkedInLast8">Checked in, last 8 past events</p>
           <div class="mini-chart" id="insights-attendance-chart"></div>
-          <p style="font-size:11.5px;color:var(--ink-mute);margin-top:16px;margin-bottom:4px;" id="insights-attendance-age-note">By age group (self-reported, optional)</p>
+          <p style="font-size:11.5px;color:var(--ink-mute);margin-top:16px;margin-bottom:4px;" id="insights-attendance-age-note" data-i18n="insights.byAgeGroupOptional">By age group (self-reported, optional)</p>
           <div class="mini-chart" id="insights-attendance-age-chart"></div>
         </div>
 
         <div class="side-note" style="max-width:640px;">
-          <h4>Consecutive absences</h4>
-          <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:12px;">Regulars — for a recurring event or a group — who've missed several in a row, worth a check-in call. Recurring events only work if created after this feature shipped (older ones have no way to be grouped into a series after the fact); groups just need at least one meeting's attendance taken.</p>
+          <h4 data-i18n="insights.consecutiveAbsences">Consecutive absences</h4>
+          <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:12px;" data-i18n="insights.consecutiveAbsencesHint">Regulars — for a recurring event or a group — who've missed several in a row, worth a check-in call. Recurring events only work if created after this feature shipped (older ones have no way to be grouped into a series after the fact); groups just need at least one meeting's attendance taken.</p>
           <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
             <select class="field" id="absences-series-select" style="flex:1;min-width:200px;">
-              <option value="">Select a recurring series or group...</option>
+              <option value="" data-i18n="insights.selectRecurringSeriesOrGroup">Select a recurring series or group...</option>
             </select>
             <select class="field" id="absences-threshold-select" style="width:auto;">
-              <option value="3">3+ in a row</option>
-              <option value="5">5+ in a row</option>
-              <option value="7" selected>7+ in a row</option>
-              <option value="10">10+ in a row</option>
+              <option value="3" data-i18n="insights.threshold3">3+ in a row</option>
+              <option value="5" data-i18n="insights.threshold5">5+ in a row</option>
+              <option value="7" selected data-i18n="insights.threshold7">7+ in a row</option>
+              <option value="10" data-i18n="insights.threshold10">10+ in a row</option>
             </select>
           </div>
-          <div id="absences-results"><p style="color:var(--ink-mute);font-size:12.5px;">Pick a recurring series above.</p></div>
+          <div id="absences-results"><p style="color:var(--ink-mute);font-size:12.5px;" data-i18n="insights.pickRecurringSeriesAbove">Pick a recurring series or group above.</p></div>
         </div>
 
         <div class="side-note" style="max-width:640px;">
-          <h4>Groups</h4>
+          <h4 data-i18n="dash.groups">Groups</h4>
           <div class="stat-row" style="margin-top:10px;">
-            <div class="stat"><div class="num" id="insights-groups-total">—</div><div class="lbl">TOTAL GROUPS</div></div>
-            <div class="stat"><div class="num" id="insights-groups-active">—</div><div class="lbl">ACTIVE GROUPS</div></div>
-            <div class="stat"><div class="num" id="insights-groups-inactive">—</div><div class="lbl">INACTIVE GROUPS</div></div>
+            <div class="stat"><div class="num" id="insights-groups-total">—</div><div class="lbl" data-i18n="insights.totalGroups">TOTAL GROUPS</div></div>
+            <div class="stat"><div class="num" id="insights-groups-active">—</div><div class="lbl" data-i18n="insights.activeGroups">ACTIVE GROUPS</div></div>
+            <div class="stat"><div class="num" id="insights-groups-inactive">—</div><div class="lbl" data-i18n="insights.inactiveGroups">INACTIVE GROUPS</div></div>
           </div>
           <div class="stat-row" style="grid-template-columns:1fr 1fr;margin-top:12px;">
-            <div class="stat"><div class="num" id="insights-groups-in-group">—</div><div class="lbl">PEOPLE IN A GROUP</div></div>
-            <div class="stat"><div class="num" id="insights-groups-not-in-group">—</div><div class="lbl">PEOPLE NOT IN A GROUP</div></div>
+            <div class="stat"><div class="num" id="insights-groups-in-group">—</div><div class="lbl" data-i18n="insights.peopleInAGroup">PEOPLE IN A GROUP</div></div>
+            <div class="stat"><div class="num" id="insights-groups-not-in-group">—</div><div class="lbl" data-i18n="insights.peopleNotInAGroup">PEOPLE NOT IN A GROUP</div></div>
           </div>
           <div class="stat-row" style="grid-template-columns:1fr 1fr;margin-top:12px;">
-            <div class="stat"><div class="num" id="insights-groups-meetings-tracked">—</div><div class="lbl">MEETINGS TRACKED</div></div>
-            <div class="stat"><div class="num" id="insights-groups-attendance-rate">—</div><div class="lbl">ATTENDANCE RATE</div></div>
+            <div class="stat"><div class="num" id="insights-groups-meetings-tracked">—</div><div class="lbl" data-i18n="reports.meetingsTracked">MEETINGS TRACKED</div></div>
+            <div class="stat"><div class="num" id="insights-groups-attendance-rate">—</div><div class="lbl" data-i18n="reports.attendanceRate">ATTENDANCE RATE</div></div>
           </div>
         </div>
 
         <div class="side-note" style="max-width:640px;">
-          <h4>Households</h4>
+          <h4 data-i18n="households.heading">Households</h4>
           <div class="stat-row" style="margin-top:10px;">
-            <div class="stat"><div class="num" id="insights-households-total">—</div><div class="lbl">HOUSEHOLDS</div></div>
-            <div class="stat"><div class="num" id="insights-households-avg-size">—</div><div class="lbl">AVERAGE SIZE</div></div>
-            <div class="stat"><div class="num" id="insights-households-ungrouped">—</div><div class="lbl">NOT IN A HOUSEHOLD</div></div>
+            <div class="stat"><div class="num" id="insights-households-total">—</div><div class="lbl" data-i18n="households.heading">HOUSEHOLDS</div></div>
+            <div class="stat"><div class="num" id="insights-households-avg-size">—</div><div class="lbl" data-i18n="insights.averageSize">AVERAGE SIZE</div></div>
+            <div class="stat"><div class="num" id="insights-households-ungrouped">—</div><div class="lbl" data-i18n="insights.notInAHousehold">NOT IN A HOUSEHOLD</div></div>
           </div>
         </div>
 
         <div class="side-note" style="max-width:640px;">
-          <h4>Involvement</h4>
-          <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:10px;">A transparent point score, not a hidden algorithm: up to 6 points for event check-ins in the last 30 days, +3 for giving at least once, +3 for active group membership. Someone whose first connection to the church is this recent counts as "New" regardless of score. This now runs automatically every day — the button below is just for an immediate refresh, not something you need to remember.</p>
-          <button class="btn-gold" id="involvement-compute-btn" style="padding:9px 18px;margin-bottom:14px;">Refresh now</button>
+          <h4 data-i18n="insights.involvement">Involvement</h4>
+          <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:10px;" data-i18n="insights.involvementHint">A transparent point score, not a hidden algorithm: up to 6 points for event check-ins in the last 30 days, +3 for giving at least once, +3 for active group membership. Someone whose first connection to the church is this recent counts as "New" regardless of score. This now runs automatically every day — the button below is just for an immediate refresh, not something you need to remember.</p>
+          <button class="btn-gold" id="involvement-compute-btn" style="padding:9px 18px;margin-bottom:14px;" data-i18n="insights.refreshNow">Refresh now</button>
           <div id="involvement-compute-status" style="display:none;font-size:12.5px;margin-bottom:12px;"></div>
 
           <div id="involvement-content" style="display:none;">
-            <p style="font-size:11.5px;color:var(--ink-mute);margin-bottom:4px;" id="involvement-breakdown-label">This month</p>
+            <p style="font-size:11.5px;color:var(--ink-mute);margin-bottom:4px;" id="involvement-breakdown-label" data-i18n="insights.thisMonth">This month</p>
             <div class="mini-chart" id="involvement-breakdown-chart"></div>
 
             <div id="involvement-movement-wrap" style="margin-top:16px;">
-              <p style="font-size:11.5px;color:var(--ink-mute);margin-bottom:4px;">Movement vs. last month</p>
+              <p style="font-size:11.5px;color:var(--ink-mute);margin-bottom:4px;" data-i18n="insights.movementVsLastMonth">Movement vs. last month</p>
               <div class="mini-chart" id="involvement-movement-chart"></div>
             </div>
 
             <div id="involvement-moved-down-wrap" style="display:none;margin-top:16px;">
-              <p style="font-size:11.5px;color:var(--ink-mute);margin-bottom:6px;">Worth a check-in — moved to a less-engaged category this month</p>
+              <p style="font-size:11.5px;color:var(--ink-mute);margin-bottom:6px;" data-i18n="insights.worthCheckIn">Worth a check-in — moved to a less-engaged category this month</p>
               <div id="involvement-moved-down-list"></div>
             </div>
           </div>
@@ -4254,7 +4300,7 @@
 
 </main>
 
-<footer>FaithDock prototype — visual concept, not a live product · build 2026-09-05-v173 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;">Accessibility</a></footer>
+<footer>FaithDock prototype — visual concept, not a live product · build 2026-09-05-v174 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -6221,6 +6267,11 @@
       if (currentBase === 'profile' && typeof window.loadProfilePage === 'function') window.loadProfilePage();
       if (currentBase === 'pricing' && typeof window.populatePricingPage === 'function') window.populatePricingPage();
       if (currentBase === 'dashboard' && typeof window.loadSavedReportsList === 'function') window.loadSavedReportsList();
+      if (currentBase === 'dashboard' && typeof window.loadGivingInsights === 'function') window.loadGivingInsights();
+      if (currentBase === 'dashboard' && typeof window.loadAttendanceInsights === 'function') window.loadAttendanceInsights();
+      if (currentBase === 'dashboard' && typeof window.loadAbsenceSourceOptions === 'function') window.loadAbsenceSourceOptions();
+      if (currentBase === 'dashboard' && typeof window.loadInvolvementPanel === 'function') window.loadInvolvementPanel();
+      if (currentBase === 'dashboard' && typeof window.loadGivingHistoryPanel === 'function') window.loadGivingHistoryPanel();
     });
   }
 
@@ -9884,7 +9935,7 @@
       (ageProfiles || []).forEach(function(p){ ageById[p.id] = p.age_range; });
     }
     var ageBucketOrder = ['under_18', '18_24', '25_39', '40_59', '60_79', '80_plus'];
-    var ageBucketLabels = { under_18: 'Under 18', '18_24': '18–24', '25_39': '25–39', '40_59': '40–59', '60_79': '60–79', '80_plus': '80+' };
+    var ageBucketLabels = { under_18: window.t('reports.ageUnder18'), '18_24': window.t('reports.age18to24'), '25_39': window.t('reports.age25to39'), '40_59': window.t('reports.age40to59'), '60_79': window.t('reports.age60to79'), '80_plus': window.t('reports.age80plus') };
     var ageTotals = {};
     ageBucketOrder.forEach(function(k){ ageTotals[k] = 0; });
     var sharedCount = 0;
@@ -9893,7 +9944,7 @@
       if (age && ageTotals.hasOwnProperty(age)) { ageTotals[age] += d.amount_cents; sharedCount++; }
     });
     var giveAgeNote = document.getElementById('insights-giving-age-note');
-    if (giveAgeNote) { giveAgeNote.textContent = 'By age group — based on the ' + sharedCount + ' of ' + donations.length + ' gifts from donors who\'ve shared an age range'; }
+    if (giveAgeNote) { giveAgeNote.textContent = window.t('insights.byAgeGroupBasedOn').replace('{shared}', sharedCount).replace('{total}', donations.length); }
     renderMiniBarChart('insights-giving-age-chart', ageBucketOrder.map(function(k){ return { label: ageBucketLabels[k], value: ageTotals[k] / 100 }; }), function(v){ return '$' + Math.round(v).toLocaleString(); });
   }
   window.loadGivingInsights = loadGivingInsights;
@@ -10550,7 +10601,7 @@
       (attendeeProfiles || []).forEach(function(p){ attendeeAgeById[p.id] = p.age_range; });
     }
     var attAgeBucketOrder = ['under_18', '18_24', '25_39', '40_59', '60_79', '80_plus'];
-    var attAgeBucketLabels = { under_18: 'Under 18', '18_24': '18–24', '25_39': '25–39', '40_59': '40–59', '60_79': '60–79', '80_plus': '80+' };
+    var attAgeBucketLabels = { under_18: window.t('reports.ageUnder18'), '18_24': window.t('reports.age18to24'), '25_39': window.t('reports.age25to39'), '40_59': window.t('reports.age40to59'), '60_79': window.t('reports.age60to79'), '80_plus': window.t('reports.age80plus') };
     var attAgeCounts = {};
     attAgeBucketOrder.forEach(function(k){ attAgeCounts[k] = 0; });
     var attSharedCount = 0;
@@ -10559,7 +10610,7 @@
       if (age && attAgeCounts.hasOwnProperty(age)) { attAgeCounts[age]++; attSharedCount++; }
     });
     var attAgeNote = document.getElementById('insights-attendance-age-note');
-    if (attAgeNote) { attAgeNote.textContent = 'By age group — based on the ' + attSharedCount + ' of ' + (allRegsWithUser || []).length + ' check-ins from people who\'ve shared an age range'; }
+    if (attAgeNote) { attAgeNote.textContent = window.t('insights.byAgeGroupCheckInsBasedOn').replace('{shared}', attSharedCount).replace('{total}', (allRegsWithUser || []).length); }
     renderMiniBarChart('insights-attendance-age-chart', attAgeBucketOrder.map(function(k){ return { label: attAgeBucketLabels[k], value: attAgeCounts[k] }; }));
   }
   window.loadAttendanceInsights = loadAttendanceInsights;
@@ -10597,19 +10648,19 @@
     var eligibleGroups = (groupsList || []).filter(function(g){ return groupsWithAttendance[g.id]; });
 
     if (!seriesIds.length && !eligibleGroups.length) {
-      selectEl.innerHTML = '<option value="">No recurring series or tracked groups yet</option>';
-      document.getElementById('absences-results').innerHTML = '<p style="color:var(--ink-mute);font-size:12.5px;">Nothing to check yet — this covers recurring events created after that feature shipped, and groups with at least one meeting\'s attendance taken.</p>';
+      selectEl.innerHTML = '<option value="">' + window.t('insights.noRecurringSeriesOrGroupsYet') + '</option>';
+      document.getElementById('absences-results').innerHTML = '<p style="color:var(--ink-mute);font-size:12.5px;">' + window.t('insights.nothingToCheckYet') + '</p>';
       return;
     }
 
-    var optionsHtml = '<option value="">Select a recurring series or group...</option>';
+    var optionsHtml = '<option value="">' + window.t('insights.selectRecurringSeriesOrGroup') + '</option>';
     if (seriesIds.length) {
-      optionsHtml += '<optgroup label="Recurring events">' + seriesIds.map(function(sid){
+      optionsHtml += '<optgroup label="' + window.t('insights.recurringEvents') + '">' + seriesIds.map(function(sid){
         return '<option value="event:' + sid + '">' + seriesMap[sid].title.replace(/</g, '&lt;') + '</option>';
       }).join('') + '</optgroup>';
     }
     if (eligibleGroups.length) {
-      optionsHtml += '<optgroup label="Groups">' + eligibleGroups.map(function(g){
+      optionsHtml += '<optgroup label="' + window.t('dash.groups') + '">' + eligibleGroups.map(function(g){
         return '<option value="group:' + g.id + '">' + g.name.replace(/</g, '&lt;') + '</option>';
       }).join('') + '</optgroup>';
     }
@@ -10625,7 +10676,7 @@
   async function renderAbsenceResults(flagged){
     var resultsEl = document.getElementById('absences-results');
     if (!flagged.length) {
-      resultsEl.innerHTML = '<p style="color:var(--sage);font-size:12.5px;">No one currently meets that threshold — nice.</p>';
+      resultsEl.innerHTML = '<p style="color:var(--sage);font-size:12.5px;">' + window.t('insights.noOneMeetsThreshold') + '</p>';
       return;
     }
     var userIds = flagged.map(function(f){ return f.user_id; });
@@ -10636,8 +10687,8 @@
     flagged.sort(function(a, b){ return b.streak - a.streak; });
     resultsEl.innerHTML = flagged.map(function(f){
       return '<div class="info-row" style="justify-content:space-between;">'
-        + '<span>' + (namesById[f.user_id] || 'Unnamed').replace(/</g, '&lt;') + '</span>'
-        + '<span class="tag clay">' + f.streak + ' in a row</span>'
+        + '<span>' + (namesById[f.user_id] || window.t('households.unnamed')).replace(/</g, '&lt;') + '</span>'
+        + '<span class="tag clay">' + window.t('insights.nInARow').replace('{n}', f.streak) + '</span>'
         + '</div>';
     }).join('');
   }
@@ -10662,18 +10713,18 @@
     var resultsEl = document.getElementById('absences-results');
     var rawValue = document.getElementById('absences-series-select').value;
     var threshold = parseInt(document.getElementById('absences-threshold-select').value, 10);
-    if (!rawValue) { resultsEl.innerHTML = '<p style="color:var(--ink-mute);font-size:12.5px;">Pick a recurring series or group above.</p>'; return; }
+    if (!rawValue) { resultsEl.innerHTML = '<p style="color:var(--ink-mute);font-size:12.5px;">' + window.t('insights.pickRecurringSeriesAbove') + '</p>'; return; }
 
     var sepIdx = rawValue.indexOf(':');
     var sourceType = rawValue.slice(0, sepIdx);
     var sourceId = rawValue.slice(sepIdx + 1);
 
-    resultsEl.innerHTML = '<p style="color:var(--ink-mute);font-size:12.5px;">Checking...</p>';
+    resultsEl.innerHTML = '<p style="color:var(--ink-mute);font-size:12.5px;">' + window.t('insights.checking') + '</p>';
 
     if (sourceType === 'event') {
       var { data: occurrences } = await supabase.from('events').select('id, start_at').eq('series_id', sourceId).lt('start_at', new Date().toISOString()).order('start_at', { ascending: false }).limit(12);
       if (!occurrences || occurrences.length < 2) {
-        resultsEl.innerHTML = '<p style="color:var(--ink-mute);font-size:12.5px;">Not enough past occurrences yet to spot a pattern.</p>';
+        resultsEl.innerHTML = '<p style="color:var(--ink-mute);font-size:12.5px;">' + window.t('insights.notEnoughOccurrences') + '</p>';
         return;
       }
       var occurrenceIds = occurrences.map(function(o){ return o.id; });
@@ -10689,7 +10740,7 @@
       var { data: meetingRows } = await supabase.from('group_attendance').select('meeting_date').eq('group_id', sourceId);
       var uniqueDates = Array.from(new Set((meetingRows || []).map(function(r){ return r.meeting_date; }))).sort().reverse().slice(0, 12);
       if (uniqueDates.length < 2) {
-        resultsEl.innerHTML = '<p style="color:var(--ink-mute);font-size:12.5px;">Not enough meetings tracked yet to spot a pattern.</p>';
+        resultsEl.innerHTML = '<p style="color:var(--ink-mute);font-size:12.5px;">' + window.t('insights.notEnoughMeetings') + '</p>';
         return;
       }
       var { data: attendanceRecords } = await supabase.from('group_attendance').select('meeting_date, user_id, attended').eq('group_id', sourceId).in('meeting_date', uniqueDates);
@@ -11987,7 +12038,7 @@
     }
 
     if (!donations2.length) {
-      tbody.innerHTML = '<tr><td colspan="4" style="color:var(--ink-mute);">No donations yet.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="4" style="color:var(--ink-mute);">' + window.t('dashGiving.noDonationsYet') + '</td></tr>';
       return;
     }
 
@@ -11999,9 +12050,9 @@
     }
 
     tbody.innerHTML = donations2.map(function(d){
-      var donorLabel = d.donor_id ? (namesById[d.donor_id] || 'Unnamed') : (d.donor_email ? d.donor_email + ' (guest)' : 'Anonymous');
+      var donorLabel = d.donor_id ? (namesById[d.donor_id] || window.t('households.unnamed')) : (d.donor_email ? d.donor_email + ' ' + window.t('dashGiving.guestSuffix') : window.t('dashGiving.anonymous'));
       var dateLabel = new Date(d.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
-      var fundLabel = d.fund_id ? (fundNamesById[d.fund_id] || 'Unknown fund') : 'General Fund';
+      var fundLabel = d.fund_id ? (fundNamesById[d.fund_id] || window.t('dashGiving.unknownFund')) : window.t('dashGiving.generalFund');
       return '<tr><td>' + donorLabel + '</td><td class="mono">' + fundLabel.replace(/</g, '&lt;') + '</td><td class="mono">$' + (d.amount_cents / 100).toFixed(2) + '</td><td class="mono">' + dateLabel + '</td></tr>';
     }).join('');
   }
@@ -12274,7 +12325,12 @@
   // it's what "moved up" vs "moved down" actually means.
   // ============================================================
   var involvementCategoryRank = { disengaged: 0, sporadic: 1, active: 2, very_active: 3 };
-  var involvementCategoryLabels = { new: 'New', disengaged: 'Disengaged', sporadic: 'Sporadic', active: 'Active', very_active: 'Very Active' };
+  // Built fresh on every call (not cached at module init) so a
+  // language toggle picks it up immediately without needing a reload —
+  // same reasoning as the route-aware re-render dispatcher elsewhere.
+  function getInvolvementCategoryLabels(){
+    return { new: window.t('insights.categoryNew'), disengaged: window.t('insights.categoryDisengaged'), sporadic: window.t('insights.categorySporadic'), active: window.t('insights.categoryActive'), very_active: window.t('insights.categoryVeryActive') };
+  }
 
   async function loadInvolvementPanel(){
     var contentEl = document.getElementById('involvement-content');
@@ -12299,7 +12355,8 @@
     var currentSnapshots = byMonth[currentMonth];
 
     contentEl.style.display = 'block';
-    document.getElementById('involvement-breakdown-label').textContent = 'This month — ' + new Date(currentMonth).toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+    var involvementCategoryLabels = getInvolvementCategoryLabels();
+    document.getElementById('involvement-breakdown-label').textContent = window.t('insights.thisMonth') + ' — ' + new Date(currentMonth).toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
 
     var counts = { new: 0, disengaged: 0, sporadic: 0, active: 0, very_active: 0 };
     currentSnapshots.forEach(function(s){ counts[s.category]++; });
@@ -12310,7 +12367,7 @@
     var movementWrap = document.getElementById('involvement-movement-wrap');
     var movedDownWrap = document.getElementById('involvement-moved-down-wrap');
     if (!previousMonth) {
-      movementWrap.innerHTML = '<p style="font-size:12.5px;color:var(--ink-mute);">Compute next month\'s scores to start seeing movement.</p>';
+      movementWrap.innerHTML = '<p style="font-size:12.5px;color:var(--ink-mute);">' + window.t('insights.computeNextMonthScores') + '</p>';
       movedDownWrap.style.display = 'none';
       return;
     }
@@ -12333,10 +12390,10 @@
       else { movement.same++; }
     });
 
-    movementWrap.innerHTML = '<p style="font-size:11.5px;color:var(--ink-mute);margin-bottom:4px;">Movement vs. last month</p><div class="mini-chart" id="involvement-movement-chart"></div>';
+    movementWrap.innerHTML = '<p style="font-size:11.5px;color:var(--ink-mute);margin-bottom:4px;">' + window.t('insights.movementVsLastMonth') + '</p><div class="mini-chart" id="involvement-movement-chart"></div>';
     renderMiniBarChart('involvement-movement-chart', [
-      { label: 'Up', value: movement.up }, { label: 'Same', value: movement.same },
-      { label: 'Down', value: movement.down }, { label: 'New', value: movement.new }
+      { label: window.t('insights.movementUp'), value: movement.up }, { label: window.t('insights.movementSame'), value: movement.same },
+      { label: window.t('insights.movementDown'), value: movement.down }, { label: window.t('insights.categoryNew'), value: movement.new }
     ]);
 
     if (movedDown.length) {
@@ -12344,7 +12401,7 @@
       var namesById = {};
       (profiles || []).forEach(function(p){ namesById[p.id] = p.full_name; });
       document.getElementById('involvement-moved-down-list').innerHTML = movedDown.map(function(uid){
-        return '<div class="info-row">' + (namesById[uid] || 'Unnamed').replace(/</g, '&lt;') + '</div>';
+        return '<div class="info-row">' + (namesById[uid] || window.t('households.unnamed')).replace(/</g, '&lt;') + '</div>';
       }).join('');
       movedDownWrap.style.display = 'block';
     } else {
@@ -12361,7 +12418,7 @@
       var myChurch = await getMyChurch();
       if (!myChurch) return;
       involvementComputeBtn.disabled = true;
-      statusEl.textContent = 'Computing...';
+      statusEl.textContent = window.t('insights.computing');
       statusEl.style.color = 'var(--ink-mute)';
       statusEl.style.display = 'block';
 
@@ -12372,7 +12429,7 @@
         statusEl.style.color = 'var(--clay)';
         return;
       }
-      statusEl.textContent = 'Scored ' + data + (data === 1 ? ' person' : ' people') + ' for this month.';
+      statusEl.textContent = window.t('insights.scoredNForThisMonth').replace('{n}', data).replace('{personWord}', data === 1 ? window.t('insights.personWord') : window.t('insights.peopleWord'));
       statusEl.style.color = 'var(--sage)';
       loadInvolvementPanel();
     });
@@ -12703,7 +12760,7 @@
     var person = directoryPeopleRaw.filter(function(p){ return p.user_id === personId; })[0];
     if (!person) return;
 
-    document.getElementById('directory-person-name').textContent = person.full_name || 'Unnamed';
+    document.getElementById('directory-person-name').textContent = person.full_name || window.t('households.unnamed');
     document.getElementById('directory-person-email').textContent = person.email || '—';
     document.getElementById('directory-person-phone').textContent = person.phone || '—';
 
