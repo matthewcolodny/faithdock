@@ -1975,6 +1975,17 @@
   <div class="wrap" style="padding-top:44px;">
     <div class="eyebrow">Platform admin</div>
     <h1 style="font-size:34px;">Admin</h1>
+    <!-- The dashboard nav link is deliberately hidden for platform
+         admin accounts (see updateAuthUI's dashLink comment) even
+         when that account also owns a church — this is the one place
+         left to reach it, since typing #dashboard into the address
+         bar is the only other way in. Shown unconditionally rather
+         than gated on window.hasChurchAccess: that flag isn't
+         guaranteed fresh yet when loadAdminPanel() runs (it's resolved
+         by a separate query later in the same updateAuthUI call), and
+         the dashboard itself already shows a graceful "No church
+         found" state for an admin who hasn't registered one. -->
+    <a href="#dashboard" data-route="dashboard" style="display:inline-block;margin-top:8px;font-size:13.5px;font-weight:600;color:var(--ink);border-bottom:1px solid var(--gold);padding-bottom:2px;">My church dashboard →</a>
 
     <h2 style="font-size:20px;margin-top:36px;margin-bottom:16px;">Pending church verifications</h2>
     <div id="admin-verifications-list">
@@ -3878,7 +3889,7 @@
 
 </main>
 
-<footer>FaithDock prototype — visual concept, not a live product · build 2026-09-04-v167 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;">Accessibility</a></footer>
+<footer>FaithDock prototype — visual concept, not a live product · build 2026-09-04-v168 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
