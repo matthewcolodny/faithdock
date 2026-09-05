@@ -409,6 +409,22 @@
       'dashBilling.pastDueWarning': "Your last payment didn't go through — please update your card to avoid losing paid-plan features.",
       'dashBilling.manageBilling': 'Manage billing', 'dashBilling.viewPlans': 'View plans',
       'dashSettings.churchProfile': 'Church profile',
+      'dashSettings.facilityRooms': 'Facility rooms',
+      'dashSettings.facilityRoomsHint': 'The spaces your church schedules — classrooms, the sanctuary, Rec Center, outdoor areas. These show up as options when creating an event.',
+      'dashSettings.roomNamePlaceholder': 'e.g. Room 205 Classroom Adult', 'dashSettings.add': 'Add',
+      'dashSettings.transferOwnership': 'Transfer ownership',
+      'dashSettings.transferOwnershipHint': "Hand this church off to someone else. Nothing changes until they explicitly accept — this doesn't transfer instantly just because you send it, and you can cancel it anytime before they respond.",
+      'dashSettings.cancelThisTransfer': 'Cancel this transfer', 'dashSettings.theirEmailAddress': 'Their email address',
+      'dashSettings.keepAsStaff': 'Keep me on as staff after they accept', 'dashSettings.sendTransferRequest': 'Send transfer request',
+      'dashSettings.givingFunds': 'Giving funds',
+      'dashSettings.givingFundsHint': 'Designated funds donors can choose from when giving — a building campaign, a mission trip, whatever your church tracks separately. Gifts with no fund selected count toward the General Fund.',
+      'dashSettings.fundNamePlaceholder': 'e.g. Building Campaign',
+      'dashSettings.removeRoomConfirm': 'Remove this room? It will no longer be selectable for new events — events that already used it keep that on record.',
+      'dashSettings.removeRoomFailed': 'Could not remove this room:',
+      'dashSettings.transferPending': 'Transfer pending — waiting on', 'dashSettings.toRespond': 'to respond.',
+      'dashSettings.enterEmailAddress': 'Enter an email address.', 'dashSettings.transferSent': 'Sent! Nothing changes until they accept.',
+      'dashSettings.removeFundConfirm': 'Remove this fund? It will no longer be selectable for new gifts — past donations to it keep that on record.',
+      'dashSettings.removeFundFailed': 'Could not remove this fund:',
       'dashSettings.churchProfileHint': 'Name, address, denomination, website, description, and logo are all managed from one page.',
       'dashSettings.givingHint': 'Connect a bank account so your church can accept donations directly through FaithDock. Donations go straight to your account — FaithDock never holds the funds.',
       'dashSettings.team': 'Team', 'dashSettings.teamHint': 'Staff can create and edit events. Church profile and billing stay owner-only.',
@@ -724,6 +740,22 @@
       'dashBilling.pastDueWarning': 'Tu último pago no se procesó — actualiza tu tarjeta para no perder las funciones de los planes de pago.',
       'dashBilling.manageBilling': 'Administrar facturación', 'dashBilling.viewPlans': 'Ver planes',
       'dashSettings.churchProfile': 'Perfil de la iglesia',
+      'dashSettings.facilityRooms': 'Espacios de la instalación',
+      'dashSettings.facilityRoomsHint': 'Los espacios que tu iglesia programa — aulas, el santuario, el centro recreativo, áreas al aire libre. Aparecen como opciones al crear un evento.',
+      'dashSettings.roomNamePlaceholder': 'p. ej. Salón 205 Clase de Adultos', 'dashSettings.add': 'Agregar',
+      'dashSettings.transferOwnership': 'Transferir propiedad',
+      'dashSettings.transferOwnershipHint': 'Entrega esta iglesia a otra persona. Nada cambia hasta que la acepten explícitamente — esto no se transfiere instantáneamente solo por enviarlo, y puedes cancelarlo en cualquier momento antes de que respondan.',
+      'dashSettings.cancelThisTransfer': 'Cancelar esta transferencia', 'dashSettings.theirEmailAddress': 'Su correo electrónico',
+      'dashSettings.keepAsStaff': 'Mantenerme como personal después de que acepten', 'dashSettings.sendTransferRequest': 'Enviar solicitud de transferencia',
+      'dashSettings.givingFunds': 'Fondos de donaciones',
+      'dashSettings.givingFundsHint': 'Fondos designados que los donantes pueden elegir al donar — una campaña de construcción, un viaje misionero, lo que tu iglesia rastree por separado. Los regalos sin fondo seleccionado cuentan para el Fondo General.',
+      'dashSettings.fundNamePlaceholder': 'p. ej. Campaña de Construcción',
+      'dashSettings.removeRoomConfirm': '¿Eliminar este salón? Ya no se podrá seleccionar para nuevos eventos — los eventos que ya lo usaron lo mantienen en su registro.',
+      'dashSettings.removeRoomFailed': 'No se pudo eliminar este salón:',
+      'dashSettings.transferPending': 'Transferencia pendiente — esperando a que', 'dashSettings.toRespond': 'responda.',
+      'dashSettings.enterEmailAddress': 'Ingresa un correo electrónico.', 'dashSettings.transferSent': '¡Enviado! Nada cambia hasta que acepten.',
+      'dashSettings.removeFundConfirm': '¿Eliminar este fondo? Ya no se podrá seleccionar para nuevas donaciones — las donaciones anteriores a él se mantienen en su registro.',
+      'dashSettings.removeFundFailed': 'No se pudo eliminar este fondo:',
       'dashSettings.churchProfileHint': 'El nombre, la dirección, la denominación, el sitio web, la descripción y el logotipo se administran todos desde una sola página.',
       'dashSettings.givingHint': 'Conecta una cuenta bancaria para que tu iglesia pueda recibir donaciones directamente a través de FaithDock. Las donaciones van directamente a tu cuenta — FaithDock nunca retiene los fondos.',
       'dashSettings.team': 'Equipo', 'dashSettings.teamHint': 'El personal puede crear y editar eventos. El perfil de la iglesia y la facturación son solo para el propietario.',
@@ -3873,36 +3905,36 @@
               <div id="giving-connect-status" style="display:none;font-size:12px;color:var(--clay);margin-top:10px;"></div>
             </div>
             <div class="side-note" id="settings-rooms-section">
-              <h4>Facility rooms</h4>
-              <p style="font-size:13.5px;color:var(--ink-mute);margin-bottom:14px;">The spaces your church schedules — classrooms, the sanctuary, Rec Center, outdoor areas. These show up as options when creating an event.</p>
+              <h4 data-i18n="dashSettings.facilityRooms">Facility rooms</h4>
+              <p style="font-size:13.5px;color:var(--ink-mute);margin-bottom:14px;" data-i18n="dashSettings.facilityRoomsHint">The spaces your church schedules — classrooms, the sanctuary, Rec Center, outdoor areas. These show up as options when creating an event.</p>
               <div id="rooms-list" style="margin-bottom:12px;"></div>
               <div style="display:flex;gap:8px;">
-                <input class="field" type="text" id="room-add-name" placeholder="e.g. Room 205 Classroom Adult" style="flex:1;font-size:13px;padding:9px 10px;">
-                <button class="export-btn" id="room-add-btn" style="flex-shrink:0;">Add</button>
+                <input class="field" type="text" id="room-add-name" placeholder="e.g. Room 205 Classroom Adult" data-i18n-placeholder="dashSettings.roomNamePlaceholder" style="flex:1;font-size:13px;padding:9px 10px;">
+                <button class="export-btn" id="room-add-btn" style="flex-shrink:0;" data-i18n="dashSettings.add">Add</button>
               </div>
               <div id="room-add-status" style="display:none;font-size:12px;margin-top:8px;"></div>
             </div>
             <div class="side-note" id="settings-ownership-section" style="display:none;">
-              <h4>Transfer ownership</h4>
-              <p style="font-size:13.5px;color:var(--ink-mute);margin-bottom:14px;">Hand this church off to someone else. Nothing changes until they explicitly accept — this doesn't transfer instantly just because you send it, and you can cancel it anytime before they respond.</p>
+              <h4 data-i18n="dashSettings.transferOwnership">Transfer ownership</h4>
+              <p style="font-size:13.5px;color:var(--ink-mute);margin-bottom:14px;" data-i18n="dashSettings.transferOwnershipHint">Hand this church off to someone else. Nothing changes until they explicitly accept — this doesn't transfer instantly just because you send it, and you can cancel it anytime before they respond.</p>
               <div id="ownership-transfer-pending" style="display:none;font-size:13px;margin-bottom:14px;padding:10px;background:var(--paper);border-radius:8px;">
                 <span id="ownership-transfer-pending-text"></span>
-                <button class="export-btn" id="ownership-transfer-cancel-btn" style="margin-top:8px;display:block;">Cancel this transfer</button>
+                <button class="export-btn" id="ownership-transfer-cancel-btn" style="margin-top:8px;display:block;" data-i18n="dashSettings.cancelThisTransfer">Cancel this transfer</button>
               </div>
-              <input class="field" type="email" id="ownership-transfer-email" placeholder="Their email address">
+              <input class="field" type="email" id="ownership-transfer-email" placeholder="Their email address" data-i18n-placeholder="dashSettings.theirEmailAddress">
               <label class="filter-check" style="display:flex;margin-top:10px;margin-bottom:10px;">
-                <input type="checkbox" id="ownership-transfer-keep-staff" checked> Keep me on as staff after they accept
+                <input type="checkbox" id="ownership-transfer-keep-staff" checked> <span data-i18n="dashSettings.keepAsStaff">Keep me on as staff after they accept</span>
               </label>
-              <button class="btn-gold" id="ownership-transfer-send-btn">Send transfer request</button>
+              <button class="btn-gold" id="ownership-transfer-send-btn" data-i18n="dashSettings.sendTransferRequest">Send transfer request</button>
               <div id="ownership-transfer-status" style="display:none;font-size:12px;margin-top:10px;"></div>
             </div>
             <div class="side-note" id="settings-funds-section">
-              <h4>Giving funds</h4>
-              <p style="font-size:13.5px;color:var(--ink-mute);margin-bottom:14px;">Designated funds donors can choose from when giving — a building campaign, a mission trip, whatever your church tracks separately. Gifts with no fund selected count toward the General Fund.</p>
+              <h4 data-i18n="dashSettings.givingFunds">Giving funds</h4>
+              <p style="font-size:13.5px;color:var(--ink-mute);margin-bottom:14px;" data-i18n="dashSettings.givingFundsHint">Designated funds donors can choose from when giving — a building campaign, a mission trip, whatever your church tracks separately. Gifts with no fund selected count toward the General Fund.</p>
               <div id="funds-list" style="margin-bottom:12px;"></div>
               <div style="display:flex;gap:8px;">
-                <input class="field" type="text" id="fund-add-name" placeholder="e.g. Building Campaign" style="flex:1;font-size:13px;padding:9px 10px;">
-                <button class="export-btn" id="fund-add-btn" style="flex-shrink:0;">Add</button>
+                <input class="field" type="text" id="fund-add-name" placeholder="e.g. Building Campaign" data-i18n-placeholder="dashSettings.fundNamePlaceholder" style="flex:1;font-size:13px;padding:9px 10px;">
+                <button class="export-btn" id="fund-add-btn" style="flex-shrink:0;" data-i18n="dashSettings.add">Add</button>
               </div>
               <div id="fund-add-status" style="display:none;font-size:12px;margin-top:8px;"></div>
             </div>
@@ -10588,9 +10620,9 @@
   document.addEventListener('click', async function(ev){
     var removeFundBtn = ev.target.closest ? ev.target.closest('[data-remove-fund-id]') : null;
     if (!removeFundBtn) return;
-    if (!confirm('Remove this fund? It will no longer be selectable for new gifts — past donations to it keep that on record.')) return;
+    if (!confirm(window.t('dashSettings.removeFundConfirm'))) return;
     var { error } = await supabase.from('giving_funds').update({ is_active: false }).eq('id', removeFundBtn.getAttribute('data-remove-fund-id'));
-    if (error) { alert('Could not remove this fund: ' + error.message); return; }
+    if (error) { alert(window.t('dashSettings.removeFundFailed') + ' ' + error.message); return; }
     loadFundsPanel();
   });
 
@@ -10930,11 +10962,11 @@
   document.addEventListener('click', async function(ev){
     var removeBtn = ev.target.closest ? ev.target.closest('[data-remove-room-id]') : null;
     if (!removeBtn) return;
-    if (!confirm('Remove this room? It will no longer be selectable for new events — events that already used it keep that on record.')) return;
+    if (!confirm(window.t('dashSettings.removeRoomConfirm'))) return;
     // Soft-delete: hides it from future use without erasing which
     // room past events were actually held in.
     var { error } = await supabase.from('church_rooms').update({ is_active: false }).eq('id', removeBtn.getAttribute('data-remove-room-id'));
-    if (error) { alert('Could not remove this room: ' + error.message); return; }
+    if (error) { alert(window.t('dashSettings.removeRoomFailed') + ' ' + error.message); return; }
     loadRoomsPanel();
   });
 
@@ -11369,7 +11401,7 @@
     if (!pendingWrap) return;
     var { data: rows } = await supabase.from('church_ownership_handoffs').select('id, to_email').eq('church_id', churchId).eq('status', 'pending').limit(1);
     if (rows && rows.length) {
-      pendingText.textContent = 'Transfer pending — waiting on ' + rows[0].to_email + ' to respond.';
+      pendingText.textContent = window.t('dashSettings.transferPending') + ' ' + rows[0].to_email + ' ' + window.t('dashSettings.toRespond');
       pendingWrap.setAttribute('data-handoff-id', rows[0].id);
       pendingWrap.style.display = 'block';
       if (sendBtn) sendBtn.disabled = true;
@@ -11386,7 +11418,7 @@
       var statusEl = document.getElementById('ownership-transfer-status');
       statusEl.style.display = 'none';
       var toEmail = document.getElementById('ownership-transfer-email').value.trim();
-      if (!toEmail) { statusEl.textContent = 'Enter an email address.'; statusEl.style.color = 'var(--clay)'; statusEl.style.display = 'block'; return; }
+      if (!toEmail) { statusEl.textContent = window.t('dashSettings.enterEmailAddress'); statusEl.style.color = 'var(--clay)'; statusEl.style.display = 'block'; return; }
       var keepAsStaff = document.getElementById('ownership-transfer-keep-staff').checked;
       var { data: userData } = await supabase.auth.getUser();
       var myChurch = await getMyChurch(userData.user.id);
@@ -11410,7 +11442,7 @@
         body: { type: 'ownership_handoff', email: toEmail, churchName: myChurch.name }
       });
       document.getElementById('ownership-transfer-email').value = '';
-      statusEl.textContent = 'Sent! Nothing changes until they accept.';
+      statusEl.textContent = window.t('dashSettings.transferSent');
       statusEl.style.color = 'var(--sage)';
       statusEl.style.display = 'block';
       loadOwnershipTransferStatus(myChurch.id);
