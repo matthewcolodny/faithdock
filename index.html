@@ -152,6 +152,10 @@
       'auth.password': 'Password', 'auth.passwordPlaceholder': 'At least 10 characters', 'auth.confirmPassword': 'Confirm password',
       'auth.confirmPasswordPlaceholder': 'Type it again', 'auth.forgotPassword': 'Forgot password?',
       'auth.sendResetLink': 'Send reset link', 'auth.backToLogin': '← Back to log in', 'auth.continue': 'Continue',
+      'resetPw.eyebrow': 'Reset password', 'resetPw.heading': 'Choose a new password',
+      'resetPw.newPassword': 'New password', 'resetPw.confirmNewPassword': 'Confirm new password',
+      'resetPw.setNewPassword': 'Set new password', 'resetPw.tooShort': 'Password must be at least 10 characters.',
+      'resetPw.dontMatch': "Passwords don't match.", 'resetPw.updatedRedirecting': 'Password updated! Redirecting...',
       'auth.areYouChurch': 'Are you representing a church?', 'auth.becomePartner': 'Continue with sign up above to add or claim your church.',
       'dash.events': 'Events', 'dash.checkin': 'Check-In', 'dash.directory': 'Directory', 'dash.messages': 'Messages',
       'dash.groups': 'Groups', 'dash.giving': 'Giving', 'dash.billing': 'Billing', 'dash.settings': 'Settings', 'dash.signout': 'Sign out',
@@ -418,6 +422,10 @@
       'auth.password': 'Contraseña', 'auth.passwordPlaceholder': 'Al menos 10 caracteres', 'auth.confirmPassword': 'Confirmar contraseña',
       'auth.confirmPasswordPlaceholder': 'Escríbela de nuevo', 'auth.forgotPassword': '¿Olvidaste tu contraseña?',
       'auth.sendResetLink': 'Enviar enlace', 'auth.backToLogin': '← Volver a iniciar sesión', 'auth.continue': 'Continuar',
+      'resetPw.eyebrow': 'Restablecer contraseña', 'resetPw.heading': 'Elige una nueva contraseña',
+      'resetPw.newPassword': 'Nueva contraseña', 'resetPw.confirmNewPassword': 'Confirmar nueva contraseña',
+      'resetPw.setNewPassword': 'Establecer nueva contraseña', 'resetPw.tooShort': 'La contraseña debe tener al menos 10 caracteres.',
+      'resetPw.dontMatch': 'Las contraseñas no coinciden.', 'resetPw.updatedRedirecting': '¡Contraseña actualizada! Redirigiendo...',
       'auth.areYouChurch': '¿Representas a una iglesia?', 'auth.becomePartner': 'Continúa con el registro de arriba para agregar o reclamar tu iglesia.',
       'dash.events': 'Eventos', 'dash.checkin': 'Registro', 'dash.directory': 'Directorio', 'dash.messages': 'Mensajes',
       'dash.groups': 'Grupos', 'dash.giving': 'Donaciones', 'dash.billing': 'Facturación', 'dash.settings': 'Configuración', 'dash.signout': 'Cerrar sesión',
@@ -2730,14 +2738,14 @@
 <section class="page" id="page-reset-password">
   <div class="auth-wrap">
     <div class="auth-card">
-      <div class="eyebrow">Reset password</div>
-      <h2 style="font-family:'Fraunces';font-size:22px;margin-bottom:16px;">Choose a new password</h2>
-      <label>New password</label>
-      <input class="field" type="password" id="reset-password-new" placeholder="At least 10 characters" autocomplete="new-password">
-      <label>Confirm new password</label>
-      <input class="field" type="password" id="reset-password-confirm" placeholder="Type it again" autocomplete="new-password">
+      <div class="eyebrow" data-i18n="resetPw.eyebrow">Reset password</div>
+      <h2 style="font-family:'Fraunces';font-size:22px;margin-bottom:16px;" data-i18n="resetPw.heading">Choose a new password</h2>
+      <label data-i18n="resetPw.newPassword">New password</label>
+      <input class="field" type="password" id="reset-password-new" placeholder="At least 10 characters" data-i18n-placeholder="auth.passwordPlaceholder" autocomplete="new-password">
+      <label data-i18n="resetPw.confirmNewPassword">Confirm new password</label>
+      <input class="field" type="password" id="reset-password-confirm" placeholder="Type it again" data-i18n-placeholder="auth.confirmPasswordPlaceholder" autocomplete="new-password">
       <div id="reset-password-status" style="display:none;font-size:13px;margin-top:14px;"></div>
-      <button class="auth-submit" id="reset-password-submit-btn">Set new password</button>
+      <button class="auth-submit" id="reset-password-submit-btn" data-i18n="resetPw.setNewPassword">Set new password</button>
     </div>
   </div>
 </section>
@@ -7674,19 +7682,22 @@
       var confirmPassword = document.getElementById('reset-password-confirm').value;
       statusEl.style.display = 'none';
 
-      if (newPassword.length < 10) { statusEl.textContent = 'Password must be at least 10 characters.'; statusEl.style.color = 'var(--clay)'; statusEl.style.display = 'block'; return; }
-      if (newPassword !== confirmPassword) { statusEl.textContent = 'Passwords don\'t match.'; statusEl.style.color = 'var(--clay)'; statusEl.style.display = 'block'; return; }
+      if (newPassword.length < 10) { statusEl.textContent = window.t('resetPw.tooShort'); statusEl.style.color = 'var(--clay)'; statusEl.style.display = 'block'; return; }
+      if (newPassword !== confirmPassword) { statusEl.textContent = window.t('resetPw.dontMatch'); statusEl.style.color = 'var(--clay)'; statusEl.style.display = 'block'; return; }
 
       resetPasswordSubmitBtn.disabled = true;
       var { error } = await supabase.auth.updateUser({ password: newPassword });
       resetPasswordSubmitBtn.disabled = false;
       if (error) {
+        // Comes straight from Supabase — always English regardless of
+        // site language, same as every other raw error.message shown
+        // elsewhere in this file.
         statusEl.textContent = error.message;
         statusEl.style.color = 'var(--clay)';
         statusEl.style.display = 'block';
         return;
       }
-      statusEl.textContent = 'Password updated! Redirecting...';
+      statusEl.textContent = window.t('resetPw.updatedRedirecting');
       statusEl.style.color = 'var(--sage)';
       statusEl.style.display = 'block';
       setTimeout(function(){ go('home'); }, 1500);
