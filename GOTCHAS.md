@@ -92,6 +92,26 @@ The Profile page's two Turnstile widgets (`.side-note` cards, 22px padding) were
 
 ---
 
+## Password recovery: don't race Supabase's own URL-session handling
+
+Clicking the emailed "reset password" link landed on the hero page instead of "Set new password" — confirmed as a real, live bug via an actual test (a synthetic recovery hash navigated in a real browser, DevTools/console evidence, not just code review).
+
+The original code checked `location.hash.indexOf('type=recovery')` as a one-time synchronous statement, reasoning that since it runs in the same script right after `createClient()`, it must see the hash before Supabase's own client (`detectSessionInUrl: true` by default) has a chance to parse and clear it. That reasoning was wrong: `createClient()` kicks off its own URL-session handling asynchronously (an internal `await`-chain, not blocking the constructor), and *any* later `await` anywhere in the page's own bootstrap is enough to let that pending work run first — confirmed directly by fetching and reading the actual `auth-js` bundle this project loads (`grep`-ing the resolved `esm.sh` module for `detectSessionInUrl`/`flowType` defaults), not assumed from documentation.
+
+**Fix: listen for the `PASSWORD_RECOVERY` event on `supabase.auth.onAuthStateChange` instead of racing the raw hash.** Supabase's own `auth-js` explicitly fires `PASSWORD_RECOVERY` (never `SIGNED_IN`) only once a real recovery session is actually established — verified against the library's own source, not just its docs. Routing from that event has nothing left to race. The original hash check is still harmless to leave in place as an early first-paint attempt, but the event listener is the actual, reliable trigger — don't remove it thinking the hash check alone is sufficient.
+
+If you ever need to verify an `onAuthStateChange`-driven flow without a real email round-trip, `supabase.auth._notifyAllSubscribers('EVENT_NAME', fakeSession)` dispatches a real event through the SDK's own listener list — closer to true end-to-end evidence than manually calling your own handler function directly.
+
+---
+
+## Password fields need to be cleared on every page visit, not just after a successful save
+
+The Profile password-change fields (`autocomplete="current-password"`/`"new-password"`, per the convention above) still showed old values after refreshing, signing out, and signing back in — confirmed as a real, reported bug, not just a theoretical autofill concern. The `autocomplete` attribute stops the browser from *guessing* which field is which; it doesn't stop the browser's own password manager from *repopulating* a field it remembers, on a later, completely unrelated visit to that same page.
+
+Clearing these fields once, right after a successful password update, isn't enough — the browser can refill them again the next time the page loads, well after this app's own JS has finished running. `loadProfilePage()` now explicitly blanks all three password inputs at the start of every call, and again on the next tick and ~300ms later (`setTimeout(..., 0)` and `setTimeout(..., 300)`) — covering both an autofill pass that lands before this function's own synchronous work, and one that lands after it. The login form's email/password fields are also explicitly cleared on `SIGNED_OUT`, for the same reason.
+
+---
+
 ## Working conventions worth restating
 
 - **Bump the footer build stamp** (`build YYYY-MM-DD-vNNN`) after every round of changes — it's the fastest way to confirm whether what's live actually reflects the latest work, or whether a browser is just caching an old version.

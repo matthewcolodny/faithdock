@@ -2186,7 +2186,7 @@
         </div>
       </div>
       <a href="#signup" id="nav-login-link" onclick="window.clearStalePostLoginRoute(); go('signup'); authTab('login'); return false;" data-i18n="nav.login">Log in</a>
-      <button class="nav-cta" id="nav-signup-btn" onclick="window.clearStalePostLoginRoute(); go('signup')" data-i18n="nav.signup">Sign up</button>
+      <button class="nav-cta" id="nav-signup-btn" onclick="window.clearStalePostLoginRoute(); go('signup'); authTab('signup');" data-i18n="nav.signup">Sign up</button>
       <div id="nav-toggle-group" style="display:flex;align-items:center;gap:10px;margin-left:14px;">
         <button id="theme-toggle-btn" type="button" aria-label="Toggle dark mode" style="background:none;border:1px solid rgba(255,255,255,0.3);border-radius:7px;width:31px;height:31px;display:flex;align-items:center;justify-content:center;color:#CBD2DE;cursor:pointer;flex-shrink:0;">
           <svg id="theme-toggle-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;display:none;"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
@@ -3389,8 +3389,8 @@
   <div class="auth-wrap">
     <div class="auth-card">
       <div class="auth-toggle" id="auth-tabs-wrap">
-        <button class="active" id="tab-signup" onclick="authTab('signup')" data-i18n="auth.signupTab">Sign up</button>
         <button id="tab-login" onclick="authTab('login')" data-i18n="auth.loginTab">Log in</button>
+        <button class="active" id="tab-signup" onclick="authTab('signup')" data-i18n="auth.signupTab">Sign up</button>
       </div>
       <div id="oauth-buttons-wrap" style="margin-bottom:18px;">
         <button class="export-btn" id="oauth-google-btn" style="width:100%;justify-content:center;gap:10px;">
@@ -4644,7 +4644,7 @@
 
 </main>
 
-<footer>FaithDock prototype — visual concept, not a live product · build 2026-09-05-v178 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;">Accessibility</a></footer>
+<footer>FaithDock prototype — visual concept, not a live product · build 2026-09-06-v179 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -4688,7 +4688,7 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:32px;height:32px;color:var(--gold);margin:8px auto 14px;display:block;"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
     <h3 style="font-family:'Fraunces';font-size:19px;color:var(--ink);margin-bottom:8px;" data-i18n="loginRequired.title">Sign in required</h3>
     <p id="login-required-message" style="font-size:14px;color:var(--ink-mute);margin-bottom:18px;" data-i18n="loginRequired.default">Create a free account or sign in to do that.</p>
-    <button class="btn-gold" style="width:100%;justify-content:center;" onclick="document.getElementById('login-required-modal').classList.remove('open'); window.clearStalePostLoginRoute(); go('signup');" data-i18n="auth.signupTab">Sign up</button>
+    <button class="btn-gold" style="width:100%;justify-content:center;" onclick="document.getElementById('login-required-modal').classList.remove('open'); window.clearStalePostLoginRoute(); go('signup'); authTab('signup');" data-i18n="auth.signupTab">Sign up</button>
     <button class="export-btn" style="width:100%;justify-content:center;margin-top:8px;" onclick="document.getElementById('login-required-modal').classList.remove('open'); window.clearStalePostLoginRoute(); go('signup'); authTab('login');" data-i18n="auth.loginTab">Log in</button>
   </div>
 </div>
@@ -5707,9 +5707,10 @@
     // point — the actual guard against re-submitting checks this flag
     // directly now, not whether the button looks clickable.
     var authSubmitBtnEl = document.getElementById('auth-submit-btn');
-    if (authSubmitBtnEl) authSubmitBtnEl.disabled = false;
+    if (authSubmitBtnEl) { authSubmitBtnEl.disabled = false; authSubmitBtnEl.textContent = window.t('auth.continue'); }
     window.awaitingEmailConfirmation = false;
     window.awaitingEmailConfirmationUserId = null;
+    window.awaitingEmailConfirmationEmail = null;
   }
   window.authTab = authTab;
 
@@ -8077,9 +8078,30 @@
       if (signupPasswordConfirmEl) signupPasswordConfirmEl.value = '';
       if (typeof clearAuthError === 'function') clearAuthError();
       var authSubmitBtnReset = document.getElementById('auth-submit-btn');
-      if (authSubmitBtnReset) authSubmitBtnReset.disabled = false;
+      if (authSubmitBtnReset) { authSubmitBtnReset.disabled = false; authSubmitBtnReset.textContent = window.t('auth.continue'); }
       window.awaitingEmailConfirmation = false;
       window.awaitingEmailConfirmationUserId = null;
+      window.awaitingEmailConfirmationEmail = null;
+      var loginEmailElReset = document.getElementById('login-email');
+      var loginPasswordElReset = document.getElementById('login-password');
+      if (loginEmailElReset) loginEmailElReset.value = '';
+      if (loginPasswordElReset) loginPasswordElReset.value = '';
+    }
+
+    // Confirmed by an actual test (fake recovery token, real console
+    // evidence) that the standalone "does location.hash still contain
+    // type=recovery" check further down in this same script is racing
+    // Supabase's own async URL-session handling — createClient()
+    // kicks that off as soon as it's constructed, and by the time this
+    // module's later synchronous code re-checked the raw hash, it had
+    // already been cleared, landing on the hero page instead of Set
+    // new password. PASSWORD_RECOVERY is the event Supabase itself
+    // guarantees to fire (distinct from SIGNED_IN — verified directly
+    // against the actual auth-js source this project loads) only once
+    // its own processing has actually finished and a real recovery
+    // session exists — routing from here isn't racing anything.
+    if (event === 'PASSWORD_RECOVERY') {
+      go('reset-password', true);
     }
 
     // This specific tab never received an OAuth-style redirect token
@@ -8666,12 +8688,45 @@
     // saw it take effect. Checking this flag here, before any of the
     // rest of this handler runs, isn't undone by that finally block,
     // since it exits before ever reaching the try/finally at all.
+    var btn = this;
     if (window.awaitingEmailConfirmation) {
-      showAuthError('Check your email to confirm your account before continuing.');
+      // The button itself switched to "Resend confirmation email" the
+      // moment signup succeeded (see the !data.session branch below) —
+      // a second click on what's now visibly a different button
+      // should actually resend, not just repeat the same "go check
+      // your email" message with no way forward from here.
+      btn.disabled = true;
+      try {
+        window.currentCaptchaToken = null;
+        if (typeof turnstile !== 'undefined') { turnstile.reset('#auth-turnstile'); }
+        var resendWaited = 0;
+        while (!window.currentCaptchaToken && resendWaited < 8000) {
+          await new Promise(function(r){ setTimeout(r, 200); });
+          resendWaited += 200;
+        }
+        if (!window.currentCaptchaToken) {
+          showAuthError(window.t('auth.securityCheckIncomplete'));
+          return;
+        }
+        var { error: resignupResendError } = await supabase.auth.resend({
+          type: 'signup', email: window.awaitingEmailConfirmationEmail,
+          options: { captchaToken: window.currentCaptchaToken }
+        });
+        if (typeof turnstile !== 'undefined') { turnstile.reset('#auth-turnstile'); }
+        window.currentCaptchaToken = null;
+        if (resignupResendError) { showAuthError(resignupResendError.message); return; }
+        var authErrorElForResend = document.getElementById('auth-error');
+        if (authErrorElForResend) {
+          authErrorElForResend.textContent = window.t('auth.confirmationEmailSent');
+          authErrorElForResend.style.color = 'var(--sage)';
+          authErrorElForResend.style.display = 'block';
+        }
+      } finally {
+        btn.disabled = false;
+      }
       return;
     }
     var isSignup = document.getElementById('tab-signup').classList.contains('active');
-    var btn = this;
     btn.disabled = true;
 
     try {
@@ -8723,6 +8778,8 @@
           // completely unrelated event was mistaken for this signup's
           // own confirmation and moved the page forward incorrectly.
           window.awaitingEmailConfirmationUserId = data.user ? data.user.id : null;
+          window.awaitingEmailConfirmationEmail = email;
+          btn.textContent = window.t('auth.resendConfirmationEmail');
           showAuthError(window.t('auth.accountCreatedCheckEmail'));
           return;
         }
@@ -15298,6 +15355,28 @@
     // current state) — a plain page reload fixed it every time, which
     // is what pointed at the cache itself being the stale part, not
     // just needing one more retry within the same page load.
+    // The current/new/confirm password fields carry autocomplete=
+    // "current-password"/"new-password" so a real password manager can
+    // help fill them in during a genuine password change — but that
+    // same attribute means the browser's own autofill (not this app)
+    // can silently repopulate them with a previously-typed value on a
+    // later visit to this same page, well after this function's own
+    // synchronous work is done. Clearing both now and again on the
+    // next frame (after the browser's own autofill pass, which can
+    // land a tick later than page paint) covers both timings without
+    // guessing which one a given browser uses.
+    function clearProfilePasswordFields(){
+      var cur = document.getElementById('profile-current-password-input');
+      var next = document.getElementById('profile-new-password-input');
+      var confirm = document.getElementById('profile-confirm-password-input');
+      if (cur) cur.value = '';
+      if (next) next.value = '';
+      if (confirm) confirm.value = '';
+    }
+    clearProfilePasswordFields();
+    setTimeout(clearProfilePasswordFields, 0);
+    setTimeout(clearProfilePasswordFields, 300);
+
     var userData;
     if (freshUser) {
       userData = { user: freshUser };
@@ -15663,6 +15742,15 @@
       var newPassword = document.getElementById('profile-new-password-input').value;
       var confirmPassword = document.getElementById('profile-confirm-password-input').value;
 
+      // Belt-and-suspenders: every validation failure below returns
+      // before the real disable/re-enable cycle further down ever
+      // runs, so this should already be false — but a confirmed bug
+      // report described the button going permanently unresponsive
+      // after a first mismatched-password attempt, and there's no
+      // real cost to explicitly guaranteeing it here rather than
+      // trusting that no earlier code path ever leaves it disabled.
+      profilePasswordSaveBtn.disabled = false;
+
       if (window.profileHasPasswordAuth && !currentPassword) {
         statusEl.textContent = window.t('profile.enterCurrentPasswordFirst');
         statusEl.style.color = 'var(--clay)';
@@ -15686,6 +15774,12 @@
         return;
       }
       if (window.profileHasPasswordAuth && !window.profilePasswordCaptchaToken) {
+        // The widget can sit there looking already-checked to the eye
+        // long after Cloudflare has actually expired the token behind
+        // it — resetting it here, instead of just printing an error
+        // next to an unchanged-looking checkbox, is what makes it
+        // obvious another click is actually needed.
+        if (typeof turnstile !== 'undefined') { turnstile.reset('#profile-password-turnstile'); }
         statusEl.textContent = window.t('auth.completeCaptcha');
         statusEl.style.color = 'var(--clay)';
         statusEl.style.display = 'block';
