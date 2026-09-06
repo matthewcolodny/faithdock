@@ -379,7 +379,7 @@
       'category.sportsRecreation': 'Sports & Recreation', 'category.sportsShort': 'Sports',
       'badge.openToAnyone': 'Open to anyone', 'badge.membersOnly': 'Members only', 'badge.noSignupNeeded': 'No signup needed',
       'badge.full': 'Full', 'badge.almostFull': 'Almost full', 'badge.registrationOpen': 'Registration open',
-      'church.nextService': 'Next regular service', 'church.contactForTimes': 'contact church for times', 'church.newListing': 'New listing', 'church.nextEvent': 'Next event:',
+      'church.nextService': 'Next regular service', 'church.nextServicesPlural': 'Next regular services', 'church.serviceIsAt': 'is at', 'church.serviceAreAt': 'are at', 'church.contactForTimes': 'contact church for times', 'church.newListing': 'New listing', 'church.nextEvent': 'Next event:',
       'church.away': 'away', 'church.setLocationDistance': 'Set your location to see distance', 'church.locationNotFound': 'Location not found for this address',
       'church.genericLabel': 'Church', 'church.genericName': 'A FaithDock church',
       'dash.editChurchProfile': 'Edit church profile →', 'dash.upgradePlan': 'Upgrade plan',
@@ -1000,7 +1000,7 @@
       'category.sportsRecreation': 'Deportes y recreación', 'category.sportsShort': 'Deportes',
       'badge.openToAnyone': 'Abierto a todos', 'badge.membersOnly': 'Solo miembros', 'badge.noSignupNeeded': 'No requiere inscripción',
       'badge.full': 'Completo', 'badge.almostFull': 'Casi completo', 'badge.registrationOpen': 'Inscripción abierta',
-      'church.nextService': 'Próximo servicio regular', 'church.contactForTimes': 'contacta a la iglesia para conocer los horarios', 'church.newListing': 'Nuevo registro', 'church.nextEvent': 'Próximo evento:',
+      'church.nextService': 'Próximo servicio regular', 'church.nextServicesPlural': 'Próximos servicios regulares', 'church.serviceIsAt': 'es', 'church.serviceAreAt': 'son', 'church.contactForTimes': 'contacta a la iglesia para conocer los horarios', 'church.newListing': 'Nuevo registro', 'church.nextEvent': 'Próximo evento:',
       'church.away': 'de distancia', 'church.setLocationDistance': 'Activa tu ubicación para ver la distancia', 'church.locationNotFound': 'No se encontró la ubicación de esta dirección',
       'church.genericLabel': 'Iglesia', 'church.genericName': 'Una iglesia de FaithDock',
       'dash.editChurchProfile': 'Editar perfil de la iglesia →', 'dash.upgradePlan': 'Mejorar plan',
@@ -4677,7 +4677,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-06-v191 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-06-v192 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -4902,9 +4902,19 @@
   }
   window.formatChurchDistanceText = formatChurchDistanceText;
 
-  function formatChurchNextText(next){
-    var label = (!next || next === 'Contact church for times') ? window.t('church.contactForTimes') : next;
-    return window.t('church.nextService') + ' ' + label;
+  // entryCount lets this correctly say "service is at" vs "services
+  // are at" -- only meaningful when > 1 is actually known (a real
+  // church with 2+ structured entries); demo/sample churches (a plain
+  // string, no entry count available) and a real church with exactly
+  // one entry both correctly fall to the singular form.
+  function formatChurchNextText(next, entryCount){
+    if (!next || next === 'Contact church for times') {
+      return window.t('church.nextService') + ' ' + window.t('church.contactForTimes');
+    }
+    var isPlural = entryCount > 1;
+    var label = isPlural ? window.t('church.nextServicesPlural') : window.t('church.nextService');
+    var verb = isPlural ? window.t('church.serviceAreAt') : window.t('church.serviceIsAt');
+    return label + ' ' + verb + ' ' + next;
   }
   window.formatChurchNextText = formatChurchNextText;
 
@@ -4929,7 +4939,7 @@
       + '<span class="tag sage">' + c.tag + '</span>'
       + '<h3>' + c.name + '</h3>'
       + '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/></svg>' + distText + '</div>'
-      + '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>' + formatChurchNextText(c.next) + '</div>'
+      + '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>' + formatChurchNextText(c.next, (c.rawServiceTimes || []).length) + '</div>'
       + (c.nextEvent ? '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>' + formatChurchNextEventText(c.nextEvent) + '</div>' : '')
       + '</div>';
     if(clickable){
@@ -4980,7 +4990,7 @@
     var distText = formatChurchDistanceText(c.dist);
     document.getElementById('church-dist').textContent = distText;
     document.getElementById('church-dist').style.display = distText ? 'inline' : 'none';
-    document.getElementById('church-next').textContent = formatChurchNextText(c.next);
+    document.getElementById('church-next').textContent = formatChurchNextText(c.next, (c.rawServiceTimes || []).length);
 
     var homeCountEl = document.getElementById('church-home-count');
     if (c.homeCount) { homeCountEl.textContent = c.homeCount; homeCountEl.style.display = 'inline'; }
@@ -6869,7 +6879,7 @@
           toggleChurch.next = refreshedServiceTimes;
           toggleChurch.serviceTimesLabel = refreshedServiceTimes;
           var churchNextEl = document.getElementById('church-next');
-          if (churchNextEl) churchNextEl.textContent = window.formatChurchNextText(toggleChurch.next);
+          if (churchNextEl) churchNextEl.textContent = window.formatChurchNextText(toggleChurch.next, (toggleChurch.rawServiceTimes || []).length);
           var serviceTimesToggleEl = document.getElementById('church-service-times');
           if (serviceTimesToggleEl && toggleChurch.serviceTimesLabel) {
             serviceTimesToggleEl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> ' + toggleChurch.serviceTimesLabel;
