@@ -594,6 +594,7 @@
       'auth.enterEmailFirst': 'Enter your email first.', 'auth.completeCaptcha': 'Please complete the CAPTCHA before continuing.', 'auth.checkEmailForResetLink': 'Check your email for a reset link.',
       'auth.fillAllFields': 'Please fill in all fields.', 'auth.removeWordFromName': 'Please remove "{word}" from your name.', 'auth.passwordsDontMatch': "Passwords don't match.", 'auth.passwordTooShort': 'Password must be at least 10 characters.',
       'auth.accountCreatedCheckEmail': 'Account created — check your email to confirm before continuing.',
+      'auth.confirmedElsewhereHint': 'Confirmed on another device?', 'auth.logInHereLink': 'Log in here.',
       'auth.emailNotConfirmedYet': "Your email hasn't been confirmed yet.", 'auth.resendConfirmationEmail': 'Resend the confirmation email', 'auth.verifying': 'Verifying...',
       'auth.securityCheckIncomplete': "Security check didn't complete — please try again.", 'auth.sending': 'Sending...', 'auth.confirmationEmailSent': 'Confirmation email sent — check your inbox.',
       'dashMessages.checkingRecipients': 'Checking recipients...', 'dashMessages.willReceiveThis': '{n} {recipientWord} will receive this.', 'dashMessages.recipient': 'recipient', 'dashMessages.recipients': 'recipients',
@@ -1210,6 +1211,7 @@
       'auth.enterEmailFirst': 'Ingresa tu correo primero.', 'auth.completeCaptcha': 'Por favor completa el CAPTCHA antes de continuar.', 'auth.checkEmailForResetLink': 'Revisa tu correo para ver un enlace de restablecimiento.',
       'auth.fillAllFields': 'Por favor completa todos los campos.', 'auth.removeWordFromName': 'Por favor elimina "{word}" de tu nombre.', 'auth.passwordsDontMatch': 'Las contraseñas no coinciden.', 'auth.passwordTooShort': 'La contraseña debe tener al menos 10 caracteres.',
       'auth.accountCreatedCheckEmail': 'Cuenta creada — revisa tu correo para confirmar antes de continuar.',
+      'auth.confirmedElsewhereHint': '¿Confirmaste desde otro dispositivo?', 'auth.logInHereLink': 'Inicia sesión aquí.',
       'auth.emailNotConfirmedYet': 'Tu correo aún no ha sido confirmado.', 'auth.resendConfirmationEmail': 'Reenviar el correo de confirmación', 'auth.verifying': 'Verificando...',
       'auth.securityCheckIncomplete': 'La verificación de seguridad no se completó — inténtalo de nuevo.', 'auth.sending': 'Enviando...', 'auth.confirmationEmailSent': 'Correo de confirmación enviado — revisa tu bandeja de entrada.',
       'dashMessages.checkingRecipients': 'Verificando destinatarios...', 'dashMessages.willReceiveThis': '{n} {recipientWord} recibirán esto.', 'dashMessages.recipient': 'destinatario', 'dashMessages.recipients': 'destinatarios',
@@ -4644,7 +4646,7 @@
 
 </main>
 
-<footer>FaithDock prototype — visual concept, not a live product · build 2026-09-06-v179 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;">Accessibility</a></footer>
+<footer>FaithDock prototype — visual concept, not a live product · build 2026-09-06-v180 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -8780,7 +8782,28 @@
           window.awaitingEmailConfirmationUserId = data.user ? data.user.id : null;
           window.awaitingEmailConfirmationEmail = email;
           btn.textContent = window.t('auth.resendConfirmationEmail');
-          showAuthError(window.t('auth.accountCreatedCheckEmail'));
+          // Confirming from a different device (e.g. opening the email
+          // on a phone after signing up on a desktop) has no way to
+          // notify this specific tab — there's no shared localStorage
+          // between separate browsers/devices for Supabase's own
+          // cross-tab session sync to ride along on, unlike confirming
+          // in a second tab on this same browser, which already works.
+          // This is just a pointer to the manual fallback (log in here
+          // once it's confirmed), not an attempt to detect or auto-
+          // switch on confirmation from elsewhere — that would need a
+          // server-side push this static site has no backend for.
+          var authErrorElForSignup = document.getElementById('auth-error');
+          if (authErrorElForSignup) {
+            authErrorElForSignup.innerHTML = window.t('auth.accountCreatedCheckEmail') + ' ' + window.t('auth.confirmedElsewhereHint') + ' <a href="#" id="signup-switch-to-login-link" style="color:inherit;text-decoration:underline;font-weight:600;">' + window.t('auth.logInHereLink') + '</a>';
+            authErrorElForSignup.style.display = 'block';
+            var switchToLoginLink = document.getElementById('signup-switch-to-login-link');
+            if (switchToLoginLink) {
+              switchToLoginLink.addEventListener('click', function(ev){
+                ev.preventDefault();
+                authTab('login');
+              });
+            }
+          }
           return;
         }
         loggedInUser = data.user;
