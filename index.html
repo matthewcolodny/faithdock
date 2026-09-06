@@ -4651,7 +4651,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-06-v188 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-06-v189 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -5636,6 +5636,20 @@
         if (typeof window.checkExistingChurch === 'function') {
           await window.checkExistingChurch(undefined, 'new');
         }
+      }
+      // Same gap, other direction: the plain "Edit church profile"
+      // link (dashboard sidebar, settings, anywhere else) has no
+      // data-add-church attribute, so it fell through with no inline
+      // populate at all -- confirmed as a real bug by an actual test:
+      // it showed the blank "create new church" form right after a
+      // fresh sign-in, then correctly showed the real edit form after
+      // a refresh, because a refresh is what re-runs checkExistingChurch
+      // at page load. Re-running it here too, right before go()
+      // reveals the page, means the form is always freshly populated
+      // no matter how stale page-load's own run might be by the time
+      // this link is actually clicked.
+      if (route === 'register-church' && !el.hasAttribute('data-add-church') && typeof window.checkExistingChurch === 'function') {
+        await window.checkExistingChurch(undefined, undefined);
       }
       if(route === 'church' && el.hasAttribute('data-church-name')){
         var churchName = el.getAttribute('data-church-name');
