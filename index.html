@@ -4650,7 +4650,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-06-v183 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-06-v184 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -7360,8 +7360,34 @@
   // Resolves which church the signed-in user manages, whether as
   // owner or as an invited staff member — used everywhere the
   // dashboard needs to know "which church is this for."
+  // Same-tick dedup: confirmed via real Supabase Auth Logs that a
+  // single sign-in/refresh fans out into a dozen-plus independent
+  // panel loaders (dashboard header, events, groups, team, directory,
+  // giving, billing, check-in, admin...), nearly all of which call
+  // getMyChurch() themselves — meaning one login produced a dozen-plus
+  // simultaneous, fully redundant auth/v1/user + churches/church_staff
+  // requests. This cache only covers the OUTER call (retriesLeft still
+  // undefined, i.e. a fresh external call, not the internal retry
+  // recursion below) and expires after 1.5s — long enough to collapse
+  // one batch's near-instant fan-out into a single network round trip,
+  // short enough that anything even a few seconds later (a manual nav
+  // click, or a refresh right after editing a church) still gets a
+  // fully fresh query rather than stale cached data.
+  window._myChurchCache = null; // { userId, expires, promise }
   async function getMyChurch(knownUserId, retriesLeft){
-    if (retriesLeft === undefined) retriesLeft = 3;
+    if (retriesLeft === undefined) {
+      var cacheKey = knownUserId || '__current_user__';
+      var cached = window._myChurchCache;
+      if (cached && cached.userId === cacheKey && cached.expires > Date.now()) {
+        return cached.promise;
+      }
+      var freshPromise = getMyChurchUncached(knownUserId, 3);
+      window._myChurchCache = { userId: cacheKey, expires: Date.now() + 1500, promise: freshPromise };
+      return freshPromise;
+    }
+    return getMyChurchUncached(knownUserId, retriesLeft);
+  }
+  async function getMyChurchUncached(knownUserId, retriesLeft){
     var userId = knownUserId;
     if (!userId) {
       var { data: userData, error: userError } = await supabase.auth.getUser();
@@ -7420,7 +7446,7 @@
     // being exactly long enough.
     if (retriesLeft > 0) {
       await new Promise(function(resolve){ setTimeout(resolve, 500); });
-      return getMyChurch(userId, retriesLeft - 1);
+      return getMyChurchUncached(userId, retriesLeft - 1);
     }
 
     return null;

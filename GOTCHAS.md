@@ -114,6 +114,30 @@ The general lesson standing after all three attempts: a single reported symptom 
 
 ---
 
+## One sign-in fans out into a dozen-plus duplicate queries — `getMyChurch()` had no cache
+
+Real Supabase Auth Logs from a normal dashboard session (captured while chasing the password-reset bug above) showed the same `auth/v1/user`, `churches`, and `church_staff` requests firing many times back-to-back within the same second, for one real, otherwise-normal login. Not a symptom of the auth listener firing repeatedly — the 400ms `authRefreshTimer` debounce already collapses a burst of `onAuthStateChange` events into a single run. The actual cause: that single debounced run unconditionally calls ~14 independent panel loaders (dashboard header, events, groups, team, directory, giving, billing, check-in, admin, my-groups, my-churches, event-filter follow state, my-events, pending invites) every time, regardless of which page is actually visible, and nearly all of them call `getMyChurch()` themselves — which had zero caching across its 66 call sites. One login was quietly issuing a dozen-plus fully redundant round trips to the same two tables.
+
+**Fix:** `getMyChurch()` now caches its own in-flight *promise* (not just the resolved value) for 1.5 seconds, keyed by user id. Concurrent calls within that window all share the one real network request; anything even a few seconds later — a manual nav click, or a refresh right after editing a church — still gets a fully fresh query. The retry-on-not-yet-visible-staff-row logic (a separate, pre-existing mechanism) is untouched: it lives in a new `getMyChurchUncached()` that the cached wrapper calls into, so retries still happen per-attempt, just once per *batch* instead of once per *caller*.
+
+Verified in the console (not against a real backend — a fake user id triggers the existing invalid-UUID retry path, which is itself a useful counter): 5 concurrent `getMyChurch()` calls produced exactly one shared execution's worth of underlying queries, not 5x that; a call issued after the 1.5s window produced a distinctly fresh new one.
+
+**The lesson:** a debounce that collapses *when* something runs doesn't do anything about *how much* work that one run fans out into. Any function called from many independent, unconditionally-firing loaders in the same tick is worth checking for exactly this — it's invisible from the UI (everything "just works") and only shows up as request volume in server-side logs.
+
+---
+
+## Two tables the client already queries aren't set up right in Supabase — client code can't fix this
+
+Same Auth Log session surfaced two more errors, both from features (member invites, ownership handoff) that are fully built client-side but apparently never finished on the Supabase side:
+
+- **`church_member_invites` → 404.** PostgREST returns 404 when it doesn't see a table in its exposed schema at all — not a client-side typo (grepped: used consistently across 8 call sites). This one fires on *every single sign-in* via `checkPendingMemberInvite()`, not just when someone actually uses the invite feature.
+- **`church_ownership_handoffs` → 403.** A 403 on a plain `.select()` means the table exists but RLS is blocking the read (no policy yet, or RLS on with zero policies = default-deny). Fires whenever an owner's dashboard settings load.
+- A separate `permission denied for table users` (42501) matches no direct client query (grepped for `auth.users` and any `.from('users')` — nothing). Best-fit suspect: the `get_user_id_by_email` RPC (used by "add group member by email" / "add staff by email") — if that Postgres function isn't declared `SECURITY DEFINER`, it runs as the calling user, and normal authenticated roles have no grant on `auth.users`.
+
+**None of this is fixable from this repo** — there's no backend/migration code here (per the project's own single-file-static-site constraint), so the fix is entirely in the Supabase dashboard: confirm `church_member_invites` actually exists (Table Editor), add a SELECT policy to `church_ownership_handoffs` (Authentication → Policies), and check `get_user_id_by_email`'s Security setting (Database → Functions). Worth checking for the same three problems (missing table / missing RLS policy / non-definer email-lookup RPC) any time a *new* client-side feature that touches a brand-new table gets built — the client code shipping cleanly gives no signal at all that the database side is actually ready.
+
+---
+
 ## Password fields need to be cleared on every page visit, not just after a successful save
 
 The Profile password-change fields (`autocomplete="current-password"`/`"new-password"`, per the convention above) still showed old values after refreshing, signing out, and signing back in — confirmed as a real, reported bug, not just a theoretical autofill concern. The `autocomplete` attribute stops the browser from *guessing* which field is which; it doesn't stop the browser's own password manager from *repopulating* a field it remembers, on a later, completely unrelated visit to that same page.
