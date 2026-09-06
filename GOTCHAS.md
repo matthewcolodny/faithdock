@@ -130,11 +130,22 @@ Verified in the console (not against a real backend — a fake user id triggers 
 
 Same Auth Log session surfaced two more errors, both from features (member invites, ownership handoff) that are fully built client-side but apparently never finished on the Supabase side:
 
-- **`church_member_invites` → 404.** PostgREST returns 404 when it doesn't see a table in its exposed schema at all — not a client-side typo (grepped: used consistently across 8 call sites). This one fires on *every single sign-in* via `checkPendingMemberInvite()`, not just when someone actually uses the invite feature.
-- **`church_ownership_handoffs` → 403.** A 403 on a plain `.select()` means the table exists but RLS is blocking the read (no policy yet, or RLS on with zero policies = default-deny). Fires whenever an owner's dashboard settings load.
-- A separate `permission denied for table users` (42501) matches no direct client query (grepped for `auth.users` and any `.from('users')` — nothing). Best-fit suspect: the `get_user_id_by_email` RPC (used by "add group member by email" / "add staff by email") — if that Postgres function isn't declared `SECURITY DEFINER`, it runs as the calling user, and normal authenticated roles have no grant on `auth.users`.
+- **`church_member_invites` → 404.** PostgREST returns 404 when it doesn't see a table in its exposed schema at all — not a client-side typo (grepped: used consistently across 8 call sites), and not a naming drift either (confirmed against the actual table list: `church_staff_invites` exists, but that's a *different* feature — staff invites, paired with the `send-staff-invite` edge function — not this one). `church_member_invites` was simply never created. Fires on *every single sign-in* via `checkPendingMemberInvite()`, not just when someone actually uses the invite feature. Fix is a real `create table` + RLS policies (worked out from the client's own query shapes — see the table's insert/select/update/upsert call sites for the exact columns needed).
 
-**None of this is fixable from this repo** — there's no backend/migration code here (per the project's own single-file-static-site constraint), so the fix is entirely in the Supabase dashboard: confirm `church_member_invites` actually exists (Table Editor), add a SELECT policy to `church_ownership_handoffs` (Authentication → Policies), and check `get_user_id_by_email`'s Security setting (Database → Functions). Worth checking for the same three problems (missing table / missing RLS policy / non-definer email-lookup RPC) any time a *new* client-side feature that touches a brand-new table gets built — the client code shipping cleanly gives no signal at all that the database side is actually ready.
+- **`church_ownership_handoffs` → 403, and the standalone `permission denied for table users` — same root cause, confirmed via `pg_policies`.** First guess (a non-`SECURITY DEFINER` `get_user_id_by_email` RPC) was wrong — checked Database → Functions directly and it's already `Definer`. The actual cause was sitting in the RLS policy text itself:
+  ```
+  "Recipient can view handoffs addressed to their email" (SELECT):
+    lower(to_email) = lower((SELECT users.email FROM auth.users WHERE users.id = auth.uid())::text)
+  ```
+  This policy queries `auth.users` directly from inside RLS, and the `authenticated` role has no grant on that table — so evaluating it throws `permission denied for table users`. Critically, **Postgres RLS doesn't isolate one broken policy from the others**: when multiple SELECT policies apply (here, this one *and* the otherwise-correct `EXISTS (... c.owner_id = auth.uid())` owner policy, OR'd together), an error thrown while evaluating *any* of them aborts the entire query — it doesn't just count as "false" and fall through to the next. That's why even the *owner*, who should have cleanly passed the other policy, got a blanket 403: the query never survived long enough to reach it. Fix: replace the `auth.users` subquery with the JWT claim, which needs no special grant:
+  ```sql
+  create policy "Recipient can view handoffs addressed to their email"
+  on church_ownership_handoffs for select
+  using (lower(to_email) = lower(auth.jwt() ->> 'email'));
+  ```
+  Worth a one-time sweep for the same mistake anywhere else: `select tablename, policyname, cmd, qual, with_check from pg_policies where qual ilike '%auth.users%' or with_check ilike '%auth.users%';`
+
+**None of this is fixable from this repo** — there's no backend/migration code here (per the project's own single-file-static-site constraint), so both fixes are entirely in the Supabase dashboard/SQL Editor. The general lesson: a client-side feature shipping cleanly (no console errors during development, matching table/column names in the code) gives no signal at all that the database side — the table existing, RLS actually matching, a policy not silently referencing a table it has no grant on — is actually finished. Check Auth Logs against real usage, not just the browser console, before calling a table-backed feature done.
 
 ---
 
