@@ -181,6 +181,7 @@
       'rc.website': 'Website', 'rc.freeListing': 'Free listing', 'rc.registerHeading': 'Register your church', 'rc.editHeading': 'Edit your church',
       'rc.publicNotice': "This is what shows publicly on your church's page.", 'rc.phone': 'Church phone number',
       'rc.description': 'Description', 'rc.logo': 'Logo', 'rc.removeLogo': 'Remove logo',
+      'rc.serviceTimes': 'Service times', 'rc.removeServiceTime': 'Remove service time',
       'rc.chooseFile': 'Choose file', 'rc.noFileChosen': 'No file chosen',
       'rc.facebook': 'Facebook', 'rc.instagram': 'Instagram',
       'rc.namePlaceholder': 'Grace Fellowship Church', 'rc.websitePlaceholder': 'https://yourchurch.org',
@@ -377,7 +378,7 @@
       'category.sportsRecreation': 'Sports & Recreation', 'category.sportsShort': 'Sports',
       'badge.openToAnyone': 'Open to anyone', 'badge.membersOnly': 'Members only', 'badge.noSignupNeeded': 'No signup needed',
       'badge.full': 'Full', 'badge.almostFull': 'Almost full', 'badge.registrationOpen': 'Registration open',
-      'church.nextService': 'Next service', 'church.contactForTimes': 'contact church for times', 'church.newListing': 'New listing',
+      'church.nextService': 'Next service', 'church.contactForTimes': 'contact church for times', 'church.newListing': 'New listing', 'church.nextEvent': 'Next event:',
       'church.away': 'away', 'church.setLocationDistance': 'Set your location to see distance', 'church.locationNotFound': 'Location not found for this address',
       'church.genericLabel': 'Church', 'church.genericName': 'A FaithDock church',
       'dash.editChurchProfile': 'Edit church profile →', 'dash.upgradePlan': 'Upgrade plan',
@@ -800,6 +801,7 @@
       'rc.website': 'Sitio web', 'rc.freeListing': 'Listado gratuito', 'rc.registerHeading': 'Registra tu iglesia', 'rc.editHeading': 'Edita tu iglesia',
       'rc.publicNotice': 'Esto es lo que se muestra públicamente en la página de tu iglesia.', 'rc.phone': 'Teléfono de la iglesia',
       'rc.description': 'Descripción', 'rc.logo': 'Logotipo', 'rc.removeLogo': 'Quitar logotipo',
+      'rc.serviceTimes': 'Horarios de servicio', 'rc.removeServiceTime': 'Quitar horario de servicio',
       'rc.chooseFile': 'Elegir archivo', 'rc.noFileChosen': 'Ningún archivo seleccionado',
       'rc.facebook': 'Facebook', 'rc.instagram': 'Instagram',
       'rc.namePlaceholder': 'Iglesia Comunidad de Gracia', 'rc.websitePlaceholder': 'https://tuiglesia.org',
@@ -996,7 +998,7 @@
       'category.sportsRecreation': 'Deportes y recreación', 'category.sportsShort': 'Deportes',
       'badge.openToAnyone': 'Abierto a todos', 'badge.membersOnly': 'Solo miembros', 'badge.noSignupNeeded': 'No requiere inscripción',
       'badge.full': 'Completo', 'badge.almostFull': 'Casi completo', 'badge.registrationOpen': 'Inscripción abierta',
-      'church.nextService': 'Próximo servicio', 'church.contactForTimes': 'contacta a la iglesia para conocer los horarios', 'church.newListing': 'Nuevo registro',
+      'church.nextService': 'Próximo servicio', 'church.contactForTimes': 'contacta a la iglesia para conocer los horarios', 'church.newListing': 'Nuevo registro', 'church.nextEvent': 'Próximo evento:',
       'church.away': 'de distancia', 'church.setLocationDistance': 'Activa tu ubicación para ver la distancia', 'church.locationNotFound': 'No se encontró la ubicación de esta dirección',
       'church.genericLabel': 'Iglesia', 'church.genericName': 'Una iglesia de FaithDock',
       'dash.editChurchProfile': 'Editar perfil de la iglesia →', 'dash.upgradePlan': 'Mejorar plan',
@@ -3535,6 +3537,27 @@
         <span id="rc-logo-filename" style="font-size:13px;color:var(--ink-mute);" data-i18n="rc.noFileChosen">No file chosen</span>
       </div>
 
+      <!-- Structured day+time picker, not a free-text field, on
+           purpose — avoids the typo/inconsistent-formatting risk a
+           free-text "service times" field would have, and lets
+           editing an existing church re-populate these exact entries
+           (impossible to do reliably from a parsed formatted string). -->
+      <label data-i18n="rc.serviceTimes">Service times</label>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+        <select class="field" id="rc-service-day" style="max-width:160px;">
+          <option value="Sunday" data-i18n="days.sunday">Sunday</option>
+          <option value="Monday" data-i18n="days.monday">Monday</option>
+          <option value="Tuesday" data-i18n="days.tuesday">Tuesday</option>
+          <option value="Wednesday" data-i18n="days.wednesday">Wednesday</option>
+          <option value="Thursday" data-i18n="days.thursday">Thursday</option>
+          <option value="Friday" data-i18n="days.friday">Friday</option>
+          <option value="Saturday" data-i18n="days.saturday">Saturday</option>
+        </select>
+        <select class="field" id="rc-service-time" style="max-width:160px;"></select>
+        <button type="button" class="export-btn" id="rc-service-time-add-btn" data-i18n="dashGroups.add">Add</button>
+      </div>
+      <div id="rc-service-times-list" class="chip-list" style="margin-top:8px;"></div>
+
       <div id="rc-error" style="display:none;color:var(--clay);font-size:13px;margin-top:14px;"></div>
       <div id="rc-success" style="display:none;color:var(--sage);font-size:13px;margin-top:14px;"></div>
       <button class="auth-submit" id="rc-submit-btn" data-i18n="rc.createChurch">Create church</button>
@@ -4651,7 +4674,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-06-v189 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-06-v190 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -4882,6 +4905,16 @@
   }
   window.formatChurchNextText = formatChurchNextText;
 
+  // Only meaningful when a real next event was found (see
+  // enrichChurchesWithSchedule()) -- returns null so churchCard() can
+  // omit the whole row rather than showing an empty or placeholder-y
+  // third line for a church with nothing upcoming.
+  function formatChurchNextEventText(nextEvent){
+    if (!nextEvent) return null;
+    return window.t('church.nextEvent') + ' ' + nextEvent.title + ' — ' + nextEvent.when;
+  }
+  window.formatChurchNextEventText = formatChurchNextEventText;
+
   function churchCard(c, clickable){
     var distText = formatChurchDistanceText(c.dist);
     var thumb = c.logoUrl
@@ -4894,6 +4927,7 @@
       + '<h3>' + c.name + '</h3>'
       + '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/></svg>' + distText + '</div>'
       + '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>' + formatChurchNextText(c.next) + '</div>'
+      + (c.nextEvent ? '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>' + formatChurchNextEventText(c.nextEvent) + '</div>' : '')
       + '</div>';
     if(clickable){
       return '<a class="church-card" href="#church" data-route="church" data-church-name="' + c.name.replace(/"/g, '&quot;') + '">' + inner + '</a>';
@@ -5473,13 +5507,19 @@
     var { data } = await window.supabase.from('churches').select('*').eq('name', name).limit(1);
     if (data && data.length) {
       var row = data[0];
+      // This fetch is select('*'), so row.service_times is already
+      // real data (unlike the directory card's mapSearchRow(), which
+      // comes from a limited RPC row and needs a separate batched
+      // enrichment query instead — see enrichChurchesWithSchedule()).
+      var formattedServiceTimes = window.formatChurchServiceTimes(row.service_times);
       var mapped = {
         id: row.id, name: row.name, tag: row.denomination || 'Non-denominational',
-        dist: 'New listing', next: 'Contact church for times',
+        dist: 'New listing', next: formattedServiceTimes,
         lat: row.lat, lng: row.lng, hasCoords: (row.lat != null && row.lng != null), real: true,
         logoUrl: row.logo_url, address: row.address, description: row.description, website: row.website,
         phone: row.phone, facebookUrl: row.facebook_url, instagramUrl: row.instagram_url,
-        verificationStatus: row.verification_status, ownerId: row.owner_id
+        verificationStatus: row.verification_status, ownerId: row.owner_id,
+        serviceTimesLabel: formattedServiceTimes
       };
       churches.push(mapped);
       return mapped;
@@ -5814,14 +5854,59 @@
     else if (row.lat != null && row.lng != null) dist = 'Set your location to see distance';
     else dist = 'Location not found for this address';
     return {
+      // next/nextEvent start null -- this row shape doesn't carry
+      // service_times or event data (this is a limited search_churches
+      // RPC row, not select('*')). enrichChurchesWithSchedule() fills
+      // both in with one batched query each, right before these rows
+      // get turned into cards. formatChurchNextText() already falls
+      // back to the "contact church for times" placeholder on null.
       id: row.id, name: row.name, tag: row.denomination || 'Non-denominational', dist: dist,
-      next: 'Contact church for times', lat: row.lat, lng: row.lng,
+      next: null, nextEvent: null, lat: row.lat, lng: row.lng,
       hasCoords: (row.lat != null && row.lng != null), real: true,
       logoUrl: row.logo_url, address: row.address, description: row.description, website: row.website,
       phone: row.phone, facebookUrl: row.facebook_url, instagramUrl: row.instagram_url,
       verificationStatus: row.verification_status, ownerId: row.owner_id
     };
   }
+
+  // Batched once per rendered page of cards -- NOT one query per
+  // card. search_churches's RPC row doesn't carry service_times, so
+  // that's a plain follow-up select keyed by id; "next event" reuses
+  // the same p_church_ids array param search_events already supports
+  // elsewhere in this file (the full Events page search), rather than
+  // touching that opaque RPC to add a new return column.
+  async function enrichChurchesWithSchedule(rows){
+    var realRows = rows.filter(function(c){ return c.real && c.id; });
+    if (!realRows.length) return rows;
+    var ids = realRows.map(function(c){ return c.id; });
+
+    var { data: serviceTimesRows } = await supabase.from('churches').select('id, service_times').in('id', ids);
+    var serviceTimesById = {};
+    (serviceTimesRows || []).forEach(function(r){ serviceTimesById[r.id] = r.service_times; });
+
+    var { data: eventRows } = await supabase.rpc('search_events', {
+      p_church_ids: ids, p_from_date: new Date().toISOString(), p_limit: 200, p_offset: 0
+    });
+    // The RPC's own ordering isn't guaranteed from anything visible in
+    // this repo, so pick the earliest per church defensively rather
+    // than assume the first row per church_id is already the soonest.
+    var nextEventByChurch = {};
+    (eventRows || []).map(mapSearchEventRow).forEach(function(ev){
+      var existing = nextEventByChurch[ev.churchId];
+      if (!existing || new Date(ev.startAt) < new Date(existing.startAt)) {
+        nextEventByChurch[ev.churchId] = ev;
+      }
+    });
+
+    rows.forEach(function(c){
+      if (!c.real || !c.id) return;
+      c.next = window.formatChurchServiceTimes(serviceTimesById[c.id]);
+      var nextEv = nextEventByChurch[c.id];
+      c.nextEvent = nextEv ? { title: nextEv.title, when: nextEv.when } : null;
+    });
+    return rows;
+  }
+  window.enrichChurchesWithSchedule = enrichChurchesWithSchedule;
 
   var DIRECTORY_PAGE_SIZE = 24;
   window.directoryOffset = 0;
@@ -5906,6 +5991,7 @@
 
     var rows = (data || []).map(mapSearchRow);
     var totalCount = (data && data.length) ? data[0].total_count : 0;
+    await enrichChurchesWithSchedule(rows);
 
     rows.forEach(function(c){ var existing = churches.filter(function(x){ return x.id === c.id; })[0]; if (!existing) churches.push(c); });
 
@@ -5959,6 +6045,7 @@
     });
     if (data && data.length) {
       var rows = data.map(mapSearchRow);
+      await enrichChurchesWithSchedule(rows);
       rows.forEach(function(c){ var existing = churches.filter(function(x){ return x.id === c.id; })[0]; if (!existing) churches.push(c); });
       homeGrid.innerHTML = mapJoin(rows, function(c){ return churchCard(c, true); });
     }
@@ -6676,6 +6763,12 @@
       var currentBase = (typeof window.resolveRouteFromHash === 'function') ? window.resolveRouteFromHash(location.hash).base : null;
       if (currentBase === 'directory' && typeof window.refreshDirectoryCountText === 'function') window.refreshDirectoryCountText();
       if (currentBase === 'events' && typeof window.refreshEventsCountText === 'function') window.refreshEventsCountText();
+      // Service-time chips are JS-built from an in-memory array (see
+      // renderRcServiceTimesChips()), not static HTML with data-i18n
+      // attributes -- an open register-church page with entries
+      // already added would otherwise stay in the old language until
+      // the next add/remove, same class of bug as the count text above.
+      if (currentBase === 'register-church' && typeof window.renderRcServiceTimesChips === 'function') window.renderRcServiceTimesChips();
       if (currentBase === 'my-churches' && typeof window.loadMyChurches === 'function') window.loadMyChurches();
       if (currentBase === 'my-events' && typeof window.loadMyEvents === 'function') window.loadMyEvents();
       if (currentBase === 'my-groups' && typeof window.loadMyGroups === 'function') window.loadMyGroups();
@@ -7231,6 +7324,8 @@
     document.getElementById('rc-logo-remove-btn').style.display = 'none';
     resetRcLogoFilename();
     window.rcLogoMarkedForRemoval = false;
+    rcServiceTimes = [];
+    if (typeof renderRcServiceTimesChips === 'function') renderRcServiceTimesChips();
   }
 
   async function checkExistingChurch(knownUserId, routeKey){
@@ -7335,6 +7430,11 @@
     document.getElementById('rc-logo-preview').style.backgroundImage = church.logo_url ? "url('" + church.logo_url + "')" : '';
     document.getElementById('rc-logo-remove-btn').style.display = church.logo_url ? 'inline-flex' : 'none';
     window.rcLogoMarkedForRemoval = false;
+    // Re-populate from the stored structured array, not a parsed
+    // string — this exact round-trip (real entries in -> real entries
+    // back out) is the whole point of storing it structured.
+    rcServiceTimes = (church.service_times || []).slice();
+    if (typeof renderRcServiceTimesChips === 'function') renderRcServiceTimesChips();
   }
   // Same reasoning as the guarded call in updateAuthUI below — only
   // meaningful on the register-church page itself.
@@ -7386,6 +7486,74 @@
       rcLogoRemoveBtn.style.display = 'none';
     });
   }
+
+  // Service times — structured day+time entries, stored as-is (not a
+  // formatted string) so re-opening this form for editing can always
+  // exactly reconstruct these chips. Mirrors the existing group
+  // meeting-exceptions chip pattern (renderGroupExceptions() below).
+  var rcServiceTimes = [];
+  function renderRcServiceTimesChips(){
+    var list = document.getElementById('rc-service-times-list');
+    if (!list) return;
+    list.innerHTML = rcServiceTimes.map(function(entry, i){
+      var timeLabel = new Date('2000-01-01T' + entry.time).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+      var dayLabel = window.t('days.' + entry.day.toLowerCase());
+      return '<span class="chip">' + dayLabel + ' ' + timeLabel + '<button type="button" data-rc-service-time-index="' + i + '" aria-label="' + window.t('rc.removeServiceTime') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span>';
+    }).join('');
+  }
+  window.renderRcServiceTimesChips = renderRcServiceTimesChips;
+
+  var rcServiceTimeSelect = document.getElementById('rc-service-time');
+  if (rcServiceTimeSelect) {
+    rcServiceTimeSelect.innerHTML = buildTimeOptions();
+    rcServiceTimeSelect.value = '09:00';
+  }
+  var rcServiceTimeAddBtn = document.getElementById('rc-service-time-add-btn');
+  if (rcServiceTimeAddBtn) {
+    rcServiceTimeAddBtn.addEventListener('click', function(){
+      var day = document.getElementById('rc-service-day').value;
+      var time = document.getElementById('rc-service-time').value;
+      if (!time) return;
+      // Same day+time added twice is a no-op, not a duplicate chip.
+      var alreadyExists = rcServiceTimes.some(function(e){ return e.day === day && e.time === time; });
+      if (!alreadyExists) {
+        rcServiceTimes.push({ day: day, time: time });
+        renderRcServiceTimesChips();
+      }
+    });
+  }
+  document.addEventListener('click', function(ev){
+    var removeBtn = ev.target.closest ? ev.target.closest('[data-rc-service-time-index]') : null;
+    if (removeBtn) {
+      rcServiceTimes.splice(parseInt(removeBtn.getAttribute('data-rc-service-time-index'), 10), 1);
+      renderRcServiceTimesChips();
+    }
+  });
+
+  // Groups entries by day (Sunday-first order, matching the picker
+  // above) and joins same-day times with "&" — e.g. "Sunday 9:00 AM &
+  // 11:00 AM, Saturday 6:00 PM". Deliberately NOT pluralizing day
+  // names ("Sundays"): several Spanish day names (miércoles, jueves,
+  // viernes, lunes, martes) are already plural-invariant, so a naive
+  // "+s" would mangle them in Spanish — singular reads naturally in
+  // both languages and sidesteps the whole problem. Days come from
+  // window.t('days.*') at call time, not hardcoded English, so this
+  // is correct in Spanish immediately without a separate re-render
+  // path beyond whatever already re-renders the card/detail page.
+  function formatChurchServiceTimes(entries){
+    if (!entries || !entries.length) return null;
+    var dayOrder = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    var byDay = {};
+    entries.forEach(function(e){
+      if (!byDay[e.day]) byDay[e.day] = [];
+      byDay[e.day].push(new Date('2000-01-01T' + e.time).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }));
+    });
+    var parts = dayOrder.filter(function(d){ return byDay[d]; }).map(function(d){
+      return window.t('days.' + d.toLowerCase()) + ' ' + byDay[d].join(' & ');
+    });
+    return parts.join(', ');
+  }
+  window.formatChurchServiceTimes = formatChurchServiceTimes;
 
   // Dashboard header — replace the hardcoded "Grace Fellowship" demo
   // name with whatever church the signed-in user actually owns.
@@ -9116,7 +9284,8 @@
       var payload = {
         name: name, address: address, description: description,
         denomination: denomination, website: website,
-        phone: phone, facebook_url: facebook, instagram_url: instagram
+        phone: phone, facebook_url: facebook, instagram_url: instagram,
+        service_times: rcServiceTimes
       };
       // Prefer coordinates captured from clicking an autocomplete
       // suggestion (exact match, no extra network call). If the
