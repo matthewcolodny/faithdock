@@ -4650,7 +4650,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-06-v182 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-06-v183 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -8460,7 +8460,28 @@
       if (!window.currentCaptchaToken) { statusEl.textContent = window.t('auth.completeCaptcha'); statusEl.style.color = 'var(--clay)'; statusEl.style.display = 'block'; return; }
 
       sendResetLinkBtn.disabled = true;
-      var redirectUrl = window.location.origin + window.location.pathname + '#reset-password';
+      // Deliberately NOT appending #reset-password here — confirmed as
+      // a real, live bug via actual Supabase Auth Logs (a single,
+      // successful /auth/v1/verify request, real browser, no
+      // scanner/second visit) plus a real click that still hit "Auth
+      // session missing!". Supabase's own redirect appends its OWN
+      // hash fragment full of the real tokens onto whatever redirectTo
+      // is — https://x/#reset-password#access_token=...&type=recovery
+      // is a single hash fragment as far as the browser's concerned
+      // (a second # has no special meaning once you're already inside
+      // one), which corrupts the very first key Supabase's own client
+      // tries to parse out of it (access_token becomes part of a
+      // "reset-password#access_token" key name, not its own key) —
+      // so detectSessionInUrl silently fails to establish a session at
+      // all, even though the redirect itself completed successfully
+      // and the token itself was never touched by anything else. The
+      // bare origin lets Supabase's appended fragment be the ONLY hash
+      // in the URL — showRouteFromHash() and the PASSWORD_RECOVERY
+      // listener elsewhere in this file already detect type=recovery
+      // anywhere in the hash via indexOf, not by matching against our
+      // own #reset-password specifically, so routing still works
+      // correctly without it.
+      var redirectUrl = window.location.origin + window.location.pathname;
       var { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: redirectUrl, captchaToken: window.currentCaptchaToken });
       if (typeof turnstile !== 'undefined') { turnstile.reset('#auth-turnstile'); }
       window.currentCaptchaToken = null;
