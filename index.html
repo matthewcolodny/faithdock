@@ -3527,11 +3527,12 @@
            associated input natively), and show the actual state in a
            plain, fully translatable span instead. -->
       <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
-        <div id="rc-logo-preview" style="width:56px;height:56px;border-radius:10px;background:var(--paper);border:1px solid var(--line);flex-shrink:0;background-size:cover;background-position:center;"></div>
+        <div id="rc-logo-preview" style="position:relative;width:56px;height:56px;border-radius:10px;background:var(--paper);border:1px solid var(--line);flex-shrink:0;background-size:cover;background-position:center;">
+          <button type="button" id="rc-logo-remove-btn" aria-label="Remove logo" data-i18n-title="rc.removeLogo" title="Remove logo" style="display:none;position:absolute;top:-8px;left:-8px;width:20px;height:20px;border-radius:50%;background:var(--clay);color:#fff;border:2px solid var(--paper);font-size:13px;line-height:1;cursor:pointer;align-items:center;justify-content:center;padding:0;">×</button>
+        </div>
         <input type="file" id="rc-logo" accept="image/*" style="position:absolute;width:1px;height:1px;overflow:hidden;opacity:0;">
         <label for="rc-logo" class="export-btn" style="cursor:pointer;padding:9px 14px;white-space:nowrap;" data-i18n="rc.chooseFile">Choose file</label>
         <span id="rc-logo-filename" style="font-size:13px;color:var(--ink-mute);" data-i18n="rc.noFileChosen">No file chosen</span>
-        <button type="button" id="rc-logo-remove-btn" class="export-btn" style="display:none;padding:9px 14px;color:var(--clay);white-space:nowrap;" data-i18n="rc.removeLogo">Remove logo</button>
       </div>
 
       <div id="rc-error" style="display:none;color:var(--clay);font-size:13px;margin-top:14px;"></div>
@@ -4650,7 +4651,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-06-v186 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-06-v187 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -7325,9 +7326,13 @@
       var previewUrl = URL.createObjectURL(file);
       document.getElementById('rc-logo-preview').style.backgroundImage = "url('" + previewUrl + "')";
       // Choosing a new file supersedes an earlier "remove" click, if
-      // both happened in the same visit.
+      // both happened in the same visit. The remove (×) button should
+      // be visible now too — confirmed as a real bug: it was
+      // explicitly hidden right here, even though a logo is now
+      // showing in the preview, leaving no way to clear a freshly-
+      // chosen file before ever submitting the form.
       window.rcLogoMarkedForRemoval = false;
-      document.getElementById('rc-logo-remove-btn').style.display = 'none';
+      document.getElementById('rc-logo-remove-btn').style.display = 'flex';
       // A real filename, not a translatable placeholder — remove
       // data-i18n so a later language switch doesn't stomp it back to
       // "No file chosen" (restored in resetRcLogoFilename() below,
