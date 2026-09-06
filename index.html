@@ -182,6 +182,7 @@
       'rc.publicNotice': "This is what shows publicly on your church's page.", 'rc.phone': 'Church phone number',
       'rc.description': 'Description', 'rc.logo': 'Logo', 'rc.removeLogo': 'Remove logo',
       'rc.serviceTimes': 'Service times', 'rc.removeServiceTime': 'Remove service time',
+      'rc.serviceTimesHint': 'Add each time separately — e.g. for Sundays at 9 & 11 AM, add Sunday 9:00 AM, then add Sunday 11:00 AM.',
       'rc.chooseFile': 'Choose file', 'rc.noFileChosen': 'No file chosen',
       'rc.facebook': 'Facebook', 'rc.instagram': 'Instagram',
       'rc.namePlaceholder': 'Grace Fellowship Church', 'rc.websitePlaceholder': 'https://yourchurch.org',
@@ -378,7 +379,7 @@
       'category.sportsRecreation': 'Sports & Recreation', 'category.sportsShort': 'Sports',
       'badge.openToAnyone': 'Open to anyone', 'badge.membersOnly': 'Members only', 'badge.noSignupNeeded': 'No signup needed',
       'badge.full': 'Full', 'badge.almostFull': 'Almost full', 'badge.registrationOpen': 'Registration open',
-      'church.nextService': 'Next service', 'church.contactForTimes': 'contact church for times', 'church.newListing': 'New listing', 'church.nextEvent': 'Next event:',
+      'church.nextService': 'Next regular service', 'church.contactForTimes': 'contact church for times', 'church.newListing': 'New listing', 'church.nextEvent': 'Next event:',
       'church.away': 'away', 'church.setLocationDistance': 'Set your location to see distance', 'church.locationNotFound': 'Location not found for this address',
       'church.genericLabel': 'Church', 'church.genericName': 'A FaithDock church',
       'dash.editChurchProfile': 'Edit church profile →', 'dash.upgradePlan': 'Upgrade plan',
@@ -802,6 +803,7 @@
       'rc.publicNotice': 'Esto es lo que se muestra públicamente en la página de tu iglesia.', 'rc.phone': 'Teléfono de la iglesia',
       'rc.description': 'Descripción', 'rc.logo': 'Logotipo', 'rc.removeLogo': 'Quitar logotipo',
       'rc.serviceTimes': 'Horarios de servicio', 'rc.removeServiceTime': 'Quitar horario de servicio',
+      'rc.serviceTimesHint': 'Agrega cada horario por separado — p. ej. para domingos a las 9 y 11 AM, agrega domingo 9:00 AM y luego domingo 11:00 AM.',
       'rc.chooseFile': 'Elegir archivo', 'rc.noFileChosen': 'Ningún archivo seleccionado',
       'rc.facebook': 'Facebook', 'rc.instagram': 'Instagram',
       'rc.namePlaceholder': 'Iglesia Comunidad de Gracia', 'rc.websitePlaceholder': 'https://tuiglesia.org',
@@ -998,7 +1000,7 @@
       'category.sportsRecreation': 'Deportes y recreación', 'category.sportsShort': 'Deportes',
       'badge.openToAnyone': 'Abierto a todos', 'badge.membersOnly': 'Solo miembros', 'badge.noSignupNeeded': 'No requiere inscripción',
       'badge.full': 'Completo', 'badge.almostFull': 'Casi completo', 'badge.registrationOpen': 'Inscripción abierta',
-      'church.nextService': 'Próximo servicio', 'church.contactForTimes': 'contacta a la iglesia para conocer los horarios', 'church.newListing': 'Nuevo registro', 'church.nextEvent': 'Próximo evento:',
+      'church.nextService': 'Próximo servicio regular', 'church.contactForTimes': 'contacta a la iglesia para conocer los horarios', 'church.newListing': 'Nuevo registro', 'church.nextEvent': 'Próximo evento:',
       'church.away': 'de distancia', 'church.setLocationDistance': 'Activa tu ubicación para ver la distancia', 'church.locationNotFound': 'No se encontró la ubicación de esta dirección',
       'church.genericLabel': 'Iglesia', 'church.genericName': 'Una iglesia de FaithDock',
       'dash.editChurchProfile': 'Editar perfil de la iglesia →', 'dash.upgradePlan': 'Mejorar plan',
@@ -3543,6 +3545,7 @@
            editing an existing church re-populate these exact entries
            (impossible to do reliably from a parsed formatted string). -->
       <label data-i18n="rc.serviceTimes">Service times</label>
+      <div style="font-size:12px;color:var(--ink-mute);margin-bottom:6px;" data-i18n="rc.serviceTimesHint">Add each time separately — e.g. for Sundays at 9 &amp; 11 AM, add Sunday 9:00 AM, then add Sunday 11:00 AM.</div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
         <select class="field" id="rc-service-day" style="max-width:160px;">
           <option value="Sunday" data-i18n="days.sunday">Sunday</option>
@@ -4674,7 +4677,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-06-v190 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-06-v191 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -5519,7 +5522,7 @@
         logoUrl: row.logo_url, address: row.address, description: row.description, website: row.website,
         phone: row.phone, facebookUrl: row.facebook_url, instagramUrl: row.instagram_url,
         verificationStatus: row.verification_status, ownerId: row.owner_id,
-        serviceTimesLabel: formattedServiceTimes
+        serviceTimesLabel: formattedServiceTimes, rawServiceTimes: row.service_times
       };
       churches.push(mapped);
       return mapped;
@@ -5900,7 +5903,15 @@
 
     rows.forEach(function(c){
       if (!c.real || !c.id) return;
-      c.next = window.formatChurchServiceTimes(serviceTimesById[c.id]);
+      // Keep the RAW array too, not just the formatted string --
+      // formatChurchServiceTimes() bakes in day names via
+      // window.t('days.*') at the moment it's called, so a cached
+      // formatted string stays stuck in whatever language was active
+      // at fetch time. refreshDirectoryCardsText()/
+      // refreshHomeChurchesText() recompute this fresh from the raw
+      // array on every language toggle instead of reusing the string.
+      c.rawServiceTimes = serviceTimesById[c.id];
+      c.next = window.formatChurchServiceTimes(c.rawServiceTimes);
       var nextEv = nextEventByChurch[c.id];
       c.nextEvent = nextEv ? { title: nextEv.title, when: nextEv.when } : null;
     });
@@ -5996,6 +6007,7 @@
     rows.forEach(function(c){ var existing = churches.filter(function(x){ return x.id === c.id; })[0]; if (!existing) churches.push(c); });
 
     if (!append) {
+      window.directoryLastRenderedRows = rows;
       if (rows.length === 0) {
         grid.innerHTML = '';
         grid.style.display = 'none';
@@ -6007,6 +6019,7 @@
         grid.innerHTML = mapJoin(rows, function(c){ return churchCard(c, true); });
       }
     } else if (rows.length) {
+      window.directoryLastRenderedRows = (window.directoryLastRenderedRows || []).concat(rows);
       grid.insertAdjacentHTML('beforeend', mapJoin(rows, function(c){ return churchCard(c, true); }));
     }
 
@@ -6017,17 +6030,28 @@
   }
   window.renderDirectory = renderDirectory;
   // Re-formats the already-known count in the new language without a
-  // server round-trip — re-running renderDirectory() itself on a
-  // language toggle would reset in-progress pagination for no reason,
-  // since the count text is the only part of that function's output
-  // that actually goes stale on a toggle (the grid's own church-name
-  // content isn't translatable data to begin with, and its buttons
-  // already carry data-i18n).
+  // server round-trip.
   window.refreshDirectoryCountText = function(){
     var count = document.getElementById('directory-count');
     if (!count || window.directoryLastTotalCount === undefined) return;
     var totalCount = window.directoryLastTotalCount;
     count.textContent = totalCount + ' ' + (totalCount === 1 ? window.t('filters.oneChurchFound') : window.t('filters.manyChurchesFound'));
+  };
+  // Confirmed as a real, live bug by an actual test: the card grid's
+  // own text (distance, "Next service", "Next event") is built once
+  // by churchCard() at fetch time and calls window.t() only then --
+  // re-running renderDirectory() itself on toggle would fix it but
+  // also reset in-progress pagination and re-hit the network for no
+  // reason, so instead this just re-renders the ALREADY-fetched rows
+  // (cached in window.directoryLastRenderedRows) through churchCard()
+  // again, with no network call and no pagination reset.
+  window.refreshDirectoryCardsText = function(){
+    var grid = document.getElementById('directory-grid');
+    if (!grid || !window.directoryLastRenderedRows) return;
+    window.directoryLastRenderedRows.forEach(function(c){
+      if (c.real) c.next = window.formatChurchServiceTimes(c.rawServiceTimes);
+    });
+    grid.innerHTML = mapJoin(window.directoryLastRenderedRows, function(c){ return churchCard(c, true); });
   };
 
   var directoryLoadMoreBtn = document.getElementById('directory-load-more-btn');
@@ -6047,10 +6071,20 @@
       var rows = data.map(mapSearchRow);
       await enrichChurchesWithSchedule(rows);
       rows.forEach(function(c){ var existing = churches.filter(function(x){ return x.id === c.id; })[0]; if (!existing) churches.push(c); });
+      window.homeChurchesLastRenderedRows = rows;
       homeGrid.innerHTML = mapJoin(rows, function(c){ return churchCard(c, true); });
     }
   }
   window.renderHomeChurches = renderHomeChurches;
+  // Same reasoning as refreshDirectoryCardsText above.
+  window.refreshHomeChurchesText = function(){
+    var homeGrid = document.getElementById('home-church-grid');
+    if (!homeGrid || !window.homeChurchesLastRenderedRows) return;
+    window.homeChurchesLastRenderedRows.forEach(function(c){
+      if (c.real) c.next = window.formatChurchServiceTimes(c.rawServiceTimes);
+    });
+    homeGrid.innerHTML = mapJoin(window.homeChurchesLastRenderedRows, function(c){ return churchCard(c, true); });
+  };
 
   function rebuildCategoryFilterChecklist(){
     var container = document.getElementById('filter-tags-checks');
@@ -6447,15 +6481,22 @@
     rows.forEach(function(e){ var existing = events.filter(function(x){ return x.id === e.id; })[0]; if (!existing) events.push(e); });
 
     if (!append) {
+      // Cache the already-rotated array, not the raw rows -- re-
+      // calling applyFeaturedRotation() again on a language-toggle
+      // refresh would re-shuffle which featured events show first
+      // every time, an unrelated visual side effect nobody asked for.
+      window.eventsLastRenderedRows = applyFeaturedRotation(rows);
       if (rows.length === 0) {
         grid.innerHTML = ''; grid.style.display = 'none'; empty.style.display = 'block';
         empty.textContent = window.t('filters.noEventsMatch');
       } else {
         grid.style.display = 'grid'; empty.style.display = 'none';
-        grid.innerHTML = mapJoin(applyFeaturedRotation(rows), eventCard);
+        grid.innerHTML = mapJoin(window.eventsLastRenderedRows, eventCard);
       }
     } else if (rows.length) {
-      grid.insertAdjacentHTML('beforeend', mapJoin(applyFeaturedRotation(rows), eventCard));
+      var rotatedAppend = applyFeaturedRotation(rows);
+      window.eventsLastRenderedRows = (window.eventsLastRenderedRows || []).concat(rotatedAppend);
+      grid.insertAdjacentHTML('beforeend', mapJoin(rotatedAppend, eventCard));
     }
 
     window.eventsOffset = offset + rows.length;
@@ -6474,6 +6515,15 @@
     var totalCount = window.eventsLastTotalCount;
     count.textContent = totalCount + ' ' + (totalCount === 1 ? window.t('events.oneFound') : window.t('events.manyFound'));
   };
+  // Same reasoning as refreshDirectoryCardsText -- re-render the
+  // already-fetched (and already featured-rotated) rows through
+  // eventCard() again, no network call, no re-rotation.
+  window.refreshEventsCardsText = function(){
+    var grid = document.getElementById('events-grid');
+    if (!grid || !window.eventsLastRenderedRows) return;
+    grid.innerHTML = mapJoin(window.eventsLastRenderedRows, eventCard);
+    if (typeof window.refreshAllCardRegistrationStates === 'function') window.refreshAllCardRegistrationStates();
+  };
 
   var eventsLoadMoreBtn = document.getElementById('events-load-more-btn');
   if (eventsLoadMoreBtn) {
@@ -6490,10 +6540,17 @@
     if (data && data.length) {
       var rows = data.map(mapSearchEventRow);
       rows.forEach(function(e){ var existing = events.filter(function(x){ return x.id === e.id; })[0]; if (!existing) events.push(e); });
+      window.homeEventsLastRenderedRows = rows;
       homeGrid.innerHTML = mapJoin(rows, eventCard);
     }
   }
   window.renderHomeEvents = renderHomeEvents;
+  window.refreshHomeEventsText = function(){
+    var homeGrid = document.getElementById('home-event-grid');
+    if (!homeGrid || !window.homeEventsLastRenderedRows) return;
+    homeGrid.innerHTML = mapJoin(window.homeEventsLastRenderedRows, eventCard);
+    if (typeof window.refreshAllCardRegistrationStates === 'function') window.refreshAllCardRegistrationStates();
+  };
 
   var filterDateFromEl = document.getElementById('filter-date-from');
   var filterDateToEl = document.getElementById('filter-date-to');
@@ -6763,6 +6820,21 @@
       var currentBase = (typeof window.resolveRouteFromHash === 'function') ? window.resolveRouteFromHash(location.hash).base : null;
       if (currentBase === 'directory' && typeof window.refreshDirectoryCountText === 'function') window.refreshDirectoryCountText();
       if (currentBase === 'events' && typeof window.refreshEventsCountText === 'function') window.refreshEventsCountText();
+      // Confirmed as a real, live bug by an actual test: card text
+      // (distance, "Next service", "Next event") is built once by
+      // churchCard()/eventCard() at fetch time and only calls
+      // window.t() then -- it stayed in the old language until a
+      // refresh, on both the directory/events pages and their
+      // homepage previews. These re-render the already-fetched rows
+      // in place (see refreshDirectoryCardsText and friends above) --
+      // no network call, no pagination reset, no featured-rotation
+      // reshuffle.
+      if (currentBase === 'directory' && typeof window.refreshDirectoryCardsText === 'function') window.refreshDirectoryCardsText();
+      if (currentBase === 'events' && typeof window.refreshEventsCardsText === 'function') window.refreshEventsCardsText();
+      if (currentBase === 'home') {
+        if (typeof window.refreshHomeChurchesText === 'function') window.refreshHomeChurchesText();
+        if (typeof window.refreshHomeEventsText === 'function') window.refreshHomeEventsText();
+      }
       // Service-time chips are JS-built from an in-memory array (see
       // renderRcServiceTimesChips()), not static HTML with data-i18n
       // attributes -- an open register-church page with entries
@@ -6788,6 +6860,21 @@
       if (currentBase === 'church' && window.currentPageChurchId) {
         if (typeof window.checkChurchFollowStatus === 'function') window.checkChurchFollowStatus(window.currentPageChurchId);
         if (typeof window.checkChurchHomeStatus === 'function') window.checkChurchHomeStatus(window.currentPageChurchId);
+        // Same class of bug as the directory card: recompute from the
+        // raw array rather than reusing a string formatted in
+        // whatever language was active at page-load time.
+        var toggleChurch = churches.filter(function(x){ return x.id === window.currentPageChurchId; })[0];
+        if (toggleChurch) {
+          var refreshedServiceTimes = window.formatChurchServiceTimes(toggleChurch.rawServiceTimes);
+          toggleChurch.next = refreshedServiceTimes;
+          toggleChurch.serviceTimesLabel = refreshedServiceTimes;
+          var churchNextEl = document.getElementById('church-next');
+          if (churchNextEl) churchNextEl.textContent = window.formatChurchNextText(toggleChurch.next);
+          var serviceTimesToggleEl = document.getElementById('church-service-times');
+          if (serviceTimesToggleEl && toggleChurch.serviceTimesLabel) {
+            serviceTimesToggleEl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> ' + toggleChurch.serviceTimesLabel;
+          }
+        }
       }
       if (currentBase === 'admin' && window.isPlatformAdmin && typeof window.loadAdminPanel === 'function') window.loadAdminPanel();
       if (currentBase === 'admin-church' && typeof window.populateAdminChurchPage === 'function') {
