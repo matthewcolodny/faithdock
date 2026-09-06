@@ -4650,7 +4650,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-06-v181 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-06-v182 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -5502,29 +5502,47 @@
     // access_token= shape, distinguished only by an additional
     // type=recovery parameter — genuinely a different flow, not a
     // variant of OAuth login, and must never be treated as one here.
-    // Excluding it is what a person actually resetting their
-    // password needs: the pendingOAuthCallback machinery below
-    // (including its own 4-second failed-login safety net) would
-    // otherwise treat an in-progress password reset as a stalled
-    // OAuth attempt and bounce them to signup mid-reset.
-    if ((location.hash.indexOf('access_token=') !== -1 || location.hash.indexOf('error_description=') !== -1) && location.hash.indexOf('type=recovery') === -1) {
-      window.pendingOAuthCallback = true;
-      // Safety net for a failed OAuth attempt (Google shows an
-      // error instead of a token) — no SIGNED_IN event will ever
-      // fire to clear this flag and route away on its own, which
-      // would otherwise leave someone stuck on a blank page with a
-      // raw error in the URL indefinitely.
-      setTimeout(function(){
-        if (!window.pendingOAuthCallback) return;
-        window.pendingOAuthCallback = false;
-        var params = new URLSearchParams(location.hash.replace('#', ''));
-        var errDesc = params.get('error_description');
-        go('signup', true);
-        if (errDesc) {
-          var el = document.getElementById('auth-error');
-          if (el) { el.textContent = decodeURIComponent(errDesc.replace(/\+/g, ' ')); el.style.display = 'block'; }
-        }
-      }, 4000);
+    //
+    // Confirmed as a real, live bug via an actual test (real Gmail
+    // reset email, real click, DevTools evidence of the final URL):
+    // this used to exclude type=recovery from the WHOLE guard below,
+    // including the hash-preserving early return — not just from the
+    // pendingOAuthCallback timer, which is the only part that's
+    // actually OAuth-specific. That sent a recovery hash straight
+    // through to resolveRouteFromHash()/go() a few lines down, which
+    // doesn't recognize "access_token=...&type=recovery..." as any
+    // real route, defaults it to 'home', and rewrites the URL to a
+    // bare #home via replaceState — destroying the recovery token
+    // before Supabase's own client (constructed later, in the
+    // deferred module script) ever got a chance to read it. The
+    // PASSWORD_RECOVERY listener added there previously was correct
+    // but never actually reachable, since the token was already gone
+    // by the time that script even ran.
+    if (location.hash.indexOf('access_token=') !== -1 || location.hash.indexOf('error_description=') !== -1) {
+      if (location.hash.indexOf('type=recovery') === -1) {
+        window.pendingOAuthCallback = true;
+        // Safety net for a failed OAuth attempt (Google shows an
+        // error instead of a token) — no SIGNED_IN event will ever
+        // fire to clear this flag and route away on its own, which
+        // would otherwise leave someone stuck on a blank page with a
+        // raw error in the URL indefinitely.
+        setTimeout(function(){
+          if (!window.pendingOAuthCallback) return;
+          window.pendingOAuthCallback = false;
+          var params = new URLSearchParams(location.hash.replace('#', ''));
+          var errDesc = params.get('error_description');
+          go('signup', true);
+          if (errDesc) {
+            var el = document.getElementById('auth-error');
+            if (el) { el.textContent = decodeURIComponent(errDesc.replace(/\+/g, ' ')); el.style.display = 'block'; }
+          }
+        }, 4000);
+      }
+      // Leave the hash completely alone either way — for OAuth, the
+      // module script's own onAuthStateChange listener re-triggers
+      // routing once sign-in is processed; for recovery, its
+      // PASSWORD_RECOVERY listener does the same once Supabase's
+      // client has actually had a chance to read this same hash.
       return;
     }
     var resolved = resolveRouteFromHash(location.hash);
