@@ -4650,7 +4650,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-06-v184 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-06-v185 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -8366,6 +8366,30 @@
           return;
         }
       }
+
+      // The debounce above only collapses a BURST of the same event —
+      // it re-arms and eventually runs this whole ~14-loader batch for
+      // every single event type Supabase emits (TOKEN_REFRESHED,
+      // INITIAL_SESSION, USER_UPDATED...), not just SIGNED_IN/OUT.
+      // Confirmed via real Auth Logs from one OAuth login: this ran
+      // the full batch (including every getMyChurch() call and its own
+      // retries) more than once within a few seconds, because more
+      // than one of those event types fired for the same person in
+      // that window — each individually legitimate, but none of them
+      // actually changed who's signed in, so none of them needed a
+      // full re-fetch. Skipping whenever the signed-in identity hasn't
+      // actually changed since the last full run catches all of that
+      // in one place, regardless of which specific event caused it —
+      // a real SIGNED_IN/SIGNED_OUT transition always differs from
+      // whatever ran last (including the very first run, since
+      // window._lastAuthRefreshUserId starts as undefined, never
+      // equal to a real id or to null), so those still always refresh.
+      if (uid === window._lastAuthRefreshUserId) {
+        console.log('[FaithDock auth] skipping refresh batch — same signed-in identity as last run');
+        return;
+      }
+      window._lastAuthRefreshUserId = uid;
+
       var thisGeneration = (window.dashboardRefreshGeneration = (window.dashboardRefreshGeneration || 0) + 1);
       // These all sit in the DOM at all times regardless of which
       // page is currently visible (single-page app), so calling them
