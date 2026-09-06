@@ -380,7 +380,7 @@
       'church.nextService': 'Next service', 'church.contactForTimes': 'contact church for times', 'church.newListing': 'New listing',
       'church.away': 'away', 'church.setLocationDistance': 'Set your location to see distance', 'church.locationNotFound': 'Location not found for this address',
       'church.genericLabel': 'Church', 'church.genericName': 'A FaithDock church',
-      'dash.editChurchProfile': 'Edit church profile →',
+      'dash.editChurchProfile': 'Edit church profile →', 'dash.upgradePlan': 'Upgrade plan',
       'dashEvents.totalEvents': 'TOTAL EVENTS', 'dashEvents.daysToNext': 'DAYS TO NEXT EVENT', 'dashEvents.totalRegistrations': 'TOTAL REGISTRATIONS',
       'dashEvents.list': 'List', 'dashEvents.calendar': 'Calendar', 'dashEvents.exportSchedule': 'Export schedule',
       'dashEvents.attendance': 'Attendance', 'dashEvents.attendanceHint': 'Based on check-in records — only counts events where someone actually used Check-In at the door, not just registration counts.',
@@ -999,7 +999,7 @@
       'church.nextService': 'Próximo servicio', 'church.contactForTimes': 'contacta a la iglesia para conocer los horarios', 'church.newListing': 'Nuevo registro',
       'church.away': 'de distancia', 'church.setLocationDistance': 'Activa tu ubicación para ver la distancia', 'church.locationNotFound': 'No se encontró la ubicación de esta dirección',
       'church.genericLabel': 'Iglesia', 'church.genericName': 'Una iglesia de FaithDock',
-      'dash.editChurchProfile': 'Editar perfil de la iglesia →',
+      'dash.editChurchProfile': 'Editar perfil de la iglesia →', 'dash.upgradePlan': 'Mejorar plan',
       'dashEvents.totalEvents': 'EVENTOS TOTALES', 'dashEvents.daysToNext': 'DÍAS PARA EL PRÓXIMO EVENTO', 'dashEvents.totalRegistrations': 'INSCRIPCIONES TOTALES',
       'dashEvents.list': 'Lista', 'dashEvents.calendar': 'Calendario', 'dashEvents.exportSchedule': 'Exportar horario',
       'dashEvents.attendance': 'Asistencia', 'dashEvents.attendanceHint': 'Basado en registros de check-in — solo cuenta eventos donde alguien realmente usó Check-In en la puerta, no solo el conteo de inscripciones.',
@@ -3779,11 +3779,11 @@
         <a data-dash="messages" data-i18n="dash.messages">Messages</a>
         <a data-dash="groups"><span data-i18n="dash.groups">Groups</span> <span id="dash-groups-nav-badge" class="tag clay" style="display:none;font-size:9px;padding:2px 6px;vertical-align:2px;"></span></a>
         <a data-dash="giving" data-i18n="dash.giving">Giving</a>
-        <a data-dash="insights">Insights</a>
+        <a data-dash="insights" data-i18n="insights.title">Insights</a>
         <a data-dash="billing" data-i18n="dash.billing">Billing</a>
         <a data-dash="settings" data-i18n="dash.settings">Settings</a>
       </div>
-      <a href="#pricing" data-route="pricing" id="dash-upgrade-link" style="display:none;margin-top:16px;background:var(--gold);color:var(--brand);font-weight:700;font-size:13px;padding:10px 16px;border-radius:8px;text-align:center;text-decoration:none;">Upgrade plan</a>
+      <a href="#pricing" data-route="pricing" id="dash-upgrade-link" style="display:none;margin-top:16px;background:var(--gold);color:var(--brand);font-weight:700;font-size:13px;padding:10px 16px;border-radius:8px;text-align:center;text-decoration:none;" data-i18n="dash.upgradePlan">Upgrade plan</a>
       <button id="dash-signout-btn" style="background:none;border:none;color:#8791A5;font-size:12.5px;margin-top:24px;padding:0;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.15);width:fit-content;padding-bottom:1px;" data-i18n="dash.signout">Sign out</button>
     </div>
     <div class="dash-main">
@@ -4651,7 +4651,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-06-v187 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-06-v188 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -7262,6 +7262,19 @@
       // new" for someone who does own a church, just not that one.
       var fallback = await supabase.from('churches').select('*').eq('owner_id', userId).order('name').limit(1);
       data = fallback.data;
+    }
+
+    // Confirmed as a real, live bug: everything above only ever
+    // looks for a church this person OWNS. A staff member with
+    // canEditProfile (explicitly let through the guard above,
+    // precisely so they CAN reach this form) never owns the church
+    // themselves — the owner-only lookup always came back empty for
+    // them, landing on a blank "create new church" form instead of
+    // their actual church's edit form. getMyChurch() above already
+    // resolved which church that is; just fetch its full row here.
+    if ((!data || !data.length) && myChurch && myChurch.role === 'staff' && myChurch.canEditProfile) {
+      var staffChurchRow = await supabase.from('churches').select('*').eq('id', myChurch.id).limit(1);
+      data = staffChurchRow.data;
     }
 
     if (!data || !data.length) {
