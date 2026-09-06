@@ -595,6 +595,8 @@
       'auth.fillAllFields': 'Please fill in all fields.', 'auth.removeWordFromName': 'Please remove "{word}" from your name.', 'auth.passwordsDontMatch': "Passwords don't match.", 'auth.passwordTooShort': 'Password must be at least 10 characters.',
       'auth.accountCreatedCheckEmail': 'Account created — check your email to confirm before continuing.',
       'auth.confirmedElsewhereHint': 'Confirmed on another device?', 'auth.logInHereLink': 'Log in here.',
+      'auth.continueWithGoogle': 'Continue with Google', 'common.or': 'or',
+      'footer.disclaimer': 'FaithDock prototype — visual concept, not a live product', 'footer.privacy': 'Privacy', 'footer.terms': 'Terms', 'footer.accessibility': 'Accessibility',
       'auth.emailNotConfirmedYet': "Your email hasn't been confirmed yet.", 'auth.resendConfirmationEmail': 'Resend the confirmation email', 'auth.verifying': 'Verifying...',
       'auth.securityCheckIncomplete': "Security check didn't complete — please try again.", 'auth.sending': 'Sending...', 'auth.confirmationEmailSent': 'Confirmation email sent — check your inbox.',
       'dashMessages.checkingRecipients': 'Checking recipients...', 'dashMessages.willReceiveThis': '{n} {recipientWord} will receive this.', 'dashMessages.recipient': 'recipient', 'dashMessages.recipients': 'recipients',
@@ -1212,6 +1214,8 @@
       'auth.fillAllFields': 'Por favor completa todos los campos.', 'auth.removeWordFromName': 'Por favor elimina "{word}" de tu nombre.', 'auth.passwordsDontMatch': 'Las contraseñas no coinciden.', 'auth.passwordTooShort': 'La contraseña debe tener al menos 10 caracteres.',
       'auth.accountCreatedCheckEmail': 'Cuenta creada — revisa tu correo para confirmar antes de continuar.',
       'auth.confirmedElsewhereHint': '¿Confirmaste desde otro dispositivo?', 'auth.logInHereLink': 'Inicia sesión aquí.',
+      'auth.continueWithGoogle': 'Continuar con Google', 'common.or': 'o',
+      'footer.disclaimer': 'Prototipo de FaithDock — concepto visual, no un producto en funcionamiento', 'footer.privacy': 'Privacidad', 'footer.terms': 'Términos', 'footer.accessibility': 'Accesibilidad',
       'auth.emailNotConfirmedYet': 'Tu correo aún no ha sido confirmado.', 'auth.resendConfirmationEmail': 'Reenviar el correo de confirmación', 'auth.verifying': 'Verificando...',
       'auth.securityCheckIncomplete': 'La verificación de seguridad no se completó — inténtalo de nuevo.', 'auth.sending': 'Enviando...', 'auth.confirmationEmailSent': 'Correo de confirmación enviado — revisa tu bandeja de entrada.',
       'dashMessages.checkingRecipients': 'Verificando destinatarios...', 'dashMessages.willReceiveThis': '{n} {recipientWord} recibirán esto.', 'dashMessages.recipient': 'destinatario', 'dashMessages.recipients': 'destinatarios',
@@ -3402,11 +3406,11 @@
             <path fill="#FBBC05" d="M5.27 14.28A7.2 7.2 0 0 1 4.89 12c0-.79.14-1.56.38-2.28V6.61H1.26A11.99 11.99 0 0 0 0 12c0 1.94.46 3.77 1.26 5.39l4.01-3.11Z"/>
             <path fill="#EA4335" d="M12 4.77c1.76 0 3.34.61 4.58 1.79l3.44-3.44C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.69 1.26 6.61l4.01 3.11C6.22 6.87 8.87 4.77 12 4.77Z"/>
           </svg>
-          Continue with Google
+          <span data-i18n="auth.continueWithGoogle">Continue with Google</span>
         </button>
         <div style="display:flex;align-items:center;gap:10px;margin:16px 0;">
           <div style="flex:1;height:1px;background:var(--line);"></div>
-          <span style="font-size:12px;color:var(--ink-mute);">or</span>
+          <span style="font-size:12px;color:var(--ink-mute);" data-i18n="common.or">or</span>
           <div style="flex:1;height:1px;background:var(--line);"></div>
         </div>
       </div>
@@ -4646,7 +4650,7 @@
 
 </main>
 
-<footer>FaithDock prototype — visual concept, not a live product · build 2026-09-06-v180 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-06-v181 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -5888,10 +5892,24 @@
     }
 
     window.directoryOffset = offset + rows.length;
+    window.directoryLastTotalCount = totalCount;
     count.textContent = totalCount + ' ' + (totalCount === 1 ? window.t('filters.oneChurchFound') : window.t('filters.manyChurchesFound'));
     loadMoreBtn.style.display = (window.directoryOffset < totalCount) ? 'inline-flex' : 'none';
   }
   window.renderDirectory = renderDirectory;
+  // Re-formats the already-known count in the new language without a
+  // server round-trip — re-running renderDirectory() itself on a
+  // language toggle would reset in-progress pagination for no reason,
+  // since the count text is the only part of that function's output
+  // that actually goes stale on a toggle (the grid's own church-name
+  // content isn't translatable data to begin with, and its buttons
+  // already carry data-i18n).
+  window.refreshDirectoryCountText = function(){
+    var count = document.getElementById('directory-count');
+    if (!count || window.directoryLastTotalCount === undefined) return;
+    var totalCount = window.directoryLastTotalCount;
+    count.textContent = totalCount + ' ' + (totalCount === 1 ? window.t('filters.oneChurchFound') : window.t('filters.manyChurchesFound'));
+  };
 
   var directoryLoadMoreBtn = document.getElementById('directory-load-more-btn');
   if (directoryLoadMoreBtn) {
@@ -6192,7 +6210,7 @@
     var dateRangeInvalid = !!(fromDate && toDate && fromDate > toDate);
     if (dateErrorEl) {
       dateErrorEl.style.display = dateRangeInvalid ? 'block' : 'none';
-      if (dateRangeInvalid) dateErrorEl.textContent = '"From" date is after "To" date — no events can match.';
+      if (dateRangeInvalid) dateErrorEl.textContent = window.t('events.dateRangeInvalid');
     }
     // Specific dates take priority over the "Next N days" dropdown
     // when both are present, since picking exact dates is a more
@@ -6273,6 +6291,7 @@
       grid.innerHTML = ''; grid.style.display = 'none';
       empty.style.display = 'block'; empty.textContent = window.t('events.dateRangeInvalid');
       if (loadMoreBtn) loadMoreBtn.style.display = 'none';
+      window.eventsLastTotalCount = 0;
       count.textContent = '0 ' + window.t('events.manyFound');
       return;
     }
@@ -6320,11 +6339,21 @@
     }
 
     window.eventsOffset = offset + rows.length;
+    window.eventsLastTotalCount = totalCount;
     count.textContent = totalCount + ' ' + (totalCount === 1 ? window.t('events.oneFound') : window.t('events.manyFound'));
     if (loadMoreBtn) loadMoreBtn.style.display = (window.eventsOffset < totalCount) ? 'inline-flex' : 'none';
     if (typeof window.refreshAllCardRegistrationStates === 'function') window.refreshAllCardRegistrationStates();
   }
   window.renderEvents = renderEvents;
+  // Same reasoning as refreshDirectoryCountText above — reformats the
+  // already-known count in place rather than re-running the full
+  // search (and resetting pagination) just to fix stale UI chrome.
+  window.refreshEventsCountText = function(){
+    var count = document.getElementById('events-count');
+    if (!count || window.eventsLastTotalCount === undefined) return;
+    var totalCount = window.eventsLastTotalCount;
+    count.textContent = totalCount + ' ' + (totalCount === 1 ? window.t('events.oneFound') : window.t('events.manyFound'));
+  };
 
   var eventsLoadMoreBtn = document.getElementById('events-load-more-btn');
   if (eventsLoadMoreBtn) {
@@ -6606,8 +6635,14 @@
       // re-renders are full server-side re-fetches that would also
       // reset in-progress pagination, a worse tradeoff for a translation
       // fix than leaving already-rendered card text as-is until the
-      // next real search.
+      // next real search. Their "N churches/events found" count text
+      // is different, though: it's pure UI chrome built from a cached
+      // number, not a re-fetch, so it's cheap to just reformat in
+      // place instead of leaving it stuck in the old language - see
+      // refreshDirectoryCountText / refreshEventsCountText below.
       var currentBase = (typeof window.resolveRouteFromHash === 'function') ? window.resolveRouteFromHash(location.hash).base : null;
+      if (currentBase === 'directory' && typeof window.refreshDirectoryCountText === 'function') window.refreshDirectoryCountText();
+      if (currentBase === 'events' && typeof window.refreshEventsCountText === 'function') window.refreshEventsCountText();
       if (currentBase === 'my-churches' && typeof window.loadMyChurches === 'function') window.loadMyChurches();
       if (currentBase === 'my-events' && typeof window.loadMyEvents === 'function') window.loadMyEvents();
       if (currentBase === 'my-groups' && typeof window.loadMyGroups === 'function') window.loadMyGroups();
