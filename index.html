@@ -395,6 +395,7 @@
       'dashEvents.event': 'Event', 'dashEvents.date': 'Date', 'dashEvents.time': 'Time', 'dashEvents.location': 'Location',
       'dashEvents.createdBy': 'Created by', 'dashEvents.registrations': 'Registrations', 'dashEvents.status': 'Status',
       'dashEvents.loadingEvents': 'Loading your events...',
+      'dashEvents.participantsPlural': 'Participants', 'dashEvents.volunteersPlural': 'Volunteers', 'dashEvents.registrationSingular': 'registration',
       'dashCheckin.searchByName': 'Search by name', 'dashCheckin.tapToCheckIn': 'TAP A ROW TO CHECK SOMEONE IN',
       'dashCheckin.name': 'Name', 'dashCheckin.registration': 'Registration',
       'dashCheckin.selectEvent': 'Select an event...', 'dashCheckin.addWalkIn': 'Add a walk-in', 'dashCheckin.fullName': 'Full name',
@@ -1018,6 +1019,7 @@
       'dashEvents.event': 'Evento', 'dashEvents.date': 'Fecha', 'dashEvents.time': 'Hora', 'dashEvents.location': 'Ubicación',
       'dashEvents.createdBy': 'Creado por', 'dashEvents.registrations': 'Inscripciones', 'dashEvents.status': 'Estado',
       'dashEvents.loadingEvents': 'Cargando tus eventos...',
+      'dashEvents.participantsPlural': 'Participantes', 'dashEvents.volunteersPlural': 'Voluntarios', 'dashEvents.registrationSingular': 'inscripción',
       'dashCheckin.searchByName': 'Buscar por nombre', 'dashCheckin.tapToCheckIn': 'TOCA UNA FILA PARA REGISTRAR LA LLEGADA',
       'dashCheckin.name': 'Nombre', 'dashCheckin.registration': 'Inscripción',
       'dashCheckin.selectEvent': 'Selecciona un evento...', 'dashCheckin.addWalkIn': 'Agregar a alguien sin inscripción previa', 'dashCheckin.fullName': 'Nombre completo',
@@ -4717,7 +4719,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-07-v200 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-07-v201 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -6921,6 +6923,11 @@
       // baked in at render time — redo them so a language toggle
       // mid-edit doesn't leave them stuck in the old language.
       if (currentBase === 'dashboard' && typeof window.loadDashboardHeader === 'function') window.loadDashboardHeader();
+      // The Events table's registration/volunteer count cell is built
+      // with window.t() at render time (added along with the "#/#
+      // Volunteers" label fix) -- same class of bug as everything else
+      // on this list if it isn't re-rendered here too.
+      if (currentBase === 'dashboard' && typeof window.loadDashboardEvents === 'function') window.loadDashboardEvents();
       if (currentBase === 'church' && window.currentPageChurchId) {
         if (typeof window.checkChurchFollowStatus === 'function') window.checkChurchFollowStatus(window.currentPageChurchId);
         if (typeof window.checkChurchHomeStatus === 'function') window.checkChurchHomeStatus(window.currentPageChurchId);
@@ -7915,9 +7922,10 @@
   // partner's own operational view, not a public demo page.
   window.dashEventsShowPast = false;
 
-  function formatRegCell(count, max, label){
-    var text = max ? (count + '/' + max) : (count + ' ' + label + (count === 1 ? '' : 's'));
-    return text;
+  function formatRegCell(count, max, singularLabel, pluralLabel){
+    // Previously dropped the label entirely once a max was set ("3/10",
+    // no context) -- only the no-max branch said what was being counted.
+    return max ? (count + '/' + max + ' ' + pluralLabel) : (count + ' ' + (count === 1 ? singularLabel : pluralLabel));
   }
 
   async function loadDashboardEvents(){
@@ -8002,10 +8010,10 @@
       if (!ev.registration_required) {
         regCell = '—';
       } else if (ev.allow_volunteers) {
-        regCell = '<div>' + formatRegCell(participantCount, ev.max_participants, 'participant') + '</div>'
-          + '<div class="mono" style="font-size:10.5px;color:var(--ink-mute);">' + formatRegCell(volunteerCount, ev.max_volunteers, 'volunteer') + '</div>';
+        regCell = '<div>' + formatRegCell(participantCount, ev.max_participants, window.t('events.roleParticipant'), window.t('dashEvents.participantsPlural')) + '</div>'
+          + '<div class="mono" style="font-size:10.5px;color:var(--ink-mute);">' + formatRegCell(volunteerCount, ev.max_volunteers, window.t('events.roleVolunteer'), window.t('dashEvents.volunteersPlural')) + '</div>';
       } else {
-        regCell = formatRegCell(regCount, ev.max_participants, 'registration');
+        regCell = formatRegCell(regCount, ev.max_participants, window.t('dashEvents.registrationSingular'), window.t('dashEvents.registrations'));
       }
 
       var registrantsMenuItem = ev.registration_required
