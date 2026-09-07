@@ -4707,7 +4707,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-06-v194 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-07-v195 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -5077,18 +5077,7 @@
     socialRow.style.display = hasSocial ? 'flex' : 'none';
 
     document.getElementById('church-location-address').textContent = c.address || 'Address not listed yet';
-    var mapEmbed = document.getElementById('church-map-embed');
-    var mapUnavailable = document.getElementById('church-map-unavailable');
-    if (c.hasCoords && c.lat != null && c.lng != null) {
-      var placeQuery = c.address ? encodeURIComponent(c.address) : (c.lat + ',' + c.lng);
-      mapEmbed.innerHTML = '<iframe title="Map" width="100%" height="100%" frameborder="0" style="border:0;" loading="lazy" src="https://www.google.com/maps/embed/v1/place?key=AIzaSyCWZyWUym5T5P0v07WqHU8sibdIs55ilNo&q=' + placeQuery + '"></iframe>';
-      mapEmbed.style.display = 'block';
-      mapUnavailable.style.display = 'none';
-    } else {
-      mapEmbed.innerHTML = '';
-      mapEmbed.style.display = 'none';
-      mapUnavailable.style.display = 'block';
-    }
+    renderChurchMap(c);
 
     switchChurchTab('about');
     if (typeof window.refreshAllCardRegistrationStates === 'function') window.refreshAllCardRegistrationStates();
@@ -5109,6 +5098,16 @@
     var panels = document.querySelectorAll('.church-tab-panel');
     for (var j = 0; j < panels.length; j++) {
       panels[j].style.display = panels[j].id === 'church-tab-' + tabName ? 'block' : 'none';
+    }
+    // A google.maps.Map created while its container was display:none
+    // (true for Location every time, since it's never the first tab
+    // shown) renders broken/blank -- Maps only measures its container
+    // once, at creation. Re-triggering resize once the tab actually
+    // becomes visible, then re-centering (the resize itself can
+    // recenter on (0,0)), is the standard fix.
+    if (tabName === 'location' && window.churchMapInstance && window.google && google.maps && window.churchMapCenter) {
+      google.maps.event.trigger(window.churchMapInstance, 'resize');
+      window.churchMapInstance.setCenter(window.churchMapCenter);
     }
   }
   window.switchChurchTab = switchChurchTab;
@@ -8979,6 +8978,61 @@
     });
   }
   window.setupRcAddressAutocomplete = setupRcAddressAutocomplete;
+
+  // Church detail page's Location tab. Confirmed as a real, live bug:
+  // the plain Maps Embed iframe (google.com/maps/embed/v1/place)
+  // defaults touch devices to requiring TWO fingers to pan/zoom --
+  // Google's own deliberate behavior so a map embedded in a scrolling
+  // page doesn't hijack a normal one-finger swipe meant to scroll the
+  // page. A mouse drag on desktop has no such conflict, so it always
+  // worked there; a one-finger touch on mobile looked completely
+  // unresponsive. Since this page already loads the full Maps JS API
+  // (for address autocomplete), a real google.maps.Map with
+  // gestureHandling:'greedy' fixes it -- that's the option that
+  // explicitly allows one-finger pan / pinch-zoom on touch, trading
+  // away the two-finger safety net since a map worth showing here is
+  // worth letting people actually use.
+  window.churchMapInstance = null;
+  window.churchMapCenter = null;
+  function renderChurchMap(c){
+    var mapEmbed = document.getElementById('church-map-embed');
+    var mapUnavailable = document.getElementById('church-map-unavailable');
+    if (!mapEmbed || !mapUnavailable) return;
+    if (!(c.hasCoords && c.lat != null && c.lng != null)) {
+      mapEmbed.innerHTML = '';
+      mapEmbed.style.display = 'none';
+      mapUnavailable.style.display = 'block';
+      window.churchMapInstance = null;
+      window.churchMapCenter = null;
+      return;
+    }
+    mapUnavailable.style.display = 'none';
+    mapEmbed.style.display = 'block';
+
+    if (window.google && google.maps) {
+      mapEmbed.innerHTML = '';
+      window.churchMapCenter = { lat: c.lat, lng: c.lng };
+      window.churchMapInstance = new google.maps.Map(mapEmbed, {
+        center: window.churchMapCenter,
+        zoom: 15,
+        gestureHandling: 'greedy',
+        streetViewControl: false,
+        mapTypeControl: false,
+        fullscreenControl: false
+      });
+      new google.maps.Marker({ position: window.churchMapCenter, map: window.churchMapInstance, title: c.name });
+    } else {
+      // Maps JS hasn't finished loading yet (rare -- it's a small,
+      // early-loading async script, but a very fast direct link could
+      // beat it). Fall back to the old embed iframe rather than
+      // showing nothing, and swap in the real interactive map the
+      // moment Maps becomes ready.
+      var placeQuery = c.address ? encodeURIComponent(c.address) : (c.lat + ',' + c.lng);
+      mapEmbed.innerHTML = '<iframe title="Map" width="100%" height="100%" frameborder="0" style="border:0;" loading="lazy" src="https://www.google.com/maps/embed/v1/place?key=AIzaSyCWZyWUym5T5P0v07WqHU8sibdIs55ilNo&q=' + placeQuery + '"></iframe>';
+      setTimeout(function(){ if (window.google && google.maps) renderChurchMap(c); }, 700);
+    }
+  }
+  window.renderChurchMap = renderChurchMap;
 
   // Promise wrapper around Google's callback-based Geocoder, so it
   // can be used with await in the submit handler.
