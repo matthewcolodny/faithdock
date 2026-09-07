@@ -377,6 +377,47 @@ alter table events add column suggested_donation_cents integer
 
 ---
 
+## New pricing model: a FaithDock fee on Free tier, pass/absorb choice, donor fee-covering
+
+Product decision (not a bug fix): Free-tier churches can now create **paid** events — previously blocked outright — monetized instead by a FaithDock service fee; Starter and above pay no FaithDock fee, on either giving or tickets. Landed in stages this session; here's the full current state in one place.
+
+**The numbers, as decided:**
+- **Giving, Free tier only:** 1% FaithDock fee. Paid tiers: 0%.
+- **Paid event tickets, Free tier only:** 3.7% + $1.79 per ticket (deliberately mirrors Eventbrite's own published fee — a number attendees already recognize as a normal "service fee," rather than an arbitrary one). Paid tiers: 0%.
+- **Stripe's own real card-processing cost** (roughly 2.9% + $0.30, varies by card) is separate from both of the above, charged on every tier regardless of plan, and is not something FaithDock controls or can waive — it comes out of the connected church's own Stripe account on every transaction, same as before any of this existed.
+
+**Requires a one-time SQL migration:**
+```sql
+alter table events add column fee_mode text not null default 'pass' check (fee_mode in ('pass', 'absorb'));
+```
+`fee_mode` is a per-event choice the organizer makes when setting a ticket price:
+- `'pass'` — fees are added on top of the ticket price; the attendee pays the sticker price plus whatever fees apply.
+- `'absorb'` — the attendee pays exactly the sticker price; fees come out of the church's payout instead.
+
+**What changed client-side, now that Free tier can sell tickets:**
+- The old hard block (`ce-price-locked`, an "upgrade to add a ticket price" message) is gone — `updatePaidEventsAccess()` now always shows the price section for every plan, and the submit-time check that rejected a new price on Free tier is removed.
+- In its place: a live fee disclosure under the price field (re-rendered on every keystroke via a new `input` listener on `ce-price`, since there was none before) — the actual FaithDock fee text for a Free-tier church, or a "no FaithDock service fee on your plan" note for Starter and above — plus the pass/absorb radio choice, both hidden until a price is actually entered.
+- The registration modal shows a plain-language note ("card processing and any applicable service fee will be added at checkout") whenever `fee_mode` isn't `'absorb'` — deliberately **not** a precise dollar estimate. The real total depends on live Stripe processing and the authoritative server-side calculation below; a client-guessed number that turns out to not match what Stripe actually charges is worse than a correct, vaguer disclosure. This is the same pattern ticketing platforms with this exact fee model already use: the sticker price is the base price, the real total appears at actual checkout.
+- Giving gained a donor-facing "cover the fee" checkbox (`give-cover-fee-wrap`), shown only when `checkChurchGivingEnabled()` determines the church is on Free tier. Checking it grosses up the charged amount via `charged = intended / 0.99` — the algebraic solution to "after 1% comes out of what's charged, the church still nets what the donor meant to give," not "charge the intended amount and hope 1% is already baked in." Verified with real arithmetic ($100 intended → $101.01 charged → exactly $100.00 net after a 1% cut), not just read through.
+
+**What the client deliberately does NOT try to do: compute or send the actual FaithDock fee amount.** Both `fee_mode` (on `events`) and plan type (on `churches`) are already stored server-side — the two edge functions below must read them fresh from the database at checkout time and compute the real charge and `application_fee_amount` themselves, authoritatively. Never derive the platform's own cut from anything the client sends; a client-submitted fee amount is trivially tamperable, and the whole point of storing `fee_mode` on the event (an organizer-level, server-side setting) rather than accepting it as a per-checkout client parameter is to remove that exact class of manipulation.
+
+**Exact spec for `stripe-event-checkout`** (not in this repo — this is what needs to change there):
+1. Look up `events.price_cents`, `events.fee_mode`, `events.church_id` for the event, and `churches.plan_type` for that church. Do not accept any of these from the request body.
+2. `isFreePlan = plan_type is null or plan_type = 'free'`.
+3. `faithdockFeeCents = isFreePlan ? round(price_cents * 0.037) + 179 : 0` — computed on the organizer's set ticket price, not on any fee-inclusive total (matches how the fee is quoted: "3.7% + $1.79 per ticket").
+4. If `fee_mode = 'absorb'`: charge the attendee exactly `price_cents`. Set `application_fee_amount = faithdockFeeCents`. The church's net naturally comes out to `price_cents` minus Stripe's real processing cost minus `faithdockFeeCents`.
+5. If `fee_mode = 'pass'`: the attendee should cover *all* fees, including Stripe's own, so the church still nets the full `price_cents`. That needs the full gross-up, not just adding the FaithDock fee on top:
+   ```
+   chargeAmountCents = ceil( (price_cents + 30 + faithdockFeeCents) / (1 - 0.029) )
+   ```
+   (30 = Stripe's ~$0.30 fixed fee in cents, 0.029 = Stripe's ~2.9% rate — use whatever this codebase's Stripe account's actual rate is if it differs.) Set `application_fee_amount = faithdockFeeCents` on this larger charge. Stripe's own cut comes out of the charge automatically as always; this gross-up is what makes the *attendee's* total include an amount that, once Stripe's real fee is deducted, still leaves enough for the church to net `price_cents` after `application_fee_amount` too.
+6. Whichever Stripe Connect charge pattern this function already uses (destination charge, direct charge with `application_fee_amount`, or separate charge+transfer) — apply `application_fee_amount` the way that pattern expects; the financial formulas above are integration-pattern-agnostic, but the exact API call shape depends on which pattern is already in place there, which isn't visible from this repo.
+
+**Exact spec for `stripe-create-checkout`** (giving — not in this repo either): the `amountCents` this receives already reflects the donor's "cover the fee" choice if they made one (grossed up client-side, same as if they'd typed a larger custom amount — nothing new to trust or not trust there). What this function needs to add: look up the church's `plan_type` itself, and if it's Free, set `application_fee_amount = round(amountCents * 0.01)` on the charge; 0 for every paid tier. Same rule as above: read plan type fresh from the database, never from the request.
+
+---
+
 ## Working conventions worth restating
 
 - **Bump the footer build stamp** (`build YYYY-MM-DD-vNNN`) after every round of changes — it's the fastest way to confirm whether what's live actually reflects the latest work, or whether a browser is just caching an old version.

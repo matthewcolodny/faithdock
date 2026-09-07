@@ -254,6 +254,7 @@
       'regQuestions.title': 'Before you register', 'regQuestions.subtitle': 'A few quick questions from the organizer.',
       'regQuestions.completeRegistration': 'Complete registration', 'regQuestions.continueToPayment': 'Continue to payment',
       'regQuestions.yes': 'Yes', 'regQuestions.discountCode': 'Discount code', 'regQuestions.optional': 'optional',
+      'regQuestions.feesAddedAtCheckout': 'Card processing (and any applicable service fee) will be added at checkout — the final total appears there before you pay.',
       'regQuestions.codePlaceholder': 'CODE', 'regQuestions.answerAllRequired': 'Please answer every required question (marked with *).',
       'church.unclaimedNotice': "This listing hasn't been claimed yet.", 'church.claimThisChurch': 'Claim this church',
       'church.setAsChurchHome': 'Set as your Church Home!',
@@ -261,6 +262,7 @@
       'give.whatIsThisFor': 'What is this gift for?', 'give.generalFund': 'General Fund',
       'give.customAmount': 'Or enter a custom amount', 'give.amountInDollars': 'Amount in dollars',
       'give.emailForReceipt': 'Email (for your receipt)', 'give.donorEmailPlaceholder': 'you@email.com',
+      'give.coverFee': "Add 1% so the church receives your full gift, covering FaithDock's fee on this plan",
       'give.giveNow': 'Give now', 'give.enterAtLeast1': 'Enter an amount of at least $1.',
       'give.thankYou': 'Thank you for your generosity — your donation went through successfully!',
       'groupPage.loading': 'Loading group...', 'groupPage.notFound': 'Group not found.',
@@ -748,6 +750,9 @@
       'ce.titleRequired': 'Event title is required.', 'ce.removeWordFromTitle': 'Please remove "{word}" from the title.', 'ce.removeWordFromDescription': 'Please remove "{word}" from the description.',
       'ce.startDateRequired': 'Start date is required.', 'ce.endBeforeStart': "End time can't be before the start time.",
       'ce.priceMustBePositive': 'Ticket price must be a positive amount, or left blank for free.', 'ce.paidEventsUpgradeNeeded': 'Paid events (ticket pricing) are available on Starter plans and above. Upgrade to add a ticket price.',
+      'ce.whoPaysFees': 'Who pays the processing fees?', 'ce.feeModePass': 'Add fees to the ticket price — the attendee pays them', 'ce.feeModeAbsorb': 'Absorb fees from your payout — the ticket price stays exactly as shown',
+      'ce.feeDisclosureFree': 'FaithDock service fee: 3.7% + $1.79 per paid ticket, plus standard Stripe payment processing (about 2.9% + $0.30). Upgrade to Starter or above to remove the FaithDock service fee — only Stripe processing would still apply.',
+      'ce.feeDisclosurePaid': 'No FaithDock service fee on your plan — only standard Stripe payment processing (about 2.9% + $0.30) applies.',
       'ce.graphicUploadFailed': 'Graphic upload failed: {error}',
       'ce.thisTimeOverlapsWith': 'This time overlaps with:', 'ce.thisOverlapsWith': 'This overlaps with:', 'ce.saveAnyway': 'Save anyway?', 'ce.andNMore': '…and {n} more',
       'ce.savedUpdated': 'Saved! "{title}" has been updated.', 'ce.occurrencesCreated': '{n} occurrences created', 'ce.eventIsLive': '"{title}" is live', 'ce.createdUnderChurch': 'Created! {countMsg} under {church}.',
@@ -883,6 +888,7 @@
       'regQuestions.title': 'Antes de registrarte', 'regQuestions.subtitle': 'Algunas preguntas rápidas del organizador.',
       'regQuestions.completeRegistration': 'Completar registro', 'regQuestions.continueToPayment': 'Continuar al pago',
       'regQuestions.yes': 'Sí', 'regQuestions.discountCode': 'Código de descuento', 'regQuestions.optional': 'opcional',
+      'regQuestions.feesAddedAtCheckout': 'El procesamiento de la tarjeta (y cualquier tarifa de servicio aplicable) se agregará al finalizar la compra — el total final aparece ahí antes de pagar.',
       'regQuestions.codePlaceholder': 'CÓDIGO', 'regQuestions.answerAllRequired': 'Por favor responde todas las preguntas obligatorias (marcadas con *).',
       'church.unclaimedNotice': 'Este listado aún no ha sido reclamado.', 'church.claimThisChurch': 'Reclamar esta iglesia',
       'church.setAsChurchHome': '¡Establecida como tu Iglesia Principal!',
@@ -890,6 +896,7 @@
       'give.whatIsThisFor': '¿Para qué es esta donación?', 'give.generalFund': 'Fondo General',
       'give.customAmount': 'O ingresa un monto personalizado', 'give.amountInDollars': 'Monto en dólares',
       'give.emailForReceipt': 'Correo electrónico (para tu recibo)', 'give.donorEmailPlaceholder': 'tu@correo.com',
+      'give.coverFee': 'Agregar 1% para que la iglesia reciba tu regalo completo, cubriendo la tarifa de FaithDock en este plan',
       'give.giveNow': 'Donar ahora', 'give.enterAtLeast1': 'Ingresa un monto de al menos $1.',
       'give.thankYou': '¡Gracias por tu generosidad — tu donación se procesó exitosamente!',
       'groupPage.loading': 'Cargando grupo...', 'groupPage.notFound': 'Grupo no encontrado.',
@@ -1377,6 +1384,9 @@
       'ce.titleRequired': 'El título del evento es obligatorio.', 'ce.removeWordFromTitle': 'Por favor elimina "{word}" del título.', 'ce.removeWordFromDescription': 'Por favor elimina "{word}" de la descripción.',
       'ce.startDateRequired': 'La fecha de inicio es obligatoria.', 'ce.endBeforeStart': 'La hora de fin no puede ser antes de la hora de inicio.',
       'ce.priceMustBePositive': 'El precio de la entrada debe ser una cantidad positiva, o déjalo en blanco para que sea gratis.', 'ce.paidEventsUpgradeNeeded': 'Los eventos de pago (precio de entrada) están disponibles en los planes Inicial y superiores. Mejora tu plan para agregar un precio.',
+      'ce.whoPaysFees': '¿Quién paga las tarifas de procesamiento?', 'ce.feeModePass': 'Agregar las tarifas al precio de la entrada — el asistente las paga', 'ce.feeModeAbsorb': 'Absorber las tarifas de tu pago — el precio de la entrada queda exactamente como se muestra',
+      'ce.feeDisclosureFree': 'Tarifa de servicio de FaithDock: 3.7% + $1.79 por entrada pagada, más el procesamiento estándar de Stripe (aproximadamente 2.9% + $0.30). Mejora a Inicial o superior para eliminar la tarifa de servicio de FaithDock — solo seguiría aplicando el procesamiento de Stripe.',
+      'ce.feeDisclosurePaid': 'Sin tarifa de servicio de FaithDock en tu plan — solo aplica el procesamiento estándar de Stripe (aproximadamente 2.9% + $0.30).',
       'ce.graphicUploadFailed': 'No se pudo subir la imagen: {error}',
       'ce.thisTimeOverlapsWith': 'Este horario se superpone con:', 'ce.thisOverlapsWith': 'Esto se superpone con:', 'ce.saveAnyway': '¿Guardar de todos modos?', 'ce.andNMore': '…y {n} más',
       'ce.savedUpdated': '¡Guardado! Se actualizó "{title}".', 'ce.occurrencesCreated': '{n} ocurrencias creadas', 'ce.eventIsLive': '"{title}" ya está en línea', 'ce.createdUnderChurch': '¡Creado! {countMsg} bajo {church}.',
@@ -2560,6 +2570,7 @@
           <input class="field" type="number" id="give-custom-amount" placeholder="Amount in dollars" data-i18n-placeholder="give.amountInDollars" min="1" step="1">
           <label style="margin-top:12px;" data-i18n="give.emailForReceipt">Email (for your receipt)</label>
           <input class="field" type="email" id="give-donor-email" placeholder="you@email.com" data-i18n-placeholder="give.donorEmailPlaceholder">
+          <label class="filter-check" id="give-cover-fee-wrap" style="display:none;margin-top:12px;"><input type="checkbox" id="give-cover-fee-checkbox" checked> <span data-i18n="give.coverFee">Add 1% so the church receives your full gift, covering FaithDock's fee on this plan</span></label>
           <button class="btn-gold" id="give-submit-btn" style="width:100%;justify-content:center;margin-top:16px;" data-i18n="give.giveNow">Give now</button>
           <div id="give-status" style="display:none;font-size:12.5px;color:var(--clay);margin-top:10px;"></div>
         </div>
@@ -3780,6 +3791,14 @@
               <input class="field" type="number" id="ce-price" min="1" step="0.01" placeholder="Free" data-i18n-placeholder="ce.free" style="padding-left:24px;">
             </div>
 
+            <div id="ce-fee-disclosure" style="display:none;margin-top:10px;padding:12px 14px;border:1px solid var(--line);border-radius:8px;background:var(--paper);font-size:12.5px;color:var(--ink-mute);"></div>
+
+            <div id="ce-fee-mode-section" style="display:none;margin-top:12px;">
+              <label data-i18n="ce.whoPaysFees">Who pays the processing fees?</label>
+              <label class="filter-check" style="margin-top:6px;"><input type="radio" name="ce-fee-mode" value="pass" id="ce-fee-mode-pass" checked> <span data-i18n="ce.feeModePass">Add fees to the ticket price — the attendee pays them</span></label>
+              <label class="filter-check" style="margin-top:6px;"><input type="radio" name="ce-fee-mode" value="absorb" id="ce-fee-mode-absorb"> <span data-i18n="ce.feeModeAbsorb">Absorb fees from your payout — the ticket price stays exactly as shown</span></label>
+            </div>
+
             <label style="margin-top:14px;" data-i18n="ce.suggestedDonation">Suggested donation</label>
             <div style="font-size:12px;color:var(--ink-mute);margin-bottom:6px;" data-i18n="ce.suggestedDonationHint">For a free event only — shown to registrants as an optional amount to give toward this event, through the same Giving your church already has set up. Ignored if a ticket price is set above.</div>
             <div style="position:relative;">
@@ -3803,12 +3822,6 @@
               </div>
               <div id="ce-discount-code-status" style="display:none;font-size:12px;margin-top:8px;"></div>
             </div>
-          </div>
-
-          <div id="ce-price-locked" style="display:none;margin-top:14px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--paper);font-size:12.5px;color:var(--ink-mute);">
-            <svg viewBox="0 0 24 24" fill="currentColor" style="width:13px;height:13px;vertical-align:-2px;margin-right:4px;"><path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2z"/></svg>
-            <span data-i18n="ce.paidEventsLocked">Paid events (ticket pricing, discount codes) are available on Starter plans and above.</span>
-            <a href="#pricing" data-route="pricing" style="color:var(--ink);border-bottom:1px solid var(--gold);" data-i18n="common.upgradeArrow">Upgrade →</a>
           </div>
 
           <label class="filter-check" style="margin-top:14px;"><input type="checkbox" id="ce-allow-volunteers"> <span data-i18n="ce.alsoAcceptVolunteers">Also accept volunteer signups</span></label>
@@ -4753,7 +4766,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-07-v205 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-07-v206 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -9916,16 +9929,44 @@
   // them silently disappear mid-edit — new events on a Free plan still
   // can't set a price, and the server-side check on save is the real
   // enforcement either way.
+  // Paid events used to be a Starter-and-up feature, with Free-plan
+  // churches locked out of the price field entirely (ce-price-locked).
+  // Free tier can now sell tickets too -- monetized by a FaithDock
+  // service fee instead of being blocked -- so this now always shows
+  // the price section and updates the fee disclosure text/pass-absorb
+  // choice for whatever plan the church is actually on, rather than
+  // gating the section itself.
   async function updatePaidEventsAccess(hasExistingPrice){
     var section = document.getElementById('ce-price-section');
-    var locked = document.getElementById('ce-price-locked');
-    if (!section || !locked) return;
+    if (!section) return;
+    section.style.display = 'block';
     var myChurch = await getMyChurch();
-    var hasAccess = !!(myChurch && myChurch.planType && myChurch.planType !== 'free') || !!hasExistingPrice;
-    section.style.display = hasAccess ? 'block' : 'none';
-    locked.style.display = hasAccess ? 'none' : 'block';
+    window.ceChurchHasFaithDockFee = !(myChurch && myChurch.planType && myChurch.planType !== 'free');
+    refreshCeFeeDisclosure();
   }
   window.updatePaidEventsAccess = updatePaidEventsAccess;
+
+  function refreshCeFeeDisclosure(){
+    var priceRaw = document.getElementById('ce-price').value;
+    var disclosureEl = document.getElementById('ce-fee-disclosure');
+    var feeModeSection = document.getElementById('ce-fee-mode-section');
+    if (!disclosureEl || !feeModeSection) return;
+    if (!priceRaw) {
+      disclosureEl.style.display = 'none';
+      feeModeSection.style.display = 'none';
+      return;
+    }
+    var key = window.ceChurchHasFaithDockFee ? 'ce.feeDisclosureFree' : 'ce.feeDisclosurePaid';
+    disclosureEl.setAttribute('data-i18n', key);
+    disclosureEl.textContent = window.t(key);
+    disclosureEl.style.display = 'block';
+    feeModeSection.style.display = 'block';
+  }
+  window.refreshCeFeeDisclosure = refreshCeFeeDisclosure;
+  var cePriceInputForFees = document.getElementById('ce-price');
+  if (cePriceInputForFees) {
+    cePriceInputForFees.addEventListener('input', refreshCeFeeDisclosure);
+  }
 
   var aiAssistToggleBtn = document.getElementById('ai-assist-toggle-btn');
   if (aiAssistToggleBtn) {
@@ -10333,6 +10374,8 @@
     document.getElementById('ce-max-participants').value = '';
     document.getElementById('ce-price').value = '';
     document.getElementById('ce-suggested-donation').value = '';
+    document.getElementById('ce-fee-mode-pass').checked = true;
+    refreshCeFeeDisclosure();
     document.getElementById('ce-discount-codes-section').style.display = 'none';
     document.getElementById('ce-allow-volunteers').checked = false;
     document.getElementById('ce-volunteer-options').style.display = 'none';
@@ -10433,6 +10476,8 @@
     document.getElementById('ce-max-participants').value = ev.max_participants || '';
     document.getElementById('ce-price').value = ev.price_cents ? (ev.price_cents / 100).toFixed(2) : '';
     document.getElementById('ce-suggested-donation').value = ev.suggested_donation_cents ? (ev.suggested_donation_cents / 100).toFixed(0) : '';
+    document.getElementById(ev.fee_mode === 'absorb' ? 'ce-fee-mode-absorb' : 'ce-fee-mode-pass').checked = true;
+    refreshCeFeeDisclosure();
     if (ev.price_cents) {
       document.getElementById('ce-discount-codes-section').style.display = 'block';
       loadDiscountCodesPanel(eventId);
@@ -10831,15 +10876,14 @@
       // doesn't end up with a stale value silently saved underneath it.
       var suggestedDonationRaw = document.getElementById('ce-suggested-donation').value;
       var suggestedDonationCents = (!priceCents && suggestedDonationRaw) ? Math.round(parseFloat(suggestedDonationRaw) * 100) : null;
-      // Paid events are a Starter-and-up feature (Phase 2). A Free-plan
-      // church can still save changes to an event that already had a price set
-      // before a downgrade (grandfathered) — this only blocks a Free
-      // plan from setting a NEW price, as the real backstop behind the
-      // UI-level lock in updatePaidEventsAccess() above.
-      if (priceCents && !ceOriginalPriceCents && (!myChurch.planType || myChurch.planType === 'free')) {
-        showCeError(window.t('ce.paidEventsUpgradeNeeded'));
-        return;
-      }
+      // Paid events used to be Starter-and-up only; Free tier can now
+      // sell tickets too, monetized by a FaithDock service fee
+      // (computed server-side, at actual checkout time -- see
+      // GOTCHAS.md) rather than being blocked from pricing an event at
+      // all. Who that fee (and Stripe's own processing) lands on is the
+      // organizer's own choice, read here alongside everything else.
+      var feeModeInput = document.querySelector('input[name="ce-fee-mode"]:checked');
+      var feeMode = priceCents ? (feeModeInput ? feeModeInput.value : 'pass') : 'pass';
 
       var imageUrl = null;
       var imageFile = document.getElementById('ce-image').files[0];
@@ -10886,7 +10930,8 @@
           allow_guests: allowGuests,
           max_guests: maxGuests,
           price_cents: priceCents,
-          suggested_donation_cents: suggestedDonationCents
+          suggested_donation_cents: suggestedDonationCents,
+          fee_mode: feeMode
         };
         if (imageUrl) { updatePayload.image_url = imageUrl; }
         else if (window.ceImageMarkedForRemoval) { updatePayload.image_url = null; }
@@ -10953,7 +10998,8 @@
           allow_guests: allowGuests,
           max_guests: maxGuests,
           price_cents: priceCents,
-          suggested_donation_cents: suggestedDonationCents
+          suggested_donation_cents: suggestedDonationCents,
+          fee_mode: feeMode
         };
       });
 
@@ -14503,9 +14549,17 @@
     if (!panelEl) return;
     currentGivingChurchId = churchId;
 
-    var { data: rows } = await supabase.from('churches').select('stripe_onboarding_complete').eq('id', churchId).limit(1);
+    var { data: rows } = await supabase.from('churches').select('stripe_onboarding_complete, plan_type').eq('id', churchId).limit(1);
     var enabled = rows && rows.length && rows[0].stripe_onboarding_complete;
     panelEl.setAttribute('data-giving-enabled', enabled ? 'true' : 'false');
+
+    // The 1% FaithDock fee (see GOTCHAS.md) only applies on the Free
+    // plan -- the "cover it" checkbox has nothing to offer on any paid
+    // plan, so it stays hidden there rather than asking a donor to opt
+    // into covering a fee that was never going to be charged.
+    window.currentGivingChurchIsFree = !(rows && rows.length && rows[0].plan_type && rows[0].plan_type !== 'free');
+    var coverFeeWrap = document.getElementById('give-cover-fee-wrap');
+    if (coverFeeWrap) coverFeeWrap.style.display = window.currentGivingChurchIsFree ? 'flex' : 'none';
 
     var fundWrap = document.getElementById('give-fund-wrap');
     var fundSelect = document.getElementById('give-fund-select');
@@ -14718,10 +14772,28 @@
       var baseUrl = window.location.origin + window.location.pathname;
       var churchHash = window.location.hash.split('?')[0];
 
+      var amountCents = Math.round(amountDollars * 100);
+      // "Covering the fee" means charging enough that, after the
+      // platform's 1% comes out, the church still nets what the donor
+      // actually intended to give -- not the same as charging the
+      // intended amount and hoping 1% happens to be included in it.
+      // Solving charged - 0.01*charged = intended for charged gives
+      // intended / 0.99. This only changes what gets charged, same as
+      // if the donor had simply typed a larger custom amount
+      // themselves -- the real fee is still computed and applied
+      // server-side from the actual charged total and the church's
+      // actual plan, authoritatively, regardless of how this number
+      // was arrived at.
+      var coverFeeWrap = document.getElementById('give-cover-fee-wrap');
+      var coverFeeChecked = document.getElementById('give-cover-fee-checkbox');
+      if (window.currentGivingChurchIsFree && coverFeeWrap && coverFeeWrap.style.display !== 'none' && coverFeeChecked && coverFeeChecked.checked) {
+        amountCents = Math.round(amountCents / 0.99);
+      }
+
       var { data, error } = await supabase.functions.invoke('stripe-create-checkout', {
         body: {
           churchId: currentGivingChurchId,
-          amountCents: Math.round(amountDollars * 100),
+          amountCents: amountCents,
           donorEmail: donorEmail || undefined,
           fundId: selectedFundId,
           successUrl: baseUrl + churchHash,
@@ -18001,17 +18073,18 @@
     // matching role sees them.
     var questions = (allQuestionsForRole || []).filter(function(q){ return q.applies_to === 'both' || q.applies_to === role; });
 
-    // allow_guests/max_guests aren't part of the search_events RPC's
+    // allow_guests/fee_mode aren't part of the search_events RPC's
     // return shape (that RPC's own source isn't in this repo, so it
     // can't be extended from here) -- a small direct lookup at the
-    // moment someone actually registers is simpler than threading two
-    // new fields through every card/list that shows an event.
-    var { data: guestSettingRow } = await supabase.from('events').select('allow_guests').eq('id', eventId).limit(1);
-    var allowGuests = !!(guestSettingRow && guestSettingRow[0] && guestSettingRow[0].allow_guests);
+    // moment someone actually registers is simpler than threading new
+    // fields through every card/list that shows an event.
+    var { data: eventSettingsRow } = await supabase.from('events').select('allow_guests, fee_mode').eq('id', eventId).limit(1);
+    var allowGuests = !!(eventSettingsRow && eventSettingsRow[0] && eventSettingsRow[0].allow_guests);
+    var feeMode = (eventSettingsRow && eventSettingsRow[0] && eventSettingsRow[0].fee_mode) || 'pass';
 
     if ((questions && questions.length) || isPaidCheckout || allowGuests) {
       btn.disabled = false;
-      openRegistrationQuestionsModal(eventId, role, btn, statusEl, questions || [], isPaidCheckout, allowGuests);
+      openRegistrationQuestionsModal(eventId, role, btn, statusEl, questions || [], isPaidCheckout, allowGuests, feeMode);
       return;
     }
 
@@ -18161,8 +18234,8 @@
 
   var pendingRegistration = null;
 
-  function openRegistrationQuestionsModal(eventId, role, btn, statusEl, questions, isPaidCheckout, allowGuests){
-    pendingRegistration = { eventId: eventId, role: role, btn: btn, statusEl: statusEl, questions: questions, isPaidCheckout: isPaidCheckout, allowGuests: allowGuests };
+  function openRegistrationQuestionsModal(eventId, role, btn, statusEl, questions, isPaidCheckout, allowGuests, feeMode){
+    pendingRegistration = { eventId: eventId, role: role, btn: btn, statusEl: statusEl, questions: questions, isPaidCheckout: isPaidCheckout, allowGuests: allowGuests, feeMode: feeMode };
     var listEl = document.getElementById('registration-questions-list');
     listEl.innerHTML = questions.map(function(q, i){
       var requiredMark = q.is_required ? ' <span style="color:var(--clay);">*</span>' : '';
@@ -18187,6 +18260,18 @@
       ? '<div style="margin-bottom:14px;"><label style="font-size:13px;font-weight:600;margin-bottom:6px;display:block;">' + window.t('regQuestions.discountCode') + ' <span style="font-weight:400;color:var(--ink-mute);">(' + window.t('regQuestions.optional') + ')</span></label><input class="field" type="text" id="registration-discount-code-input" placeholder="' + window.t('regQuestions.codePlaceholder') + '" style="font-size:13px;padding:9px;text-transform:uppercase;"></div>'
       : '';
     listEl.insertAdjacentHTML('beforeend', discountHtml);
+    // Not a precise number here on purpose -- the real total depends on
+    // live Stripe processing (varies slightly by card) and is computed
+    // authoritatively server-side, not by re-deriving it client-side
+    // and risking a figure that doesn't match what Stripe actually
+    // charges. Matches how ticketing platforms with the same "fees
+    // added at checkout" model handle this: the sticker price is the
+    // base price, and the real total appears at the actual checkout
+    // step, not as a client-guessed estimate here.
+    var feeNoteHtml = (isPaidCheckout && feeMode !== 'absorb')
+      ? '<p style="font-size:12px;color:var(--ink-mute);margin:0 0 14px;">' + window.t('regQuestions.feesAddedAtCheckout') + '</p>'
+      : '';
+    listEl.insertAdjacentHTML('beforeend', feeNoteHtml);
     document.getElementById('registration-questions-status').style.display = 'none';
     document.getElementById('registration-questions-submit-btn').textContent = isPaidCheckout ? window.t('regQuestions.continueToPayment') : window.t('regQuestions.completeRegistration');
     document.getElementById('registration-questions-modal').classList.add('open');
