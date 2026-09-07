@@ -4719,7 +4719,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-07-v201 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-07-v202 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -5828,6 +5828,11 @@
       else { links[j].classList.remove('active'); }
     }
     if(view === 'messages' && typeof window.updateMessagesAccess === 'function'){ window.updateMessagesAccess(); }
+    // Refresh registration counts the moment someone actually looks at
+    // this tab, rather than only whatever was loaded whenever the
+    // dashboard first opened -- covers switching away to check
+    // something else and back, on top of the periodic poll below.
+    if(view === 'events' && typeof window.loadDashboardEvents === 'function'){ window.loadDashboardEvents(); }
     if(skipPush){
       safeHistoryUpdate(true, '#dashboard/'+view);
     } else {
@@ -8056,6 +8061,30 @@
   }
   loadDashboardEvents();
   window.loadDashboardEvents = loadDashboardEvents;
+
+  // Registration counts otherwise only ever reflected whatever was
+  // loaded whenever the dashboard first opened -- someone registering
+  // for an event from a different device never showed up until the
+  // owner manually refreshed the page. There's no realtime plumbing in
+  // this app (no Supabase Realtime subscriptions used anywhere), so a
+  // quiet poll while the Events tab is the one actually on screen is
+  // the low-risk way to get "automatic" without adding that
+  // infrastructure. Skips entirely while the tab/window itself isn't
+  // visible, so it doesn't run in a backgrounded browser tab.
+  setInterval(function(){
+    if (document.visibilityState !== 'visible') return;
+    // dash-content panels stay in the DOM (and keep whatever "active"
+    // class they last had) even after navigating away from /dashboard
+    // entirely -- checking the actual current route too, not just the
+    // panel's class, keeps this from quietly polling in the background
+    // for a signed-in visitor who's since wandered off to the public
+    // directory or events pages.
+    var onDashboard = (typeof window.resolveRouteFromHash === 'function') && window.resolveRouteFromHash(location.hash).base === 'dashboard';
+    if (!onDashboard) return;
+    var panel = document.getElementById('dash-events');
+    if (!panel || !panel.classList.contains('active')) return;
+    loadDashboardEvents();
+  }, 20000);
 
   // ============================================================
   // Events calendar view — an alternative to the table, for

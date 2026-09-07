@@ -252,6 +252,19 @@ QA report: "the volunteer count should read '#/# Volunteers'." `formatRegCell(co
 
 ---
 
+## The Events table only ever showed registration counts from whenever the dashboard first loaded
+
+QA report: "requires a refresh to update the number of participants, can that update automatically?" `loadDashboardEvents()` only ran once when the dashboard's Events tab first rendered (plus a handful of specific after-I-just-changed-something call sites elsewhere in the file) — someone registering for an event from a different device or tab never showed up on the church owner's screen until they manually reloaded the page.
+
+There's no realtime plumbing anywhere in this app — no Supabase Realtime subscriptions at all (confirmed: nothing in the codebase calls `.channel(...)` or subscribes to `postgres_changes`) — so wiring up genuine push updates would mean setting up Realtime replication on `event_registrations` from scratch, sight unseen, for one dashboard table. Given that, the pragmatic fix here is a quiet poll instead of new infrastructure:
+
+- Switching *to* the Events tab (`goDash('events')`) now refreshes immediately, covering "I switched to another tab and back."
+- A `setInterval` re-runs `loadDashboardEvents()` every 20 seconds, but only while the browser tab is actually visible (`document.visibilityState`) **and** the current route is `dashboard` **and** the Events panel specifically is the active one — `.dash-content` panels stay in the DOM permanently and keep whatever `active` class they last had even after navigating away entirely, so checking the panel's class alone would have kept this quietly polling in the background for anyone signed in and browsing the public site.
+
+**Not live-verified** — same reason as the two fixes above.
+
+---
+
 ## Working conventions worth restating
 
 - **Bump the footer build stamp** (`build YYYY-MM-DD-vNNN`) after every round of changes — it's the fastest way to confirm whether what's live actually reflects the latest work, or whether a browser is just caching an old version.
