@@ -265,6 +265,28 @@ There's no realtime plumbing anywhere in this app — no Supabase Realtime subsc
 
 ---
 
+## Splitting participant and volunteer registration questions into two real lists
+
+QA request: "the questions for participants should be separate from questions for volunteers - make sure there's 2 sets of questions." Before this, `event_questions` had no concept of audience at all — every question showed to everyone who registered, participant or volunteer, with no way to ask a volunteer-only question ("what shift can you cover?") without also showing it to every participant.
+
+**Requires a one-time SQL migration** (nothing here touches the database directly):
+```sql
+alter table event_questions
+  add column applies_to text not null default 'both'
+  check (applies_to in ('both', 'participant', 'volunteer'));
+```
+`'both'` is the default so every question that already exists keeps behaving exactly as it always did — shown to everyone — until the event it belongs to is actually saved again through the (now-split) create-event form.
+
+**Design decision, not a per-question toggle:** two genuinely separate lists in the create-event form — the existing question list (now labeled "Questions for participants" once volunteer signups are turned on, "Registration questions" when they're not — same list either way) plus a new one inside the volunteer-signup section, only visible when "Also accept volunteer signups" is checked. Matches what was literally asked for ("2 sets of questions") more directly than a per-question audience dropdown would have, and reuses the exact same render/wire code for both lists (`questionsListHtml()` + `wireQuestionsList()`, parameterized) rather than duplicating ~60 lines of chip-builder logic twice.
+
+**The subtle part was not breaking existing answers on save.** A question can't be blind deleted-and-reinserted on every save — if anyone already registered and answered it, their answer references that row's id via a foreign key, and deleting it destroys real collected data (an allergy, a childcare need) the instant an organizer edits anything else about the event. The existing "match by question text, preserve the id" logic (`saveEventQuestions()`) already handled this for one list; extending it to two required deciding what an old `'both'` row matches against — it's matched into the **participant** group specifically (never volunteer, since nothing was ever volunteer-scoped before this existed), which is what lets a legacy question's id and answers survive the first time its event is saved through the split form. After that first resave it's tagged `'participant'` explicitly, same as everything created directly in that list.
+
+**One deliberate, worth-knowing behavior change:** until an event's questions are resaved this way, its old shared questions keep showing to volunteers too (registration reads `applies_to === 'both' OR applies_to === role`). The first time that event's questions are saved again, though, sharing stops being implicit — a `'both'` row becomes `'participant'`-only, and if volunteers should still see it, it now needs to be added to the volunteer list explicitly. That's the intended, honest consequence of "2 real sets of questions" rather than a bug, but it's not obvious from the UI alone, so it's worth mentioning to whoever's using this: resaving an existing volunteer-accepting event's questions, without touching the new volunteer list, will silently stop showing those questions to volunteers going forward.
+
+**Not live-verified** — same reason as the fixes above (no test credentials this session); this one in particular is worth a real click-through given how much of it depends on the save-time id-preservation logic actually behaving as designed.
+
+---
+
 ## Working conventions worth restating
 
 - **Bump the footer build stamp** (`build YYYY-MM-DD-vNNN`) after every round of changes — it's the fastest way to confirm whether what's live actually reflects the latest work, or whether a browser is just caching an old version.

@@ -717,8 +717,9 @@
       'ce.venueName': 'Venue name (optional)', 'ce.venueNamePlaceholder': 'e.g. Fellowship Hall, Church lawn', 'ce.locationAddressPlaceholder': 'Start typing an address...', 'ce.useChurchAddress': "Use my church's address",
       'ce.roomsUsed': 'Rooms used', 'ce.roomsHint': 'Select every room this event uses — mark one as primary if it uses more than one. Managed in Settings → Facility rooms.', 'ce.primary': 'Primary', 'ce.noRoomsSetUpYet': 'No rooms set up yet — add some in Settings → Facility rooms.', 'ce.aRoom': 'a room',
       'ce.eventContacts': 'Event contacts', 'ce.contactsHint': 'Who should be reachable about this event. The "notify" checkbox is saved but doesn\'t send anything yet — that\'s a separate feature not built yet.', 'ce.addAContact': '+ Add a contact', 'ce.namePlaceholder': 'Name', 'ce.notify': 'Notify',
-      'ce.registrationQuestions': 'Registration questions', 'ce.questionsHint': "Ask registrants anything specific to this event — a T-shirt size, an allergy to plan food around, a childcare need. Answers are tied to this event's registrations only, never added to anyone's profile.",
+      'ce.registrationQuestions': 'Registration questions', 'ce.participantQuestions': 'Questions for participants', 'ce.questionsHint': "Ask registrants anything specific to this event — a T-shirt size, an allergy to plan food around, a childcare need. Answers are tied to this event's registrations only, never added to anyone's profile.",
       'ce.addAQuestion': '+ Add a question', 'ce.questionPlaceholder': 'Question', 'ce.optionsCommaSeparated': 'Options, comma separated', 'ce.shortAnswer': 'Short answer', 'ce.multipleChoice': 'Multiple choice', 'ce.checkbox': 'Checkbox', 'ce.required': 'Required',
+      'ce.volunteerQuestions': 'Questions for volunteers', 'ce.volunteerQuestionsHint': 'Shown only to people registering as a volunteer — the questions above are shown only to participants.',
       'ce.eventGraphic': 'Event graphic', 'ce.graphicHint': 'For a sharp result on the card, use an image at least 1200px wide.', 'ce.imageNarrowWarning': 'This image is {width}px wide — it may look soft on the card. 1200px+ is recommended.',
       'ce.tagVolunteer': 'Volunteer', 'ce.tagBookClub': 'Book Club', 'ce.tagSocial': 'Social', 'ce.tagWorship': 'Worship', 'ce.tagOutreach': 'Outreach', 'ce.tagYouth': 'Youth', 'ce.tagKids': 'Kids', 'ce.removeImage': 'Remove image',
       'ce.categories': 'Categories', 'ce.categoriesHint': "Pick what applies — these are what people browse by on the events page, so events actually show up under the right icon regardless of how you word things elsewhere. Separate from the freeform tags below.",
@@ -1341,8 +1342,9 @@
       'ce.venueName': 'Nombre del lugar (opcional)', 'ce.venueNamePlaceholder': 'p. ej. Salón de comunión, jardín de la iglesia', 'ce.locationAddressPlaceholder': 'Empieza a escribir una dirección...', 'ce.useChurchAddress': 'Usar la dirección de mi iglesia',
       'ce.roomsUsed': 'Salones usados', 'ce.roomsHint': 'Selecciona cada salón que use este evento — marca uno como principal si usa más de uno. Se gestionan en Configuración → Salones de la instalación.', 'ce.primary': 'Principal', 'ce.noRoomsSetUpYet': 'Aún no hay salones configurados — agrega algunos en Configuración → Salones de la instalación.', 'ce.aRoom': 'un salón',
       'ce.eventContacts': 'Contactos del evento', 'ce.contactsHint': 'Quién debería ser localizable sobre este evento. La casilla "notificar" se guarda pero aún no envía nada — esa es una función aparte que todavía no se ha implementado.', 'ce.addAContact': '+ Agregar un contacto', 'ce.namePlaceholder': 'Nombre', 'ce.notify': 'Notificar',
-      'ce.registrationQuestions': 'Preguntas de inscripción', 'ce.questionsHint': 'Pregunta a los inscritos cualquier cosa específica de este evento — una talla de camiseta, una alergia para planear la comida, una necesidad de cuidado infantil. Las respuestas se vinculan solo a las inscripciones de este evento, nunca se agregan al perfil de nadie.',
+      'ce.registrationQuestions': 'Preguntas de inscripción', 'ce.participantQuestions': 'Preguntas para participantes', 'ce.questionsHint': 'Pregunta a los inscritos cualquier cosa específica de este evento — una talla de camiseta, una alergia para planear la comida, una necesidad de cuidado infantil. Las respuestas se vinculan solo a las inscripciones de este evento, nunca se agregan al perfil de nadie.',
       'ce.addAQuestion': '+ Agregar una pregunta', 'ce.questionPlaceholder': 'Pregunta', 'ce.optionsCommaSeparated': 'Opciones, separadas por comas', 'ce.shortAnswer': 'Respuesta corta', 'ce.multipleChoice': 'Opción múltiple', 'ce.checkbox': 'Casilla', 'ce.required': 'Obligatoria',
+      'ce.volunteerQuestions': 'Preguntas para voluntarios', 'ce.volunteerQuestionsHint': 'Se muestran solo a quienes se inscriben como voluntarios — las preguntas de arriba se muestran solo a los participantes.',
       'ce.eventGraphic': 'Imagen del evento', 'ce.graphicHint': 'Para un resultado nítido en la tarjeta, usa una imagen de al menos 1200px de ancho.', 'ce.imageNarrowWarning': 'Esta imagen tiene {width}px de ancho — puede verse borrosa en la tarjeta. Se recomienda 1200px o más.',
       'ce.tagVolunteer': 'Voluntariado', 'ce.tagBookClub': 'Club de lectura', 'ce.tagSocial': 'Social', 'ce.tagWorship': 'Adoración', 'ce.tagOutreach': 'Extensión comunitaria', 'ce.tagYouth': 'Juventud', 'ce.tagKids': 'Niños', 'ce.removeImage': 'Quitar imagen',
       'ce.categories': 'Categorías', 'ce.categoriesHint': 'Elige lo que corresponda — esto es lo que la gente usa para explorar en la página de eventos, así que los eventos aparecen bajo el ícono correcto sin importar cómo lo redactes en otro lugar. Es independiente de las etiquetas libres de abajo.',
@@ -3690,7 +3692,7 @@
       <div id="ce-contacts-list"></div>
       <button type="button" class="export-btn" id="ce-add-contact-btn" style="margin-top:4px;padding:7px 14px;font-size:12.5px;" data-i18n="ce.addAContact">+ Add a contact</button>
 
-      <label style="margin-top:14px;" data-i18n="ce.registrationQuestions">Registration questions</label>
+      <label style="margin-top:14px;" id="ce-questions-heading" data-i18n="ce.registrationQuestions">Registration questions</label>
       <div style="font-size:12px;color:var(--ink-mute);margin-bottom:8px;" data-i18n="ce.questionsHint">Ask registrants anything specific to this event — a T-shirt size, an allergy to plan food around, a childcare need. Answers are tied to this event's registrations only, never added to anyone's profile.</div>
       <div id="ce-questions-list"></div>
       <button type="button" class="export-btn" id="ce-add-question-btn" style="margin-top:4px;padding:7px 14px;font-size:12.5px;" data-i18n="ce.addAQuestion">+ Add a question</button>
@@ -3793,6 +3795,11 @@
           <div id="ce-volunteer-options" style="display:none;margin-top:10px;">
             <label data-i18n="ce.maxVolunteers">Max volunteers</label>
             <input class="field" type="number" id="ce-max-volunteers" min="1" placeholder="No limit" data-i18n-placeholder="ce.noLimit">
+
+            <label style="margin-top:14px;" data-i18n="ce.volunteerQuestions">Questions for volunteers</label>
+            <div style="font-size:12px;color:var(--ink-mute);margin-bottom:8px;" data-i18n="ce.volunteerQuestionsHint">Shown only to people registering as a volunteer — the questions above are shown only to participants.</div>
+            <div id="ce-volunteer-questions-list"></div>
+            <button type="button" class="export-btn" id="ce-add-volunteer-question-btn" style="margin-top:4px;padding:7px 14px;font-size:12.5px;" data-i18n="ce.addAQuestion">+ Add a question</button>
           </div>
         </div>
       </div>
@@ -4719,7 +4726,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-07-v202 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-07-v203 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -10062,6 +10069,16 @@
   if (ceAllowVolunteersCheckbox) {
     ceAllowVolunteersCheckbox.addEventListener('change', function(){
       document.getElementById('ce-volunteer-options').style.display = this.checked ? 'block' : 'none';
+      // The one question list is unambiguous when there's only one
+      // audience; once volunteers are also accepted, it's specifically
+      // the participants' list (a second one appears above for
+      // volunteers), so the heading should say so.
+      var headingEl = document.getElementById('ce-questions-heading');
+      if (headingEl) {
+        var key = this.checked ? 'ce.participantQuestions' : 'ce.registrationQuestions';
+        headingEl.setAttribute('data-i18n', key);
+        headingEl.textContent = window.t(key);
+      }
     });
   }
 
@@ -10122,11 +10139,18 @@
   // re-renders since switching to/from multiple_choice needs to
   // show or hide the options field, which a dropdown change doesn't
   // suffer the same focus-loss problem from.
+  // Two independent lists, not one list with a per-question audience
+  // toggle: ceQuestions is shown to participants (and to everyone, on
+  // an event that doesn't accept volunteers at all -- unchanged from
+  // before this split existed), ceVolunteerQuestions only to
+  // volunteers. Both are driven through the same rendering/wiring code
+  // below rather than duplicating it, parameterized by which array and
+  // which pair of DOM ids they read/write.
   var ceQuestions = [];
+  var ceVolunteerQuestions = [];
 
-  function renderCeQuestions(){
-    var list = document.getElementById('ce-questions-list');
-    list.innerHTML = ceQuestions.map(function(q, i){
+  function questionsListHtml(questions){
+    return questions.map(function(q, i){
       var optionsField = q.question_type === 'multiple_choice'
         ? '<input class="field" type="text" placeholder="' + window.t('ce.optionsCommaSeparated') + '" value="' + (q.optionsText || '').replace(/"/g, '&quot;') + '" data-q-field="optionsText" data-q-index="' + i + '" style="margin-top:6px;font-size:12.5px;padding:8px;">'
         : '';
@@ -10147,32 +10171,52 @@
         + '</div>';
     }).join('');
   }
+
+  function renderCeQuestions(){
+    document.getElementById('ce-questions-list').innerHTML = questionsListHtml(ceQuestions);
+  }
   window.renderCeQuestions = renderCeQuestions;
 
-  document.getElementById('ce-add-question-btn').addEventListener('click', function(){
-    ceQuestions.push({ question_text: '', question_type: 'short_answer', is_required: false, optionsText: '' });
-    renderCeQuestions();
-  });
+  function renderCeVolunteerQuestions(){
+    var list = document.getElementById('ce-volunteer-questions-list');
+    if (list) list.innerHTML = questionsListHtml(ceVolunteerQuestions);
+  }
+  window.renderCeVolunteerQuestions = renderCeVolunteerQuestions;
 
-  document.getElementById('ce-questions-list').addEventListener('input', function(ev){
-    var field = ev.target.getAttribute('data-q-field');
-    var idx = ev.target.getAttribute('data-q-index');
-    if (field === null || idx === null) return;
-    if (field === 'is_required') { ceQuestions[idx].is_required = ev.target.checked; }
-    else { ceQuestions[idx][field] = ev.target.value; }
-  });
-  document.getElementById('ce-questions-list').addEventListener('change', function(ev){
-    if (ev.target.getAttribute('data-q-field') === 'question_type') {
-      ceQuestions[ev.target.getAttribute('data-q-index')].question_type = ev.target.value;
-      renderCeQuestions();
+  function wireQuestionsList(listElId, addBtnId, getArr, renderFn){
+    var addBtn = document.getElementById(addBtnId);
+    if (addBtn) {
+      addBtn.addEventListener('click', function(){
+        getArr().push({ question_text: '', question_type: 'short_answer', is_required: false, optionsText: '' });
+        renderFn();
+      });
     }
-  });
-  document.getElementById('ce-questions-list').addEventListener('click', function(ev){
-    var removeBtn = ev.target.closest ? ev.target.closest('[data-remove-question-index]') : null;
-    if (!removeBtn) return;
-    ceQuestions.splice(parseInt(removeBtn.getAttribute('data-remove-question-index'), 10), 1);
-    renderCeQuestions();
-  });
+    var listEl = document.getElementById(listElId);
+    if (!listEl) return;
+    listEl.addEventListener('input', function(ev){
+      var field = ev.target.getAttribute('data-q-field');
+      var idx = ev.target.getAttribute('data-q-index');
+      if (field === null || idx === null) return;
+      var arr = getArr();
+      if (field === 'is_required') { arr[idx].is_required = ev.target.checked; }
+      else { arr[idx][field] = ev.target.value; }
+    });
+    listEl.addEventListener('change', function(ev){
+      if (ev.target.getAttribute('data-q-field') === 'question_type') {
+        getArr()[ev.target.getAttribute('data-q-index')].question_type = ev.target.value;
+        renderFn();
+      }
+    });
+    listEl.addEventListener('click', function(ev){
+      var removeBtn = ev.target.closest ? ev.target.closest('[data-remove-question-index]') : null;
+      if (!removeBtn) return;
+      getArr().splice(parseInt(removeBtn.getAttribute('data-remove-question-index'), 10), 1);
+      renderFn();
+    });
+  }
+
+  wireQuestionsList('ce-questions-list', 'ce-add-question-btn', function(){ return ceQuestions; }, renderCeQuestions);
+  wireQuestionsList('ce-volunteer-questions-list', 'ce-add-volunteer-question-btn', function(){ return ceVolunteerQuestions; }, renderCeVolunteerQuestions);
 
   function resetCreateEventForm(){
     ceEditingEventId = null;
@@ -10201,6 +10245,12 @@
     ceTags = []; renderCeTags();
     ceContacts = []; renderCeContacts();
     ceQuestions = []; renderCeQuestions();
+    ceVolunteerQuestions = []; renderCeVolunteerQuestions();
+    var ceQuestionsHeadingReset = document.getElementById('ce-questions-heading');
+    if (ceQuestionsHeadingReset) {
+      ceQuestionsHeadingReset.setAttribute('data-i18n', 'ce.registrationQuestions');
+      ceQuestionsHeadingReset.textContent = window.t('ce.registrationQuestions');
+    }
     loadEventRoomChecklist([], null);
     document.querySelectorAll('.ce-category').forEach(function(cb){ cb.checked = false; });
     var audienceChecks = document.querySelectorAll('.ce-audience');
@@ -10275,11 +10325,21 @@
     ceContacts = Array.isArray(ev.contacts) ? ev.contacts.slice() : [];
     renderCeContacts();
 
-    var { data: existingQuestions } = await supabase.from('event_questions').select('question_text, question_type, options, is_required').eq('event_id', eventId).order('sort_order');
-    ceQuestions = (existingQuestions || []).map(function(q){
+    var { data: existingQuestions } = await supabase.from('event_questions').select('question_text, question_type, options, is_required, applies_to').eq('event_id', eventId).order('sort_order');
+    // A question saved before this participant/volunteer split existed
+    // (or created on an event that never turned volunteers on) has
+    // applies_to = 'both' by column default -- treated as a participant
+    // question here, same as it always behaved when there was only one
+    // list; it only becomes a real second list once someone actually
+    // adds a volunteer-only question.
+    ceQuestions = (existingQuestions || []).filter(function(q){ return q.applies_to !== 'volunteer'; }).map(function(q){
+      return { question_text: q.question_text, question_type: q.question_type, is_required: q.is_required, optionsText: (q.options || []).join(', ') };
+    });
+    ceVolunteerQuestions = (existingQuestions || []).filter(function(q){ return q.applies_to === 'volunteer'; }).map(function(q){
       return { question_text: q.question_text, question_type: q.question_type, is_required: q.is_required, optionsText: (q.options || []).join(', ') };
     });
     renderCeQuestions();
+    renderCeVolunteerQuestions();
 
     var { data: linkedRooms } = await supabase.from('event_rooms').select('room_id, is_primary').eq('event_id', eventId);
     var selectedRoomIds = (linkedRooms || []).map(function(r){ return r.room_id; });
@@ -10305,6 +10365,12 @@
     document.getElementById('ce-allow-volunteers').checked = !!ev.allow_volunteers;
     document.getElementById('ce-volunteer-options').style.display = ev.allow_volunteers ? 'block' : 'none';
     document.getElementById('ce-max-volunteers').value = ev.max_volunteers || '';
+    var ceQuestionsHeadingEdit = document.getElementById('ce-questions-heading');
+    if (ceQuestionsHeadingEdit) {
+      var editHeadingKey = ev.allow_volunteers ? 'ce.participantQuestions' : 'ce.registrationQuestions';
+      ceQuestionsHeadingEdit.setAttribute('data-i18n', editHeadingKey);
+      ceQuestionsHeadingEdit.textContent = window.t(editHeadingKey);
+    }
 
     go('create-event/' + eventId);
   }
@@ -12174,28 +12240,49 @@
   // its answers with it, which is the correct call — the question no
   // longer exists to have been answered).
   async function saveEventQuestions(eventId){
-    var { data: existingRows } = await supabase.from('event_questions').select('id, question_text').eq('event_id', eventId);
-    var existingByText = {};
-    (existingRows || []).forEach(function(r){ existingByText[r.question_text] = r.id; });
+    var { data: existingRows } = await supabase.from('event_questions').select('id, question_text, applies_to').eq('event_id', eventId);
 
-    var currentTexts = {};
-    for (var i = 0; i < ceQuestions.length; i++) {
-      var q = ceQuestions[i];
-      if (!q.question_text || !q.question_text.trim()) continue;
-      currentTexts[q.question_text] = true;
-      var options = (q.question_type === 'multiple_choice' && q.optionsText)
-        ? q.optionsText.split(',').map(function(s){ return s.trim(); }).filter(function(s){ return s; })
-        : null;
-      var payload = { event_id: eventId, question_text: q.question_text, question_type: q.question_type, options: options, is_required: !!q.is_required, sort_order: i };
+    // A row from before the participant/volunteer split existed has
+    // applies_to = 'both' (the column's default) -- matched here as an
+    // existing PARTICIPANT question, since that's what it already
+    // behaved like when there was only one list. Matching it (instead
+    // of treating it as orphaned) is what keeps its id, and therefore
+    // anyone's already-collected answers to it, intact the next time
+    // this event is saved. A legacy row is never matched against the
+    // volunteer list, though — nothing was ever scoped volunteer-only
+    // before this existed, so that direction has no such case to cover.
+    var existingParticipantByText = {};
+    var existingVolunteerByText = {};
+    (existingRows || []).forEach(function(r){
+      if (r.applies_to === 'volunteer') existingVolunteerByText[r.question_text] = r.id;
+      else existingParticipantByText[r.question_text] = r.id;
+    });
 
-      if (existingByText[q.question_text]) {
-        await supabase.from('event_questions').update(payload).eq('id', existingByText[q.question_text]);
-      } else {
-        await supabase.from('event_questions').insert(payload);
+    var survivingIds = {};
+    async function syncQuestionGroup(questions, appliesTo, existingByText){
+      for (var i = 0; i < questions.length; i++) {
+        var q = questions[i];
+        if (!q.question_text || !q.question_text.trim()) continue;
+        var options = (q.question_type === 'multiple_choice' && q.optionsText)
+          ? q.optionsText.split(',').map(function(s){ return s.trim(); }).filter(function(s){ return s; })
+          : null;
+        var payload = { event_id: eventId, question_text: q.question_text, question_type: q.question_type, options: options, is_required: !!q.is_required, sort_order: i, applies_to: appliesTo };
+
+        var existingId = existingByText[q.question_text];
+        if (existingId) {
+          await supabase.from('event_questions').update(payload).eq('id', existingId);
+          survivingIds[existingId] = true;
+        } else {
+          var { data: insertedRow } = await supabase.from('event_questions').insert(payload).select('id').limit(1);
+          if (insertedRow && insertedRow[0]) survivingIds[insertedRow[0].id] = true;
+        }
       }
     }
 
-    var toRemove = (existingRows || []).filter(function(r){ return !currentTexts[r.question_text]; }).map(function(r){ return r.id; });
+    await syncQuestionGroup(ceQuestions, 'participant', existingParticipantByText);
+    await syncQuestionGroup(ceVolunteerQuestions, 'volunteer', existingVolunteerByText);
+
+    var toRemove = (existingRows || []).filter(function(r){ return !survivingIds[r.id]; }).map(function(r){ return r.id; });
     if (toRemove.length) {
       await supabase.from('event_questions').delete().in('id', toRemove);
     }
@@ -17790,7 +17877,15 @@
     var matchedForPricing = (events || []).filter(function(x){ return x.id === eventId; })[0];
     var isPaidCheckout = role === 'participant' && matchedForPricing && matchedForPricing.priceCents;
 
-    var { data: questions } = await supabase.from('event_questions').select('id, question_text, question_type, options, is_required').eq('event_id', eventId).order('sort_order');
+    var { data: allQuestionsForRole } = await supabase.from('event_questions').select('id, question_text, question_type, options, is_required, applies_to').eq('event_id', eventId).order('sort_order');
+    // 'both' is the pre-split default (a question saved before
+    // participant/volunteer lists existed, or an event whose questions
+    // haven't been touched in the form since) -- shown to everyone,
+    // exactly as it always behaved with only one shared list. Once an
+    // organizer actually saves through the split form, their questions
+    // are tagged 'participant'/'volunteer' explicitly and only the
+    // matching role sees them.
+    var questions = (allQuestionsForRole || []).filter(function(q){ return q.applies_to === 'both' || q.applies_to === role; });
     if ((questions && questions.length) || isPaidCheckout) {
       btn.disabled = false;
       openRegistrationQuestionsModal(eventId, role, btn, statusEl, questions || [], isPaidCheckout);
