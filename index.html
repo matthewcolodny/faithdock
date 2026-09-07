@@ -4717,7 +4717,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-07-v199 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-07-v200 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -6949,6 +6949,7 @@
         if (typeof window.renderCeContacts === 'function') window.renderCeContacts();
         if (typeof window.renderCeQuestions === 'function') window.renderCeQuestions();
         if (typeof window.loadChurchTagSuggestions === 'function') window.loadChurchTagSuggestions();
+        if (typeof window.renderCeTags === 'function') window.renderCeTags();
         // Only the narrow-image warning's own text is JS-built and
         // needs re-translating -- re-run it only if it's actually
         // showing (window.ceLastImageWidth is only set while it is).
@@ -10449,9 +10450,17 @@
   function renderCeTags(){
     var list = document.getElementById('ce-tags-list');
     list.innerHTML = ceTags.map(function(tag, i){
-      return '<span class="chip">' + tag + '<button type="button" data-tag-index="' + i + '" aria-label="Remove tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span>';
+      // A tag added via one of the 7 baseline suggestion chips is
+      // stored as its canonical English value (see loadChurchTagSuggestions
+      // below) so it doesn't fragment by language -- but that also means
+      // displaying it verbatim here always shows English, even in Spanish.
+      // Look it up the same way the suggestion chip itself does; anything
+      // else is a church's own freeform tag and is shown as typed.
+      var label = (window.baselineTagI18nKeyMap && window.baselineTagI18nKeyMap[tag]) ? window.t(window.baselineTagI18nKeyMap[tag]) : tag;
+      return '<span class="chip">' + label + '<button type="button" data-tag-index="' + i + '" aria-label="Remove tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span>';
     }).join('');
   }
+  window.renderCeTags = renderCeTags;
   var ceTagInput = document.getElementById('ce-tag-input');
   if (ceTagInput) {
     ceTagInput.addEventListener('keydown', function(ev){
@@ -10831,6 +10840,10 @@
     'Volunteer': 'ce.tagVolunteer', 'Book Club': 'ce.tagBookClub', 'Social': 'ce.tagSocial',
     'Worship': 'ce.tagWorship', 'Outreach': 'ce.tagOutreach', 'Youth': 'ce.tagYouth', 'Kids': 'ce.tagKids'
   };
+  // Exposed so renderCeTags() (defined earlier in this file) can look
+  // up the same canonical-English-to-translated-label mapping without
+  // depending on both being declared in the exact same function scope.
+  window.baselineTagI18nKeyMap = baselineTagI18nKeyMap;
 
   // Suggest tags this church has used before, so they're one click
   // to reuse instead of retyping every time.
