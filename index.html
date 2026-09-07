@@ -4717,7 +4717,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-07-v198 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-07-v199 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -17612,14 +17612,18 @@
   // Fetches current confirmed registration counts per role and shows
   // "X / Y" next to each option, disabling any role that's full.
   async function checkEventCapacity(eventId, maxParticipants, maxVolunteers){
-    var { data } = await supabase.from('event_registrations').select('role').eq('event_id', eventId).eq('status', 'confirmed');
-    var participantCount = 0, volunteerCount = 0;
-    if (data) {
-      data.forEach(function(r){
-        if (r.role === 'volunteer') volunteerCount++;
-        else participantCount++;
-      });
-    }
+    // A raw select against event_registrations here returns only the
+    // CURRENT viewer's own rows if RLS restricts reads to your own
+    // registrations (the normal, privacy-correct default for a table
+    // holding who signed up for what) -- so a second visitor who hasn't
+    // registered yet would always see 0 registered, no matter how full
+    // the event actually is. This RPC returns just the aggregate counts,
+    // not the underlying rows, so it's accurate without needing to open
+    // up read access to everyone else's registration data.
+    var { data: countsRows } = await supabase.rpc('get_event_registration_counts', { p_event_id: eventId });
+    var counts = (countsRows && countsRows[0]) || { participant_count: 0, volunteer_count: 0 };
+    var participantCount = counts.participant_count || 0;
+    var volunteerCount = counts.volunteer_count || 0;
 
     var pCountEl = document.getElementById('event-participant-count');
     var vCountEl = document.getElementById('event-volunteer-count');
@@ -17803,14 +17807,22 @@
   async function completeEventRegistration(eventId, role, btn, statusEl, answers){
     var { data: userData } = await supabase.auth.getUser();
 
-    // Best-effort capacity check — not perfectly race-proof against
-    // two people registering in the same instant, but catches the
-    // normal case of a role being full before wasting an insert.
+    // Best-effort capacity check — a head start to avoid a wasted insert
+    // in the normal case, not the real enforcement (a database trigger
+    // does that atomically, since two people can still both pass this
+    // check in the same instant). This used to count via a raw select
+    // against event_registrations, which — same bug as
+    // checkEventCapacity above — only ever saw the CURRENT user's own
+    // rows under RLS, so it read as 0 for anyone who hadn't registered
+    // yet and never actually blocked anything; the RPC returns real
+    // aggregate counts regardless of whose rows they are.
     var matchedForCapacity = (window.events || []).filter(function(x){ return x.id === eventId; })[0];
     if (matchedForCapacity) {
       var limit = role === 'volunteer' ? matchedForCapacity.maxVolunteers : matchedForCapacity.maxParticipants;
       if (limit) {
-        var { count: currentCount } = await supabase.from('event_registrations').select('id', { count: 'exact', head: true }).eq('event_id', eventId).eq('role', role).eq('status', 'confirmed');
+        var { data: precheckRows } = await supabase.rpc('get_event_registration_counts', { p_event_id: eventId });
+        var precheckCounts = (precheckRows && precheckRows[0]) || { participant_count: 0, volunteer_count: 0 };
+        var currentCount = role === 'volunteer' ? precheckCounts.volunteer_count : precheckCounts.participant_count;
         if ((currentCount || 0) >= limit) {
           statusEl.textContent = window.t('events.optionFullTryOther');
           statusEl.style.display = 'block';
@@ -17825,7 +17837,14 @@
     }, { onConflict: 'event_id,user_id' }).select().limit(1);
 
     if (error) {
-      statusEl.textContent = error.message;
+      // A database trigger enforces the real capacity limit atomically
+      // (the JS check above is only a best-effort head start to avoid a
+      // wasted round trip — it can't stop two people who both pass it in
+      // the same instant, which is exactly the gap this trigger closes).
+      // It signals that specific case with this fixed message so it can
+      // be shown with the app's normal localized copy instead of a raw
+      // database error string.
+      statusEl.textContent = (error.message === 'EVENT_CAPACITY_FULL') ? window.t('events.optionFullTryOther') : error.message;
       statusEl.style.display = 'block';
       btn.disabled = false;
       return false;
