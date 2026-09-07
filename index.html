@@ -647,6 +647,7 @@
       'events.checkoutStartFailed': 'Something went wrong starting checkout.', 'events.discountAppliedFreeRegistration': "Discount code applied — you're registered, free of charge!",
       'events.optionFullTryOther': 'That option is full — try the other one if available.',
       'events.guestLimitReached': "This event has reached its total guest limit — try registering with fewer guests.", 'events.howManyGuests': 'How many guests are you bringing?',
+      'events.suggestedDonationText': 'This is a free event — a suggested donation of {amount} helps support {church}.',
       'events.registeredButAnswersFailed': "Registered, but your answers couldn't be saved: {error}",
       'events.roleParticipant': 'participant', 'events.roleVolunteer': 'volunteer', 'events.onListAsRole': "You're on the list as a {role} — click the button again to unregister.",
       'events.couldNotFindEvent': 'Could not find that event.',
@@ -736,6 +737,7 @@
       'ce.paidEventsLocked': 'Paid events (ticket pricing, discount codes) are available on Starter plans and above.',
       'ce.alsoAcceptVolunteers': 'Also accept volunteer signups', 'ce.maxVolunteers': 'Max volunteers',
       'ce.allowGuests': 'Are guests allowed?', 'ce.allowGuestsHint': "Whoever registers will be asked how many guests they're bringing — tracked separately from the participant/volunteer count above.", 'ce.maxGuests': 'Max total guests',
+      'ce.suggestedDonation': 'Suggested donation', 'ce.suggestedDonationHint': 'For a free event only — shown to registrants as an optional amount to give toward this event, through the same Giving your church already has set up. Ignored if a ticket price is set above.', 'ce.none': 'None',
       'ce.repeats': 'Repeats', 'ce.doesntRepeat': "Doesn't repeat", 'ce.daily': 'Daily', 'ce.weekly': 'Weekly', 'ce.every2Weeks': 'Every 2 weeks', 'ce.monthly': 'Monthly',
       'ce.repeatUntil': 'Repeat until', 'ce.repeatUntilHint': 'Creates a separate event for each occurrence, up to 52 — each can be edited or cancelled individually later.',
       'ce.skipSpecificDates': 'Skip specific dates', 'ce.skipDatesHint': 'e.g. skip the Friday before Christmas — pick the date and press Add.',
@@ -1274,6 +1276,7 @@
       'events.checkoutStartFailed': 'Algo salió mal al iniciar el pago.', 'events.discountAppliedFreeRegistration': '¡Código de descuento aplicado — estás inscrito, sin costo!',
       'events.optionFullTryOther': 'Esa opción está llena — intenta con la otra si está disponible.',
       'events.guestLimitReached': 'Este evento alcanzó su límite total de invitados — intenta inscribirte con menos invitados.', 'events.howManyGuests': '¿Cuántos invitados traes?',
+      'events.suggestedDonationText': 'Este es un evento gratuito — una donación sugerida de {amount} ayuda a apoyar a {church}.',
       'events.registeredButAnswersFailed': 'Inscrito, pero tus respuestas no se pudieron guardar: {error}',
       'events.roleParticipant': 'participante', 'events.roleVolunteer': 'voluntario', 'events.onListAsRole': 'Estás en la lista como {role} — haz clic en el botón de nuevo para cancelar tu inscripción.',
       'events.couldNotFindEvent': 'No se pudo encontrar ese evento.',
@@ -1363,6 +1366,7 @@
       'ce.paidEventsLocked': 'Los eventos de pago (precio de entrada, códigos de descuento) están disponibles en los planes Inicial y superiores.',
       'ce.alsoAcceptVolunteers': 'También aceptar inscripciones de voluntarios', 'ce.maxVolunteers': 'Máximo de voluntarios',
       'ce.allowGuests': '¿Se permiten invitados?', 'ce.allowGuestsHint': 'A quien se inscriba se le preguntará cuántos invitados trae — se cuenta por separado del conteo de participantes/voluntarios de arriba.', 'ce.maxGuests': 'Máximo total de invitados',
+      'ce.suggestedDonation': 'Donación sugerida', 'ce.suggestedDonationHint': 'Solo para un evento gratuito — se muestra a quienes se inscriben como un monto opcional para dar hacia este evento, a través del mismo sistema de Donaciones que tu iglesia ya tiene configurado. Se ignora si arriba se fijó un precio de boleto.', 'ce.none': 'Ninguna',
       'ce.repeats': 'Se repite', 'ce.doesntRepeat': 'No se repite', 'ce.daily': 'Diariamente', 'ce.weekly': 'Semanalmente', 'ce.every2Weeks': 'Cada 2 semanas', 'ce.monthly': 'Mensualmente',
       'ce.repeatUntil': 'Repetir hasta', 'ce.repeatUntilHint': 'Crea un evento aparte para cada ocurrencia, hasta 52 — cada uno se puede editar o cancelar individualmente después.',
       'ce.skipSpecificDates': 'Omitir fechas específicas', 'ce.skipDatesHint': 'p. ej. omitir el viernes antes de Navidad — elige la fecha y presiona Agregar.',
@@ -1718,6 +1722,7 @@
   .tag{
     display:inline-block;font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.05em;
     text-transform:uppercase;padding:3px 9px;border-radius:20px;font-weight:500;
+    text-align:center;
   }
   .tag.sage{background:var(--sage-bg);color:var(--sage);}
   .tag.clay{background:var(--clay-bg);color:var(--clay);}
@@ -2605,6 +2610,10 @@
         <div id="event-role-registered-label" class="role-registered-label" style="display:none;margin-bottom:12px;font-size:13.5px;color:var(--sage);font-weight:500;"></div>
         <button class="btn-gold register-real-btn" id="event-register-btn" style="margin-top:8px;" data-i18n="events.registerForEvent">Register for this event</button>
         <div class="register-status mono" id="event-register-status" style="font-size:12px;color:var(--ink-mute);margin-top:8px;display:none;"></div>
+        <div id="event-suggested-donation" style="display:none;margin-top:14px;padding:14px 16px;border:1px solid var(--line);border-radius:10px;background:var(--card);">
+          <p style="font-size:13.5px;color:var(--ink-mute);margin:0 0 10px;" id="event-suggested-donation-text"></p>
+          <button type="button" class="export-btn" id="event-suggested-donation-give-btn" data-i18n="church.give">Give</button>
+        </div>
         <div style="display:flex;gap:8px;margin-top:14px;">
           <button class="export-btn" id="event-add-google-cal-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg> <span data-i18n="events.googleCalendar">Google Calendar</span></button>
           <button class="export-btn" id="event-add-ics-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 19h16"/></svg> <span data-i18n="events.downloadIcs">Download .ics</span></button>
@@ -3771,6 +3780,13 @@
               <input class="field" type="number" id="ce-price" min="1" step="0.01" placeholder="Free" data-i18n-placeholder="ce.free" style="padding-left:24px;">
             </div>
 
+            <label style="margin-top:14px;" data-i18n="ce.suggestedDonation">Suggested donation</label>
+            <div style="font-size:12px;color:var(--ink-mute);margin-bottom:6px;" data-i18n="ce.suggestedDonationHint">For a free event only — shown to registrants as an optional amount to give toward this event, through the same Giving your church already has set up. Ignored if a ticket price is set above.</div>
+            <div style="position:relative;">
+              <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--ink-mute);font-size:14px;">$</span>
+              <input class="field" type="number" id="ce-suggested-donation" min="1" step="1" placeholder="None" data-i18n-placeholder="ce.none" style="padding-left:24px;">
+            </div>
+
             <div id="ce-discount-codes-section" style="display:none;margin-top:14px;">
               <label data-i18n="ce.discountCodes">Discount codes</label>
               <div style="font-size:12px;color:var(--ink-mute);margin-bottom:8px;" data-i18n="ce.discountCodesHint">Save the event once with a price set, then add codes here — they need a saved event to attach to.</div>
@@ -4737,7 +4753,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-07-v204 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-07-v205 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -5283,6 +5299,45 @@
       registerBtn.removeAttribute('data-event-id');
       registerBtn.style.display = 'inline-block';
       registerBtn.textContent = window.t('events.registerForEvent');
+    }
+
+    // suggested_donation_cents isn't part of the search_events RPC's
+    // return shape (that RPC's source isn't in this repo to extend --
+    // same constraint noted for allow_guests elsewhere in this file), so
+    // this is a small direct lookup rather than something already sitting
+    // on `e`. Only meaningful for a real, free event.
+    var donationBlock = document.getElementById('event-suggested-donation');
+    donationBlock.style.display = 'none';
+    if (e.real && !e.priceCents && e.churchId) {
+      supabase.from('events').select('suggested_donation_cents').eq('id', e.id).limit(1).then(function(res){
+        var row = res.data && res.data[0];
+        if (!row || !row.suggested_donation_cents) return;
+        // The event this was fired for might not be the one still on
+        // screen by the time this resolves (fast navigation between
+        // event pages) -- re-check against the currently-displayed
+        // register button's own event id rather than trusting the
+        // closed-over eventId.
+        if (registerBtn.getAttribute('data-event-id') !== String(e.id)) return;
+        var amountCents = row.suggested_donation_cents;
+        document.getElementById('event-suggested-donation-text').textContent = window.t('events.suggestedDonationText')
+          .replace('{amount}', '$' + (amountCents / 100).toFixed(0))
+          .replace('{church}', e.church || '');
+        donationBlock.style.display = 'block';
+        var giveBtn = document.getElementById('event-suggested-donation-give-btn');
+        giveBtn.onclick = function(){
+          window.pendingGiveAmountCents = amountCents;
+          window.pendingGiveChurchId = e.churchId;
+          // go() only switches page visibility/history -- this app has
+          // no hashchange listener, so every real navigation site also
+          // explicitly re-resolves and populates from the hash right
+          // after. showRouteFromHash(true) is the same catch-all used
+          // for exactly that elsewhere in this file (e.g. after
+          // sign-in), rather than duplicating the church-lookup logic
+          // it already contains.
+          go('church/' + encodeURIComponent(e.church || ''));
+          if (typeof window.showRouteFromHash === 'function') window.showRouteFromHash(true);
+        };
+      });
     }
 
     var googleCalBtn = document.getElementById('event-add-google-cal-btn');
@@ -10277,6 +10332,7 @@
     document.getElementById('ce-visibility').value = 'public';
     document.getElementById('ce-max-participants').value = '';
     document.getElementById('ce-price').value = '';
+    document.getElementById('ce-suggested-donation').value = '';
     document.getElementById('ce-discount-codes-section').style.display = 'none';
     document.getElementById('ce-allow-volunteers').checked = false;
     document.getElementById('ce-volunteer-options').style.display = 'none';
@@ -10376,6 +10432,7 @@
     document.getElementById('ce-registration-options').style.display = ev.registration_required ? 'block' : 'none';
     document.getElementById('ce-max-participants').value = ev.max_participants || '';
     document.getElementById('ce-price').value = ev.price_cents ? (ev.price_cents / 100).toFixed(2) : '';
+    document.getElementById('ce-suggested-donation').value = ev.suggested_donation_cents ? (ev.suggested_donation_cents / 100).toFixed(0) : '';
     if (ev.price_cents) {
       document.getElementById('ce-discount-codes-section').style.display = 'block';
       loadDiscountCodesPanel(eventId);
@@ -10766,6 +10823,14 @@
       var priceRaw = document.getElementById('ce-price').value;
       var priceCents = priceRaw ? Math.round(parseFloat(priceRaw) * 100) : null;
       if (priceRaw && (isNaN(priceCents) || priceCents <= 0)) { showCeError(window.t('ce.priceMustBePositive')); return; }
+      // Mutually exclusive with a ticket price by design (the hint text
+      // says so too) -- a paid event already charges directly, so a
+      // suggested-donation prompt on top of that would be a confusing
+      // second ask. Cleared here rather than in the UI so an organizer
+      // who sets a price after already entering a donation amount
+      // doesn't end up with a stale value silently saved underneath it.
+      var suggestedDonationRaw = document.getElementById('ce-suggested-donation').value;
+      var suggestedDonationCents = (!priceCents && suggestedDonationRaw) ? Math.round(parseFloat(suggestedDonationRaw) * 100) : null;
       // Paid events are a Starter-and-up feature (Phase 2). A Free-plan
       // church can still save changes to an event that already had a price set
       // before a downgrade (grandfathered) — this only blocks a Free
@@ -10820,7 +10885,8 @@
           max_volunteers: maxVolunteers,
           allow_guests: allowGuests,
           max_guests: maxGuests,
-          price_cents: priceCents
+          price_cents: priceCents,
+          suggested_donation_cents: suggestedDonationCents
         };
         if (imageUrl) { updatePayload.image_url = imageUrl; }
         else if (window.ceImageMarkedForRemoval) { updatePayload.image_url = null; }
@@ -10886,7 +10952,8 @@
           max_volunteers: maxVolunteers,
           allow_guests: allowGuests,
           max_guests: maxGuests,
-          price_cents: priceCents
+          price_cents: priceCents,
+          suggested_donation_cents: suggestedDonationCents
         };
       });
 
@@ -14451,6 +14518,23 @@
         fundWrap.style.display = 'block';
       } else {
         fundWrap.style.display = 'none';
+      }
+    }
+
+    // Resumes a "Give" click that started from an event page's suggested-
+    // donation prompt: that prompt can't open this tab and prefill it
+    // directly, since it lives on a completely different route and this
+    // panel doesn't exist there — it stashes the amount and navigates
+    // here instead, and this is where that intent actually gets carried
+    // out, once the panel it needs is finally on the page and populated.
+    if (window.pendingGiveAmountCents && window.pendingGiveChurchId === churchId) {
+      var pendingAmount = window.pendingGiveAmountCents;
+      window.pendingGiveAmountCents = null;
+      window.pendingGiveChurchId = null;
+      if (enabled) {
+        var customAmountEl = document.getElementById('give-custom-amount');
+        if (customAmountEl) customAmountEl.value = (pendingAmount / 100).toFixed(0);
+        if (typeof window.openRealGiveTab === 'function') window.openRealGiveTab();
       }
     }
   }

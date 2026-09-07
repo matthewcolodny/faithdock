@@ -353,6 +353,30 @@ This extends the same `enforce_event_capacity()` trigger from the earlier capaci
 
 ---
 
+## A two-line badge wrapped left-aligned, not centered
+
+QA report, with a screenshot: "Open to anyone" on a narrow card wrapped onto two lines, ragged-left instead of centered. The shared `.tag` class (used for every badge/pill in the app — category tags, "Registration open," denomination, etc.) never set `text-align`, so it inherited the page's default left alignment; invisible on a single line, obvious the moment text wraps on a narrow card. Added `text-align:center` to `.tag` itself rather than a one-off fix on this specific badge, since every other tag using this class was one long word away from the same thing. Verified live against the exact page from the screenshot (mobile viewport, same church).
+
+---
+
+## Suggested donations for free events: reusing Give, not rebuilding it
+
+QA request: "for free events, add giving option so churches can suggest a donation amount to attend event." Rather than a separate donation flow, this reuses the church's existing Give tab/Stripe Checkout wholesale — an organizer sets an optional suggested amount on a free event (mutually exclusive with a ticket price by design: setting a price clears it on save, since a paid event already has its own direct charge), and a registrant sees a "This is a free event — a suggested donation of $X helps support {church}" prompt with a Give button.
+
+**Requires a one-time SQL migration:**
+```sql
+alter table events add column suggested_donation_cents integer
+  check (suggested_donation_cents is null or suggested_donation_cents > 0);
+```
+
+**The button had to cross a real architectural gap to get there.** The event detail page and a church's Give tab are different pages/routes, and — confirmed by reading the routing code directly, not assumed — **this app has no `hashchange` listener anywhere**. Every real navigation site calls `go()` (which only swaps page visibility and pushes history) and then separately, explicitly, re-resolves and populates from the hash right where the click happens; there's no central router reacting to hash changes on its own. A first attempt at this button that only called `go('church/...')` looked like it navigated correctly (URL updated, right page section became active) but silently left the church's own data — including whether Give is even enabled for it — completely unpopulated, because that population step never got triggered. Caught by scripting the actual click through a real browser and inspecting the resulting DOM state, not by reading the code and assuming it would work. Fixed by also calling `window.showRouteFromHash(true)` right after `go()` — the same "re-populate from whatever the hash currently says" catch-all this file already uses in four other places (e.g. right after sign-in) — rather than duplicating the church-lookup/populate logic inline.
+
+**Getting the prefilled amount into a tab that doesn't exist yet on the current page** works by stashing `window.pendingGiveAmountCents`/`pendingGiveChurchId` before navigating, then having `checkChurchGivingEnabled()` — which every church-page load already calls, and which already knows whether Give is actually enabled — check for and resume that pending intent once the panel it needs actually exists and is populated, clearing it either way so a stale amount can't leak into some later, unrelated visit to that church's Give tab.
+
+**Verified live**, including the routing gap above and the full happy path (donation prompt renders with the right text and amount, clicking through lands on Give with the amount prefilled) — via a real running preview and scripted browser interaction, with the two Stripe-dependent lookups (an event's suggested amount, a church's onboarding status) stubbed at the network boundary rather than the whole thing merely reasoned about.
+
+---
+
 ## Working conventions worth restating
 
 - **Bump the footer build stamp** (`build YYYY-MM-DD-vNNN`) after every round of changes — it's the fastest way to confirm whether what's live actually reflects the latest work, or whether a browser is just caching an old version.
