@@ -646,6 +646,7 @@
       'events.unregisteredPickRoleAgain': "You've been unregistered — pick a role to register again.",
       'events.checkoutStartFailed': 'Something went wrong starting checkout.', 'events.discountAppliedFreeRegistration': "Discount code applied — you're registered, free of charge!",
       'events.optionFullTryOther': 'That option is full — try the other one if available.',
+      'events.guestLimitReached': "This event has reached its total guest limit — try registering with fewer guests.", 'events.howManyGuests': 'How many guests are you bringing?',
       'events.registeredButAnswersFailed': "Registered, but your answers couldn't be saved: {error}",
       'events.roleParticipant': 'participant', 'events.roleVolunteer': 'volunteer', 'events.onListAsRole': "You're on the list as a {role} — click the button again to unregister.",
       'events.couldNotFindEvent': 'Could not find that event.',
@@ -734,6 +735,7 @@
       'ce.noDiscountCodesYet': 'No discount codes yet.', 'ce.usesOfMax': '{used} / {max} used', 'ce.usesCount': '{used} used', 'ce.off': 'Off', 'ce.turnOff': 'Turn off', 'ce.turnOn': 'Turn on', 'ce.enterCodeAndAmount': 'Enter a code and an amount.',
       'ce.paidEventsLocked': 'Paid events (ticket pricing, discount codes) are available on Starter plans and above.',
       'ce.alsoAcceptVolunteers': 'Also accept volunteer signups', 'ce.maxVolunteers': 'Max volunteers',
+      'ce.allowGuests': 'Are guests allowed?', 'ce.allowGuestsHint': "Whoever registers will be asked how many guests they're bringing — tracked separately from the participant/volunteer count above.", 'ce.maxGuests': 'Max total guests',
       'ce.repeats': 'Repeats', 'ce.doesntRepeat': "Doesn't repeat", 'ce.daily': 'Daily', 'ce.weekly': 'Weekly', 'ce.every2Weeks': 'Every 2 weeks', 'ce.monthly': 'Monthly',
       'ce.repeatUntil': 'Repeat until', 'ce.repeatUntilHint': 'Creates a separate event for each occurrence, up to 52 — each can be edited or cancelled individually later.',
       'ce.skipSpecificDates': 'Skip specific dates', 'ce.skipDatesHint': 'e.g. skip the Friday before Christmas — pick the date and press Add.',
@@ -1271,6 +1273,7 @@
       'events.unregisteredPickRoleAgain': 'Se canceló tu inscripción — elige un rol para inscribirte de nuevo.',
       'events.checkoutStartFailed': 'Algo salió mal al iniciar el pago.', 'events.discountAppliedFreeRegistration': '¡Código de descuento aplicado — estás inscrito, sin costo!',
       'events.optionFullTryOther': 'Esa opción está llena — intenta con la otra si está disponible.',
+      'events.guestLimitReached': 'Este evento alcanzó su límite total de invitados — intenta inscribirte con menos invitados.', 'events.howManyGuests': '¿Cuántos invitados traes?',
       'events.registeredButAnswersFailed': 'Inscrito, pero tus respuestas no se pudieron guardar: {error}',
       'events.roleParticipant': 'participante', 'events.roleVolunteer': 'voluntario', 'events.onListAsRole': 'Estás en la lista como {role} — haz clic en el botón de nuevo para cancelar tu inscripción.',
       'events.couldNotFindEvent': 'No se pudo encontrar ese evento.',
@@ -1359,6 +1362,7 @@
       'ce.noDiscountCodesYet': 'Aún no hay códigos de descuento.', 'ce.usesOfMax': '{used} / {max} usados', 'ce.usesCount': '{used} usados', 'ce.off': 'Desactivado', 'ce.turnOff': 'Desactivar', 'ce.turnOn': 'Activar', 'ce.enterCodeAndAmount': 'Ingresa un código y una cantidad.',
       'ce.paidEventsLocked': 'Los eventos de pago (precio de entrada, códigos de descuento) están disponibles en los planes Inicial y superiores.',
       'ce.alsoAcceptVolunteers': 'También aceptar inscripciones de voluntarios', 'ce.maxVolunteers': 'Máximo de voluntarios',
+      'ce.allowGuests': '¿Se permiten invitados?', 'ce.allowGuestsHint': 'A quien se inscriba se le preguntará cuántos invitados trae — se cuenta por separado del conteo de participantes/voluntarios de arriba.', 'ce.maxGuests': 'Máximo total de invitados',
       'ce.repeats': 'Se repite', 'ce.doesntRepeat': 'No se repite', 'ce.daily': 'Diariamente', 'ce.weekly': 'Semanalmente', 'ce.every2Weeks': 'Cada 2 semanas', 'ce.monthly': 'Mensualmente',
       'ce.repeatUntil': 'Repetir hasta', 'ce.repeatUntilHint': 'Crea un evento aparte para cada ocurrencia, hasta 52 — cada uno se puede editar o cancelar individualmente después.',
       'ce.skipSpecificDates': 'Omitir fechas específicas', 'ce.skipDatesHint': 'p. ej. omitir el viernes antes de Navidad — elige la fecha y presiona Agregar.',
@@ -3801,6 +3805,13 @@
             <div id="ce-volunteer-questions-list"></div>
             <button type="button" class="export-btn" id="ce-add-volunteer-question-btn" style="margin-top:4px;padding:7px 14px;font-size:12.5px;" data-i18n="ce.addAQuestion">+ Add a question</button>
           </div>
+
+          <label class="filter-check" style="margin-top:14px;"><input type="checkbox" id="ce-allow-guests"> <span data-i18n="ce.allowGuests">Are guests allowed?</span></label>
+          <div id="ce-guest-options" style="display:none;margin-top:10px;">
+            <div style="font-size:12px;color:var(--ink-mute);margin-bottom:8px;" data-i18n="ce.allowGuestsHint">Whoever registers will be asked how many guests they're bringing — tracked separately from the participant/volunteer count above.</div>
+            <label data-i18n="ce.maxGuests">Max total guests</label>
+            <input class="field" type="number" id="ce-max-guests" min="1" placeholder="No limit" data-i18n-placeholder="ce.noLimit">
+          </div>
         </div>
       </div>
 
@@ -4726,7 +4737,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-07-v203 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-07-v204 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -10081,6 +10092,12 @@
       }
     });
   }
+  var ceAllowGuestsCheckbox = document.getElementById('ce-allow-guests');
+  if (ceAllowGuestsCheckbox) {
+    ceAllowGuestsCheckbox.addEventListener('change', function(){
+      document.getElementById('ce-guest-options').style.display = this.checked ? 'block' : 'none';
+    });
+  }
 
   // Tags — free-text chips, press Enter to add.
   var ceTags = [];
@@ -10264,6 +10281,9 @@
     document.getElementById('ce-allow-volunteers').checked = false;
     document.getElementById('ce-volunteer-options').style.display = 'none';
     document.getElementById('ce-max-volunteers').value = '';
+    document.getElementById('ce-allow-guests').checked = false;
+    document.getElementById('ce-guest-options').style.display = 'none';
+    document.getElementById('ce-max-guests').value = '';
   }
   window.resetCreateEventForm = resetCreateEventForm;
 
@@ -10365,6 +10385,9 @@
     document.getElementById('ce-allow-volunteers').checked = !!ev.allow_volunteers;
     document.getElementById('ce-volunteer-options').style.display = ev.allow_volunteers ? 'block' : 'none';
     document.getElementById('ce-max-volunteers').value = ev.max_volunteers || '';
+    document.getElementById('ce-allow-guests').checked = !!ev.allow_guests;
+    document.getElementById('ce-guest-options').style.display = ev.allow_guests ? 'block' : 'none';
+    document.getElementById('ce-max-guests').value = ev.max_guests || '';
     var ceQuestionsHeadingEdit = document.getElementById('ce-questions-heading');
     if (ceQuestionsHeadingEdit) {
       var editHeadingKey = ev.allow_volunteers ? 'ce.participantQuestions' : 'ce.registrationQuestions';
@@ -10737,6 +10760,9 @@
       var allowVolunteers = document.getElementById('ce-allow-volunteers').checked;
       var maxVolunteersRaw = document.getElementById('ce-max-volunteers').value;
       var maxVolunteers = (allowVolunteers && maxVolunteersRaw) ? parseInt(maxVolunteersRaw, 10) : null;
+      var allowGuests = document.getElementById('ce-allow-guests').checked;
+      var maxGuestsRaw = document.getElementById('ce-max-guests').value;
+      var maxGuests = (allowGuests && maxGuestsRaw) ? parseInt(maxGuestsRaw, 10) : null;
       var priceRaw = document.getElementById('ce-price').value;
       var priceCents = priceRaw ? Math.round(parseFloat(priceRaw) * 100) : null;
       if (priceRaw && (isNaN(priceCents) || priceCents <= 0)) { showCeError(window.t('ce.priceMustBePositive')); return; }
@@ -10792,6 +10818,8 @@
           max_participants: maxParticipants,
           allow_volunteers: allowVolunteers,
           max_volunteers: maxVolunteers,
+          allow_guests: allowGuests,
+          max_guests: maxGuests,
           price_cents: priceCents
         };
         if (imageUrl) { updatePayload.image_url = imageUrl; }
@@ -10856,6 +10884,8 @@
           max_participants: maxParticipants,
           allow_volunteers: allowVolunteers,
           max_volunteers: maxVolunteers,
+          allow_guests: allowGuests,
+          max_guests: maxGuests,
           price_cents: priceCents
         };
       });
@@ -17886,13 +17916,22 @@
     // are tagged 'participant'/'volunteer' explicitly and only the
     // matching role sees them.
     var questions = (allQuestionsForRole || []).filter(function(q){ return q.applies_to === 'both' || q.applies_to === role; });
-    if ((questions && questions.length) || isPaidCheckout) {
+
+    // allow_guests/max_guests aren't part of the search_events RPC's
+    // return shape (that RPC's own source isn't in this repo, so it
+    // can't be extended from here) -- a small direct lookup at the
+    // moment someone actually registers is simpler than threading two
+    // new fields through every card/list that shows an event.
+    var { data: guestSettingRow } = await supabase.from('events').select('allow_guests').eq('id', eventId).limit(1);
+    var allowGuests = !!(guestSettingRow && guestSettingRow[0] && guestSettingRow[0].allow_guests);
+
+    if ((questions && questions.length) || isPaidCheckout || allowGuests) {
       btn.disabled = false;
-      openRegistrationQuestionsModal(eventId, role, btn, statusEl, questions || [], isPaidCheckout);
+      openRegistrationQuestionsModal(eventId, role, btn, statusEl, questions || [], isPaidCheckout, allowGuests);
       return;
     }
 
-    await completeEventRegistration(eventId, role, btn, statusEl, null);
+    await completeEventRegistration(eventId, role, btn, statusEl, null, 0);
   });
 
   // Redirects to the church's own Stripe Checkout for a paid
@@ -17900,7 +17939,7 @@
   // event also has custom questions) get passed straight through and
   // saved server-side immediately — they don't wait on payment, only
   // the registration's status does.
-  async function startPaidEventCheckout(eventId, btn, statusEl, answers){
+  async function startPaidEventCheckout(eventId, btn, statusEl, answers, guestCount){
     btn.disabled = true;
     var baseUrl = window.location.origin + window.location.pathname;
     var churchHash = window.location.hash.split('?')[0];
@@ -17910,6 +17949,7 @@
     var { data, error } = await supabase.functions.invoke('stripe-event-checkout', {
       body: {
         eventId: eventId, answers: answers || [], discountCode: discountCode || undefined,
+        guestCount: guestCount || 0,
         successUrl: baseUrl + churchHash, cancelUrl: baseUrl + churchHash
       }
     });
@@ -17949,7 +17989,7 @@
   // Split out so it's reachable both from a direct registration (no
   // questions to ask) and from the questions modal's own submit,
   // once answers have actually been collected.
-  async function completeEventRegistration(eventId, role, btn, statusEl, answers){
+  async function completeEventRegistration(eventId, role, btn, statusEl, answers, guestCount){
     var { data: userData } = await supabase.auth.getUser();
 
     // Best-effort capacity check — a head start to avoid a wasted insert
@@ -17978,7 +18018,7 @@
     }
 
     var { data: regRow, error } = await supabase.from('event_registrations').upsert({
-      event_id: eventId, user_id: userData.user.id, status: 'confirmed', role: role
+      event_id: eventId, user_id: userData.user.id, status: 'confirmed', role: role, guest_count: guestCount || 0
     }, { onConflict: 'event_id,user_id' }).select().limit(1);
 
     if (error) {
@@ -17986,10 +18026,14 @@
       // (the JS check above is only a best-effort head start to avoid a
       // wasted round trip — it can't stop two people who both pass it in
       // the same instant, which is exactly the gap this trigger closes).
-      // It signals that specific case with this fixed message so it can
-      // be shown with the app's normal localized copy instead of a raw
-      // database error string.
-      statusEl.textContent = (error.message === 'EVENT_CAPACITY_FULL') ? window.t('events.optionFullTryOther') : error.message;
+      // It signals that specific case (and the equivalent one for the
+      // total guest cap) with a fixed message so it can be shown with
+      // the app's normal localized copy instead of a raw database
+      // error string.
+      var isGuestsFull = error.message === 'EVENT_GUESTS_FULL';
+      statusEl.textContent = (error.message === 'EVENT_CAPACITY_FULL') ? window.t('events.optionFullTryOther')
+        : isGuestsFull ? window.t('events.guestLimitReached')
+        : error.message;
       statusEl.style.display = 'block';
       btn.disabled = false;
       return false;
@@ -18033,8 +18077,8 @@
 
   var pendingRegistration = null;
 
-  function openRegistrationQuestionsModal(eventId, role, btn, statusEl, questions, isPaidCheckout){
-    pendingRegistration = { eventId: eventId, role: role, btn: btn, statusEl: statusEl, questions: questions, isPaidCheckout: isPaidCheckout };
+  function openRegistrationQuestionsModal(eventId, role, btn, statusEl, questions, isPaidCheckout, allowGuests){
+    pendingRegistration = { eventId: eventId, role: role, btn: btn, statusEl: statusEl, questions: questions, isPaidCheckout: isPaidCheckout, allowGuests: allowGuests };
     var listEl = document.getElementById('registration-questions-list');
     listEl.innerHTML = questions.map(function(q, i){
       var requiredMark = q.is_required ? ' <span style="color:var(--clay);">*</span>' : '';
@@ -18051,6 +18095,10 @@
       }
       return '<div style="margin-bottom:14px;"><label style="font-size:13px;font-weight:600;margin-bottom:6px;display:block;">' + q.question_text.replace(/</g, '&lt;') + requiredMark + '</label>' + fieldHtml + '</div>';
     }).join('');
+    var guestHtml = allowGuests
+      ? '<div style="margin-bottom:14px;"><label style="font-size:13px;font-weight:600;margin-bottom:6px;display:block;">' + window.t('events.howManyGuests') + '</label><input class="field" type="number" id="registration-guest-count-input" min="0" step="1" value="0" style="font-size:13px;padding:9px;width:100px;"></div>'
+      : '';
+    listEl.insertAdjacentHTML('beforeend', guestHtml);
     var discountHtml = isPaidCheckout
       ? '<div style="margin-bottom:14px;"><label style="font-size:13px;font-weight:600;margin-bottom:6px;display:block;">' + window.t('regQuestions.discountCode') + ' <span style="font-weight:400;color:var(--ink-mute);">(' + window.t('regQuestions.optional') + ')</span></label><input class="field" type="text" id="registration-discount-code-input" placeholder="' + window.t('regQuestions.codePlaceholder') + '" style="font-size:13px;padding:9px;text-transform:uppercase;"></div>'
       : '';
@@ -18091,16 +18139,23 @@
         return;
       }
 
+      var guestCountInput = document.getElementById('registration-guest-count-input');
+      var guestCount = guestCountInput ? (parseInt(guestCountInput.value, 10) || 0) : 0;
+
       registrationQuestionsSubmitBtn.disabled = true;
       if (pendingRegistration.isPaidCheckout) {
         // startPaidEventCheckout redirects the whole page to Stripe
         // on success, so there's nothing to clean up here on that
-        // path — this only continues if it actually failed.
-        await startPaidEventCheckout(pendingRegistration.eventId, pendingRegistration.btn, statusEl, answers);
+        // path — this only continues if it actually failed. Passed
+        // through on a best-effort basis: whether it actually ends up
+        // on the registration row depends on the stripe-event-checkout
+        // edge function accepting and forwarding it, and that
+        // function's source isn't in this repo to confirm.
+        await startPaidEventCheckout(pendingRegistration.eventId, pendingRegistration.btn, statusEl, answers, guestCount);
         registrationQuestionsSubmitBtn.disabled = false;
         return;
       }
-      var success = await completeEventRegistration(pendingRegistration.eventId, pendingRegistration.role, pendingRegistration.btn, pendingRegistration.statusEl, answers);
+      var success = await completeEventRegistration(pendingRegistration.eventId, pendingRegistration.role, pendingRegistration.btn, pendingRegistration.statusEl, answers, guestCount);
       registrationQuestionsSubmitBtn.disabled = false;
       if (success) {
         document.getElementById('registration-questions-modal').classList.remove('open');

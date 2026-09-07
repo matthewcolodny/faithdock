@@ -287,6 +287,72 @@ alter table event_questions
 
 ---
 
+## Adding guest counts: a per-registrant number, not a role
+
+QA request: an "Are guests allowed?" checkbox on event creation; if checked, whoever registers is asked how many guests they're bringing, tracked separately from the participant/volunteer count, with an organizer-set cap on the total.
+
+**Requires a one-time SQL migration:**
+```sql
+alter table events add column allow_guests boolean not null default false;
+alter table events add column max_guests int;
+alter table event_registrations add column guest_count int not null default 0 check (guest_count >= 0);
+
+create or replace function enforce_event_capacity()
+returns trigger as $$
+declare
+  v_max int;
+  v_current int;
+  v_max_guests int;
+  v_current_guests int;
+begin
+  if new.status <> 'confirmed' then
+    return new;
+  end if;
+
+  select
+    case when new.role = 'volunteer' then max_volunteers else max_participants end,
+    max_guests
+  into v_max, v_max_guests
+  from events where id = new.event_id;
+
+  perform 1 from events where id = new.event_id for update;
+
+  if v_max is not null then
+    select count(*) into v_current
+    from event_registrations
+    where event_id = new.event_id and role = new.role and status = 'confirmed'
+      and id is distinct from new.id;
+    if v_current >= v_max then
+      raise exception 'EVENT_CAPACITY_FULL';
+    end if;
+  end if;
+
+  if v_max_guests is not null then
+    select coalesce(sum(guest_count), 0) into v_current_guests
+    from event_registrations
+    where event_id = new.event_id and status = 'confirmed'
+      and id is distinct from new.id;
+    if v_current_guests + coalesce(new.guest_count, 0) > v_max_guests then
+      raise exception 'EVENT_GUESTS_FULL';
+    end if;
+  end if;
+
+  return new;
+end;
+$$ language plpgsql;
+```
+This extends the same `enforce_event_capacity()` trigger from the earlier capacity fix — same function name and signature, so `create or replace` takes effect on the existing trigger binding immediately, no need to re-create the trigger itself. Also dropped that trigger's earlier same-role-and-already-confirmed early-exit: it was a minor optimization, not a correctness requirement (the count query already excludes the row being written via `id is distinct from new.id`), and keeping a single unconditional path made it obviously correct for guest_count changes too, rather than having to reason about whether the old skip condition covered them.
+
+**Where the guest count is asked, and why there.** Rather than a separate step, the guest-count input was added into the existing registration-questions modal (the same "collect more info before confirming" surface already used for custom questions and the paid-checkout discount-code field) — registering now opens that modal whenever the event allows guests, even if it has no custom questions and isn't paid, since there needs to be *somewhere* to ask.
+
+**`allow_guests`/`max_guests` aren't in the `search_events` RPC's return shape** — same constraint noted elsewhere in this file: that RPC's SQL isn't in this repo, so it can't be extended from here. Rather than thread two more fields through every place an event gets shown, the register-click handler does one small direct `events` table lookup for just `allow_guests` at the moment someone actually clicks Register, which is the only place this was actually needed.
+
+**One real gap, not fixed here:** the guest count is threaded through to the paid-checkout edge function's request body (`stripe-event-checkout`) on a best-effort basis, but whether it actually lands on the registration row depends on that function accepting and forwarding the field — its source isn't in this repo to confirm or fix.
+
+**Not live-verified** — no test credentials this session, same as the other fixes above.
+
+---
+
 ## Working conventions worth restating
 
 - **Bump the footer build stamp** (`build YYYY-MM-DD-vNNN`) after every round of changes — it's the fastest way to confirm whether what's live actually reflects the latest work, or whether a browser is just caching an old version.
