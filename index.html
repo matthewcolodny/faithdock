@@ -648,7 +648,7 @@
       'events.registeredButAnswersFailed': "Registered, but your answers couldn't be saved: {error}",
       'events.roleParticipant': 'participant', 'events.roleVolunteer': 'volunteer', 'events.onListAsRole': "You're on the list as a {role} — click the button again to unregister.",
       'events.couldNotFindEvent': 'Could not find that event.',
-      'church.details': 'Details', 'church.upcomingEventsHere': 'Upcoming events here', 'church.noUpcomingEventsPosted': 'No upcoming events posted yet.', 'church.loadingGroups': 'Loading groups...', 'church.noMapAvailable': 'No map available for this listing yet.',
+      'church.details': 'Details', 'church.upcomingEventsHere': 'Upcoming events here', 'church.noUpcomingEventsPosted': 'No upcoming events posted yet.', 'church.loadingGroups': 'Loading groups...', 'church.noMapAvailable': 'No map available for this listing yet.', 'church.openInGoogleMaps': 'Open in Google Maps',
       'dashGiving.givingTrend': 'Giving trend', 'dashGiving.givingByFund': 'Giving by fund', 'dashGiving.fund': 'Fund',
       'dashSettings.ownerFallback': 'Owner', 'dashSettings.teamMemberFallback': 'Team member', 'dashSettings.ownerRoleLabel': 'Owner', 'dashSettings.permissions': 'Permissions',
       'dashEvents.editEventTip': 'Edit event',
@@ -1269,7 +1269,7 @@
       'events.registeredButAnswersFailed': 'Inscrito, pero tus respuestas no se pudieron guardar: {error}',
       'events.roleParticipant': 'participante', 'events.roleVolunteer': 'voluntario', 'events.onListAsRole': 'Estás en la lista como {role} — haz clic en el botón de nuevo para cancelar tu inscripción.',
       'events.couldNotFindEvent': 'No se pudo encontrar ese evento.',
-      'church.details': 'Detalles', 'church.upcomingEventsHere': 'Próximos eventos aquí', 'church.noUpcomingEventsPosted': 'Aún no hay próximos eventos publicados.', 'church.loadingGroups': 'Cargando grupos...', 'church.noMapAvailable': 'No hay mapa disponible para este listado aún.',
+      'church.details': 'Detalles', 'church.upcomingEventsHere': 'Próximos eventos aquí', 'church.noUpcomingEventsPosted': 'Aún no hay próximos eventos publicados.', 'church.loadingGroups': 'Cargando grupos...', 'church.noMapAvailable': 'No hay mapa disponible para este listado aún.', 'church.openInGoogleMaps': 'Abrir en Google Maps',
       'dashGiving.givingTrend': 'Tendencia de donaciones', 'dashGiving.givingByFund': 'Donaciones por fondo', 'dashGiving.fund': 'Fondo',
       'dashSettings.ownerFallback': 'Propietario', 'dashSettings.teamMemberFallback': 'Miembro del equipo', 'dashSettings.ownerRoleLabel': 'Propietario', 'dashSettings.permissions': 'Permisos',
       'dashEvents.editEventTip': 'Editar evento',
@@ -2547,7 +2547,7 @@
           <div id="give-status" style="display:none;font-size:12.5px;color:var(--clay);margin-top:10px;"></div>
         </div>
         <div id="church-tab-location" class="church-tab-panel" style="display:none;">
-          <div id="church-map-embed" style="width:100%;aspect-ratio:16/9;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);margin-bottom:16px;display:none;"></div>
+          <div id="church-map-embed" style="position:relative;width:100%;aspect-ratio:16/9;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);margin-bottom:16px;display:none;"></div>
           <p id="church-map-unavailable" style="display:none;color:var(--ink-mute);font-size:14px;" data-i18n="church.noMapAvailable">No map available for this listing yet.</p>
           <p id="church-location-address" style="font-size:14.5px;color:var(--ink-soft);"></p>
         </div>
@@ -4707,7 +4707,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-07-v195 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-07-v196 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -9021,6 +9021,7 @@
         fullscreenControl: false
       });
       new google.maps.Marker({ position: window.churchMapCenter, map: window.churchMapInstance, title: c.name });
+      appendOpenInGoogleMapsButton(mapEmbed, c);
     } else {
       // Maps JS hasn't finished loading yet (rare -- it's a small,
       // early-loading async script, but a very fast direct link could
@@ -9029,10 +9030,35 @@
       // moment Maps becomes ready.
       var placeQuery = c.address ? encodeURIComponent(c.address) : (c.lat + ',' + c.lng);
       mapEmbed.innerHTML = '<iframe title="Map" width="100%" height="100%" frameborder="0" style="border:0;" loading="lazy" src="https://www.google.com/maps/embed/v1/place?key=AIzaSyCWZyWUym5T5P0v07WqHU8sibdIs55ilNo&q=' + placeQuery + '"></iframe>';
+      appendOpenInGoogleMapsButton(mapEmbed, c);
       setTimeout(function(){ if (window.google && google.maps) renderChurchMap(c); }, 700);
     }
   }
   window.renderChurchMap = renderChurchMap;
+
+  // A plain embed iframe carries its own "View larger map" link inside
+  // Google's own content; a real google.maps.Map (used above) has no
+  // equivalent, so it needs one built here -- an overlay button in the
+  // corner, deep-linking to a real Google Maps tab where directions
+  // etc. actually work. #church-map-embed is position:relative for
+  // exactly this. Added AFTER the map/iframe content is set, in both
+  // branches of renderChurchMap(), so a later innerHTML clear (a
+  // repopulate, or the fallback's own retry) doesn't wipe it out from
+  // under itself.
+  function appendOpenInGoogleMapsButton(mapEmbed, c){
+    var mapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + (c.address ? encodeURIComponent(c.address) : (c.lat + ',' + c.lng));
+    var btn = document.createElement('a');
+    btn.className = 'qr-btn';
+    btn.href = mapsUrl;
+    btn.target = '_blank';
+    btn.rel = 'noopener';
+    btn.setAttribute('aria-label', 'Open in Google Maps');
+    btn.setAttribute('data-i18n-title', 'church.openInGoogleMaps');
+    btn.title = window.t ? window.t('church.openInGoogleMaps') : 'Open in Google Maps';
+    btn.style.cssText = 'position:absolute;top:10px;right:10px;z-index:2;box-shadow:0 1px 4px rgba(0,0,0,0.35);';
+    btn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg>';
+    mapEmbed.appendChild(btn);
+  }
 
   // Promise wrapper around Google's callback-based Geocoder, so it
   // can be used with await in the submit handler.
