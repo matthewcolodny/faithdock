@@ -435,3 +435,22 @@ Verified live: checked the actual computed style of every Free-tier row (sage `r
 - **New user-facing strings** need both English and Spanish dictionary entries plus a `data-i18n` attribute (or `data-i18n-placeholder` / `data-i18n-title` for non-text-content cases). Mixed-content elements — an icon next to text — need the text wrapped in its own `<span data-i18n="...">`, not left as loose text beside the icon.
 - **Plan-gated features** follow one pattern: an inline locked/upsell panel in the UI, plus a matching server-side check at save time. Never just hide something in the UI and call it gated.
 - **Theming:** `--brand` (fixed navy) for anything that must stay legible against gold; `--ink` (adaptive) for regular body text. Mixing these up is how buttons go invisible in dark mode.
+
+---
+
+## Connecting the tier/pricing page to Stripe (sandbox) — `stripe-subscription` handed off
+
+The pricing page's Starter/Standard/Premium buttons (`window.startPlanCheckout`, `index.html` ~14885) and the dashboard's "Manage billing" button (~15351) were already fully wired client-side to a `stripe-subscription` edge function — it just didn't exist yet. Wrote and handed over two full edge functions plus a migration (not committed to this repo — same reasoning as `stripe-event-checkout`/`stripe-create-checkout` above: edge function source lives outside this repo).
+
+**Exact contract `stripe-subscription` must implement** (already called with this shape by the client — don't change the client, match this):
+- `{ action: 'start_checkout', churchId, plan, successUrl, cancelUrl }` → `{ url }` (a Stripe Checkout Session URL, `mode: 'subscription'`) or `{ error }`.
+- `{ action: 'confirm_subscription', sessionId }` → called from `checkForCompletedSubscription()` right after the redirect back (`?sub_session_id=...#dashboard`); best-effort immediate UI feedback, not the source of truth (see webhook below).
+- `{ action: 'create_portal_session', churchId, returnUrl }` → `{ url }` (a Stripe Billing Portal session) or `{ error }`, called from `billing-manage-btn`.
+
+**Storage decision: a new `church_billing` table, NOT new columns on `churches`.** `churches` is read with `select('*')` from several places the public can reach — most importantly `findOrFetchChurchByName()` (`index.html:5680`), which anonymous visitors hit on every church detail page — so a Stripe customer/subscription id put directly on that table would leak to anyone viewing the page. `plan_type` / `subscription_status` / `current_period_end` were left exactly where they already are on `churches` (already public today, already read by `loadBillingPanel()` and the giving-fee check) — only the two actually-sensitive ids (`stripe_customer_id`, `stripe_subscription_id`) moved to the new table, RLS'd to `select` by the owning church's owner only, written exclusively by the edge functions' service-role client. Full SQL handed to the user directly (`church-billing-migration.sql`).
+
+**Two functions, not one — deliberately:**
+- `stripe-subscription` (JWT-verified, called by the client) — the three actions above.
+- `stripe-webhook` (deployed with `--no-verify-jwt`, called by Stripe itself, authenticated via `Stripe-Signature` instead) — the actual source of truth for `plan_type`/`subscription_status`/`current_period_end`, since a user closing the tab before the redirect completes would otherwise leave `confirm_subscription` never called at all. Subscribed to `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed`; a cancelled/expired subscription resets `plan_type` back to `'free'` rather than leaving it stamped with a stale paid tier.
+
+Full code for both functions and the migration handed directly to the user (not pasted into this file — see chat) since they're Deno/TypeScript, not something this HTML+JS repo runs or checks.
