@@ -4755,7 +4755,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-07-v210 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-07-v211 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -15158,7 +15158,18 @@
     tierListIds.forEach(function(listId, tierIndex){
       var listEl = document.getElementById(listId);
       if (!listEl) return;
-      listEl.innerHTML = rows.map(function(row){
+      // Each card sorts independently -- which rows land in the
+      // checked block vs the X block differs per tier, so this can't
+      // be one shared row order. Array#sort is stable, so within each
+      // block rows keep the same relative order this list is defined
+      // in above; only the checked/X grouping moves.
+      var sortedRows = rows.slice().sort(function(a, b){
+        var aIncluded = a.values[tierIndex] !== false;
+        var bIncluded = b.values[tierIndex] !== false;
+        if (aIncluded === bIncluded) return 0;
+        return aIncluded ? -1 : 1;
+      });
+      listEl.innerHTML = sortedRows.map(function(row){
         var val = row.values[tierIndex];
         var included = val !== false;
         var path = included ? checkPath : xPath;
