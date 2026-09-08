@@ -4760,7 +4760,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-07-v213 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-07-v214 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -15161,12 +15161,12 @@
           var count = i === 4 ? window.t('ptable.custom') : n;
           return tmpl('ptable.groupsTemplate', count) + (i === 3 ? perChurch : '');
         }) },
-      { labelKey: 'ptable.staff', values: [false, '2', '8', window.t('ptable.unlimited'), window.t('ptable.unlimited')],
-        fullText: [null, tmpl('ptable.staffInvitesTemplate', '2'), tmpl('ptable.staffInvitesTemplate', '8'), tmpl('ptable.staffInvitesTemplate', window.t('ptable.unlimited')), tmpl('ptable.staffInvitesTemplate', window.t('ptable.unlimited'))] },
-      { labelKey: 'ptable.memberImport', values: [false, true, true, true, true] },
       { labelKey: 'ptable.reminders', values: [true, true, true, true, true] },
       { labelKey: 'ptable.giving', values: [window.t('ptable.freeGivingFee'), window.t('ptable.zeroFee'), window.t('ptable.zeroFee'), window.t('ptable.zeroFee'), window.t('ptable.zeroFee')] },
       { labelKey: 'ptable.paidEvents', values: [window.t('ptable.freeTicketFee'), window.t('ptable.zeroFee'), window.t('ptable.zeroFee'), window.t('ptable.zeroFee'), window.t('ptable.zeroFee')] },
+      { labelKey: 'ptable.staff', values: [false, '2', '8', window.t('ptable.unlimited'), window.t('ptable.unlimited')],
+        fullText: [null, tmpl('ptable.staffInvitesTemplate', '2'), tmpl('ptable.staffInvitesTemplate', '8'), tmpl('ptable.staffInvitesTemplate', window.t('ptable.unlimited')), tmpl('ptable.staffInvitesTemplate', window.t('ptable.unlimited'))] },
+      { labelKey: 'ptable.memberImport', values: [false, true, true, true, true] },
       { labelKey: 'ptable.massEmail', values: [false, false, true, true, true] },
       { labelKey: 'ptable.aiAssist', values: [false, false, true, true, true] },
       { labelKey: 'ptable.multiChurch', values: [false, false, false, window.t('ptable.upTo5'), window.t('ptable.unlimited')] }
