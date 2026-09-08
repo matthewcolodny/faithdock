@@ -4602,8 +4602,8 @@
           <div class="info-row" id="billing-period-row" style="display:none;"></div>
           <div id="billing-past-due-warning" style="display:none;color:var(--clay);font-size:13px;margin-top:8px;" data-i18n="dashBilling.pastDueWarning">Your last payment didn't go through — please update your card to avoid losing paid-plan features.</div>
           <button class="btn-gold" id="billing-manage-btn" style="margin-top:14px;display:none;" data-i18n="dashBilling.manageBilling">Manage billing</button>
-          <a href="#pricing" data-route="pricing" id="billing-upgrade-link" class="btn-gold" style="margin-top:14px;margin-left:10px;display:none;text-decoration:none;" data-i18n="dashBilling.viewPlans">View plans</a>
-          <button class="export-btn" id="billing-downgrade-btn" style="margin-top:14px;display:none;" data-i18n="dashBilling.downgradeToFree">Downgrade to Free</button>
+          <a href="#pricing" data-route="pricing" id="billing-upgrade-link" class="btn-gold" style="margin-top:14px;margin-left:10px;display:none;text-decoration:none;" data-i18n="dash.upgradePlan">Upgrade plan</a>
+          <button class="export-btn" id="billing-downgrade-btn" style="margin-top:14px;margin-left:10px;padding:12px 22px;font-size:14.5px;font-weight:600;display:none;" data-i18n="dashBilling.downgradeToFree">Downgrade to Free</button>
           <div id="billing-status" style="display:none;font-size:12.5px;margin-top:10px;color:var(--clay);"></div>
         </div>
       </div>
@@ -4776,7 +4776,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-08-v224 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-08-v225 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -14967,9 +14967,11 @@
     // Billing itself, only "Manage billing" (the Stripe portal, which
     // may or may not itself support changing plans depending on how
     // it's configured server-side — not something this file controls).
-    // Phase 2 (5-tier): show it for everyone except multi_church,
-    // the actual top tier now that Large isn't — same "not already on
-    // top tier" rule as the dashboard sidebar's upgrade link.
+    // Relabeled "Upgrade plan" — same rule as the dashboard sidebar's
+    // own upgrade link (dash-upgrade-link, above): Premium still sees
+    // this, since Multi-Church is a real tier above it, just not a
+    // self-serve Stripe Checkout plan. Only hidden once already at
+    // the actual top tier.
     upgradeLink.style.display = (planType === 'multi_church') ? 'none' : 'inline-block';
     // Downgrade only makes sense from an active paid plan that isn't
     // already scheduled to end — once cancelPending is true, the
