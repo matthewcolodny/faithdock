@@ -352,6 +352,13 @@
       'pricing.starter.f3': 'Up to 2 staff invites', 'pricing.starter.f4': 'Congregation member import',
       'pricing.starter.f5': '0% FaithDock fee on tickets & giving', 'pricing.starter.cta': 'Start Starter plan',
       'pricing.feeFootnote': 'FaithDock service fees apply on the Free plan only — every paid plan keeps 100% of what’s given or sold, FaithDock fee-free. Standard card processing from Stripe (about 2.9% + $0.30) applies on every plan, on top of any FaithDock fee.',
+      'ptable.directory': 'Public directory listing', 'ptable.dashboard': 'Dashboard access', 'ptable.events': 'Events / month', 'ptable.groups': 'Groups',
+      'ptable.staff': 'Staff invites', 'ptable.memberImport': 'Congregation member import', 'ptable.reminders': 'Event reminders',
+      'ptable.giving': 'Giving', 'ptable.paidEvents': 'Paid ticketed events', 'ptable.massEmail': 'Mass email to members, groups & events',
+      'ptable.aiAssist': 'AI Writing Assistant for event descriptions', 'ptable.priorityRotation': 'Priority rotation in event search',
+      'ptable.multiChurch': 'Multiple churches on one account', 'ptable.customLimits': 'Custom event & group limits per church', 'ptable.negotiated': 'Negotiated pricing & billing',
+      'ptable.unlimited': 'Unlimited', 'ptable.custom': 'Custom', 'ptable.upTo5': 'Up to 5', 'ptable.perChurchSuffix': 'per church',
+      'ptable.freeGivingFee': '1% fee', 'ptable.zeroFee': '0% fee', 'ptable.freeTicketFee': '3.7% + $1.79/ticket',
       'pricing.medium.name': 'Standard', 'pricing.medium.f1': 'Everything in Starter', 'pricing.medium.f2': 'Up to 50 events / month, 12 groups',
       'pricing.medium.f3': 'Up to 8 staff invites', 'pricing.medium.f4': 'Congregation member import',
       'pricing.medium.f5': 'Mass email to members, groups & events', 'pricing.medium.f6': 'AI Writing Assistant for event descriptions', 'pricing.medium.cta': 'Start Standard plan',
@@ -987,6 +994,13 @@
       'pricing.starter.f3': 'Hasta 2 invitaciones de personal', 'pricing.starter.f4': 'Importaci\u00f3n de miembros de la congregaci\u00f3n',
       'pricing.starter.f5': '0% de tarifa de FaithDock en entradas y donaciones', 'pricing.starter.cta': 'Comenzar plan Inicial',
       'pricing.feeFootnote': 'Las tarifas de servicio de FaithDock aplican solo en el plan Gratis \u2014 todos los planes de pago conservan el 100% de lo donado o vendido, sin tarifa de FaithDock. El procesamiento est\u00e1ndar de tarjetas de Stripe (aproximadamente 2.9% + $0.30) aplica en todos los planes, adem\u00e1s de cualquier tarifa de FaithDock.',
+      'ptable.directory': 'Listado en el directorio p\u00fablico', 'ptable.dashboard': 'Acceso al panel', 'ptable.events': 'Eventos / mes', 'ptable.groups': 'Grupos',
+      'ptable.staff': 'Invitaciones de personal', 'ptable.memberImport': 'Importaci\u00f3n de miembros de la congregaci\u00f3n', 'ptable.reminders': 'Recordatorios de eventos',
+      'ptable.giving': 'Donaciones', 'ptable.paidEvents': 'Eventos con entrada de pago', 'ptable.massEmail': 'Correo masivo a miembros, grupos y eventos',
+      'ptable.aiAssist': 'Asistente de escritura con IA para descripciones de eventos', 'ptable.priorityRotation': 'Rotaci\u00f3n prioritaria en la b\u00fasqueda de eventos',
+      'ptable.multiChurch': 'M\u00faltiples iglesias en una sola cuenta', 'ptable.customLimits': 'L\u00edmites de eventos y grupos personalizados por iglesia', 'ptable.negotiated': 'Precios y facturaci\u00f3n negociados',
+      'ptable.unlimited': 'Ilimitado', 'ptable.custom': 'Personalizado', 'ptable.upTo5': 'Hasta 5', 'ptable.perChurchSuffix': 'por iglesia',
+      'ptable.freeGivingFee': '1% de tarifa', 'ptable.zeroFee': '0% de tarifa', 'ptable.freeTicketFee': '3.7% + $1.79/entrada',
       'pricing.medium.name': 'Est\u00e1ndar', 'pricing.medium.f1': 'Todo lo del plan Inicial', 'pricing.medium.f2': 'Hasta 50 eventos al mes, 12 grupos',
       'pricing.medium.f3': 'Hasta 8 invitaciones de personal', 'pricing.medium.f4': 'Importaci\u00f3n de miembros de la congregaci\u00f3n',
       'pricing.medium.f5': 'Correo masivo a miembros, grupos y eventos', 'pricing.medium.f6': 'Asistente de escritura con IA para descripciones de eventos', 'pricing.medium.cta': 'Comenzar plan Est\u00e1ndar',
@@ -1824,6 +1838,8 @@
   .price-card li{padding:8px 0;border-top:1px solid var(--line);font-size:14.5px;display:flex;gap:8px;}
   .price-card li:first-child{border-top:none;}
   .price-card li svg{width:15px;height:15px;flex-shrink:0;margin-top:3px;color:var(--sage);}
+  .price-card li.pf-no{color:var(--ink-mute);}
+  .price-card li.pf-no svg{color:var(--clay);}
   .price-btn{
     background:var(--brand);color:#fff;border:none;padding:13px;border-radius:9px;font-weight:600;
     font-size:14.5px;margin-top:6px;
@@ -3072,63 +3088,32 @@
       <div class="price-card">
         <h3 data-i18n="pricing.free.name">Free</h3>
         <div class="price-amount">$0<span data-i18n="pricing.perMonth"> / month</span></div>
-        <ul>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> <span data-i18n="pricing.free.f1">Listing in the public directory</span></li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> <span data-i18n="pricing.free.f2">Dashboard access</span></li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> <span data-i18n="pricing.free.f3">Up to 8 events / month, 3 groups</span></li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> <span data-i18n="pricing.free.f4">Unlimited giving — 1% FaithDock fee applies</span></li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> <span data-i18n="pricing.free.f5">Event reminders</span></li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> <span data-i18n="pricing.free.f6">Paid ticketed events — 3.7% + $1.79 FaithDock fee per ticket</span></li>
-        </ul>
+        <ul id="price-features-free"></ul>
         <button class="price-btn" id="pricing-free-btn" onclick="go('register-church')" data-i18n="pricing.free.cta">Get started free</button>
       </div>
       <div class="price-card">
         <h3 data-i18n="pricing.starter.name">Starter</h3>
         <div class="price-amount">$19<span data-i18n="pricing.perMonth"> / month</span></div>
-        <ul>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> <span data-i18n="pricing.starter.f1">Everything in Free</span></li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> <span data-i18n="pricing.starter.f2">Up to 20 events / month, 6 groups</span></li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> <span data-i18n="pricing.starter.f3">Up to 2 staff invites</span></li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> <span data-i18n="pricing.starter.f4">Congregation member import</span></li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> <span data-i18n="pricing.starter.f5">0% FaithDock fee on tickets &amp; giving</span></li>
-        </ul>
+        <ul id="price-features-starter"></ul>
         <button class="price-btn" id="pricing-starter-btn" onclick="window.startPlanCheckout && window.startPlanCheckout('starter')" data-i18n="pricing.starter.cta">Start Starter plan</button>
       </div>
       <div class="price-card featured">
         <span class="featured-badge" data-i18n="pricing.mostPopular">Most popular</span>
         <h3 data-i18n="pricing.medium.name">Standard</h3>
         <div class="price-amount">$39<span data-i18n="pricing.perMonth"> / month</span></div>
-        <ul>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> <span data-i18n="pricing.medium.f1">Everything in Starter</span></li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> <span data-i18n="pricing.medium.f2">Up to 50 events / month, 12 groups</span></li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> <span data-i18n="pricing.medium.f3">Up to 8 staff invites</span></li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> <span data-i18n="pricing.medium.f4">Congregation member import</span></li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> <span data-i18n="pricing.medium.f5">Mass email to members, groups &amp; events</span></li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> <span data-i18n="pricing.medium.f6">AI Writing Assistant for event descriptions</span></li>
-        </ul>
+        <ul id="price-features-standard"></ul>
         <button class="price-btn" id="pricing-standard-btn" onclick="window.startPlanCheckout && window.startPlanCheckout('standard')" data-i18n="pricing.medium.cta">Start Standard plan</button>
       </div>
       <div class="price-card">
         <h3 data-i18n="pricing.large.name">Premium</h3>
         <div class="price-amount">$79<span data-i18n="pricing.perMonth"> / month</span></div>
-        <ul>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> <span data-i18n="pricing.large.f1">Everything in Standard</span></li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> <span data-i18n="pricing.large.f2">Up to 75 events / month, 30 groups — per church</span></li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> <span data-i18n="pricing.large.churchCap">Up to 5 churches</span></li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> <span data-i18n="pricing.large.f3">Unlimited staff invites</span></li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> <span data-i18n="pricing.large.f4">Priority rotation in event search</span></li>
-        </ul>
+        <ul id="price-features-premium"></ul>
         <button class="price-btn" id="pricing-premium-btn" onclick="window.startPlanCheckout && window.startPlanCheckout('premium')" data-i18n="pricing.large.cta">Start Premium plan</button>
       </div>
       <div class="price-card">
         <h3 data-i18n="pricing.multiChurch.name">Multi-Church</h3>
         <div class="price-amount" data-i18n="pricing.multiChurch.price">Custom</div>
-        <ul>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> <span data-i18n="pricing.multiChurch.f1">Everything in Premium</span></li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> <span data-i18n="pricing.multiChurch.f2">Unlimited churches</span></li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> <span data-i18n="pricing.multiChurch.f3">Custom event & group limits per church</span></li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> <span data-i18n="pricing.multiChurch.f4">Negotiated pricing & billing</span></li>
-        </ul>
+        <ul id="price-features-multichurch"></ul>
         <a class="price-btn" id="pricing-multichurch-btn" href="mailto:team@faithdock.com" style="text-decoration:none;text-align:center;" data-i18n="pricing.multiChurch.cta">Contact Sales</a>
       </div>
     </div>
@@ -4770,7 +4755,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-07-v207 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-07-v208 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -15143,10 +15128,56 @@
     });
   }
 
+  // Every card shows the same full feature list rather than each tier
+  // only listing what it adds on top of the one below ("Everything in
+  // Starter, plus...") -- checked or crossed out per tier instead, so
+  // a card is readable on its own without having to trace back through
+  // every cheaper plan to know what's actually included. Rebuilt inside
+  // the function (not as a module-level constant) so every window.t()
+  // call in it re-resolves on a language toggle re-render, not just on
+  // first load.
+  function renderPricingFeatureMatrix(){
+    var perChurch = ' · ' + window.t('ptable.perChurchSuffix');
+    var rows = [
+      { labelKey: 'ptable.directory', values: [true, true, true, true, true] },
+      { labelKey: 'ptable.dashboard', values: [true, true, true, true, true] },
+      { labelKey: 'ptable.events', values: ['8', '20', '50', '75' + perChurch, window.t('ptable.custom')] },
+      { labelKey: 'ptable.groups', values: ['3', '6', '12', '30' + perChurch, window.t('ptable.custom')] },
+      { labelKey: 'ptable.staff', values: [false, '2', '8', window.t('ptable.unlimited'), window.t('ptable.unlimited')] },
+      { labelKey: 'ptable.memberImport', values: [false, true, true, true, true] },
+      { labelKey: 'ptable.reminders', values: [true, true, true, true, true] },
+      { labelKey: 'ptable.giving', values: [window.t('ptable.freeGivingFee'), window.t('ptable.zeroFee'), window.t('ptable.zeroFee'), window.t('ptable.zeroFee'), window.t('ptable.zeroFee')] },
+      { labelKey: 'ptable.paidEvents', values: [window.t('ptable.freeTicketFee'), window.t('ptable.zeroFee'), window.t('ptable.zeroFee'), window.t('ptable.zeroFee'), window.t('ptable.zeroFee')] },
+      { labelKey: 'ptable.massEmail', values: [false, false, true, true, true] },
+      { labelKey: 'ptable.aiAssist', values: [false, false, true, true, true] },
+      { labelKey: 'ptable.priorityRotation', values: [false, false, false, true, true] },
+      { labelKey: 'ptable.multiChurch', values: [false, false, false, window.t('ptable.upTo5'), window.t('ptable.unlimited')] },
+      { labelKey: 'ptable.customLimits', values: [false, false, false, false, true] },
+      { labelKey: 'ptable.negotiated', values: [false, false, false, false, true] }
+    ];
+    var tierListIds = ['price-features-free', 'price-features-starter', 'price-features-standard', 'price-features-premium', 'price-features-multichurch'];
+    var checkPath = '<path d="M20 6L9 17l-5-5"/>';
+    var xPath = '<path d="M18 6L6 18M6 6l12 12"/>';
+    tierListIds.forEach(function(listId, tierIndex){
+      var listEl = document.getElementById(listId);
+      if (!listEl) return;
+      listEl.innerHTML = rows.map(function(row){
+        var val = row.values[tierIndex];
+        var included = val !== false;
+        var path = included ? checkPath : xPath;
+        var label = window.t(row.labelKey);
+        var text = (included && typeof val === 'string') ? (label + ' — ' + val) : label;
+        return '<li class="' + (included ? '' : 'pf-no') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' + path + '</svg> <span>' + text + '</span></li>';
+      }).join('');
+    });
+  }
+  window.renderPricingFeatureMatrix = renderPricingFeatureMatrix;
+
   // Pricing page buttons reflect the signed-in church's actual plan
   // rather than always inviting them to (re-)start a plan they're
   // already on.
   async function populatePricingPage(){
+    renderPricingFeatureMatrix();
     var freeBtn = document.getElementById('pricing-free-btn');
     var starterBtn = document.getElementById('pricing-starter-btn');
     var standardBtn = document.getElementById('pricing-standard-btn');

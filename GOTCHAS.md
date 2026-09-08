@@ -418,6 +418,16 @@ alter table events add column fee_mode text not null default 'pass' check (fee_m
 
 ---
 
+## Pricing cards: full feature matrix instead of "Everything in X, plus..."
+
+Design change, not a bug: each tier's card used to only list what it *adds* on top of the tier below ("Everything in Starter, plus…"), so reading any card except Free meant mentally chaining back through every cheaper plan first. Replaced with the same full feature list in every card — 15 rows, a green check with the tier's actual value for what's included, a clay X for what isn't — so any single card is readable standing alone.
+
+Built as one data table (`renderPricingFeatureMatrix()`) driving all five `<ul>`s, rather than five hand-written, near-duplicate lists — a boolean feature is just `true`/`false` per tier; a scaling one (events/month, groups, staff invites) carries its actual per-tier value and still gets a check, since every tier has *some* level of it except where a tier genuinely gets zero (Free's 0 staff invites is a real X, not "0"). The table is rebuilt fresh inside the function on every call rather than held as a constant, specifically so its `window.t()` calls re-resolve on a language-toggle re-render instead of freezing in whichever language was active on first load.
+
+Verified live: checked the actual computed style of every Free-tier row (sage `rgb(143,203,170)` on included, clay `rgb(226,145,122)` on excluded — not just that the right CSS class was present), confirmed Premium's "Multiple churches" row correctly shows as included with its real "Up to 5" value, and confirmed the whole matrix re-renders correctly in Spanish on toggle.
+
+---
+
 ## Working conventions worth restating
 
 - **Bump the footer build stamp** (`build YYYY-MM-DD-vNNN`) after every round of changes — it's the fastest way to confirm whether what's live actually reflects the latest work, or whether a browser is just caching an old version.
