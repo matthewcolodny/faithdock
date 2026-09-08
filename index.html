@@ -474,6 +474,8 @@
       'dashBilling.currentPlan': 'Current plan',
       'dashBilling.pastDueWarning': "Your last payment didn't go through — please update your card to avoid losing paid-plan features.",
       'dashBilling.manageBilling': 'Manage billing', 'dashBilling.viewPlans': 'View plans',
+      'dashBilling.downgradeToFree': 'Downgrade to Free', 'dashBilling.downgradeConfirm': 'You’ll keep your current plan’s features until the end of the billing period you’ve already paid for, then move to Free. Continue?',
+      'dashBilling.downgradeScheduled': 'Downgrade scheduled — you’ll move to Free at the end of your current billing period.',
       'groupAttendance.eyebrow': 'Attendance', 'groupAttendance.meetingDate': 'Meeting date',
       'groupAttendance.saveAttendance': 'Save attendance', 'groupAttendance.recentMeetings': 'Recent meetings',
       'groupAttendance.noActiveMembers': 'No active members to mark attendance for.',
@@ -1119,6 +1121,8 @@
       'dashBilling.currentPlan': 'Plan actual',
       'dashBilling.pastDueWarning': 'Tu último pago no se procesó — actualiza tu tarjeta para no perder las funciones de los planes de pago.',
       'dashBilling.manageBilling': 'Administrar facturación', 'dashBilling.viewPlans': 'Ver planes',
+      'dashBilling.downgradeToFree': 'Bajar al plan Gratis', 'dashBilling.downgradeConfirm': 'Conservarás las funciones de tu plan actual hasta el final del período de facturación que ya pagaste, luego pasarás al plan Gratis. ¿Continuar?',
+      'dashBilling.downgradeScheduled': 'Cambio programado — pasarás al plan Gratis al final de tu período de facturación actual.',
       'groupAttendance.eyebrow': 'Asistencia', 'groupAttendance.meetingDate': 'Fecha de reunión',
       'groupAttendance.saveAttendance': 'Guardar asistencia', 'groupAttendance.recentMeetings': 'Reuniones recientes',
       'groupAttendance.noActiveMembers': 'No hay miembros activos para marcar asistencia.',
@@ -4599,6 +4603,7 @@
           <div id="billing-past-due-warning" style="display:none;color:var(--clay);font-size:13px;margin-top:8px;" data-i18n="dashBilling.pastDueWarning">Your last payment didn't go through — please update your card to avoid losing paid-plan features.</div>
           <button class="btn-gold" id="billing-manage-btn" style="margin-top:14px;display:none;" data-i18n="dashBilling.manageBilling">Manage billing</button>
           <a href="#pricing" data-route="pricing" id="billing-upgrade-link" class="btn-gold" style="margin-top:14px;margin-left:10px;display:none;text-decoration:none;" data-i18n="dashBilling.viewPlans">View plans</a>
+          <button class="btn-outline" id="billing-downgrade-btn" style="margin-top:14px;margin-left:10px;display:none;" data-i18n="dashBilling.downgradeToFree">Downgrade to Free</button>
           <div id="billing-status" style="display:none;font-size:12.5px;margin-top:10px;color:var(--clay);"></div>
         </div>
       </div>
@@ -4771,7 +4776,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-08-v222 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-08-v223 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -14934,19 +14939,22 @@
     var pastDueWarning = document.getElementById('billing-past-due-warning');
     var manageBtn = document.getElementById('billing-manage-btn');
     var upgradeLink = document.getElementById('billing-upgrade-link');
+    var downgradeBtn = document.getElementById('billing-downgrade-btn');
     var statusEl = document.getElementById('billing-status');
     if (!planRow) return;
     statusEl.style.display = 'none';
 
     var myChurch = await getMyChurch();
     if (!myChurch) return;
-    var { data: rows } = await supabase.from('churches').select('plan_type, subscription_status, current_period_end').eq('id', myChurch.id).limit(1);
+    var { data: rows } = await supabase.from('churches').select('plan_type, subscription_status, current_period_end, cancel_at_period_end').eq('id', myChurch.id).limit(1);
     var row = (rows && rows.length) ? rows[0] : null;
     var planType = row ? row.plan_type : 'free';
+    var cancelPending = !!(row && row.cancel_at_period_end);
 
     planRow.textContent = planLabels[planType] || 'Free';
     if (row && row.current_period_end && planType !== 'free') {
-      periodRow.textContent = (row.subscription_status === 'canceled' ? 'Access ends: ' : 'Next billing date: ') + new Date(row.current_period_end).toLocaleDateString();
+      var periodLabel = cancelPending ? 'Ending, moving to Free: ' : (row.subscription_status === 'canceled' ? 'Access ends: ' : 'Next billing date: ');
+      periodRow.textContent = periodLabel + new Date(row.current_period_end).toLocaleDateString();
       periodRow.style.display = 'block';
     } else {
       periodRow.style.display = 'none';
@@ -14963,8 +14971,43 @@
     // the actual top tier now that Large isn't — same "not already on
     // top tier" rule as the dashboard sidebar's upgrade link.
     upgradeLink.style.display = (planType === 'multi_church') ? 'none' : 'inline-block';
+    // Downgrade only makes sense from an active paid plan that isn't
+    // already scheduled to end — once cancelPending is true, the
+    // period row above already says so, and clicking again would just
+    // call cancel_subscription redundantly.
+    if (downgradeBtn) downgradeBtn.style.display = (planType !== 'free' && !cancelPending) ? 'inline-flex' : 'none';
   }
   window.loadBillingPanel = loadBillingPanel;
+
+  var billingDowngradeBtn = document.getElementById('billing-downgrade-btn');
+  if (billingDowngradeBtn) {
+    billingDowngradeBtn.addEventListener('click', async function(){
+      if (!window.confirm(window.t('dashBilling.downgradeConfirm'))) return;
+      var statusEl = document.getElementById('billing-status');
+      statusEl.style.display = 'none';
+      var myChurch = await getMyChurch();
+      if (!myChurch) return;
+      billingDowngradeBtn.disabled = true;
+      var { data, error } = await supabase.functions.invoke('stripe-subscription', {
+        body: { action: 'cancel_subscription', churchId: myChurch.id }
+      });
+      billingDowngradeBtn.disabled = false;
+      if (error || !data || data.error) {
+        var detail = error ? error.message : (data && data.error ? data.error : window.t('common.somethingWrong'));
+        if (error && error.context && typeof error.context.text === 'function') {
+          try { detail = await error.context.text(); } catch (e) {}
+        }
+        statusEl.textContent = detail;
+        statusEl.style.color = 'var(--clay)';
+        statusEl.style.display = 'block';
+        return;
+      }
+      statusEl.textContent = window.t('dashBilling.downgradeScheduled');
+      statusEl.style.color = 'var(--sage)';
+      statusEl.style.display = 'block';
+      loadBillingPanel();
+    });
+  }
 
   // ============================================================
   // Check-In — converts online registrations into real attendance
@@ -15275,13 +15318,51 @@
     var myChurch = await getMyChurch();
     if (!myChurch) return;
     var planType = myChurch.planType || 'free';
+
+    // An existing owner on a paid plan clicking "Get started free"
+    // landing on "Register your church" made no sense -- they already
+    // have one. Once there's a real paid church, this button becomes
+    // the same downgrade-to-Free action as the Billing panel's,
+    // instead of the signed-out/no-church registration flow set above.
+    // (multi_church is sales-negotiated, not a self-serve Stripe
+    // subscription, so there's nothing here to cancel via this path.)
+    if (planType !== 'free' && planType !== 'multi_church') {
+      freeBtn.textContent = window.t('dashBilling.downgradeToFree');
+      freeBtn.disabled = false;
+      freeBtn.onclick = async function(){
+        if (!window.confirm(window.t('dashBilling.downgradeConfirm'))) return;
+        freeBtn.disabled = true;
+        var { data, error } = await supabase.functions.invoke('stripe-subscription', {
+          body: { action: 'cancel_subscription', churchId: myChurch.id }
+        });
+        freeBtn.disabled = false;
+        if (error || !data || data.error) {
+          var detail = error ? error.message : (data && data.error ? data.error : window.t('common.somethingWrong'));
+          if (error && error.context && typeof error.context.text === 'function') {
+            try { detail = await error.context.text(); } catch (e) {}
+          }
+          alert(detail);
+          return;
+        }
+        alert(window.t('dashBilling.downgradeScheduled'));
+        populatePricingPage();
+      };
+    }
+
     // multi_church has no button in this map — sales-negotiated plans
     // aren't represented by any of these four self-serve buttons.
     var currentBtnMap = { starter: starterBtn, standard: standardBtn, premium: premiumBtn };
     var currentBtn = currentBtnMap[planType] || freeBtn;
-    currentBtn.textContent = window.t('pricing.yourCurrentPlan');
-    currentBtn.disabled = true;
-    currentBtn.onclick = null;
+    // freeBtn is deliberately excluded from this "disable, it's your
+    // current plan" treatment when it's actually the downgrade action
+    // above -- planType === 'free' is the only case where currentBtn
+    // resolves to freeBtn at all, and in that case there's no
+    // downgrade override to protect, so this stays exactly as before.
+    if (currentBtn !== freeBtn || planType === 'free') {
+      currentBtn.textContent = window.t('pricing.yourCurrentPlan');
+      currentBtn.disabled = true;
+      currentBtn.onclick = null;
+    }
   }
   window.populatePricingPage = populatePricingPage;
 
