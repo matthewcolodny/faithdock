@@ -358,7 +358,8 @@
       'ptable.aiAssist': 'AI Writing Assistant for event descriptions', 'ptable.priorityRotation': 'Priority rotation in event search',
       'ptable.multiChurch': 'Multiple churches on one account', 'ptable.customLimits': 'Custom event & group limits per church', 'ptable.negotiated': 'Negotiated pricing & billing',
       'ptable.unlimited': 'Unlimited', 'ptable.custom': 'Custom', 'ptable.upTo5': 'Up to 5', 'ptable.perChurchSuffix': 'per church',
-      'ptable.freeGivingFee': '1% fee', 'ptable.zeroFee': '0% fee', 'ptable.freeTicketFee': '3.7% + $1.79/ticket',
+      'ptable.freeGivingFee': '1% fee', 'ptable.zeroFee': '0% fee', 'ptable.freeTicketFee': '3.7% + $1.79 per ticket',
+      'ptable.eventsPerMonthTemplate': '{n} events per month', 'ptable.groupsTemplate': '{n} groups', 'ptable.staffInvitesTemplate': '{n} staff invites',
       'pricing.medium.name': 'Standard', 'pricing.medium.f1': 'Everything in Starter', 'pricing.medium.f2': 'Up to 50 events / month, 12 groups',
       'pricing.medium.f3': 'Up to 8 staff invites', 'pricing.medium.f4': 'Congregation member import',
       'pricing.medium.f5': 'Mass email to members, groups & events', 'pricing.medium.f6': 'AI Writing Assistant for event descriptions', 'pricing.medium.cta': 'Start Standard plan',
@@ -1000,7 +1001,8 @@
       'ptable.aiAssist': 'Asistente de escritura con IA para descripciones de eventos', 'ptable.priorityRotation': 'Rotaci\u00f3n prioritaria en la b\u00fasqueda de eventos',
       'ptable.multiChurch': 'M\u00faltiples iglesias en una sola cuenta', 'ptable.customLimits': 'L\u00edmites de eventos y grupos personalizados por iglesia', 'ptable.negotiated': 'Precios y facturaci\u00f3n negociados',
       'ptable.unlimited': 'Ilimitado', 'ptable.custom': 'Personalizado', 'ptable.upTo5': 'Hasta 5', 'ptable.perChurchSuffix': 'por iglesia',
-      'ptable.freeGivingFee': '1% de tarifa', 'ptable.zeroFee': '0% de tarifa', 'ptable.freeTicketFee': '3.7% + $1.79/entrada',
+      'ptable.freeGivingFee': '1% de tarifa', 'ptable.zeroFee': '0% de tarifa', 'ptable.freeTicketFee': '3.7% + $1.79 por entrada',
+      'ptable.eventsPerMonthTemplate': '{n} eventos al mes', 'ptable.groupsTemplate': '{n} grupos', 'ptable.staffInvitesTemplate': '{n} invitaciones de personal',
       'pricing.medium.name': 'Est\u00e1ndar', 'pricing.medium.f1': 'Todo lo del plan Inicial', 'pricing.medium.f2': 'Hasta 50 eventos al mes, 12 grupos',
       'pricing.medium.f3': 'Hasta 8 invitaciones de personal', 'pricing.medium.f4': 'Importaci\u00f3n de miembros de la congregaci\u00f3n',
       'pricing.medium.f5': 'Correo masivo a miembros, grupos y eventos', 'pricing.medium.f6': 'Asistente de escritura con IA para descripciones de eventos', 'pricing.medium.cta': 'Comenzar plan Est\u00e1ndar',
@@ -4758,7 +4760,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-07-v212 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-07-v213 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -15140,13 +15142,27 @@
   // call in it re-resolves on a language toggle re-render, not just on
   // first load.
   function renderPricingFeatureMatrix(){
-    var perChurch = ' ' + window.t('ptable.perChurchSuffix');
+    var perChurch = ', ' + window.t('ptable.perChurchSuffix');
+    // "{n} events per month" rather than a fixed "Events / month" label
+    // with the number tacked on after a dash -- reads as a sentence,
+    // not a spec-sheet slash, and puts the actual number where anyone
+    // scanning the card would look for it first.
+    function tmpl(key, n){ return window.t(key).replace('{n}', n); }
     var rows = [
       { labelKey: 'ptable.directory', values: [true, true, true, true, true] },
       { labelKey: 'ptable.dashboard', values: [true, true, true, true, true] },
-      { labelKey: 'ptable.events', values: ['8', '20', '50', '75' + perChurch, window.t('ptable.custom')] },
-      { labelKey: 'ptable.groups', values: ['3', '6', '12', '30' + perChurch, window.t('ptable.custom')] },
-      { labelKey: 'ptable.staff', values: [false, '2', '8', window.t('ptable.unlimited'), window.t('ptable.unlimited')] },
+      { labelKey: 'ptable.events', values: ['8', '20', '50', '75', window.t('ptable.custom')],
+        fullText: ['8','20','50','75','custom'].map(function(n, i){
+          var count = i === 4 ? window.t('ptable.custom') : n;
+          return tmpl('ptable.eventsPerMonthTemplate', count) + (i === 3 ? perChurch : '');
+        }) },
+      { labelKey: 'ptable.groups', values: ['3', '6', '12', '30', window.t('ptable.custom')],
+        fullText: ['3','6','12','30','custom'].map(function(n, i){
+          var count = i === 4 ? window.t('ptable.custom') : n;
+          return tmpl('ptable.groupsTemplate', count) + (i === 3 ? perChurch : '');
+        }) },
+      { labelKey: 'ptable.staff', values: [false, '2', '8', window.t('ptable.unlimited'), window.t('ptable.unlimited')],
+        fullText: [null, tmpl('ptable.staffInvitesTemplate', '2'), tmpl('ptable.staffInvitesTemplate', '8'), tmpl('ptable.staffInvitesTemplate', window.t('ptable.unlimited')), tmpl('ptable.staffInvitesTemplate', window.t('ptable.unlimited'))] },
       { labelKey: 'ptable.memberImport', values: [false, true, true, true, true] },
       { labelKey: 'ptable.reminders', values: [true, true, true, true, true] },
       { labelKey: 'ptable.giving', values: [window.t('ptable.freeGivingFee'), window.t('ptable.zeroFee'), window.t('ptable.zeroFee'), window.t('ptable.zeroFee'), window.t('ptable.zeroFee')] },
@@ -15176,8 +15192,13 @@
         var val = row.values[tierIndex];
         var included = val !== false;
         var path = included ? checkPath : xPath;
-        var label = window.t(row.labelKey);
-        var text = (included && typeof val === 'string') ? (label + ' — ' + val) : label;
+        var text;
+        if (included && row.fullText && row.fullText[tierIndex]) {
+          text = row.fullText[tierIndex];
+        } else {
+          var label = window.t(row.labelKey);
+          text = (included && typeof val === 'string') ? (label + ' — ' + val) : label;
+        }
         return '<li class="' + (included ? '' : 'pf-no') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' + path + '</svg> <span>' + text + '</span></li>';
       }).join('');
     });
