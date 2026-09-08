@@ -2609,6 +2609,7 @@
           <div id="church-logo-img" style="display:none;aspect-ratio:16/9;background-color:#fff;background-size:contain;background-repeat:no-repeat;background-position:center;background-origin:content-box;padding:16px;box-sizing:border-box;"></div>
           <div style="padding:22px;">
           <span id="church-details-denom-tag" class="tag sage" style="display:none;margin-bottom:12px;"></span>
+          <h3 id="church-details-name" style="font-size:18px;margin:0 0 16px;"></h3>
           <h4 data-i18n="church.details">Details</h4>
           <div class="info-row" id="church-service-times"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> Sundays, 9:00 &amp; 11:00 AM</div>
           <div class="info-row" id="church-address"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/></svg> 1420 Pleasant Valley Rd, Austin, TX</div>
@@ -4770,7 +4771,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-08-v221 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-08-v222 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -5080,6 +5081,8 @@
       if (c.tag) { detailsDenomTag.textContent = translateDenomination(c.tag); detailsDenomTag.style.display = 'inline-block'; }
       else { detailsDenomTag.style.display = 'none'; }
     }
+    var detailsNameEl = document.getElementById('church-details-name');
+    if (detailsNameEl) detailsNameEl.textContent = c.name;
     var verifiedBadge = document.getElementById('church-verified-badge');
     if (verifiedBadge) verifiedBadge.style.display = (c.verificationStatus === 'verified') ? 'inline-block' : 'none';
 
