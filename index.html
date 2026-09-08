@@ -2605,7 +2605,7 @@
         </div>
       </div>
       <div>
-        <img id="church-logo-img" src="" alt="" style="display:none;width:88px;height:88px;border-radius:14px;object-fit:cover;border:1px solid var(--line);margin-bottom:14px;">
+        <div id="church-logo-img" style="display:none;aspect-ratio:16/9;border-radius:var(--radius);border:1px solid var(--line);background-color:#fff;background-size:contain;background-repeat:no-repeat;background-position:center;background-origin:content-box;padding:16px;box-sizing:border-box;margin-bottom:14px;"></div>
         <div class="side-note">
           <h4 data-i18n="church.details">Details</h4>
           <div class="info-row" id="church-service-times"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> Sundays, 9:00 &amp; 11:00 AM</div>
@@ -4767,7 +4767,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-08-v219 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-08-v220 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -5069,8 +5069,8 @@
 
     var logoImgEl = document.getElementById('church-logo-img');
     if (logoImgEl) {
-      if (c.logoUrl) { logoImgEl.src = c.logoUrl; logoImgEl.style.display = 'block'; }
-      else { logoImgEl.style.display = 'none'; logoImgEl.src = ''; }
+      if (c.logoUrl) { logoImgEl.style.backgroundImage = "url('" + c.logoUrl + "')"; logoImgEl.style.display = 'block'; }
+      else { logoImgEl.style.display = 'none'; logoImgEl.style.backgroundImage = ''; }
     }
     var verifiedBadge = document.getElementById('church-verified-badge');
     if (verifiedBadge) verifiedBadge.style.display = (c.verificationStatus === 'verified') ? 'inline-block' : 'none';
