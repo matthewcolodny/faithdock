@@ -4766,7 +4766,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-07-v217 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-08-v218 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -15156,7 +15156,6 @@
     function tmpl(key, n){ return window.t(key).replace('{n}', n); }
     var rows = [
       { labelKey: 'ptable.directory', values: [true, true, true, true, true] },
-      { labelKey: 'ptable.dashboard', values: [true, true, true, true, true] },
       { labelKey: 'ptable.events', values: ['8', '20', '50', '75', window.t('ptable.custom')],
         fullText: ['8','20','50','75','custom'].map(function(n, i){
           var count = i === 4 ? window.t('ptable.custom') : n;
@@ -15167,7 +15166,6 @@
           var count = i === 4 ? window.t('ptable.custom') : n;
           return tmpl('ptable.groupsTemplate', count) + (i === 3 ? perChurch : '');
         }) },
-      { labelKey: 'ptable.reminders', values: [true, true, true, true, true] },
       { labelKey: 'ptable.giving', values: [window.t('ptable.freeGivingFee'), window.t('ptable.zeroFee'), window.t('ptable.zeroFee'), window.t('ptable.zeroFee'), window.t('ptable.zeroFee')] },
       { labelKey: 'ptable.paidEvents', values: [window.t('ptable.freeTicketFee'), window.t('ptable.zeroFee'), window.t('ptable.zeroFee'), window.t('ptable.zeroFee'), window.t('ptable.zeroFee')] },
       { labelKey: 'ptable.staff', values: [false, '2', '8', window.t('ptable.unlimited'), window.t('ptable.unlimited')],
