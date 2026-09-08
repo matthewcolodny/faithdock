@@ -392,7 +392,7 @@
       'category.sportsRecreation': 'Sports & Recreation', 'category.sportsShort': 'Sports',
       'badge.openToAnyone': 'Open to anyone', 'badge.membersOnly': 'Members only', 'badge.noSignupNeeded': 'No signup needed',
       'badge.full': 'Full', 'badge.almostFull': 'Almost full', 'badge.registrationOpen': 'Registration open',
-      'church.nextService': 'Next regular service', 'church.nextServicesPlural': 'Next regular services', 'church.serviceIsAt': 'is at', 'church.serviceAreAt': 'are at', 'church.contactForTimes': 'contact church for times', 'church.newListing': 'New listing', 'church.nextEvent': 'Next event:',
+      'church.nextService': 'Regular service', 'church.nextServicesPlural': 'Regular services', 'church.serviceIsAt': 'is at', 'church.serviceAreAt': 'are at', 'church.contactForTimes': 'contact church for times', 'church.newListing': 'New listing', 'church.nextEvent': 'Next event:',
       'church.away': 'away', 'church.setLocationDistance': 'Set your location to see distance', 'church.locationNotFound': 'Location not found for this address',
       'church.genericLabel': 'Church', 'church.genericName': 'A FaithDock church',
       'dash.editChurchProfile': 'Edit church profile →', 'dash.upgradePlan': 'Upgrade plan',
@@ -1037,7 +1037,7 @@
       'category.sportsRecreation': 'Deportes y recreación', 'category.sportsShort': 'Deportes',
       'badge.openToAnyone': 'Abierto a todos', 'badge.membersOnly': 'Solo miembros', 'badge.noSignupNeeded': 'No requiere inscripción',
       'badge.full': 'Completo', 'badge.almostFull': 'Casi completo', 'badge.registrationOpen': 'Inscripción abierta',
-      'church.nextService': 'Próximo servicio regular', 'church.nextServicesPlural': 'Próximos servicios regulares', 'church.serviceIsAt': 'es', 'church.serviceAreAt': 'son', 'church.contactForTimes': 'contacta a la iglesia para conocer los horarios', 'church.newListing': 'Nuevo registro', 'church.nextEvent': 'Próximo evento:',
+      'church.nextService': 'Servicio regular', 'church.nextServicesPlural': 'Servicios regulares', 'church.serviceIsAt': 'es', 'church.serviceAreAt': 'son', 'church.contactForTimes': 'contacta a la iglesia para conocer los horarios', 'church.newListing': 'Nuevo registro', 'church.nextEvent': 'Próximo evento:',
       'church.away': 'de distancia', 'church.setLocationDistance': 'Activa tu ubicación para ver la distancia', 'church.locationNotFound': 'No se encontró la ubicación de esta dirección',
       'church.genericLabel': 'Iglesia', 'church.genericName': 'Una iglesia de FaithDock',
       'dash.editChurchProfile': 'Editar perfil de la iglesia →', 'dash.upgradePlan': 'Mejorar plan',
@@ -2605,8 +2605,10 @@
         </div>
       </div>
       <div>
-        <div id="church-logo-img" style="display:none;aspect-ratio:16/9;border-radius:var(--radius);border:1px solid var(--line);background-color:#fff;background-size:contain;background-repeat:no-repeat;background-position:center;background-origin:content-box;padding:16px;box-sizing:border-box;margin-bottom:14px;"></div>
-        <div class="side-note">
+        <div class="side-note" style="padding:0;overflow:hidden;">
+          <div id="church-logo-img" style="display:none;aspect-ratio:16/9;background-color:#fff;background-size:contain;background-repeat:no-repeat;background-position:center;background-origin:content-box;padding:16px;box-sizing:border-box;"></div>
+          <div style="padding:22px;">
+          <span id="church-details-denom-tag" class="tag sage" style="display:none;margin-bottom:12px;"></span>
           <h4 data-i18n="church.details">Details</h4>
           <div class="info-row" id="church-service-times"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> Sundays, 9:00 &amp; 11:00 AM</div>
           <div class="info-row" id="church-address"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/></svg> 1420 Pleasant Valley Rd, Austin, TX</div>
@@ -2618,6 +2620,7 @@
           </div>
           <button class="export-btn" id="church-home-btn" style="width:100%;justify-content:center;margin-top:14px;" data-i18n="churchHome.makeThisMyChurchHome">Make this my Church Home</button>
           <div id="church-home-status" style="display:none;font-size:12px;color:var(--ink-mute);margin-top:6px;"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -4767,7 +4770,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-08-v220 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-08-v221 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -5071,6 +5074,11 @@
     if (logoImgEl) {
       if (c.logoUrl) { logoImgEl.style.backgroundImage = "url('" + c.logoUrl + "')"; logoImgEl.style.display = 'block'; }
       else { logoImgEl.style.display = 'none'; logoImgEl.style.backgroundImage = ''; }
+    }
+    var detailsDenomTag = document.getElementById('church-details-denom-tag');
+    if (detailsDenomTag) {
+      if (c.tag) { detailsDenomTag.textContent = translateDenomination(c.tag); detailsDenomTag.style.display = 'inline-block'; }
+      else { detailsDenomTag.style.display = 'none'; }
     }
     var verifiedBadge = document.getElementById('church-verified-badge');
     if (verifiedBadge) verifiedBadge.style.display = (c.verificationStatus === 'verified') ? 'inline-block' : 'none';
