@@ -681,3 +681,23 @@ Asked directly after the Plans-tab fix above: "is there any other issues on the 
 **Verified, not assumed:** wrote a script to extract every key from both the `en` and `es` dictionary blocks and diff them — 1,467 keys each side, zero mismatches either direction. Live-checked all 35 new/reused keys resolve to real translated text (not a fallback to the raw key name) in both languages. Re-grepped the whole file afterward for every literal string that got replaced, specifically to catch a duplicate occurrence in a spot the first pass missed — which it did (`loadDashboardGroups`'s own `myChurch` guard, colspan="5", still had the raw string after the rest of that same function was already fixed) — fixed once actually found, not assumed clean from the first pass.
 
 **Confirmed NOT part of this pass, intentionally:** every other place `aria-label="Remove ..."` appears in JS-built strings (remove-contact, remove-question, remove-tag, remove-exception-date, remove-staff, remove-membership, remove-household, remove-member — a wider tail than just the two fixed here) is also hardcoded English. Left alone this round since aria-labels are invisible to sighted users (screen-reader-only), a different severity than the visibly-broken panels above — worth a dedicated follow-up pass, not mixed into this one.
+
+---
+
+## The flagged aria-label tail, closed out
+
+Follow-up pass on the "wider tail of hardcoded `aria-label="Remove ..."` strings" flagged (not fixed) above. All screen-reader-only text — invisible to sighted users, but real accessibility content that was silently staying English regardless of the site's language toggle.
+
+**Fixed, one `window.t()` key each, reusing an existing key wherever the wording already matched something else in the app:** `renderCeContacts()` (Remove contact), `questionsListHtml()`/`renderCeQuestions()` (Remove question), `renderCeTags()` (Remove tag), `renderCeExceptions()`/`renderGroupExceptions()` (Remove exception date — one shared key, since both create-event's own recurring exceptions and a group's meeting exceptions use the identical label), `loadTeamPanel()` (Remove from team), `loadRecentlyJoinedPanel()` (Remove from church), `loadHouseholdsPanel()` (Remove household).
+
+**Found while in there, not part of the original flag but the same bug in the same function — fixed anyway rather than leaving half a modal translated:** `loadGroupMembersModal()` had four *more* hardcoded aria-labels sitting right next to the one flagged "Remove" button — Approve, Deny, Demote to member, Promote to leader. All five closed together (`groupMembers.approve/deny/demoteToMember/promoteToLeader/remove`).
+
+**Also fixed, found by the same grep sweep:** the message-composer's "Remove link" rich-text button (`msg-body`'s unlink control) was missing the `data-i18n-title` attribute its identical twin on the event-description editor already has — the only one of the five static Remove/unlink buttons in the whole file without it. `data-i18n-title` sets both `title` *and* `aria-label` from one key (confirmed by reading `applyTranslations()`), so the other four (photo/logo/image remove buttons, the description-field unlink) were already correct and didn't need touching.
+
+**`renderCeExceptions()` had a second, separate gap:** it wasn't exposed on `window` at all, so even after fixing its own aria-label text it still couldn't be added to the create-event language-toggle dispatcher the way `renderCeContacts`/`renderCeQuestions`/`renderCeTags` already were. Exposed it and added the dispatcher entry — matches the other three exactly now.
+
+**While auditing the dashboard dispatcher for these fixes, found two more always-loaded panels missing from it entirely** (same class of bug as `loadTeamPanel`/`loadDashboardGroups` from the previous pass, not the aria-label bug) — `loadRecentlyJoinedPanel()` and `loadHouseholdsPanel()`, both under the Directory's "housekeeping" section. Added both.
+
+**Verified:** en/es key-parity script re-run (1,479 keys each side, zero mismatches — 12 new keys added on both sides). Live-checked all 12 new/reused keys resolve to real text in both languages. Grepped the whole file afterward for every literal aria-label string that got replaced — zero remaining.
+
+**Confirmed intentionally out of scope, still:** general (non-"Remove") aria-labels scattered across the site that were never wired to any `data-i18n`/`data-i18n-title` at all — "Toggle dark mode", "Menu", "Search location", the social-share buttons, etc. Those aren't a toggle-refresh bug like everything above (they were never translated to begin with, in either direction), and are a distinctly separate, much larger a11y-copy audit — not part of what was flagged or asked for here.
