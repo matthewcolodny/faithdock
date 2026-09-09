@@ -5135,7 +5135,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-09-v257 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-09-v258 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -8840,7 +8840,10 @@
       var logo = c.logo_url
         ? '<img src="' + escAttr(c.logo_url) + '" alt="" class="church-tile-logo">'
         : '<div class="church-tile-logo church-tile-logo-empty"></div>';
-      var denom = c.denomination ? '<div class="church-tile-denom">' + c.denomination + '</div>' : '';
+      var denomLabel = c.denomination
+        ? (typeof window.translateDenomination === 'function' ? window.translateDenomination(c.denomination) : c.denomination)
+        : '';
+      var denom = denomLabel ? '<div class="church-tile-denom">' + denomLabel + '</div>' : '';
       return '<button type="button" class="church-tile" data-enter-church-id="' + c.id + '"'
         + (c.id === activeId ? ' style="border-color:var(--gold);"' : '') + '>'
         + logo
