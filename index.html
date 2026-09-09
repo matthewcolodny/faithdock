@@ -4891,7 +4891,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-09-v238 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-09-v239 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -7345,6 +7345,18 @@
       if (currentBase === 'my-groups' && typeof window.loadMyGroups === 'function') window.loadMyGroups();
       if (currentBase === 'profile' && typeof window.loadProfilePage === 'function') window.loadProfilePage();
       if (currentBase === 'pricing' && typeof window.populatePricingPage === 'function') window.populatePricingPage();
+      // The dashboard's Plans tab shares the same pricing content/logic
+      // as the standalone page above (see goDash()'s 'plans' handling
+      // and restorePricingContentToStandalonePage()) -- currentBase is
+      // 'dashboard' there, not 'pricing', so it needs its own entry or
+      // the plan cards' feature list (built by window.t() calls inside
+      // renderPricingFeatureMatrix(), not static data-i18n) stays stuck
+      // in the old language until a refresh. Confirmed as a real, live
+      // bug by an actual report. Safe to call unconditionally like
+      // every other dashboard loader below -- its elements exist
+      // wherever pricing-content-root currently lives, whether or not
+      // the Plans tab happens to be the one showing right now.
+      if (currentBase === 'dashboard' && typeof window.populatePricingPage === 'function') window.populatePricingPage();
       if (currentBase === 'dashboard' && typeof window.loadSavedReportsList === 'function') window.loadSavedReportsList();
       if (currentBase === 'dashboard' && typeof window.loadGivingInsights === 'function') window.loadGivingInsights();
       if (currentBase === 'dashboard' && typeof window.loadAttendanceInsights === 'function') window.loadAttendanceInsights();

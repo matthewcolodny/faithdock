@@ -650,6 +650,8 @@ New `restorePricingContentToStandalonePage()` handles the "give it back" side, c
 
 The sidebar link itself changed from `<a href="#pricing" data-route="pricing">` to a plain `<a data-dash="plans">`, matching every other sidebar item's markup exactly — no route, no href, just a tab switch.
 
+**Follow-up bug from the same change, reported with a screenshot:** the plan cards' feature list (built by `window.t()` calls inside `renderPricingFeatureMatrix()`, not static `data-i18n` HTML) stayed in English on a language toggle while viewing Plans inside the dashboard, needing a refresh to catch up — everything else on the card (headings, prices, buttons) toggled correctly. Cause: the language-toggle dispatcher only re-ran `populatePricingPage()` when `currentBase === 'pricing'`; viewing Plans through the dashboard means `currentBase` is `'dashboard'` instead, so that line never fired. Added a matching `currentBase === 'dashboard'` entry alongside the other dashboard-loader re-renders already there (Insights, Revenue, Events, etc.) — safe to call unconditionally like those, since `populatePricingPage()`'s elements exist wherever `pricing-content-root` currently lives, whether or not Plans happens to be the active tab. Verified live via an actual toggle click: the feature list now flips to Spanish immediately, no refresh needed.
+
 ---
 
 ## "No data yet." staying in English on an otherwise-fully-Spanish Insights chart
