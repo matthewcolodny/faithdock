@@ -416,6 +416,10 @@
       'dash.editChurchProfile': 'Edit church profile →', 'dash.upgradePlan': 'Upgrade plan', 'dash.plans': 'Plans',
       'dash.overview': 'Overview', 'dash.overviewTag': 'ALL CHURCHES', 'dash.allChurches': '‹ All churches',
       'dash.yourChurches': 'Your churches', 'dash.overviewSubtitle': 'Pick a church to manage it, or add another.',
+      'dashOverview.churches': 'CHURCHES', 'dashOverview.upcomingEvents': 'UPCOMING EVENTS', 'dashOverview.members': 'MEMBERS', 'dashOverview.givingThisMonth': 'GIVING THIS MONTH',
+      'dashOverview.staffByChurch': 'Staff by church', 'dashOverview.noStaff': 'No staff added yet — you\'re the only one with access.',
+      'dashOverview.owner': 'Owner', 'dashOverview.nextLabel': 'Next', 'dashOverview.noneScheduled': 'No upcoming events', 'dashOverview.memberCount': '{n} members', 'dashOverview.thisMonth': '{amount} this month',
+      'dashOverview.permViewOnly': 'View only', 'dashOverview.permProfile': 'Profile',
       'dashEvents.totalEvents': 'TOTAL EVENTS', 'dashEvents.daysToNext': 'DAYS TO NEXT EVENT', 'dashEvents.totalRegistrations': 'TOTAL REGISTRATIONS',
       'dashEvents.list': 'List', 'dashEvents.calendar': 'Calendar', 'dashEvents.exportSchedule': 'Export schedule',
       'dashEvents.attendance': 'Attendance', 'dashEvents.attendanceHint': 'Based on check-in records — only counts events where someone actually used Check-In at the door, not just registration counts.',
@@ -1110,6 +1114,10 @@
       'dash.editChurchProfile': 'Editar perfil de la iglesia →', 'dash.upgradePlan': 'Mejorar plan', 'dash.plans': 'Planes',
       'dash.overview': 'Resumen', 'dash.overviewTag': 'TODAS LAS IGLESIAS', 'dash.allChurches': '‹ Todas las iglesias',
       'dash.yourChurches': 'Tus iglesias', 'dash.overviewSubtitle': 'Elige una iglesia para gestionarla, o agrega otra.',
+      'dashOverview.churches': 'IGLESIAS', 'dashOverview.upcomingEvents': 'EVENTOS PRÓXIMOS', 'dashOverview.members': 'MIEMBROS', 'dashOverview.givingThisMonth': 'DONACIONES ESTE MES',
+      'dashOverview.staffByChurch': 'Personal por iglesia', 'dashOverview.noStaff': 'Aún no hay personal — eres el único con acceso.',
+      'dashOverview.owner': 'Propietario', 'dashOverview.nextLabel': 'Próximo', 'dashOverview.noneScheduled': 'Sin eventos próximos', 'dashOverview.memberCount': '{n} miembros', 'dashOverview.thisMonth': '{amount} este mes',
+      'dashOverview.permViewOnly': 'Solo lectura', 'dashOverview.permProfile': 'Perfil',
       'dashEvents.totalEvents': 'EVENTOS TOTALES', 'dashEvents.daysToNext': 'DÍAS PARA EL PRÓXIMO EVENTO', 'dashEvents.totalRegistrations': 'INSCRIPCIONES TOTALES',
       'dashEvents.list': 'Lista', 'dashEvents.calendar': 'Calendario', 'dashEvents.exportSchedule': 'Exportar horario',
       'dashEvents.attendance': 'Asistencia', 'dashEvents.attendanceHint': 'Basado en registros de check-in — solo cuenta eventos donde alguien realmente usó Check-In en la puerta, no solo el conteo de inscripciones.',
@@ -2374,7 +2382,13 @@
   .church-tile-logo-empty{background:var(--paper);border:1px solid var(--line);}
   .church-tile-name{font-family:'Fraunces';font-size:16px;color:var(--ink);line-height:1.2;}
   .church-tile-denom{font-size:11px;color:var(--ink-mute);font-family:'IBM Plex Mono';text-transform:uppercase;letter-spacing:.04em;}
+  #dash-churches-summary{grid-template-columns:repeat(auto-fit,minmax(150px,1fr));}
+  .church-tile-stats{display:flex;flex-direction:column;gap:2px;font-size:11px;color:var(--ink-mute);font-family:'IBM Plex Mono';}
   .church-tile-manage{margin-top:auto;font-size:12.5px;color:var(--gold);}
+  .overview-staff-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:10px;}
+  .overview-staff-card h4{font-size:14px;margin-bottom:8px;}
+  .overview-staff-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:13px;color:var(--ink-soft);padding:4px 0;}
+  .overview-staff-perm{font-size:10px;padding:2px 6px;border-radius:5px;background:var(--paper);border:1px solid var(--line);color:var(--ink-mute);font-family:'IBM Plex Mono';text-transform:uppercase;letter-spacing:.03em;}
   .church-tile-add{align-items:center;justify-content:center;text-align:center;border-style:dashed;}
   .church-tile-add .church-tile-name{font-size:14px;color:var(--ink-mute);}
   .church-tile-plus{font-size:30px;line-height:1;color:var(--ink-mute);}
@@ -4216,7 +4230,10 @@
       <div class="dash-content" id="dash-churches">
         <h2 style="font-size:24px;margin-bottom:8px;" data-i18n="dash.yourChurches">Your churches</h2>
         <p style="color:var(--ink-mute);font-size:14px;margin-bottom:24px;" data-i18n="dash.overviewSubtitle">Pick a church to manage it, or add another.</p>
+        <div class="stat-row" id="dash-churches-summary" style="display:none;"></div>
         <div id="dash-churches-grid" class="church-tile-grid"></div>
+        <h3 id="dash-churches-staff-heading" style="font-size:16px;margin:40px 0 14px;display:none;" data-i18n="dashOverview.staffByChurch">Staff by church</h3>
+        <div id="dash-churches-staff"></div>
       </div>
 
       <div class="dash-content active" id="dash-events">
@@ -5118,7 +5135,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-09-v256 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-09-v257 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -8797,16 +8814,31 @@
   }
   window.updateDashSidebarMode = updateDashSidebarMode;
 
-  // Renders the church card grid into the Overview panel from the list
-  // getMyChurch() already resolved (window._dashOwnedChurches).
+  function fmtOverviewMoney(cents){
+    var dollars = Math.round((cents || 0) / 100);
+    return '$' + dollars.toLocaleString(window.appLocale ? window.appLocale() : undefined);
+  }
+  function escAttr(s){ return String(s == null ? '' : s).replace(/"/g, '&quot;'); }
+
+  // Renders the multi-church Overview: a rolled-up stat row, the church
+  // card grid (each card with its own quick stats), and a
+  // staff-by-church breakdown. Built from window._dashOwnedChurches
+  // (resolved by getMyChurch) plus one query each across all owned
+  // churches. A generation guard drops a stale render if the owner
+  // navigates away and back before the queries finish.
   function loadDashboardChurchesPanel(){
     var host = document.getElementById('dash-churches-grid');
     if (!host) return;
-    var list = window._dashOwnedChurches || [];
+    var list = (window._dashOwnedChurches || []).slice();
     var activeId = window.getActiveChurchId && window.getActiveChurchId();
-    var tiles = list.map(function(c){
+    var myGen = (window._dashChurchesGen || 0) + 1;
+    window._dashChurchesGen = myGen;
+
+    // Grid first, synchronously, so the panel is never blank; the
+    // per-card stats and the sections below fill in once data lands.
+    function tileHtml(c, statsHtml){
       var logo = c.logo_url
-        ? '<img src="' + String(c.logo_url).replace(/"/g, '&quot;') + '" alt="" class="church-tile-logo">'
+        ? '<img src="' + escAttr(c.logo_url) + '" alt="" class="church-tile-logo">'
         : '<div class="church-tile-logo church-tile-logo-empty"></div>';
       var denom = c.denomination ? '<div class="church-tile-denom">' + c.denomination + '</div>' : '';
       return '<button type="button" class="church-tile" data-enter-church-id="' + c.id + '"'
@@ -8814,14 +8846,106 @@
         + logo
         + '<div class="church-tile-name">' + c.name + '</div>'
         + denom
+        + (statsHtml || '')
         + '<div class="church-tile-manage">' + window.t('myChurches.manage') + ' →</div>'
         + '</button>';
-    }).join('');
+    }
     var addTile = '<a href="#register-church" data-route="register-church" data-add-church="true" class="church-tile church-tile-add">'
       + '<div class="church-tile-plus">+</div>'
       + '<div class="church-tile-name">' + window.t('profile.addChurch') + '</div>'
       + '</a>';
-    host.innerHTML = tiles + addTile;
+    host.innerHTML = list.map(function(c){ return tileHtml(c, ''); }).join('') + addTile;
+
+    if (!list.length || !window.supabase) return;
+    var ids = list.map(function(c){ return c.id; });
+    var monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0,0,0,0);
+    var nowIso = new Date().toISOString();
+
+    Promise.all([
+      window.supabase.from('events').select('id, church_id, start_at').in('church_id', ids),
+      window.supabase.from('church_memberships').select('church_id').in('church_id', ids),
+      window.supabase.from('donations').select('church_id, amount_cents, created_at').in('church_id', ids).eq('status', 'succeeded'),
+      window.supabase.from('church_staff').select('church_id, user_id, can_manage_events, can_manage_giving, can_manage_billing, can_edit_profile, profiles!user_id(full_name)').in('church_id', ids)
+    ]).then(function(res){
+      if (window._dashChurchesGen !== myGen) return; // superseded
+      var events = (res[0] && res[0].data) || [];
+      var memberships = (res[1] && res[1].data) || [];
+      var donations = (res[2] && res[2].data) || [];
+      var staff = (res[3] && res[3].data) || [];
+
+      var per = {};
+      ids.forEach(function(id){ per[id] = { events: 0, nextEventAt: null, members: 0, givingMonthCents: 0, staff: [] }; });
+
+      events.forEach(function(e){
+        var p = per[e.church_id]; if (!p) return;
+        if (e.start_at >= nowIso) {
+          p.events++;
+          if (!p.nextEventAt || e.start_at < p.nextEventAt) p.nextEventAt = e.start_at;
+        }
+      });
+      memberships.forEach(function(m){ if (per[m.church_id]) per[m.church_id].members++; });
+      donations.forEach(function(d){
+        var p = per[d.church_id]; if (!p) return;
+        if (new Date(d.created_at) >= monthStart) p.givingMonthCents += (d.amount_cents || 0);
+      });
+      staff.forEach(function(s){ if (per[s.church_id]) per[s.church_id].staff.push(s); });
+
+      // --- rolled-up stat row ---
+      var totalUpcoming = 0, totalMembers = 0, totalGivingMonth = 0;
+      ids.forEach(function(id){ totalUpcoming += per[id].events; totalMembers += per[id].members; totalGivingMonth += per[id].givingMonthCents; });
+      var summaryEl = document.getElementById('dash-churches-summary');
+      if (summaryEl) {
+        summaryEl.innerHTML = ''
+          + '<div class="stat"><div class="num">' + list.length + '</div><div class="lbl">' + window.t('dashOverview.churches') + '</div></div>'
+          + '<div class="stat"><div class="num">' + totalUpcoming + '</div><div class="lbl">' + window.t('dashOverview.upcomingEvents') + '</div></div>'
+          + '<div class="stat"><div class="num">' + totalMembers + '</div><div class="lbl">' + window.t('dashOverview.members') + '</div></div>'
+          + '<div class="stat"><div class="num">' + fmtOverviewMoney(totalGivingMonth) + '</div><div class="lbl">' + window.t('dashOverview.givingThisMonth') + '</div></div>';
+        summaryEl.style.display = '';
+      }
+
+      // --- per-card quick stats ---
+      var dateFmt = { month: 'short', day: 'numeric' };
+      host.innerHTML = list.map(function(c){
+        var p = per[c.id] || {};
+        var nextTxt = p.nextEventAt
+          ? window.t('dashOverview.nextLabel') + ': ' + new Date(p.nextEventAt).toLocaleDateString(window.appLocale ? window.appLocale() : undefined, dateFmt)
+          : window.t('dashOverview.noneScheduled');
+        var statsHtml = '<div class="church-tile-stats">'
+          + '<span>' + nextTxt + '</span>'
+          + '<span>' + window.t('dashOverview.memberCount').replace('{n}', p.members || 0) + '</span>'
+          + '<span>' + window.t('dashOverview.thisMonth').replace('{amount}', fmtOverviewMoney(p.givingMonthCents || 0)) + '</span>'
+          + '</div>';
+        return tileHtml(c, statsHtml);
+      }).join('') + addTile;
+
+      // --- staff by church ---
+      var staffHost = document.getElementById('dash-churches-staff');
+      var staffHeading = document.getElementById('dash-churches-staff-heading');
+      if (staffHost) {
+        staffHost.innerHTML = list.map(function(c){
+          var rows = (per[c.id] && per[c.id].staff) || [];
+          var body;
+          if (!rows.length) {
+            body = '<div class="overview-staff-row" style="color:var(--ink-mute);">' + window.t('dashOverview.noStaff') + '</div>';
+          } else {
+            body = rows.map(function(s){
+              var perms = [];
+              if (s.can_manage_events) perms.push(window.t('dash.events'));
+              if (s.can_manage_giving) perms.push(window.t('dash.revenue'));
+              if (s.can_manage_billing) perms.push(window.t('dash.billing'));
+              if (s.can_edit_profile) perms.push(window.t('dashOverview.permProfile'));
+              if (!perms.length) perms.push(window.t('dashOverview.permViewOnly'));
+              var name = (s.profiles && s.profiles.full_name) ? s.profiles.full_name : '—';
+              return '<div class="overview-staff-row"><span>' + name + '</span>'
+                + perms.map(function(x){ return '<span class="overview-staff-perm">' + x + '</span>'; }).join('')
+                + '</div>';
+            }).join('');
+          }
+          return '<div class="overview-staff-card"><h4>' + c.name + '</h4>' + body + '</div>';
+        }).join('');
+        if (staffHeading) staffHeading.style.display = '';
+      }
+    }).catch(function(){ /* leave the plain grid; a transient query error shouldn't blank the panel */ });
   }
   window.loadDashboardChurchesPanel = loadDashboardChurchesPanel;
 
