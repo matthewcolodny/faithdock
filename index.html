@@ -2736,6 +2736,10 @@
         </div>
         <div class="filter-group">
           <h4 data-i18n="filters.category">Category</h4>
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:12px;">
+            <button type="button" id="events-category-select-all-btn" style="background:none;border:none;padding:0;color:var(--gold);border-bottom:1px solid var(--gold);cursor:pointer;font-size:12px;" data-i18n="filters.selectAll">Select all</button>
+            <button type="button" id="events-category-clear-all-btn" style="background:none;border:none;padding:0;color:var(--ink-mute);border-bottom:1px solid var(--ink-mute);cursor:pointer;font-size:12px;" data-i18n="filters.uncheckAll">Uncheck all</button>
+          </div>
           <div id="filter-tags-checks"><p style="color:var(--ink-mute);font-size:12.5px;" data-i18n="filters.noCategoriesYet">No categories yet.</p></div>
         </div>
         <button class="export-btn" id="events-filter-reset" style="width:100%;justify-content:center;" data-i18n="filters.reset">Reset filters</button>
@@ -5135,7 +5139,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-09-v258 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-09-v259 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -6577,6 +6581,28 @@
   var eventsDenomSearchEl = document.getElementById('events-filter-denom-search');
   if (eventsDenomSearchEl) {
     eventsDenomSearchEl.addEventListener('input', function(){
+      if (typeof window.renderEvents === 'function') window.renderEvents();
+    });
+  }
+
+  // Category filter Select all / Uncheck all -- same pattern as the
+  // denomination buttons above. The .category-filter checkboxes are
+  // rebuilt by rebuildCategoryFilterChecklist(), but these buttons
+  // live in static HTML so this one-time wiring holds. Unchecking all
+  // resolves to p_category_tags: [] (search_events treats an empty
+  // array as "match none", same as the denomination filter's empty
+  // church-id list), i.e. no events -- the intended result.
+  var eventsCategorySelectAllBtn = document.getElementById('events-category-select-all-btn');
+  var eventsCategoryClearAllBtn = document.getElementById('events-category-clear-all-btn');
+  if (eventsCategorySelectAllBtn) {
+    eventsCategorySelectAllBtn.addEventListener('click', function(){
+      document.querySelectorAll('.category-filter').forEach(function(c){ c.checked = true; });
+      if (typeof window.renderEvents === 'function') window.renderEvents();
+    });
+  }
+  if (eventsCategoryClearAllBtn) {
+    eventsCategoryClearAllBtn.addEventListener('click', function(){
+      document.querySelectorAll('.category-filter').forEach(function(c){ c.checked = false; });
       if (typeof window.renderEvents === 'function') window.renderEvents();
     });
   }
