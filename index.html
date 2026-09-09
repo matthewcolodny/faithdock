@@ -188,7 +188,7 @@
       'filters.noChurchesMatch': 'No churches match these filters. Try widening your search.',
       'rc.churchName': 'Church name', 'rc.denomination': 'Denomination', 'rc.selectOne': 'Select one', 'rc.other': 'Other',
       'rc.enterDenomination': 'Enter your denomination', 'rc.address': 'Address', 'rc.addressPlaceholder': 'Start typing an address...',
-      'rc.website': 'Website', 'rc.freeListing': 'Free listing', 'rc.registerHeading': 'Register your church', 'rc.editHeading': 'Edit your church',
+      'rc.website': 'Website', 'rc.freeListing': 'Free listing', 'rc.planListing': '{plan} plan', 'rc.registerHeading': 'Register your church', 'rc.editHeading': 'Edit your church',
       'rc.publicNotice': "This is what shows publicly on your church's page.", 'rc.phone': 'Church phone number',
       'rc.description': 'Description', 'rc.logo': 'Logo', 'rc.removeLogo': 'Remove logo',
       'rc.serviceTimes': 'Service times', 'rc.removeServiceTime': 'Remove service time',
@@ -880,7 +880,7 @@
       'filters.noChurchesMatch': 'Ninguna iglesia coincide con estos filtros. Intenta ampliar tu búsqueda.',
       'rc.churchName': 'Nombre de la iglesia', 'rc.denomination': 'Denominación', 'rc.selectOne': 'Selecciona una', 'rc.other': 'Otra',
       'rc.enterDenomination': 'Ingresa tu denominación', 'rc.address': 'Dirección', 'rc.addressPlaceholder': 'Empieza a escribir una dirección...',
-      'rc.website': 'Sitio web', 'rc.freeListing': 'Listado gratuito', 'rc.registerHeading': 'Registra tu iglesia', 'rc.editHeading': 'Edita tu iglesia',
+      'rc.website': 'Sitio web', 'rc.freeListing': 'Listado gratuito', 'rc.planListing': 'Plan {plan}', 'rc.registerHeading': 'Registra tu iglesia', 'rc.editHeading': 'Edita tu iglesia',
       'rc.publicNotice': 'Esto es lo que se muestra públicamente en la página de tu iglesia.', 'rc.phone': 'Teléfono de la iglesia',
       'rc.description': 'Descripción', 'rc.logo': 'Logotipo', 'rc.removeLogo': 'Quitar logotipo',
       'rc.serviceTimes': 'Horarios de servicio', 'rc.removeServiceTime': 'Quitar horario de servicio',
@@ -1548,6 +1548,17 @@
       if (rcHeadingEl && dict['rc.editHeading']) rcHeadingEl.textContent = dict['rc.editHeading'];
       var rcSubmitEl = document.getElementById('rc-submit-btn');
       if (rcSubmitEl && dict['rc.saveChanges']) rcSubmitEl.textContent = dict['rc.saveChanges'];
+    }
+    // rc-eyebrow: "Free listing" by default (its data-i18n covers that),
+    // but reads "{Plan} plan" when adding or editing a church under a
+    // paid plan -- same language-switch redo as rc-heading just above.
+    if (window.rcEyebrowPlan) {
+      var rcEyebrowEl = document.getElementById('rc-eyebrow');
+      if (rcEyebrowEl && dict['rc.planListing']) {
+        var rcEyebrowNameKey = { starter: 'pricing.starter.name', standard: 'pricing.medium.name', premium: 'pricing.large.name', multi_church: 'pricing.multiChurch.name' }[window.rcEyebrowPlan];
+        var rcEyebrowName = (rcEyebrowNameKey && dict[rcEyebrowNameKey]) ? dict[rcEyebrowNameKey] : window.rcEyebrowPlan;
+        rcEyebrowEl.textContent = dict['rc.planListing'].replace('{plan}', rcEyebrowName);
+      }
     }
     // Same reasoning as rc-heading above: ce-heading switches to
     // "Edit event" wording via JS once editEvent() loads an existing
@@ -3765,7 +3776,7 @@
 <section class="page" id="page-register-church">
   <div class="auth-wrap">
     <div class="auth-card">
-      <div class="eyebrow" data-i18n="rc.freeListing">Free listing</div>
+      <div class="eyebrow" id="rc-eyebrow" data-i18n="rc.freeListing">Free listing</div>
       <h2 style="font-family:'Fraunces';font-size:22px;margin-bottom:6px;" id="rc-heading" data-i18n="rc.registerHeading">Register your church</h2>
       <p style="font-size:12px;color:var(--ink-mute);margin-bottom:14px;" data-i18n="rc.publicNotice">This is what shows publicly on your church's page.</p>
 
@@ -5056,7 +5067,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-09-v253 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-09-v254 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -8174,10 +8185,33 @@
   // gate plus its own save-time backstop).
   var rcEditingChurchId = null;
 
+  // The page's eyebrow used to always read "Free listing". That's
+  // wrong once an owner already on a paid plan is adding a 2nd-5th
+  // church (it inherits their plan, no separate free listing) or is
+  // editing a church that's on a paid plan. Pass the effective plan
+  // type; 'free'/null keeps the original label.
+  var RC_PLAN_DISPLAY_KEYS = { starter: 'pricing.starter.name', standard: 'pricing.medium.name', premium: 'pricing.large.name', multi_church: 'pricing.multiChurch.name' };
+  function setRcEyebrow(planType){
+    var el = document.getElementById('rc-eyebrow');
+    // Remembered so a language switch can redo this override (see the
+    // rcEyebrowPlan block in the i18n re-render, alongside rc-heading).
+    window.rcEyebrowPlan = (planType && planType !== 'free') ? planType : null;
+    if (!el) return;
+    if (window.rcEyebrowPlan) {
+      var nameKey = RC_PLAN_DISPLAY_KEYS[planType];
+      el.textContent = window.t('rc.planListing').replace('{plan}', nameKey ? window.t(nameKey) : planType);
+      el.removeAttribute('data-i18n');
+    } else {
+      el.textContent = window.t('rc.freeListing');
+      el.setAttribute('data-i18n', 'rc.freeListing');
+    }
+  }
+
   function resetRegisterChurchFormToBlank(){
     rcEditingChurchId = null;
     window.rcIsEditing = false;
     document.getElementById('rc-heading').textContent = window.t('rc.registerHeading');
+    setRcEyebrow(null);
     document.getElementById('rc-submit-btn').textContent = window.t('rc.createChurch');
     document.getElementById('rc-next-step').style.display = 'none';
     document.getElementById('rc-name').value = '';
@@ -8220,14 +8254,17 @@
 
     if (routeKey === 'new') {
       var { data: usageRowsForNew } = await supabase.rpc('get_my_plan_and_usage');
-      if (usageRowsForNew && usageRowsForNew.length) {
-        var limitsForNew = usageRowsForNew[0];
+      var limitsForNew = (usageRowsForNew && usageRowsForNew.length) ? usageRowsForNew[0] : null;
+      if (limitsForNew) {
         if (limitsForNew.max_churches !== null && limitsForNew.churches_owned >= limitsForNew.max_churches) {
           go('pricing');
           return;
         }
       }
       resetRegisterChurchFormToBlank();
+      // A church added by an owner already on a paid plan inherits that
+      // plan -- it isn't a new free listing, so don't say it is.
+      if (limitsForNew) setRcEyebrow(limitsForNew.plan_type);
       return;
     }
 
@@ -8273,6 +8310,7 @@
 
     document.getElementById('rc-heading').textContent = window.t('rc.editHeading');
     document.getElementById('rc-submit-btn').textContent = window.t('rc.saveChanges');
+    setRcEyebrow(church.plan_type);
     // Only shown if this church genuinely has zero events — previously
     // shown unconditionally on every visit to this page, meaning
     // "Create your first event" kept appearing long after someone

@@ -897,3 +897,24 @@ Two independent spots, both keyed only on `allowVolunteers` and never on whether
 **The re-show trap:** `checkEventRegistrationStatus()` runs right after `populateEventPage()` on every event-page load and, when not registered, calls `setEventRegisteredUI(btn, false)` which unconditionally does `choiceEl.style.display = 'block'` — that would have undone the fix a beat later. Guarded it with an early `if (btn.style.display === 'none') return;` (the button is exactly what `populateEventPage` hides for these events), which also skips a pointless `event_registrations` query. `checkEventCapacity()` needs no guard — it only writes into hidden count spans and is already call-site-gated on `allowVolunteers`.
 
 Verified live against the local static server + real backend: no-signup event (detail + card) shows the note; a registration-required event (`Ritual of Isis`, with a full participant cap) still renders the complete participant/volunteer/Register UI unchanged. Build stamp bumped to `2026-09-09-v253`.
+
+---
+
+## A Premium owner still got bounced to /pricing when adding a 2nd church
+
+QA: subscribed a church to Premium, then "Add a church" from the Profile page still redirected to Pricing — even though Premium's own pricing copy says "Up to 5 churches" (`pricing.large.churchCap`).
+
+Not a client bug. `get_my_plan_and_usage()` (the RPC the "Add a church" gate calls — [index.html:6195](index.html) and again in `checkExistingChurch`'s `routeKey === 'new'` branch) was broken by **two layers of drift**, found by pasting its source and the `plan_tiers` table contents out of the dashboard:
+
+1. **It resolved the caller's plan from `profiles.plan_type` — a column nothing maintains.** The entire Stripe subscription system (`stripe-subscription-webhook`, [see above](#connecting-the-tierpricing-page-to-stripe-sandbox--stripe-subscription-handed-off)) writes **`churches.plan_type`** as the source of truth, and it was correct (`premium`). The owner's `profiles` row was still `free` and always would be — so the account had Free limits (`max_churches = 1`) everywhere the RPC is read.
+2. **`plan_tiers` had drifted to an older tier naming** — `free / starter / growth / multi_church / enterprise` — with **no `standard` or `premium` row at all**, i.e. the names the live `churches.plan_type` CHECK constraint and the whole client actually use. So even the "5" had nowhere to live.
+
+Fix is `supabase/migrations/016_plan_from_owned_churches.sql`, **no Edge Function change** (`churches.plan_type` is already right):
+- Adds `standard` + `premium` rows to `plan_tiers` (`premium.max_churches = 5`), purely additive — legacy `growth`/`enterprise` rows left untouched in case anything still references them. `multi_church.max_churches` set to `NULL` (unlimited) per product decision.
+- Rewrites `get_my_plan_and_usage()` to derive the plan from the **churches the caller owns** — highest tier among them (`multi_church > premium > standard > starter > free`) — dropping the `profiles.plan_type` + stale-`plan_tiers`-name dependency. Matches how the rest of the app already reasons about plan (`myChurch.planType` → the client's hardcoded `planLimits`) and handles a multi-church owner correctly. Only `max_churches` / `churches_owned` are actually consumed by callers; the other returned columns are kept in the signature for compatibility.
+
+**Known remaining drift, deliberately not touched here:** `plan_tiers`' per-tier event/group/staff numbers and `monthly_price_cents` don't all match the client's own pricing copy ($19 card vs `1500` cents, etc.). Nothing reads those fields from this RPC, so a full pricing reconciliation is left for a deliberate pass.
+
+Verified live: after the migration, `get_my_plan_and_usage()` from the owner's browser returns `plan_type: "premium"`, `max_churches: 5`, `churches_owned: 1`, and "Add a church" opens the registration form.
+
+**Follow-on, same fix:** the register-church page's eyebrow was a hardcoded "Free listing" — wrong once a paid-plan owner is adding a 2nd–5th church (it inherits their plan) or editing a paid church. Gave it `id="rc-eyebrow"` and a `setRcEyebrow(planType)` helper (in `checkExistingChurch`'s `new` branch, reusing the already-fetched `get_my_plan_and_usage` row; and in the edit branch, from the church row's `plan_type`). Paid → "{Plan} plan" (`rc.planListing`, e.g. "PREMIUM PLAN"), `free`/null → the original "Free listing". Language-switch-safe via `window.rcEyebrowPlan` re-applied in the i18n re-render, same pattern as `rc-heading`. Verified locally incl. EN↔ES toggle. Build stamp `2026-09-09-v254`.
