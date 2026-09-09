@@ -409,7 +409,7 @@
       'category.sportsRecreation': 'Sports & Recreation', 'category.sportsShort': 'Sports',
       'badge.openToAnyone': 'Open to anyone', 'badge.membersOnly': 'Members only', 'badge.noSignupNeeded': 'No signup needed',
       'badge.full': 'Full', 'badge.almostFull': 'Almost full', 'badge.registrationOpen': 'Registration open',
-      'church.nextService': 'Regular service', 'church.nextServicesPlural': 'Regular services', 'church.serviceIsAt': 'is at', 'church.serviceAreAt': 'are at', 'church.contactForTimes': 'contact church for times', 'church.newListing': 'New listing', 'church.nextEvent': 'Next event:',
+      'church.nextService': 'Regular service', 'church.nextServicesPlural': 'Regular services', 'church.serviceIsAt': 'is at', 'church.serviceAreAt': 'are at', 'church.contactForTimes': 'Contact church for regular service times', 'church.newListing': 'New listing', 'church.nextEvent': 'Next event:',
       'church.away': 'away', 'church.setLocationDistance': 'Set your location to see distance', 'church.locationNotFound': 'Location not found for this address',
       'church.genericLabel': 'Church', 'church.genericName': 'A FaithDock church',
       'dash.editChurchProfile': 'Edit church profile →', 'dash.upgradePlan': 'Upgrade plan', 'dash.plans': 'Plans',
@@ -1100,7 +1100,7 @@
       'category.sportsRecreation': 'Deportes y recreación', 'category.sportsShort': 'Deportes',
       'badge.openToAnyone': 'Abierto a todos', 'badge.membersOnly': 'Solo miembros', 'badge.noSignupNeeded': 'No requiere inscripción',
       'badge.full': 'Completo', 'badge.almostFull': 'Casi completo', 'badge.registrationOpen': 'Inscripción abierta',
-      'church.nextService': 'Servicio regular', 'church.nextServicesPlural': 'Servicios regulares', 'church.serviceIsAt': 'es', 'church.serviceAreAt': 'son', 'church.contactForTimes': 'contacta a la iglesia para conocer los horarios', 'church.newListing': 'Nuevo registro', 'church.nextEvent': 'Próximo evento:',
+      'church.nextService': 'Servicio regular', 'church.nextServicesPlural': 'Servicios regulares', 'church.serviceIsAt': 'es', 'church.serviceAreAt': 'son', 'church.contactForTimes': 'Contacta a la iglesia para conocer los horarios de los servicios regulares', 'church.newListing': 'Nuevo registro', 'church.nextEvent': 'Próximo evento:',
       'church.away': 'de distancia', 'church.setLocationDistance': 'Activa tu ubicación para ver la distancia', 'church.locationNotFound': 'No se encontró la ubicación de esta dirección',
       'church.genericLabel': 'Iglesia', 'church.genericName': 'Una iglesia de FaithDock',
       'dash.editChurchProfile': 'Editar perfil de la iglesia →', 'dash.upgradePlan': 'Mejorar plan', 'dash.plans': 'Planes',
@@ -5031,7 +5031,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-09-v243 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-09-v244 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -5268,7 +5268,7 @@
   // one entry both correctly fall to the singular form.
   function formatChurchNextText(next, entryCount){
     if (!next || next === 'Contact church for times') {
-      return window.t('church.nextService') + ' ' + window.t('church.contactForTimes');
+      return window.t('church.contactForTimes');
     }
     var isPlural = entryCount > 1;
     var label = isPlural ? window.t('church.nextServicesPlural') : window.t('church.nextService');
