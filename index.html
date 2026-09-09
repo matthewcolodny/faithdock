@@ -1539,6 +1539,16 @@
   window.appLocale = function(){
     return window.currentLang === 'es' ? 'es-ES' : 'en-US';
   };
+  // Spanish month/day names come back lowercase from Intl by default
+  // ("abr", "may", "sept") -- correct standard Spanish typography, but
+  // inconsistent with how the English side of this app always shows
+  // them (Title Case), which reads as "not really translated" even
+  // though it is. Capitalizes just the first letter for display,
+  // matching the English convention in both languages rather than
+  // switching each label's case depending on which language is active.
+  window.capitalizeFirst = function(str){
+    return str ? str.charAt(0).toUpperCase() + str.slice(1) : str;
+  };
 
   var savedLang = 'en';
   try { savedLang = localStorage.getItem('faithdock_lang') || 'en'; } catch (e) {}
@@ -4868,7 +4878,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-09-v234 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-09-v235 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -5776,10 +5786,31 @@
   // clicks hit the in-memory array instantly since the card was just
   // rendered from it; this fallback only matters for direct URL
   // navigation to a church that hasn't been loaded into memory yet.
+  // Explicit column list, everywhere a church row gets fetched from
+  // client code — deliberately excludes stripe_customer_id/
+  // stripe_subscription_id (FaithDock's own platform-subscription
+  // billing identifiers, with no legitimate client-side read path at
+  // all — the Billing panel only ever reads plan_type/
+  // subscription_status/current_period_end, never these two).
+  // stripe_account_id (Connect, for accepting donations/tickets)
+  // stays in this list deliberately — it already has real, legitimate
+  // uses (the owner's own Give-setup check, the admin panel's
+  // "Stripe connected" display) and isn't the field this fix is
+  // about. Several of the call sites using this list (
+  // findOrFetchChurchByName in particular) are reachable by anonymous
+  // visitors on a church's own public page; select('*') would
+  // otherwise leak the two subscription-billing ids to anyone,
+  // confirmed live as a real, current bug. A bare Stripe id alone
+  // can't actually be used to charge anything or see payment methods
+  // without the account's own secret key, so this is an information-
+  // disclosure fix, not a "someone could steal money" one — but
+  // there's no reason to keep leaking it once noticed.
+  var PUBLIC_CHURCH_COLUMNS = 'id, owner_id, name, description, address, city, state, created_at, denomination, website, logo_url, lat, lng, phone, facebook_url, instagram_url, stripe_account_id, stripe_onboarding_complete, verification_status, verification_requested_at, verification_reviewed_at, plan_type, subscription_status, current_period_end, dedupe_key, service_times';
+
   async function findOrFetchChurchByName(name){
     var found = churches.filter(function(c){ return c.name === name; })[0];
     if (found) return found;
-    var { data } = await window.supabase.from('churches').select('*').eq('name', name).limit(1);
+    var { data } = await window.supabase.from('churches').select(PUBLIC_CHURCH_COLUMNS).eq('name', name).limit(1);
     if (data && data.length) {
       var row = data[0];
       // This fetch is select('*'), so row.service_times is already
@@ -7884,7 +7915,7 @@
     }
 
     var activeId = getActiveChurchId();
-    var ownedQuery = supabase.from('churches').select('*').eq('owner_id', userId);
+    var ownedQuery = supabase.from('churches').select(PUBLIC_CHURCH_COLUMNS).eq('owner_id', userId);
     if (activeId) ownedQuery = ownedQuery.eq('id', activeId);
     var { data } = await ownedQuery.limit(1);
 
@@ -7893,7 +7924,7 @@
       // church was deleted, or never actually theirs) — fall back to
       // any owned church rather than incorrectly landing on "create
       // new" for someone who does own a church, just not that one.
-      var fallback = await supabase.from('churches').select('*').eq('owner_id', userId).order('name').limit(1);
+      var fallback = await supabase.from('churches').select(PUBLIC_CHURCH_COLUMNS).eq('owner_id', userId).order('name').limit(1);
       data = fallback.data;
     }
 
@@ -7906,7 +7937,7 @@
     // their actual church's edit form. getMyChurch() above already
     // resolved which church that is; just fetch its full row here.
     if ((!data || !data.length) && myChurch && myChurch.role === 'staff' && myChurch.canEditProfile) {
-      var staffChurchRow = await supabase.from('churches').select('*').eq('id', myChurch.id).limit(1);
+      var staffChurchRow = await supabase.from('churches').select(PUBLIC_CHURCH_COLUMNS).eq('id', myChurch.id).limit(1);
       data = staffChurchRow.data;
     }
 
@@ -11612,7 +11643,7 @@
     for (var i = 0; i < 12; i++) {
       var d = new Date(twelveMonthsAgo);
       d.setMonth(d.getMonth() + i);
-      months.push({ key: d.getFullYear() + '-' + d.getMonth(), label: d.toLocaleDateString(window.appLocale(), { month: 'short' }), value: 0 });
+      months.push({ key: d.getFullYear() + '-' + d.getMonth(), label: window.capitalizeFirst(d.toLocaleDateString(window.appLocale(), { month: 'short' })), value: 0 });
     }
     donations.forEach(function(don){
       var dd = new Date(don.created_at);
@@ -13725,7 +13756,7 @@
       var now = new Date();
       for (var mi = 5; mi >= 0; mi--) {
         var mDate = new Date(now.getFullYear(), now.getMonth() - mi, 1);
-        months.push({ year: mDate.getFullYear(), month: mDate.getMonth(), label: mDate.toLocaleDateString(window.appLocale(), { month: 'short' }), totalCents: 0 });
+        months.push({ year: mDate.getFullYear(), month: mDate.getMonth(), label: window.capitalizeFirst(mDate.toLocaleDateString(window.appLocale(), { month: 'short' })), totalCents: 0 });
       }
       donations2.forEach(function(d){
         var dDate = new Date(d.created_at);
@@ -16722,7 +16753,7 @@
     eventsEl.innerHTML = '<p style="color:var(--ink-mute);font-size:14px;">' + window.t('common.loading') + '</p>';
     groupsEl.innerHTML = '<p style="color:var(--ink-mute);font-size:14px;">' + window.t('common.loading') + '</p>';
 
-    var { data: churchRows, error: churchError } = await supabase.from('churches').select('*').eq('id', churchId).limit(1);
+    var { data: churchRows, error: churchError } = await supabase.from('churches').select(PUBLIC_CHURCH_COLUMNS).eq('id', churchId).limit(1);
     var c = (churchRows && churchRows.length) ? churchRows[0] : null;
     if (churchError || !c) {
       nameEl.textContent = window.t('admin.churchNotFound');

@@ -563,3 +563,23 @@ Asked to "build the admin review of church claims" on the assumption it didn't e
 **Final state, confirmed live, not assumed:** all 9 fixed functions, called anonymously with no session, now correctly return a permission-denied error and zero data — tested directly against the real database after every round of fixes, including this last one.
 
 **Not fully closed yet:** the pg_trgm extension functions (`gin_trgm_*`, `gtrgm_*`, `similarity*`, `word_similarity*`, etc.) were correctly identified as PostgreSQL internals, not app code, and excluded from this review. Everything else in the list has now actually been read, not assumed — but any function created *after* this review obviously isn't covered by it. Worth treating "add the permission check" as a mandatory step when writing a new `security definer` function from here on, not a follow-up TODO.
+
+---
+
+## `churches.stripe_customer_id`/`stripe_subscription_id` exposed via public `select('*')` — closed
+
+Flagged as a lower-severity, non-urgent finding twice earlier this session (while first connecting sandbox Stripe, and again while reviewing the churches table's public columns) but never actually fixed — closed now while doing a broader security pass. Confirmed live: an anonymous, unauthenticated `select('*')` on a real church (reachable via `findOrFetchChurchByName()`, which every visitor to a church's own public page hits) returned real `stripe_customer_id`/`stripe_subscription_id` values. Severity stayed correctly assessed as information-disclosure, not "someone can charge the church" — a bare Stripe id is useless without the account's own secret key, which never leaves the server.
+
+**Two-part fix, both required — one alone doesn't close it:**
+1. **Client-side:** all 5 `churches.select('*')` call sites now use a new shared `PUBLIC_CHURCH_COLUMNS` constant (explicit column list) instead. This alone only stops leakage through *this app's own UI* — anyone can still query the REST API directly with the public anon key regardless of what the client code does.
+2. **Database-level (the actual boundary):** `revoke select (stripe_customer_id, stripe_subscription_id) on churches from anon, authenticated` (migration handed to the user). After this, even a raw `select('*')` from those roles fails outright for the whole query — which is exactly why step 1 had to happen first, not instead: every remaining `select('*')`-shaped call needed to already be column-scoped before the revoke could safely land, or those five call sites would have started erroring.
+
+**`stripe_account_id` was deliberately kept public, not swept in by mistake.** It's Stripe Connect's account id (for accepting donations/tickets), a different field from the two platform-subscription-billing ids being closed here — and unlike those two, it already has real, legitimate client-side reads: the church owner's own Give-setup check (`checkChurchGivingEnabled`-style code) and the admin panel's "Stripe connected: Yes/No" display both need it. `PUBLIC_CHURCH_COLUMNS` includes it on purpose. Verified live after the fix: the same anonymous query now returns every other column correctly, with `stripe_customer_id`/`stripe_subscription_id` genuinely absent from the result — not just null, not present at all.
+
+---
+
+## Spanish month labels: correct language, wrong case for a standalone axis label
+
+Real, reported issue, distinct from the earlier locale-argument bug: Intl's Spanish month abbreviations are correctly lowercase by default ("abr", "sept") — that's standard Spanish typography, not a translation gap. It only reads as "not fully Spanish" because a few abbreviations (may, jun, jul) happen to share spelling with English, and because every English label on the same chart is Title Case, making the lowercase Spanish ones look unstyled by comparison.
+
+Added `window.capitalizeFirst()` and applied it **only** to the two chart-axis month labels that use `month: 'short'` in isolation (the Insights 12-month and Revenue 6-month giving trend charts) — checked the other ~20 places `month: 'short'` appears first, and all of them format a full date (`day: 'numeric'`, often `weekday: 'short'` too), where a lowercase embedded month is correct, standard Spanish sentence-style formatting and shouldn't be touched. Verified live: the chart now reads "Abr, May, Jun, Jul, Ago, Sept" instead of "abr, may, jun, jul, ago, sept".
