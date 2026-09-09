@@ -342,7 +342,7 @@
       'profile.permanentlyDeleteMyAccount': 'Permanently delete my account',
       'profile.nameChangeConfirm': "Are you sure? You won't be able to change your display name again for 60 days.",
       'profile.yesSaveIt': 'Yes, save it', 'profile.cancel': 'Cancel',
-      'pricing.eyebrow': 'Pricing', 'pricing.title': 'Become a Partner Church',
+      'pricing.eyebrow': 'Pricing', 'pricing.title': 'Become a Partner Church', 'pricing.titleExisting': 'Manage your plan', 'pricing.cancelSubscription': 'Cancel subscription',
       'pricing.subtitle': 'Free to be listed. Upgrade for tools that help you grow and stay connected with your congregation.',
       'pricing.compareLink': 'See how FaithDock compares to Breeze & Planning Center →', 'pricing.perMonth': ' / month', 'pricing.mostPopular': 'Most popular',
       'pricing.free.name': 'Free', 'pricing.free.f1': 'Listing in the public directory', 'pricing.free.f2': 'Dashboard access',
@@ -994,7 +994,7 @@
       'profile.permanentlyDeleteMyAccount': 'Eliminar permanentemente mi cuenta',
       'profile.nameChangeConfirm': '¿Estás seguro? No podrás cambiar tu nombre visible de nuevo durante 60 días.',
       'profile.yesSaveIt': 'Sí, guardarlo', 'profile.cancel': 'Cancelar',
-      'pricing.eyebrow': 'Precios', 'pricing.title': 'Únete como iglesia asociada',
+      'pricing.eyebrow': 'Precios', 'pricing.title': 'Únete como iglesia asociada', 'pricing.titleExisting': 'Administra tu plan', 'pricing.cancelSubscription': 'Cancelar suscripción',
       'pricing.subtitle': 'Gratis para aparecer en el directorio. Mejora tu plan para obtener herramientas que te ayuden a crecer y a mantenerte conectado con tu congregación.',
       'pricing.compareLink': 'Mira cómo se compara FaithDock con Breeze y Planning Center →', 'pricing.perMonth': ' / mes', 'pricing.mostPopular': 'Más popular',
       'pricing.free.name': 'Gratis', 'pricing.free.f1': 'Listado en el directorio público', 'pricing.free.f2': 'Acceso al panel',
@@ -1510,6 +1510,9 @@
     // this any earlier silently used the OLD language regardless of
     // what dict was passed in here.
     if (typeof window.updateDenomDropdownLabel === 'function') window.updateDenomDropdownLabel();
+    // Same fix, same reason, for the Events page's own denomination
+    // dropdown (a separate checkbox set from the Directory's above).
+    if (typeof window.updateEventsDenomDropdownLabel === 'function') window.updateEventsDenomDropdownLabel();
   }
   window.applyTranslations = applyTranslations;
   window.t = function(key){
@@ -2489,6 +2492,27 @@
         </button>
         <div class="filter-panel-body" id="events-filter-body">
         <div class="filter-group">
+          <h4 data-i18n="filters.denomination">Denomination</h4>
+          <button type="button" id="events-denom-dropdown-btn" style="width:100%;padding:9px 10px;font-size:13.5px;color:var(--ink);border:1px solid var(--line);border-radius:8px;background:var(--card);display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
+            <span id="events-denom-dropdown-label" data-i18n="filters.allSelected">All selected</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;flex-shrink:0;"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div id="events-denom-dropdown-panel" style="display:none;position:fixed;background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,0.16);padding:12px;z-index:200;max-height:320px;overflow-y:auto;">
+            <input class="field" type="text" id="events-filter-denom-search" placeholder="Search denomination..." style="margin-bottom:10px;" data-i18n-placeholder="filters.searchDenomination">
+            <div id="events-filter-denom-checks">
+              <label class="filter-check"><input type="checkbox" class="events-denom-filter" value="Baptist" checked> <span data-i18n="denom.baptist">Baptist</span></label>
+              <label class="filter-check"><input type="checkbox" class="events-denom-filter" value="Catholic" checked> <span data-i18n="denom.catholic">Catholic</span></label>
+              <label class="filter-check"><input type="checkbox" class="events-denom-filter" value="Episcopal" checked> <span data-i18n="denom.episcopal">Episcopal</span></label>
+              <label class="filter-check"><input type="checkbox" class="events-denom-filter" value="Lutheran" checked> <span data-i18n="denom.lutheran">Lutheran</span></label>
+              <label class="filter-check"><input type="checkbox" class="events-denom-filter" value="Methodist" checked> <span data-i18n="denom.methodist">Methodist</span></label>
+              <label class="filter-check"><input type="checkbox" class="events-denom-filter" value="Non-denominational" checked> <span data-i18n="denom.nonDenominational">Non-denominational</span></label>
+              <label class="filter-check"><input type="checkbox" class="events-denom-filter" value="Pentecostal" checked> <span data-i18n="denom.pentecostal">Pentecostal</span></label>
+              <label class="filter-check"><input type="checkbox" class="events-denom-filter" value="Presbyterian" checked> <span data-i18n="denom.presbyterian">Presbyterian</span></label>
+              <label class="filter-check"><input type="checkbox" class="events-denom-filter" value="Other" checked id="events-denom-other-checkbox"> <span data-i18n="denom.other">Other</span></label>
+            </div>
+          </div>
+        </div>
+        <div class="filter-group">
           <h4 data-i18n="filters.distance">Distance</h4>
           <select class="field" id="events-filter-distance">
             <option value="0" data-i18n="filters.anyDistance">Any distance</option>
@@ -3105,8 +3129,9 @@
 <!-- ================= PRICING ================= -->
 <section class="page" id="page-pricing">
   <div class="wrap" style="padding-top:44px;">    <div class="eyebrow" data-i18n="pricing.eyebrow">Pricing</div>
-    <h1 style="font-size:34px;max-width:520px;" data-i18n="pricing.title">Become a Partner Church</h1>
+    <h1 id="pricing-title" style="font-size:34px;max-width:520px;" data-i18n="pricing.title">Become a Partner Church</h1>
     <p style="color:var(--ink-mute);margin-top:8px;max-width:520px;" data-i18n="pricing.subtitle">Free to be listed. Upgrade for tools that help you grow and stay connected with your congregation.</p>
+    <button type="button" id="pricing-cancel-sub-btn" style="display:none;margin-top:12px;background:none;border:none;padding:0;font-size:13.5px;color:var(--clay);cursor:pointer;border-bottom:1px solid var(--clay);" data-i18n="pricing.cancelSubscription">Cancel subscription</button>
     <!-- "See how FaithDock compares to Breeze & Planning Center" link removed
          from this page per request -- kept as a possible future addition.
          The #compare page itself (and pricing.compareLink) is untouched and
@@ -4813,7 +4838,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-08-v229 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-08-v230 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -5878,6 +5903,18 @@
               go('pricing');
               return;
             }
+            // First church ever (not a 2nd-5th under an existing paid
+            // plan, which correctly inherits that plan and skips this)
+            // — send them to choose a plan before they've even filled
+            // out the registration form, rather than defaulting them
+            // to Free silently. The chosen plan is picked up again
+            // once the church is actually created (see
+            // sessionStorage 'faithdock_pendingPlan' in the
+            // register-church submit handler).
+            if (limits.churches_owned === 0) {
+              go('pricing');
+              return;
+            }
           }
         }
         // checkExistingChurch() only ever runs at page-load / auth-
@@ -6063,6 +6100,59 @@
       updateDenomDropdownLabel();
     }
   });
+
+  // Events page's own denomination filter — same dropdown UI as the
+  // Directory's, but a separate class/id set (events-denom-filter,
+  // not denom-filter) so the two pages' checkboxes don't cross-fire
+  // each other's document-wide change/click delegation above.
+  function updateEventsDenomDropdownLabel(){
+    var labelEl = document.getElementById('events-denom-dropdown-label');
+    if (!labelEl) return;
+    var checks = document.querySelectorAll('.events-denom-filter');
+    var total = checks.length;
+    var checkedCount = 0;
+    checks.forEach(function(c){ if (c.checked) checkedCount++; });
+    if (checkedCount === 0) labelEl.textContent = window.t('filters.noneSelected');
+    else if (checkedCount === total) labelEl.textContent = window.t('filters.allSelected');
+    else labelEl.textContent = checkedCount + ' ' + window.t('filters.nSelected');
+  }
+  window.updateEventsDenomDropdownLabel = updateEventsDenomDropdownLabel;
+  updateEventsDenomDropdownLabel();
+
+  var eventsDenomDropdownBtn = document.getElementById('events-denom-dropdown-btn');
+  var eventsDenomDropdownPanel = document.getElementById('events-denom-dropdown-panel');
+  if (eventsDenomDropdownBtn && eventsDenomDropdownPanel) {
+    eventsDenomDropdownBtn.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      var willOpen = eventsDenomDropdownPanel.style.display === 'none';
+      if (willOpen) {
+        var rect = eventsDenomDropdownBtn.getBoundingClientRect();
+        eventsDenomDropdownPanel.style.top = (rect.bottom + 6) + 'px';
+        eventsDenomDropdownPanel.style.left = rect.left + 'px';
+        eventsDenomDropdownPanel.style.width = rect.width + 'px';
+        eventsDenomDropdownPanel.style.display = 'block';
+      } else {
+        eventsDenomDropdownPanel.style.display = 'none';
+      }
+    });
+    document.addEventListener('click', function(ev){
+      if (eventsDenomDropdownPanel.style.display !== 'none' && !eventsDenomDropdownPanel.contains(ev.target) && ev.target !== eventsDenomDropdownBtn) {
+        eventsDenomDropdownPanel.style.display = 'none';
+      }
+    });
+  }
+  document.addEventListener('change', function(ev){
+    if (ev.target.classList && ev.target.classList.contains('events-denom-filter')) {
+      updateEventsDenomDropdownLabel();
+      if (typeof window.renderEvents === 'function') window.renderEvents();
+    }
+  });
+  var eventsDenomSearchEl = document.getElementById('events-filter-denom-search');
+  if (eventsDenomSearchEl) {
+    eventsDenomSearchEl.addEventListener('input', function(){
+      if (typeof window.renderEvents === 'function') window.renderEvents();
+    });
+  }
 
   // Maps a search_churches() RPC row into the same shape churchCard()
   // and populateChurchPage() already expect, so nothing downstream
@@ -6647,6 +6737,44 @@
       churchIdsParam = Object.keys(idSet);
     }
 
+    // Denomination filter — search_events() has no p_denominations
+    // param of its own (unlike search_churches()), so this resolves
+    // to a church-id list client-side, same query shape already used
+    // for the "For You" denomination expansion above. When the
+    // followed/home/For-You OR-set above is ALSO active, the two are
+    // intersected (only events from a church that's both in that set
+    // AND matches the checked denominations) rather than merged —
+    // unlike that OR-set's own internal union, this is a genuinely
+    // separate, restrictive filter, not another way to add churches in.
+    var eventsDenomChecks = document.querySelectorAll('.events-denom-filter');
+    var eventsCheckedDenoms = [];
+    for (var ed = 0; ed < eventsDenomChecks.length; ed++) { if (eventsDenomChecks[ed].checked) eventsCheckedDenoms.push(eventsDenomChecks[ed].value); }
+    var eventsDenomSearchInput = document.getElementById('events-filter-denom-search');
+    var eventsDenomSearch = eventsDenomSearchInput ? eventsDenomSearchInput.value.trim() : '';
+    var eventsDenomFilterList = null;
+    if (eventsDenomSearch) {
+      var coreDenomsForEvents = ['Baptist','Catholic','Episcopal','Lutheran','Methodist','Non-denominational','Pentecostal','Presbyterian'];
+      eventsDenomFilterList = coreDenomsForEvents.filter(function(d){ return d.toLowerCase().indexOf(eventsDenomSearch.toLowerCase()) !== -1; });
+    } else if (eventsCheckedDenoms.indexOf('Other') !== -1) {
+      eventsDenomFilterList = null; // same simplification as the Directory filter — "Other" selected means no narrowing, rather than trying to express "not in the core list"
+    } else if (eventsCheckedDenoms.length < eventsDenomChecks.length) {
+      eventsDenomFilterList = eventsCheckedDenoms;
+    }
+    if (eventsDenomFilterList) {
+      var denomChurchIds = [];
+      if (eventsDenomFilterList.length) {
+        var { data: denomMatchChurches } = await window.supabase.from('churches').select('id').in('denomination', eventsDenomFilterList);
+        denomChurchIds = (denomMatchChurches || []).map(function(c){ return c.id; });
+      }
+      if (churchIdsParam) {
+        var denomIdSet = {};
+        denomChurchIds.forEach(function(id){ denomIdSet[id] = true; });
+        churchIdsParam = churchIdsParam.filter(function(id){ return denomIdSet[id]; });
+      } else {
+        churchIdsParam = denomChurchIds;
+      }
+    }
+
     var eventsDistEl = document.getElementById('events-filter-distance');
     var eventsMaxDist = eventsDistEl ? parseFloat(eventsDistEl.value) || 0 : 0;
 
@@ -6845,6 +6973,11 @@
       document.getElementById('filter-date-to').value = '';
       var eventsDistReset = document.getElementById('events-filter-distance');
       if (eventsDistReset) eventsDistReset.value = '0';
+      var eventsDenomChecksReset = document.querySelectorAll('.events-denom-filter');
+      for (var k = 0; k < eventsDenomChecksReset.length; k++) { eventsDenomChecksReset[k].checked = true; }
+      var eventsDenomSearchReset = document.getElementById('events-filter-denom-search');
+      if (eventsDenomSearchReset) eventsDenomSearchReset.value = '';
+      if (typeof window.updateEventsDenomDropdownLabel === 'function') window.updateEventsDenomDropdownLabel();
       // Also clears an active icon-row selection and the tab row's
       // state — otherwise "Reset filters" could leave the icon row
       // showing a category selected while everything else cleared,
@@ -9855,6 +9988,23 @@
         var dashLinkAfterCreate = document.getElementById('nav-dashboard-link');
         if (dashLinkAfterCreate) dashLinkAfterCreate.style.display = window.isPlatformAdmin ? 'none' : '';
         rcEditingChurchId = data[0].id;
+
+        // Resumes a plan chosen on the Pricing page before this church
+        // existed (see populatePricingPage() and the "Add a church"
+        // click handler that sends a first-time owner there first).
+        // The church is always created on the default Free plan_type —
+        // never set optimistically here — so a paid pending plan
+        // means "go straight to that plan's Stripe checkout now,"
+        // while plan_type itself only actually changes once payment
+        // really succeeds (confirm_subscription / the subscription
+        // webhook), same as picking a paid plan any other time.
+        var pendingPlan = null;
+        try { pendingPlan = sessionStorage.getItem('faithdock_pendingPlan'); sessionStorage.removeItem('faithdock_pendingPlan'); } catch (e) {}
+        if (pendingPlan && (pendingPlan === 'starter' || pendingPlan === 'standard' || pendingPlan === 'premium') && typeof window.startPlanCheckout === 'function') {
+          window.startPlanCheckout(pendingPlan);
+          return;
+        }
+
         go('dashboard');
         if (typeof window.loadDashboardHeader === 'function') window.loadDashboardHeader(userData.user.id);
         if (typeof window.loadDashboardEvents === 'function') window.loadDashboardEvents();
@@ -15341,6 +15491,29 @@
   // Pricing page buttons reflect the signed-in church's actual plan
   // rather than always inviting them to (re-)start a plan they're
   // already on.
+  // Shared by the Free card's dynamic downgrade button and the
+  // standalone "Cancel subscription" link near the top of the page —
+  // same action (schedules cancellation at period end via
+  // stripe-subscription), two entry points to it.
+  async function performPlanDowngrade(myChurch, triggerBtn){
+    if (!window.confirm(window.t('dashBilling.downgradeConfirm'))) return;
+    if (triggerBtn) triggerBtn.disabled = true;
+    var { data, error } = await supabase.functions.invoke('stripe-subscription', {
+      body: { action: 'cancel_subscription', churchId: myChurch.id }
+    });
+    if (triggerBtn) triggerBtn.disabled = false;
+    if (error || !data || data.error) {
+      var detail = error ? error.message : (data && data.error ? data.error : window.t('common.somethingWrong'));
+      if (error && error.context && typeof error.context.text === 'function') {
+        try { detail = await error.context.text(); } catch (e) {}
+      }
+      alert(detail);
+      return;
+    }
+    alert(window.t('dashBilling.downgradeScheduled'));
+    populatePricingPage();
+  }
+
   async function populatePricingPage(){
     renderPricingFeatureMatrix();
     var freeBtn = document.getElementById('pricing-free-btn');
@@ -15353,32 +15526,48 @@
     // disabled state here, unlike the four self-serve tiers below.
 
     // Reset to signed-out/no-church defaults first, then override
-    // below only if there's an actual current plan to reflect.
-    freeBtn.textContent = window.t('pricing.free.cta'); freeBtn.disabled = false; freeBtn.onclick = function(){ go('register-church'); };
+    // below only if there's an actual current plan to reflect. Same
+    // reset-first pattern for the title and the standalone cancel
+    // link — "Become a Partner Church" / hidden is the right default
+    // for anyone who isn't already a paying church, which is also
+    // exactly the state before the async myChurch lookup below
+    // resolves.
+    var titleEl = document.getElementById('pricing-title');
+    if (titleEl) titleEl.textContent = window.t('pricing.title');
+    var cancelSubBtn = document.getElementById('pricing-cancel-sub-btn');
+    if (cancelSubBtn) cancelSubBtn.style.display = 'none';
+    freeBtn.textContent = window.t('pricing.free.cta'); freeBtn.disabled = false;
+    freeBtn.onclick = function(){
+      // Clears any plan chosen on a previous, abandoned visit here
+      // (e.g. clicked Starter, never finished registering, came back
+      // and picked Free instead) — otherwise that stale plan would
+      // wrongly resume into a Stripe checkout after this church is
+      // created.
+      try { sessionStorage.removeItem('faithdock_pendingPlan'); } catch (e) {}
+      go('register-church');
+    };
     // Starter/Standard/Premium are church-level plans — checkout can't
-    // mean anything without a church to attach it to. Previously went
-    // straight to window.startPlanCheckout regardless, which itself
-    // doesn't exist yet (a separate, already-known Phase 2 gap) —
-    // meaning this click did nothing at all, silently, for everyone,
-    // church or not. This specific fix (redirect to registration
-    // first when there's no church yet) stands on its own regardless
-    // of when checkout itself gets built.
+    // mean anything without a church to attach it to. For a
+    // not-yet-a-church visitor, the chosen plan is remembered
+    // (sessionStorage, survives the trip to register-church) and
+    // picked back up right after the church is actually created —
+    // see the register-church submit handler's new-church branch.
     starterBtn.textContent = window.t('pricing.starter.cta'); starterBtn.disabled = false;
     starterBtn.onclick = async function(){
       var churchForCheckout = window.isSignedIn ? await getMyChurch() : null;
-      if (!churchForCheckout) { go('register-church'); return; }
+      if (!churchForCheckout) { try { sessionStorage.setItem('faithdock_pendingPlan', 'starter'); } catch (e) {} go('register-church'); return; }
       window.startPlanCheckout && window.startPlanCheckout('starter');
     };
     standardBtn.textContent = window.t('pricing.medium.cta'); standardBtn.disabled = false;
     standardBtn.onclick = async function(){
       var churchForCheckout = window.isSignedIn ? await getMyChurch() : null;
-      if (!churchForCheckout) { go('register-church'); return; }
+      if (!churchForCheckout) { try { sessionStorage.setItem('faithdock_pendingPlan', 'standard'); } catch (e) {} go('register-church'); return; }
       window.startPlanCheckout && window.startPlanCheckout('standard');
     };
     premiumBtn.textContent = window.t('pricing.large.cta'); premiumBtn.disabled = false;
     premiumBtn.onclick = async function(){
       var churchForCheckout = window.isSignedIn ? await getMyChurch() : null;
-      if (!churchForCheckout) { go('register-church'); return; }
+      if (!churchForCheckout) { try { sessionStorage.setItem('faithdock_pendingPlan', 'premium'); } catch (e) {} go('register-church'); return; }
       window.startPlanCheckout && window.startPlanCheckout('premium');
     };
 
@@ -15386,6 +15575,11 @@
     var myChurch = await getMyChurch();
     if (!myChurch) return;
     var planType = myChurch.planType || 'free';
+
+    // Already a partner church by this point (myChurch exists) --
+    // "Become a Partner Church" no longer makes sense as the heading
+    // for someone managing a plan they already have.
+    if (titleEl) titleEl.textContent = window.t('pricing.titleExisting');
 
     // An existing owner on a paid plan clicking "Get started free"
     // landing on "Register your church" made no sense -- they already
@@ -15397,24 +15591,17 @@
     if (planType !== 'free' && planType !== 'multi_church') {
       freeBtn.textContent = window.t('dashBilling.downgradeToFree');
       freeBtn.disabled = false;
-      freeBtn.onclick = async function(){
-        if (!window.confirm(window.t('dashBilling.downgradeConfirm'))) return;
-        freeBtn.disabled = true;
-        var { data, error } = await supabase.functions.invoke('stripe-subscription', {
-          body: { action: 'cancel_subscription', churchId: myChurch.id }
-        });
-        freeBtn.disabled = false;
-        if (error || !data || data.error) {
-          var detail = error ? error.message : (data && data.error ? data.error : window.t('common.somethingWrong'));
-          if (error && error.context && typeof error.context.text === 'function') {
-            try { detail = await error.context.text(); } catch (e) {}
-          }
-          alert(detail);
-          return;
-        }
-        alert(window.t('dashBilling.downgradeScheduled'));
-        populatePricingPage();
-      };
+      freeBtn.onclick = function(){ performPlanDowngrade(myChurch, freeBtn); };
+
+      // Standalone "Cancel subscription" link near the top of the
+      // page -- same action as the Free card's button above, just a
+      // second, unmissable entry point for anyone arriving here via
+      // the dashboard's Plans/Billing links specifically to manage
+      // (not necessarily browse) their existing subscription.
+      if (cancelSubBtn) {
+        cancelSubBtn.style.display = 'inline-block';
+        cancelSubBtn.onclick = function(){ performPlanDowngrade(myChurch, cancelSubBtn); };
+      }
     }
 
     // multi_church has no button in this map — sales-negotiated plans
