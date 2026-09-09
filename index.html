@@ -3965,6 +3965,10 @@
 
       <label style="margin-top:14px;" data-i18n="ce.categories">Categories</label>
       <div style="font-size:12px;color:var(--ink-mute);margin-bottom:8px;" data-i18n="ce.categoriesHint">Pick what applies — these are what people browse by on the events page, so events actually show up under the right icon regardless of how you word things elsewhere. Separate from the freeform tags below.</div>
+      <div style="display:flex;gap:14px;margin-bottom:8px;">
+        <button type="button" id="ce-category-select-all-btn" style="background:none;border:none;padding:0;color:var(--gold);border-bottom:1px solid var(--gold);cursor:pointer;font-size:12px;" data-i18n="filters.selectAll">Select all</button>
+        <button type="button" id="ce-category-clear-all-btn" style="background:none;border:none;padding:0;color:var(--ink-mute);border-bottom:1px solid var(--ink-mute);cursor:pointer;font-size:12px;" data-i18n="filters.uncheckAll">Uncheck all</button>
+      </div>
       <div class="checkbox-grid">
         <label class="filter-check"><input type="checkbox" class="ce-category" value="Volunteer"> <span data-i18n="category.volunteer">Volunteer</span></label>
         <label class="filter-check"><input type="checkbox" class="ce-category" value="Celebrations"> <span data-i18n="category.celebrations">Celebrations</span></label>
@@ -3983,6 +3987,10 @@
       <div id="ce-tags-list" class="chip-list"></div>
 
       <label style="margin-top:14px;" data-i18n="ce.whoIsThisFor">Who is this for?</label>
+      <div style="display:flex;gap:14px;margin-bottom:8px;">
+        <button type="button" id="ce-audience-select-all-btn" style="background:none;border:none;padding:0;color:var(--gold);border-bottom:1px solid var(--gold);cursor:pointer;font-size:12px;" data-i18n="filters.selectAll">Select all</button>
+        <button type="button" id="ce-audience-clear-all-btn" style="background:none;border:none;padding:0;color:var(--ink-mute);border-bottom:1px solid var(--ink-mute);cursor:pointer;font-size:12px;" data-i18n="filters.uncheckAll">Uncheck all</button>
+      </div>
       <div class="checkbox-grid">
         <label class="filter-check"><input type="checkbox" class="ce-audience" value="Preschool"> <span data-i18n="audience.preschool">Preschool</span></label>
         <label class="filter-check"><input type="checkbox" class="ce-audience" value="Children"> <span data-i18n="audience.children">Children</span></label>
@@ -5032,7 +5040,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-09-v247 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-09-v248 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -11349,6 +11357,35 @@
   // a recurring event (e.g. every Friday except the one before
   // Christmas).
   var ceExceptions = [];
+  // Categories/audience "Select all" / "Uncheck all" -- same pattern
+  // as the directory's denomination filter (denom-select-all-btn
+  // above), just plain checkboxes with no dependent re-render to
+  // trigger here.
+  var ceCategorySelectAllBtn = document.getElementById('ce-category-select-all-btn');
+  var ceCategoryClearAllBtn = document.getElementById('ce-category-clear-all-btn');
+  if (ceCategorySelectAllBtn) {
+    ceCategorySelectAllBtn.addEventListener('click', function(){
+      document.querySelectorAll('.ce-category').forEach(function(cb){ cb.checked = true; });
+    });
+  }
+  if (ceCategoryClearAllBtn) {
+    ceCategoryClearAllBtn.addEventListener('click', function(){
+      document.querySelectorAll('.ce-category').forEach(function(cb){ cb.checked = false; });
+    });
+  }
+  var ceAudienceSelectAllBtn = document.getElementById('ce-audience-select-all-btn');
+  var ceAudienceClearAllBtn = document.getElementById('ce-audience-clear-all-btn');
+  if (ceAudienceSelectAllBtn) {
+    ceAudienceSelectAllBtn.addEventListener('click', function(){
+      document.querySelectorAll('.ce-audience').forEach(function(cb){ cb.checked = true; });
+    });
+  }
+  if (ceAudienceClearAllBtn) {
+    ceAudienceClearAllBtn.addEventListener('click', function(){
+      document.querySelectorAll('.ce-audience').forEach(function(cb){ cb.checked = false; });
+    });
+  }
+
   function renderCeExceptions(){
     var list = document.getElementById('ce-exceptions-list');
     list.innerHTML = ceExceptions.map(function(dateStr, i){

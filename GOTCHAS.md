@@ -789,3 +789,9 @@ Root cause: `prompt()` is a native, blocking, OS-level modal dialog — opening 
 Fixed by saving the exact selection `Range` right before calling `prompt()`, then explicitly restoring that saved range immediately after the user clicks OK — right before `execCommand('createLink', ...)` runs — regardless of what the browser did to the live selection while the dialog was open.
 
 **Verified live, both the failure and the fix, not assumed:** reproduced the exact bug directly (select "Family", clear the selection the way a real prompt() does, call `execCommand('createLink', ...)` — confirmed zero effect, no `<a>` tag, text unchanged) — then ran the actual fixed code path (save the range, clear it the same way, restore it, call `execCommand`) — confirmed `Family` now correctly wrapped in `<a href="...">`.
+
+---
+
+## "Select all" / "Uncheck all" for create-event Categories and "Who is this for?"
+
+Requested directly, with a screenshot of the audience checklist. Added the same "Select all"/"Uncheck all" pair already used on the directory/events denomination filter — same styling, and reused the existing `filters.selectAll`/`filters.uncheckAll` keys rather than adding duplicates. Simpler wiring than the denomination version: these are plain form checkboxes with no dependent re-render to trigger (the denomination filter's buttons also re-run `renderDirectory()` after toggling; these two just set `.checked` on every `.ce-category`/`.ce-audience` box). Verified live: clicking each of the four buttons produces the exact expected checked/unchecked state across both full checkbox groups.
