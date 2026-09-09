@@ -383,7 +383,7 @@ Product decision (not a bug fix): Free-tier churches can now create **paid** eve
 
 **The numbers, as decided:**
 - **Giving, Free tier only:** 1% FaithDock fee. Paid tiers: 0%.
-- **Paid event tickets, Free tier only:** 3.7% + $1.79 per ticket (deliberately mirrors Eventbrite's own published fee — a number attendees already recognize as a normal "service fee," rather than an arbitrary one). Paid tiers: 0%.
+- **Paid event tickets, Free tier only:** 3% per ticket (flat percentage — no fixed cents component; this replaced an earlier Eventbrite-mirroring "3.7% + $1.79" design). Paid tiers: 0%.
 - **Stripe's own real card-processing cost** (roughly 2.9% + $0.30, varies by card) is separate from both of the above, charged on every tier regardless of plan, and is not something FaithDock controls or can waive — it comes out of the connected church's own Stripe account on every transaction, same as before any of this existed.
 
 **Requires a one-time SQL migration:**
@@ -405,7 +405,7 @@ alter table events add column fee_mode text not null default 'pass' check (fee_m
 **Exact spec for `stripe-event-checkout`** (not in this repo — this is what needs to change there):
 1. Look up `events.price_cents`, `events.fee_mode`, `events.church_id` for the event, and `churches.plan_type` for that church. Do not accept any of these from the request body.
 2. `isFreePlan = plan_type is null or plan_type = 'free'`.
-3. `faithdockFeeCents = isFreePlan ? round(price_cents * 0.037) + 179 : 0` — computed on the organizer's set ticket price, not on any fee-inclusive total (matches how the fee is quoted: "3.7% + $1.79 per ticket").
+3. `faithdockFeeCents = isFreePlan ? round(price_cents * 0.03) : 0` — computed on the organizer's set ticket price, not on any fee-inclusive total (matches how the fee is quoted: "3% per ticket").
 4. If `fee_mode = 'absorb'`: charge the attendee exactly `price_cents`. Set `application_fee_amount = faithdockFeeCents`. The church's net naturally comes out to `price_cents` minus Stripe's real processing cost minus `faithdockFeeCents`.
 5. If `fee_mode = 'pass'`: the attendee should cover *all* fees, including Stripe's own, so the church still nets the full `price_cents`. That needs the full gross-up, not just adding the FaithDock fee on top:
    ```
