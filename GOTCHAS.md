@@ -634,6 +634,24 @@ Follow-up to the `is_platform_admin` fix above, closing the two items explicitly
 
 ---
 
+## Remove (×) button on the profile photo
+
+Small addition alongside the `update_my_avatar()` RPC above — the Profile page could set a photo but never clear one. Added a small × button over the photo (same visual pattern as the register-church logo's own remove button), shown only when a photo is actually set, calling `update_my_avatar(null)` and refreshing the page's own reload path. No confirmation dialog, matching how every other save action on this page already behaves (immediate, no "are you sure").
+
+---
+
+## Dashboard "Plans" tab now stays inside the dashboard shell instead of navigating away
+
+Reported with a screenshot: clicking "Plans" in the dashboard sidebar used to be a real route change (`href="#pricing"`) to the entirely separate standalone Pricing page — every *other* sidebar item (Events, Billing, Settings, etc.) instead swaps a panel without ever leaving the dashboard, so Plans was the one link that visually "closed" the dashboard (sidebar and all) instead of behaving like its neighbors.
+
+**Fix avoids duplicating the plan-card grid and all of `populatePricingPage()`'s logic a second time.** The standalone Pricing page's actual content div (`#pricing-content-root` — the `.wrap` inside `#page-pricing`) is a single real DOM node that now gets *relocated* into a new empty `#dash-plans` panel while the Plans tab is active, and given back to `#page-pricing` the moment it's not — `populatePricingPage()` only ever looks its elements up by id, so it works identically no matter which parent currently holds them, no changes needed there at all.
+
+New `restorePricingContentToStandalonePage()` handles the "give it back" side, called from two places: `goDash()` whenever switching to any dash tab *other than* `plans` (covers switching tabs while already in the dashboard), and `go()` whenever navigating to any page *other than* `dashboard` (covers leaving the dashboard entirely — clicking a top-nav link, going Home, etc.). Deliberately **not** called unconditionally inside `go()` — a bare `go('dashboard')` (several post-action redirects already call this with no sub-route) must never yank the content out from under an already-active Plans tab; only an actual tab *change* moves it. Verified live, all as a real signed-in owner would see them: switching Plans → another tab restores it; leaving the dashboard entirely restores it; calling `go('dashboard')` alone while Plans is already active leaves it untouched; a direct/refreshed `#dashboard/plans` link lands correctly with Plans active and the dashboard sidebar showing (this last one worked for free — `showRouteFromHash()`'s existing `#dashboard/<tab>` deep-link handling didn't need any changes).
+
+The sidebar link itself changed from `<a href="#pricing" data-route="pricing">` to a plain `<a data-dash="plans">`, matching every other sidebar item's markup exactly — no route, no href, just a tab switch.
+
+---
+
 ## "No data yet." staying in English on an otherwise-fully-Spanish Insights chart
 
 Reported with a screenshot: an Insights mini-chart's empty state showed "No data yet." in English while everything else on the page was Spanish. Root cause was the ordinary one from the earlier locale sweep — a hardcoded English literal (`renderMiniBarChart()`'s empty-data branch) never routed through `window.t()`. Added `insights.noDataYet` to both dictionaries and swapped the literal for `window.t('insights.noDataYet')`. `renderMiniBarChart()` is shared by every Insights mini-chart (giving trend, giving-by-age, attendance, attendance-by-age, involvement breakdown/movement) so this closes it everywhere at once, not just the one chart in the screenshot. No extra re-render wiring needed — the functions that call it (`loadGivingInsights`, `loadAttendanceInsights`, `loadInvolvementPanel`) are already in the language-toggle dispatcher, so an already-rendered "no data" empty state updates immediately on toggle, same as everything else that dispatcher covers.

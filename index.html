@@ -646,7 +646,7 @@
       'profile.nameCantBeEmpty': "Name can't be empty.", 'profile.savedNameLocked60Days': "Saved! This won't be changeable again for 60 days.",
       'profile.enterCurrentPasswordFirst': 'Enter your current password first.', 'profile.currentPasswordIncorrect': 'Current password is incorrect.', 'profile.passwordUpdated': 'Password updated!',
       'profile.enterNewEmailAddress': 'Enter a new email address.', 'profile.alreadyYourCurrentEmail': "That's already your current email.",
-      'profile.uploading': 'Uploading...', 'profile.photoUpdated': 'Photo updated!',
+      'profile.uploading': 'Uploading...', 'profile.photoUpdated': 'Photo updated!', 'profile.removePhoto': 'Remove photo', 'profile.photoRemoved': 'Photo removed.',
       'profile.emailAddressUpdated': 'Your email address has been updated.',
       'profile.confirmationLinkAccepted': 'Confirmation link accepted. If your account requires confirming both the old and new email, check the other one too to finish the change.',
       'pricing.registerChurchFirstThenUpgrade': 'Register your church first, then come back to upgrade.',
@@ -1303,7 +1303,7 @@
       'profile.nameCantBeEmpty': 'El nombre no puede estar vacío.', 'profile.savedNameLocked60Days': '¡Guardado! No podrás cambiarlo de nuevo por 60 días.',
       'profile.enterCurrentPasswordFirst': 'Ingresa tu contraseña actual primero.', 'profile.currentPasswordIncorrect': 'La contraseña actual es incorrecta.', 'profile.passwordUpdated': '¡Contraseña actualizada!',
       'profile.enterNewEmailAddress': 'Ingresa una nueva dirección de correo.', 'profile.alreadyYourCurrentEmail': 'Ese ya es tu correo actual.',
-      'profile.uploading': 'Subiendo...', 'profile.photoUpdated': '¡Foto actualizada!',
+      'profile.uploading': 'Subiendo...', 'profile.photoUpdated': '¡Foto actualizada!', 'profile.removePhoto': 'Quitar foto', 'profile.photoRemoved': 'Foto eliminada.',
       'profile.emailAddressUpdated': 'Tu dirección de correo ha sido actualizada.',
       'profile.confirmationLinkAccepted': 'Enlace de confirmación aceptado. Si tu cuenta requiere confirmar tanto el correo anterior como el nuevo, revisa el otro también para completar el cambio.',
       'pricing.registerChurchFirstThenUpgrade': 'Registra tu iglesia primero y luego vuelve para mejorar tu plan.',
@@ -3072,8 +3072,11 @@
     <h1 style="font-size:34px;" data-i18n="profile.heading">Profile</h1>
     <div class="side-note" style="margin-top:32px;">
       <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
-        <img id="profile-photo-preview" src="" alt="" style="width:64px;height:64px;border-radius:50%;object-fit:cover;background:var(--paper);border:1px solid var(--line);display:none;">
-        <div id="profile-photo-empty" style="width:64px;height:64px;border-radius:50%;background:var(--paper);border:1px solid var(--line);"></div>
+        <div style="position:relative;flex-shrink:0;">
+          <img id="profile-photo-preview" src="" alt="" style="width:64px;height:64px;border-radius:50%;object-fit:cover;background:var(--paper);border:1px solid var(--line);display:none;">
+          <div id="profile-photo-empty" style="width:64px;height:64px;border-radius:50%;background:var(--paper);border:1px solid var(--line);"></div>
+          <button type="button" id="profile-photo-remove-btn" aria-label="Remove photo" data-i18n-title="profile.removePhoto" title="Remove photo" style="display:none;position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--clay);color:#fff;border:2px solid var(--paper);font-size:13px;line-height:1;cursor:pointer;align-items:center;justify-content:center;padding:0;">×</button>
+        </div>
         <div>
           <label class="export-btn" for="profile-photo-input" style="cursor:pointer;display:inline-block;" data-i18n="profile.changePhoto">Change photo</label>
           <input type="file" id="profile-photo-input" accept="image/*" style="display:none;">
@@ -3168,7 +3171,7 @@
 
 <!-- ================= PRICING ================= -->
 <section class="page" id="page-pricing">
-  <div class="wrap" style="padding-top:44px;">    <div class="eyebrow" data-i18n="pricing.eyebrow">Pricing</div>
+  <div class="wrap" id="pricing-content-root" style="padding-top:44px;">    <div class="eyebrow" data-i18n="pricing.eyebrow">Pricing</div>
     <h1 id="pricing-title" style="font-size:34px;max-width:520px;" data-i18n="pricing.title">Become a Partner Church</h1>
     <p style="color:var(--ink-mute);margin-top:8px;max-width:520px;" data-i18n="pricing.subtitle">Free to be listed. Upgrade for tools that help you grow and stay connected with your congregation.</p>
     <!-- "See how FaithDock compares to Breeze & Planning Center" link removed
@@ -3982,7 +3985,7 @@
         <a data-dash="giving" data-i18n="dash.revenue">Revenue</a>
         <a data-dash="insights" data-i18n="insights.title">Insights</a>
         <a data-dash="billing" data-i18n="dash.billing">Billing</a>
-        <a href="#pricing" data-route="pricing" data-i18n="dash.plans">Plans</a>
+        <a data-dash="plans" data-i18n="dash.plans">Plans</a>
         <a data-dash="settings" data-i18n="dash.settings">Settings</a>
       </div>
       <button id="dash-signout-btn" style="background:none;border:none;color:#8791A5;font-size:12.5px;margin-top:24px;padding:0;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.15);width:fit-content;padding-bottom:1px;" data-i18n="dash.signout">Sign out</button>
@@ -4712,6 +4715,14 @@
         </div>
       </div>
 
+      <!-- Empty on purpose -- the actual pricing content
+           (#pricing-content-root, the standalone Pricing page's own
+           .wrap div) gets moved in here while this tab is active, so
+           the dashboard sidebar stays visible instead of navigating
+           away to a full separate page. See goDash()/go() and
+           restorePricingContentToStandalonePage(). -->
+      <div class="dash-content" id="dash-plans"></div>
+
       <div class="dash-content" id="dash-settings">
         <h2 style="font-size:24px;margin-bottom:24px;" data-i18n="dash.settings">Settings</h2>
         <div class="two-col" style="grid-template-columns:1fr 320px;">
@@ -4880,7 +4891,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-09-v237 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-09-v238 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -5733,6 +5744,18 @@
     input.type = visible ? 'password' : 'text';
   }
 
+  // The dashboard's "Plans" tab and the standalone #pricing page share
+  // one real DOM node (#pricing-content-root) instead of duplicating
+  // the whole plan-card grid and populatePricingPage()'s logic a
+  // second time — whichever one is currently being viewed holds the
+  // node; this puts it back home on #page-pricing. Safe to call any
+  // time: a no-op if it's already there.
+  function restorePricingContentToStandalonePage(){
+    var root = document.getElementById('pricing-content-root');
+    var homePage = document.getElementById('page-pricing');
+    if(root && homePage && root.parentElement !== homePage){ homePage.appendChild(root); }
+  }
+
   function go(route, skipPush){
     if(route === 'dashboard' && window.isSignedIn === false){ route = 'signup'; }
     // Dashboard access is now based on actually owning or staffing a
@@ -5743,6 +5766,11 @@
     // (undefined), only once it's definitively confirmed false.
     if(route === 'dashboard' && window.isSignedIn === true && window.hasChurchAccess === false){ route = 'home'; }
     var baseRoute = route.split('/')[0];
+    // Only when actually leaving the dashboard entirely — staying on
+    // 'dashboard' (any sub-tab) must never yank the pricing content
+    // out from under an already-active Plans tab; goDash() below
+    // handles the move whenever the tab itself actually changes.
+    if(baseRoute !== 'dashboard'){ restorePricingContentToStandalonePage(); }
     var pages = document.querySelectorAll('.page');
     for(var i=0;i<pages.length;i++){ pages[i].classList.remove('active'); }
     var target = document.getElementById('page-'+baseRoute);
@@ -6084,6 +6112,21 @@
     // dashboard first opened -- covers switching away to check
     // something else and back, on top of the periodic poll below.
     if(view === 'events' && typeof window.loadDashboardEvents === 'function'){ window.loadDashboardEvents(); }
+    // Plans reuses the exact same content and logic as the standalone
+    // #pricing page (see restorePricingContentToStandalonePage() above)
+    // rather than duplicating the whole plan-card grid a second time —
+    // populatePricingPage() only ever looks its elements up by id, so
+    // it works identically wherever that node currently lives. Every
+    // other tab gives the node back to the standalone page the moment
+    // it's not the one showing, so a direct visit to #pricing always
+    // has its content.
+    if(view === 'plans'){
+      var pricingRoot = document.getElementById('pricing-content-root');
+      if(pricingRoot && panel && pricingRoot.parentElement !== panel){ panel.appendChild(pricingRoot); }
+      if(typeof window.populatePricingPage === 'function'){ window.populatePricingPage(); }
+    } else {
+      restorePricingContentToStandalonePage();
+    }
     if(skipPush){
       safeHistoryUpdate(true, '#dashboard/'+view);
     } else {
@@ -17131,13 +17174,16 @@
 
     var photoPreview = document.getElementById('profile-photo-preview');
     var photoEmpty = document.getElementById('profile-photo-empty');
+    var photoRemoveBtn = document.getElementById('profile-photo-remove-btn');
     if (profile && profile.avatar_url) {
       photoPreview.src = profile.avatar_url;
       photoPreview.style.display = 'block';
       photoEmpty.style.display = 'none';
+      if (photoRemoveBtn) photoRemoveBtn.style.display = 'flex';
     } else {
       photoPreview.style.display = 'none';
       photoEmpty.style.display = 'block';
+      if (photoRemoveBtn) photoRemoveBtn.style.display = 'none';
     }
 
     var homeRow = document.getElementById('profile-church-home-row');
@@ -17660,6 +17706,27 @@
       statusEl.textContent = window.t('profile.photoUpdated');
       statusEl.style.color = 'var(--sage)';
       loadProfilePage();
+    });
+  }
+
+  var profilePhotoRemoveBtn = document.getElementById('profile-photo-remove-btn');
+  if (profilePhotoRemoveBtn) {
+    profilePhotoRemoveBtn.addEventListener('click', async function(){
+      var statusEl = document.getElementById('profile-photo-status');
+      var { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) return;
+
+      profilePhotoRemoveBtn.disabled = true;
+      var { error } = await supabase.rpc('update_my_avatar', { p_avatar_url: null });
+      profilePhotoRemoveBtn.disabled = false;
+
+      statusEl.textContent = error ? error.message : window.t('profile.photoRemoved');
+      statusEl.style.color = error ? 'var(--clay)' : 'var(--ink-mute)';
+      statusEl.style.display = 'block';
+      if (!error) {
+        if (profilePhotoInput) profilePhotoInput.value = '';
+        loadProfilePage();
+      }
     });
   }
 
