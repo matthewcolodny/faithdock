@@ -289,7 +289,8 @@
       'churchClaim.claimPrefix': 'Claim', 'churchClaim.thisChurch': 'this church',
       'churchClaim.intro': "Tell us a bit about your role — a FaithDock admin reviews every claim before ownership transfers, so this isn't instant.",
       'churchClaim.yourName': 'Your name', 'churchClaim.yourRole': 'Your role (e.g. Pastor, Office Admin)',
-      'churchClaim.contactEmail': 'Contact email', 'churchClaim.notePlaceholder': 'Anything that helps us verify this is your church (optional)',
+      'churchClaim.contactEmail': 'Contact email', 'churchClaim.contactPhone': 'Contact phone number', 'churchClaim.notePlaceholder': 'Anything that helps us verify this is your church (optional)',
+      'churchClaim.nameEmailPhoneRequired': 'Name, email, and phone number are all required.',
       'churchClaim.submit': 'Submit claim request', 'churchClaim.nameEmailRequired': 'Name and email are required.',
       'churchClaim.wrongFlowQuestion': 'Did you mean to add a church instead of claiming one?', 'churchClaim.wrongFlowLink': 'Add a church',
       'churchClaim.choosePlanFirst': 'Choose a plan to continue claiming {name} — most churches start on Free.',
@@ -944,7 +945,8 @@
       'churchClaim.claimPrefix': 'Reclamar', 'churchClaim.thisChurch': 'esta iglesia',
       'churchClaim.intro': 'Cuéntanos un poco sobre tu rol — un administrador de FaithDock revisa cada solicitud antes de transferir la propiedad, así que esto no es instantáneo.',
       'churchClaim.yourName': 'Tu nombre', 'churchClaim.yourRole': 'Tu rol (p. ej. Pastor, Administrador de oficina)',
-      'churchClaim.contactEmail': 'Correo de contacto', 'churchClaim.notePlaceholder': 'Cualquier cosa que nos ayude a verificar que esta es tu iglesia (opcional)',
+      'churchClaim.contactEmail': 'Correo de contacto', 'churchClaim.contactPhone': 'Número de teléfono de contacto', 'churchClaim.notePlaceholder': 'Cualquier cosa que nos ayude a verificar que esta es tu iglesia (opcional)',
+      'churchClaim.nameEmailPhoneRequired': 'Se requieren nombre, correo electrónico y número de teléfono.',
       'churchClaim.submit': 'Enviar solicitud', 'churchClaim.nameEmailRequired': 'Se requieren nombre y correo electrónico.',
       'churchClaim.wrongFlowQuestion': '¿Querías agregar una iglesia en lugar de reclamar una?', 'churchClaim.wrongFlowLink': 'Agregar una iglesia',
       'churchClaim.choosePlanFirst': 'Elige un plan para continuar reclamando {name} — la mayoría de las iglesias comienzan con el plan Gratis.',
@@ -4866,7 +4868,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-09-v233 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-09-v234 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -4944,6 +4946,7 @@
     <input class="field" type="text" id="church-claim-name" placeholder="Your name" data-i18n-placeholder="churchClaim.yourName">
     <input class="field" type="text" id="church-claim-role" placeholder="Your role (e.g. Pastor, Office Admin)" data-i18n-placeholder="churchClaim.yourRole" style="margin-top:10px;">
     <input class="field" type="email" id="church-claim-email" placeholder="Contact email" data-i18n-placeholder="churchClaim.contactEmail" style="margin-top:10px;">
+    <input class="field" type="tel" id="church-claim-phone" placeholder="Contact phone number" data-i18n-placeholder="churchClaim.contactPhone" style="margin-top:10px;">
     <textarea class="field" id="church-claim-note" placeholder="Anything that helps us verify this is your church (optional)" data-i18n-placeholder="churchClaim.notePlaceholder" style="margin-top:10px;min-height:70px;"></textarea>
     <div id="church-claim-status" style="display:none;font-size:13px;margin-top:12px;"></div>
     <button class="btn-gold" id="church-claim-submit-btn" style="margin-top:16px;width:100%;justify-content:center;" data-i18n="churchClaim.submit">Submit claim request</button>
@@ -8017,7 +8020,7 @@
     var list = document.getElementById('rc-service-times-list');
     if (!list) return;
     list.innerHTML = rcServiceTimes.map(function(entry, i){
-      var timeLabel = new Date('2000-01-01T' + entry.time).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+      var timeLabel = new Date('2000-01-01T' + entry.time).toLocaleTimeString(window.appLocale(), { hour: 'numeric', minute: '2-digit' });
       var dayLabel = window.t('days.' + entry.day.toLowerCase());
       return '<span class="chip">' + dayLabel + ' ' + timeLabel + '<button type="button" data-rc-service-time-index="' + i + '" aria-label="' + window.t('rc.removeServiceTime') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span>';
     }).join('');
@@ -8067,7 +8070,7 @@
     var byDay = {};
     entries.forEach(function(e){
       if (!byDay[e.day]) byDay[e.day] = [];
-      byDay[e.day].push(new Date('2000-01-01T' + e.time).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }));
+      byDay[e.day].push(new Date('2000-01-01T' + e.time).toLocaleTimeString(window.appLocale(), { hour: 'numeric', minute: '2-digit' }));
     });
     var parts = dayOrder.filter(function(d){ return byDay[d]; }).map(function(d){
       return window.t('days.' + d.toLowerCase()) + ' ' + byDay[d].join(' & ');
@@ -8345,8 +8348,8 @@
       else if (ev.visibility === 'private') { badge = 'clay'; badgeLabel = 'Members only'; }
       else { badge = 'sage'; badgeLabel = 'Public'; }
 
-      var dateLabel = new Date(ev.start_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-      var timeLabel = new Date(ev.start_at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+      var dateLabel = new Date(ev.start_at).toLocaleDateString(window.appLocale(), { month: 'short', day: 'numeric' });
+      var timeLabel = new Date(ev.start_at).toLocaleTimeString(window.appLocale(), { hour: 'numeric', minute: '2-digit' });
       var creatorName = (ev.profiles && ev.profiles.full_name) ? ev.profiles.full_name : '—';
       var escapedTitle = ev.title.replace(/"/g, '&quot;');
       var thumbHtml = ev.image_url
@@ -8462,7 +8465,7 @@
     if (!grid) return;
     var year = calCurrentMonth.getFullYear();
     var month = calCurrentMonth.getMonth();
-    document.getElementById('cal-month-label').textContent = calCurrentMonth.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+    document.getElementById('cal-month-label').textContent = calCurrentMonth.toLocaleDateString(window.appLocale(), { month: 'long', year: 'numeric' });
 
     var startDow = new Date(year, month, 1).getDay();
     var daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -8504,7 +8507,7 @@
         cellBodyHtml = '<div class="cal-more-link" data-cal-more-date="' + key + '" style="font-weight:700;font-size:11px;">' + dayEvents.length + ' events</div>';
       } else {
         cellBodyHtml = dayEvents.map(function(e){
-          var timeStr = new Date(e.start_at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+          var timeStr = new Date(e.start_at).toLocaleTimeString(window.appLocale(), { hour: 'numeric', minute: '2-digit' });
           return '<span class="cal-event-chip ' + calBadgeClass(e) + '" data-cal-event-id="' + e.id + '" title="' + e.title.replace(/"/g, '&quot;') + '">' + timeStr + ' ' + e.title.replace(/</g, '&lt;') + '</span>';
         }).join('');
       }
@@ -8573,10 +8576,10 @@
       var dayEvents = getEventsForDateKey(key);
       var firstDate = dayEvents.length ? new Date(dayEvents[0].start_at) : null;
       document.getElementById('cal-day-modal-title').textContent = firstDate
-        ? firstDate.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })
+        ? firstDate.toLocaleDateString(window.appLocale(), { weekday: 'long', month: 'long', day: 'numeric' })
         : window.t('dash.events');
       document.getElementById('cal-day-modal-list').innerHTML = dayEvents.map(function(e){
-        var timeStr = new Date(e.start_at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+        var timeStr = new Date(e.start_at).toLocaleTimeString(window.appLocale(), { hour: 'numeric', minute: '2-digit' });
         return '<div class="cal-event-chip ' + calBadgeClass(e) + '" data-cal-event-id="' + e.id + '" style="display:block;white-space:normal;font-size:13px;padding:8px 10px;margin-bottom:6px;">'
           + '<strong>' + timeStr + '</strong> — ' + e.title.replace(/</g, '&lt;') + '</div>';
       }).join('');
@@ -10840,7 +10843,7 @@
 
     listEl.innerHTML = data.map(function(r){
       var name = (r.profiles && r.profiles.full_name) ? r.profiles.full_name : window.t('registrants.unnamedRegistrant');
-      var dateLabel = new Date(r.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      var dateLabel = new Date(r.created_at).toLocaleDateString(window.appLocale(), { month: 'short', day: 'numeric' });
       var statusTag = r.status === 'cancelled'
         ? '<span class="tag clay" style="font-size:10px;">' + window.t('registrants.cancelled') + '</span>'
         : (r.status === 'pending' ? '<span class="tag gold" style="font-size:10px;">' + window.t('registrants.paymentPending') + '</span>' : '<span class="tag sage" style="font-size:10px;">' + window.t('registrants.confirmed') + '</span>');
@@ -10868,7 +10871,7 @@
     var rows = [['Name', 'Role', 'Status', 'Registered on']];
     lastRegistrantsData.forEach(function(r){
       var name = (r.profiles && r.profiles.full_name) ? r.profiles.full_name : 'Unnamed registrant';
-      rows.push([name, r.role || 'participant', r.status, new Date(r.created_at).toLocaleDateString()]);
+      rows.push([name, r.role || 'participant', r.status, new Date(r.created_at).toLocaleDateString(window.appLocale())]);
     });
     var csv = rows.map(function(row){
       return row.map(function(cell){ return '"' + String(cell).replace(/"/g, '""') + '"'; }).join(',');
@@ -11315,14 +11318,14 @@
   // ============================================================
   function formatEventWhen(startAtIso, endAtIso){
     var d = new Date(startAtIso);
-    var dateStr = d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
-    var timeStr = d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+    var dateStr = d.toLocaleDateString(window.appLocale(), { weekday: 'short', month: 'short', day: 'numeric' });
+    var timeStr = d.toLocaleTimeString(window.appLocale(), { hour: 'numeric', minute: '2-digit' });
     if (!endAtIso) return dateStr + ' · ' + timeStr;
     var endD = new Date(endAtIso);
     var sameDay = endD.toDateString() === d.toDateString();
-    var endTimeStr = endD.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+    var endTimeStr = endD.toLocaleTimeString(window.appLocale(), { hour: 'numeric', minute: '2-digit' });
     if (sameDay) return dateStr + ' · ' + timeStr + ' – ' + endTimeStr;
-    var endDateStr = endD.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+    var endDateStr = endD.toLocaleDateString(window.appLocale(), { weekday: 'short', month: 'short', day: 'numeric' });
     return dateStr + ' ' + timeStr + ' – ' + endDateStr + ' ' + endTimeStr;
   }
   // Same cross-script-scope issue as supabase — mapSearchEventRow()
@@ -11597,9 +11600,9 @@
     var uniqueDonors = {};
     donations.forEach(function(d){ uniqueDonors[d.donor_id || d.donor_email || 'unknown'] = true; });
 
-    totalEl.textContent = '$' + (totalCents / 100).toLocaleString(undefined, { maximumFractionDigits: 0 });
+    totalEl.textContent = '$' + (totalCents / 100).toLocaleString(window.appLocale(), { maximumFractionDigits: 0 });
     document.getElementById('insights-giving-donors').textContent = Object.keys(uniqueDonors).length;
-    document.getElementById('insights-giving-average').textContent = donations.length ? '$' + Math.round(totalCents / donations.length / 100).toLocaleString() : '$0';
+    document.getElementById('insights-giving-average').textContent = donations.length ? '$' + Math.round(totalCents / donations.length / 100).toLocaleString(window.appLocale()) : '$0';
 
     var twelveMonthsAgo = new Date();
     twelveMonthsAgo.setDate(1);
@@ -11618,7 +11621,7 @@
       var m = months.filter(function(mo){ return mo.key === key; })[0];
       if (m) m.value += don.amount_cents;
     });
-    renderMiniBarChart('insights-giving-chart', months.map(function(m){ return { label: m.label, value: m.value / 100 }; }), function(v){ return '$' + Math.round(v).toLocaleString(); });
+    renderMiniBarChart('insights-giving-chart', months.map(function(m){ return { label: m.label, value: m.value / 100 }; }), function(v){ return '$' + Math.round(v).toLocaleString(window.appLocale()); });
 
     // By age — self-reported and optional, so this is only ever a
     // partial picture. Donations from people who haven't shared an
@@ -11642,7 +11645,7 @@
     });
     var giveAgeNote = document.getElementById('insights-giving-age-note');
     if (giveAgeNote) { giveAgeNote.textContent = window.t('insights.byAgeGroupBasedOn').replace('{shared}', sharedCount).replace('{total}', donations.length); }
-    renderMiniBarChart('insights-giving-age-chart', ageBucketOrder.map(function(k){ return { label: ageBucketLabels[k], value: ageTotals[k] / 100 }; }), function(v){ return '$' + Math.round(v).toLocaleString(); });
+    renderMiniBarChart('insights-giving-age-chart', ageBucketOrder.map(function(k){ return { label: ageBucketLabels[k], value: ageTotals[k] / 100 }; }), function(v){ return '$' + Math.round(v).toLocaleString(window.appLocale()); });
   }
   window.loadGivingInsights = loadGivingInsights;
 
@@ -11684,14 +11687,14 @@
     (households || []).forEach(function(h){ householdMemberCount += (h.household_members || []).length; });
 
     outputEl.innerHTML = '<h2 style="font-family:\'Fraunces\';font-size:20px;margin-bottom:4px;">' + myChurch.name + '</h2>'
-      + '<p style="font-size:12px;color:var(--ink-mute);margin-bottom:20px;">' + window.t('reports.peopleStatisticsGenerated').replace('{date}', new Date().toLocaleDateString()) + '</p>'
+      + '<p style="font-size:12px;color:var(--ink-mute);margin-bottom:20px;">' + window.t('reports.peopleStatisticsGenerated').replace('{date}', new Date().toLocaleDateString(window.appLocale())) + '</p>'
       + '<table class="sched-table" style="margin-bottom:20px;">'
       + '<tr><td>' + window.t('reports.totalPeopleConnected') + '</td><td class="mono">' + peopleIds.length + '</td></tr>'
       + '<tr><td>' + window.t('dashDir.members') + '</td><td class="mono">' + (memberships || []).length + '</td></tr>'
       + '<tr><td>' + window.t('reports.staffIncludingOwner') + '</td><td class="mono">' + ((staffRows || []).length + 1) + '</td></tr>'
       + '<tr><td>' + window.t('dash.groups') + '</td><td class="mono">' + (groups || []).length + '</td></tr>'
       + '<tr><td>' + window.t('households.heading') + '</td><td class="mono">' + window.t('reports.householdsCountGrouped').replace('{count}', (households || []).length).replace('{peopleCount}', householdMemberCount) + '</td></tr>'
-      + '<tr><td>' + window.t('reports.totalGivenAllTime') + '</td><td class="mono">$' + (totalGivenCents / 100).toLocaleString(undefined, { maximumFractionDigits: 0 }) + '</td></tr>'
+      + '<tr><td>' + window.t('reports.totalGivenAllTime') + '</td><td class="mono">$' + (totalGivenCents / 100).toLocaleString(window.appLocale(), { maximumFractionDigits: 0 }) + '</td></tr>'
       + '<tr><td>' + window.t('reports.totalDonors') + '</td><td class="mono">' + Object.keys(uniqueDonors).length + '</td></tr>'
       + '</table>'
       + '<h3 class="sched-date" style="margin-top:0;">' + window.t('reports.ageGroups') + ' <span style="font-size:11px;font-weight:400;color:var(--ink-mute);">' + window.t('reports.selfReportedBasedOn').replace('{shared}', ageSharedCount).replace('{total}', peopleIds.length) + '</span></h3>'
@@ -11884,7 +11887,7 @@
     var totalGivenCents = (donationRows || []).reduce(function(s, d){ return s + d.amount_cents; }, 0);
 
     outputEl.innerHTML = '<h2 style="font-family:\'Fraunces\';font-size:20px;margin-bottom:4px;">' + (personName || window.t('households.unnamed')).replace(/</g, '&lt;') + '</h2>'
-      + '<p style="font-size:12px;color:var(--ink-mute);margin-bottom:20px;">' + myChurch.name + ' — ' + window.t('reports.generatedOn').replace('{date}', new Date().toLocaleDateString()) + '</p>'
+      + '<p style="font-size:12px;color:var(--ink-mute);margin-bottom:20px;">' + myChurch.name + ' — ' + window.t('reports.generatedOn').replace('{date}', new Date().toLocaleDateString(window.appLocale())) + '</p>'
       + '<table class="sched-table" style="margin-bottom:20px;">'
       + '<tr><td>' + window.t('dashDir.email') + '</td><td>' + (personEmail || '—') + '</td></tr>'
       + '<tr><td>' + window.t('dashDir.phone') + '</td><td>' + (personPhone || '—') + '</td></tr>'
@@ -11896,7 +11899,7 @@
       + '<h3 class="sched-date" style="margin-top:0;">' + window.t('reports.recentEventRegistrations') + '</h3>'
       + (eventRows && eventRows.length
           ? '<table class="sched-table"><tr><th>' + window.t('dashEvents.event') + '</th><th>' + window.t('dashEvents.date') + '</th><th>' + window.t('reports.attended') + '</th></tr>' + eventRows.map(function(r){
-              return '<tr><td>' + r.events.title.replace(/</g, '&lt;') + '</td><td class="mono">' + new Date(r.events.start_at).toLocaleDateString() + '</td><td>' + (r.checked_in_at ? window.t('reports.yes') : window.t('reports.no')) + '</td></tr>';
+              return '<tr><td>' + r.events.title.replace(/</g, '&lt;') + '</td><td class="mono">' + new Date(r.events.start_at).toLocaleDateString(window.appLocale()) + '</td><td>' + (r.checked_in_at ? window.t('reports.yes') : window.t('reports.no')) + '</td></tr>';
             }).join('') + '</table>'
           : '<p style="color:var(--ink-mute);font-size:12.5px;">' + window.t('reports.noEventRegistrationsOnRecord') + '</p>');
   }
@@ -11930,7 +11933,7 @@
     var pending = (members || []).filter(function(m){ return m.status === 'pending'; });
 
     outputEl.innerHTML = '<h2 style="font-family:\'Fraunces\';font-size:20px;margin-bottom:4px;">' + (groupName || window.t('reports.unnamedGroup')).replace(/</g, '&lt;') + window.t('reports.rosterSuffix') + '</h2>'
-      + '<p style="font-size:12px;color:var(--ink-mute);margin-bottom:20px;">' + window.t('reports.generatedOn').replace('{date}', new Date().toLocaleDateString()) + ' — ' + active.length + ' ' + (active.length === 1 ? window.t('dashDir.member') : window.t('dashDir.membersWord')) + '</p>'
+      + '<p style="font-size:12px;color:var(--ink-mute);margin-bottom:20px;">' + window.t('reports.generatedOn').replace('{date}', new Date().toLocaleDateString(window.appLocale())) + ' — ' + active.length + ' ' + (active.length === 1 ? window.t('dashDir.member') : window.t('dashDir.membersWord')) + '</p>'
       + '<table class="sched-table">'
       + '<tr><th>' + window.t('dashCheckin.name') + '</th><th>' + window.t('dashDir.role') + '</th></tr>'
       + active.map(function(m){
@@ -11994,7 +11997,7 @@
 
     var titleMap = { distribution: window.t('reports.eventPaymentDistribution'), balance: window.t('reports.paymentBalanceReport'), batch: window.t('reports.onlineBatchReport') };
     var html = '<h2 style="font-family:\'Fraunces\';font-size:20px;margin-bottom:4px;">' + myChurch.name + ' — ' + titleMap[reportType] + '</h2>'
-      + '<p style="font-size:12px;color:var(--ink-mute);margin-bottom:18px;">' + new Date(fromVal + 'T00:00:00').toLocaleDateString() + ' ' + window.t('reports.dateRangeTo') + ' ' + new Date(toVal + 'T00:00:00').toLocaleDateString() + '</p>';
+      + '<p style="font-size:12px;color:var(--ink-mute);margin-bottom:18px;">' + new Date(fromVal + 'T00:00:00').toLocaleDateString(window.appLocale()) + ' ' + window.t('reports.dateRangeTo') + ' ' + new Date(toVal + 'T00:00:00').toLocaleDateString(window.appLocale()) + '</p>';
 
     if (!regs || !regs.length) {
       outputEl.innerHTML = html + '<p style="color:var(--ink-mute);font-size:13px;">' + window.t('reports.noPaidRegistrationsInRange') + '</p>';
@@ -12017,7 +12020,7 @@
         group.rows.forEach(function(r){
           var name = (r.profiles && r.profiles.full_name) ? r.profiles.full_name : window.t('households.unnamed');
           var amt = r.amount_paid_cents ? '$' + (r.amount_paid_cents / 100).toFixed(2) : '—';
-          html += '<tr><td>' + name.replace(/</g, '&lt;') + '</td><td class="mono">' + new Date(r.created_at).toLocaleDateString() + '</td><td class="mono">' + amt + '</td></tr>';
+          html += '<tr><td>' + name.replace(/</g, '&lt;') + '</td><td class="mono">' + new Date(r.created_at).toLocaleDateString(window.appLocale()) + '</td><td class="mono">' + amt + '</td></tr>';
         });
         html += '<tr><td colspan="2" style="text-align:right;font-weight:600;">' + window.t('reports.total') + '</td><td class="mono" style="font-weight:600;">$' + (group.total / 100).toFixed(2) + '</td></tr></table>';
       });
@@ -12045,7 +12048,7 @@
       }
       dayOrder.forEach(function(dayKey){
         var group = byDay[dayKey];
-        html += '<h3 class="sched-date">' + new Date(group.rows[0].created_at).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) + '</h3>';
+        html += '<h3 class="sched-date">' + new Date(group.rows[0].created_at).toLocaleDateString(window.appLocale(), { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) + '</h3>';
         html += '<table class="sched-table"><tr><th>' + window.t('dashEvents.event') + '</th><th>' + window.t('reports.registrant') + '</th><th>' + window.t('dashGiving.amount') + '</th></tr>';
         group.rows.forEach(function(r){
           var name = (r.profiles && r.profiles.full_name) ? r.profiles.full_name : window.t('households.unnamed');
@@ -12071,7 +12074,7 @@
       .order('created_at');
 
     var html = '<h2 style="font-family:\'Fraunces\';font-size:20px;margin-bottom:4px;">' + myChurch.name + window.t('reports.discountCodeReportSuffix') + '</h2>'
-      + '<p style="font-size:12px;color:var(--ink-mute);margin-bottom:18px;">' + new Date(fromVal + 'T00:00:00').toLocaleDateString() + ' ' + window.t('reports.dateRangeTo') + ' ' + new Date(toVal + 'T00:00:00').toLocaleDateString() + '</p>';
+      + '<p style="font-size:12px;color:var(--ink-mute);margin-bottom:18px;">' + new Date(fromVal + 'T00:00:00').toLocaleDateString(window.appLocale()) + ' ' + window.t('reports.dateRangeTo') + ' ' + new Date(toVal + 'T00:00:00').toLocaleDateString(window.appLocale()) + '</p>';
 
     if (error) { outputEl.innerHTML = html + '<p style="color:var(--clay);font-size:13px;">' + error.message + '</p>'; return; }
 
@@ -12156,7 +12159,7 @@
     });
 
     var html = '<h2 style="font-family:\'Fraunces\';font-size:20px;margin-bottom:4px;">' + myChurch.name + window.t('reports.rosterTotalsSuffix') + '</h2>'
-      + '<p style="font-size:12px;color:var(--ink-mute);margin-bottom:18px;">' + window.t('reports.generatedOn').replace('{date}', new Date().toLocaleDateString()) + '</p>'
+      + '<p style="font-size:12px;color:var(--ink-mute);margin-bottom:18px;">' + window.t('reports.generatedOn').replace('{date}', new Date().toLocaleDateString(window.appLocale())) + '</p>'
       + '<table class="sched-table"><tr><th>' + window.t('dashGroups.group') + '</th><th>' + window.t('reports.meetingsTracked') + '</th><th>' + window.t('reports.attendanceRate') + '</th></tr>';
     groupsList.forEach(function(g){
       var s = statsByGroup[g.id];
@@ -12187,7 +12190,7 @@
 
     var html = '<h2 style="font-family:\'Fraunces\';font-size:20px;margin-bottom:4px;">' + groupName.replace(/</g, '&lt;') + window.t('reports.attendanceGridSuffix') + '</h2>'
       + '<p style="font-size:12px;color:var(--ink-mute);margin-bottom:18px;">' + window.t('reports.lastNTrackedMeetings').replace('{n}', uniqueDates.length) + '</p>'
-      + '<table class="sched-table"><tr><th>' + window.t('dashGroups.roleMember') + '</th>' + uniqueDates.map(function(d){ return '<th class="mono" style="font-size:10px;">' + new Date(d + 'T00:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + '</th>'; }).join('') + '</tr>';
+      + '<table class="sched-table"><tr><th>' + window.t('dashGroups.roleMember') + '</th>' + uniqueDates.map(function(d){ return '<th class="mono" style="font-size:10px;">' + new Date(d + 'T00:00:00').toLocaleDateString(window.appLocale(), { month: 'short', day: 'numeric' }) + '</th>'; }).join('') + '</tr>';
     members.forEach(function(m){
       var name = (m.profiles && m.profiles.full_name) ? m.profiles.full_name : window.t('households.unnamed');
       html += '<tr><td>' + name.replace(/</g, '&lt;') + '</td>' + uniqueDates.map(function(d){
@@ -12274,7 +12277,7 @@
       var chartData = recentEvents.slice().reverse().map(function(e){
         var eventRegs = (recentRegs || []).filter(function(r){ return r.event_id === e.id; });
         var checkedIn = eventRegs.filter(function(r){ return r.checked_in_at; }).length;
-        return { label: new Date(e.start_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }), value: checkedIn };
+        return { label: new Date(e.start_at).toLocaleDateString(window.appLocale(), { month: 'short', day: 'numeric' }), value: checkedIn };
       });
       renderMiniBarChart('insights-attendance-chart', chartData);
     }
@@ -12626,7 +12629,7 @@
         conflicts.push({
           roomName: row.church_rooms ? row.church_rooms.name : window.t('ce.aRoom'),
           eventTitle: e.title,
-          eventTime: eStart.toLocaleString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
+          eventTime: eStart.toLocaleString(window.appLocale(), { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
         });
       }
     });
@@ -12871,16 +12874,16 @@
       });
 
       var html = '<h2 style="font-family:\'Fraunces\';font-size:20px;margin-bottom:4px;">' + myChurch.name + window.t('reports.scheduleSuffix') + '</h2>'
-        + '<p style="font-size:12px;color:var(--ink-mute);margin-bottom:18px;">' + new Date(fromVal + 'T00:00:00').toLocaleDateString() + ' ' + window.t('reports.dateRangeTo') + ' ' + new Date(toVal + 'T00:00:00').toLocaleDateString() + '</p>';
+        + '<p style="font-size:12px;color:var(--ink-mute);margin-bottom:18px;">' + new Date(fromVal + 'T00:00:00').toLocaleDateString(window.appLocale()) + ' ' + window.t('reports.dateRangeTo') + ' ' + new Date(toVal + 'T00:00:00').toLocaleDateString(window.appLocale()) + '</p>';
 
       order.forEach(function(key){
         var dayEvents = groups[key];
         var d = new Date(dayEvents[0].start_at);
-        html += '<h3 class="sched-date">' + d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) + '</h3>';
+        html += '<h3 class="sched-date">' + d.toLocaleDateString(window.appLocale(), { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) + '</h3>';
         html += '<table class="sched-table"><tr><th>' + window.t('reports.time') + '</th><th>' + window.t('dashEvents.event') + '</th><th>' + window.t('reports.primaryLocation') + '</th><th>' + window.t('reports.additionalLocations') + '</th></tr>';
         dayEvents.forEach(function(e){
-          var startStr = new Date(e.start_at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
-          var endStr = e.end_at ? new Date(e.end_at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) : '';
+          var startStr = new Date(e.start_at).toLocaleTimeString(window.appLocale(), { hour: 'numeric', minute: '2-digit' });
+          var endStr = e.end_at ? new Date(e.end_at).toLocaleTimeString(window.appLocale(), { hour: 'numeric', minute: '2-digit' }) : '';
           var timeStr = endStr ? (startStr + ' ' + window.t('reports.dateRangeTo') + ' ' + endStr) : startStr;
           var rooms = roomsByEvent[e.id] || [];
           var primary = rooms.filter(function(r){ return r.isPrimary; })[0];
@@ -13698,9 +13701,9 @@
     var giverCount = Object.keys(uniqueGivers).length;
     var avgCents = thisYear.length ? Math.round(totalThisYearCents / thisYear.length) : 0;
 
-    document.getElementById('giving-stat-total').textContent = '$' + (totalThisYearCents / 100).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    document.getElementById('giving-stat-total').textContent = '$' + (totalThisYearCents / 100).toLocaleString(window.appLocale(), { minimumFractionDigits: 0, maximumFractionDigits: 0 });
     document.getElementById('giving-stat-givers').textContent = giverCount;
-    document.getElementById('giving-stat-average').textContent = '$' + (avgCents / 100).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    document.getElementById('giving-stat-average').textContent = '$' + (avgCents / 100).toLocaleString(window.appLocale(), { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
     // Fund names, looked up once for both the breakdown and the
     // table's Fund column — a donation with no fund_id is General
@@ -13733,7 +13736,7 @@
       var CHART_MAX_PX = 90;
       trendChartEl.innerHTML = months.map(function(m){
         var barPx = m.totalCents ? Math.max(4, Math.round((m.totalCents / maxCents) * CHART_MAX_PX)) : 2;
-        var totalLabel = m.totalCents ? '$' + Math.round(m.totalCents / 100).toLocaleString() : '$0';
+        var totalLabel = m.totalCents ? '$' + Math.round(m.totalCents / 100).toLocaleString(window.appLocale()) : '$0';
         return '<div style="display:flex;flex-direction:column;align-items:center;flex:1;">'
           + '<div style="font-size:10px;color:var(--ink-mute);margin-bottom:4px;white-space:nowrap;">' + totalLabel + '</div>'
           + '<div style="width:60%;background:var(--gold);border-radius:3px 3px 0 0;height:' + barPx + 'px;"></div>'
@@ -13755,7 +13758,7 @@
         fundListEl.innerHTML = fundKeys.sort(function(a, b){ return totalsByFund[b] - totalsByFund[a]; }).map(function(key){
           var label = key === 'general' ? 'General Fund' : (fundNamesById[key] || 'Unknown fund');
           var pct = totalThisYearCents ? Math.round((totalsByFund[key] / totalThisYearCents) * 100) : 0;
-          return '<div class="info-row" style="justify-content:space-between;"><span>' + label.replace(/</g, '&lt;') + ' <span style="color:var(--ink-mute);font-size:12px;">(' + pct + '%)</span></span><span class="mono">$' + (totalsByFund[key] / 100).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + '</span></div>';
+          return '<div class="info-row" style="justify-content:space-between;"><span>' + label.replace(/</g, '&lt;') + ' <span style="color:var(--ink-mute);font-size:12px;">(' + pct + '%)</span></span><span class="mono">$' + (totalsByFund[key] / 100).toLocaleString(window.appLocale(), { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + '</span></div>';
         }).join('');
         fundWrap.style.display = 'block';
       } else {
@@ -13777,7 +13780,7 @@
 
     tbody.innerHTML = donations2.map(function(d){
       var donorLabel = d.donor_id ? (namesById[d.donor_id] || window.t('households.unnamed')) : (d.donor_email ? d.donor_email + ' ' + window.t('dashGiving.guestSuffix') : window.t('dashGiving.anonymous'));
-      var dateLabel = new Date(d.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+      var dateLabel = new Date(d.created_at).toLocaleDateString(window.appLocale(), { month: 'short', day: 'numeric', year: 'numeric' });
       var fundLabel = d.fund_id ? (fundNamesById[d.fund_id] || window.t('dashGiving.unknownFund')) : window.t('dashGiving.generalFund');
       return '<tr><td>' + donorLabel + '</td><td class="mono">' + fundLabel.replace(/</g, '&lt;') + '</td><td class="mono">$' + (d.amount_cents / 100).toFixed(2) + '</td><td class="mono">' + dateLabel + '</td></tr>';
     }).join('');
@@ -13815,11 +13818,11 @@
     var netThisYearCents = netKnownRows.reduce(function(sum, r){ return sum + r.net_amount_cents; }, 0);
     var avgCents = thisYear.length ? Math.round(totalThisYearCents / thisYear.length) : 0;
 
-    totalEl.textContent = '$' + (totalThisYearCents / 100).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    totalEl.textContent = '$' + (totalThisYearCents / 100).toLocaleString(window.appLocale(), { minimumFractionDigits: 0, maximumFractionDigits: 0 });
     var countEl = document.getElementById('ticket-stat-count');
     if (countEl) countEl.textContent = thisYear.length;
     var avgEl = document.getElementById('ticket-stat-average');
-    if (avgEl) avgEl.textContent = '$' + (avgCents / 100).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    if (avgEl) avgEl.textContent = '$' + (avgCents / 100).toLocaleString(window.appLocale(), { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
     return { totalCents: totalThisYearCents, netCents: netKnownRows.length ? netThisYearCents : null };
   }
@@ -13837,7 +13840,7 @@
     var totalEl = document.getElementById('revenue-stat-total');
     if (totalEl) {
       var combinedTotal = (giving.totalCents || 0) + (tickets.totalCents || 0);
-      totalEl.textContent = '$' + (combinedTotal / 100).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+      totalEl.textContent = '$' + (combinedTotal / 100).toLocaleString(window.appLocale(), { minimumFractionDigits: 0, maximumFractionDigits: 0 });
     }
     var netEl = document.getElementById('revenue-stat-net');
     if (netEl) {
@@ -13849,7 +13852,7 @@
         netEl.textContent = '—';
       } else {
         var combinedNet = (giving.netCents || 0) + (tickets.netCents || 0);
-        netEl.textContent = '$' + (combinedNet / 100).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        netEl.textContent = '$' + (combinedNet / 100).toLocaleString(window.appLocale(), { minimumFractionDigits: 0, maximumFractionDigits: 0 });
       }
     }
   }
@@ -13952,7 +13955,7 @@
 
     wrap.style.display = 'block';
     listEl.innerHTML = invites.map(function(inv){
-      var dateLabel = new Date(inv.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      var dateLabel = new Date(inv.created_at).toLocaleDateString(window.appLocale(), { month: 'short', day: 'numeric' });
       return '<div class="info-row" style="justify-content:space-between;">'
         + '<span>' + (inv.name ? inv.name.replace(/</g, '&lt;') + ' — ' : '') + inv.email.replace(/</g, '&lt;') + ' <span style="color:var(--ink-mute);font-size:12px;">(' + window.t('households.invitedOn') + ' ' + dateLabel + ')</span></span>'
         + '<button class="export-btn" data-resend-invite-email="' + inv.email.replace(/"/g, '&quot;') + '" data-resend-invite-name="' + (inv.name || '').replace(/"/g, '&quot;') + '" style="padding:5px 12px;font-size:12px;">' + window.t('households.resend') + '</button>'
@@ -14034,7 +14037,7 @@
     wrap.style.display = 'block';
     listEl.innerHTML = recent.map(function(m){
       var name = (m.profiles && m.profiles.full_name) ? m.profiles.full_name : window.t('households.unnamed');
-      var dateLabel = new Date(m.joined_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      var dateLabel = new Date(m.joined_at).toLocaleDateString(window.appLocale(), { month: 'short', day: 'numeric' });
       var flaggedTag = m.flagged_at ? ' <span class="tag clay" style="font-size:10px;">' + window.t('households.flagged') + '</span>' : '';
       return '<div class="info-row" style="justify-content:space-between;">'
         + '<span>' + name.replace(/</g, '&lt;') + ' <span style="color:var(--ink-mute);font-size:12px;">(' + window.t('households.joinedOn') + ' ' + dateLabel + ')</span>' + flaggedTag + '</span>'
@@ -14153,7 +14156,7 @@
 
     contentEl.style.display = 'block';
     var involvementCategoryLabels = getInvolvementCategoryLabels();
-    document.getElementById('involvement-breakdown-label').textContent = window.t('insights.thisMonth') + ' — ' + new Date(currentMonth).toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+    document.getElementById('involvement-breakdown-label').textContent = window.t('insights.thisMonth') + ' — ' + new Date(currentMonth).toLocaleDateString(window.appLocale(), { month: 'long', year: 'numeric' });
 
     var counts = { new: 0, disengaged: 0, sporadic: 0, active: 0, very_active: 0 };
     currentSnapshots.forEach(function(s){ counts[s.category]++; });
@@ -14330,7 +14333,7 @@
     var { data: eventsData } = await supabase.from('events').select('id, title, start_at').eq('church_id', myChurch.id).order('start_at', { ascending: false });
     msgEventChecksEl.innerHTML = (eventsData && eventsData.length)
       ? eventsData.map(function(e){
-          var dateLabel = new Date(e.start_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+          var dateLabel = new Date(e.start_at).toLocaleDateString(window.appLocale(), { month: 'short', day: 'numeric' });
           return '<label class="filter-check" style="margin-top:4px;"><input type="checkbox" class="msg-event-check" value="' + e.id + '"> ' + e.title + ' (' + dateLabel + ')</label>';
         }).join('')
       : '<p style="color:var(--ink-mute);font-size:12.5px;">No events yet.</p>';
@@ -14467,7 +14470,7 @@
           statusEl.style.display = 'block';
           return;
         }
-        statusEl.textContent = window.t('dashMessages.scheduledFor').replace('{datetime}', sendAt.toLocaleString());
+        statusEl.textContent = window.t('dashMessages.scheduledFor').replace('{datetime}', sendAt.toLocaleString(window.appLocale()));
         statusEl.style.color = 'var(--sage)';
         statusEl.style.display = 'block';
         document.getElementById('msg-subject').value = '';
@@ -14524,7 +14527,7 @@
     if (!pending || !pending.length) { listEl.innerHTML = '<p style="color:var(--ink-mute);font-size:13px;">Nothing scheduled right now.</p>'; return; }
 
     listEl.innerHTML = pending.map(function(m){
-      var sendAtLabel = new Date(m.send_at).toLocaleString();
+      var sendAtLabel = new Date(m.send_at).toLocaleString(window.appLocale());
       return '<div class="registrant-row"><div><div class="registrant-name">' + m.subject + '</div><div class="registrant-date">' + sendAtLabel + '</div></div>'
         + '<button class="qr-btn" data-cancel-scheduled-id="' + m.id + '" aria-label="Cancel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>';
     }).join('');
@@ -14602,7 +14605,7 @@
       eventsEl.innerHTML = '<p style="color:var(--ink-mute);font-size:13px;">No event sign-ups yet.</p>';
     } else {
       eventsEl.innerHTML = churchEvents.map(function(e){
-        var dateLabel = new Date(e.start_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+        var dateLabel = new Date(e.start_at).toLocaleDateString(window.appLocale(), { month: 'short', day: 'numeric', year: 'numeric' });
         return '<div class="registrant-row"><div class="registrant-name">' + e.title + '</div><div class="registrant-date">' + dateLabel + '</div></div>';
       }).join('');
     }
@@ -14631,7 +14634,7 @@
       var totalCents = donationRows.reduce(function(sum, d){ return sum + d.amount_cents; }, 0);
       givingEl.innerHTML = '<div style="font-size:13px;color:var(--ink-mute);margin-bottom:8px;">Total: $' + (totalCents / 100).toFixed(2) + '</div>'
         + donationRows.map(function(d){
-          var dateLabel = new Date(d.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+          var dateLabel = new Date(d.created_at).toLocaleDateString(window.appLocale(), { month: 'short', day: 'numeric', year: 'numeric' });
           return '<div class="registrant-row"><div class="registrant-name">$' + (d.amount_cents / 100).toFixed(2) + '</div><div class="registrant-date">' + dateLabel + '</div></div>';
         }).join('');
     }
@@ -15293,7 +15296,7 @@
     planRow.textContent = planLabels[planType] || 'Free';
     if (row && row.current_period_end && planType !== 'free') {
       var periodLabel = cancelPending ? 'Ending, moving to Free: ' : (row.subscription_status === 'canceled' ? 'Access ends: ' : 'Next billing date: ');
-      periodRow.textContent = periodLabel + new Date(row.current_period_end).toLocaleDateString();
+      periodRow.textContent = periodLabel + new Date(row.current_period_end).toLocaleDateString(window.appLocale());
       periodRow.style.display = 'block';
     } else {
       periodRow.style.display = 'none';
@@ -15335,7 +15338,7 @@
 
     select.innerHTML = '<option value="">Select an event...</option>' + (eventRows || []).map(function(e){
       var d = new Date(e.start_at);
-      var label = e.title + ' — ' + d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      var label = e.title + ' — ' + d.toLocaleDateString(window.appLocale(), { month: 'short', day: 'numeric' });
       return '<option value="' + e.id + '">' + label.replace(/</g, '&lt;') + '</option>';
     }).join('');
 
@@ -15750,6 +15753,7 @@
     document.getElementById('church-claim-name').value = '';
     document.getElementById('church-claim-role').value = '';
     document.getElementById('church-claim-email').value = (userData.user && userData.user.email) || '';
+    document.getElementById('church-claim-phone').value = '';
     document.getElementById('church-claim-note').value = '';
     document.getElementById('church-claim-status').style.display = 'none';
     document.getElementById('church-claim-modal').classList.add('open');
@@ -15785,9 +15789,10 @@
       var name = document.getElementById('church-claim-name').value.trim();
       var role = document.getElementById('church-claim-role').value.trim();
       var email = document.getElementById('church-claim-email').value.trim();
+      var phone = document.getElementById('church-claim-phone').value.trim();
       var note = document.getElementById('church-claim-note').value.trim();
-      if (!name || !email) {
-        statusEl.textContent = window.t('churchClaim.nameEmailRequired');
+      if (!name || !email || !phone) {
+        statusEl.textContent = window.t('churchClaim.nameEmailPhoneRequired');
         statusEl.style.color = 'var(--clay)';
         statusEl.style.display = 'block';
         return;
@@ -15803,7 +15808,7 @@
       var { data: userData } = await supabase.auth.getUser();
       var { error } = await supabase.from('church_claim_requests').insert({
         church_id: churchId, user_id: userData.user.id,
-        requester_name: name, requester_role: role || null, requester_email: email, note: note || null
+        requester_name: name, requester_role: role || null, requester_email: email, requester_phone: phone, note: note || null
       });
       churchClaimSubmitBtn.disabled = false;
       if (error) {
@@ -15868,7 +15873,7 @@
 
     var scheduleRow = document.getElementById('group-page-schedule-row');
     if (g.meeting_schedule) {
-      document.getElementById('group-page-schedule').textContent = g.meeting_schedule + (g.meeting_repeat_until ? (', ' + window.t('groupPage.through') + ' ' + new Date(g.meeting_repeat_until + 'T00:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })) : '');
+      document.getElementById('group-page-schedule').textContent = g.meeting_schedule + (g.meeting_repeat_until ? (', ' + window.t('groupPage.through') + ' ' + new Date(g.meeting_repeat_until + 'T00:00:00').toLocaleDateString(window.appLocale(), { month: 'short', day: 'numeric', year: 'numeric' })) : '');
       scheduleRow.style.display = 'flex';
     } else {
       scheduleRow.style.display = 'none';
@@ -16098,7 +16103,7 @@
           + '<h4>' + r.name + '</h4>'
           + '<p style="font-size:13px;color:var(--ink-mute);">' + (r.denomination || '—') + ' · ' + (r.address || window.t('admin.noAddressOnFile')) + '</p>'
           + (r.website ? '<p style="font-size:13px;"><a href="' + r.website + '" target="_blank" rel="noopener">' + r.website + '</a></p>' : '')
-          + '<p style="font-size:12.5px;color:var(--ink-mute);">' + window.t('admin.requestedByOnDate').replace('{name}', r.owner_name || window.t('admin.unknown')).replace('{email}', r.owner_email).replace('{date}', new Date(r.requested_at).toLocaleDateString()) + '</p>'
+          + '<p style="font-size:12.5px;color:var(--ink-mute);">' + window.t('admin.requestedByOnDate').replace('{name}', r.owner_name || window.t('admin.unknown')).replace('{email}', r.owner_email).replace('{date}', new Date(r.requested_at).toLocaleDateString(window.appLocale())) + '</p>'
           + '<div style="display:flex;gap:8px;margin-top:12px;">'
           + '<button class="btn-gold" data-approve-church-id="' + r.church_id + '" style="padding:8px 16px;">' + window.t('admin.approve') + '</button>'
           + '<button class="export-btn" data-reject-church-id="' + r.church_id + '" style="padding:8px 16px;">' + window.t('admin.reject') + '</button>'
@@ -16158,7 +16163,7 @@
     var html = rows.map(function(s){
       var name = (s.profiles && s.profiles.full_name) ? s.profiles.full_name : window.t('admin.someone');
       var isOpen = s.status === 'open';
-      return '<div class="registrant-row"><div><div class="registrant-name">' + s.message + '</div><div class="registrant-date">' + name + ' · ' + new Date(s.created_at).toLocaleDateString() + (isOpen ? '' : ' · ' + window.t('admin.resolvedTag')) + '</div></div>'
+      return '<div class="registrant-row"><div><div class="registrant-name">' + s.message + '</div><div class="registrant-date">' + name + ' · ' + new Date(s.created_at).toLocaleDateString(window.appLocale()) + (isOpen ? '' : ' · ' + window.t('admin.resolvedTag')) + '</div></div>'
         + (isOpen ? '<button class="qr-btn icon-tip" data-tip="' + window.t('admin.markResolved') + '" data-resolve-support-id="' + s.id + '" aria-label="' + window.t('admin.markResolved') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></button>' : '')
         + '</div>';
     }).join('');
@@ -16195,7 +16200,7 @@
     var rows = feedback || [];
     var html = rows.map(function(f){
       var name = (f.profiles && f.profiles.full_name) ? f.profiles.full_name : window.t('admin.someone');
-      return '<div class="registrant-row"><div><div class="registrant-name">' + f.message + '</div><div class="registrant-date">' + name + ' · ' + new Date(f.created_at).toLocaleDateString() + '</div></div></div>';
+      return '<div class="registrant-row"><div><div class="registrant-name">' + f.message + '</div><div class="registrant-date">' + name + ' · ' + new Date(f.created_at).toLocaleDateString(window.appLocale()) + '</div></div></div>';
     }).join('');
 
     if (!append) {
@@ -16289,8 +16294,9 @@
         + '<h4>' + churchLink + '</h4>'
         + (r.church_address ? '<p style="font-size:12px;color:var(--ink-mute);margin-top:-8px;margin-bottom:8px;">' + r.church_address + '</p>' : '')
         + '<p style="font-size:13px;color:var(--ink-mute);">' + (r.requester_name || window.t('admin.someone')) + (r.requester_role ? ' — ' + r.requester_role : '') + ' (' + (r.requester_email || window.t('admin.noEmailGiven')) + ')</p>'
+        + (r.requester_phone ? '<p style="font-size:13px;color:var(--ink-mute);">' + r.requester_phone.replace(/</g, '&lt;') + '</p>' : '')
         + (r.note ? '<p style="font-size:13px;">' + r.note.replace(/</g, '&lt;') + '</p>' : '')
-        + '<p style="font-size:12.5px;color:var(--ink-mute);">' + window.t('admin.requestedOn').replace('{date}', new Date(r.created_at).toLocaleDateString()) + '</p>'
+        + '<p style="font-size:12.5px;color:var(--ink-mute);">' + window.t('admin.requestedOn').replace('{date}', new Date(r.created_at).toLocaleDateString(window.appLocale())) + '</p>'
         + '<div style="display:flex;gap:8px;margin-top:12px;">'
         + '<button class="btn-gold" data-approve-claim-id="' + r.id + '" style="padding:8px 16px;">' + window.t('admin.approve') + '</button>'
         + '<button class="export-btn" data-reject-claim-id="' + r.id + '" style="padding:8px 16px;">' + window.t('admin.reject') + '</button>'
@@ -16336,7 +16342,7 @@
         : window.t('admin.unknownChurch');
       return '<div class="registrant-row"><div>'
         + '<div class="registrant-name">' + churchLink + '</div>'
-        + '<div class="registrant-date">' + (r.requester_name || window.t('admin.someone')) + (r.requester_role ? ' — ' + r.requester_role : '') + ' · <span style="color:' + statusColor + ';font-weight:600;">' + statusLabel + '</span> · ' + new Date(r.reviewed_at).toLocaleDateString() + '</div>'
+        + '<div class="registrant-date">' + (r.requester_name || window.t('admin.someone')) + (r.requester_role ? ' — ' + r.requester_role : '') + ' · <span style="color:' + statusColor + ';font-weight:600;">' + statusLabel + '</span> · ' + new Date(r.reviewed_at).toLocaleDateString(window.appLocale()) + '</div>'
         + (r.church_address ? '<div class="registrant-date" style="font-size:11.5px;">' + r.church_address + '</div>' : '')
         + '</div></div>';
     }).join('');
@@ -16381,7 +16387,7 @@
       return '<div class="registrant-row"><div>'
         + '<div class="registrant-name">' + (u.full_name || u.email || window.t('admin.unknown')) + '</div>'
         + '<div class="registrant-date">' + (u.email || '') + '</div>'
-        + '<div class="registrant-date">' + roleLabel + churchPart + planBadge + ' · ' + window.t('admin.joinedOn').replace('{date}', new Date(u.created_at).toLocaleDateString()) + '</div>'
+        + '<div class="registrant-date">' + roleLabel + churchPart + planBadge + ' · ' + window.t('admin.joinedOn').replace('{date}', new Date(u.created_at).toLocaleDateString(window.appLocale())) + '</div>'
         + '</div></div>';
     }).join('');
 
@@ -16450,7 +16456,7 @@
     var totalCount = rows.length ? rows[0].total_count : 0;
     var html = rows.map(function(e){
       var whoLabel = e.user_email ? e.user_email : window.t('admin.notSignedIn');
-      var dateLabel = new Date(e.occurred_at).toLocaleString();
+      var dateLabel = new Date(e.occurred_at).toLocaleString(window.appLocale());
       return '<div class="registrant-row"><div>'
         + '<div class="registrant-name" style="color:var(--clay);">' + e.message.replace(/</g, '&lt;') + '</div>'
         + '<div class="registrant-date">' + dateLabel + ' · ' + whoLabel + (e.url ? ' · ' + e.url.replace(/</g, '&lt;') : '') + '</div>'
@@ -16773,7 +16779,7 @@
       var now = new Date();
       eventsEl.innerHTML = eventRows.map(function(e){
         var isPast = new Date(e.start_at) < now;
-        return '<div class="registrant-row"><div><div class="registrant-name">' + e.title + '</div><div class="registrant-date">' + new Date(e.start_at).toLocaleDateString() + (isPast ? ' · ' + window.t('admin.past') : ' · ' + window.t('myEvents.upcoming')) + '</div></div></div>';
+        return '<div class="registrant-row"><div><div class="registrant-name">' + e.title + '</div><div class="registrant-date">' + new Date(e.start_at).toLocaleDateString(window.appLocale()) + (isPast ? ' · ' + window.t('admin.past') : ' · ' + window.t('myEvents.upcoming')) + '</div></div></div>';
       }).join('');
     }
 
@@ -16879,8 +16885,8 @@
     listEl.innerHTML = filtered.map(function(r){
       var e = r.events;
       var churchName = e.churches ? e.churches.name : '';
-      var dateLabel = new Date(e.start_at).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })
-        + ' · ' + new Date(e.start_at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+      var dateLabel = new Date(e.start_at).toLocaleDateString(window.appLocale(), { weekday: 'short', month: 'short', day: 'numeric' })
+        + ' · ' + new Date(e.start_at).toLocaleTimeString(window.appLocale(), { hour: 'numeric', minute: '2-digit' });
       var roleTag = r.role === 'volunteer' ? '<span class="tag gold" style="font-size:10px;">' + window.t('myEvents.volunteer') + '</span>' : '<span class="tag sage" style="font-size:10px;">' + window.t('myEvents.participant') + '</span>';
       return '<a href="#" data-route="event" data-event-key="' + e.id + '" class="group-card" style="display:block;text-decoration:none;color:inherit;cursor:pointer;">'
         + '<div class="group-schedule" style="margin-bottom:6px;">' + dateLabel + '</div>'
@@ -17045,7 +17051,7 @@
         // the RPC still enforces this independently either way, this
         // is just so the person isn't surprised by an error for
         // something they had no way to know about beforehand.
-        nameHint.textContent = window.t('profile.nextNameChangeAllowed') + ' ' + nextAllowed.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' }) + '.';
+        nameHint.textContent = window.t('profile.nextNameChangeAllowed') + ' ' + nextAllowed.toLocaleDateString(window.appLocale(), { month: 'long', day: 'numeric', year: 'numeric' }) + '.';
         nameHint.style.color = 'var(--clay)';
         nameSaveBtn.disabled = true;
       }
@@ -17801,11 +17807,11 @@
   function formatGroupSchedule(recurrence, day, dateStr, time24){
     if (!time24) return null;
     var d = new Date('2000-01-01T' + time24);
-    var timeLabel = d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+    var timeLabel = d.toLocaleTimeString(window.appLocale(), { hour: 'numeric', minute: '2-digit' });
 
     if (recurrence === 'once') {
       if (!dateStr) return null;
-      var dateLabel = new Date(dateStr + 'T00:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+      var dateLabel = new Date(dateStr + 'T00:00:00').toLocaleDateString(window.appLocale(), { month: 'short', day: 'numeric', year: 'numeric' });
       return dateLabel + ', ' + timeLabel;
     }
     var prefix = recurrenceLabels[recurrence] || 'Every';
@@ -18157,7 +18163,7 @@
       if (r.attended) byDate[r.meeting_date].present++;
     });
     historyEl.innerHTML = order.slice(0, 10).map(function(d){
-      return '<div class="info-row" style="justify-content:space-between;"><span>' + new Date(d + 'T00:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) + '</span><span class="mono">' + byDate[d].present + ' / ' + byDate[d].total + '</span></div>';
+      return '<div class="info-row" style="justify-content:space-between;"><span>' + new Date(d + 'T00:00:00').toLocaleDateString(window.appLocale(), { month: 'short', day: 'numeric', year: 'numeric' }) + '</span><span class="mono">' + byDate[d].present + ' / ' + byDate[d].total + '</span></div>';
     }).join('');
   }
 
