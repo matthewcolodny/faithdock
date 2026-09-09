@@ -4880,7 +4880,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-09-v236 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-09-v237 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -8763,21 +8763,27 @@
 
     var accountType = null;
     if (isSignedIn) {
-      // is_platform_admin is read via the existing is_platform_admin()
-      // RPC, not selected directly off the profiles row -- confirmed
-      // live as a real, separate security gap: profiles currently has
-      // no RLS restriction limiting reads to your own row, so a plain
-      // column select here would (and, before this fix, did) let
-      // anyone query any OTHER user's admin status too, not just
-      // their own. The RPC only ever answers for the caller
+      // is_platform_admin and account_type are both read via RPCs
+      // (is_platform_admin(), get_my_account_type()), not selected
+      // directly off the profiles row -- confirmed live as a real
+      // security gap: profiles has no RLS/grant restricting those
+      // columns to your own row, so a plain column select here
+      // would (and, before this fix, did) let anyone query any
+      // OTHER user's admin status and account type too, not just
+      // their own. Both RPCs only ever answer for the caller
       // themselves, by construction, regardless of what the raw
-      // table's own RLS allows.
-      var bothResults = await Promise.all([
-        supabase.from('profiles').select('full_name, account_type').eq('id', sessionUser.id).limit(1),
-        supabase.rpc('is_platform_admin')
+      // table's own grants allow. full_name stays a plain column
+      // select -- it's genuinely needed broadly (many other
+      // features read other users' full_name too), so it was kept
+      // on the table's own grant rather than moved to an RPC.
+      var allResults = await Promise.all([
+        supabase.from('profiles').select('full_name').eq('id', sessionUser.id).limit(1),
+        supabase.rpc('is_platform_admin'),
+        supabase.rpc('get_my_account_type')
       ]);
-      var profileResult = bothResults[0];
-      var adminResult = bothResults[1];
+      var profileResult = allResults[0];
+      var adminResult = allResults[1];
+      var accountTypeResult = allResults[2];
       var profileRows = profileResult.data;
       // A newer call already started (and will finish its own
       // redirect decisions) while this one was waiting on its query
@@ -8785,7 +8791,7 @@
       // data racing against it.
       if (myGeneration !== window.authUICheckGeneration) return;
       var profile = (profileRows && profileRows.length) ? profileRows[0] : null;
-      accountType = profile ? profile.account_type : null;
+      accountType = accountTypeResult ? accountTypeResult.data : null;
       if (userNameSpan) {
         userNameSpan.textContent = (profile && profile.full_name) ? profile.full_name : (sessionUser.email || 'Account');
       }
@@ -8903,10 +8909,15 @@
 
     var hasEmailProvider = !!(providerSourceUser.app_metadata && providerSourceUser.app_metadata.providers && providerSourceUser.app_metadata.providers.indexOf('email') !== -1);
     if (hasEmailProvider) return false;
-    var { data: welcomeCheckRows } = await supabase.from('profiles').select('welcome_email_sent').eq('id', user.id).limit(1);
-    var alreadyWelcomed = welcomeCheckRows && welcomeCheckRows.length && welcomeCheckRows[0].welcome_email_sent;
+    // mark_my_welcome_email_sent() atomically sets the flag and
+    // returns whatever it was BEFORE this call, replacing what used
+    // to be a separate read then a separate write (also closes the
+    // same profiles-grant gap as everything else in this pass --
+    // there's no legitimate reason this column needs to be raw-
+    // readable/writable outside a call scoped to the caller's own
+    // row).
+    var { data: alreadyWelcomed } = await supabase.rpc('mark_my_welcome_email_sent');
     if (alreadyWelcomed) return false;
-    await supabase.from('profiles').update({ welcome_email_sent: true }).eq('id', user.id);
     return true;
   }
 
@@ -9018,7 +9029,7 @@
       // happened, so a later OAuth login on this same, now-linked
       // account has a source of truth that doesn't depend on that
       // provider-list timing at all.
-      await supabase.from('profiles').update({ welcome_email_sent: true }).eq('id', session.user.id);
+      await supabase.rpc('mark_my_welcome_email_sent');
       routeAfterLogin(session.user);
       return;
     }
@@ -9665,16 +9676,14 @@
   // meant — My Churches sidesteps that entirely by putting the
   // choice in their hands instead of ours.
   async function routeAfterLogin(user, isNewOAuthSignup){
-    // Same reasoning as the other is_platform_admin read in
-    // updateAuthUI(): via the RPC, not a raw column select, since
-    // profiles' own RLS doesn't currently restrict that column to
-    // your own row.
+    // Same reasoning as the equivalent reads in updateAuthUI(): via
+    // RPCs, not raw column selects, since profiles' own grants don't
+    // currently restrict either column to your own row.
     var routeResults = await Promise.all([
-      supabase.from('profiles').select('account_type').eq('id', user.id).limit(1),
+      supabase.rpc('get_my_account_type'),
       supabase.rpc('is_platform_admin')
     ]);
-    var profileRows = routeResults[0].data;
-    var accountType = (profileRows && profileRows.length) ? profileRows[0].account_type : null;
+    var accountType = routeResults[0] ? routeResults[0].data : null;
     var isPlatformAdmin = !!(routeResults[1] && routeResults[1].data);
 
     var { data: ownedChurch } = await supabase.from('churches').select('id').eq('owner_id', user.id).limit(1);
@@ -9691,7 +9700,7 @@
     // Profile page still shows "Church partner account" vs
     // "Individual account") — never read back as a gate anywhere.
     if (hasChurch && accountType !== 'church') {
-      await supabase.from('profiles').update({ account_type: 'church' }).eq('id', user.id);
+      await supabase.rpc('mark_my_account_type_church');
     }
 
     // Confirmed as a real, live bug via console evidence, not just
@@ -9879,7 +9888,7 @@
         // to set now rather than waiting on the confirmation-sync path
         // above, which only applies when a session doesn't exist yet.
         if (loggedInUser) {
-          await supabase.from('profiles').update({ welcome_email_sent: true }).eq('id', loggedInUser.id);
+          await supabase.rpc('mark_my_welcome_email_sent');
         }
       } else {
         // eslint-disable-next-line no-redeclare -- the signup branch above also declares var email; mutually exclusive if/else, only one ever runs per submit. Verified by hand.
@@ -10115,7 +10124,7 @@
         // not just on next sign-in, or the dashboard's own route
         // guard (which checks hasChurchAccess) bounces them straight
         // back to home the instant they land there.
-        await supabase.from('profiles').update({ account_type: 'church' }).eq('id', userData.user.id);
+        await supabase.rpc('mark_my_account_type_church');
         window.userAccountType = 'church';
         window.hasChurchAccess = true;
         // A church's creator is its home church by default — staff
@@ -17045,7 +17054,14 @@
       userData = { user: sessionData.session.user };
     }
 
-    var { data: profileRows } = await supabase.from('profiles').select('full_name, account_type, phone, avatar_url, age_range, full_name_changed_at').eq('id', userData.user.id).limit(1);
+    // get_my_private_profile() -- not a raw column select -- returns
+    // everything this page needs about the caller's own row in one
+    // call. account_type/phone/avatar_url/full_name_changed_at came
+    // off the raw table grant entirely as part of closing the
+    // profiles-table exposure found this session (see GOTCHAS.md);
+    // this RPC is scoped internally to auth.uid(), so it can only
+    // ever answer for whoever is actually signed in.
+    var { data: profileRows } = await supabase.rpc('get_my_private_profile');
     // A real, confirmed user always has exactly one profiles row,
     // created by a database trigger the moment their account exists —
     // a genuinely missing row here (as opposed to one that exists but
@@ -17292,10 +17308,10 @@
       var phoneValue = document.getElementById('profile-phone-input').value.trim();
 
       profilePhoneSaveBtn.disabled = true;
-      var { error } = await supabase.from('profiles').update({ phone: phoneValue || null }).eq('id', userData.user.id);
+      var { error } = await supabase.rpc('update_my_phone', { p_phone: phoneValue || null });
       profilePhoneSaveBtn.disabled = false;
 
-      statusEl.textContent = error ? error.message : 'Saved!';
+      statusEl.textContent = error ? error.message : window.t('common.saved');
       statusEl.style.color = error ? 'var(--clay)' : 'var(--sage)';
       statusEl.style.display = 'block';
     });
@@ -17311,7 +17327,7 @@
       var ageRangeValue = document.getElementById('profile-age-range-select').value;
 
       profileAgeRangeSaveBtn.disabled = true;
-      var { error } = await supabase.from('profiles').update({ age_range: ageRangeValue || null }).eq('id', userData.user.id);
+      var { error } = await supabase.rpc('update_my_age_range', { p_age_range: ageRangeValue || null });
       profileAgeRangeSaveBtn.disabled = false;
 
       statusEl.textContent = error ? error.message : window.t('common.saved');
@@ -17634,7 +17650,7 @@
       }
 
       var { data: urlData } = supabase.storage.from('profile-photos').getPublicUrl(filePath);
-      var { error: updateError } = await supabase.from('profiles').update({ avatar_url: urlData.publicUrl }).eq('id', userData.user.id);
+      var { error: updateError } = await supabase.rpc('update_my_avatar', { p_avatar_url: urlData.publicUrl });
       if (updateError) {
         statusEl.textContent = updateError.message;
         statusEl.style.color = 'var(--clay)';

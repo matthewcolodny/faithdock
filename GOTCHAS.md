@@ -612,6 +612,28 @@ After the `churches` leak above, did a broader empirical pass rather than assumi
 
 ---
 
+## `profiles` hardened fully — phone RPC built, full_name/avatar_url exposure closed, and a more severe write-side hole found along the way
+
+Follow-up to the `is_platform_admin` fix above, closing the two items explicitly deferred there: `profiles.phone` (needed a self-read/write RPC that didn't exist yet) and `profiles.full_name`/`avatar_url` being broadly public including to signed-out visitors.
+
+**A second, more severe hole turned up while building this fix, not asked about but too important not to close in the same pass:** probing the write side (an anonymous `update(...).eq('id', <a UUID that does not exist>)`, chosen so nothing real could be touched either way) returned a clean success instead of a permission error. The only way that's possible is if `anon` currently holds an unrestricted, table-wide `UPDATE` grant on `profiles` with nothing scoping it to "your own row only" — meaning, in the worst case, anyone (no login required) could set **any** user's `is_platform_admin` to `true`, or overwrite their phone/name/anything else, just by knowing their user id. Confirming this against a *real* row would have meant writing to real user data even idempotently, which this session's own safety controls correctly declined to do without asking first — so this is reported as a near-certain finding, not a 100%-confirmed one. Closed regardless: every legitimate write now goes through a `SECURITY DEFINER` function, and the raw `UPDATE` grant is revoked entirely for both `anon` and `authenticated`.
+
+**Every real client-side read/write of `profiles` was checked (not guessed) before deciding what stays on the raw table grant vs. moves to a function** — grepped every `.from('profiles')` call in the file:
+- `full_name` stays broadly readable by `authenticated` — genuinely load-bearing for ~15 already-shipped features that read *other* users' full_name (church_staff/group_members/donations/event_registrations/support_messages/platform_feedback embeds via PostgREST relationships, the admin people directory, Insights donor/attendee name lookups).
+- `age_range` stays broadly readable by `authenticated` too — the Insights donor/attendee age-bucket breakdowns read other people's `age_range` by id list, a legitimate existing feature.
+- `account_type` and `avatar_url` turned out to have **zero** real cross-row read dependency anywhere in the app once actually checked — every "other user's avatar" spot already goes through the `get_directory_people()` RPC, not a raw select, and every `account_type` read is the caller's own. Both moved fully to self-only, closing them further than just "not to anon" — not even other signed-in users can read them off the raw table anymore.
+- `phone`, `is_platform_admin`, `welcome_email_sent`, `full_name_changed_at` — same self-only treatment, continuing the pattern from the `is_platform_admin` fix.
+- `plan_type` — not read by the client anywhere at all; dropped from the grant on general principle.
+- `anon` gets no `SELECT` and no `UPDATE` on `profiles` at all now, full stop — no feature anywhere reads or writes a profile while signed out.
+
+**New functions** (all `SECURITY DEFINER`, scoped internally to `auth.uid()`, matching the `is_platform_admin()`/`update_profile_name()` precedent already in this codebase): `get_my_private_profile()` (one call replacing the Profile settings page's old combined select — full_name/account_type/phone/avatar_url/age_range/full_name_changed_at), `get_my_account_type()` (paired with the existing `is_platform_admin()` in `updateAuthUI()`/`routeAfterLogin()`), `update_my_phone()`, `update_my_avatar()`, `update_my_age_range()`, `mark_my_account_type_church()`, and `mark_my_welcome_email_sent()` (atomic check-and-set, replacing what used to be a separate read then a separate write with one round trip). Every raw `.update(...)` call against `profiles` is gone from the client entirely.
+
+**Also fixed in passing, same line already being touched:** the phone-save status message hardcoded `'Saved!'` in English regardless of language — swapped for the existing `common.saved` key, same one the age-range save status right next to it already used correctly.
+
+**Sequencing note, unlike every other SQL fix this session:** this one can't ship client-first — the edited client code calls RPCs (`get_my_private_profile`, etc.) that don't exist in the database yet, so pushing before the migration runs would break the Profile settings page and church-registration account-type sync live. The migration needs to run *before* this commit reaches production.
+
+---
+
 ## "No data yet." staying in English on an otherwise-fully-Spanish Insights chart
 
 Reported with a screenshot: an Insights mini-chart's empty state showed "No data yet." in English while everything else on the page was Spanish. Root cause was the ordinary one from the earlier locale sweep — a hardcoded English literal (`renderMiniBarChart()`'s empty-data branch) never routed through `window.t()`. Added `insights.noDataYet` to both dictionaries and swapped the literal for `window.t('insights.noDataYet')`. `renderMiniBarChart()` is shared by every Insights mini-chart (giving trend, giving-by-age, attendance, attendance-by-age, involvement breakdown/movement) so this closes it everywhere at once, not just the one chart in the screenshot. No extra re-render wiring needed — the functions that call it (`loadGivingInsights`, `loadAttendanceInsights`, `loadInvolvementPanel`) are already in the language-toggle dispatcher, so an already-rendered "no data" empty state updates immediately on toggle, same as everything else that dispatcher covers.
