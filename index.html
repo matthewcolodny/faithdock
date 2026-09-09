@@ -596,6 +596,7 @@
       'insights.consecutiveAbsencesHint': "Regulars — for a recurring event or a group — who've missed several in a row, worth a check-in call. Recurring events only work if created after this feature shipped (older ones have no way to be grouped into a series after the fact); groups just need at least one meeting's attendance taken.",
       'insights.selectRecurringSeriesOrGroup': 'Select a recurring series or group...', 'insights.threshold3': '3+ in a row', 'insights.threshold5': '5+ in a row', 'insights.threshold7': '7+ in a row', 'insights.threshold10': '10+ in a row',
       'insights.pickRecurringSeriesAbove': 'Pick a recurring series or group above.',
+      'insights.noDataYet': 'No data yet.',
       'insights.noRecurringSeriesOrGroupsYet': 'No recurring series or tracked groups yet', 'insights.nothingToCheckYet': "Nothing to check yet — this covers recurring events created after that feature shipped, and groups with at least one meeting's attendance taken.",
       'insights.recurringEvents': 'Recurring events', 'insights.noOneMeetsThreshold': 'No one currently meets that threshold — nice.', 'insights.nInARow': '{n} in a row',
       'insights.checking': 'Checking...', 'insights.notEnoughOccurrences': 'Not enough past occurrences yet to spot a pattern.', 'insights.notEnoughMeetings': 'Not enough meetings tracked yet to spot a pattern.',
@@ -1252,6 +1253,7 @@
       'insights.consecutiveAbsencesHint': 'Habituales — de un evento recurrente o un grupo — que han faltado varias veces seguidas, dignos de una llamada de seguimiento. Los eventos recurrentes solo funcionan si se crearon después del lanzamiento de esta función (los anteriores no se pueden agrupar en una serie retroactivamente); los grupos solo necesitan al menos una reunión con asistencia registrada.',
       'insights.selectRecurringSeriesOrGroup': 'Selecciona una serie recurrente o un grupo...', 'insights.threshold3': '3+ seguidas', 'insights.threshold5': '5+ seguidas', 'insights.threshold7': '7+ seguidas', 'insights.threshold10': '10+ seguidas',
       'insights.pickRecurringSeriesAbove': 'Elige una serie recurrente o un grupo arriba.',
+      'insights.noDataYet': 'Aún no hay datos.',
       'insights.noRecurringSeriesOrGroupsYet': 'Aún no hay series recurrentes ni grupos con seguimiento', 'insights.nothingToCheckYet': 'Aún no hay nada que verificar — esto cubre eventos recurrentes creados después del lanzamiento de esta función, y grupos con al menos una reunión con asistencia registrada.',
       'insights.recurringEvents': 'Eventos recurrentes', 'insights.noOneMeetsThreshold': 'Nadie cumple actualmente con ese umbral — muy bien.', 'insights.nInARow': '{n} seguidas',
       'insights.checking': 'Verificando...', 'insights.notEnoughOccurrences': 'Aún no hay suficientes eventos pasados para detectar un patrón.', 'insights.notEnoughMeetings': 'Aún no hay suficientes reuniones registradas para detectar un patrón.',
@@ -4878,7 +4880,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-09-v235 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-09-v236 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -8761,7 +8763,22 @@
 
     var accountType = null;
     if (isSignedIn) {
-      var { data: profileRows } = await supabase.from('profiles').select('full_name, account_type, is_platform_admin').eq('id', sessionUser.id).limit(1);
+      // is_platform_admin is read via the existing is_platform_admin()
+      // RPC, not selected directly off the profiles row -- confirmed
+      // live as a real, separate security gap: profiles currently has
+      // no RLS restriction limiting reads to your own row, so a plain
+      // column select here would (and, before this fix, did) let
+      // anyone query any OTHER user's admin status too, not just
+      // their own. The RPC only ever answers for the caller
+      // themselves, by construction, regardless of what the raw
+      // table's own RLS allows.
+      var bothResults = await Promise.all([
+        supabase.from('profiles').select('full_name, account_type').eq('id', sessionUser.id).limit(1),
+        supabase.rpc('is_platform_admin')
+      ]);
+      var profileResult = bothResults[0];
+      var adminResult = bothResults[1];
+      var profileRows = profileResult.data;
       // A newer call already started (and will finish its own
       // redirect decisions) while this one was waiting on its query
       // — abandon here rather than act on what could now be stale
@@ -8773,7 +8790,7 @@
         userNameSpan.textContent = (profile && profile.full_name) ? profile.full_name : (sessionUser.email || 'Account');
       }
       if (userMenu) userMenu.style.display = 'block';
-      window.isPlatformAdmin = !!(profile && profile.is_platform_admin);
+      window.isPlatformAdmin = !!(adminResult && adminResult.data);
       // Called here directly, not just from the separate 400ms
       // refresh timer elsewhere — that timer was the entire bug.
       // loadAdminPanel's own guard checks window.isPlatformAdmin, but
@@ -9648,9 +9665,17 @@
   // meant — My Churches sidesteps that entirely by putting the
   // choice in their hands instead of ours.
   async function routeAfterLogin(user, isNewOAuthSignup){
-    var { data: profileRows } = await supabase.from('profiles').select('account_type, is_platform_admin').eq('id', user.id).limit(1);
+    // Same reasoning as the other is_platform_admin read in
+    // updateAuthUI(): via the RPC, not a raw column select, since
+    // profiles' own RLS doesn't currently restrict that column to
+    // your own row.
+    var routeResults = await Promise.all([
+      supabase.from('profiles').select('account_type').eq('id', user.id).limit(1),
+      supabase.rpc('is_platform_admin')
+    ]);
+    var profileRows = routeResults[0].data;
     var accountType = (profileRows && profileRows.length) ? profileRows[0].account_type : null;
-    var isPlatformAdmin = !!(profileRows && profileRows.length && profileRows[0].is_platform_admin);
+    var isPlatformAdmin = !!(routeResults[1] && routeResults[1].data);
 
     var { data: ownedChurch } = await supabase.from('churches').select('id').eq('owner_id', user.id).limit(1);
     var isOwner = ownedChurch && ownedChurch.length;
@@ -11607,7 +11632,7 @@
   function renderMiniBarChart(containerId, data, formatValue){
     var container = document.getElementById(containerId);
     if (!container) return;
-    if (!data || !data.length) { container.innerHTML = '<p style="color:var(--ink-mute);font-size:12.5px;">No data yet.</p>'; return; }
+    if (!data || !data.length) { container.innerHTML = '<p style="color:var(--ink-mute);font-size:12.5px;">' + window.t('insights.noDataYet') + '</p>'; return; }
     var max = Math.max.apply(null, data.map(function(d){ return d.value; }).concat([1]));
     container.innerHTML = data.map(function(d){
       var heightPct = max > 0 ? Math.max((d.value / max) * 100, 2) : 2;
