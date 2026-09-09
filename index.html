@@ -469,6 +469,11 @@
       'dashGiving.connectBank': 'Connect your bank account',
       'dashGiving.connectBankHint': 'Donations go straight to your account — FaithDock never holds the funds.',
       'dashGiving.givenThisYear': 'GIVEN THIS YEAR', 'dashGiving.givers': 'GIVERS', 'dashGiving.averageGift': 'AVERAGE GIFT',
+      'dash.revenue': 'Revenue',
+      'dashRevenue.totalIncome': 'TOTAL INCOME THIS YEAR', 'dashRevenue.netAfterFees': 'NET AFTER FEES THIS YEAR',
+      'dashRevenue.giving': 'Giving', 'dashRevenue.ticketSales': 'Ticket sales',
+      'dashRevenue.ticketRevenue': 'TICKET REVENUE THIS YEAR', 'dashRevenue.ticketsSold': 'TICKETS SOLD', 'dashRevenue.averageTicket': 'AVERAGE TICKET',
+      'dashRevenue.viewTicketDetail': 'View per-event ticket detail in Insights →',
       'dashGiving.donor': 'Donor', 'dashGiving.amount': 'Amount', 'dashGiving.loadingHistory': 'Loading giving history...',
       'dashGiving.noDonationsYet': 'No donations yet.', 'dashGiving.guestSuffix': '(guest)', 'dashGiving.anonymous': 'Anonymous', 'dashGiving.unknownFund': 'Unknown fund', 'dashGiving.generalFund': 'General Fund',
       'dashBilling.currentPlan': 'Current plan',
@@ -1116,6 +1121,11 @@
       'dashGiving.connectBank': 'Conectar tu cuenta bancaria',
       'dashGiving.connectBankHint': 'Las donaciones van directamente a tu cuenta — FaithDock nunca retiene los fondos.',
       'dashGiving.givenThisYear': 'DONADO ESTE AÑO', 'dashGiving.givers': 'DONANTES', 'dashGiving.averageGift': 'DONACIÓN PROMEDIO',
+      'dash.revenue': 'Ingresos',
+      'dashRevenue.totalIncome': 'INGRESOS TOTALES ESTE AÑO', 'dashRevenue.netAfterFees': 'NETO DESPUÉS DE TARIFAS ESTE AÑO',
+      'dashRevenue.giving': 'Donaciones', 'dashRevenue.ticketSales': 'Venta de entradas',
+      'dashRevenue.ticketRevenue': 'INGRESOS POR ENTRADAS ESTE AÑO', 'dashRevenue.ticketsSold': 'ENTRADAS VENDIDAS', 'dashRevenue.averageTicket': 'ENTRADA PROMEDIO',
+      'dashRevenue.viewTicketDetail': 'Ver el detalle de entradas por evento en Insights →',
       'dashGiving.donor': 'Donante', 'dashGiving.amount': 'Monto', 'dashGiving.loadingHistory': 'Cargando historial de donaciones...',
       'dashGiving.noDonationsYet': 'Aún no hay donaciones.', 'dashGiving.guestSuffix': '(invitado)', 'dashGiving.anonymous': 'Anónimo', 'dashGiving.unknownFund': 'Fondo desconocido', 'dashGiving.generalFund': 'Fondo general',
       'dashBilling.currentPlan': 'Plan actual',
@@ -3902,7 +3912,7 @@
         <a data-dash="directory" data-i18n="dash.directory">Directory</a>
         <a data-dash="messages" data-i18n="dash.messages">Messages</a>
         <a data-dash="groups"><span data-i18n="dash.groups">Groups</span> <span id="dash-groups-nav-badge" class="tag clay" style="display:none;font-size:9px;padding:2px 6px;vertical-align:2px;"></span></a>
-        <a data-dash="giving" data-i18n="dash.giving">Giving</a>
+        <a data-dash="giving" data-i18n="dash.revenue">Revenue</a>
         <a data-dash="insights" data-i18n="insights.title">Insights</a>
         <a data-dash="billing" data-i18n="dash.billing">Billing</a>
         <a href="#pricing" data-route="pricing" data-i18n="dash.plans">Plans</a>
@@ -4454,7 +4464,7 @@
       </div>
 
       <div class="dash-content" id="dash-giving">
-        <h2 style="font-size:24px;margin-bottom:24px;" data-i18n="dash.giving">Giving</h2>
+        <h2 style="font-size:24px;margin-bottom:24px;" data-i18n="dash.revenue">Revenue</h2>
 
         <div id="giving-tab-connect-section" class="side-note" style="max-width:520px;display:none;">
           <h4 data-i18n="dashGiving.connectBank">Connect your bank account</h4>
@@ -4463,7 +4473,18 @@
           <button class="btn-gold" id="giving-tab-connect-btn" style="display:none;" data-i18n="dashGiving.connectBank">Connect your bank account</button>
         </div>
 
+        <!-- Combines giving + ticket sales, computed by
+             loadRevenuePanel() below. "Net after fees" shows — until
+             the fee-capture migration/webhook update lands
+             server-side (see GOTCHAS.md) -- null on every row reads
+             as "not available," never as $0. -->
         <div class="stat-row" style="margin-top:20px;">
+          <div class="stat"><div class="num" id="revenue-stat-total">—</div><div class="lbl" data-i18n="dashRevenue.totalIncome">TOTAL INCOME THIS YEAR</div></div>
+          <div class="stat"><div class="num" id="revenue-stat-net">—</div><div class="lbl" data-i18n="dashRevenue.netAfterFees">NET AFTER FEES THIS YEAR</div></div>
+        </div>
+
+        <h3 style="font-family:'Fraunces';font-size:17px;margin:28px 0 14px;" data-i18n="dashRevenue.giving">Giving</h3>
+        <div class="stat-row">
           <div class="stat"><div class="num" id="giving-stat-total">—</div><div class="lbl" data-i18n="dashGiving.givenThisYear">GIVEN THIS YEAR</div></div>
           <div class="stat"><div class="num" id="giving-stat-givers">—</div><div class="lbl" data-i18n="dashGiving.givers">GIVERS</div></div>
           <div class="stat"><div class="num" id="giving-stat-average">—</div><div class="lbl" data-i18n="dashGiving.averageGift">AVERAGE GIFT</div></div>
@@ -4485,6 +4506,16 @@
             <tr><td colspan="4" style="color:var(--ink-mute);" data-i18n="dashGiving.loadingHistory">Loading giving history...</td></tr>
           </tbody>
         </table>
+
+        <h3 style="font-family:'Fraunces';font-size:17px;margin:32px 0 14px;" data-i18n="dashRevenue.ticketSales">Ticket sales</h3>
+        <div class="stat-row">
+          <div class="stat"><div class="num" id="ticket-stat-total">—</div><div class="lbl" data-i18n="dashRevenue.ticketRevenue">TICKET REVENUE THIS YEAR</div></div>
+          <div class="stat"><div class="num" id="ticket-stat-count">—</div><div class="lbl" data-i18n="dashRevenue.ticketsSold">TICKETS SOLD</div></div>
+          <div class="stat"><div class="num" id="ticket-stat-average">—</div><div class="lbl" data-i18n="dashRevenue.averageTicket">AVERAGE TICKET</div></div>
+        </div>
+        <p style="font-size:12.5px;color:var(--ink-mute);margin-top:2px;">
+          <a href="#" onclick="document.getElementById('payment-reports-open-btn') && document.getElementById('payment-reports-open-btn').click(); if(typeof goDash==='function') goDash('insights'); return false;" style="color:inherit;border-bottom:1px solid var(--gold);" data-i18n="dashRevenue.viewTicketDetail">View per-event ticket detail in Insights →</a>
+        </p>
       </div>
 
       <div class="dash-content" id="dash-insights">
@@ -4782,7 +4813,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-08-v227 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-08-v228 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -7037,7 +7068,7 @@
       if (currentBase === 'dashboard' && typeof window.loadAttendanceInsights === 'function') window.loadAttendanceInsights();
       if (currentBase === 'dashboard' && typeof window.loadAbsenceSourceOptions === 'function') window.loadAbsenceSourceOptions();
       if (currentBase === 'dashboard' && typeof window.loadInvolvementPanel === 'function') window.loadInvolvementPanel();
-      if (currentBase === 'dashboard' && typeof window.loadGivingHistoryPanel === 'function') window.loadGivingHistoryPanel();
+      if (currentBase === 'dashboard' && typeof window.loadRevenuePanel === 'function') window.loadRevenuePanel();
       // create-event has several JS-rendered lists (contacts,
       // questions, room checklist) whose option/placeholder text was
       // baked in at render time — redo them so a language toggle
@@ -8910,7 +8941,7 @@
       if (typeof window.loadGivingStatus === 'function') window.loadGivingStatus();
       if (typeof window.loadBillingPanel === 'function') window.loadBillingPanel();
       if (typeof window.loadCheckinEventPicker === 'function') window.loadCheckinEventPicker();
-      if (typeof window.loadGivingHistoryPanel === 'function') window.loadGivingHistoryPanel();
+      if (typeof window.loadRevenuePanel === 'function') window.loadRevenuePanel();
       // Only relevant on the register-church page itself — this
       // function resets and re-populates that page's own form
       // fields, which are meaningless to touch (and previously WERE
@@ -13415,13 +13446,20 @@
     var myChurch = await getMyChurch();
     if (!myChurch) { tbody.innerHTML = '<tr><td colspan="3" style="color:var(--ink-mute);">Register a church first, or ask an owner to add you as staff.</td></tr>'; return; }
 
-    var { data: donations, error } = await supabase.from('donations').select('amount_cents, created_at, donor_id, donor_email, fund_id').eq('church_id', myChurch.id).eq('status', 'succeeded').order('created_at', { ascending: false });
+    var { data: donations, error } = await supabase.from('donations').select('amount_cents, created_at, donor_id, donor_email, fund_id, net_amount_cents').eq('church_id', myChurch.id).eq('status', 'succeeded').order('created_at', { ascending: false });
     if (error) { tbody.innerHTML = '<tr><td colspan="4" style="color:var(--clay);">' + error.message + '</td></tr>'; return; }
 
     var donations2 = donations || [];
     var yearStart = new Date(new Date().getFullYear(), 0, 1);
     var thisYear = donations2.filter(function(d){ return new Date(d.created_at) >= yearStart; });
     var totalThisYearCents = thisYear.reduce(function(sum, d){ return sum + d.amount_cents; }, 0);
+    // net_amount_cents only exists on rows recorded after the fee-
+    // capture migration landed server-side -- older/uncaptured rows
+    // are excluded from this sum rather than silently counted as $0,
+    // so "Net after fees" never understates real net income just
+    // because some rows predate that change.
+    var netKnownRows = thisYear.filter(function(d){ return d.net_amount_cents !== null && d.net_amount_cents !== undefined; });
+    var netThisYearCents = netKnownRows.reduce(function(sum, d){ return sum + d.net_amount_cents; }, 0);
     var uniqueGivers = {};
     thisYear.forEach(function(d){ uniqueGivers[d.donor_id || d.donor_email || 'unknown'] = true; });
     var giverCount = Object.keys(uniqueGivers).length;
@@ -13494,7 +13532,7 @@
 
     if (!donations2.length) {
       tbody.innerHTML = '<tr><td colspan="4" style="color:var(--ink-mute);">' + window.t('dashGiving.noDonationsYet') + '</td></tr>';
-      return;
+      return { totalCents: totalThisYearCents, netCents: netKnownRows.length ? netThisYearCents : null };
     }
 
     var donorIds = donations2.filter(function(d){ return d.donor_id; }).map(function(d){ return d.donor_id; });
@@ -13510,9 +13548,80 @@
       var fundLabel = d.fund_id ? (fundNamesById[d.fund_id] || window.t('dashGiving.unknownFund')) : window.t('dashGiving.generalFund');
       return '<tr><td>' + donorLabel + '</td><td class="mono">' + fundLabel.replace(/</g, '&lt;') + '</td><td class="mono">$' + (d.amount_cents / 100).toFixed(2) + '</td><td class="mono">' + dateLabel + '</td></tr>';
     }).join('');
+
+    return { totalCents: totalThisYearCents, netCents: netKnownRows.length ? netThisYearCents : null };
   }
   window.loadGivingHistoryPanel = loadGivingHistoryPanel;
-  loadGivingHistoryPanel();
+
+  // ============================================================
+  // Ticket sales — the other half of the Revenue page. Summary
+  // stats only (not a full transaction table): Insights ->
+  // "Print payment reports" already covers per-registrant,
+  // per-event ticket detail, and duplicating that here would just
+  // be the same data twice.
+  // ============================================================
+  async function loadTicketSalesPanel(){
+    var totalEl = document.getElementById('ticket-stat-total');
+    if (!totalEl) return { totalCents: 0, netCents: null };
+
+    var myChurch = await getMyChurch();
+    if (!myChurch) return { totalCents: 0, netCents: null };
+
+    var { data: regs, error } = await supabase.from('event_registrations')
+      .select('amount_paid_cents, net_amount_cents, created_at, events!inner(church_id)')
+      .eq('events.church_id', myChurch.id)
+      .eq('payment_status', 'succeeded')
+      .not('amount_paid_cents', 'is', null);
+    if (error) { console.error('loadTicketSalesPanel:', error); return { totalCents: 0, netCents: null }; }
+
+    var regs2 = regs || [];
+    var yearStart = new Date(new Date().getFullYear(), 0, 1);
+    var thisYear = regs2.filter(function(r){ return new Date(r.created_at) >= yearStart; });
+    var totalThisYearCents = thisYear.reduce(function(sum, r){ return sum + (r.amount_paid_cents || 0); }, 0);
+    var netKnownRows = thisYear.filter(function(r){ return r.net_amount_cents !== null && r.net_amount_cents !== undefined; });
+    var netThisYearCents = netKnownRows.reduce(function(sum, r){ return sum + r.net_amount_cents; }, 0);
+    var avgCents = thisYear.length ? Math.round(totalThisYearCents / thisYear.length) : 0;
+
+    totalEl.textContent = '$' + (totalThisYearCents / 100).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    var countEl = document.getElementById('ticket-stat-count');
+    if (countEl) countEl.textContent = thisYear.length;
+    var avgEl = document.getElementById('ticket-stat-average');
+    if (avgEl) avgEl.textContent = '$' + (avgCents / 100).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+
+    return { totalCents: totalThisYearCents, netCents: netKnownRows.length ? netThisYearCents : null };
+  }
+  window.loadTicketSalesPanel = loadTicketSalesPanel;
+
+  // Combines both halves for the two summary tiles at the top of the
+  // Revenue page. Runs both panels in parallel rather than having
+  // either one depend on the other -- they're independent data
+  // sources that just happen to share one summary row.
+  async function loadRevenuePanel(){
+    var results = await Promise.all([loadGivingHistoryPanel(), loadTicketSalesPanel()]);
+    var giving = results[0] || { totalCents: 0, netCents: null };
+    var tickets = results[1] || { totalCents: 0, netCents: null };
+
+    var totalEl = document.getElementById('revenue-stat-total');
+    if (totalEl) {
+      var combinedTotal = (giving.totalCents || 0) + (tickets.totalCents || 0);
+      totalEl.textContent = '$' + (combinedTotal / 100).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    }
+    var netEl = document.getElementById('revenue-stat-net');
+    if (netEl) {
+      // Only add up the halves that actually have fee data -- both
+      // null means neither table has any fee-captured rows yet
+      // (migration/webhook update not live yet), which is genuinely
+      // "not available," not "$0 net."
+      if (giving.netCents === null && tickets.netCents === null) {
+        netEl.textContent = '—';
+      } else {
+        var combinedNet = (giving.netCents || 0) + (tickets.netCents || 0);
+        netEl.textContent = '$' + (combinedNet / 100).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+      }
+    }
+  }
+  window.loadRevenuePanel = loadRevenuePanel;
+  loadRevenuePanel();
 
   var givingTabConnectBtn = document.getElementById('giving-tab-connect-btn');
   if (givingTabConnectBtn) {
