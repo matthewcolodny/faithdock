@@ -5067,7 +5067,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-09-v254 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-09-v255 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -10482,7 +10482,10 @@
       }
 
       if (rcEditingChurchId) {
-        var { data, error } = await supabase.from('churches').update(payload).eq('id', rcEditingChurchId).select();
+        // Explicit column list -- see the note on the .insert() below;
+        // a bare .select() here is RETURNING *, which now fails with
+        // "permission denied for table churches".
+        var { data, error } = await supabase.from('churches').update(payload).eq('id', rcEditingChurchId).select(PUBLIC_CHURCH_COLUMNS);
         if (error) { showRcError(error.message); return; }
         showRcSuccess(geocodeWarning || ('Saved! "' + data[0].name + '" has been updated.'));
         if (payload.logo_url) {
@@ -10501,7 +10504,13 @@
           payload.plan_type = myChurchForPlanInherit.planType;
         }
         // eslint-disable-next-line no-redeclare -- see the matching comment in the if-branch above; this is the other half of that same mutually-exclusive pair.
-        var { data, error } = await supabase.from('churches').insert(payload).select();
+        // Explicit column list, not a bare .select() -- that compiles to
+        // RETURNING *, which fails with "permission denied for table
+        // churches" now that authenticated has no table-wide SELECT
+        // (only column-level, minus the two stripe_* billing ids). Same
+        // reason every churches read switched to PUBLIC_CHURCH_COLUMNS;
+        // these two mutation call sites were missed at the time.
+        var { data, error } = await supabase.from('churches').insert(payload).select(PUBLIC_CHURCH_COLUMNS);
         if (error) { showRcError(error.message); return; }
         // Make the just-created church the active one — otherwise the
         // dashboard that immediately follows resolves via
