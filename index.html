@@ -396,6 +396,7 @@
       'events.oneFound': 'event found', 'events.manyFound': 'events found', 'events.dateRangeInvalid': '"From" date is after "To" date — no events can match.',
       'events.loadError': 'Something went wrong loading events:', 'events.eventDetails': 'Event details',
       'events.registerAsParticipant': 'Register as a participant', 'events.registerAsVolunteer': 'Register as a volunteer',
+      'events.registrationNotRequired': 'No registration needed — just show up.',
       'events.registerForEvent': 'Register for this event', 'events.register': 'Register', 'events.googleCalendar': 'Google Calendar',
       'events.downloadIcs': 'Download .ics', 'events.backToEvents': 'Back to events', 'events.openToAnyoneNoMembership': 'Open to anyone, no membership needed',
       'events.shareQrCode': 'Share event QR code', 'events.locationNotListed': 'Location not listed yet',
@@ -1087,6 +1088,7 @@
       'events.oneFound': 'evento encontrado', 'events.manyFound': 'eventos encontrados', 'events.dateRangeInvalid': 'La fecha "desde" es posterior a la fecha "hasta" — ningún evento puede coincidir.',
       'events.loadError': 'Ocurrió un error al cargar los eventos:', 'events.eventDetails': 'Detalles del evento',
       'events.registerAsParticipant': 'Inscribirse como participante', 'events.registerAsVolunteer': 'Inscribirse como voluntario',
+      'events.registrationNotRequired': 'No requiere inscripción — solo preséntate.',
       'events.registerForEvent': 'Inscribirse a este evento', 'events.register': 'Inscribirse', 'events.googleCalendar': 'Google Calendar',
       'events.downloadIcs': 'Descargar .ics', 'events.backToEvents': 'Volver a eventos', 'events.openToAnyoneNoMembership': 'Abierto a todos, no requiere membresía',
       'events.shareQrCode': 'Compartir código QR del evento', 'events.locationNotListed': 'Ubicación aún no indicada',
@@ -2818,6 +2820,7 @@
           <label class="filter-check" style="margin-top:6px;"><input type="radio" name="event-role" value="volunteer" id="event-role-volunteer"> <span data-i18n="events.registerAsVolunteer">Register as a volunteer</span> <span id="event-volunteer-count" class="mono" style="font-size:11px;color:var(--ink-mute);"></span></label>
         </div>
         <div id="event-role-registered-label" class="role-registered-label" style="display:none;margin-bottom:12px;font-size:13.5px;color:var(--sage);font-weight:500;"></div>
+        <div id="event-no-registration-note" style="display:none;margin-bottom:12px;font-size:13.5px;color:var(--ink-mute);" data-i18n="events.registrationNotRequired">No registration needed — just show up.</div>
         <button class="btn-gold register-real-btn" id="event-register-btn" style="margin-top:8px;" data-i18n="events.registerForEvent">Register for this event</button>
         <div class="register-status mono" id="event-register-status" style="font-size:12px;color:var(--ink-mute);margin-top:8px;display:none;"></div>
         <div id="event-suggested-donation" style="display:none;margin-top:14px;padding:14px 16px;border:1px solid var(--line);border-radius:10px;background:var(--card);">
@@ -5053,7 +5056,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-09-v252 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-09-v253 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -5597,8 +5600,16 @@
     var roleLabel = document.getElementById('event-role-registered-label');
     if (roleLabel) roleLabel.style.display = 'none';
 
+    // A "no signup needed" event has no registration UI at all — not the
+    // role radios, not the Register button — just a short note in their
+    // place. Without this the participant/volunteer radios still showed
+    // for such an event whenever it also accepted volunteers.
+    var regNotRequired = e.real && !e.registrationRequired;
+    var noRegNote = document.getElementById('event-no-registration-note');
+    if (noRegNote) noRegNote.style.display = regNotRequired ? 'block' : 'none';
+
     var roleChoice = document.getElementById('event-role-choice');
-    if (e.real && e.allowVolunteers) {
+    if (e.real && e.allowVolunteers && !regNotRequired) {
       roleChoice.style.display = 'block';
       document.getElementById('event-role-participant').checked = true;
       document.getElementById('event-participant-count').textContent = '';
@@ -5611,7 +5622,7 @@
 
     if (e.real) {
       registerBtn.setAttribute('data-event-id', e.id);
-      registerBtn.style.display = (e.registrationRequired === false) ? 'none' : 'inline-block';
+      registerBtn.style.display = regNotRequired ? 'none' : 'inline-block';
       registerBtn.textContent = e.priceCents ? window.t('events.register') + ' — $' + (e.priceCents / 100).toFixed(2) : window.t('events.register');
     } else {
       registerBtn.removeAttribute('data-event-id');
@@ -5823,17 +5834,23 @@
       + '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/></svg>' + churchLabel + (distanceText ? ' · ' + distanceText : '') + '</div>'
       + '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>' + e.when + '</div>';
     if(e.real){
-      var cardRoleHtml = '';
-      if(e.allowVolunteers){
-        cardRoleHtml = '<div class="card-role-choice" onclick="event.stopPropagation()">'
-          + '<label><input type="radio" name="card-role-' + e.id + '" value="participant" checked> ' + window.t('events.participant') + '</label>'
-          + '<label><input type="radio" name="card-role-' + e.id + '" value="volunteer"> ' + window.t('events.volunteerRole') + '</label>'
-          + '</div>'
-          + '<div class="role-registered-label" style="display:none;margin-top:10px;font-size:12px;color:var(--sage);font-weight:500;"></div>';
+      if(!e.registrationRequired){
+        // No signup needed — a card shouldn't offer a Register button or
+        // role radios, just say so, same as the event detail page.
+        inner += '<div class="card-role-choice" style="margin-top:12px;">' + window.t('events.registrationNotRequired') + '</div>';
+      } else {
+        var cardRoleHtml = '';
+        if(e.allowVolunteers){
+          cardRoleHtml = '<div class="card-role-choice" onclick="event.stopPropagation()">'
+            + '<label><input type="radio" name="card-role-' + e.id + '" value="participant" checked> ' + window.t('events.participant') + '</label>'
+            + '<label><input type="radio" name="card-role-' + e.id + '" value="volunteer"> ' + window.t('events.volunteerRole') + '</label>'
+            + '</div>'
+            + '<div class="role-registered-label" style="display:none;margin-top:10px;font-size:12px;color:var(--sage);font-weight:500;"></div>';
+        }
+        inner += cardRoleHtml
+          + '<button class="export-btn register-real-btn" data-event-id="' + e.id + '" style="width:100%;justify-content:center;margin-top:12px;">' + window.t('events.register') + '</button>'
+          + '<div class="register-status mono" style="font-size:11px;color:var(--ink-mute);margin-top:6px;display:none;"></div>';
       }
-      inner += cardRoleHtml
-        + '<button class="export-btn register-real-btn" data-event-id="' + e.id + '" style="width:100%;justify-content:center;margin-top:12px;">' + window.t('events.register') + '</button>'
-        + '<div class="register-status mono" style="font-size:11px;color:var(--ink-mute);margin-top:6px;display:none;"></div>';
     }
     inner += '</div>';
     var lookupKey = e.real ? e.id : e.title;
@@ -19312,6 +19329,10 @@
   async function checkEventRegistrationStatus(eventId){
     var btn = document.getElementById('event-register-btn');
     if (!btn) return;
+    // populateEventPage hides this button for a "no signup needed" event.
+    // Bail out rather than letting setEventRegisteredUI(false) re-show the
+    // role radios it just suppressed.
+    if (btn.style.display === 'none') return;
     var { data: userData } = await supabase.auth.getUser();
     if (!userData.user) return;
     var { data } = await supabase.from('event_registrations').select('status, role').eq('event_id', eventId).eq('user_id', userData.user.id).limit(1);

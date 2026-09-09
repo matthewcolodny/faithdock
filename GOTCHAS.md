@@ -867,3 +867,33 @@ Added a real, git-tracked backup: `supabase/README.md` (what this is, how to kee
 **Deliberately not fabricated:** the Stripe-related Edge Functions (`stripe-subscription`, `stripe-subscription-webhook`, `stripe-connect-onboarding`, `stripe-create-checkout`, `stripe-event-checkout`), `delete-account`, `ai-writing-assist`, and a handful of RPCs referenced by name but never pasted in full (`is_platform_admin()`, `update_profile_name()`, `get_directory_people()`, `find_church_people_by_email()`, `get_mass_email_recipients()`, `is_church_staff_member()`) are **not** in this backup — `supabase/README.md` lists them explicitly as "source not available" rather than guessing at their bodies, matching this project's standing rule of never inventing an opaque Supabase-side implementation. Also added a persistent cross-session memory note (`supabase-infrastructure-map`) pointing at this backup, so a future session's first move on anything Supabase-side is to read `supabase/README.md` rather than ask the user to re-paste source that's already sitting in the repo.
 
 No client-side code changed as part of this — it's a pure repo-organization/documentation task, so no build-stamp bump.
+
+---
+
+## Two "requires a one-time SQL migration" notes that never actually ran
+
+Publishing any event started failing live with `Could not find the 'suggested_donation_cents' column of 'events' in the schema cache`. Root cause wasn't a code bug — it was that two earlier features each shipped their client code with a **"Requires a one-time SQL migration"** note in this file but the SQL was never run against the live database and never captured under `supabase/migrations/`:
+
+- "Suggested donations for free events" → `events.suggested_donation_cents`
+- "New pricing model / pass-absorb fee choice" → `events.fee_mode`
+
+The create/edit-event form unconditionally sends **both** columns in its insert and update payloads (`suggestedDonationCents`, `feeMode`), so every publish/save failed at PostgREST before reaching the table. PostgREST names only the first unknown column it hits (`suggested_donation_cents`), which made it look like a one-column problem — `fee_mode` was missing too.
+
+Fix is `supabase/migrations/015_events_suggested_donation_and_fee_mode.sql` — run by hand in the Supabase SQL Editor (no migration runner in this project). Written idempotently: `add column if not exists` for both, `pg_constraint`-guarded `add constraint` for the two check constraints from the original notes, and a trailing `notify pgrst, 'reload schema'` so PostgREST picks the columns up immediately instead of on its next periodic cache refresh. Existing rows get `fee_mode = 'pass'` and `suggested_donation_cents = NULL`, both of which the client already handles.
+
+**Lesson for next time:** a "requires a one-time SQL migration" note in this file is not evidence the migration ran. Anything Supabase-side now belongs in `supabase/migrations/` as a numbered file in the same commit as the client change, per `supabase/README.md`.
+
+---
+
+## "No signup needed" events still showed Register / participant-volunteer radios
+
+QA: a published event with registration **not** required still rendered "Register as a participant" / "Register as a volunteer" radios on its detail page (the Register button itself was already correctly hidden, so the radios just sat there attached to nothing).
+
+Two independent spots, both keyed only on `allowVolunteers` and never on whether registration is even required:
+
+- `populateEventPage()` — the role-choice block (`#event-role-choice`) showed whenever `e.real && e.allowVolunteers`. Now also gated on `!regNotRequired`, and a new `#event-no-registration-note` (`events.registrationNotRequired` i18n key, EN + ES) shows in its place. `regNotRequired` uses `!e.registrationRequired` to match the "No signup needed" badge's own truthiness check for legacy rows where the column could be null.
+- `eventCard()` — the public Events grid had the same bug (button + radios on a no-signup card). Same treatment: for `!e.registrationRequired` real events it emits just the note, no button, no radios.
+
+**The re-show trap:** `checkEventRegistrationStatus()` runs right after `populateEventPage()` on every event-page load and, when not registered, calls `setEventRegisteredUI(btn, false)` which unconditionally does `choiceEl.style.display = 'block'` — that would have undone the fix a beat later. Guarded it with an early `if (btn.style.display === 'none') return;` (the button is exactly what `populateEventPage` hides for these events), which also skips a pointless `event_registrations` query. `checkEventCapacity()` needs no guard — it only writes into hidden count spans and is already call-site-gated on `allowVolunteers`.
+
+Verified live against the local static server + real backend: no-signup event (detail + card) shows the note; a registration-required event (`Ritual of Isis`, with a full participant cap) still renders the complete participant/volunteer/Register UI unchanged. Build stamp bumped to `2026-09-09-v253`.
