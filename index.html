@@ -291,6 +291,8 @@
       'churchClaim.yourName': 'Your name', 'churchClaim.yourRole': 'Your role (e.g. Pastor, Office Admin)',
       'churchClaim.contactEmail': 'Contact email', 'churchClaim.notePlaceholder': 'Anything that helps us verify this is your church (optional)',
       'churchClaim.submit': 'Submit claim request', 'churchClaim.nameEmailRequired': 'Name and email are required.',
+      'churchClaim.wrongFlowQuestion': 'Did you mean to add a church instead of claiming one?', 'churchClaim.wrongFlowLink': 'Add a church',
+      'churchClaim.choosePlanFirst': 'Choose a plan to continue claiming {name} — most churches start on Free.',
       'churchClaim.removeWordFromNote': 'Please remove "{word}" from your note.',
       'churchClaim.submitted': "Claim submitted — we'll review it and follow up by email.",
       'myChurches.eyebrow': 'Your churches', 'myChurches.title': 'My Churches', 'myChurches.subtitle': 'Every church you\'re connected to — home, owned, staffed, or followed — in one place.',
@@ -944,6 +946,8 @@
       'churchClaim.yourName': 'Tu nombre', 'churchClaim.yourRole': 'Tu rol (p. ej. Pastor, Administrador de oficina)',
       'churchClaim.contactEmail': 'Correo de contacto', 'churchClaim.notePlaceholder': 'Cualquier cosa que nos ayude a verificar que esta es tu iglesia (opcional)',
       'churchClaim.submit': 'Enviar solicitud', 'churchClaim.nameEmailRequired': 'Se requieren nombre y correo electrónico.',
+      'churchClaim.wrongFlowQuestion': '¿Querías agregar una iglesia en lugar de reclamar una?', 'churchClaim.wrongFlowLink': 'Agregar una iglesia',
+      'churchClaim.choosePlanFirst': 'Elige un plan para continuar reclamando {name} — la mayoría de las iglesias comienzan con el plan Gratis.',
       'churchClaim.removeWordFromNote': 'Por favor elimina "{word}" de tu nota.',
       'churchClaim.submitted': 'Solicitud enviada — la revisaremos y te contactaremos por correo.',
       'myChurches.eyebrow': 'Tus iglesias', 'myChurches.title': 'Mis iglesias', 'myChurches.subtitle': 'Cada iglesia con la que tienes una conexión — tu iglesia principal, las que posees, en las que sirves, o que sigues — en un solo lugar.',
@@ -3141,6 +3145,7 @@
   <div class="wrap" style="padding-top:44px;">    <div class="eyebrow" data-i18n="pricing.eyebrow">Pricing</div>
     <h1 id="pricing-title" style="font-size:34px;max-width:520px;" data-i18n="pricing.title">Become a Partner Church</h1>
     <p style="color:var(--ink-mute);margin-top:8px;max-width:520px;" data-i18n="pricing.subtitle">Free to be listed. Upgrade for tools that help you grow and stay connected with your congregation.</p>
+    <p id="pricing-pending-claim-banner" style="display:none;margin-top:14px;max-width:520px;background:var(--sage-bg);color:var(--sage);border:1px solid var(--sage);border-radius:10px;padding:10px 14px;font-size:13.5px;"></p>
     <!-- "See how FaithDock compares to Breeze & Planning Center" link removed
          from this page per request -- kept as a possible future addition.
          The #compare page itself (and pricing.compareLink) is untouched and
@@ -4850,7 +4855,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-08-v231 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-08-v232 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -4931,6 +4936,10 @@
     <textarea class="field" id="church-claim-note" placeholder="Anything that helps us verify this is your church (optional)" data-i18n-placeholder="churchClaim.notePlaceholder" style="margin-top:10px;min-height:70px;"></textarea>
     <div id="church-claim-status" style="display:none;font-size:13px;margin-top:12px;"></div>
     <button class="btn-gold" id="church-claim-submit-btn" style="margin-top:16px;width:100%;justify-content:center;" data-i18n="churchClaim.submit">Submit claim request</button>
+    <p style="font-size:12.5px;color:var(--ink-mute);margin-top:14px;text-align:center;">
+      <span data-i18n="churchClaim.wrongFlowQuestion">Did you mean to add a church instead of claiming one?</span>
+      <a href="#register-church" data-route="register-church" data-add-church="true" id="church-claim-add-instead-link" onclick="document.getElementById('church-claim-modal').classList.remove('open'); if (typeof window.clearPendingClaim === 'function') window.clearPendingClaim();" style="color:inherit;border-bottom:1px solid var(--gold);" data-i18n="churchClaim.wrongFlowLink">Add a church</a>
+    </p>
   </div>
 </div>
 
@@ -9636,7 +9645,18 @@
     // gives them one chance to check that before moving on. Doesn't
     // override hasChurch, since owning/staffing a church is a
     // stronger signal of where someone actually wants to land.
-    var landingRoute = window.consumePostLoginRoute() || (isPlatformAdmin ? 'admin' : (hasChurch ? 'my-churches' : (isNewOAuthSignup ? 'profile' : 'home')));
+    // A pending church claim (see the "Claim this church" handler)
+    // takes priority over everything else, including a saved
+    // post-login route -- deliberately checked independently of
+    // consumePostLoginRoute() rather than through it, since the
+    // login-required-modal's own Sign Up/Log In buttons unconditionally
+    // call clearStalePostLoginRoute() as they navigate away (correct
+    // for that modal's normal, no-particular-intent callers, but it
+    // would have wiped a route saved here too). faithdock_pendingClaim
+    // is a separate sessionStorage key that button never touches.
+    var landingRoute = (typeof window.getPendingClaim === 'function' && window.getPendingClaim())
+      ? 'pricing'
+      : (window.consumePostLoginRoute() || (isPlatformAdmin ? 'admin' : (hasChurch ? 'my-churches' : (isNewOAuthSignup ? 'profile' : 'home'))));
     console.log('[FaithDock auth] routeAfterLogin: routing to', landingRoute);
     window.go(landingRoute);
     // go() only toggles which page section is visible — confirmed
@@ -15584,6 +15604,8 @@
     // resolves.
     var titleEl = document.getElementById('pricing-title');
     if (titleEl) titleEl.textContent = window.t('pricing.title');
+    var claimBannerReset = document.getElementById('pricing-pending-claim-banner');
+    if (claimBannerReset) claimBannerReset.style.display = 'none';
     // One "Cancel subscription" link per paid card (Starter/Standard/
     // Premium), shown only under whichever one is the viewer's actual
     // current plan -- never Free (nothing to cancel) or Multi-Church
@@ -15628,6 +15650,33 @@
       if (!churchForCheckout) { try { sessionStorage.setItem('faithdock_pendingPlan', 'premium'); } catch (e) {} go('register-church'); return; }
       window.startPlanCheckout && window.startPlanCheckout('premium');
     };
+
+    // A pending church claim overrides everything above: every plan
+    // button (including Free, and regardless of whatever plan the
+    // viewer's own church, if any, is already on) leads to the claim
+    // form instead of registering/checking out -- there's no owned
+    // church in play here at all yet, just a claim request headed to
+    // admin review. Checked before the isSignedIn/myChurch early
+    // returns below since claiming doesn't require owning anything.
+    var pendingClaimForPricing = window.getPendingClaim ? window.getPendingClaim() : null;
+    if (pendingClaimForPricing) {
+      var claimBanner = document.getElementById('pricing-pending-claim-banner');
+      if (claimBanner) {
+        claimBanner.textContent = window.t('churchClaim.choosePlanFirst').replace('{name}', pendingClaimForPricing.name || window.t('churchClaim.thisChurch'));
+        claimBanner.style.display = 'block';
+      }
+      var toClaimForm = function(plan){
+        return function(){
+          if (plan) { try { sessionStorage.setItem('faithdock_pendingPlan', plan); } catch (e) {} }
+          window.openClaimModal && window.openClaimModal();
+        };
+      };
+      freeBtn.disabled = false; freeBtn.onclick = toClaimForm(null);
+      starterBtn.disabled = false; starterBtn.onclick = toClaimForm('starter');
+      standardBtn.disabled = false; standardBtn.onclick = toClaimForm('standard');
+      premiumBtn.disabled = false; premiumBtn.onclick = toClaimForm('premium');
+      return;
+    }
 
     if (!window.isSignedIn) return;
     var myChurch = await getMyChurch();
@@ -15680,22 +15729,61 @@
   }
   window.populatePricingPage = populatePricingPage;
 
+  // ============================================================
+  // Pending church claim — survives the detour through Pricing (and,
+  // for a not-yet-signed-in visitor, a full sign-up page reload) that
+  // now sits between clicking "Claim this church" and actually
+  // reaching the claim form. sessionStorage rather than a plain JS
+  // variable for the same reason savePostLoginRoute() uses it: OAuth
+  // sign-up is a real navigation away to accounts.google.com and back.
+  // ============================================================
+  window.setPendingClaim = function(churchId, churchName){
+    try { sessionStorage.setItem('faithdock_pendingClaim', JSON.stringify({ id: churchId, name: churchName })); } catch (e) {}
+  };
+  window.getPendingClaim = function(){
+    try {
+      var raw = sessionStorage.getItem('faithdock_pendingClaim');
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) { return null; }
+  };
+  window.clearPendingClaim = function(){
+    try { sessionStorage.removeItem('faithdock_pendingClaim'); } catch (e) {}
+  };
+
+  // Shared by the Pricing-page button override below — the only place
+  // this modal opens from now, whether the claim just started this
+  // moment (already signed in) or is resuming after a Pricing/sign-up
+  // detour that began on a completely different page.
+  async function openClaimModal(){
+    var pending = window.getPendingClaim();
+    if (!pending) return;
+    var { data: userData } = await supabase.auth.getUser();
+    document.getElementById('church-claim-church-name').textContent = pending.name || window.t('churchClaim.thisChurch');
+    document.getElementById('church-claim-name').value = '';
+    document.getElementById('church-claim-role').value = '';
+    document.getElementById('church-claim-email').value = (userData.user && userData.user.email) || '';
+    document.getElementById('church-claim-note').value = '';
+    document.getElementById('church-claim-status').style.display = 'none';
+    document.getElementById('church-claim-modal').classList.add('open');
+  }
+  window.openClaimModal = openClaimModal;
+
   var churchClaimBtn = document.getElementById('church-claim-btn');
   if (churchClaimBtn) {
     churchClaimBtn.addEventListener('click', async function(){
+      var banner = document.getElementById('church-unclaimed-banner');
+      window.setPendingClaim(banner.getAttribute('data-claim-church-id'), banner.getAttribute('data-claim-church-name'));
       var { data: userData } = await supabase.auth.getUser();
       if (!userData.user) {
         showLoginRequired(window.t('loginRequired.claimChurch'));
         return;
       }
-      var banner = document.getElementById('church-unclaimed-banner');
-      document.getElementById('church-claim-church-name').textContent = banner.getAttribute('data-claim-church-name') || window.t('churchClaim.thisChurch');
-      document.getElementById('church-claim-name').value = '';
-      document.getElementById('church-claim-role').value = '';
-      document.getElementById('church-claim-email').value = userData.user.email || '';
-      document.getElementById('church-claim-note').value = '';
-      document.getElementById('church-claim-status').style.display = 'none';
-      document.getElementById('church-claim-modal').classList.add('open');
+      // Everyone -- brand new sign-up or an existing account -- picks
+      // a plan before reaching the actual claim form now (most will
+      // choose Free, per the product decision behind this). The
+      // matching override in populatePricingPage() below is what
+      // actually opens this modal once a plan is chosen.
+      go('pricing');
     });
   }
 
@@ -15704,8 +15792,8 @@
     churchClaimSubmitBtn.addEventListener('click', async function(){
       var statusEl = document.getElementById('church-claim-status');
       statusEl.style.display = 'none';
-      var banner = document.getElementById('church-unclaimed-banner');
-      var churchId = banner.getAttribute('data-claim-church-id');
+      var pendingForSubmit = window.getPendingClaim();
+      var churchId = pendingForSubmit ? pendingForSubmit.id : null;
       var name = document.getElementById('church-claim-name').value.trim();
       var role = document.getElementById('church-claim-role').value.trim();
       var email = document.getElementById('church-claim-email').value.trim();
@@ -15739,6 +15827,7 @@
       statusEl.textContent = window.t('churchClaim.submitted');
       statusEl.style.color = 'var(--sage)';
       statusEl.style.display = 'block';
+      window.clearPendingClaim();
       setTimeout(function(){ document.getElementById('church-claim-modal').classList.remove('open'); }, 1800);
     });
   }
