@@ -560,7 +560,7 @@
       'dashSettings.team': 'Team', 'dashSettings.teamHint': 'Staff can create and edit events. Church profile and billing stay owner-only.',
       'dashSettings.addStaffByEmail': 'Add staff by email',
       'dashSettings.addStaffHint': "If they already have a FaithDock account, they're added right away. If not, they'll get an email invite and join automatically once they sign up.",
-      'dashSettings.addToTeam': 'Add to team',
+      'dashSettings.addToChurches': 'Add to', 'dashSettings.addToTeam': 'Add to team',
       'dashSettings.staffEmailPlaceholder': 'staffmember@email.com',
       'dashSettings.staffFreeLocked': "Adding team members isn't included on the Free plan.",
       'dashSettings.upgradeToAddTeam': 'Upgrade to add your team',
@@ -765,7 +765,7 @@
       'rte.bold': 'Bold', 'rte.italic': 'Italic', 'rte.numberedList': 'Numbered list', 'rte.bulletedList': 'Bulleted list', 'rte.addLink': 'Add link', 'rte.removeLink': 'Remove link',
       'rte.linkUrlPrompt': 'Link URL (include https://)', 'rte.linksMustStartWith': 'Links must start with https:// or mailto:',
       'audience.preschool': 'Preschool', 'audience.children': 'Children', 'audience.teens': 'Teens', 'audience.adults': 'Adults', 'audience.seniors': 'Seniors', 'audience.parents': 'Parents', 'audience.emptyNesters': 'Empty-nesters',
-      'ce.backToDashboard': '← Back to dashboard', 'ce.newEvent': 'New event', 'ce.createAnEvent': 'Create an event', 'ce.editEvent': 'Edit event', 'ce.postsUnderChurchName': 'Posts under {church}.',
+      'ce.backToDashboard': '← Back to dashboard', 'ce.newEvent': 'New event', 'ce.createAnEvent': 'Create an event', 'ce.editEvent': 'Edit event', 'ce.postsUnderChurchName': 'Posts under {church}.', 'ce.postingAs': 'Posting as',
       'ce.eventTitle': 'Event title', 'ce.eventTitlePlaceholder': 'Fall Community Picnic', 'ce.description': 'Description', 'ce.descriptionPlaceholder': "What's happening, who it's for",
       'ce.writingAssistant': 'Writing Assistant', 'ce.checkSpellingGrammar': 'Check Spelling and Grammar', 'ce.makeItFormal': 'Make it Formal', 'ce.makeItFriendly': 'Make it Friendly', 'ce.makeItInviting': 'Make it Inviting', 'ce.writeFromKeywords': 'Write from Keywords',
       'ce.rewritesReplaceHint': "Rewrites replace the current text — any bold, lists, or links in the draft won't carry through a rewrite.",
@@ -1251,7 +1251,7 @@
       'dashSettings.team': 'Equipo', 'dashSettings.teamHint': 'El personal puede crear y editar eventos. El perfil de la iglesia y la facturación son solo para el propietario.',
       'dashSettings.addStaffByEmail': 'Agregar personal por correo electrónico',
       'dashSettings.addStaffHint': 'Si ya tienen una cuenta de FaithDock, se agregan de inmediato. Si no, recibirán una invitación por correo y se unirán automáticamente al registrarse.',
-      'dashSettings.addToTeam': 'Agregar al equipo',
+      'dashSettings.addToChurches': 'Agregar a', 'dashSettings.addToTeam': 'Agregar al equipo',
       'dashSettings.staffEmailPlaceholder': 'personal@email.com',
       'dashSettings.staffFreeLocked': 'Agregar miembros del equipo no está incluido en el plan Gratis.',
       'dashSettings.upgradeToAddTeam': 'Mejora tu plan para agregar tu equipo',
@@ -1456,7 +1456,7 @@
       'rte.bold': 'Negrita', 'rte.italic': 'Cursiva', 'rte.numberedList': 'Lista numerada', 'rte.bulletedList': 'Lista con viñetas', 'rte.addLink': 'Agregar enlace', 'rte.removeLink': 'Quitar enlace',
       'rte.linkUrlPrompt': 'URL del enlace (incluye https://)', 'rte.linksMustStartWith': 'Los enlaces deben comenzar con https:// o mailto:',
       'audience.preschool': 'Preescolar', 'audience.children': 'Niños', 'audience.teens': 'Adolescentes', 'audience.adults': 'Adultos', 'audience.seniors': 'Adultos mayores', 'audience.parents': 'Padres', 'audience.emptyNesters': 'Nido vacío',
-      'ce.backToDashboard': '← Volver al panel', 'ce.newEvent': 'Nuevo evento', 'ce.createAnEvent': 'Crear un evento', 'ce.editEvent': 'Editar evento', 'ce.postsUnderChurchName': 'Se publica bajo {church}.',
+      'ce.backToDashboard': '← Volver al panel', 'ce.newEvent': 'Nuevo evento', 'ce.createAnEvent': 'Crear un evento', 'ce.editEvent': 'Editar evento', 'ce.postsUnderChurchName': 'Se publica bajo {church}.', 'ce.postingAs': 'Publicando como',
       'ce.eventTitle': 'Título del evento', 'ce.eventTitlePlaceholder': 'Picnic comunitario de otoño', 'ce.description': 'Descripción', 'ce.descriptionPlaceholder': 'Qué va a pasar, para quién es',
       'ce.writingAssistant': 'Asistente de escritura', 'ce.checkSpellingGrammar': 'Revisar ortografía y gramática', 'ce.makeItFormal': 'Hacerlo formal', 'ce.makeItFriendly': 'Hacerlo amigable', 'ce.makeItInviting': 'Hacerlo atractivo', 'ce.writeFromKeywords': 'Escribir a partir de palabras clave',
       'ce.rewritesReplaceHint': 'Las reescrituras reemplazan el texto actual — cualquier negrita, lista o enlace en el borrador no se conservará tras una reescritura.',
@@ -3868,6 +3868,10 @@
       <a href="#dashboard" data-route="dashboard" style="display:inline-block;font-size:12.5px;color:var(--ink-mute);border-bottom:1px solid var(--line);margin-bottom:14px;" data-i18n="ce.backToDashboard">← Back to dashboard</a>
       <div class="eyebrow" data-i18n="ce.newEvent">New event</div>
       <h2 style="font-family:'Fraunces';font-size:22px;margin-bottom:6px;" id="ce-heading" data-i18n="ce.createAnEvent">Create an event</h2>
+      <div id="ce-church-picker-wrap" style="display:none;margin-bottom:8px;">
+        <label style="font-size:12.5px;" data-i18n="ce.postingAs">Posting as</label>
+        <select class="field" id="ce-church-picker" style="margin-top:4px;"></select>
+      </div>
       <p style="font-size:13.5px;color:var(--ink-mute);margin-bottom:8px;" id="ce-posts-under-church"></p>
 
       <label data-i18n="ce.eventTitle">Event title</label>
@@ -5049,7 +5053,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-09-v251 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-09-v252 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -6118,10 +6122,11 @@
     }
     // Same class of gap as the room checklist above -- reaching plain
     // #create-event directly never ran resetCreateEventForm() either,
-    // so "Posts under {church}" would stay blank instead of showing
-    // which church the event actually posts under.
-    if(resolved.base === 'create-event' && !resolved.key && typeof window.updateCePostsUnderChurchText === 'function'){
-      window.updateCePostsUnderChurchText();
+    // so "Posts under {church}" (and the church picker, for a
+    // multi-church account) would stay blank instead of showing which
+    // church the event actually posts under.
+    if(resolved.base === 'create-event' && !resolved.key && typeof window.refreshCeChurchScope === 'function'){
+      window.refreshCeChurchScope();
     }
     // Lets an external link (an email, specifically) land directly on
     // the login tab rather than the default signup tab — the "already
@@ -7597,7 +7602,11 @@
         if (adminChurchToggleId) window.populateAdminChurchPage(adminChurchToggleId);
       }
       if (currentBase === 'create-event') {
-        if (typeof window.updateCePostsUnderChurchText === 'function') window.updateCePostsUnderChurchText();
+        // No explicit id here -- refreshCeChurchScope() keeps whatever
+        // is already selected (still valid), it doesn't reset back to
+        // the active church, so a mid-edit language toggle can't
+        // silently switch which church the event posts under.
+        if (typeof window.refreshCeChurchScope === 'function') window.refreshCeChurchScope();
         if (typeof window.renderCeContacts === 'function') window.renderCeContacts();
         if (typeof window.renderCeQuestions === 'function') window.renderCeQuestions();
         if (typeof window.loadChurchTagSuggestions === 'function') window.loadChurchTagSuggestions();
@@ -8474,12 +8483,29 @@
       return { id: chosenChurch.id, name: chosenChurch.name, denomination: chosenChurch.denomination, planType: chosenChurch.plan_type, role: 'owner', canManageEvents: true, canManageGiving: true, canManageBilling: true, canEditProfile: true, ownedChurches: owned };
     }
 
-    var { data: staffRow, error: staffError } = await supabase.from('church_staff').select('church_id, can_manage_events, can_manage_giving, can_manage_billing, can_edit_profile, churches(id, name, denomination, plan_type)').eq('user_id', userId).limit(1);
+    // No .limit(1) here either, as of this change -- church_staff's
+    // only relevant constraint is UNIQUE (church_id, user_id), not
+    // UNIQUE (user_id) (confirmed live via pg_constraint), so the
+    // database has always fully allowed one person staffing several
+    // churches; this .limit(1) was a purely client-side restriction.
+    // Mirrors the owned-churches branch above exactly: staffedChurches
+    // carries the full list (each entry with its OWN permission flags
+    // -- these can differ per church for the same person), and
+    // getActiveChurchId()/setActiveChurchId() pick and self-correct
+    // which one this call resolves to, the same way they already do
+    // for owners. For anyone staffing 0 or 1 churches this still
+    // resolves identically to the old .limit(1) behavior.
+    var { data: staffRows, error: staffError } = await supabase.from('church_staff').select('church_id, can_manage_events, can_manage_giving, can_manage_billing, can_edit_profile, churches(id, name, denomination, plan_type)').eq('user_id', userId);
     if (staffError) { console.error('getMyChurch (staff lookup):', staffError); }
-    if (staffRow && staffRow.length && staffRow[0].churches) {
-      var c = staffRow[0].churches;
-      var sr = staffRow[0];
-      return { id: c.id, name: c.name, denomination: c.denomination, planType: c.plan_type, role: 'staff', canManageEvents: !!sr.can_manage_events, canManageGiving: !!sr.can_manage_giving, canManageBilling: !!sr.can_manage_billing, canEditProfile: !!sr.can_edit_profile };
+    var staffedChurches = (staffRows || []).filter(function(sr){ return sr.churches; }).map(function(sr){
+      var c = sr.churches;
+      return { id: c.id, name: c.name, denomination: c.denomination, plan_type: c.plan_type, can_manage_events: !!sr.can_manage_events, can_manage_giving: !!sr.can_manage_giving, can_manage_billing: !!sr.can_manage_billing, can_edit_profile: !!sr.can_edit_profile };
+    });
+    if (staffedChurches.length) {
+      var activeChurchIdForStaffed = getActiveChurchId();
+      var chosenStaffed = (activeChurchIdForStaffed && staffedChurches.filter(function(sc){ return sc.id === activeChurchIdForStaffed; })[0]) || staffedChurches[0];
+      if (chosenStaffed.id !== activeChurchIdForStaffed) setActiveChurchId(chosenStaffed.id);
+      return { id: chosenStaffed.id, name: chosenStaffed.name, denomination: chosenStaffed.denomination, planType: chosenStaffed.plan_type, role: 'staff', canManageEvents: chosenStaffed.can_manage_events, canManageGiving: chosenStaffed.can_manage_giving, canManageBilling: chosenStaffed.can_manage_billing, canEditProfile: chosenStaffed.can_edit_profile, staffedChurches: staffedChurches };
     }
 
     // church_staff has RLS that depends on the server independently
@@ -8526,16 +8552,17 @@
     var roleLabel = myChurch.role === 'staff' ? ' · ' + window.t('dashHeader.staff') : ' · ' + window.t('dashHeader.owner');
     document.getElementById('dash-church-tag').textContent = window.t('dashHeader.partnerChurch') + (myChurch.denomination ? ' · ' + myChurch.denomination.toUpperCase() : '') + roleLabel;
 
-    // Multi-church ownership: only ever shown for an owner of more
-    // than one church (Large's "up to 5" / Multi-Church) — everyone
-    // else never sees this, and #dash-edit-profile-sidebar-link's own
-    // -20px margin-top (tuned to sit right under .dash-tag) is
-    // restored to a normal gap only while the switcher is actually
-    // taking up space above it.
+    // Multi-church: shown for an owner of more than one church
+    // (Large's "up to 5" / Multi-Church) OR a staff member granted
+    // access to more than one -- everyone else never sees this, and
+    // #dash-edit-profile-sidebar-link's own -20px margin-top (tuned
+    // to sit right under .dash-tag) is restored to a normal gap only
+    // while the switcher is actually taking up space above it.
     var churchSwitcher = document.getElementById('dash-church-switcher');
     if (churchSwitcher) {
-      if (myChurch.role === 'owner' && myChurch.ownedChurches && myChurch.ownedChurches.length > 1) {
-        churchSwitcher.innerHTML = myChurch.ownedChurches.map(function(c){
+      var multiChurchList = myChurch.role === 'owner' ? myChurch.ownedChurches : myChurch.staffedChurches;
+      if (multiChurchList && multiChurchList.length > 1) {
+        churchSwitcher.innerHTML = multiChurchList.map(function(c){
           return '<option value="' + c.id + '"' + (c.id === myChurch.id ? ' selected' : '') + '>' + c.name + '</option>';
         }).join('');
         churchSwitcher.style.display = 'block';
@@ -9778,14 +9805,23 @@
       var ceVenueNameInput = document.getElementById('ce-venue-name');
       if (!ceLocationInput) return;
       if (this.checked) {
-        var myChurch = await getMyChurch();
-        if (myChurch) {
+        // Follows whichever church is picked in the create-event
+        // page's own church selector (ceSelectedChurchId), for a
+        // multi-church account -- falls back to the dashboard's
+        // active church (getMyChurch()) if the picker hasn't set
+        // anything yet, same as before this existed.
+        var churchIdForAddress = ceSelectedChurchId;
+        if (!churchIdForAddress) {
+          var myChurch = await getMyChurch();
+          churchIdForAddress = myChurch ? myChurch.id : null;
+        }
+        if (churchIdForAddress) {
           // Confirmed as a real, live gap: this only ever filled the
           // address, leaving Venue name blank even though the label
           // itself says "Use my church's address" -- a church's own
           // name is exactly what belongs in Venue name here, and this
           // is the one field that actually knows it.
-          var { data: churchRows } = await supabase.from('churches').select('name, address').eq('id', myChurch.id).limit(1);
+          var { data: churchRows } = await supabase.from('churches').select('name, address').eq('id', churchIdForAddress).limit(1);
           if (churchRows && churchRows.length) {
             if (churchRows[0].address) ceLocationInput.value = churchRows[0].address;
             if (ceVenueNameInput && churchRows[0].name) ceVenueNameInput.value = churchRows[0].name;
@@ -11063,27 +11099,92 @@
   wireQuestionsList('ce-questions-list', 'ce-add-question-btn', function(){ return ceQuestions; }, renderCeQuestions);
   wireQuestionsList('ce-volunteer-questions-list', 'ce-add-volunteer-question-btn', function(){ return ceVolunteerQuestions; }, renderCeVolunteerQuestions);
 
-  // Shows which church this event actually posts under -- most
-  // relevant for an owner who owns more than one church (already
-  // supported via the dashboard's own church switcher): re-fetches
-  // getMyChurch() rather than caching the name, so it can't ever go
-  // stale if the active church was switched elsewhere. A single-
-  // church account still sees this, just always naming the one
-  // church they have -- confirmed harmless, and cheaper than special-
-  // casing "don't show it" for that case.
-  async function updateCePostsUnderChurchText(){
-    var el = document.getElementById('ce-posts-under-church');
-    if (!el) return;
+  // Which church THIS event posts under -- not necessarily whatever
+  // the dashboard's own active church currently is. For an
+  // owner/staff member with access to more than one church, the
+  // #ce-church-picker dropdown below lets them switch it right here
+  // without a full page reload (unlike the dashboard's own switcher,
+  // setActiveChurchAndReload() -- reloading here would blow away an
+  // in-progress title/description).
+  var ceSelectedChurchId = null;
+
+  // explicitChurchId: pass a real id to force the selection (editing
+  // an existing event defaults to THAT event's own church_id, which
+  // can differ from whatever the dashboard's active church is right
+  // now if it was switched since the event was created; the picker's
+  // own change handler passes the newly-picked id). Omit it to keep
+  // whatever's already selected, or fall back to getMyChurch()'s
+  // active church on first load.
+  async function refreshCeChurchScope(explicitChurchId){
+    var pickerWrap = document.getElementById('ce-church-picker-wrap');
+    var pickerEl = document.getElementById('ce-church-picker');
+    var textEl = document.getElementById('ce-posts-under-church');
     var myChurch = await getMyChurch();
-    el.textContent = myChurch ? window.t('ce.postsUnderChurchName').replace('{church}', myChurch.name) : '';
+    if (!myChurch) {
+      ceSelectedChurchId = null;
+      if (pickerWrap) pickerWrap.style.display = 'none';
+      if (textEl) textEl.textContent = '';
+      return;
+    }
+    // ownedChurches (owner of several) or staffedChurches (staff
+    // granted access to several) -- whichever applies. Falls back to
+    // a single-element list built from myChurch itself so the rest
+    // of this function doesn't need a separate one-church code path.
+    // Owner entries have no can_manage_events property at all (always
+    // implicitly true for every church they own), so this filter is a
+    // no-op for them; for staffedChurches it excludes any specific
+    // church this person doesn't actually have event-creation
+    // permission for, rather than letting the picker offer a church
+    // they'd only get blocked from at submit time.
+    var available = (myChurch.ownedChurches || myChurch.staffedChurches || [{ id: myChurch.id, name: myChurch.name }]).filter(function(c){ return c.can_manage_events !== false; });
+    var stillValid = ceSelectedChurchId && available.some(function(c){ return c.id === ceSelectedChurchId; });
+    ceSelectedChurchId = explicitChurchId || (stillValid ? ceSelectedChurchId : myChurch.id);
+    var chosen = available.filter(function(c){ return c.id === ceSelectedChurchId; })[0] || myChurch;
+
+    if (pickerWrap && pickerEl) {
+      if (available.length > 1) {
+        pickerEl.innerHTML = available.map(function(c){
+          return '<option value="' + c.id + '"' + (c.id === ceSelectedChurchId ? ' selected' : '') + '>' + c.name.replace(/</g, '&lt;') + '</option>';
+        }).join('');
+        pickerWrap.style.display = 'block';
+      } else {
+        pickerWrap.style.display = 'none';
+        pickerEl.innerHTML = '';
+      }
+    }
+    if (textEl) textEl.textContent = window.t('ce.postsUnderChurchName').replace('{church}', chosen.name);
   }
-  window.updateCePostsUnderChurchText = updateCePostsUnderChurchText;
+  window.refreshCeChurchScope = refreshCeChurchScope;
+
+  var ceChurchPickerEl = document.getElementById('ce-church-picker');
+  if (ceChurchPickerEl) {
+    ceChurchPickerEl.addEventListener('change', async function(){
+      await refreshCeChurchScope(this.value);
+      // Whatever room was selected belonged to the PREVIOUS church --
+      // its room list is different, so there's nothing valid to carry
+      // over. Same reasoning applies to tag suggestions (a different
+      // church's own past tags).
+      loadEventRoomChecklist([], null, ceSelectedChurchId);
+      loadChurchTagSuggestions(ceSelectedChurchId);
+      // Re-fill the address/venue-name fields for the newly-picked
+      // church if "Use my church's address" is currently checked --
+      // otherwise they'd silently keep showing the OLD church's
+      // address under the new selection.
+      var useAddressCb = document.getElementById('ce-use-church-address');
+      if (useAddressCb && useAddressCb.checked) { useAddressCb.dispatchEvent(new Event('change')); }
+    });
+  }
 
   function resetCreateEventForm(){
     ceEditingEventId = null;
     ceOriginalPriceCents = null;
     window.ceIsEditing = false;
-    updateCePostsUnderChurchText();
+    // Cleared first so refreshCeChurchScope() defaults back to the
+    // dashboard's own active church, not whatever was left selected
+    // from editing a different event earlier in this same page
+    // session.
+    ceSelectedChurchId = null;
+    refreshCeChurchScope();
     document.getElementById('ce-heading').textContent = window.t('ce.createAnEvent');
     document.getElementById('ce-repeats-section').style.display = 'block';
     document.getElementById('ce-title').value = '';
@@ -11144,7 +11245,11 @@
     ceEditingEventId = eventId;
     ceOriginalPriceCents = ev.price_cents || null;
     window.ceIsEditing = true;
-    updateCePostsUnderChurchText();
+    // Defaults the picker to THIS event's own saved church, not
+    // necessarily whatever the dashboard's active church is right
+    // now -- those can differ if the active church was switched
+    // since this event was created.
+    refreshCeChurchScope(ev.church_id);
     document.getElementById('ce-heading').textContent = window.t('ce.editEvent');
     document.getElementById('ce-repeats-section').style.display = 'none';
     updateWritingAssistantAccess();
@@ -11215,7 +11320,13 @@
     var { data: linkedRooms } = await supabase.from('event_rooms').select('room_id, is_primary').eq('event_id', eventId);
     var selectedRoomIds = (linkedRooms || []).map(function(r){ return r.room_id; });
     var primaryRoomRow = (linkedRooms || []).filter(function(r){ return r.is_primary; })[0];
-    loadEventRoomChecklist(selectedRoomIds, primaryRoomRow ? primaryRoomRow.room_id : null);
+    loadEventRoomChecklist(selectedRoomIds, primaryRoomRow ? primaryRoomRow.room_id : null, ev.church_id);
+    // Tag suggestions previously only ever reflected whichever church
+    // was active when the page/module first loaded, not necessarily
+    // this specific event's own church -- re-fetching here for
+    // ev.church_id fixes that too, now that the underlying function
+    // accepts an explicit church id.
+    loadChurchTagSuggestions(ev.church_id);
 
     var audienceChecks = document.querySelectorAll('.ce-audience');
     var evAudience = ev.audience || [];
@@ -11580,7 +11691,17 @@
         showCeError(window.t('ce.registerChurchFirst'));
         return;
       }
-      var myChurches = [{ id: myChurch.id, name: myChurch.name }];
+      // The event actually posts under whatever's picked in this
+      // page's own church selector (ceSelectedChurchId) -- can differ
+      // from myChurch (the dashboard's active church) for a
+      // multi-church account. availableForSubmit already excludes any
+      // staffed church this person can't create events for (see
+      // refreshCeChurchScope), so a stale/tampered ceSelectedChurchId
+      // pointing at one of those falls back to myChurch itself rather
+      // than silently posting somewhere they don't have permission.
+      var availableForSubmit = (myChurch.ownedChurches || myChurch.staffedChurches || [{ id: myChurch.id, name: myChurch.name }]).filter(function(c){ return c.can_manage_events !== false; });
+      var targetChurch = (ceSelectedChurchId && availableForSubmit.filter(function(c){ return c.id === ceSelectedChurchId; })[0]) || { id: myChurch.id, name: myChurch.name };
+      var myChurches = [{ id: targetChurch.id, name: targetChurch.name }];
 
       // Per-plan event cap — a rolling count of events created this
       // calendar month, not a lifetime total. Only applies to
@@ -11697,6 +11818,12 @@
 
         var updatePayload = {
           title: title, description: description,
+          // Previously never set on update at all -- an edit couldn't
+          // move an event to a different church even by accident.
+          // Now that the church picker can be changed while editing
+          // (multi-church account), this needs to actually apply that
+          // choice rather than leaving it silently ineffective.
+          church_id: myChurches[0].id,
           start_at: new Date(startAt).toISOString(),
           end_at: endAt ? new Date(endAt).toISOString() : null,
           location: location,
@@ -11881,7 +12008,7 @@
 
   // Suggest tags this church has used before, so they're one click
   // to reuse instead of retyping every time.
-  async function loadChurchTagSuggestions(){
+  async function loadChurchTagSuggestions(churchId){
     // Baseline categories worth suggesting to every church, so
     // common categories stay consistent platform-wide rather than
     // fragmenting into near-duplicates ("Volunteer" vs "Volunteering"
@@ -11889,9 +12016,17 @@
     var baselineTags = ['Volunteer', 'Book Club', 'Social', 'Worship', 'Outreach', 'Youth', 'Kids'];
     var allTags = baselineTags.slice();
 
-    var myChurch = await getMyChurch();
-    if (myChurch) {
-      var { data: churchEvents } = await supabase.from('events').select('tags').eq('church_id', myChurch.id);
+    // churchId lets the create-event page's own church picker (for a
+    // multi-church account) ask for a DIFFERENT church's tags than
+    // whatever the dashboard's active church happens to be, without
+    // a page reload -- falls back to getMyChurch() (the active
+    // church) when called with no argument, same as before.
+    if (!churchId) {
+      var myChurch = await getMyChurch();
+      churchId = myChurch ? myChurch.id : null;
+    }
+    if (churchId) {
+      var { data: churchEvents } = await supabase.from('events').select('tags').eq('church_id', churchId);
       if (churchEvents) {
         churchEvents.forEach(function(e){
           if (e.tags) { e.tags.forEach(function(t){ if (allTags.indexOf(t) === -1) allTags.push(t); }); }
@@ -11992,8 +12127,25 @@
         // this JS-built version is what actually renders when this
         // function runs, so it needs the same translation, not just
         // the static HTML template it's built to match.
+        //
+        // Multi-church: only shown at all when this owner actually
+        // has more than one church -- invisible for the common
+        // single-church case, same progressive-disclosure pattern as
+        // the create-event church picker. Defaults to just the
+        // currently active church checked, so leaving every box
+        // alone reproduces the exact original single-church behavior.
+        var churchChecksHtml = '';
+        if (myChurch.ownedChurches && myChurch.ownedChurches.length > 1) {
+          churchChecksHtml = '<label style="font-size:12.5px;">' + window.t('dashSettings.addToChurches') + '</label>'
+            + '<div style="margin-bottom:10px;">'
+            + myChurch.ownedChurches.map(function(c){
+                return '<label class="filter-check" style="display:block;margin-bottom:2px;"><input type="checkbox" class="team-invite-church-check" value="' + c.id + '"' + (c.id === myChurch.id ? ' checked' : '') + '> ' + c.name.replace(/</g, '&lt;') + '</label>';
+              }).join('')
+            + '</div>';
+        }
         ownerControls.innerHTML = '<label style="font-size:12.5px;">' + window.t('dashSettings.addStaffByEmail') + '</label>'
           + '<div style="font-size:11.5px;color:var(--ink-mute);margin-bottom:6px;">' + window.t('dashSettings.addStaffHint') + '</div>'
+          + churchChecksHtml
           + '<input class="field" type="email" id="team-invite-email" placeholder="staffmember@email.com" data-i18n-placeholder="dashSettings.staffEmailPlaceholder" style="font-size:13px;padding:9px 10px;">'
           + '<button class="export-btn" id="team-invite-btn" style="width:100%;justify-content:center;margin-top:8px;">' + window.t('dashSettings.addToTeam') + '</button>'
           + '<div id="team-invite-status" style="display:none;font-size:12px;margin-top:8px;"></div>';
@@ -13081,12 +13233,20 @@
   // Fetches fresh each time rather than trusting a cache, so a room
   // added in Settings shows up immediately without needing a page
   // reload first.
-  async function loadEventRoomChecklist(selectedRoomIds, primaryRoomId){
+  async function loadEventRoomChecklist(selectedRoomIds, primaryRoomId, churchId){
     var container = document.getElementById('ce-rooms-checklist');
     if (!container) return;
-    var myChurch = await getMyChurch();
-    if (!myChurch) { container.innerHTML = ''; return; }
-    var { data: rooms } = await supabase.from('church_rooms').select('id, name').eq('church_id', myChurch.id).eq('is_active', true).order('name');
+    // churchId lets the create-event page's own church picker ask for
+    // a different church's rooms than whatever the dashboard's active
+    // church happens to be, without a page reload -- falls back to
+    // getMyChurch() (the active church) when not given, same as
+    // every other existing caller of this function.
+    if (!churchId) {
+      var myChurch = await getMyChurch();
+      churchId = myChurch ? myChurch.id : null;
+    }
+    if (!churchId) { container.innerHTML = ''; return; }
+    var { data: rooms } = await supabase.from('church_rooms').select('id, name').eq('church_id', churchId).eq('is_active', true).order('name');
     if (!rooms || !rooms.length) {
       container.innerHTML = '<p style="color:var(--ink-mute);font-size:12.5px;">' + window.t('ce.noRoomsSetUpYet') + '</p>';
       return;
@@ -16580,12 +16740,15 @@
       var unfollowBtn = entry.labels.indexOf('Following') !== -1
         ? '<button class="export-btn" data-unfollow-church-id="' + c.id + '" style="flex-shrink:0;">' + window.t('myChurches.unfollow') + '</button>'
         : '';
-      // Multi-church ownership: an owner of more than one church needs
-      // a way to switch which one the dashboard operates on — this is
-      // the one it reaches from outside the dashboard itself (the
-      // in-dashboard switcher, #dash-church-switcher, only appears
-      // once you're already looking at one of them).
-      var manageBtn = entry.labels.indexOf('Owned') !== -1
+      // Multi-church: an owner or staff member with access to more
+      // than one church needs a way to switch which one the dashboard
+      // operates on — this is the one it reaches from outside the
+      // dashboard itself (the in-dashboard switcher,
+      // #dash-church-switcher, only appears once you're already
+      // looking at one of them). Shown for any 'Owned' or 'Staff'
+      // label -- setActiveChurchAndReload() below doesn't care which
+      // relationship it is, it just needs a real church id.
+      var manageBtn = (entry.labels.indexOf('Owned') !== -1 || entry.labels.indexOf('Staff') !== -1)
         ? '<button class="export-btn" data-manage-church-id="' + c.id + '" style="flex-shrink:0;">' + window.t('myChurches.manage') + '</button>'
         : '';
       return '<div class="group-card" style="display:flex;align-items:center;gap:14px;justify-content:space-between;margin-bottom:10px;">'
@@ -18954,6 +19117,68 @@
   }
   window.startOfThisMonthIso = startOfThisMonthIso;
 
+  // One church's worth of the invite logic that used to be inlined
+  // directly in bindTeamInviteBtn's click handler, unchanged in
+  // behavior -- extracted so a multi-church owner's invite can loop
+  // it once per checked church instead of always hardcoding
+  // myChurch.id. Returns a result object rather than touching the
+  // DOM directly, so the caller can build one combined status message
+  // covering however many churches were targeted.
+  async function inviteStaffToOneChurch(church, email, inviterName, foundId, userData){
+    var staffLimit = planLimits[church.plan_type || church.planType || 'free'].staff;
+    var { data: staffRows } = await supabase.from('church_staff').select('id').eq('church_id', church.id);
+    if (staffLimit !== Infinity && staffRows && staffRows.length >= staffLimit) {
+      return { churchName: church.name, ok: false, message: staffLimit === 0
+        ? window.t('dashSettings.staffInvitesNotOnFree')
+        : window.t('dashSettings.teamAtMemberLimit').replace('{limit}', staffLimit) };
+    }
+
+    if (foundId) {
+      // They already have an account — add them directly and email a
+      // notification.
+      var { error: insertError } = await supabase.from('church_staff').insert({
+        church_id: church.id, user_id: foundId, invited_by: userData.user.id
+      });
+      if (insertError) {
+        return { churchName: church.name, ok: false, message: insertError.code === '23505' ? window.t('dashSettings.alreadyOnTeam') : insertError.message };
+      }
+      var loginUrl = window.location.origin + window.location.pathname + '#signup/login';
+      var { data: emailData, error: emailError } = await supabase.functions.invoke('smooth-action', {
+        body: { email: email, churchName: church.name, inviterName: inviterName, hasAccount: true, loginUrl: loginUrl }
+      });
+      if (emailError || (emailData && emailData.error)) {
+        var detail = emailError ? emailError.message : JSON.stringify(emailData.error);
+        if (emailError && emailError.context && typeof emailError.context.text === 'function') {
+          try { detail = await emailError.context.text(); } catch (e) {}
+        }
+        return { churchName: church.name, ok: true, emailFailed: true, message: window.t('dashSettings.addedButEmailFailed').replace('{detail}', detail) };
+      }
+      return { churchName: church.name, ok: true };
+    } else {
+      // No account yet — store a pending invite and email them a
+      // signup link. The database auto-accepts it the moment they
+      // sign up with this same email.
+      var { error: inviteError } = await supabase.from('church_staff_invites').insert({
+        church_id: church.id, email: email, invited_by: userData.user.id
+      });
+      if (inviteError) {
+        return { churchName: church.name, ok: false, message: inviteError.code === '23505' ? window.t('dashSettings.alreadyInvitedEmail') : inviteError.message };
+      }
+      var signupUrl = window.location.origin + window.location.pathname + '#signup';
+      var { data: emailData2, error: emailError2 } = await supabase.functions.invoke('smooth-action', {
+        body: { email: email, churchName: church.name, inviterName: inviterName, hasAccount: false, signupUrl: signupUrl }
+      });
+      if (emailError2 || (emailData2 && emailData2.error)) {
+        var detail2 = emailError2 ? emailError2.message : JSON.stringify(emailData2.error);
+        if (emailError2 && emailError2.context && typeof emailError2.context.text === 'function') {
+          try { detail2 = await emailError2.context.text(); } catch (e) {}
+        }
+        return { churchName: church.name, ok: true, emailFailed: true, message: window.t('dashSettings.inviteSavedButEmailFailed').replace('{detail}', detail2) };
+      }
+      return { churchName: church.name, ok: true };
+    }
+  }
+
   function bindTeamInviteBtn(btn){
     btn.addEventListener('click', async function(){
       var email = document.getElementById('team-invite-email').value.trim();
@@ -18966,90 +19191,46 @@
       var myChurch = await getMyChurch();
       if (!myChurch || myChurch.role !== 'owner') { btn.disabled = false; return; }
 
-      var staffLimit = planLimits[myChurch.planType || 'free'].staff;
-      var { data: staffRows } = await supabase.from('church_staff').select('id').eq('church_id', myChurch.id);
-      if (staffLimit !== Infinity && staffRows && staffRows.length >= staffLimit) {
-        statusEl.textContent = staffLimit === 0
-          ? window.t('dashSettings.staffInvitesNotOnFree')
-          : window.t('dashSettings.teamAtMemberLimit').replace('{limit}', staffLimit);
-        statusEl.style.color = 'var(--clay)';
-        statusEl.style.display = 'block';
-        btn.disabled = false;
-        return;
-      }
-
       var { data: userData } = await supabase.auth.getUser();
       var { data: myProfile } = await supabase.from('profiles').select('full_name').eq('id', userData.user.id).limit(1);
       var inviterName = (myProfile && myProfile.length && myProfile[0].full_name) ? myProfile[0].full_name : window.t('dashSettings.aFaithDockChurchOwner');
 
       var { data: foundId } = await supabase.rpc('get_user_id_by_email', { lookup_email: email });
 
-      if (foundId) {
-        // They already have an account — add them directly and email
-        // a notification.
-        var { error: insertError } = await supabase.from('church_staff').insert({
-          church_id: myChurch.id, user_id: foundId, invited_by: userData.user.id
-        });
-        if (insertError) {
-          statusEl.textContent = insertError.code === '23505' ? window.t('dashSettings.alreadyOnTeam') : insertError.message;
-          statusEl.style.color = 'var(--clay)';
-          statusEl.style.display = 'block';
-          btn.disabled = false;
-          return;
-        }
-        var loginUrl = window.location.origin + window.location.pathname + '#signup/login';
-        var { data: emailData, error: emailError } = await supabase.functions.invoke('smooth-action', {
-          body: { email: email, churchName: myChurch.name, inviterName: inviterName, hasAccount: true, loginUrl: loginUrl }
-        });
-        if (emailError || (emailData && emailData.error)) {
-          var detail = emailError ? emailError.message : JSON.stringify(emailData.error);
-          if (emailError && emailError.context && typeof emailError.context.text === 'function') {
-            try { detail = await emailError.context.text(); } catch (e) {}
-          }
-          statusEl.textContent = window.t('dashSettings.addedButEmailFailed').replace('{detail}', detail);
-          statusEl.style.color = 'var(--clay)';
-          statusEl.style.display = 'block';
-          document.getElementById('team-invite-email').value = '';
-          btn.disabled = false;
-          loadTeamPanel();
-          return;
-        }
-        statusEl.textContent = window.t('dashSettings.addedAndEmailed');
-      } else {
-        // No account yet — store a pending invite and email them a
-        // signup link. The database auto-accepts it the moment they
-        // sign up with this same email.
-        var { error: inviteError } = await supabase.from('church_staff_invites').insert({
-          church_id: myChurch.id, email: email, invited_by: userData.user.id
-        });
-        if (inviteError) {
-          statusEl.textContent = inviteError.code === '23505' ? window.t('dashSettings.alreadyInvitedEmail') : inviteError.message;
-          statusEl.style.color = 'var(--clay)';
-          statusEl.style.display = 'block';
-          btn.disabled = false;
-          return;
-        }
-        var signupUrl = window.location.origin + window.location.pathname + '#signup';
-        var { data: emailData2, error: emailError2 } = await supabase.functions.invoke('smooth-action', {
-          body: { email: email, churchName: myChurch.name, inviterName: inviterName, hasAccount: false, signupUrl: signupUrl }
-        });
-        if (emailError2 || (emailData2 && emailData2.error)) {
-          var detail2 = emailError2 ? emailError2.message : JSON.stringify(emailData2.error);
-          if (emailError2 && emailError2.context && typeof emailError2.context.text === 'function') {
-            try { detail2 = await emailError2.context.text(); } catch (e) {}
-          }
-          statusEl.textContent = window.t('dashSettings.inviteSavedButEmailFailed').replace('{detail}', detail2);
-          statusEl.style.color = 'var(--clay)';
-          statusEl.style.display = 'block';
-          document.getElementById('team-invite-email').value = '';
-          btn.disabled = false;
-          loadTeamPanel();
-          return;
-        }
-        statusEl.textContent = window.t('dashSettings.inviteSentAutoJoin');
+      // Multi-church: whatever's checked in the church list (only
+      // rendered at all when this owner has more than one church) —
+      // falls back to just the active church when there's nothing to
+      // check (single-church case), reproducing the exact original
+      // behavior.
+      var checkedChurchEls = document.querySelectorAll('.team-invite-church-check:checked');
+      var targetChurches = checkedChurchEls.length
+        ? Array.prototype.map.call(checkedChurchEls, function(cb){
+            return (myChurch.ownedChurches || []).filter(function(c){ return c.id === cb.value; })[0];
+          }).filter(Boolean)
+        : [{ id: myChurch.id, name: myChurch.name, plan_type: myChurch.planType }];
+
+      if (!targetChurches.length) { btn.disabled = false; return; }
+
+      var results = [];
+      for (var i = 0; i < targetChurches.length; i++) {
+        results.push(await inviteStaffToOneChurch(targetChurches[i], email, inviterName, foundId, userData));
       }
 
-      statusEl.style.color = 'var(--sage)';
+      // One combined status line covering however many churches were
+      // targeted -- the common single-church case (the vast majority
+      // of invites) reads exactly like the single outcome always did,
+      // since there's nothing to combine with just one result.
+      var succeeded = results.filter(function(r){ return r.ok && !r.emailFailed; });
+      var problem = results.filter(function(r){ return !r.ok || r.emailFailed; });
+      var lines = [];
+      if (succeeded.length) {
+        var successText = foundId ? window.t('dashSettings.addedAndEmailed') : window.t('dashSettings.inviteSentAutoJoin');
+        lines.push(targetChurches.length > 1 ? successText + ' (' + succeeded.map(function(r){ return r.churchName; }).join(', ') + ')' : successText);
+      }
+      problem.forEach(function(r){ lines.push((targetChurches.length > 1 ? r.churchName + ': ' : '') + r.message); });
+
+      statusEl.textContent = lines.join(' · ');
+      statusEl.style.color = problem.length && !succeeded.length ? 'var(--clay)' : (problem.length ? 'var(--gold)' : 'var(--sage)');
       statusEl.style.display = 'block';
       document.getElementById('team-invite-email').value = '';
       btn.disabled = false;
