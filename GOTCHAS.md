@@ -777,3 +777,15 @@ Requested: let people drag-resize the create-event Description box (and, by the 
 Added `resize: vertical` to the shared `.rte-editable` class (both fields already use it, so one rule covers both) — `resize` requires a non-`visible` `overflow` to take effect, which both fields already had (`overflow-y: auto`), so no other CSS was blocking it. The `resize` CSS property also can't expand an element past its own `max-height`, so raised both fields' `max-height` from their old caps (260px / 340px — enough to make the resize handle nearly pointless) to 700px, giving a real, generous range to drag into rather than a token few dozen pixels.
 
 Verified live: both `#ce-description` and `#msg-body` compute to `resize: vertical` with `overflow-y: auto` and the new `max-height`, confirmed via computed styles on the real elements (this is a pure native-browser feature — no JS involved, so a correct computed style is the complete verification; there's no separate "does the drag actually work" behavior to test beyond that CSS actually applying).
+
+---
+
+## Rich-text "Add link" silently did nothing after clicking OK
+
+Reported with a screenshot: selected a word ("Family") in the event Description, clicked the link toolbar button, typed a URL into the browser's prompt, clicked OK — nothing happened, no link appeared.
+
+Root cause: `prompt()` is a native, blocking, OS-level modal dialog — opening it reliably clears the page's live text selection (confirmed by reproducing it directly: selecting text, clearing the selection the same way a `prompt()` interruption does, then calling `execCommand('createLink', ...)` with nothing selected — it silently no-ops, exactly matching the report). Bold/Italic/lists never hit this because they run `execCommand` synchronously in the same click handler with no dialog in between; only the link command opens a prompt.
+
+Fixed by saving the exact selection `Range` right before calling `prompt()`, then explicitly restoring that saved range immediately after the user clicks OK — right before `execCommand('createLink', ...)` runs — regardless of what the browser did to the live selection while the dialog was open.
+
+**Verified live, both the failure and the fix, not assumed:** reproduced the exact bug directly (select "Family", clear the selection the way a real prompt() does, call `execCommand('createLink', ...)` — confirmed zero effect, no `<a>` tag, text unchanged) — then ran the actual fixed code path (save the range, clear it the same way, restore it, call `execCommand`) — confirmed `Family` now correctly wrapped in `<a href="...">`.

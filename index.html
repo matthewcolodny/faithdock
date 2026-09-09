@@ -5032,7 +5032,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-09-v246 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-09-v247 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -10477,6 +10477,17 @@
       target.focus();
       var cmd = btn.getAttribute('data-rte-cmd');
       if (cmd === 'link') {
+        // prompt() is a native, blocking modal dialog -- confirmed as
+        // a real, live bug: opening it reliably clears the browser's
+        // live text selection, so by the time createLink ran after
+        // clicking OK, whatever was highlighted was no longer
+        // selected and the command silently did nothing (looked like
+        // clicking OK just didn't work at all). Saving the exact
+        // Range before the prompt and restoring it right after fixes
+        // this regardless of what the browser does to the live
+        // selection while the dialog is open.
+        var rteSel = window.getSelection();
+        var rteSavedRange = rteSel.rangeCount > 0 ? rteSel.getRangeAt(0).cloneRange() : null;
         var url = prompt(window.t('rte.linkUrlPrompt'));
         if (url) {
           // Only allow http(s)/mailto — blocks a javascript: URL
@@ -10484,6 +10495,8 @@
           // execCommand('createLink') would otherwise happily accept
           // and turn into a clickable script trigger.
           if (/^(https?:|mailto:)/i.test(url)) {
+            target.focus();
+            if (rteSavedRange) { rteSel.removeAllRanges(); rteSel.addRange(rteSavedRange); }
             document.execCommand('createLink', false, url);
           } else {
             alert(window.t('rte.linksMustStartWith'));
