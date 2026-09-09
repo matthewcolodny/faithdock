@@ -1,0 +1,36 @@
+-- SUPERSEDED -- kept only for the historical record. See
+-- 012b_harden_profiles_table.sql for the full fix that supersedes
+-- this (it re-does this exact revoke plus much more: phone/avatar_url/
+-- account_type self-read-write RPCs and closing the wide-open UPDATE
+-- grant). A repeated revoke is a harmless no-op in Postgres, so this
+-- file is safe to leave here even though 012b already covers it.
+--
+-- Run in Supabase SQL Editor.
+--
+-- profiles.is_platform_admin is currently readable for ANY user by
+-- ANYONE (confirmed live, anonymously: a real admin's row came back
+-- with is_platform_admin: true on a plain select('*')). This directly
+-- identifies who your platform admins are -- a real targeting risk,
+-- not just generic information disclosure.
+--
+-- Safe to revoke now: the only two client-side reads of this column
+-- (updateAuthUI's admin-nav-link check, routeAfterLogin's post-signin
+-- routing) have already been switched to call the existing
+-- is_platform_admin() RPC instead of selecting the column directly.
+-- That RPC takes no arguments -- it can only ever answer for the
+-- caller themselves, by construction -- and runs as SECURITY DEFINER,
+-- so it keeps working correctly after this revoke (grants don't
+-- apply to a security definer function's own internal queries).
+
+revoke select (is_platform_admin) on profiles from anon, authenticated;
+
+-- NOT included here, on purpose: profiles.phone is in the same
+-- situation (readable for any user by anyone) but has no equivalent
+-- "read my own X" RPC yet to fall back to -- the Profile settings
+-- page currently reads/writes its own phone number via a direct
+-- column select, and revoking it now would break that with nothing
+-- to replace it. Needs a small new RPC (or the view-based fix
+-- described in GOTCHAS.md) before phone can be safely closed the
+-- same way. full_name/avatar_url are also broadly public to anyone,
+-- unauthenticated included -- lower severity, likely acceptable for
+-- this app's social/directory nature, but the same underlying gap.

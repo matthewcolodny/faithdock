@@ -1,0 +1,30 @@
+-- SUPERSEDED / DID NOT WORK -- kept only for the historical record.
+-- See 011_revoke_stripe_columns_corrected.sql for the fix that
+-- actually closed this. Do not re-run this file.
+--
+-- Run in Supabase SQL Editor.
+--
+-- churches.stripe_customer_id and stripe_subscription_id (FaithDock's
+-- own platform-subscription billing ids) are currently readable by
+-- anyone, including anonymous visitors, via the church's own public
+-- page -- confirmed live: an anonymous select('*') on a real church
+-- returned both values.
+--
+-- The client-side code has been updated to stop selecting these two
+-- columns (an explicit column list now used everywhere instead of
+-- select('*')), but that alone doesn't close this -- anyone can query
+-- the REST API directly with the public anon key regardless of what
+-- this app's own UI does. The actual fix has to be at the database
+-- level: revoke SELECT on just these two columns for anon and
+-- authenticated, leaving every other column (including
+-- stripe_account_id, plan_type, subscription_status,
+-- current_period_end -- all already intentionally public) untouched.
+--
+-- After this runs, any query that tries to select either of these
+-- two columns as anon/authenticated will fail with a permission
+-- error -- including a bare select('*'), which is why the client
+-- code needed the explicit-column fix first, not instead of this.
+-- Edge functions using the service role key are unaffected; service
+-- role bypasses grants entirely.
+
+revoke select (stripe_customer_id, stripe_subscription_id) on churches from anon, authenticated;
