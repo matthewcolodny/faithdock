@@ -395,7 +395,7 @@
       'church.nextService': 'Regular service', 'church.nextServicesPlural': 'Regular services', 'church.serviceIsAt': 'is at', 'church.serviceAreAt': 'are at', 'church.contactForTimes': 'contact church for times', 'church.newListing': 'New listing', 'church.nextEvent': 'Next event:',
       'church.away': 'away', 'church.setLocationDistance': 'Set your location to see distance', 'church.locationNotFound': 'Location not found for this address',
       'church.genericLabel': 'Church', 'church.genericName': 'A FaithDock church',
-      'dash.editChurchProfile': 'Edit church profile →', 'dash.upgradePlan': 'Upgrade plan',
+      'dash.editChurchProfile': 'Edit church profile →', 'dash.upgradePlan': 'Upgrade plan', 'dash.plans': 'Plans',
       'dashEvents.totalEvents': 'TOTAL EVENTS', 'dashEvents.daysToNext': 'DAYS TO NEXT EVENT', 'dashEvents.totalRegistrations': 'TOTAL REGISTRATIONS',
       'dashEvents.list': 'List', 'dashEvents.calendar': 'Calendar', 'dashEvents.exportSchedule': 'Export schedule',
       'dashEvents.attendance': 'Attendance', 'dashEvents.attendanceHint': 'Based on check-in records — only counts events where someone actually used Check-In at the door, not just registration counts.',
@@ -1042,7 +1042,7 @@
       'church.nextService': 'Servicio regular', 'church.nextServicesPlural': 'Servicios regulares', 'church.serviceIsAt': 'es', 'church.serviceAreAt': 'son', 'church.contactForTimes': 'contacta a la iglesia para conocer los horarios', 'church.newListing': 'Nuevo registro', 'church.nextEvent': 'Próximo evento:',
       'church.away': 'de distancia', 'church.setLocationDistance': 'Activa tu ubicación para ver la distancia', 'church.locationNotFound': 'No se encontró la ubicación de esta dirección',
       'church.genericLabel': 'Iglesia', 'church.genericName': 'Una iglesia de FaithDock',
-      'dash.editChurchProfile': 'Editar perfil de la iglesia →', 'dash.upgradePlan': 'Mejorar plan',
+      'dash.editChurchProfile': 'Editar perfil de la iglesia →', 'dash.upgradePlan': 'Mejorar plan', 'dash.plans': 'Planes',
       'dashEvents.totalEvents': 'EVENTOS TOTALES', 'dashEvents.daysToNext': 'DÍAS PARA EL PRÓXIMO EVENTO', 'dashEvents.totalRegistrations': 'INSCRIPCIONES TOTALES',
       'dashEvents.list': 'Lista', 'dashEvents.calendar': 'Calendario', 'dashEvents.exportSchedule': 'Exportar horario',
       'dashEvents.attendance': 'Asistencia', 'dashEvents.attendanceHint': 'Basado en registros de check-in — solo cuenta eventos donde alguien realmente usó Check-In en la puerta, no solo el conteo de inscripciones.',
@@ -3905,9 +3905,9 @@
         <a data-dash="giving" data-i18n="dash.giving">Giving</a>
         <a data-dash="insights" data-i18n="insights.title">Insights</a>
         <a data-dash="billing" data-i18n="dash.billing">Billing</a>
+        <a href="#pricing" data-route="pricing" data-i18n="dash.plans">Plans</a>
         <a data-dash="settings" data-i18n="dash.settings">Settings</a>
       </div>
-      <a href="#pricing" data-route="pricing" id="dash-upgrade-link" style="display:none;margin-top:16px;background:var(--gold);color:var(--brand);font-weight:700;font-size:13px;padding:10px 16px;border-radius:8px;text-align:center;text-decoration:none;" data-i18n="dash.upgradePlan">Upgrade plan</a>
       <button id="dash-signout-btn" style="background:none;border:none;color:#8791A5;font-size:12.5px;margin-top:24px;padding:0;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.15);width:fit-content;padding-bottom:1px;" data-i18n="dash.signout">Sign out</button>
     </div>
     <div class="dash-main">
@@ -4601,10 +4601,14 @@
           <div class="info-row" id="billing-plan-row">Loading...</div>
           <div class="info-row" id="billing-period-row" style="display:none;"></div>
           <div id="billing-past-due-warning" style="display:none;color:var(--clay);font-size:13px;margin-top:8px;" data-i18n="dashBilling.pastDueWarning">Your last payment didn't go through — please update your card to avoid losing paid-plan features.</div>
-          <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;">
-            <button class="btn-gold" id="billing-manage-btn" style="width:180px;text-align:center;margin-top:0;display:none;" data-i18n="dashBilling.manageBilling">Manage billing</button>
-            <a href="#pricing" data-route="pricing" id="billing-upgrade-link" class="btn-gold" style="width:180px;text-align:center;margin-top:0;display:none;text-decoration:none;" data-i18n="dash.upgradePlan">Upgrade plan</a>
-            <button class="export-btn" id="billing-downgrade-btn" style="width:180px;text-align:center;justify-content:center;padding:12px 8px;font-size:14.5px;font-weight:600;margin-top:0;display:none;" data-i18n="dashBilling.downgradeToFree">Downgrade to Free</button>
+          <div style="margin-top:14px;">
+            <!-- Upgrading/downgrading both happen from the Pricing
+                 page now (reachable via the sidebar's "Plans" link),
+                 which already highlights the current tier and offers
+                 every other plan including Free -- this card only
+                 needs the one action that's specific to Billing
+                 itself: managing the existing subscription. -->
+            <button class="btn-gold" id="billing-manage-btn" style="width:180px;align-items:center;justify-content:center;margin-top:0;display:none;" data-i18n="dashBilling.manageBilling">Manage billing</button>
           </div>
           <div id="billing-status" style="display:none;font-size:12.5px;margin-top:10px;color:var(--clay);"></div>
         </div>
@@ -4778,7 +4782,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-08-v226 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-08-v227 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -7957,8 +7961,6 @@
     if (!myChurch) {
       document.getElementById('dash-church-name').textContent = window.t('dashHeader.noChurchFound');
       document.getElementById('dash-church-tag').textContent = '';
-      var upgradeLinkNoChurch = document.getElementById('dash-upgrade-link');
-      if (upgradeLinkNoChurch) upgradeLinkNoChurch.style.display = 'none';
       return;
     }
     document.getElementById('dash-church-name').textContent = myChurch.name;
@@ -8013,15 +8015,10 @@
       }
     }
 
-    // Shown on every dashboard tab (this sidebar is shared across all
-    // of them) for any church not already on the top tier. Links to
-    // the pricing page as a starting point — the actual in-dashboard
-    // upgrade flow itself is separate, still-pending Phase 2 work.
-    // Phase 2 (5-tier): multi_church is now the actual top tier, so
-    // premium (Large) churches should still see this — there's a real
-    // tier above them now, just not a self-serve checkout for it.
-    var upgradeLink = document.getElementById('dash-upgrade-link');
-    if (upgradeLink) upgradeLink.style.display = (myChurch.planType || 'free') === 'multi_church' ? 'none' : 'block';
+    // The old gold "Upgrade plan" sidebar button (hidden once already
+    // at the top tier) was replaced by a permanent "Plans" nav item
+    // instead -- always visible, no plan-dependent logic needed here
+    // anymore.
   }
   loadDashboardHeader();
   window.loadDashboardHeader = loadDashboardHeader;
@@ -14940,8 +14937,6 @@
     var periodRow = document.getElementById('billing-period-row');
     var pastDueWarning = document.getElementById('billing-past-due-warning');
     var manageBtn = document.getElementById('billing-manage-btn');
-    var upgradeLink = document.getElementById('billing-upgrade-link');
-    var downgradeBtn = document.getElementById('billing-downgrade-btn');
     var statusEl = document.getElementById('billing-status');
     if (!planRow) return;
     statusEl.style.display = 'none';
@@ -14963,55 +14958,15 @@
     }
     pastDueWarning.style.display = (row && row.subscription_status === 'past_due') ? 'block' : 'none';
     manageBtn.style.display = (planType !== 'free') ? 'inline-flex' : 'none';
-    // Previously only Free ever saw "View plans" — once paid, this
-    // link vanished entirely, meaning a Starter/Medium/Large
-    // subscriber wanting to move up a tier had no visible path from
-    // Billing itself, only "Manage billing" (the Stripe portal, which
-    // may or may not itself support changing plans depending on how
-    // it's configured server-side — not something this file controls).
-    // Relabeled "Upgrade plan" — same rule as the dashboard sidebar's
-    // own upgrade link (dash-upgrade-link, above): Premium still sees
-    // this, since Multi-Church is a real tier above it, just not a
-    // self-serve Stripe Checkout plan. Only hidden once already at
-    // the actual top tier.
-    upgradeLink.style.display = (planType === 'multi_church') ? 'none' : 'inline-block';
-    // Downgrade only makes sense from an active paid plan that isn't
-    // already scheduled to end — once cancelPending is true, the
-    // period row above already says so, and clicking again would just
-    // call cancel_subscription redundantly.
-    if (downgradeBtn) downgradeBtn.style.display = (planType !== 'free' && !cancelPending) ? 'inline-flex' : 'none';
   }
   window.loadBillingPanel = loadBillingPanel;
-
-  var billingDowngradeBtn = document.getElementById('billing-downgrade-btn');
-  if (billingDowngradeBtn) {
-    billingDowngradeBtn.addEventListener('click', async function(){
-      if (!window.confirm(window.t('dashBilling.downgradeConfirm'))) return;
-      var statusEl = document.getElementById('billing-status');
-      statusEl.style.display = 'none';
-      var myChurch = await getMyChurch();
-      if (!myChurch) return;
-      billingDowngradeBtn.disabled = true;
-      var { data, error } = await supabase.functions.invoke('stripe-subscription', {
-        body: { action: 'cancel_subscription', churchId: myChurch.id }
-      });
-      billingDowngradeBtn.disabled = false;
-      if (error || !data || data.error) {
-        var detail = error ? error.message : (data && data.error ? data.error : window.t('common.somethingWrong'));
-        if (error && error.context && typeof error.context.text === 'function') {
-          try { detail = await error.context.text(); } catch (e) {}
-        }
-        statusEl.textContent = detail;
-        statusEl.style.color = 'var(--clay)';
-        statusEl.style.display = 'block';
-        return;
-      }
-      statusEl.textContent = window.t('dashBilling.downgradeScheduled');
-      statusEl.style.color = 'var(--sage)';
-      statusEl.style.display = 'block';
-      loadBillingPanel();
-    });
-  }
+  // Upgrading and downgrading both happen from the Pricing page now
+  // (via the sidebar's "Plans" link) — it already highlights the
+  // current tier and offers every plan including Free, so this panel
+  // no longer needs its own Upgrade/Downgrade buttons or their
+  // separate wiring (cancel_subscription is still called from there,
+  // in populatePricingPage()'s freeBtn override — the capability
+  // didn't go away, just its entry point).
 
   // ============================================================
   // Check-In — converts online registrations into real attendance
