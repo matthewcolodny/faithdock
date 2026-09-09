@@ -757,3 +757,13 @@ Reported live, with a screenshot: the Churches directory ("San Antonio" keyword 
 ## Church card fallback text read as a grammatically broken sentence fragment
 
 Reported with a screenshot: a church with no service times set showed "Regular service contact church for times" on its directory card — two half-sentences mashed together, not a real sentence in either language. `formatChurchNextText()`'s fallback branch concatenated two separate keys (`church.nextService` + `church.contactForTimes`) that were only ever meant to combine with a real time value (`"Regular service is at 9:00 AM"`), not with each other. `church.contactForTimes` turned out to be used nowhere else in the file, so rewrote it as a complete standalone sentence ("Contact church for regular service times" / the equivalent full sentence in Spanish) and dropped the `church.nextService` concatenation from the fallback branch entirely. Verified live both directly (`formatChurchNextText(null, 0)` in both languages) and through the real UI — searched "Isis" in the directory, confirmed the actual card now reads correctly.
+
+---
+
+## Create-event page's room checklist stuck on "Loading..." forever after a refresh
+
+Reported: added a room in Settings, but the "Rooms used" checklist on the create-event page stayed on its static "Loading..." placeholder indefinitely — even after refreshing.
+
+Root cause: `loadEventRoomChecklist()` (the function that actually fetches and renders the checklist) was only ever called from two places — the dashboard's "Create event" button click handler (`resetCreateEventForm()`, for a brand-new event) and `editEvent()` (for `#create-event/<id>`, editing an existing one). Landing on plain `#create-event` any *other* way — a refresh, browser back/forward, a bookmark — skipped both entirely, since neither runs on a route being reached directly through the hash. The static "Loading..." placeholder just sat there forever with nothing left to ever replace it.
+
+Fixed by adding a matching case to `showRouteFromHash()` (the function that already handles this exact class of "reached this route directly, not through a button" case for editing — `#create-event/<id>` → `editEvent()`, `#church/<name>` → `populateChurchPage()`, etc.): plain `#create-event` with no id now also calls `loadEventRoomChecklist([], null)` directly. Verified live: before the fix, landing on `#create-event` via a direct hash change left the container's static "Loading..." HTML completely untouched; after the fix, the same navigation actually invokes the function (confirmed by the container changing — it can't be tested end-to-end for a real church's real rooms without a live authenticated session, but the call firing at all was the entire bug).

@@ -5031,7 +5031,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-09-v244 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-09-v245 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -6084,6 +6084,19 @@
     }
     if(resolved.base === 'create-event' && resolved.key && typeof window.editEvent === 'function'){
       window.editEvent(resolved.key);
+    }
+    // Plain #create-event (a brand-new event, no id) only ever got
+    // its room checklist populated via the dashboard's own "Create
+    // event" button click handler (resetCreateEventForm(), which
+    // calls loadEventRoomChecklist([], null)) -- landing on this
+    // route any other way (a refresh, browser back/forward, a
+    // bookmark) skipped that entirely, leaving the checklist's
+    // static "Loading..." placeholder stuck forever since nothing
+    // ever ran the real fetch. Confirmed as a real, live bug by an
+    // actual report (added a room, checklist stayed stuck on
+    // "Loading..." even after a refresh).
+    if(resolved.base === 'create-event' && !resolved.key && typeof window.loadEventRoomChecklist === 'function'){
+      window.loadEventRoomChecklist([], null);
     }
     // Lets an external link (an email, specifically) land directly on
     // the login tab rather than the default signup tab — the "already
