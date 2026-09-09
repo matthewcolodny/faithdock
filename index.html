@@ -227,6 +227,7 @@
       'legal.adaFeedback1': "If you use assistive technology and run into something on FaithDock that doesn't work the way it should, we want to know. Please tell us the page you were on, what you were trying to do, and what happened instead — that's the fastest way for us to reproduce and fix it.",
       'legal.adaContactPre': 'Reach us about accessibility at',
       'common.loading': 'Loading...', 'common.loadMore': 'Load more', 'common.saved': 'Saved!', 'common.somethingWrong': 'Something went wrong.',
+      'common.on': 'On', 'common.off': 'Off',
       'shareModal.eyebrow': 'Share event', 'shareModal.scanToOpen': 'Scan to open, or print on a flyer', 'shareModal.copy': 'Copy',
       'staffPerms.eyebrow': 'Permissions', 'staffPerms.manageEvents': 'Create and manage events',
       'staffPerms.manageGiving': 'Manage giving settings (connect bank account)', 'staffPerms.manageBilling': 'Manage billing',
@@ -417,6 +418,7 @@
       'dashCheckin.name': 'Name', 'dashCheckin.registration': 'Registration',
       'dashCheckin.selectEvent': 'Select an event...', 'dashCheckin.addWalkIn': 'Add a walk-in', 'dashCheckin.fullName': 'Full name',
       'dashCheckin.selectEventFirst': 'Select an event above to see its check-in list.',
+      'dashCheckin.walkInTag': 'Walk-in', 'dashCheckin.noSearchMatch': 'No one matches that search.', 'dashCheckin.noOneRegisteredYet': 'No one has registered for this event yet.',
       'dashDir.all': 'All', 'dashDir.members': 'Members', 'dashDir.staff': 'Staff', 'dashDir.eventSignups': 'Event sign-ups',
       'dashDir.groupSignups': 'Group sign-ups', 'dashDir.importMembers': 'Import members', 'dashDir.searchPlaceholder': 'Search by name or email',
       'dashDir.printProfile': 'Print profile', 'dashDir.printRoster': 'Print roster',
@@ -442,6 +444,7 @@
       'dashDir.ready': 'Ready', 'dashDir.notYetConnected': 'Not yet connected',
       'dashDir.couldNotCreateGroup': 'Could not create group', 'dashDir.setUp': 'set up', 'dashDir.added': 'added.',
       'dashDir.role': 'Role', 'dashDir.email': 'Email', 'dashDir.phone': 'Phone', 'dashDir.loadingDirectory': 'Loading directory...',
+      'dashDir.noMatchFilter': 'No one matches this filter.', 'dashDir.roleEventSignupTag': 'Event sign-up', 'dashDir.roleGroupSignupTag': 'Group sign-up',
       'dashDir.message': 'Message', 'dashDir.subject': 'Subject', 'dashDir.writeMessage': 'Write your message...', 'dashDir.sendMessage': 'Send message',
       'dashDir.givingHistory': 'Giving history', 'dashDir.importTitle': 'Import congregation members',
       'dashDir.importDescription': 'Upload a CSV with a name column and an email column (header row required). Each person gets an email invite — if they sign up, or next sign in with a matching address, they\'ll be prompted to set your church as their Church Home.',
@@ -470,8 +473,16 @@
       'dashGroups.addByEmail': 'Add someone by email',
       'dashGroups.addByEmailHint': 'Works for any congregation member or staff who already has a FaithDock account.',
       'dashGroups.roleMember': 'Member', 'dashGroups.roleLeader': 'Leader', 'dashGroups.addToGroup': 'Add to group',
+      'dashGroups.couldntLoad': "Couldn't load groups: ", 'dashGroups.noGroupsYet': 'No groups yet — click New group to add your first one.', 'dashGroups.pendingBadge': 'pending',
       'dashGiving.connectBank': 'Connect your bank account',
       'dashGiving.connectBankHint': 'Donations go straight to your account — FaithDock never holds the funds.',
+      'dashGiving.connectBankBody': 'Connect a bank account to accept donations.',
+      'dashGiving.verificationPendingTag': 'Verification pending', 'dashGiving.verificationPendingBody': "We'll review your request and follow up soon.",
+      'dashGiving.verificationRejectedTag': 'Verification not approved', 'dashGiving.verificationRejectedBody': 'Contact support, or request another review.', 'dashGiving.requestVerificationAgain': 'Request verification again',
+      'dashGiving.notVerifiedTag': 'Not verified', 'dashGiving.notVerifiedBody': 'Your church needs to be verified before you can accept donations.', 'dashGiving.requestVerification': 'Request verification',
+      'dashGiving.connectedTag': 'Connected', 'dashGiving.canAcceptDonations': 'Your church can accept donations.', 'dashGiving.manageBankAccount': 'Manage bank account',
+      'dashGiving.setupIncompleteTag': 'Setup incomplete', 'dashGiving.finishConnectingBody': 'Finish connecting your bank account to start accepting donations.', 'dashGiving.finishConnecting': 'Finish connecting',
+      'dashGiving.notConnectedTag': 'Not connected',
       'dashGiving.givenThisYear': 'GIVEN THIS YEAR', 'dashGiving.givers': 'GIVERS', 'dashGiving.averageGift': 'AVERAGE GIFT',
       'dash.revenue': 'Revenue',
       'dashRevenue.totalIncome': 'TOTAL INCOME THIS YEAR', 'dashRevenue.netAfterFees': 'NET AFTER FEES THIS YEAR',
@@ -481,6 +492,7 @@
       'dashGiving.donor': 'Donor', 'dashGiving.amount': 'Amount', 'dashGiving.loadingHistory': 'Loading giving history...',
       'dashGiving.noDonationsYet': 'No donations yet.', 'dashGiving.guestSuffix': '(guest)', 'dashGiving.anonymous': 'Anonymous', 'dashGiving.unknownFund': 'Unknown fund', 'dashGiving.generalFund': 'General Fund',
       'dashBilling.currentPlan': 'Current plan',
+      'dashBilling.endingMovingToFree': 'Ending, moving to Free: ', 'dashBilling.accessEnds': 'Access ends: ', 'dashBilling.nextBillingDate': 'Next billing date: ',
       'dashBilling.pastDueWarning': "Your last payment didn't go through — please update your card to avoid losing paid-plan features.",
       'dashBilling.manageBilling': 'Manage billing', 'dashBilling.viewPlans': 'View plans',
       'dashBilling.downgradeToFree': 'Downgrade to Free', 'dashBilling.downgradeConfirm': 'You’ll keep your current plan’s features until the end of the billing period you’ve already paid for, then move to Free. Continue?',
@@ -514,6 +526,8 @@
       'dashSettings.facilityRooms': 'Facility rooms',
       'dashSettings.facilityRoomsHint': 'The spaces your church schedules — classrooms, the sanctuary, Rec Center, outdoor areas. These show up as options when creating an event.',
       'dashSettings.roomNamePlaceholder': 'e.g. Room 205 Classroom Adult', 'dashSettings.add': 'Add',
+      'dashSettings.noRoomsYet': 'No rooms added yet.', 'dashSettings.removeRoom': 'Remove room',
+      'dashSettings.noFundsYet': 'No designated funds yet — everything goes to the General Fund.', 'dashSettings.removeFund': 'Remove fund',
       'dashSettings.transferOwnership': 'Transfer ownership',
       'dashSettings.transferOwnershipHint': "Hand this church off to someone else. Nothing changes until they explicitly accept — this doesn't transfer instantly just because you send it, and you can cancel it anytime before they respond.",
       'dashSettings.cancelThisTransfer': 'Cancel this transfer', 'dashSettings.theirEmailAddress': 'Their email address',
@@ -618,6 +632,7 @@
       'dir.somethingWentWrongLoading': 'Something went wrong loading churches: {error}',
       'events.followOrSetChurchHome': 'Follow a church or set one as your Church Home to see events picked for you here.',
       'dashHeader.noChurchFound': 'No church found', 'dashHeader.staff': 'STAFF', 'dashHeader.owner': 'OWNER', 'dashHeader.partnerChurch': 'PARTNER CHURCH',
+      'dashHeader.registerChurchFirst': 'Register a church first, or ask an owner to add you as staff.',
       'profile.checkEmailForConfirmationLink': 'Check {email} for a confirmation link to finish this change.',
       'auth.enterEmailFirst': 'Enter your email first.', 'auth.completeCaptcha': 'Please complete the CAPTCHA before continuing.', 'auth.checkEmailForResetLink': 'Check your email for a reset link.',
       'auth.fillAllFields': 'Please fill in all fields.', 'auth.removeWordFromName': 'Please remove "{word}" from your name.', 'auth.passwordsDontMatch': "Passwords don't match.", 'auth.passwordTooShort': 'Password must be at least 10 characters.',
@@ -884,6 +899,7 @@
       'legal.adaFeedback1': 'Si usas tecnología de asistencia y encuentras algo en FaithDock que no funciona como debería, queremos saberlo. Por favor cuéntanos en qué página estabas, qué intentabas hacer, y qué sucedió en su lugar — esa es la forma más rápida de reproducir y corregir el problema.',
       'legal.adaContactPre': 'Contáctanos sobre accesibilidad en',
       'common.loading': 'Cargando...', 'common.loadMore': 'Cargar más', 'common.saved': '¡Guardado!', 'common.somethingWrong': 'Algo salió mal.',
+      'common.on': 'Activado', 'common.off': 'Desactivado',
       'shareModal.eyebrow': 'Compartir evento', 'shareModal.scanToOpen': 'Escanea para abrir, o imprime en un volante', 'shareModal.copy': 'Copiar',
       'staffPerms.eyebrow': 'Permisos', 'staffPerms.manageEvents': 'Crear y administrar eventos',
       'staffPerms.manageGiving': 'Administrar configuración de donaciones (conectar cuenta bancaria)', 'staffPerms.manageBilling': 'Administrar facturación',
@@ -1074,6 +1090,7 @@
       'dashCheckin.name': 'Nombre', 'dashCheckin.registration': 'Inscripción',
       'dashCheckin.selectEvent': 'Selecciona un evento...', 'dashCheckin.addWalkIn': 'Agregar a alguien sin inscripción previa', 'dashCheckin.fullName': 'Nombre completo',
       'dashCheckin.selectEventFirst': 'Selecciona un evento arriba para ver su lista de registro de llegada.',
+      'dashCheckin.walkInTag': 'Sin inscripción', 'dashCheckin.noSearchMatch': 'Nadie coincide con esa búsqueda.', 'dashCheckin.noOneRegisteredYet': 'Aún nadie se ha inscrito en este evento.',
       'dashDir.all': 'Todos', 'dashDir.members': 'Miembros', 'dashDir.staff': 'Personal', 'dashDir.eventSignups': 'Inscripciones a eventos',
       'dashDir.groupSignups': 'Inscripciones a grupos', 'dashDir.importMembers': 'Importar miembros', 'dashDir.searchPlaceholder': 'Buscar por nombre o correo electrónico',
       'dashDir.printProfile': 'Imprimir perfil', 'dashDir.printRoster': 'Imprimir lista',
@@ -1099,6 +1116,7 @@
       'dashDir.ready': 'Listo', 'dashDir.notYetConnected': 'Aún no conectado',
       'dashDir.couldNotCreateGroup': 'No se pudo crear el grupo', 'dashDir.setUp': 'configurado(s)', 'dashDir.added': 'agregada(s).',
       'dashDir.role': 'Rol', 'dashDir.email': 'Correo electrónico', 'dashDir.phone': 'Teléfono', 'dashDir.loadingDirectory': 'Cargando directorio...',
+      'dashDir.noMatchFilter': 'Nadie coincide con este filtro.', 'dashDir.roleEventSignupTag': 'Inscripción a evento', 'dashDir.roleGroupSignupTag': 'Inscripción a grupo',
       'dashDir.message': 'Mensaje', 'dashDir.subject': 'Asunto', 'dashDir.writeMessage': 'Escribe tu mensaje...', 'dashDir.sendMessage': 'Enviar mensaje',
       'dashDir.givingHistory': 'Historial de donaciones', 'dashDir.importTitle': 'Importar miembros de la congregación',
       'dashDir.importDescription': 'Sube un CSV con una columna de nombre y una columna de correo electrónico (se requiere fila de encabezado). Cada persona recibe una invitación por correo — si se registran, o la próxima vez que inicien sesión con una dirección coincidente, se les pedirá que establezcan tu iglesia como su iglesia de origen.',
@@ -1127,8 +1145,16 @@
       'dashGroups.addByEmail': 'Agregar a alguien por correo electrónico',
       'dashGroups.addByEmailHint': 'Funciona para cualquier miembro de la congregación o personal que ya tenga una cuenta de FaithDock.',
       'dashGroups.roleMember': 'Miembro', 'dashGroups.roleLeader': 'Líder', 'dashGroups.addToGroup': 'Agregar al grupo',
+      'dashGroups.couldntLoad': 'No se pudieron cargar los grupos: ', 'dashGroups.noGroupsYet': 'Aún no hay grupos — haz clic en Nuevo grupo para agregar el primero.', 'dashGroups.pendingBadge': 'pendiente',
       'dashGiving.connectBank': 'Conectar tu cuenta bancaria',
       'dashGiving.connectBankHint': 'Las donaciones van directamente a tu cuenta — FaithDock nunca retiene los fondos.',
+      'dashGiving.connectBankBody': 'Conecta una cuenta bancaria para aceptar donaciones.',
+      'dashGiving.verificationPendingTag': 'Verificación pendiente', 'dashGiving.verificationPendingBody': 'Revisaremos tu solicitud y te contactaremos pronto.',
+      'dashGiving.verificationRejectedTag': 'Verificación no aprobada', 'dashGiving.verificationRejectedBody': 'Contacta a soporte, o solicita otra revisión.', 'dashGiving.requestVerificationAgain': 'Solicitar verificación nuevamente',
+      'dashGiving.notVerifiedTag': 'No verificada', 'dashGiving.notVerifiedBody': 'Tu iglesia debe estar verificada antes de que puedas aceptar donaciones.', 'dashGiving.requestVerification': 'Solicitar verificación',
+      'dashGiving.connectedTag': 'Conectada', 'dashGiving.canAcceptDonations': 'Tu iglesia puede aceptar donaciones.', 'dashGiving.manageBankAccount': 'Administrar cuenta bancaria',
+      'dashGiving.setupIncompleteTag': 'Configuración incompleta', 'dashGiving.finishConnectingBody': 'Termina de conectar tu cuenta bancaria para empezar a aceptar donaciones.', 'dashGiving.finishConnecting': 'Terminar de conectar',
+      'dashGiving.notConnectedTag': 'No conectada',
       'dashGiving.givenThisYear': 'DONADO ESTE AÑO', 'dashGiving.givers': 'DONANTES', 'dashGiving.averageGift': 'DONACIÓN PROMEDIO',
       'dash.revenue': 'Ingresos',
       'dashRevenue.totalIncome': 'INGRESOS TOTALES ESTE AÑO', 'dashRevenue.netAfterFees': 'NETO DESPUÉS DE TARIFAS ESTE AÑO',
@@ -1138,6 +1164,7 @@
       'dashGiving.donor': 'Donante', 'dashGiving.amount': 'Monto', 'dashGiving.loadingHistory': 'Cargando historial de donaciones...',
       'dashGiving.noDonationsYet': 'Aún no hay donaciones.', 'dashGiving.guestSuffix': '(invitado)', 'dashGiving.anonymous': 'Anónimo', 'dashGiving.unknownFund': 'Fondo desconocido', 'dashGiving.generalFund': 'Fondo general',
       'dashBilling.currentPlan': 'Plan actual',
+      'dashBilling.endingMovingToFree': 'Finaliza, pasarás al plan Gratis: ', 'dashBilling.accessEnds': 'El acceso finaliza: ', 'dashBilling.nextBillingDate': 'Próxima fecha de facturación: ',
       'dashBilling.pastDueWarning': 'Tu último pago no se procesó — actualiza tu tarjeta para no perder las funciones de los planes de pago.',
       'dashBilling.manageBilling': 'Administrar facturación', 'dashBilling.viewPlans': 'Ver planes',
       'dashBilling.downgradeToFree': 'Bajar al plan Gratis', 'dashBilling.downgradeConfirm': 'Conservarás las funciones de tu plan actual hasta el final del período de facturación que ya pagaste, luego pasarás al plan Gratis. ¿Continuar?',
@@ -1171,6 +1198,8 @@
       'dashSettings.facilityRooms': 'Espacios de la instalación',
       'dashSettings.facilityRoomsHint': 'Los espacios que tu iglesia programa — aulas, el santuario, el centro recreativo, áreas al aire libre. Aparecen como opciones al crear un evento.',
       'dashSettings.roomNamePlaceholder': 'p. ej. Salón 205 Clase de Adultos', 'dashSettings.add': 'Agregar',
+      'dashSettings.noRoomsYet': 'Aún no se han agregado salones.', 'dashSettings.removeRoom': 'Eliminar salón',
+      'dashSettings.noFundsYet': 'Aún no hay fondos designados — todo va al Fondo General.', 'dashSettings.removeFund': 'Eliminar fondo',
       'dashSettings.transferOwnership': 'Transferir propiedad',
       'dashSettings.transferOwnershipHint': 'Entrega esta iglesia a otra persona. Nada cambia hasta que la acepten explícitamente — esto no se transfiere instantáneamente solo por enviarlo, y puedes cancelarlo en cualquier momento antes de que respondan.',
       'dashSettings.cancelThisTransfer': 'Cancelar esta transferencia', 'dashSettings.theirEmailAddress': 'Su correo electrónico',
@@ -1275,6 +1304,7 @@
       'dir.somethingWentWrongLoading': 'Algo salió mal al cargar las iglesias: {error}',
       'events.followOrSetChurchHome': 'Sigue una iglesia o marca una como tu Iglesia de Origen para ver aquí eventos elegidos para ti.',
       'dashHeader.noChurchFound': 'No se encontró ninguna iglesia', 'dashHeader.staff': 'PERSONAL', 'dashHeader.owner': 'PROPIETARIO', 'dashHeader.partnerChurch': 'IGLESIA ASOCIADA',
+      'dashHeader.registerChurchFirst': 'Registra una iglesia primero, o pídele a un propietario que te agregue como personal.',
       'profile.checkEmailForConfirmationLink': 'Revisa {email} para ver un enlace de confirmación y completar este cambio.',
       'auth.enterEmailFirst': 'Ingresa tu correo primero.', 'auth.completeCaptcha': 'Por favor completa el CAPTCHA antes de continuar.', 'auth.checkEmailForResetLink': 'Revisa tu correo para ver un enlace de restablecimiento.',
       'auth.fillAllFields': 'Por favor completa todos los campos.', 'auth.removeWordFromName': 'Por favor elimina "{word}" de tu nombre.', 'auth.passwordsDontMatch': 'Las contraseñas no coinciden.', 'auth.passwordTooShort': 'La contraseña debe tener al menos 10 caracteres.',
@@ -4891,7 +4921,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-09-v239 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-09-v240 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -7363,6 +7393,24 @@
       if (currentBase === 'dashboard' && typeof window.loadAbsenceSourceOptions === 'function') window.loadAbsenceSourceOptions();
       if (currentBase === 'dashboard' && typeof window.loadInvolvementPanel === 'function') window.loadInvolvementPanel();
       if (currentBase === 'dashboard' && typeof window.loadRevenuePanel === 'function') window.loadRevenuePanel();
+      // Every one of these was already always-loaded, DOM-resident
+      // content regardless of which dashboard tab is active (see the
+      // sign-in refresh batch a few hundred lines up, which already
+      // treats this exact set as safe to call unconditionally) --
+      // they were just missed when this toggle dispatcher list was
+      // first put together. Team/Groups/Rooms/Funds/Directory/Giving/
+      // Billing/Check-in all build at least some of their text with
+      // window.t() now (a real, separate hardcoded-English gap in
+      // several of these was closed at the same time -- see
+      // GOTCHAS.md), so all of them need to be here.
+      if (currentBase === 'dashboard' && typeof window.loadTeamPanel === 'function') window.loadTeamPanel();
+      if (currentBase === 'dashboard' && typeof window.loadDashboardGroups === 'function') window.loadDashboardGroups();
+      if (currentBase === 'dashboard' && typeof window.loadRoomsPanel === 'function') window.loadRoomsPanel();
+      if (currentBase === 'dashboard' && typeof window.loadFundsPanel === 'function') window.loadFundsPanel();
+      if (currentBase === 'dashboard' && typeof window.loadDirectoryPeople === 'function') window.loadDirectoryPeople();
+      if (currentBase === 'dashboard' && typeof window.loadGivingStatus === 'function') window.loadGivingStatus();
+      if (currentBase === 'dashboard' && typeof window.loadBillingPanel === 'function') window.loadBillingPanel();
+      if (currentBase === 'dashboard' && typeof window.loadCheckinEventPicker === 'function') window.loadCheckinEventPicker();
       // create-event has several JS-rendered lists (contacts,
       // questions, room checklist) whose option/placeholder text was
       // baked in at render time — redo them so a language toggle
@@ -8369,7 +8417,7 @@
   async function loadDashboardEvents(){
     var tbody = document.getElementById('dash-events-tbody');
     var myChurch = await getMyChurch();
-    if (!myChurch) { tbody.innerHTML = '<tr><td colspan="8" style="color:var(--ink-mute);">Register a church first, or ask an owner to add you as staff.</td></tr>'; return; }
+    if (!myChurch) { tbody.innerHTML = '<tr><td colspan="8" style="color:var(--ink-mute);">' + window.t('dashHeader.registerChurchFirst') + '</td></tr>'; return; }
 
     var churchId = myChurch.id;
     var { data: allEvents, error: eventsError } = await supabase.from('events').select('*, profiles(full_name)').eq('church_id', churchId).order('start_at', { ascending: true });
@@ -11647,13 +11695,13 @@
     window.churchRoomsCache = rooms || [];
 
     if (!rooms || !rooms.length) {
-      listEl.innerHTML = '<p style="color:var(--ink-mute);font-size:13px;">No rooms added yet.</p>';
+      listEl.innerHTML = '<p style="color:var(--ink-mute);font-size:13px;">' + window.t('dashSettings.noRoomsYet') + '</p>';
       return;
     }
     listEl.innerHTML = rooms.map(function(r){
       return '<div class="info-row" style="justify-content:space-between;">'
         + '<span>' + r.name.replace(/</g, '&lt;') + '</span>'
-        + '<button class="qr-btn" data-remove-room-id="' + r.id + '" aria-label="Remove room"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'
+        + '<button class="qr-btn" data-remove-room-id="' + r.id + '" aria-label="' + window.t('dashSettings.removeRoom') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'
         + '</div>';
     }).join('');
   }
@@ -11675,13 +11723,13 @@
     if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:13px;">' + error.message + '</p>'; return; }
 
     if (!funds || !funds.length) {
-      listEl.innerHTML = '<p style="color:var(--ink-mute);font-size:13px;">No designated funds yet — everything goes to the General Fund.</p>';
+      listEl.innerHTML = '<p style="color:var(--ink-mute);font-size:13px;">' + window.t('dashSettings.noFundsYet') + '</p>';
       return;
     }
     listEl.innerHTML = funds.map(function(f){
       return '<div class="info-row" style="justify-content:space-between;">'
         + '<span>' + f.name.replace(/</g, '&lt;') + '</span>'
-        + '<button class="qr-btn" data-remove-fund-id="' + f.id + '" aria-label="Remove fund"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'
+        + '<button class="qr-btn" data-remove-fund-id="' + f.id + '" aria-label="' + window.t('dashSettings.removeFund') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'
         + '</div>';
     }).join('');
   }
@@ -13746,14 +13794,14 @@
     if (row && row.verification_status !== 'verified') {
       var gateHtml, gateBtnText;
       if (row.verification_status === 'pending') {
-        gateHtml = '<span class="tag clay">Verification pending</span> We\'ll review your request and follow up soon.';
+        gateHtml = '<span class="tag clay">' + window.t('dashGiving.verificationPendingTag') + '</span> ' + window.t('dashGiving.verificationPendingBody');
         gateBtnText = null;
       } else if (row.verification_status === 'rejected') {
-        gateHtml = '<span class="tag clay">Verification not approved</span> Contact support, or request another review.';
-        gateBtnText = 'Request verification again';
+        gateHtml = '<span class="tag clay">' + window.t('dashGiving.verificationRejectedTag') + '</span> ' + window.t('dashGiving.verificationRejectedBody');
+        gateBtnText = window.t('dashGiving.requestVerificationAgain');
       } else {
-        gateHtml = '<span class="tag clay">Not verified</span> Your church needs to be verified before you can accept donations.';
-        gateBtnText = 'Request verification';
+        gateHtml = '<span class="tag clay">' + window.t('dashGiving.notVerifiedTag') + '</span> ' + window.t('dashGiving.notVerifiedBody');
+        gateBtnText = window.t('dashGiving.requestVerification');
       }
       statusEl.innerHTML = gateHtml;
       if (tabStatusEl) tabStatusEl.innerHTML = gateHtml;
@@ -13777,14 +13825,14 @@
 
     var statusHtml, btnText;
     if (row && row.stripe_onboarding_complete) {
-      statusHtml = '<span class="tag sage">Connected</span> Your church can accept donations.';
-      btnText = 'Manage bank account';
+      statusHtml = '<span class="tag sage">' + window.t('dashGiving.connectedTag') + '</span> ' + window.t('dashGiving.canAcceptDonations');
+      btnText = window.t('dashGiving.manageBankAccount');
     } else if (row && row.stripe_account_id) {
-      statusHtml = '<span class="tag clay">Setup incomplete</span> Finish connecting your bank account to start accepting donations.';
-      btnText = 'Finish connecting';
+      statusHtml = '<span class="tag clay">' + window.t('dashGiving.setupIncompleteTag') + '</span> ' + window.t('dashGiving.finishConnectingBody');
+      btnText = window.t('dashGiving.finishConnecting');
     } else {
-      statusHtml = '<span class="tag clay">Not connected</span> Connect a bank account to accept donations.';
-      btnText = 'Connect your bank account';
+      statusHtml = '<span class="tag clay">' + window.t('dashGiving.notConnectedTag') + '</span> ' + window.t('dashGiving.connectBankBody');
+      btnText = window.t('dashGiving.connectBank');
     }
     statusEl.innerHTML = statusHtml;
     connectBtn.textContent = btnText;
@@ -13800,7 +13848,7 @@
     if (!tbody) return;
 
     var myChurch = await getMyChurch();
-    if (!myChurch) { tbody.innerHTML = '<tr><td colspan="3" style="color:var(--ink-mute);">Register a church first, or ask an owner to add you as staff.</td></tr>'; return; }
+    if (!myChurch) { tbody.innerHTML = '<tr><td colspan="3" style="color:var(--ink-mute);">' + window.t('dashHeader.registerChurchFirst') + '</td></tr>'; return; }
 
     var { data: donations, error } = await supabase.from('donations').select('amount_cents, created_at, donor_id, donor_email, fund_id, net_amount_cents').eq('church_id', myChurch.id).eq('status', 'succeeded').order('created_at', { ascending: false });
     if (error) { tbody.innerHTML = '<tr><td colspan="4" style="color:var(--clay);">' + error.message + '</td></tr>'; return; }
@@ -14018,12 +14066,12 @@
     });
 
     if (!filtered.length) {
-      tbody.innerHTML = '<tr><td colspan="6" style="color:var(--ink-mute);">No one matches this filter.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6" style="color:var(--ink-mute);">' + window.t('dashDir.noMatchFilter') + '</td></tr>';
       return;
     }
 
     tbody.innerHTML = filtered.map(function(p){
-      var roleLabel = p.is_owner ? 'Owner' : (p.is_staff ? 'Staff' : (p.is_member ? 'Member' : (p.has_registered_event ? 'Event sign-up' : 'Group sign-up')));
+      var roleLabel = p.is_owner ? window.t('dashSettings.ownerRoleLabel') : (p.is_staff ? window.t('dashDir.staff') : (p.is_member ? window.t('dashGroups.roleMember') : (p.has_registered_event ? window.t('dashDir.roleEventSignupTag') : window.t('dashDir.roleGroupSignupTag'))));
       var roleTag = (p.is_owner || p.is_staff) ? 'gold' : (p.is_member ? 'sage' : 'clay');
       var photoHtml = p.avatar_url
         ? '<img src="' + p.avatar_url + '" alt="" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">'
@@ -14042,10 +14090,10 @@
   async function loadDirectoryPeople(){
     var tbody = document.getElementById('directory-tbody');
     if (!tbody) return;
-    tbody.innerHTML = '<tr><td colspan="6" style="color:var(--ink-mute);">Loading directory...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" style="color:var(--ink-mute);">' + window.t('dashDir.loadingDirectory') + '</td></tr>';
 
     var myChurch = await getMyChurch();
-    if (!myChurch) { tbody.innerHTML = '<tr><td colspan="6" style="color:var(--ink-mute);">Register a church first, or ask an owner to add you as staff.</td></tr>'; return; }
+    if (!myChurch) { tbody.innerHTML = '<tr><td colspan="6" style="color:var(--ink-mute);">' + window.t('dashHeader.registerChurchFirst') + '</td></tr>'; return; }
 
     var { data, error } = await supabase.rpc('get_directory_people', { target_church_id: myChurch.id });
     if (error) { tbody.innerHTML = '<tr><td colspan="6" style="color:var(--clay);">' + error.message + '</td></tr>'; return; }
@@ -14932,19 +14980,19 @@
     if (!tbody) return;
 
     var myChurch = await getMyChurch();
-    if (!myChurch) { tbody.innerHTML = '<tr><td colspan="5" style="color:var(--ink-mute);">Register a church first, or ask an owner to add you as staff.</td></tr>'; return; }
+    if (!myChurch) { tbody.innerHTML = '<tr><td colspan="5" style="color:var(--ink-mute);">' + window.t('dashHeader.registerChurchFirst') + '</td></tr>'; return; }
 
     var { data: myGroups, error: groupsError } = await supabase.from('groups').select('*').eq('church_id', myChurch.id).order('created_at', { ascending: true });
     if (groupsError) {
-      tbody.innerHTML = '<tr><td colspan="5" style="color:var(--clay);">Couldn\'t load groups: ' + groupsError.message + '</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="5" style="color:var(--clay);">' + window.t('dashGroups.couldntLoad') + groupsError.message + '</td></tr>';
       countLabel.textContent = '—';
       return;
     }
 
-    countLabel.textContent = (myGroups ? myGroups.length : 0) + (myGroups && myGroups.length === 1 ? ' group' : ' groups');
+    countLabel.textContent = (myGroups ? myGroups.length : 0) + ' ' + (myGroups && myGroups.length === 1 ? window.t('dashDir.group') : window.t('dashDir.groups'));
 
     if (!myGroups || !myGroups.length) {
-      tbody.innerHTML = '<tr><td colspan="5" style="color:var(--ink-mute);">No groups yet — click New group to add your first one.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="5" style="color:var(--ink-mute);">' + window.t('dashGroups.noGroupsYet') + '</td></tr>';
       return;
     }
 
@@ -14955,12 +15003,12 @@
       var { count } = await supabase.from('group_members').select('id', { count: 'exact', head: true }).eq('group_id', g.id).eq('status', 'active');
       var { count: pendingCount } = await supabase.from('group_members').select('id', { count: 'exact', head: true }).eq('group_id', g.id).eq('status', 'pending');
       totalPending += (pendingCount || 0);
-      var pendingBadge = pendingCount ? ' <span class="tag clay" style="font-size:9px;padding:2px 5px;">' + pendingCount + ' pending</span>' : '';
+      var pendingBadge = pendingCount ? ' <span class="tag clay" style="font-size:9px;padding:2px 5px;">' + pendingCount + ' ' + window.t('dashGroups.pendingBadge') + '</span>' : '';
       rowsHtml += '<tr>'
         + '<td>' + g.name + '</td>'
         + '<td class="mono">' + (g.meeting_schedule || '—') + '</td>'
         + '<td><button class="qr-btn" data-view-group-members="' + g.id + '" data-view-group-title="' + g.name.replace(/"/g, '&quot;') + '" style="width:auto;padding:6px 10px;" aria-label="View members">' + (count || 0) + ' <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;margin-left:4px;"><circle cx="9" cy="8" r="3"/><path d="M2 20c0-3 3-5 7-5s7 2 7 5"/></svg></button>' + pendingBadge + '</td>'
-        + '<td><span class="tag ' + (g.leader_can_view_contact_info ? 'sage' : 'clay') + '">' + (g.leader_can_view_contact_info ? 'On' : 'Off') + '</span></td>'
+        + '<td><span class="tag ' + (g.leader_can_view_contact_info ? 'sage' : 'clay') + '">' + (g.leader_can_view_contact_info ? window.t('common.on') : window.t('common.off')) + '</span></td>'
         + '<td style="display:flex;gap:6px;">'
         + '<button class="qr-btn icon-tip" data-tip="' + window.t('dashGroups.takeAttendance') + '" data-take-attendance-id="' + g.id + '" data-take-attendance-name="' + g.name.replace(/"/g, '&quot;') + '" aria-label="' + window.t('dashGroups.takeAttendance') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></button>'
         + '<a class="qr-btn icon-tip" data-tip="' + window.t('dashGroups.viewPublicPage') + '" data-route="group" data-group-id="' + g.id + '" href="#" aria-label="' + window.t('dashGroups.viewPublicPage') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg></a>'
@@ -15395,7 +15443,25 @@
   }
   window.checkForCompletedSubscription = checkForCompletedSubscription;
 
-  var planLabels = { free: 'Free', starter: 'Starter — $19 / month', standard: 'Medium — $39 / month', premium: 'Large — $79 / month', multi_church: 'Multi-Church — Custom' };
+  // Built fresh inside loadBillingPanel() (not once at module-load
+  // time as a plain object, like it used to be) so it reflects
+  // whatever language is active *right now* -- a plain object here
+  // would freeze in whatever language was active when the script
+  // first ran and never update again, same class of bug as
+  // everything else fixed this pass. Reuses the same pricing.*.name
+  // keys the pricing page and admin panel already use (planLabels2
+  // below) rather than the "Medium"/"Large" wording this panel used
+  // to have on its own -- one name per tier across the app, not two.
+  function planLabelsForLocale(){
+    var perMonth = window.t('pricing.perMonth');
+    return {
+      free: window.t('pricing.free.name'),
+      starter: window.t('pricing.starter.name') + ' — $19' + perMonth,
+      standard: window.t('pricing.medium.name') + ' — $39' + perMonth,
+      premium: window.t('pricing.large.name') + ' — $79' + perMonth,
+      multi_church: window.t('pricing.multiChurch.name') + ' — ' + window.t('pricing.multiChurch.price')
+    };
+  }
 
   async function loadBillingPanel(){
     var planRow = document.getElementById('billing-plan-row');
@@ -15413,9 +15479,10 @@
     var planType = row ? row.plan_type : 'free';
     var cancelPending = !!(row && row.cancel_at_period_end);
 
-    planRow.textContent = planLabels[planType] || 'Free';
+    var planLabels = planLabelsForLocale();
+    planRow.textContent = planLabels[planType] || planLabels.free;
     if (row && row.current_period_end && planType !== 'free') {
-      var periodLabel = cancelPending ? 'Ending, moving to Free: ' : (row.subscription_status === 'canceled' ? 'Access ends: ' : 'Next billing date: ');
+      var periodLabel = cancelPending ? window.t('dashBilling.endingMovingToFree') : (row.subscription_status === 'canceled' ? window.t('dashBilling.accessEnds') : window.t('dashBilling.nextBillingDate'));
       periodRow.textContent = periodLabel + new Date(row.current_period_end).toLocaleDateString(window.appLocale());
       periodRow.style.display = 'block';
     } else {
@@ -15456,7 +15523,7 @@
     var walkinCard = document.getElementById('checkin-walkin-card');
     if (walkinCard) walkinCard.style.display = myChurch.canManageEvents ? 'block' : 'none';
 
-    select.innerHTML = '<option value="">Select an event...</option>' + (eventRows || []).map(function(e){
+    select.innerHTML = '<option value="">' + window.t('dashCheckin.selectEvent') + '</option>' + (eventRows || []).map(function(e){
       var d = new Date(e.start_at);
       var label = e.title + ' — ' + d.toLocaleDateString(window.appLocale(), { month: 'short', day: 'numeric' });
       return '<option value="' + e.id + '">' + label.replace(/</g, '&lt;') + '</option>';
@@ -15492,12 +15559,12 @@
     });
 
     if (!filtered.length) {
-      tbody.innerHTML = '<tr><td colspan="3" style="color:var(--ink-mute);">' + (checkinCurrentRows.length ? 'No one matches that search.' : 'No one has registered for this event yet.') + '</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="3" style="color:var(--ink-mute);">' + (checkinCurrentRows.length ? window.t('dashCheckin.noSearchMatch') : window.t('dashCheckin.noOneRegisteredYet')) + '</td></tr>';
       return;
     }
 
     tbody.innerHTML = filtered.map(function(r){
-      var regLabel = r.guest_name ? 'Walk-in' : (r.role === 'volunteer' ? 'Volunteer' : 'Participant');
+      var regLabel = r.guest_name ? window.t('dashCheckin.walkInTag') : (r.role === 'volunteer' ? window.t('myEvents.volunteer') : window.t('myEvents.participant'));
       var checked = !!r.checked_in_at;
       return '<tr class="checkin-row" data-checked="' + checked + '" data-checkin-id="' + r.id + '">'
         + '<td>' + r.displayName.replace(/</g, '&lt;') + '</td>'
@@ -15516,7 +15583,7 @@
       checkinCurrentRows = [];
       return;
     }
-    tbody.innerHTML = '<tr><td colspan="3" style="color:var(--ink-mute);">Loading...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="3" style="color:var(--ink-mute);">' + window.t('common.loading') + '</td></tr>';
 
     var { data, error } = await supabase.from('event_registrations')
       .select('id, user_id, guest_name, role, status, checked_in_at, profiles(full_name)')
