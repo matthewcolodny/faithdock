@@ -776,7 +776,7 @@
       'ce.location': 'Location', 'ce.locationPlaceholder': 'Church lawn, or an address',
       'ce.venueName': 'Venue name (optional)', 'ce.venueNamePlaceholder': 'e.g. Fellowship Hall, Church lawn', 'ce.locationAddressPlaceholder': 'Start typing an address...', 'ce.useChurchAddress': "Use my church's address",
       'ce.roomsUsed': 'Rooms used', 'ce.roomsHint': 'Select every room this event uses — mark one as primary if it uses more than one. Managed in Settings → Facility rooms.', 'ce.primary': 'Primary', 'ce.noRoomsSetUpYet': 'No rooms set up yet — add some in Settings → Facility rooms.', 'ce.aRoom': 'a room',
-      'ce.eventContacts': 'Event contacts', 'ce.contactsHint': 'Who should be reachable about this event. The "notify" checkbox is saved but doesn\'t send anything yet — that\'s a separate feature not built yet.', 'ce.addAContact': '+ Add a contact', 'ce.namePlaceholder': 'Name', 'ce.notify': 'Notify',
+      'ce.eventContacts': 'Event contacts', 'ce.contactsHint': 'Who should be reachable about this event. Checking "Notify" emails them once, letting them know they\'ve been added as a contact.', 'ce.addAContact': '+ Add a contact', 'ce.namePlaceholder': 'Name', 'ce.notify': 'Notify',
       'ce.registrationQuestions': 'Registration questions', 'ce.participantQuestions': 'Questions for participants', 'ce.questionsHint': "Ask registrants anything specific to this event — a T-shirt size, an allergy to plan food around, a childcare need. Answers are tied to this event's registrations only, never added to anyone's profile.",
       'ce.addAQuestion': '+ Add a question', 'ce.questionPlaceholder': 'Question', 'ce.optionsCommaSeparated': 'Options, comma separated', 'ce.shortAnswer': 'Short answer', 'ce.multipleChoice': 'Multiple choice', 'ce.checkbox': 'Checkbox', 'ce.required': 'Required',
       'ce.volunteerQuestions': 'Questions for volunteers', 'ce.volunteerQuestionsHint': 'Shown only to people registering as a volunteer — the questions above are shown only to participants.',
@@ -1467,7 +1467,7 @@
       'ce.location': 'Ubicación', 'ce.locationPlaceholder': 'El jardín de la iglesia, o una dirección',
       'ce.venueName': 'Nombre del lugar (opcional)', 'ce.venueNamePlaceholder': 'p. ej. Salón de comunión, jardín de la iglesia', 'ce.locationAddressPlaceholder': 'Empieza a escribir una dirección...', 'ce.useChurchAddress': 'Usar la dirección de mi iglesia',
       'ce.roomsUsed': 'Salones usados', 'ce.roomsHint': 'Selecciona cada salón que use este evento — marca uno como principal si usa más de uno. Se gestionan en Configuración → Salones de la instalación.', 'ce.primary': 'Principal', 'ce.noRoomsSetUpYet': 'Aún no hay salones configurados — agrega algunos en Configuración → Salones de la instalación.', 'ce.aRoom': 'un salón',
-      'ce.eventContacts': 'Contactos del evento', 'ce.contactsHint': 'Quién debería ser localizable sobre este evento. La casilla "notificar" se guarda pero aún no envía nada — esa es una función aparte que todavía no se ha implementado.', 'ce.addAContact': '+ Agregar un contacto', 'ce.namePlaceholder': 'Nombre', 'ce.notify': 'Notificar',
+      'ce.eventContacts': 'Contactos del evento', 'ce.contactsHint': 'Quién debería ser localizable sobre este evento. Marcar "Notificar" les envía un correo una vez, avisándoles que fueron agregados como contacto.', 'ce.addAContact': '+ Agregar un contacto', 'ce.namePlaceholder': 'Nombre', 'ce.notify': 'Notificar',
       'ce.registrationQuestions': 'Preguntas de inscripción', 'ce.participantQuestions': 'Preguntas para participantes', 'ce.questionsHint': 'Pregunta a los inscritos cualquier cosa específica de este evento — una talla de camiseta, una alergia para planear la comida, una necesidad de cuidado infantil. Las respuestas se vinculan solo a las inscripciones de este evento, nunca se agregan al perfil de nadie.',
       'ce.addAQuestion': '+ Agregar una pregunta', 'ce.questionPlaceholder': 'Pregunta', 'ce.optionsCommaSeparated': 'Opciones, separadas por comas', 'ce.shortAnswer': 'Respuesta corta', 'ce.multipleChoice': 'Opción múltiple', 'ce.checkbox': 'Casilla', 'ce.required': 'Obligatoria',
       'ce.volunteerQuestions': 'Preguntas para voluntarios', 'ce.volunteerQuestionsHint': 'Se muestran solo a quienes se inscriben como voluntarios — las preguntas de arriba se muestran solo a los participantes.',
@@ -5040,7 +5040,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-09-v248 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-09-v249 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -10844,9 +10844,15 @@
   var ceOriginalPriceCents = null;
 
   // Event contacts — repeatable name/email rows, plus a notify flag
-  // that's stored now but doesn't send anything yet (that's the
-  // separate daily-digest feature, not built).
+  // that emails the contact once (see the save handler below).
+  // ceOriginalContacts snapshots what was actually saved before this
+  // edit started (editEvent() below) or [] for a brand-new event --
+  // compared against at save time so re-saving an already-notified
+  // contact never re-sends the email; only a genuinely new contact,
+  // or one whose Notify box just got checked for the first time,
+  // gets one.
   var ceContacts = [];
+  var ceOriginalContacts = [];
 
   function renderCeContacts(){
     var list = document.getElementById('ce-contacts-list');
@@ -10884,6 +10890,49 @@
     ceContacts.splice(parseInt(removeBtn.getAttribute('data-remove-contact-index'), 10), 1);
     renderCeContacts();
   });
+
+  // Emails any contact who's newly notify-worthy on this particular
+  // save -- a contact already notified on a prior save (present in
+  // ceOriginalContacts with notify already true) is skipped, so
+  // re-saving an event's other fields never re-sends it. Best-effort,
+  // fire-and-forget: matches the ownership_handoff pattern elsewhere
+  // in this file -- the event save itself already succeeded by the
+  // time this runs and never depends on the email actually going out.
+  async function notifyNewEventContacts(cleanContacts, eventTitle, startAtIso, endAtIso, churchName){
+    var newlyNotify = cleanContacts.filter(function(c){
+      if (!c.notify || !c.email || !c.email.trim()) return false;
+      var alreadyNotified = ceOriginalContacts.some(function(oc){
+        return oc.notify && oc.email && oc.email.trim().toLowerCase() === c.email.trim().toLowerCase();
+      });
+      return !alreadyNotified;
+    });
+    if (!newlyNotify.length) return;
+
+    var { data: userData } = await supabase.auth.getUser();
+    var addedByName = null;
+    if (userData.user) {
+      var { data: myProfile } = await supabase.from('profiles').select('full_name').eq('id', userData.user.id).limit(1);
+      addedByName = (myProfile && myProfile.length && myProfile[0].full_name) ? myProfile[0].full_name : null;
+    }
+
+    // Awaited internally (unlike ownership_handoff's plain fire-and-
+    // forget) even though neither call site below awaits this
+    // function either, so the user-visible save flow is unaffected
+    // either way -- awaiting here just means the request reliably
+    // runs to completion inside this function's own promise chain
+    // rather than being kicked off and immediately abandoned.
+    await supabase.functions.invoke('smooth-action', {
+      body: {
+        type: 'event_contact_notify',
+        recipients: newlyNotify.map(function(c){ return { email: c.email.trim(), name: c.name || '' }; }),
+        eventTitle: eventTitle,
+        eventWhen: formatEventWhen(startAtIso, endAtIso),
+        churchName: churchName,
+        addedByName: addedByName
+      }
+    });
+  }
+  window.notifyNewEventContacts = notifyNewEventContacts;
 
   // Registration questions — same array + delegated-listener pattern
   // as contacts above. Text edits update the array in place (no
@@ -10996,6 +11045,7 @@
     ceImageFilenameEl.textContent = window.t('rc.noFileChosen');
     ceTags = []; renderCeTags();
     ceContacts = []; renderCeContacts();
+    ceOriginalContacts = [];
     ceQuestions = []; renderCeQuestions();
     ceVolunteerQuestions = []; renderCeVolunteerQuestions();
     var ceQuestionsHeadingReset = document.getElementById('ce-questions-heading');
@@ -11081,6 +11131,7 @@
     document.querySelectorAll('.ce-category').forEach(function(cb){ cb.checked = evCategoryTags.indexOf(cb.value) !== -1; });
 
     ceContacts = Array.isArray(ev.contacts) ? ev.contacts.slice() : [];
+    ceOriginalContacts = ceContacts.slice();
     renderCeContacts();
 
     var { data: existingQuestions } = await supabase.from('event_questions').select('question_text, question_type, options, is_required, applies_to').eq('event_id', eventId).order('sort_order');
@@ -11609,6 +11660,7 @@
         if (error) { showCeError(error.message); return; }
         await saveEventRooms(ceEditingEventId);
         await saveEventQuestions(ceEditingEventId);
+        notifyNewEventContacts(cleanContacts, title, updatePayload.start_at, updatePayload.end_at, myChurches[0].name);
         showCeSuccess(window.t('ce.savedUpdated').replace('{title}', data[0].title));
         loadDashboardEvents();
         return;
@@ -11680,6 +11732,11 @@
       // booking — a weekly rehearsal in the same room each week, not
       // a one-off choice per instance.
       for (var ri = 0; ri < data.length; ri++) { await saveEventRooms(data[ri].id); await saveEventQuestions(data[ri].id); }
+
+      // One notification per contact, not one per occurrence of a
+      // recurring series — uses the first occurrence's time for the
+      // email, same as showing just one event either way below.
+      notifyNewEventContacts(cleanContacts, title, data[0].start_at, data[0].end_at, myChurches[0].name);
 
       var countMsg = data.length > 1 ? window.t('ce.occurrencesCreated').replace('{n}', data.length) : window.t('ce.eventIsLive').replace('{title}', data[0].title);
       showCeSuccess(window.t('ce.createdUnderChurch').replace('{countMsg}', countMsg).replace('{church}', myChurches[0].name));
