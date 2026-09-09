@@ -3884,7 +3884,7 @@
         <button type="button" class="rte-btn" data-rte-cmd="link" data-rte-target="ce-description" aria-label="Add link" data-i18n-title="rte.addLink"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M10 13a5 5 0 0 0 7.5.5l2-2a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7.5-.5l-2 2a5 5 0 0 0 7 7l1-1"/></svg></button>
         <button type="button" class="rte-btn" data-rte-cmd="unlink" data-rte-target="ce-description" aria-label="Remove link" data-i18n-title="rte.removeLink"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M10 13a5 5 0 0 0 7.5.5l2-2a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7.5-.5l-2 2a5 5 0 0 0 7 7l1-1"/><path d="M3 3l18 18"/></svg></button>
       </div>
-      <div class="field rte-editable" id="ce-description" contenteditable="true" data-placeholder="What's happening, who it's for" data-i18n-data-placeholder="ce.descriptionPlaceholder" style="min-height:90px;border-radius:0 0 8px 8px;overflow-y:auto;max-height:260px;line-height:1.5;"></div>
+      <div class="field rte-editable" id="ce-description" contenteditable="true" data-placeholder="What's happening, who it's for" data-i18n-data-placeholder="ce.descriptionPlaceholder" style="min-height:90px;border-radius:0 0 8px 8px;overflow-y:auto;max-height:700px;line-height:1.5;"></div>
       <div class="char-count" id="ce-description-count">0 / 800</div>
 
       <div id="ai-writing-assistant" style="display:none;margin-top:10px;">
@@ -3915,6 +3915,7 @@
         .rte-btn:hover{background:var(--card);}
         .rte-editable:empty:before{content:attr(data-placeholder);color:var(--ink-mute);}
         .rte-editable ul,.rte-editable ol{margin-left:20px;}
+        .rte-editable{resize:vertical;}
       </style>
 
       <label data-i18n="ce.starts">Starts</label>
@@ -4530,7 +4531,7 @@
             <button type="button" class="rte-btn" data-rte-cmd="link" data-rte-target="msg-body" aria-label="Add link" data-i18n-title="rte.addLink"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M10 13a5 5 0 0 0 7.5.5l2-2a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7.5-.5l-2 2a5 5 0 0 0 7 7l1-1"/></svg></button>
             <button type="button" class="rte-btn" data-rte-cmd="unlink" data-rte-target="msg-body" aria-label="Remove link" data-i18n-title="rte.removeLink"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M10 13a5 5 0 0 0 7.5.5l2-2a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7.5-.5l-2 2a5 5 0 0 0 7 7l1-1"/><path d="M3 3l18 18"/></svg></button>
           </div>
-          <div class="field rte-editable" id="msg-body" contenteditable="true" data-placeholder="Write your announcement..." data-i18n-data-placeholder="dashMsg.writeAnnouncement" style="min-height:140px;border-radius:0 0 8px 8px;overflow-y:auto;max-height:340px;line-height:1.5;"></div>
+          <div class="field rte-editable" id="msg-body" contenteditable="true" data-placeholder="Write your announcement..." data-i18n-data-placeholder="dashMsg.writeAnnouncement" style="min-height:140px;border-radius:0 0 8px 8px;overflow-y:auto;max-height:700px;line-height:1.5;"></div>
 
           <div id="msg-recipient-count" style="font-size:12.5px;color:var(--ink-mute);margin-top:10px;"></div>
 
@@ -5031,7 +5032,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-09-v245 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-09-v246 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
