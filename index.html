@@ -3915,7 +3915,16 @@
         .rte-btn:hover{background:var(--card);}
         .rte-editable:empty:before{content:attr(data-placeholder);color:var(--ink-mute);}
         .rte-editable ul,.rte-editable ol{margin-left:20px;}
-        .rte-editable{resize:vertical;}
+        /* This div was never actually covered by the .field CSS rule
+           (that rule only targets input.field/textarea.field, not a
+           plain div) -- confirmed live: computed border was 0px none
+           in both themes. Not just a dark-mode bug, it had no real
+           border in light mode either; whatever edge was visible
+           there was incidental, not this element's own style. Styled
+           explicitly here, with var(--line)/var(--card) so it's
+           correct in both themes rather than hardcoded for one. */
+        .rte-editable{resize:vertical;border:1px solid var(--line);background:var(--card);padding:12px 14px;color:var(--ink);}
+        .rte-editable a{color:var(--gold);text-decoration:underline;cursor:pointer;}
       </style>
 
       <label data-i18n="ce.starts">Starts</label>
@@ -5040,7 +5049,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-09-v249 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-09-v250 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -9758,19 +9767,28 @@
   if (ceUseChurchAddressCb) {
     ceUseChurchAddressCb.addEventListener('change', async function(){
       var ceLocationInput = document.getElementById('ce-location');
+      var ceVenueNameInput = document.getElementById('ce-venue-name');
       if (!ceLocationInput) return;
       if (this.checked) {
         var myChurch = await getMyChurch();
         if (myChurch) {
-          var { data: churchRows } = await supabase.from('churches').select('address').eq('id', myChurch.id).limit(1);
-          if (churchRows && churchRows.length && churchRows[0].address) {
-            ceLocationInput.value = churchRows[0].address;
+          // Confirmed as a real, live gap: this only ever filled the
+          // address, leaving Venue name blank even though the label
+          // itself says "Use my church's address" -- a church's own
+          // name is exactly what belongs in Venue name here, and this
+          // is the one field that actually knows it.
+          var { data: churchRows } = await supabase.from('churches').select('name, address').eq('id', myChurch.id).limit(1);
+          if (churchRows && churchRows.length) {
+            if (churchRows[0].address) ceLocationInput.value = churchRows[0].address;
+            if (ceVenueNameInput && churchRows[0].name) ceVenueNameInput.value = churchRows[0].name;
           }
         }
         ceLocationInput.disabled = true;
+        if (ceVenueNameInput) ceVenueNameInput.disabled = true;
       } else {
         ceLocationInput.disabled = false;
         ceLocationInput.value = '';
+        if (ceVenueNameInput) { ceVenueNameInput.disabled = false; ceVenueNameInput.value = ''; }
       }
     });
   }
@@ -10496,7 +10514,21 @@
         // selection while the dialog is open.
         var rteSel = window.getSelection();
         var rteSavedRange = rteSel.rangeCount > 0 ? rteSel.getRangeAt(0).cloneRange() : null;
-        var url = prompt(window.t('rte.linkUrlPrompt'));
+
+        // If the cursor/selection is already inside a link, offer to
+        // edit its current URL instead of blindly prompting for a new
+        // one -- confirmed as a real, live bug: re-clicking "Add link"
+        // on already-linked text always showed a blank prompt, with
+        // no way to see or change the URL that was actually there.
+        var existingLink = null;
+        if (rteSavedRange) {
+          var rteNode = rteSavedRange.commonAncestorContainer;
+          if (rteNode.nodeType === 3) rteNode = rteNode.parentElement;
+          var rteFoundLink = rteNode ? rteNode.closest('a') : null;
+          if (rteFoundLink && target.contains(rteFoundLink)) existingLink = rteFoundLink;
+        }
+
+        var url = prompt(window.t('rte.linkUrlPrompt'), existingLink ? existingLink.getAttribute('href') : '');
         if (url) {
           // Only allow http(s)/mailto — blocks a javascript: URL
           // being typed directly into the prompt, which
@@ -10504,8 +10536,12 @@
           // and turn into a clickable script trigger.
           if (/^(https?:|mailto:)/i.test(url)) {
             target.focus();
-            if (rteSavedRange) { rteSel.removeAllRanges(); rteSel.addRange(rteSavedRange); }
-            document.execCommand('createLink', false, url);
+            if (existingLink) {
+              existingLink.setAttribute('href', url);
+            } else {
+              if (rteSavedRange) { rteSel.removeAllRanges(); rteSel.addRange(rteSavedRange); }
+              document.execCommand('createLink', false, url);
+            }
           } else {
             alert(window.t('rte.linksMustStartWith'));
           }
