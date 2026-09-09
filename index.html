@@ -4601,9 +4601,11 @@
           <div class="info-row" id="billing-plan-row">Loading...</div>
           <div class="info-row" id="billing-period-row" style="display:none;"></div>
           <div id="billing-past-due-warning" style="display:none;color:var(--clay);font-size:13px;margin-top:8px;" data-i18n="dashBilling.pastDueWarning">Your last payment didn't go through — please update your card to avoid losing paid-plan features.</div>
-          <button class="btn-gold" id="billing-manage-btn" style="margin-top:14px;display:none;" data-i18n="dashBilling.manageBilling">Manage billing</button>
-          <a href="#pricing" data-route="pricing" id="billing-upgrade-link" class="btn-gold" style="margin-top:14px;margin-left:10px;display:none;text-decoration:none;" data-i18n="dash.upgradePlan">Upgrade plan</a>
-          <button class="export-btn" id="billing-downgrade-btn" style="margin-top:14px;margin-left:10px;padding:12px 22px;font-size:14.5px;font-weight:600;display:none;" data-i18n="dashBilling.downgradeToFree">Downgrade to Free</button>
+          <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;">
+            <button class="btn-gold" id="billing-manage-btn" style="width:180px;text-align:center;margin-top:0;display:none;" data-i18n="dashBilling.manageBilling">Manage billing</button>
+            <a href="#pricing" data-route="pricing" id="billing-upgrade-link" class="btn-gold" style="width:180px;text-align:center;margin-top:0;display:none;text-decoration:none;" data-i18n="dash.upgradePlan">Upgrade plan</a>
+            <button class="export-btn" id="billing-downgrade-btn" style="width:180px;text-align:center;justify-content:center;padding:12px 8px;font-size:14.5px;font-weight:600;margin-top:0;display:none;" data-i18n="dashBilling.downgradeToFree">Downgrade to Free</button>
+          </div>
           <div id="billing-status" style="display:none;font-size:12.5px;margin-top:10px;color:var(--clay);"></div>
         </div>
       </div>
@@ -4776,7 +4778,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-08-v225 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-08-v226 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
