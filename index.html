@@ -414,6 +414,8 @@
       'church.away': 'away', 'church.setLocationDistance': 'Set your location to see distance', 'church.locationNotFound': 'Location not found for this address',
       'church.genericLabel': 'Church', 'church.genericName': 'A FaithDock church',
       'dash.editChurchProfile': 'Edit church profile →', 'dash.upgradePlan': 'Upgrade plan', 'dash.plans': 'Plans',
+      'dash.overview': 'Overview', 'dash.overviewTag': 'ALL CHURCHES', 'dash.allChurches': '‹ All churches',
+      'dash.yourChurches': 'Your churches', 'dash.overviewSubtitle': 'Pick a church to manage it, or add another.',
       'dashEvents.totalEvents': 'TOTAL EVENTS', 'dashEvents.daysToNext': 'DAYS TO NEXT EVENT', 'dashEvents.totalRegistrations': 'TOTAL REGISTRATIONS',
       'dashEvents.list': 'List', 'dashEvents.calendar': 'Calendar', 'dashEvents.exportSchedule': 'Export schedule',
       'dashEvents.attendance': 'Attendance', 'dashEvents.attendanceHint': 'Based on check-in records — only counts events where someone actually used Check-In at the door, not just registration counts.',
@@ -1106,6 +1108,8 @@
       'church.away': 'de distancia', 'church.setLocationDistance': 'Activa tu ubicación para ver la distancia', 'church.locationNotFound': 'No se encontró la ubicación de esta dirección',
       'church.genericLabel': 'Iglesia', 'church.genericName': 'Una iglesia de FaithDock',
       'dash.editChurchProfile': 'Editar perfil de la iglesia →', 'dash.upgradePlan': 'Mejorar plan', 'dash.plans': 'Planes',
+      'dash.overview': 'Resumen', 'dash.overviewTag': 'TODAS LAS IGLESIAS', 'dash.allChurches': '‹ Todas las iglesias',
+      'dash.yourChurches': 'Tus iglesias', 'dash.overviewSubtitle': 'Elige una iglesia para gestionarla, o agrega otra.',
       'dashEvents.totalEvents': 'EVENTOS TOTALES', 'dashEvents.daysToNext': 'DÍAS PARA EL PRÓXIMO EVENTO', 'dashEvents.totalRegistrations': 'INSCRIPCIONES TOTALES',
       'dashEvents.list': 'Lista', 'dashEvents.calendar': 'Calendario', 'dashEvents.exportSchedule': 'Exportar horario',
       'dashEvents.attendance': 'Asistencia', 'dashEvents.attendanceHint': 'Basado en registros de check-in — solo cuenta eventos donde alguien realmente usó Check-In en la puerta, no solo el conteo de inscripciones.',
@@ -1559,6 +1563,13 @@
         var rcEyebrowName = (rcEyebrowNameKey && dict[rcEyebrowNameKey]) ? dict[rcEyebrowNameKey] : window.rcEyebrowPlan;
         rcEyebrowEl.textContent = dict['rc.planListing'].replace('{plan}', rcEyebrowName);
       }
+    }
+    // The multi-church Overview grid is built in JS (window.t at
+    // render time), not from static data-i18n nodes -- re-render it on
+    // a language switch if it's the panel currently showing.
+    var dashChurchesPanel = document.getElementById('dash-churches');
+    if (dashChurchesPanel && dashChurchesPanel.classList.contains('active') && typeof window.loadDashboardChurchesPanel === 'function') {
+      window.loadDashboardChurchesPanel();
     }
     // Same reasoning as rc-heading above: ce-heading switches to
     // "Edit event" wording via JS once editEvent() loads an existing
@@ -2354,6 +2365,23 @@
   .group-card h4{font-size:16px;margin-bottom:6px;}
   .group-card p{font-size:13.5px;color:var(--ink-soft);margin-bottom:10px;}
   .group-card .group-schedule{font-size:12px;color:var(--ink-mute);font-family:'IBM Plex Mono';margin-bottom:12px;}
+
+  /* Multi-church Overview: church picker tiles */
+  .church-tile-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;}
+  .church-tile{display:flex;flex-direction:column;align-items:flex-start;gap:8px;min-height:150px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px;text-align:left;cursor:pointer;font:inherit;color:inherit;text-decoration:none;transition:border-color .12s ease,transform .12s ease;}
+  .church-tile:hover{border-color:var(--gold);transform:translateY(-1px);}
+  .church-tile-logo{width:44px;height:44px;border-radius:10px;object-fit:cover;}
+  .church-tile-logo-empty{background:var(--paper);border:1px solid var(--line);}
+  .church-tile-name{font-family:'Fraunces';font-size:16px;color:var(--ink);line-height:1.2;}
+  .church-tile-denom{font-size:11px;color:var(--ink-mute);font-family:'IBM Plex Mono';text-transform:uppercase;letter-spacing:.04em;}
+  .church-tile-manage{margin-top:auto;font-size:12.5px;color:var(--gold);}
+  .church-tile-add{align-items:center;justify-content:center;text-align:center;border-style:dashed;}
+  .church-tile-add .church-tile-name{font-size:14px;color:var(--ink-mute);}
+  .church-tile-plus{font-size:30px;line-height:1;color:var(--ink-mute);}
+  /* Multi-church owner: Billing/Plans are account-level, reached only
+     from the Overview sidebar -- keep them out of the per-church nav. */
+  .dash-overview-owner #dash-nav-church a[data-dash="billing"],
+  .dash-overview-owner #dash-nav-church a[data-dash="plans"]{display:none !important;}
 
   .app-hero{background:var(--brand);padding:80px 0 56px;}
   .store-badges{display:flex;gap:14px;justify-content:center;margin-top:32px;}
@@ -4148,11 +4176,20 @@
 <section class="page" id="page-dashboard">
   <div class="dash">
     <div class="dash-side">
-      <div class="dash-church" id="dash-church-name">Loading...</div>
-      <div class="dash-tag" id="dash-church-tag"></div>
-      <select id="dash-church-switcher" style="display:none;width:100%;margin-top:8px;margin-bottom:8px;background:#1a2740;color:#fff;border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:6px 8px;font-size:12.5px;"></select>
-      <a href="#register-church" data-route="register-church" id="dash-edit-profile-sidebar-link" style="display:block;font-size:12px;color:#CBD2DE;margin-top:-20px;margin-bottom:24px;border-bottom:1px solid rgba(255,255,255,0.2);width:fit-content;padding-bottom:1px;" data-i18n="dash.editChurchProfile">Edit church profile →</a>
-      <div class="dash-nav">
+      <!-- Multi-church owner only: jump back to the Overview grid from a church view -->
+      <a id="dash-all-churches-link" role="button" style="display:none;font-size:12.5px;color:#CBD2DE;margin-bottom:20px;border-bottom:1px solid rgba(255,255,255,0.2);width:fit-content;padding-bottom:1px;cursor:pointer;" data-i18n="dash.allChurches">‹ All churches</a>
+      <!-- Multi-church owner only: sidebar heading while on the account-level Overview -->
+      <div id="dash-overview-header" style="display:none;">
+        <div class="dash-church" data-i18n="dash.overview">Overview</div>
+        <div class="dash-tag" data-i18n="dash.overviewTag">ALL CHURCHES</div>
+      </div>
+      <div id="dash-church-context">
+        <div class="dash-church" id="dash-church-name">Loading...</div>
+        <div class="dash-tag" id="dash-church-tag"></div>
+        <select id="dash-church-switcher" style="display:none;width:100%;margin-top:8px;margin-bottom:8px;background:#1a2740;color:#fff;border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:6px 8px;font-size:12.5px;"></select>
+        <a href="#register-church" data-route="register-church" id="dash-edit-profile-sidebar-link" style="display:block;font-size:12px;color:#CBD2DE;margin-top:-20px;margin-bottom:24px;border-bottom:1px solid rgba(255,255,255,0.2);width:fit-content;padding-bottom:1px;" data-i18n="dash.editChurchProfile">Edit church profile →</a>
+      </div>
+      <div class="dash-nav" id="dash-nav-church">
         <a data-dash="events" class="active" data-i18n="dash.events">Events</a>
         <a data-dash="checkin" data-i18n="dash.checkin">Check-In</a>
         <a data-dash="directory" data-i18n="dash.directory">Directory</a>
@@ -4164,9 +4201,23 @@
         <a data-dash="plans" data-i18n="dash.plans">Plans</a>
         <a data-dash="settings" data-i18n="dash.settings">Settings</a>
       </div>
+      <!-- Multi-church owner only: account-level nav shown on the Overview -->
+      <div class="dash-nav" id="dash-nav-overview" style="display:none;">
+        <a id="dash-ov-overview" data-i18n="dash.overview">Overview</a>
+        <a id="dash-ov-billing" data-i18n="dash.billing">Billing</a>
+        <a id="dash-ov-plans" data-i18n="dash.plans">Plans</a>
+      </div>
       <button id="dash-signout-btn" style="background:none;border:none;color:#8791A5;font-size:12.5px;margin-top:24px;padding:0;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.15);width:fit-content;padding-bottom:1px;" data-i18n="dash.signout">Sign out</button>
     </div>
     <div class="dash-main">
+
+      <!-- Multi-church owner only: account-level Overview -- the churches
+           they own as a grid, plus a tile to add another. -->
+      <div class="dash-content" id="dash-churches">
+        <h2 style="font-size:24px;margin-bottom:8px;" data-i18n="dash.yourChurches">Your churches</h2>
+        <p style="color:var(--ink-mute);font-size:14px;margin-bottom:24px;" data-i18n="dash.overviewSubtitle">Pick a church to manage it, or add another.</p>
+        <div id="dash-churches-grid" class="church-tile-grid"></div>
+      </div>
 
       <div class="dash-content active" id="dash-events">
         <h2 style="font-size:24px;margin-bottom:24px;" data-i18n="dash.events">Events</h2>
@@ -5067,7 +5118,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-09-v255 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-09-v256 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -6343,6 +6394,11 @@
     } else {
       safeHistoryUpdate(false, '#dashboard/'+view);
     }
+    // Multi-church owner: keep the two-state sidebar in sync with the
+    // view, and (re)render the Overview grid when it's the one showing.
+    window._dashCurKey = view;
+    if(typeof window.updateDashSidebarMode === 'function'){ window.updateDashSidebarMode(view); }
+    if(view === 'churches' && typeof window.loadDashboardChurchesPanel === 'function'){ window.loadDashboardChurchesPanel(); }
   }
   window.goDash = goDash;
 
@@ -8529,7 +8585,7 @@
     // inheritance for a 2nd+ church) don't need a second query. For
     // anyone with 0 or 1 owned churches this resolves identically to
     // the old .limit(1) behavior.
-    var { data: owned, error: ownedError } = await supabase.from('churches').select('id, name, denomination, plan_type').eq('owner_id', userId).order('name');
+    var { data: owned, error: ownedError } = await supabase.from('churches').select('id, name, denomination, plan_type, logo_url, subscription_status').eq('owner_id', userId).order('name');
     if (ownedError) { console.error('getMyChurch (owned lookup):', ownedError); }
     if (owned && owned.length) {
       var activeChurchIdForOwned = getActiveChurchId();
@@ -8629,6 +8685,26 @@
       }
     }
 
+    // Multi-church OWNER (2+ owned churches): the dashboard gets an
+    // account-level Overview -- a grid of their churches -- as its
+    // landing view, with a two-state sidebar (Overview/Billing/Plans
+    // vs. the per-church operational nav). A single-church owner, and
+    // any staff member, are completely unaffected (the switcher above
+    // still covers staff-of-several).
+    window._dashMultiOwner = !!(myChurch.role === 'owner' && myChurch.ownedChurches && myChurch.ownedChurches.length > 1);
+    window._dashOwnedChurches = (myChurch.role === 'owner' && myChurch.ownedChurches) ? myChurch.ownedChurches : [];
+    var curDashKey = (typeof window.resolveRouteFromHash === 'function') ? window.resolveRouteFromHash(location.hash).key : null;
+    if (window._dashMultiOwner && !curDashKey) {
+      // Bare #dashboard -> land on the Overview grid rather than a
+      // single church's Events tab.
+      if (typeof window.goDash === 'function') window.goDash('churches', true);
+      curDashKey = 'churches';
+    }
+    window._dashCurKey = curDashKey || 'events';
+    if (window._dashMultiOwner && curDashKey === 'churches' && typeof window.loadDashboardChurchesPanel === 'function') {
+      window.loadDashboardChurchesPanel();
+    }
+
     // Editing the church profile — visible only to the owner or
     // staff specifically granted that permission, not staff broadly.
     if (sidebarEditLink) sidebarEditLink.style.display = myChurch.canEditProfile ? 'block' : 'none';
@@ -8660,6 +8736,11 @@
     // at the top tier) was replaced by a permanent "Plans" nav item
     // instead -- always visible, no plan-dependent logic needed here
     // anymore.
+
+    // Last -- after the per-church permission toggles above (which
+    // touch the church nav's Billing link), so the multi-owner
+    // two-state sidebar wins.
+    if (typeof window.updateDashSidebarMode === 'function') window.updateDashSidebarMode(window._dashCurKey || 'events');
   }
   loadDashboardHeader();
   window.loadDashboardHeader = loadDashboardHeader;
@@ -8670,6 +8751,128 @@
       window.setActiveChurchAndReload(this.value);
     });
   }
+
+  // ============================================================
+  // Multi-church owner: account-level Overview shell
+  // ============================================================
+  // Views that belong to the account-level Overview sidebar rather
+  // than a single selected church.
+  var DASH_OVERVIEW_VIEWS = { churches: 1, billing: 1, plans: 1 };
+
+  // Swap the sidebar between its two states for a multi-church owner:
+  //  - Overview state (view is churches/billing/plans): Overview / Billing / Plans
+  //  - Church state (any operational view): the per-church nav + "‹ All churches"
+  // A single-church owner (or any staff member) always gets the
+  // original single-state sidebar untouched.
+  function updateDashSidebarMode(view){
+    var multi = !!window._dashMultiOwner;
+    var navChurch = document.getElementById('dash-nav-church');
+    var navOverview = document.getElementById('dash-nav-overview');
+    var churchCtx = document.getElementById('dash-church-context');
+    var allLink = document.getElementById('dash-all-churches-link');
+    var ovHeader = document.getElementById('dash-overview-header');
+    var inOverview = multi && !!DASH_OVERVIEW_VIEWS[view];
+
+    if (navOverview) navOverview.style.display = inOverview ? 'block' : 'none';
+    if (navChurch) navChurch.style.display = inOverview ? 'none' : 'block';
+    if (churchCtx) churchCtx.style.display = inOverview ? 'none' : 'block';
+    if (ovHeader) ovHeader.style.display = inOverview ? 'block' : 'none';
+    if (allLink) allLink.style.display = (multi && !inOverview) ? 'block' : 'none';
+
+    // For a multi-church owner, Billing/Plans are account-level and
+    // live only in the Overview sidebar -- a CSS class hides the
+    // per-church nav's copies (see .dash-overview-owner), which keeps
+    // the per-church-permission toggle in loadDashboardHeader working
+    // unchanged for everyone else.
+    var dashSide = document.querySelector('.dash-side');
+    if (dashSide) dashSide.classList.toggle('dash-overview-owner', multi);
+
+    if (navOverview) {
+      var activeId = { churches: 'dash-ov-overview', billing: 'dash-ov-billing', plans: 'dash-ov-plans' }[view];
+      ['dash-ov-overview', 'dash-ov-billing', 'dash-ov-plans'].forEach(function(id){
+        var el = document.getElementById(id);
+        if (el) el.classList.toggle('active', id === activeId);
+      });
+    }
+  }
+  window.updateDashSidebarMode = updateDashSidebarMode;
+
+  // Renders the church card grid into the Overview panel from the list
+  // getMyChurch() already resolved (window._dashOwnedChurches).
+  function loadDashboardChurchesPanel(){
+    var host = document.getElementById('dash-churches-grid');
+    if (!host) return;
+    var list = window._dashOwnedChurches || [];
+    var activeId = window.getActiveChurchId && window.getActiveChurchId();
+    var tiles = list.map(function(c){
+      var logo = c.logo_url
+        ? '<img src="' + String(c.logo_url).replace(/"/g, '&quot;') + '" alt="" class="church-tile-logo">'
+        : '<div class="church-tile-logo church-tile-logo-empty"></div>';
+      var denom = c.denomination ? '<div class="church-tile-denom">' + c.denomination + '</div>' : '';
+      return '<button type="button" class="church-tile" data-enter-church-id="' + c.id + '"'
+        + (c.id === activeId ? ' style="border-color:var(--gold);"' : '') + '>'
+        + logo
+        + '<div class="church-tile-name">' + c.name + '</div>'
+        + denom
+        + '<div class="church-tile-manage">' + window.t('myChurches.manage') + ' →</div>'
+        + '</button>';
+    }).join('');
+    var addTile = '<a href="#register-church" data-route="register-church" data-add-church="true" class="church-tile church-tile-add">'
+      + '<div class="church-tile-plus">+</div>'
+      + '<div class="church-tile-name">' + window.t('profile.addChurch') + '</div>'
+      + '</a>';
+    host.innerHTML = tiles + addTile;
+  }
+  window.loadDashboardChurchesPanel = loadDashboardChurchesPanel;
+
+  // The one church that actually carries the platform subscription --
+  // churches 2..5 inherit plan_type at creation but have no
+  // subscription of their own. Billing/Plans in Overview mode always
+  // act on this one, so they don't change with navigation.
+  function pickBilledChurchId(){
+    var list = window._dashOwnedChurches || [];
+    var activeSub = { active: 1, trialing: 1, past_due: 1 };
+    var billed = list.filter(function(c){ return c.subscription_status && activeSub[c.subscription_status]; })[0]
+      || list.filter(function(c){ return c.plan_type && c.plan_type !== 'free'; })[0]
+      || list[0];
+    return billed && billed.id;
+  }
+
+  // Enter Billing/Plans for the billed church. Reloads only when the
+  // active church actually needs to change (those panels cache the
+  // church in closures, same reason setActiveChurchAndReload exists).
+  function enterBilledDashView(view){
+    var id = pickBilledChurchId();
+    if (id && id !== (window.getActiveChurchId && window.getActiveChurchId())) {
+      window.setActiveChurchId(id);
+      try { history.replaceState(null, '', '#dashboard/' + view); } catch (e) {}
+      location.reload();
+      return;
+    }
+    if (typeof window.goDash === 'function') window.goDash(view);
+  }
+
+  var dashOvOverview = document.getElementById('dash-ov-overview');
+  var dashOvBilling = document.getElementById('dash-ov-billing');
+  var dashOvPlans = document.getElementById('dash-ov-plans');
+  var dashAllChurchesLink = document.getElementById('dash-all-churches-link');
+  if (dashOvOverview) dashOvOverview.addEventListener('click', function(){ if (window.goDash) window.goDash('churches'); });
+  if (dashOvBilling) dashOvBilling.addEventListener('click', function(){ enterBilledDashView('billing'); });
+  if (dashOvPlans) dashOvPlans.addEventListener('click', function(){ enterBilledDashView('plans'); });
+  if (dashAllChurchesLink) dashAllChurchesLink.addEventListener('click', function(){ if (window.goDash) window.goDash('churches'); });
+
+  // Clicking a church tile selects it and drops into its dashboard.
+  // Full reload for the same closure-staleness reason the church
+  // switcher reloads.
+  document.addEventListener('click', function(ev){
+    var tile = ev.target.closest ? ev.target.closest('[data-enter-church-id]') : null;
+    if (!tile) return;
+    var id = tile.getAttribute('data-enter-church-id');
+    if (!id) return;
+    window.setActiveChurchId(id);
+    try { history.replaceState(null, '', '#dashboard/events'); } catch (e) {}
+    location.reload();
+  });
 
   // Dashboard Events table — real data for the signed-in owner's
   // church. Replaces the old fake rows entirely, since this is the
@@ -10555,6 +10758,10 @@
         }
 
         go('dashboard');
+        // Land in the just-created church's own view, not the
+        // multi-church Overview grid (which bare #dashboard now shows
+        // for an owner of 2+ churches) -- they just made this one.
+        if (typeof window.goDash === 'function') window.goDash('events', true);
         if (typeof window.loadDashboardHeader === 'function') window.loadDashboardHeader(userData.user.id);
         if (typeof window.loadDashboardEvents === 'function') window.loadDashboardEvents();
         return;
