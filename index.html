@@ -765,7 +765,7 @@
       'rte.bold': 'Bold', 'rte.italic': 'Italic', 'rte.numberedList': 'Numbered list', 'rte.bulletedList': 'Bulleted list', 'rte.addLink': 'Add link', 'rte.removeLink': 'Remove link',
       'rte.linkUrlPrompt': 'Link URL (include https://)', 'rte.linksMustStartWith': 'Links must start with https:// or mailto:',
       'audience.preschool': 'Preschool', 'audience.children': 'Children', 'audience.teens': 'Teens', 'audience.adults': 'Adults', 'audience.seniors': 'Seniors', 'audience.parents': 'Parents', 'audience.emptyNesters': 'Empty-nesters',
-      'ce.backToDashboard': '← Back to dashboard', 'ce.newEvent': 'New event', 'ce.createAnEvent': 'Create an event', 'ce.editEvent': 'Edit event', 'ce.postsUnderChurch': 'Posts under the church you registered while signed in.',
+      'ce.backToDashboard': '← Back to dashboard', 'ce.newEvent': 'New event', 'ce.createAnEvent': 'Create an event', 'ce.editEvent': 'Edit event', 'ce.postsUnderChurchName': 'Posts under {church}.',
       'ce.eventTitle': 'Event title', 'ce.eventTitlePlaceholder': 'Fall Community Picnic', 'ce.description': 'Description', 'ce.descriptionPlaceholder': "What's happening, who it's for",
       'ce.writingAssistant': 'Writing Assistant', 'ce.checkSpellingGrammar': 'Check Spelling and Grammar', 'ce.makeItFormal': 'Make it Formal', 'ce.makeItFriendly': 'Make it Friendly', 'ce.makeItInviting': 'Make it Inviting', 'ce.writeFromKeywords': 'Write from Keywords',
       'ce.rewritesReplaceHint': "Rewrites replace the current text — any bold, lists, or links in the draft won't carry through a rewrite.",
@@ -1456,7 +1456,7 @@
       'rte.bold': 'Negrita', 'rte.italic': 'Cursiva', 'rte.numberedList': 'Lista numerada', 'rte.bulletedList': 'Lista con viñetas', 'rte.addLink': 'Agregar enlace', 'rte.removeLink': 'Quitar enlace',
       'rte.linkUrlPrompt': 'URL del enlace (incluye https://)', 'rte.linksMustStartWith': 'Los enlaces deben comenzar con https:// o mailto:',
       'audience.preschool': 'Preescolar', 'audience.children': 'Niños', 'audience.teens': 'Adolescentes', 'audience.adults': 'Adultos', 'audience.seniors': 'Adultos mayores', 'audience.parents': 'Padres', 'audience.emptyNesters': 'Nido vacío',
-      'ce.backToDashboard': '← Volver al panel', 'ce.newEvent': 'Nuevo evento', 'ce.createAnEvent': 'Crear un evento', 'ce.editEvent': 'Editar evento', 'ce.postsUnderChurch': 'Se publica bajo la iglesia con la que te registraste mientras iniciaste sesión.',
+      'ce.backToDashboard': '← Volver al panel', 'ce.newEvent': 'Nuevo evento', 'ce.createAnEvent': 'Crear un evento', 'ce.editEvent': 'Editar evento', 'ce.postsUnderChurchName': 'Se publica bajo {church}.',
       'ce.eventTitle': 'Título del evento', 'ce.eventTitlePlaceholder': 'Picnic comunitario de otoño', 'ce.description': 'Descripción', 'ce.descriptionPlaceholder': 'Qué va a pasar, para quién es',
       'ce.writingAssistant': 'Asistente de escritura', 'ce.checkSpellingGrammar': 'Revisar ortografía y gramática', 'ce.makeItFormal': 'Hacerlo formal', 'ce.makeItFriendly': 'Hacerlo amigable', 'ce.makeItInviting': 'Hacerlo atractivo', 'ce.writeFromKeywords': 'Escribir a partir de palabras clave',
       'ce.rewritesReplaceHint': 'Las reescrituras reemplazan el texto actual — cualquier negrita, lista o enlace en el borrador no se conservará tras una reescritura.',
@@ -3868,7 +3868,7 @@
       <a href="#dashboard" data-route="dashboard" style="display:inline-block;font-size:12.5px;color:var(--ink-mute);border-bottom:1px solid var(--line);margin-bottom:14px;" data-i18n="ce.backToDashboard">← Back to dashboard</a>
       <div class="eyebrow" data-i18n="ce.newEvent">New event</div>
       <h2 style="font-family:'Fraunces';font-size:22px;margin-bottom:6px;" id="ce-heading" data-i18n="ce.createAnEvent">Create an event</h2>
-      <p style="font-size:13.5px;color:var(--ink-mute);margin-bottom:8px;" data-i18n="ce.postsUnderChurch">Posts under the church you registered while signed in.</p>
+      <p style="font-size:13.5px;color:var(--ink-mute);margin-bottom:8px;" id="ce-posts-under-church"></p>
 
       <label data-i18n="ce.eventTitle">Event title</label>
       <input class="field" type="text" id="ce-title" placeholder="Fall Community Picnic" data-i18n-placeholder="ce.eventTitlePlaceholder">
@@ -5049,7 +5049,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-09-v250 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock prototype — visual concept, not a live product</span> · build 2026-09-09-v251 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -6115,6 +6115,13 @@
     // "Loading..." even after a refresh).
     if(resolved.base === 'create-event' && !resolved.key && typeof window.loadEventRoomChecklist === 'function'){
       window.loadEventRoomChecklist([], null);
+    }
+    // Same class of gap as the room checklist above -- reaching plain
+    // #create-event directly never ran resetCreateEventForm() either,
+    // so "Posts under {church}" would stay blank instead of showing
+    // which church the event actually posts under.
+    if(resolved.base === 'create-event' && !resolved.key && typeof window.updateCePostsUnderChurchText === 'function'){
+      window.updateCePostsUnderChurchText();
     }
     // Lets an external link (an email, specifically) land directly on
     // the login tab rather than the default signup tab — the "already
@@ -7590,6 +7597,7 @@
         if (adminChurchToggleId) window.populateAdminChurchPage(adminChurchToggleId);
       }
       if (currentBase === 'create-event') {
+        if (typeof window.updateCePostsUnderChurchText === 'function') window.updateCePostsUnderChurchText();
         if (typeof window.renderCeContacts === 'function') window.renderCeContacts();
         if (typeof window.renderCeQuestions === 'function') window.renderCeQuestions();
         if (typeof window.loadChurchTagSuggestions === 'function') window.loadChurchTagSuggestions();
@@ -11055,10 +11063,27 @@
   wireQuestionsList('ce-questions-list', 'ce-add-question-btn', function(){ return ceQuestions; }, renderCeQuestions);
   wireQuestionsList('ce-volunteer-questions-list', 'ce-add-volunteer-question-btn', function(){ return ceVolunteerQuestions; }, renderCeVolunteerQuestions);
 
+  // Shows which church this event actually posts under -- most
+  // relevant for an owner who owns more than one church (already
+  // supported via the dashboard's own church switcher): re-fetches
+  // getMyChurch() rather than caching the name, so it can't ever go
+  // stale if the active church was switched elsewhere. A single-
+  // church account still sees this, just always naming the one
+  // church they have -- confirmed harmless, and cheaper than special-
+  // casing "don't show it" for that case.
+  async function updateCePostsUnderChurchText(){
+    var el = document.getElementById('ce-posts-under-church');
+    if (!el) return;
+    var myChurch = await getMyChurch();
+    el.textContent = myChurch ? window.t('ce.postsUnderChurchName').replace('{church}', myChurch.name) : '';
+  }
+  window.updateCePostsUnderChurchText = updateCePostsUnderChurchText;
+
   function resetCreateEventForm(){
     ceEditingEventId = null;
     ceOriginalPriceCents = null;
     window.ceIsEditing = false;
+    updateCePostsUnderChurchText();
     document.getElementById('ce-heading').textContent = window.t('ce.createAnEvent');
     document.getElementById('ce-repeats-section').style.display = 'block';
     document.getElementById('ce-title').value = '';
@@ -11119,6 +11144,7 @@
     ceEditingEventId = eventId;
     ceOriginalPriceCents = ev.price_cents || null;
     window.ceIsEditing = true;
+    updateCePostsUnderChurchText();
     document.getElementById('ce-heading').textContent = window.t('ce.editEvent');
     document.getElementById('ce-repeats-section').style.display = 'none';
     updateWritingAssistantAccess();
