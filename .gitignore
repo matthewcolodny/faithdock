@@ -2,3 +2,7 @@
 Thumbs.db
 *.log
 node_modules/
+
+# church data / enrichment CSVs live in the repo root while working;
+# they are not part of the site
+/*.csv
