@@ -132,7 +132,7 @@
   var translations = {
     en: {
       'nav.churches': 'Churches', 'nav.events': 'Events', 'nav.pricing': 'Pricing',
-      'nav.conference': 'Conference', 'nav.dashboard': 'Church dashboard',
+      'nav.dashboard': 'Church dashboard',
       'nav.profile': 'Account profile', 'nav.myChurches': 'My Churches', 'nav.myEvents': 'My Events', 'nav.myGroups': 'My Groups',
       'nav.settings': 'Settings', 'nav.help': 'Help', 'nav.logout': 'Log out', 'nav.login': 'Log in', 'nav.signup': 'Sign up',
       'nav.searchPlaceholder': 'Search churches...',
@@ -832,7 +832,7 @@
     },
     es: {
       'nav.churches': 'Iglesias', 'nav.events': 'Eventos', 'nav.pricing': 'Precios',
-      'nav.conference': 'Conferencia', 'nav.dashboard': 'Panel de la iglesia',
+      'nav.dashboard': 'Panel de la iglesia',
       'nav.profile': 'Perfil de la cuenta', 'nav.myChurches': 'Mis iglesias', 'nav.myEvents': 'Mis eventos', 'nav.myGroups': 'Mis grupos',
       'nav.settings': 'Configuración', 'nav.help': 'Ayuda', 'nav.logout': 'Cerrar sesión', 'nav.login': 'Iniciar sesión', 'nav.signup': 'Registrarse',
       'nav.searchPlaceholder': 'Buscar iglesias...',
@@ -3341,8 +3341,10 @@
     <p style="color:var(--ink-mute);margin-top:8px;max-width:520px;" data-i18n="pricing.subtitle">Free to be listed. Upgrade for tools that help you grow and stay connected with your congregation.</p>
     <!-- "See how FaithDock compares to Breeze & Planning Center" link removed
          from this page per request -- kept as a possible future addition.
-         The #compare page itself (and pricing.compareLink) is untouched and
-         still reachable directly at #compare; only this entry point is gone. -->
+         The #compare page HTML and the pricing.compareLink dict key are
+         still here but #compare is no longer in validRoutes, so the URL
+         resolves to #home. Re-add 'compare' to validRoutes to bring it
+         back. -->
 
     <div class="pricing-grid">
       <div class="price-card">
@@ -5143,7 +5145,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-10-v261 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-10-v262 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -7692,14 +7694,17 @@
     });
   }
 
-  // 'app' and 'give' removed: #page-app is a marketing page for a
-  // mobile app that doesn't exist ("Download on the App Store"), and
-  // #page-give is a dead standalone donation page (the real giving
-  // flow is a tab on the church page). Both were reachable only by
-  // typing the URL and both show unlabeled sample "Grace Fellowship
-  // Church" content -- now they resolve to #home. 'conference' and
-  // 'compare' left as-is (separate work).
-  var validRoutes = ['home','directory','events','church','event','group','my-groups','my-events','my-churches','profile','pricing','compare','conference','signup','reset-password','register-church','create-event','dashboard','admin','admin-church','help','privacy','terms','ada','waitlist'];
+  // 'app', 'give', 'conference' and 'compare' are deliberately NOT in
+  // this list. Their nav links were already gone, but their #page-*
+  // sections + route entries were still here, so typing the URL
+  // (faithdock.com/#app etc.) still rendered old pages -- a mobile-app
+  // "Download on the App Store" page for an app that doesn't exist, a
+  // dead standalone donation page, a conference page, a competitor
+  // comparison -- several of them full of unlabeled sample "Grace
+  // Fellowship Church" content. Off this list, any of those URLs
+  // resolves to #home via the fallback below. The dead #page-* HTML is
+  // left in place (unreachable, harmless).
+  var validRoutes = ['home','directory','events','church','event','group','my-groups','my-events','my-churches','profile','pricing','signup','reset-password','register-church','create-event','dashboard','admin','admin-church','help','privacy','terms','ada','waitlist'];
   showRouteFromHash(true);
   applyTranslations(savedLang);
 
