@@ -1052,3 +1052,15 @@ if(route.split('/')[0] === 'register-church' && !window.isSignedIn && typeof win
 ```
 
 `!window.isSignedIn` (not `=== false`) so an unresolved auth state is treated as signed-out; a real church owner editing their profile is `isSignedIn === true` and unaffected, and any tester who entered the code on this browser has `fdInviteUnlocked()` true (and couldn't be signed in here otherwise, since `#signup`/login is gated the same way). The pre-existing `checkExistingChurch` `routeKey === 'new'` gate and the `data-add-church` click gate are left in place as redundant coverage. Build stamp `2026-09-10-v271`.
+
+---
+
+## "Christian / General" denomination — translation + first-class filter
+
+11 of the ~19 live directory churches carry the exact denomination string `Christian / General` (from the metro import). Two gaps:
+
+1. **Not translated.** `translateDenomination()` ([index.html](index.html)) only maps a fixed `denomI18nKeyMap`; an unmapped value falls through raw, so ES cards showed `Christian / General` instead of `Cristiana / General`. Fix: added `'Christian / General': 'denom.christianGeneral'` to the map + `denom.christianGeneral` to both dicts (`'Christian / General'` EN, `'Cristiana / General'` ES). This alone fixes the directory cards, church-profile eyebrow, and profile details tag, since all three already route through `translateDenomination()`.
+
+2. **Not filterable.** The denomination filter is a **static** set of 9 checkboxes (`rebuildDenomFilterChecklist()` only updates the dropdown's count label, it does NOT rebuild the list). `Christian / General` churches were reachable only via the **"Other"** checkbox, which the filter logic treats as a wildcard — checked ⇒ `p_denominations = null` (no narrowing). So unchecking "Other" and picking any specific denomination dropped all 11 with no way to isolate them. Fix: added a `value="Christian / General"` checkbox to **both** the directory filter (`.denom-filter`) and the Events filter (`.events-denom-filter`), a `<select>` option to the register-church form, `'Christian / General'` to the `knownDenoms` array in `checkExistingChurch` (so editing such a church selects the option instead of falling to "Other" + free-text), and to the `coreDenomsAll` / `coreDenomsForEvents` arrays used by the dropdown's own denom-search box. `search_churches`'s `p_denominations` and the Events page's `.in('denomination', …)` both match exact strings, so `['Christian / General']` filters correctly with no backend change.
+
+**Still a known quirk (unchanged):** "Other" remains a wildcard ("show everything"), not a true residual bucket ("denominations not in this list"), and the 6 churches with a NULL denomination are still displayed as "Non-denominational" by `mapSearchRow` (`row.denomination || 'Non-denominational'`). Both left as-is. Build stamp `2026-09-10-v272`.

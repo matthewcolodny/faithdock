@@ -195,7 +195,7 @@
       'filters.noneSelected': 'None selected', 'filters.allSelected': 'All selected', 'filters.nSelected': 'selected',
       'denom.baptist': 'Baptist', 'denom.catholic': 'Catholic', 'denom.episcopal': 'Episcopal', 'denom.lutheran': 'Lutheran',
       'denom.methodist': 'Methodist', 'denom.nonDenominational': 'Non-denominational', 'denom.pentecostal': 'Pentecostal',
-      'denom.presbyterian': 'Presbyterian', 'denom.other': 'Other',
+      'denom.presbyterian': 'Presbyterian', 'denom.christianGeneral': 'Christian / General', 'denom.other': 'Other',
       'filters.oneChurchFound': 'church found', 'filters.manyChurchesFound': 'churches found',
       'filters.noChurchesMatch': 'No churches match these filters. Try widening your search.',
       'rc.churchName': 'Church name', 'rc.denomination': 'Denomination', 'rc.selectOne': 'Select one', 'rc.other': 'Other',
@@ -909,7 +909,7 @@
       'filters.noneSelected': 'Ninguna seleccionada', 'filters.allSelected': 'Todas seleccionadas', 'filters.nSelected': 'seleccionadas',
       'denom.baptist': 'Bautista', 'denom.catholic': 'Católica', 'denom.episcopal': 'Episcopal', 'denom.lutheran': 'Luterana',
       'denom.methodist': 'Metodista', 'denom.nonDenominational': 'No denominacional', 'denom.pentecostal': 'Pentecostal',
-      'denom.presbyterian': 'Presbiteriana', 'denom.other': 'Otra',
+      'denom.presbyterian': 'Presbiteriana', 'denom.christianGeneral': 'Cristiana / General', 'denom.other': 'Otra',
       'filters.oneChurchFound': 'iglesia encontrada', 'filters.manyChurchesFound': 'iglesias encontradas',
       'filters.noChurchesMatch': 'Ninguna iglesia coincide con estos filtros. Intenta ampliar tu búsqueda.',
       'rc.churchName': 'Nombre de la iglesia', 'rc.denomination': 'Denominación', 'rc.selectOne': 'Selecciona una', 'rc.other': 'Otra',
@@ -2687,6 +2687,7 @@
               <label class="filter-check"><input type="checkbox" class="denom-filter" value="Non-denominational" checked> <span data-i18n="denom.nonDenominational">Non-denominational</span></label>
               <label class="filter-check"><input type="checkbox" class="denom-filter" value="Pentecostal" checked> <span data-i18n="denom.pentecostal">Pentecostal</span></label>
               <label class="filter-check"><input type="checkbox" class="denom-filter" value="Presbyterian" checked> <span data-i18n="denom.presbyterian">Presbyterian</span></label>
+              <label class="filter-check"><input type="checkbox" class="denom-filter" value="Christian / General" checked> <span data-i18n="denom.christianGeneral">Christian / General</span></label>
               <label class="filter-check"><input type="checkbox" class="denom-filter" value="Other" checked id="denom-other-checkbox"> <span data-i18n="denom.other">Other</span></label>
             </div>
           </div>
@@ -2823,6 +2824,7 @@
               <label class="filter-check"><input type="checkbox" class="events-denom-filter" value="Non-denominational" checked> <span data-i18n="denom.nonDenominational">Non-denominational</span></label>
               <label class="filter-check"><input type="checkbox" class="events-denom-filter" value="Pentecostal" checked> <span data-i18n="denom.pentecostal">Pentecostal</span></label>
               <label class="filter-check"><input type="checkbox" class="events-denom-filter" value="Presbyterian" checked> <span data-i18n="denom.presbyterian">Presbyterian</span></label>
+              <label class="filter-check"><input type="checkbox" class="events-denom-filter" value="Christian / General" checked> <span data-i18n="denom.christianGeneral">Christian / General</span></label>
               <label class="filter-check"><input type="checkbox" class="events-denom-filter" value="Other" checked id="events-denom-other-checkbox"> <span data-i18n="denom.other">Other</span></label>
             </div>
           </div>
@@ -3972,6 +3974,7 @@
         <option value="Presbyterian" data-i18n="denom.presbyterian">Presbyterian</option>
         <option value="Catholic" data-i18n="denom.catholic">Catholic</option>
         <option value="Methodist" data-i18n="denom.methodist">Methodist</option>
+        <option value="Christian / General" data-i18n="denom.christianGeneral">Christian / General</option>
         <option value="Other" data-i18n="rc.other">Other</option>
       </select>
       <input class="field" type="text" id="rc-denomination-other" placeholder="Enter your denomination" style="display:none;margin-top:8px;" data-i18n-placeholder="rc.enterDenomination">
@@ -5271,7 +5274,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-10-v271 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-10-v272 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -5923,7 +5926,7 @@
   var denomI18nKeyMap = {
     'Baptist': 'denom.baptist', 'Catholic': 'denom.catholic', 'Episcopal': 'denom.episcopal', 'Lutheran': 'denom.lutheran',
     'Methodist': 'denom.methodist', 'Non-denominational': 'denom.nonDenominational', 'Pentecostal': 'denom.pentecostal',
-    'Presbyterian': 'denom.presbyterian', 'Other': 'denom.other'
+    'Presbyterian': 'denom.presbyterian', 'Christian / General': 'denom.christianGeneral', 'Other': 'denom.other'
   };
   function translateDenomination(tag){
     return denomI18nKeyMap[tag] ? window.t(denomI18nKeyMap[tag]) : tag;
@@ -7131,7 +7134,7 @@
     // denomination param simple (an exact-match list).
     var denominations = null;
     if (f.denomSearch) {
-      var coreDenomsAll = ['Baptist','Catholic','Episcopal','Lutheran','Methodist','Non-denominational','Pentecostal','Presbyterian'];
+      var coreDenomsAll = ['Baptist','Catholic','Episcopal','Lutheran','Methodist','Non-denominational','Pentecostal','Presbyterian','Christian / General'];
       denominations = coreDenomsAll.filter(function(d){ return d.toLowerCase().indexOf(f.denomSearch.toLowerCase()) !== -1; });
     } else if (f.checkedDenoms.indexOf('Other') !== -1) {
       denominations = null; // "Other" selected alongside/without specific ones — no denomination narrowing, rely on core-list membership being handled by not filtering
@@ -7723,7 +7726,7 @@
     var eventsDenomSearch = eventsDenomSearchInput ? eventsDenomSearchInput.value.trim() : '';
     var eventsDenomFilterList = null;
     if (eventsDenomSearch) {
-      var coreDenomsForEvents = ['Baptist','Catholic','Episcopal','Lutheran','Methodist','Non-denominational','Pentecostal','Presbyterian'];
+      var coreDenomsForEvents = ['Baptist','Catholic','Episcopal','Lutheran','Methodist','Non-denominational','Pentecostal','Presbyterian','Christian / General'];
       eventsDenomFilterList = coreDenomsForEvents.filter(function(d){ return d.toLowerCase().indexOf(eventsDenomSearch.toLowerCase()) !== -1; });
     } else if (eventsCheckedDenoms.indexOf('Other') !== -1) {
       eventsDenomFilterList = null; // same simplification as the Directory filter — "Other" selected means no narrowing, rather than trying to express "not in the core list"
@@ -8956,7 +8959,7 @@
     document.getElementById('rc-name').value = church.name || '';
     document.getElementById('rc-address').value = church.address || '';
     document.getElementById('rc-description').value = church.description || '';
-    var knownDenoms = ['Non-denominational','Baptist','Episcopal','Lutheran','Pentecostal','Presbyterian','Catholic','Methodist'];
+    var knownDenoms = ['Non-denominational','Baptist','Episcopal','Lutheran','Pentecostal','Presbyterian','Catholic','Methodist','Christian / General'];
     var denomSelect = document.getElementById('rc-denomination');
     var denomOther = document.getElementById('rc-denomination-other');
     if (church.denomination && knownDenoms.indexOf(church.denomination) === -1) {
