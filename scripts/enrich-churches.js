@@ -23,7 +23,9 @@
  * `matched` column values:
  *   yes      confident match, place is operational
  *   closed   confident match, but Places says CLOSED_PERMANENTLY
- *            (phone/website still filled from the listing; review these)
+ *            (phone/website still filled from the listing; review these).
+ *            With --drop-closed these rows go to <output>.closed.csv
+ *            instead of the main output.
  *   no       no confident match  ->  phone/website blank; see match_detail
  *   skipped  row already had phone + website (run with --force to redo)
  *
@@ -41,9 +43,11 @@
  *   DELAY_MS               (optional) pause between rows, default 200
  *
  * Flags:
- *   --limit=N     only process the first N data rows (for a test run)
- *   --force       re-query rows that already have both phone and website
- *   --selftest    run offline sanity checks on the parsing logic and exit
+ *   --limit=N       only process the first N data rows (for a test run)
+ *   --force         re-query rows that already have both phone and website
+ *   --drop-closed   keep permanently-closed matches OUT of the main output;
+ *                   they're written to <output>.closed.csv for review
+ *   --selftest      run offline sanity checks on the parsing logic and exit
  *
  * Requires Node 18+ (uses the global fetch). Needs the *legacy* "Places API"
  * enabled in the Google Cloud console (not "Places API (New)") and billing
@@ -274,16 +278,20 @@ function clampNum(v, dflt, lo, hi) {
   if (!isFinite(n)) return dflt;
   return Math.min(hi, Math.max(lo, n));
 }
-function defaultOutPath(p) {
-  if (!p) return 'enriched.csv';
+function defaultSuffixPath(p, suffix) {
+  if (!p) return suffix + '.csv';
   const ext = path.extname(p);
-  return ext ? p.slice(0, -ext.length) + '.enriched' + ext : p + '.enriched.csv';
+  return ext ? p.slice(0, -ext.length) + '.' + suffix + ext : p + '.' + suffix + '.csv';
+}
+function defaultOutPath(p) {
+  return p ? defaultSuffixPath(p, 'enriched') : 'enriched.csv';
 }
 function printUsage() {
   process.stderr.write(
     'Usage:\n  GOOGLE_PLACES_API_KEY=xxx node scripts/enrich-churches.js input.csv [output.csv]\n\n' +
     'Input CSV needs at least "name" and "address" columns. Output adds\n' +
-    'phone, website, matched, match_detail. Flags: --limit=N, --force, --selftest.\n'
+    'phone, website, matched, match_detail.\n' +
+    'Flags: --limit=N, --force, --drop-closed, --selftest.\n'
   );
 }
 function die(msg) {
@@ -319,7 +327,16 @@ async function run(inPath, outPath, opts) {
   const out = fs.createWriteStream(outPath, { encoding: 'utf8' });
   out.write(csvRow(outHeaders));
 
-  const stats = { matched: 0, closed: 0, phone: 0, website: 0, noState: 0, noResult: 0, lowConf: 0, skipped: 0 };
+  // With --drop-closed, permanently-closed matches go to a sidecar file
+  // (never silently discarded) instead of the main output. Opened lazily.
+  const closedPath = defaultSuffixPath(outPath, 'closed');
+  let closedOut = null;
+  const openClosedOut = () => {
+    if (!closedOut) { closedOut = fs.createWriteStream(closedPath, { encoding: 'utf8' }); closedOut.write(csvRow(outHeaders)); }
+    return closedOut;
+  };
+
+  const stats = { matched: 0, closed: 0, dropped: 0, phone: 0, website: 0, noState: 0, noResult: 0, lowConf: 0, skipped: 0 };
 
   for (let i = 0; i < total; i++) {
     const src = rows[i];
@@ -389,11 +406,14 @@ async function run(inPath, outPath, opts) {
     setCell(row, websiteIdx, website);
     setCell(row, matchedIdx, matched);
     setCell(row, detailIdx, detail);
-    out.write(csvRow(row));
+
+    const divert = opts.dropClosed && matched === 'closed';
+    (divert ? openClosedOut() : out).write(csvRow(row));
+    if (divert) stats.dropped++;
 
     process.stderr.write(
       '[' + (i + 1) + '/' + total + '] ' + (name || '(no name)') +
-      '  ->  ' + matched +
+      '  ->  ' + matched + (divert ? ' (dropped)' : '') +
       ((matched === 'yes' || matched === 'closed') ? ' (' + (phone ? '+phone' : 'no phone') + ', ' + (website ? '+website' : 'no website') + ')' : '') +
       '\n'
     );
@@ -402,18 +422,23 @@ async function run(inPath, outPath, opts) {
   }
 
   await new Promise((res) => out.end(res));
+  if (closedOut) await new Promise((res) => closedOut.end(res));
 
   const followUp = stats.noState + stats.noResult + stats.lowConf;
+  const closedInMain = stats.closed - stats.dropped;
   process.stderr.write(
     '\nDone. ' + total + ' rows: ' + stats.matched + ' matched ' +
     '(phone: ' + stats.phone + ', website: ' + stats.website + '), ' +
-    stats.closed + ' matched but permanently closed, ' +
+    stats.closed + ' matched but permanently closed' +
+    (stats.dropped ? ' (' + stats.dropped + ' dropped from main output)' : '') + ', ' +
     followUp + ' need follow-up' +
     (stats.skipped ? ', ' + stats.skipped + ' skipped (already filled)' : '') + '.\n' +
     '  no state parsed from address : ' + stats.noState + '\n' +
     '  no Places result             : ' + stats.noResult + '\n' +
     '  result rejected (low conf)   : ' + stats.lowConf + '\n' +
-    'Wrote: ' + outPath + '\n'
+    (stats.dropped ? '  permanently closed (dropped)  : ' + stats.dropped + '\n' : '') +
+    'Wrote: ' + outPath + (closedInMain ? '  (' + closedInMain + ' closed rows kept in it)' : '') + '\n' +
+    (stats.dropped ? 'Wrote: ' + closedPath + '  (' + stats.dropped + ' permanently-closed rows, for review)\n' : '')
   );
 }
 
@@ -474,9 +499,10 @@ function selftest() {
 
 (function main() {
   const positional = [];
-  const opts = { limit: Infinity, force: false };
+  const opts = { limit: Infinity, force: false, dropClosed: false };
   for (const a of process.argv.slice(2)) {
     if (a === '--force') opts.force = true;
+    else if (a === '--drop-closed') opts.dropClosed = true;
     else if (a.startsWith('--limit=')) opts.limit = Math.max(0, parseInt(a.slice(8), 10) || 0);
     else if (a === '--selftest') return selftest();
     else if (a === '--help' || a === '-h') { printUsage(); process.exit(0); }

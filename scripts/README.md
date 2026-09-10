@@ -26,7 +26,8 @@ GOOGLE_PLACES_API_KEY=xxxxx  node scripts/enrich-churches.js input.csv [output.c
   - `closed` — confident match, but Places reports it `CLOSED_PERMANENTLY`.
     `phone`/`website` are still filled from the listing; review these
     before importing. (A *temporary* closure stays `yes`, noted in
-    `match_detail`.)
+    `match_detail`.) With `--drop-closed`, these rows are kept OUT of the
+    main output and written to `<output>.closed.csv` for review instead.
   - `no` — no confident match; `phone`/`website` blank; `match_detail`
     says why (no state parsed / no results / low confidence + the
     rejected top result)
@@ -36,5 +37,7 @@ GOOGLE_PLACES_API_KEY=xxxxx  node scripts/enrich-churches.js input.csv [output.c
   "Places API (New)") + billing on. `REQUEST_DENIED` means one of those.
 - Node 18+ (uses global `fetch`).
 - Flags: `--limit=N` (test on the first N rows), `--force` (re-query
-  rows that already have phone + website), `--selftest` (offline checks).
+  rows that already have phone + website), `--drop-closed` (divert
+  permanently-closed matches to `<output>.closed.csv` so the main
+  output is import-ready), `--selftest` (offline checks).
 - Env: `NAME_SIM_THRESHOLD` (0–1, default 0.5), `DELAY_MS` (default 200).
