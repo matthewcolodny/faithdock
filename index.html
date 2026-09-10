@@ -132,7 +132,7 @@
   var translations = {
     en: {
       'nav.churches': 'Churches', 'nav.events': 'Events', 'nav.pricing': 'Pricing',
-      'nav.conference': 'Conference', 'nav.app': 'App', 'nav.dashboard': 'Church dashboard',
+      'nav.conference': 'Conference', 'nav.dashboard': 'Church dashboard',
       'nav.profile': 'Account profile', 'nav.myChurches': 'My Churches', 'nav.myEvents': 'My Events', 'nav.myGroups': 'My Groups',
       'nav.settings': 'Settings', 'nav.help': 'Help', 'nav.logout': 'Log out', 'nav.login': 'Log in', 'nav.signup': 'Sign up',
       'nav.searchPlaceholder': 'Search churches...',
@@ -832,7 +832,7 @@
     },
     es: {
       'nav.churches': 'Iglesias', 'nav.events': 'Eventos', 'nav.pricing': 'Precios',
-      'nav.conference': 'Conferencia', 'nav.app': 'App', 'nav.dashboard': 'Panel de la iglesia',
+      'nav.conference': 'Conferencia', 'nav.dashboard': 'Panel de la iglesia',
       'nav.profile': 'Perfil de la cuenta', 'nav.myChurches': 'Mis iglesias', 'nav.myEvents': 'Mis eventos', 'nav.myGroups': 'Mis grupos',
       'nav.settings': 'Configuración', 'nav.help': 'Ayuda', 'nav.logout': 'Cerrar sesión', 'nav.login': 'Iniciar sesión', 'nav.signup': 'Registrarse',
       'nav.searchPlaceholder': 'Buscar iglesias...',
@@ -5143,7 +5143,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-10-v260 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-10-v261 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -6026,7 +6026,11 @@
     return out.join('');
   }
 
-  document.getElementById('church-event-grid').innerHTML = mapJoin(events.filter(function(e){ return e.church==="Grace Fellowship Church"; }), eventCard);
+  // The church detail page's event grid starts empty -- populateChurchPage()
+  // fills it with that church's real events. It used to be pre-seeded
+  // at load with sample "Grace Fellowship Church" events, which could
+  // flash on screen before a real church's data replaced them.
+  document.getElementById('church-event-grid').innerHTML = '';
 
   // Eyeball toggle on every password field — shows the typed
   // password in plain text while held/clicked, same pattern as most
@@ -6262,6 +6266,12 @@
       return;
     }
     var resolved = resolveRouteFromHash(location.hash);
+    // A bare #church / #event (no id) -- or a stale/bad id that matches
+    // nothing -- would otherwise fall through to the static page
+    // template, which is pre-filled with sample "Grace Fellowship
+    // Church" content. Send those to the relevant listing instead.
+    if(resolved.base === 'church' && !resolved.key){ go('directory', skipPush); return; }
+    if(resolved.base === 'event' && !resolved.key){ go('events', skipPush); return; }
     if(resolved.base === 'event' && resolved.key){
       var matchedEvent = events.filter(function(x){ return String(x.real ? x.id : x.title) === resolved.key; })[0];
       if (!matchedEvent) { matchedEvent = await findOrFetchEventById(resolved.key); }
@@ -6269,11 +6279,14 @@
         populateEventPage(matchedEvent);
         if(matchedEvent.real && typeof window.checkEventRegistrationStatus === 'function'){ window.checkEventRegistrationStatus(matchedEvent.id); }
         if(matchedEvent.real && matchedEvent.allowVolunteers && typeof window.checkEventCapacity === 'function'){ window.checkEventCapacity(matchedEvent.id, matchedEvent.maxParticipants, matchedEvent.maxVolunteers); }
+      } else {
+        go('events', skipPush); return;
       }
     }
     if(resolved.base === 'church' && resolved.key){
       var matchedChurch = await findOrFetchChurchByName(resolved.key);
       if(matchedChurch) populateChurchPage(matchedChurch);
+      else { go('directory', skipPush); return; }
     }
     if(resolved.base === 'group' && resolved.key && typeof window.populateGroupPage === 'function'){
       window.populateGroupPage(resolved.key);
@@ -7679,7 +7692,14 @@
     });
   }
 
-  var validRoutes = ['home','directory','events','church','event','group','my-groups','my-events','my-churches','profile','pricing','compare','conference','app','give','signup','reset-password','register-church','create-event','dashboard','admin','admin-church','help','privacy','terms','ada','waitlist'];
+  // 'app' and 'give' removed: #page-app is a marketing page for a
+  // mobile app that doesn't exist ("Download on the App Store"), and
+  // #page-give is a dead standalone donation page (the real giving
+  // flow is a tab on the church page). Both were reachable only by
+  // typing the URL and both show unlabeled sample "Grace Fellowship
+  // Church" content -- now they resolve to #home. 'conference' and
+  // 'compare' left as-is (separate work).
+  var validRoutes = ['home','directory','events','church','event','group','my-groups','my-events','my-churches','profile','pricing','compare','conference','signup','reset-password','register-church','create-event','dashboard','admin','admin-church','help','privacy','terms','ada','waitlist'];
   showRouteFromHash(true);
   applyTranslations(savedLang);
 
