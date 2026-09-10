@@ -2376,8 +2376,10 @@
   .share-qr-img{width:100%;aspect-ratio:1;border-radius:10px;border:1px solid var(--line);background:#fff;display:block;}
   .share-link-row{display:flex;gap:8px;}
   .share-link-row input{font-size:12px;flex:1;}
-  .registrant-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid var(--line);}
+  .registrant-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line);}
   .registrant-row:first-child{border-top:none;}
+  .registrant-actions{display:flex;gap:8px;flex-shrink:0;align-items:center;}
+  .registrant-action-spacer{display:inline-block;width:70px;}
   .registrant-name{font-size:13.5px;font-weight:500;color:var(--ink);}
   .registrant-date{font-size:11.5px;color:var(--ink-mute);font-family:'IBM Plex Mono';}
   .group-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin-bottom:14px;}
@@ -5154,7 +5156,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-10-v266 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-10-v267 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -17599,14 +17601,24 @@
       var unclaimedTag = !c.owner_id ? ' · <span style="color:var(--clay);font-weight:600;">' + window.t('admin.unclaimed') + '</span>' : '';
       var isHidden = !!hiddenById[c.id];
       var hiddenTag = isHidden ? ' · <span style="color:var(--ink-mute);font-weight:600;">' + window.t('admin.hiddenTag') + '</span>' : '';
-      return '<div class="registrant-row"' + (isHidden ? ' style="opacity:0.6;"' : '') + '><div>'
+      // Actions in a fixed-order right-anchored group so Hide/Show
+      // sits in the same spot on every row regardless of which other
+      // buttons a given church shows. Delete keeps the far-right slot
+      // (a same-width spacer holds it when a church is claimed);
+      // Un-verify only appears for the rare verified church.
+      var actions = '<div class="registrant-actions">'
+        + '<button class="export-btn" data-toggle-hidden-church-id="' + c.id + '" data-toggle-hidden-to="' + (isHidden ? 'false' : 'true') + '" style="padding:6px 14px;min-width:74px;justify-content:center;">' + window.t(isHidden ? 'admin.show' : 'admin.hide') + '</button>'
+        + (st === 'verified' ? '<button class="export-btn" data-unverify-church-id="' + c.id + '" style="padding:6px 14px;">' + window.t('admin.unverify') + '</button>' : '')
+        + (!c.owner_id
+            ? '<button class="export-btn" data-delete-unclaimed-church-id="' + c.id + '" data-delete-unclaimed-church-name="' + c.name.replace(/"/g, '&quot;') + '" style="padding:6px 14px;color:var(--clay);">' + window.t('admin.delete') + '</button>'
+            : '<span class="registrant-action-spacer" aria-hidden="true"></span>')
+        + '</div>';
+      return '<div class="registrant-row"' + (isHidden ? ' style="opacity:0.6;"' : '') + '><div style="min-width:0;">'
         + '<div class="registrant-name"><a href="#admin-church/' + c.id + '" data-route="admin-church" data-admin-church-id="' + c.id + '" style="color:inherit;border-bottom:1px solid var(--line);">' + c.name + '</a></div>'
         + '<div class="registrant-date">' + (c.denomination || '—') + ' · <span style="color:' + statusColor + ';font-weight:600;">' + statusLabel + '</span>' + unclaimedTag + hiddenTag + '</div>'
         + (c.address ? '<div class="registrant-date" style="font-size:11.5px;">' + c.address + '</div>' : '')
         + '</div>'
-        + '<button class="export-btn" data-toggle-hidden-church-id="' + c.id + '" data-toggle-hidden-to="' + (isHidden ? 'false' : 'true') + '" style="padding:6px 14px;">' + window.t(isHidden ? 'admin.show' : 'admin.hide') + '</button>'
-        + (st === 'verified' ? '<button class="export-btn" data-unverify-church-id="' + c.id + '" style="padding:6px 14px;">' + window.t('admin.unverify') + '</button>' : '')
-        + (!c.owner_id ? '<button class="export-btn" data-delete-unclaimed-church-id="' + c.id + '" data-delete-unclaimed-church-name="' + c.name.replace(/"/g, '&quot;') + '" style="padding:6px 14px;color:var(--clay);">' + window.t('admin.delete') + '</button>' : '')
+        + actions
         + '</div>';
     }).join('');
 
