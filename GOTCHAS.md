@@ -1029,3 +1029,26 @@ The directory has a **Cards / List** segmented toggle in `.dir-results-head` (ne
 - **`paintDirectoryGrid()`** is the single place the grid is filled from `window.directoryLastRenderedRows`, in whichever view is active — it sets `#directory-grid`'s `className` (`grid` vs `church-list`) and inline `display` (`grid` vs `flex`), then `mapJoin`s the rows through `churchCard` or `churchRow`. Called by: `renderDirectory` (fresh page), `refreshDirectoryCardsText` (language switch), and the toggle handler. **Switching view does no network call and doesn't touch pagination** — it just repaints the cached rows.
 - The toggle handler (`[data-dir-view]` click, near the pager handler) writes the pref, calls `syncDirViewButtons()` (`.is-active` + `aria-pressed`), and repaints. `syncDirViewButtons()` also runs once at load so a returning list-view visitor sees the right button lit before the first render.
 - New i18n: `directory.viewCards` / `directory.viewList` / `directory.viewToggleLabel` (EN + ES). The homepage "Churches near you" strip is cards-only — untouched. Build stamp `2026-09-10-v270`.
+
+---
+
+## Homepage: dual-audience "For churches" section + register-church gate
+
+The homepage was 100% churchgoer-facing — hero + "Churches near you" + "Upcoming events", nothing addressed to a church admin deciding whether to sign up. The only owner-path signpost was the Pricing nav item → a page titled "Become a Partner Church".
+
+**What was added ([index.html](index.html), build v271):**
+
+- **Hero secondary link** (`.hero-for-churches`, right under `.search-bar`): "Are you a church? **List your church — free**" → `#register-church` with `data-add-church="true"` (so it flows through the same invite-gate + plan-check click handler as every other "Add a church" link).
+- **`.for-churches` band** — full-width tinted (`var(--paper)`) section after the events grid, still inside `#page-home` but outside `.wrap` so it spans edge to edge. Eyebrow / heading / lead / 3 points / CTA / private-testing note. All `data-i18n`; the 3 points use a `<strong data-i18n>` + `<span data-i18n>` pair per point (two separate keys, since `applyLang` sets `textContent`). Keys: `home.forChurchesQ/Link`, `home.fc.eyebrow/heading/lead/count/p1t/p1b/p2t/p2b/p3t/p3b/cta/note` (EN + ES).
+- **Live church count** — `home.fc.count` (`'{n} churches listed and growing'`) shown in `#home-fc-count` inside the band. **Off by default:** `var FD_SHOW_CHURCH_COUNT = false` (module scope, near `FD_INVITE_CODES`), plus `FD_CHURCH_COUNT_MIN = 50` so it self-suppresses under a thin directory even when flipped on. `renderForChurchesCount()` (called from `loadRealChurches`) returns early unless the flag is on; when on it does one `search_churches` probe (`p_limit:1`) and reads `data[0].total_count` (rides on `count(*) over()`). `paintForChurchesCount()` / `window.refreshForChurchesCountText` reformat the cached number on language switch with no network call (same pattern as `refreshDirectoryCountText`). **Flip `FD_SHOW_CHURCH_COUNT` to `true` once the metro import is called done.**
+
+**`#register-church` invite gate for uninvited visitors.** Before this, `#register-church/new` and `[data-add-church]` clicks were gated (bounce + `openInviteGate()`), but **bare `#register-church`** — which the Pricing "Get started free" button reaches via inline `onclick="go('register-church')"` — was not: an uninvited, signed-out visitor saw the full registration form and only hit the invite modal on submit (3 dead-ends before the "Request access" link). `go()` is the one chokepoint every entry passes through (the `[data-route]` handler and `showRouteFromHash` both end in `go()`), so the gate went there, right after the existing dashboard redirects:
+
+```js
+if(route.split('/')[0] === 'register-church' && !window.isSignedIn && typeof window.fdInviteUnlocked === 'function' && !window.fdInviteUnlocked()){
+  if(typeof window.openInviteGate === 'function') window.openInviteGate();
+  route = 'home';
+}
+```
+
+`!window.isSignedIn` (not `=== false`) so an unresolved auth state is treated as signed-out; a real church owner editing their profile is `isSignedIn === true` and unaffected, and any tester who entered the code on this browser has `fdInviteUnlocked()` true (and couldn't be signed in here otherwise, since `#signup`/login is gated the same way). The pre-existing `checkExistingChurch` `routeKey === 'new'` gate and the `data-add-church` click gate are left in place as redundant coverage. Build stamp `2026-09-10-v271`.

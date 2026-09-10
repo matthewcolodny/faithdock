@@ -151,6 +151,16 @@
       'home.locationPlaceholder': 'Enter your city or zip code', 'home.browseBtn': 'Browse churches',
       'home.viewDirectory': 'View directory', 'home.upcomingEvents': 'Upcoming events', 'home.viewAllEvents': 'View all events',
       'home.churchesNearYou': 'Churches near you', 'home.churchesNear': 'Churches near', 'home.upcomingEventsNear': 'Upcoming events near',
+      'home.forChurchesQ': 'Are you a church?', 'home.forChurchesLink': 'List your church — free',
+      'home.fc.eyebrow': 'For churches',
+      'home.fc.heading': 'Be where people are already looking.',
+      'home.fc.lead': "People come to FaithDock to find a church home and to find something to do this weekend. A listing puts your church, your service times, and your events in front of them — for free.",
+      'home.fc.count': '{n} churches listed and growing',
+      'home.fc.p1t': 'Claim your free listing', 'home.fc.p1b': 'Your church may already be in the directory. Claim it to control what people see.',
+      'home.fc.p2t': 'Post events people can actually find', 'home.fc.p2b': "Services, studies, outreach, kids' programs — each one is searchable by anyone nearby, not just your members.",
+      'home.fc.p3t': "Grow the connection when you're ready", 'home.fc.p3b': 'Paid plans add check-in, groups, messaging, and giving.',
+      'home.fc.cta': 'List your church — free',
+      'home.fc.note': 'FaithDock is in private testing. Listing is free; setting one up needs an invite code.',
       'dir.geoNotSupported': 'Geolocation not supported by this browser.', 'dir.findingYou': 'Finding you...',
       'dir.showingDistancesYourLocation': 'Showing distances from your location.', 'dir.showingDistancesThisLocation': 'Showing distances from this location.',
       'dir.couldNotGetLocation': 'Could not get your location — try typing it instead.', 'dir.mapServiceLoading': 'Map service still loading — try again in a moment.',
@@ -855,6 +865,16 @@
       'home.locationPlaceholder': 'Ingresa tu ciudad o código postal', 'home.browseBtn': 'Explorar iglesias',
       'home.viewDirectory': 'Ver directorio', 'home.upcomingEvents': 'Próximos eventos', 'home.viewAllEvents': 'Ver todos los eventos',
       'home.churchesNearYou': 'Iglesias cerca de ti', 'home.churchesNear': 'Iglesias cerca de', 'home.upcomingEventsNear': 'Próximos eventos cerca de',
+      'home.forChurchesQ': '¿Representas a una iglesia?', 'home.forChurchesLink': 'Registra tu iglesia — gratis',
+      'home.fc.eyebrow': 'Para iglesias',
+      'home.fc.heading': 'Está donde la gente ya está buscando.',
+      'home.fc.lead': 'La gente usa FaithDock para encontrar una iglesia y para ver qué hacer este fin de semana. Un perfil pone tu iglesia, tus horarios de servicio y tus eventos frente a ellos, gratis.',
+      'home.fc.count': '{n} iglesias en el directorio y creciendo',
+      'home.fc.p1t': 'Reclama tu perfil gratuito', 'home.fc.p1b': 'Es probable que tu iglesia ya esté en el directorio. Reclámala para controlar lo que la gente ve.',
+      'home.fc.p2t': 'Publica eventos que la gente pueda encontrar', 'home.fc.p2b': 'Servicios, estudios, alcance comunitario, programas para niños: cada uno aparece en las búsquedas de cualquier persona cercana, no solo de tus miembros.',
+      'home.fc.p3t': 'Fortalece la conexión cuando estés listo', 'home.fc.p3b': 'Los planes de pago añaden registro de asistencia, grupos, mensajería y donaciones.',
+      'home.fc.cta': 'Registra tu iglesia — gratis',
+      'home.fc.note': 'FaithDock está en pruebas privadas. Aparecer en el directorio es gratis; para configurar un perfil se necesita un código de invitación.',
       'dir.geoNotSupported': 'Este navegador no admite geolocalización.', 'dir.findingYou': 'Buscándote...',
       'dir.showingDistancesYourLocation': 'Mostrando distancias desde tu ubicación.', 'dir.showingDistancesThisLocation': 'Mostrando distancias desde esta ubicación.',
       'dir.couldNotGetLocation': 'No pudimos obtener tu ubicación — intenta escribirla.', 'dir.mapServiceLoading': 'El servicio de mapas aún se está cargando — intenta de nuevo en un momento.',
@@ -1910,6 +1930,23 @@
     .search-bar input{background:var(--card);border-radius:8px;}
     .search-bar button{width:100%;padding:13px;}
   }
+  .hero-for-churches{margin-top:16px;font-size:13.5px;color:#C7CCD8;}
+  .hero-for-churches a{color:#fff;border-bottom:1px solid var(--gold);white-space:nowrap;}
+
+  /* ---- "For churches" band (homepage, below the discovery grids) ---- */
+  .for-churches{background:var(--paper);border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:56px 0;margin-top:64px;}
+  .for-churches-inner{max-width:1080px;margin:0 auto;padding:0 28px;}
+  .for-churches h2{font-size:30px;margin:10px 0 12px;max-width:620px;line-height:1.15;}
+  .for-churches .fc-lead{font-size:16px;color:var(--ink-soft);max-width:620px;line-height:1.55;}
+  .for-churches-count{font-size:13.5px;color:var(--ink-mute);margin-top:10px;font-family:'IBM Plex Mono',monospace;}
+  .for-churches-points{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin:30px 0 26px;}
+  @media (max-width:800px){.for-churches-points{grid-template-columns:1fr;gap:18px;}}
+  .fc-point{font-size:14px;color:var(--ink-mute);line-height:1.5;}
+  .fc-point strong{display:block;color:var(--ink);font-family:'Fraunces';font-weight:600;font-size:15px;margin-bottom:4px;}
+  .for-churches-cta{display:inline-flex;align-items:center;gap:8px;background:var(--brand);color:#fff;text-decoration:none;padding:12px 22px;border-radius:9px;font-weight:600;font-size:14.5px;}
+  .for-churches-cta:hover{opacity:.92;}
+  html[data-theme="dark"] .for-churches-cta{background:var(--gold);color:var(--brand);}
+  .for-churches-note{font-size:12.5px;color:var(--ink-mute);margin-top:14px;}
 
   /* ---- section headings ---- */
   .section-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:24px;}
@@ -2552,6 +2589,10 @@
         <input type="text" id="hero-location-input" placeholder="Enter your city or zip code" data-i18n-placeholder="home.locationPlaceholder" autocomplete="off">
         <button id="hero-browse-btn" data-i18n="home.browseBtn">Browse churches</button>
       </div>
+      <p class="hero-for-churches">
+        <span data-i18n="home.forChurchesQ">Are you a church?</span>
+        <a href="#register-church" data-route="register-church" data-add-church="true" data-i18n="home.forChurchesLink">List your church — free</a>
+      </p>
     </div>
   </div>
 
@@ -2575,6 +2616,31 @@
       <a class="see-all" href="#events" data-route="events" data-i18n="home.viewAllEvents">View all events</a>
     </div>
     <div class="grid" id="home-event-grid"></div>
+  </div>
+
+  <div class="for-churches">
+    <div class="for-churches-inner">
+      <div class="eyebrow" data-i18n="home.fc.eyebrow">For churches</div>
+      <h2 data-i18n="home.fc.heading">Be where people are already looking.</h2>
+      <p class="fc-lead" data-i18n="home.fc.lead">People come to FaithDock to find a church home and to find something to do this weekend. A listing puts your church, your service times, and your events in front of them — for free.</p>
+      <p class="for-churches-count" id="home-fc-count" hidden></p>
+      <div class="for-churches-points">
+        <div class="fc-point">
+          <strong data-i18n="home.fc.p1t">Claim your free listing</strong>
+          <span data-i18n="home.fc.p1b">Your church may already be in the directory. Claim it to control what people see.</span>
+        </div>
+        <div class="fc-point">
+          <strong data-i18n="home.fc.p2t">Post events people can actually find</strong>
+          <span data-i18n="home.fc.p2b">Services, studies, outreach, kids' programs — each one is searchable by anyone nearby, not just your members.</span>
+        </div>
+        <div class="fc-point">
+          <strong data-i18n="home.fc.p3t">Grow the connection when you're ready</strong>
+          <span data-i18n="home.fc.p3b">Paid plans add check-in, groups, messaging, and giving.</span>
+        </div>
+      </div>
+      <a class="for-churches-cta" href="#register-church" data-route="register-church" data-add-church="true" data-i18n="home.fc.cta">List your church — free</a>
+      <p class="for-churches-note" data-i18n="home.fc.note">FaithDock is in private testing. Listing is free; setting one up needs an invite code.</p>
+    </div>
   </div>
 </section>
 
@@ -5205,7 +5271,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-10-v270 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-10-v271 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -5439,6 +5505,15 @@
   // meant to stop casual/accidental signups: the code is in page
   // source, so it's a speed bump, not a security control.
   var FD_INVITE_CODES = ['26docksoffaith'];
+
+  // Homepage "For churches" band can show a live church count ("N
+  // churches listed and growing"), read straight from search_churches's
+  // total_count so it never goes stale. OFF until the metro import is
+  // called done -- flip to true then. It also self-suppresses below
+  // FD_CHURCH_COUNT_MIN so it never advertises a thin directory.
+  var FD_SHOW_CHURCH_COUNT = false;
+  var FD_CHURCH_COUNT_MIN = 50;
+
   function fdInviteUnlocked(){
     try { return localStorage.getItem('fd-invite-ok') === '1'; } catch (e) { return false; }
   }
@@ -6294,6 +6369,18 @@
     // had: don't redirect while this is still unknown/unresolved
     // (undefined), only once it's definitively confirmed false.
     if(route === 'dashboard' && window.isSignedIn === true && window.hasChurchAccess === false){ route = 'home'; }
+    // Private testing: creating a church needs an invite code. An
+    // unauthenticated visitor on #register-church can only be there to
+    // create one (you can't own a church without an account), so pop the
+    // invite gate -- which offers "Request access" -- and drop them on
+    // home rather than a form they can't submit. Signed-in owners
+    // editing their existing church profile are unaffected (isSignedIn),
+    // and a tester who's already entered the code this browser is too
+    // (fdInviteUnlocked).
+    if(route.split('/')[0] === 'register-church' && !window.isSignedIn && typeof window.fdInviteUnlocked === 'function' && !window.fdInviteUnlocked()){
+      if(typeof window.openInviteGate === 'function') window.openInviteGate();
+      route = 'home';
+    }
     var baseRoute = route.split('/')[0];
     // Only when actually leaving the dashboard entirely — staying on
     // 'dashboard' (any sub-tab) must never yank the pricing content
@@ -7249,6 +7336,33 @@
     homeGrid.innerHTML = mapJoin(window.homeChurchesLastRenderedRows, function(c){ return churchCard(c, true); });
   };
 
+  // "For churches" band live count. Off unless FD_SHOW_CHURCH_COUNT, and
+  // even then only shown at/above FD_CHURCH_COUNT_MIN so it never
+  // advertises a thin directory. One cheap probe (p_limit:1) -- the
+  // number rides on search_churches's count(*) over() total_count.
+  function paintForChurchesCount(){
+    var el = document.getElementById('home-fc-count');
+    if (!el) return;
+    var n = window._fcChurchCount;
+    if (FD_SHOW_CHURCH_COUNT && typeof n === 'number' && n >= FD_CHURCH_COUNT_MIN) {
+      el.textContent = window.t('home.fc.count').replace('{n}', n);
+      el.hidden = false;
+    } else {
+      el.hidden = true;
+    }
+  }
+  async function renderForChurchesCount(){
+    if (!FD_SHOW_CHURCH_COUNT || !window.supabase) return;
+    var { data, error } = await window.supabase.rpc('search_churches', { p_limit: 1, p_offset: 0 });
+    if (error) return;
+    window._fcChurchCount = (data && data.length) ? data[0].total_count : 0;
+    paintForChurchesCount();
+  }
+  window.renderForChurchesCount = renderForChurchesCount;
+  // Re-formats the cached number in the new language (no network call) —
+  // same pattern as refreshDirectoryCountText.
+  window.refreshForChurchesCountText = paintForChurchesCount;
+
   function rebuildCategoryFilterChecklist(){
     var container = document.getElementById('filter-tags-checks');
     if (!container) return;
@@ -8050,6 +8164,7 @@
       if (currentBase === 'home') {
         if (typeof window.refreshHomeChurchesText === 'function') window.refreshHomeChurchesText();
         if (typeof window.refreshHomeEventsText === 'function') window.refreshHomeEventsText();
+        if (typeof window.refreshForChurchesCountText === 'function') window.refreshForChurchesCountText();
       }
       // Service-time chips are JS-built from an in-memory array (see
       // renderRcServiceTimesChips()), not static HTML with data-i18n
@@ -8403,6 +8518,7 @@
     // Anyone who never triggered a re-render (denied location,
     // didn't search) would see a permanently blank page.
     if (typeof window.renderHomeChurches === 'function') window.renderHomeChurches();
+    if (typeof window.renderForChurchesCount === 'function') window.renderForChurchesCount();
     if (typeof window.renderDirectory === 'function') window.renderDirectory(window.directoryPageFromHash ? window.directoryPageFromHash() : 1);
     if (typeof window.showRouteFromHash === 'function') window.showRouteFromHash(true);
     if (typeof window.checkForCompletedDonation === 'function') window.checkForCompletedDonation();
