@@ -5145,7 +5145,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-10-v263 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-10-v264 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -7913,8 +7913,12 @@
   var waitlistBanner = document.getElementById('waitlist-banner');
   var waitlistBannerCloseBtn = document.getElementById('waitlist-banner-close');
   if (waitlistBanner) {
+    // Storage key bumped to '-2' with the v263 copy change (the banner
+    // went from "coming soon" to "private testing / request access") so
+    // it shows once more to anyone who had dismissed the old wording;
+    // a fresh dismiss then sticks as normal.
     var waitlistBannerDismissed = false;
-    try { waitlistBannerDismissed = localStorage.getItem('fd-waitlist-banner-dismissed') === '1'; } catch (e) {}
+    try { waitlistBannerDismissed = localStorage.getItem('fd-banner-dismissed-2') === '1'; } catch (e) {}
     if (!waitlistBannerDismissed) waitlistBanner.style.display = 'flex';
     // Fires before the [data-route] click delegate below (this
     // listener is on the banner itself, closer to the click target
@@ -7928,7 +7932,7 @@
   if (waitlistBannerCloseBtn) {
     waitlistBannerCloseBtn.addEventListener('click', function(){
       if (waitlistBanner) waitlistBanner.style.display = 'none';
-      try { localStorage.setItem('fd-waitlist-banner-dismissed', '1'); } catch (e) {}
+      try { localStorage.setItem('fd-banner-dismissed-2', '1'); } catch (e) {}
     });
   }
 </script>
