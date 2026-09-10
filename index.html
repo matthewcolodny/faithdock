@@ -131,10 +131,10 @@
   // ============================================================
   var translations = {
     en: {
-      'nav.churches': 'Churches', 'nav.events': 'Events', 'nav.pricing': 'Pricing',
-      'nav.dashboard': 'Church dashboard',
+      'nav.churches': 'Churches', 'nav.events': 'Events', 'nav.forChurches': 'For churches', 'nav.pricing': 'Pricing', 'nav.admin': 'Admin',
+      'nav.dashboard': 'Manage my church', 'nav.dashboardPlural': 'Manage my churches',
       'nav.profile': 'Account profile', 'nav.myChurches': 'My Churches', 'nav.myEvents': 'My Events', 'nav.myGroups': 'My Groups',
-      'nav.settings': 'Settings', 'nav.help': 'Help', 'nav.logout': 'Log out', 'nav.login': 'Log in', 'nav.signup': 'Sign up',
+      'nav.settings': 'Settings', 'nav.help': 'Help', 'nav.logout': 'Log out', 'nav.login': 'Log in', 'nav.signup': 'Sign up', 'nav.signin': 'Sign in',
       'nav.searchPlaceholder': 'Search churches...',
       'waitlistBanner.text': 'FaithDock is in private testing — invite-only for now. Click here to request access.',
       'waitlist.eyebrow': 'Private testing', 'waitlist.headline': 'Request access to FaithDock',
@@ -376,7 +376,7 @@
       'pricing.eyebrow': 'Pricing', 'pricing.title': 'Become a Partner Church', 'pricing.titleExisting': 'Manage your plan', 'pricing.cancelSubscription': 'Cancel subscription',
       'pricing.subtitle': 'Free to be listed. Upgrade for tools that help you grow and stay connected with your congregation.',
       'pricing.compareLink': 'See how FaithDock compares to Breeze & Planning Center →', 'pricing.perMonth': ' / month', 'pricing.mostPopular': 'Most popular',
-      'pricing.free.name': 'Free', 'pricing.free.f1': 'Listing in the public directory', 'pricing.free.f2': 'Dashboard access',
+      'pricing.free.name': 'Free', 'pricing.free.f1': 'Listing in the public directory', 'pricing.free.f2': 'Church management tools',
       'pricing.free.f3': 'Up to 8 events / month, 3 groups', 'pricing.free.f4': 'Unlimited giving — 1% FaithDock fee applies',
       'pricing.free.f5': 'Event reminders', 'pricing.free.f6': 'Paid ticketed events — 3% FaithDock fee per ticket', 'pricing.free.cta': 'Get started free',
       'pricing.starter.name': 'Starter', 'pricing.starter.f1': 'Everything in Free', 'pricing.starter.f2': 'Up to 20 events / month, 6 groups',
@@ -385,7 +385,7 @@
       'pricing.feeFootnote1': 'FaithDock service fees apply on the Free plan only — every paid plan keeps 100% of what’s given or sold.',
       'pricing.feeFootnote2': 'Standard card processing from Stripe (about 2.9% + $0.30) applies to paid event tickets on every plan, on top of any FaithDock fee.',
       'pricing.feeFootnote3': 'Giving may qualify for a lower Stripe rate instead: a registered nonprofit whose Stripe account is used mainly for tax-deductible donations can apply for Stripe’s discounted nonprofit pricing directly through its own connected Stripe account.',
-      'ptable.directory': 'Public directory listing', 'ptable.dashboard': 'Dashboard access', 'ptable.events': 'Events / month', 'ptable.groups': 'Groups',
+      'ptable.directory': 'Public directory listing', 'ptable.dashboard': 'Church management tools', 'ptable.events': 'Events / month', 'ptable.groups': 'Groups',
       'ptable.staff': 'Staff invites', 'ptable.memberImport': 'Congregation member import', 'ptable.reminders': 'Event reminders',
       'ptable.giving': 'Giving', 'ptable.paidEvents': 'Paid ticketed events', 'ptable.massEmail': 'Mass email to members, groups & events',
       'ptable.aiAssist': 'AI Writing Assistant for event descriptions', 'ptable.priorityRotation': 'Priority rotation in event search',
@@ -597,17 +597,17 @@
       'help.q2': 'How do I follow a church or set a Church Home?',
       'help.a2': 'Visit any church\u2019s page \u2014 you\u2019ll find a "Follow church" button, and on the Location tab, a "Make this my Church Home" button. Both require a free account.',
       'help.q3': 'How do I register my church as an administrator?',
-      'help.a3': 'Sign up like anyone else — there\u2019s no separate choice to make. Then register your church from the Pricing page or the "Add a church" button on your Profile or My Churches page \u2014 your account automatically becomes a church administrator account, and you\u2019re taken straight to your church dashboard once it\u2019s created.',
+      'help.a3': 'Sign up like anyone else — there\u2019s no separate choice to make. Then register your church from the Pricing page or the "Add a church" button on your Profile or My Churches page \u2014 your account automatically becomes a church administrator account, and you\u2019re taken straight to the tools for your church once it\u2019s created.',
       'help.q4': 'How does online giving work?',
-      'help.a4': 'Church owners connect a bank account through Stripe in their dashboard\u2019s Giving section. New churches need to be verified first \u2014 request verification from that same section, and donations go directly to the church\u2019s own account; FaithDock never holds the funds.',
+      'help.a4': 'Church owners connect a bank account through Stripe in their church\u2019s Giving section. New churches need to be verified first \u2014 request verification from that same section, and donations go directly to the church\u2019s own account; FaithDock never holds the funds.',
       'help.q5': 'How do I join a group?',
       'help.a5': 'On a church\u2019s page, go to the Groups tab and click into any group to see how to join \u2014 some are open to anyone, others require a request or an invite from the group\u2019s leader.',
       'help.q6': 'I\u2019m a church administrator \u2014 how do I add staff?',
-      'help.a6': 'In your dashboard\u2019s Team panel (under Settings), enter a staff member\u2019s email to add them. You can also control exactly what each staff member is allowed to manage \u2014 events, giving, billing, or the church profile \u2014 individually.',
+      'help.a6': 'In your church\u2019s Team panel (under Settings), enter a staff member\u2019s email to add them. You can also control exactly what each staff member is allowed to manage \u2014 events, giving, billing, or the church profile \u2014 individually.',
       'help.q7': 'How do I switch the site to Spanish?',
       'help.a7': 'Click the "EN / ES" button in the top navigation, on any page. Your choice is remembered on your next visit.',
       'help.q8': 'How do I delete my account?',
-      'help.a8': 'Go to your Profile page and scroll to "Delete account." If you own a church, you\u2019ll need to delete the church first from your dashboard\u2019s Settings before your account can be deleted.',
+      'help.a8': 'Go to your Profile page and scroll to "Delete account." If you own a church, you\u2019ll need to delete the church first from your church\u2019s Settings before your account can be deleted.',
       'help.stillNeedHelp': 'Still need help?',
       'help.sendMessageDesc': 'Send a message and our team will get back to you.',
       'help.whatCanWeHelpWith': 'What can we help with?',
@@ -733,7 +733,7 @@
       'dashSettings.ownerFallback': 'Owner', 'dashSettings.teamMemberFallback': 'Team member', 'dashSettings.ownerRoleLabel': 'Owner', 'dashSettings.permissions': 'Permissions',
       'dashSettings.removeFromTeam': 'Remove from team', 'dashSettings.cancelInvite': 'Cancel invite',
       'dashEvents.editEventTip': 'Edit event',
-      'admin.eyebrow': 'Platform admin', 'admin.heading': 'Admin', 'admin.myChurchDashboard': 'My church dashboard →',
+      'admin.eyebrow': 'Platform admin', 'admin.heading': 'Admin', 'admin.myChurchDashboard': 'Manage my church →',
       'admin.pendingVerifications': 'Pending church verifications', 'admin.allChurches': 'All churches', 'admin.importChurches': 'Import churches',
       'admin.searchByName': 'Search by name...', 'admin.allStatuses': 'All statuses', 'admin.verified': 'Verified', 'admin.pending': 'Pending', 'admin.rejected': 'Rejected', 'admin.unclaimed': 'Unclaimed',
       'admin.pendingClaims': 'Pending church claims', 'admin.searchByChurchNameEmail': 'Search by church, name, or email...',
@@ -788,7 +788,7 @@
       'rte.bold': 'Bold', 'rte.italic': 'Italic', 'rte.numberedList': 'Numbered list', 'rte.bulletedList': 'Bulleted list', 'rte.addLink': 'Add link', 'rte.removeLink': 'Remove link',
       'rte.linkUrlPrompt': 'Link URL (include https://)', 'rte.linksMustStartWith': 'Links must start with https:// or mailto:',
       'audience.preschool': 'Preschool', 'audience.children': 'Children', 'audience.teens': 'Teens', 'audience.adults': 'Adults', 'audience.seniors': 'Seniors', 'audience.parents': 'Parents', 'audience.emptyNesters': 'Empty-nesters',
-      'ce.backToDashboard': '← Back to dashboard', 'ce.newEvent': 'New event', 'ce.createAnEvent': 'Create an event', 'ce.editEvent': 'Edit event', 'ce.postsUnderChurchName': 'Posts under {church}.', 'ce.postingAs': 'Posting as',
+      'ce.backToDashboard': '← Back to my church', 'ce.newEvent': 'New event', 'ce.createAnEvent': 'Create an event', 'ce.editEvent': 'Edit event', 'ce.postsUnderChurchName': 'Posts under {church}.', 'ce.postingAs': 'Posting as',
       'ce.eventTitle': 'Event title', 'ce.eventTitlePlaceholder': 'Fall Community Picnic', 'ce.description': 'Description', 'ce.descriptionPlaceholder': "What's happening, who it's for",
       'ce.writingAssistant': 'Writing Assistant', 'ce.checkSpellingGrammar': 'Check Spelling and Grammar', 'ce.makeItFormal': 'Make it Formal', 'ce.makeItFriendly': 'Make it Friendly', 'ce.makeItInviting': 'Make it Inviting', 'ce.writeFromKeywords': 'Write from Keywords',
       'ce.rewritesReplaceHint': "Rewrites replace the current text — any bold, lists, or links in the draft won't carry through a rewrite.",
@@ -845,10 +845,10 @@
       'insights.byAgeGroupCheckInsBasedOn': "By age group — based on the {shared} of {total} check-ins from people who've shared an age range"
     },
     es: {
-      'nav.churches': 'Iglesias', 'nav.events': 'Eventos', 'nav.pricing': 'Precios',
-      'nav.dashboard': 'Panel de la iglesia',
+      'nav.churches': 'Iglesias', 'nav.events': 'Eventos', 'nav.forChurches': 'Para iglesias', 'nav.pricing': 'Precios', 'nav.admin': 'Administración',
+      'nav.dashboard': 'Administrar mi iglesia', 'nav.dashboardPlural': 'Administrar mis iglesias',
       'nav.profile': 'Perfil de la cuenta', 'nav.myChurches': 'Mis iglesias', 'nav.myEvents': 'Mis eventos', 'nav.myGroups': 'Mis grupos',
-      'nav.settings': 'Configuración', 'nav.help': 'Ayuda', 'nav.logout': 'Cerrar sesión', 'nav.login': 'Iniciar sesión', 'nav.signup': 'Registrarse',
+      'nav.settings': 'Configuración', 'nav.help': 'Ayuda', 'nav.logout': 'Cerrar sesión', 'nav.login': 'Iniciar sesión', 'nav.signup': 'Registrarse', 'nav.signin': 'Iniciar sesión',
       'nav.searchPlaceholder': 'Buscar iglesias...',
       'waitlistBanner.text': 'FaithDock está en pruebas privadas — por ahora solo con invitación. Haz clic aquí para solicitar acceso.',
       'waitlist.eyebrow': 'Pruebas privadas', 'waitlist.headline': 'Solicita acceso a FaithDock',
@@ -1090,7 +1090,7 @@
       'pricing.eyebrow': 'Precios', 'pricing.title': 'Únete como iglesia asociada', 'pricing.titleExisting': 'Administra tu plan', 'pricing.cancelSubscription': 'Cancelar suscripción',
       'pricing.subtitle': 'Gratis para aparecer en el directorio. Mejora tu plan para obtener herramientas que te ayuden a crecer y a mantenerte conectado con tu congregación.',
       'pricing.compareLink': 'Mira cómo se compara FaithDock con Breeze y Planning Center →', 'pricing.perMonth': ' / mes', 'pricing.mostPopular': 'Más popular',
-      'pricing.free.name': 'Gratis', 'pricing.free.f1': 'Listado en el directorio público', 'pricing.free.f2': 'Acceso al panel',
+      'pricing.free.name': 'Gratis', 'pricing.free.f1': 'Listado en el directorio público', 'pricing.free.f2': 'Herramientas de gestión de la iglesia',
       'pricing.free.f3': 'Hasta 8 eventos al mes, 3 grupos', 'pricing.free.f4': 'Donaciones ilimitadas \u2014 aplica una tarifa de FaithDock del 1%',
       'pricing.free.f5': 'Recordatorios de eventos', 'pricing.free.f6': 'Eventos con entrada de pago \u2014 tarifa de FaithDock del 3% por entrada', 'pricing.free.cta': 'Comenzar gratis',
       'pricing.starter.name': 'Inicial', 'pricing.starter.f1': 'Todo lo del plan Gratis', 'pricing.starter.f2': 'Hasta 20 eventos al mes, 6 grupos',
@@ -1099,7 +1099,7 @@
       'pricing.feeFootnote1': 'Las tarifas de servicio de FaithDock aplican solo en el plan Gratis \u2014 todos los planes de pago conservan el 100% de lo donado o vendido.',
       'pricing.feeFootnote2': 'El procesamiento est\u00e1ndar de tarjetas de Stripe (aproximadamente 2.9% + $0.30) aplica a las entradas de eventos de pago en todos los planes, adem\u00e1s de cualquier tarifa de FaithDock.',
       'pricing.feeFootnote3': 'Las donaciones podr\u00edan calificar para una tarifa de Stripe m\u00e1s baja: una organizaci\u00f3n sin fines de lucro registrada cuya cuenta de Stripe se use principalmente para donaciones deducibles de impuestos puede solicitar el precio con descuento para organizaciones sin fines de lucro de Stripe directamente a trav\u00e9s de su propia cuenta de Stripe conectada.',
-      'ptable.directory': 'Listado en el directorio p\u00fablico', 'ptable.dashboard': 'Acceso al panel', 'ptable.events': 'Eventos / mes', 'ptable.groups': 'Grupos',
+      'ptable.directory': 'Listado en el directorio p\u00fablico', 'ptable.dashboard': 'Herramientas de gesti\u00f3n de la iglesia', 'ptable.events': 'Eventos / mes', 'ptable.groups': 'Grupos',
       'ptable.staff': 'Invitaciones de personal', 'ptable.memberImport': 'Importaci\u00f3n de miembros de la congregaci\u00f3n', 'ptable.reminders': 'Recordatorios de eventos',
       'ptable.giving': 'Donaciones', 'ptable.paidEvents': 'Eventos con entrada de pago', 'ptable.massEmail': 'Correo masivo a miembros, grupos y eventos',
       'ptable.aiAssist': 'Asistente de escritura con IA para descripciones de eventos', 'ptable.priorityRotation': 'Rotaci\u00f3n prioritaria en la b\u00fasqueda de eventos',
@@ -1311,17 +1311,17 @@
       'help.q2': '\u00bfC\u00f3mo sigo una iglesia o establezco una Iglesia Principal?',
       'help.a2': 'Visita la p\u00e1gina de cualquier iglesia \u2014 encontrar\u00e1s un bot\u00f3n "Seguir iglesia", y en la pesta\u00f1a Ubicaci\u00f3n, un bot\u00f3n "Hacer esta mi Iglesia Principal". Ambos requieren una cuenta gratuita.',
       'help.q3': '\u00bfC\u00f3mo registro mi iglesia como administrador?',
-      'help.a3': 'Reg\u00edstrate como cualquier persona \u2014 no hay una opci\u00f3n separada que elegir. Luego registra tu iglesia desde la p\u00e1gina de Precios o el bot\u00f3n "Agregar una iglesia" en tu p\u00e1gina de Perfil o Mis iglesias \u2014 tu cuenta se convierte autom\u00e1ticamente en una cuenta de administrador de iglesia, y ser\u00e1s llevado directamente al panel de tu iglesia una vez creado.',
+      'help.a3': 'Reg\u00edstrate como cualquier persona \u2014 no hay una opci\u00f3n separada que elegir. Luego registra tu iglesia desde la p\u00e1gina de Precios o el bot\u00f3n "Agregar una iglesia" en tu p\u00e1gina de Perfil o Mis iglesias \u2014 tu cuenta se convierte autom\u00e1ticamente en una cuenta de administrador de iglesia, y ser\u00e1s llevado directamente a las herramientas de tu iglesia una vez creado.',
       'help.q4': '\u00bfC\u00f3mo funcionan las donaciones en l\u00ednea?',
-      'help.a4': 'Los due\u00f1os de iglesias conectan una cuenta bancaria a trav\u00e9s de Stripe en la secci\u00f3n de Donaciones de su panel. Las iglesias nuevas deben verificarse primero \u2014 solicita la verificaci\u00f3n desde esa misma secci\u00f3n, y las donaciones van directamente a la cuenta de la iglesia; FaithDock nunca retiene los fondos.',
+      'help.a4': 'Los due\u00f1os de iglesias conectan una cuenta bancaria a trav\u00e9s de Stripe en la secci\u00f3n de Donaciones de su iglesia. Las iglesias nuevas deben verificarse primero \u2014 solicita la verificaci\u00f3n desde esa misma secci\u00f3n, y las donaciones van directamente a la cuenta de la iglesia; FaithDock nunca retiene los fondos.',
       'help.q5': '\u00bfC\u00f3mo me uno a un grupo?',
       'help.a5': 'En la p\u00e1gina de una iglesia, ve a la pesta\u00f1a Grupos y entra a cualquier grupo para ver c\u00f3mo unirte \u2014 algunos est\u00e1n abiertos a cualquiera, otros requieren una solicitud o invitaci\u00f3n del l\u00edder del grupo.',
       'help.q6': 'Soy administrador de una iglesia \u2014 \u00bfc\u00f3mo agrego personal?',
-      'help.a6': 'En el panel de Equipo de tu panel (en Configuraci\u00f3n), ingresa el correo de un miembro del personal para agregarlo. Tambi\u00e9n puedes controlar exactamente qu\u00e9 puede gestionar cada miembro \u2014 eventos, donaciones, facturaci\u00f3n o el perfil de la iglesia \u2014 individualmente.',
+      'help.a6': 'En el panel de Equipo de tu iglesia (en Configuraci\u00f3n), ingresa el correo de un miembro del personal para agregarlo. Tambi\u00e9n puedes controlar exactamente qu\u00e9 puede gestionar cada miembro \u2014 eventos, donaciones, facturaci\u00f3n o el perfil de la iglesia \u2014 individualmente.',
       'help.q7': '\u00bfC\u00f3mo cambio el sitio a espa\u00f1ol?',
       'help.a7': 'Haz clic en el bot\u00f3n "EN / ES" en la navegaci\u00f3n superior, en cualquier p\u00e1gina. Tu elecci\u00f3n se recuerda en tu pr\u00f3xima visita.',
       'help.q8': '\u00bfC\u00f3mo elimino mi cuenta?',
-      'help.a8': 'Ve a tu p\u00e1gina de Perfil y despl\u00e1zate hasta "Eliminar cuenta". Si eres due\u00f1o de una iglesia, deber\u00e1s eliminarla primero desde la Configuraci\u00f3n de tu panel antes de poder eliminar tu cuenta.',
+      'help.a8': 'Ve a tu p\u00e1gina de Perfil y despl\u00e1zate hasta "Eliminar cuenta". Si eres due\u00f1o de una iglesia, deber\u00e1s eliminarla primero desde la Configuraci\u00f3n de tu iglesia antes de poder eliminar tu cuenta.',
       'help.stillNeedHelp': '\u00bfA\u00fan necesitas ayuda?',
       'help.sendMessageDesc': 'Env\u00eda un mensaje y nuestro equipo te responder\u00e1.',
       'help.whatCanWeHelpWith': '\u00bfEn qu\u00e9 podemos ayudarte?',
@@ -1447,7 +1447,7 @@
       'dashSettings.ownerFallback': 'Propietario', 'dashSettings.teamMemberFallback': 'Miembro del equipo', 'dashSettings.ownerRoleLabel': 'Propietario', 'dashSettings.permissions': 'Permisos',
       'dashSettings.removeFromTeam': 'Quitar del equipo', 'dashSettings.cancelInvite': 'Cancelar invitación',
       'dashEvents.editEventTip': 'Editar evento',
-      'admin.eyebrow': 'Administración de la plataforma', 'admin.heading': 'Administración', 'admin.myChurchDashboard': 'Panel de mi iglesia →',
+      'admin.eyebrow': 'Administración de la plataforma', 'admin.heading': 'Administración', 'admin.myChurchDashboard': 'Administrar mi iglesia →',
       'admin.pendingVerifications': 'Verificaciones de iglesias pendientes', 'admin.allChurches': 'Todas las iglesias', 'admin.importChurches': 'Importar iglesias',
       'admin.searchByName': 'Buscar por nombre...', 'admin.allStatuses': 'Todos los estados', 'admin.verified': 'Verificada', 'admin.pending': 'Pendiente', 'admin.rejected': 'Rechazada', 'admin.unclaimed': 'Sin reclamar',
       'admin.pendingClaims': 'Reclamos de iglesias pendientes', 'admin.searchByChurchNameEmail': 'Buscar por iglesia, nombre o correo...',
@@ -1502,7 +1502,7 @@
       'rte.bold': 'Negrita', 'rte.italic': 'Cursiva', 'rte.numberedList': 'Lista numerada', 'rte.bulletedList': 'Lista con viñetas', 'rte.addLink': 'Agregar enlace', 'rte.removeLink': 'Quitar enlace',
       'rte.linkUrlPrompt': 'URL del enlace (incluye https://)', 'rte.linksMustStartWith': 'Los enlaces deben comenzar con https:// o mailto:',
       'audience.preschool': 'Preescolar', 'audience.children': 'Niños', 'audience.teens': 'Adolescentes', 'audience.adults': 'Adultos', 'audience.seniors': 'Adultos mayores', 'audience.parents': 'Padres', 'audience.emptyNesters': 'Nido vacío',
-      'ce.backToDashboard': '← Volver al panel', 'ce.newEvent': 'Nuevo evento', 'ce.createAnEvent': 'Crear un evento', 'ce.editEvent': 'Editar evento', 'ce.postsUnderChurchName': 'Se publica bajo {church}.', 'ce.postingAs': 'Publicando como',
+      'ce.backToDashboard': '← Volver a mi iglesia', 'ce.newEvent': 'Nuevo evento', 'ce.createAnEvent': 'Crear un evento', 'ce.editEvent': 'Editar evento', 'ce.postsUnderChurchName': 'Se publica bajo {church}.', 'ce.postingAs': 'Publicando como',
       'ce.eventTitle': 'Título del evento', 'ce.eventTitlePlaceholder': 'Picnic comunitario de otoño', 'ce.description': 'Descripción', 'ce.descriptionPlaceholder': 'Qué va a pasar, para quién es',
       'ce.writingAssistant': 'Asistente de escritura', 'ce.checkSpellingGrammar': 'Revisar ortografía y gramática', 'ce.makeItFormal': 'Hacerlo formal', 'ce.makeItFriendly': 'Hacerlo amigable', 'ce.makeItInviting': 'Hacerlo atractivo', 'ce.writeFromKeywords': 'Escribir a partir de palabras clave',
       'ce.rewritesReplaceHint': 'Las reescrituras reemplazan el texto actual — cualquier negrita, lista o enlace en el borrador no se conservará tras una reescritura.',
@@ -1626,6 +1626,15 @@
     if (window.groupFormIsEditing) {
       var groupFormHeadingEl = document.getElementById('group-form-heading');
       if (groupFormHeadingEl && dict['dashGroups.editGroup']) groupFormHeadingEl.textContent = dict['dashGroups.editGroup'];
+    }
+    // The "Manage my church" account-menu link switches to the plural
+    // "Manage my churches" once loadDashboardHeader() confirms this
+    // person owns 2+ churches (window._dashMultiOwner). Its static
+    // data-i18n is the singular key, so redo the override here or a
+    // language switch would revert a multi-owner to the singular.
+    if (window._dashMultiOwner) {
+      var dashNavLinkEl = document.getElementById('nav-dashboard-link');
+      if (dashNavLinkEl && dict['nav.dashboardPlural']) dashNavLinkEl.textContent = dict['nav.dashboardPlural'];
     }
     // Same reasoning as rc-heading/rc-submit-btn above: this text is
     // set dynamically by loadProfilePage() (from a DB value, not a
@@ -1841,10 +1850,6 @@
   }
   nav.links a:hover{color:#fff;}
   nav.links a.active{color:#fff;border-bottom:2px solid var(--gold);}
-  .nav-cta{
-    background:var(--gold);color:var(--brand);font-weight:600;font-size:14px;
-    padding:10px 18px;border-radius:8px;border:none;margin-left:8px;
-  }
   #nav-user-bubble{
     display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.08);
     border:1px solid rgba(255,255,255,0.18);border-radius:999px;padding:7px 14px;
@@ -1875,7 +1880,6 @@
     nav.links a{padding:14px 4px;border-bottom:1px solid rgba(255,255,255,0.08);border-radius:0;}
     nav.links a.active{border-bottom:1px solid var(--gold);}
     #nav-user-menu{margin-top:14px;}
-    .nav-cta{margin:14px 0 0;width:100%;text-align:center;}
     #nav-toggle-group{margin:14px 0 0 !important;width:100%;}
     #lang-toggle-btn{flex:1;text-align:center;}
     #theme-toggle-btn{width:auto;flex:1;}
@@ -2543,15 +2547,16 @@
     <nav class="links" id="nav-links">
       <a href="#directory" data-route="directory" data-i18n="nav.churches">Churches</a>
       <a href="#events" data-route="events" data-i18n="nav.events">Events</a>
+      <a href="#home" id="nav-for-churches-link" data-i18n="nav.forChurches">For churches</a>
       <a href="#pricing" data-route="pricing" data-i18n="nav.pricing">Pricing</a>
-      <a href="#dashboard" id="nav-dashboard-link" data-route="dashboard" style="opacity:.75;display:none;white-space:nowrap;" data-i18n="nav.dashboard">Church dashboard</a>
-      <a href="#admin" id="nav-admin-link" data-route="admin" style="opacity:.75;display:none;white-space:nowrap;">Admin</a>
+      <a href="#admin" id="nav-admin-link" data-route="admin" style="opacity:.75;display:none;white-space:nowrap;" data-i18n="nav.admin">Admin</a>
       <div id="nav-user-menu" style="position:relative;display:none;">
         <button id="nav-user-bubble" type="button">
           <span id="nav-user-name">Account</span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M6 9l6 6 6-6"/></svg>
         </button>
         <div id="nav-user-dropdown">
+          <a href="#dashboard" id="nav-dashboard-link" data-route="dashboard" style="display:none;" data-i18n="nav.dashboard">Manage my church</a>
           <a href="#profile" data-route="profile" data-i18n="nav.profile">Account profile</a>
           <a href="#my-churches" data-route="my-churches" data-i18n="nav.myChurches">My Churches</a>
           <a href="#my-events" data-route="my-events" data-i18n="nav.myEvents">My Events</a>
@@ -2561,8 +2566,7 @@
           <a href="#" id="nav-logout-link" data-i18n="nav.logout">Log out</a>
         </div>
       </div>
-      <a href="#signup" id="nav-login-link" onclick="window.clearStalePostLoginRoute(); go('signup'); authTab('login'); return false;" data-i18n="nav.login">Log in</a>
-      <button class="nav-cta" id="nav-signup-btn" onclick="window.clearStalePostLoginRoute(); go('signup'); authTab('signup');" data-i18n="nav.signup">Sign up</button>
+      <a href="#signup" id="nav-login-link" onclick="window.clearStalePostLoginRoute(); go('signup'); authTab('login'); return false;" data-i18n="nav.signin">Sign in</a>
       <div id="nav-toggle-group" style="display:flex;align-items:center;gap:10px;margin-left:14px;">
         <button id="theme-toggle-btn" type="button" aria-label="Toggle dark mode" data-i18n-title="common.toggleDarkMode" style="background:none;border:1px solid rgba(255,255,255,0.3);border-radius:7px;width:31px;height:31px;display:flex;align-items:center;justify-content:center;color:#CBD2DE;cursor:pointer;flex-shrink:0;">
           <svg id="theme-toggle-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;display:none;"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
@@ -3139,11 +3143,11 @@
       </details>
       <details class="side-note" style="margin-bottom:12px;">
         <summary style="cursor:pointer;font-weight:600;color:var(--ink);" data-i18n="help.q3">How do I register my church as an administrator?</summary>
-        <p style="margin-top:10px;color:var(--ink-mute);font-size:14px;" data-i18n="help.a3">Sign up like anyone else — there's no separate choice to make. Then register your church from the Pricing page or the "Add a church" button on your Profile or My Churches page — your account automatically becomes a church administrator account, and you're taken straight to your church dashboard once it's created.</p>
+        <p style="margin-top:10px;color:var(--ink-mute);font-size:14px;" data-i18n="help.a3">Sign up like anyone else — there's no separate choice to make. Then register your church from the Pricing page or the "Add a church" button on your Profile or My Churches page — your account automatically becomes a church administrator account, and you're taken straight to the tools for your church once it's created.</p>
       </details>
       <details class="side-note" style="margin-bottom:12px;">
         <summary style="cursor:pointer;font-weight:600;color:var(--ink);" data-i18n="help.q4">How does online giving work?</summary>
-        <p style="margin-top:10px;color:var(--ink-mute);font-size:14px;" data-i18n="help.a4">Church owners connect a bank account through Stripe in their dashboard's Giving section. New churches need to be verified first — request verification from that same section, and donations go directly to the church's own account; FaithDock never holds the funds.</p>
+        <p style="margin-top:10px;color:var(--ink-mute);font-size:14px;" data-i18n="help.a4">Church owners connect a bank account through Stripe in their church’s Giving section. New churches need to be verified first — request verification from that same section, and donations go directly to the church's own account; FaithDock never holds the funds.</p>
       </details>
       <details class="side-note" style="margin-bottom:12px;">
         <summary style="cursor:pointer;font-weight:600;color:var(--ink);" data-i18n="help.q5">How do I join a group?</summary>
@@ -3151,7 +3155,7 @@
       </details>
       <details class="side-note" style="margin-bottom:12px;">
         <summary style="cursor:pointer;font-weight:600;color:var(--ink);" data-i18n="help.q6">I'm a church administrator — how do I add staff?</summary>
-        <p style="margin-top:10px;color:var(--ink-mute);font-size:14px;" data-i18n="help.a6">In your dashboard's Team panel (under Settings), enter a staff member's email to add them. You can also control exactly what each staff member is allowed to manage — events, giving, billing, or the church profile — individually.</p>
+        <p style="margin-top:10px;color:var(--ink-mute);font-size:14px;" data-i18n="help.a6">In your church's Team panel (under Settings), enter a staff member's email to add them. You can also control exactly what each staff member is allowed to manage — events, giving, billing, or the church profile — individually.</p>
       </details>
       <details class="side-note" style="margin-bottom:12px;">
         <summary style="cursor:pointer;font-weight:600;color:var(--ink);" data-i18n="help.q7">How do I switch the site to Spanish?</summary>
@@ -3159,7 +3163,7 @@
       </details>
       <details class="side-note" style="margin-bottom:12px;">
         <summary style="cursor:pointer;font-weight:600;color:var(--ink);" data-i18n="help.q8">How do I delete my account?</summary>
-        <p style="margin-top:10px;color:var(--ink-mute);font-size:14px;" data-i18n="help.a8">Go to your Profile page and scroll to "Delete account." If you own a church, you'll need to delete the church first from your dashboard's Settings before your account can be deleted.</p>
+        <p style="margin-top:10px;color:var(--ink-mute);font-size:14px;" data-i18n="help.a8">Go to your Profile page and scroll to "Delete account." If you own a church, you'll need to delete the church first from your church's Settings before your account can be deleted.</p>
       </details>
     </div>
 
@@ -3191,7 +3195,7 @@
          marketing hero with zero explanation is useless. The dedicated
          click handler below (search admin-my-church-dashboard-link)
          sends them to register one instead when that's the case. -->
-    <a href="#dashboard" id="admin-my-church-dashboard-link" style="display:inline-block;margin-top:8px;font-size:13.5px;font-weight:600;color:var(--ink);border-bottom:1px solid var(--gold);padding-bottom:2px;" data-i18n="admin.myChurchDashboard">My church dashboard →</a>
+    <a href="#dashboard" id="admin-my-church-dashboard-link" style="display:inline-block;margin-top:8px;font-size:13.5px;font-weight:600;color:var(--ink);border-bottom:1px solid var(--gold);padding-bottom:2px;" data-i18n="admin.myChurchDashboard">Manage my church →</a>
 
     <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:36px;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
       <h2 style="font-size:20px;margin:0;" data-i18n="admin.waitlistSignups">Waitlist signups</h2>
@@ -4060,7 +4064,7 @@
 <section class="page" id="page-create-event">
   <div class="auth-wrap" style="max-width:560px;">
     <div class="auth-card">
-      <a href="#dashboard" data-route="dashboard" style="display:inline-block;font-size:12.5px;color:var(--ink-mute);border-bottom:1px solid var(--line);margin-bottom:14px;" data-i18n="ce.backToDashboard">← Back to dashboard</a>
+      <a href="#dashboard" data-route="dashboard" style="display:inline-block;font-size:12.5px;color:var(--ink-mute);border-bottom:1px solid var(--line);margin-bottom:14px;" data-i18n="ce.backToDashboard">← Back to my church</a>
       <div class="eyebrow" data-i18n="ce.newEvent">New event</div>
       <h2 style="font-family:'Fraunces';font-size:22px;margin-bottom:6px;" id="ce-heading" data-i18n="ce.createAnEvent">Create an event</h2>
       <div id="ce-church-picker-wrap" style="display:none;margin-bottom:8px;">
@@ -4320,7 +4324,7 @@
         <button class="export-btn" id="ce-save-draft-btn" style="flex:1;justify-content:center;padding:13px;font-size:14.5px;margin-top:0;box-sizing:border-box;" data-i18n="ce.saveAsDraft">Save as draft</button>
         <button class="auth-submit" id="ce-submit-btn" style="flex:1;margin-top:0;box-sizing:border-box;" data-i18n="ce.publish">Publish</button>
       </div>
-      <div class="auth-note"><a href="#dashboard" data-route="dashboard" style="border-bottom:1px solid var(--gold);" data-i18n="ce.backToDashboard">← Back to dashboard</a></div>
+      <div class="auth-note"><a href="#dashboard" data-route="dashboard" style="border-bottom:1px solid var(--gold);" data-i18n="ce.backToDashboard">← Back to my church</a></div>
     </div>
   </div>
 </section>
@@ -5274,7 +5278,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-10-v272 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-10-v273 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -8092,6 +8096,23 @@
     });
   }
 
+  // "For churches" nav link: not a real route -- it drops you on the
+  // homepage and scrolls to the existing "For churches" band. No
+  // data-route (so it never gets a misleading .active state and the
+  // generic [data-route] handler ignores it); the delegated menu-close
+  // listener above still closes the mobile menu on the tap.
+  var forChurchesNavLink = document.getElementById('nav-for-churches-link');
+  if (forChurchesNavLink) {
+    forChurchesNavLink.addEventListener('click', function(ev){
+      ev.preventDefault();
+      go('home');
+      setTimeout(function(){
+        var band = document.querySelector('.for-churches');
+        if (band && band.scrollIntoView) band.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 60);
+    });
+  }
+
   var navSearchInput = document.getElementById('nav-search-input');
   if(navSearchInput){
     navSearchInput.addEventListener('keydown', function(ev){
@@ -9279,6 +9300,14 @@
     // still covers staff-of-several).
     window._dashMultiOwner = !!(myChurch.role === 'owner' && myChurch.ownedChurches && myChurch.ownedChurches.length > 1);
     window._dashOwnedChurches = (myChurch.role === 'owner' && myChurch.ownedChurches) ? myChurch.ownedChurches : [];
+    // Keep the account-menu link's wording (singular vs "Manage my
+    // churches") in step now that we know how many they own.
+    var dashNavLink = document.getElementById('nav-dashboard-link');
+    if (dashNavLink) {
+      var dashNavKey = window._dashMultiOwner ? 'nav.dashboardPlural' : 'nav.dashboard';
+      dashNavLink.setAttribute('data-i18n', dashNavKey);
+      dashNavLink.textContent = window.t(dashNavKey);
+    }
     var curDashKey = (typeof window.resolveRouteFromHash === 'function') ? window.resolveRouteFromHash(location.hash).key : null;
     if (window._dashMultiOwner && !curDashKey) {
       // Bare #dashboard -> land on the Overview grid rather than a
@@ -10022,13 +10051,14 @@
       sessionUser = userData.user;
     }
     var loginLink = document.getElementById('nav-login-link');
-    var signupBtn = document.getElementById('nav-signup-btn');
     var dashLink = document.getElementById('nav-dashboard-link');
     var userMenu = document.getElementById('nav-user-menu');
     var userNameSpan = document.getElementById('nav-user-name');
     var isSignedIn = !!sessionUser;
+    // Single "Sign in" nav link now -- the separate gold "Sign up" CTA
+    // was removed (signup is invite-gated during private testing; the
+    // homepage hero + "For churches" band carry the register CTA).
     if (loginLink) loginLink.style.display = isSignedIn ? 'none' : '';
-    if (signupBtn) signupBtn.style.display = isSignedIn ? 'none' : '';
     window.isSignedIn = isSignedIn;
 
     var accountType = null;
@@ -10104,19 +10134,19 @@
     var adminLink = document.getElementById('nav-admin-link');
     if (adminLink) adminLink.style.display = window.isPlatformAdmin ? '' : 'none';
 
-    // "Church dashboard" only makes sense — and only shows real,
-    // correct data — for church-type accounts. An individual account
-    // never had church data to see in the first place, so this isn't
-    // just hiding a link, it's preventing a genuinely wrong page from
-    // being reachable at all.
-    // Hidden for platform admins specifically, even if that account
-    // also owns a church (as a test/demo church often would) — the
-    // platform owner's own primary need is the Admin panel, not a
-    // church dashboard. The #dashboard route itself still exists and
-    // works if ever needed directly (e.g. to check the church-owner
-    // experience while testing); this only removes it from the
-    // visible nav link.
-    if (dashLink) dashLink.style.display = (isSignedIn && accountType === 'church' && !window.isPlatformAdmin) ? '' : 'none';
+    // "Manage my church" (in the account dropdown) shows for anyone who
+    // actually owns OR staffs a church -- window.hasChurchAccess, the
+    // same relationship-based signal go('dashboard') itself gates on.
+    // (It used to key on accountType === 'church', which silently left
+    // staff members -- who can legitimately reach the dashboard -- with
+    // no link to it.)
+    // Still hidden for platform admins specifically, even when that
+    // account also owns a test/demo church -- the platform owner's own
+    // entry point is the Admin panel (which carries its own "Manage my
+    // church →" link). The #dashboard route still works if typed
+    // directly.
+    if (dashLink) dashLink.style.display = (isSignedIn && window.hasChurchAccess && !window.isPlatformAdmin) ? '' : 'none';
+    if (dashLink && window._dashMultiOwner) { dashLink.setAttribute('data-i18n', 'nav.dashboardPlural'); dashLink.textContent = window.t('nav.dashboardPlural'); }
 
     if (!isSignedIn && typeof window.resolveRouteFromHash === 'function' && window.resolveRouteFromHash(location.hash).base === 'dashboard') {
       console.log('[FaithDock auth] REDIRECT: dashboard -> signup (not signed in)');

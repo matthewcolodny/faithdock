@@ -1064,3 +1064,30 @@ if(route.split('/')[0] === 'register-church' && !window.isSignedIn && typeof win
 2. **Not filterable.** The denomination filter is a **static** set of 9 checkboxes (`rebuildDenomFilterChecklist()` only updates the dropdown's count label, it does NOT rebuild the list). `Christian / General` churches were reachable only via the **"Other"** checkbox, which the filter logic treats as a wildcard — checked ⇒ `p_denominations = null` (no narrowing). So unchecking "Other" and picking any specific denomination dropped all 11 with no way to isolate them. Fix: added a `value="Christian / General"` checkbox to **both** the directory filter (`.denom-filter`) and the Events filter (`.events-denom-filter`), a `<select>` option to the register-church form, `'Christian / General'` to the `knownDenoms` array in `checkExistingChurch` (so editing such a church selects the option instead of falling to "Other" + free-text), and to the `coreDenomsAll` / `coreDenomsForEvents` arrays used by the dropdown's own denom-search box. `search_churches`'s `p_denominations` and the Events page's `.in('denomination', …)` both match exact strings, so `['Christian / General']` filters correctly with no backend change.
 
 **Still a known quirk (unchanged):** "Other" remains a wildcard ("show everything"), not a true residual bucket ("denominations not in this list"), and the 6 churches with a NULL denomination are still displayed as "Non-denominational" by `mapSearchRow` (`row.denomination || 'Non-denominational'`). Both left as-is. Build stamp `2026-09-10-v272`.
+
+---
+
+## Nav cleanup + "Church dashboard" → "Manage my church"
+
+**Public nav is now `Churches | Events | For churches | Pricing | Sign in`** ([index.html](index.html)):
+
+- **"For churches"** (`#nav-for-churches-link`, `nav.forChurches`) is **not a route** — `href="#home"`, no `data-route` (so it never gets a misleading `.active` state and the generic `[data-route]` handler skips it). Its own listener (near the hamburger wiring) does `go('home')` then `setTimeout(() => document.querySelector('.for-churches').scrollIntoView({behavior:'smooth',block:'start'}), 60)`. The mobile menu-close is handled by the existing delegated `#nav-links` click listener. **Note:** `behavior:'smooth'` `scrollIntoView` silently no-ops in the Browser-pane test env — verify the scroll in a real browser; instant scroll works there.
+- **"Log in" + gold "Sign up" CTA → one plain "Sign in" link.** `#nav-signup-btn` and the `.nav-cta` CSS (both blocks) were deleted; `#nav-login-link` kept its id (still toggled by `updateAuthUI`) but now carries `data-i18n="nav.signin"` = "Sign in" / "Iniciar sesión". Signup discovery lives on the homepage hero link + "For churches" band, both invite-gated.
+- **`#nav-admin-link`** got `data-i18n="nav.admin"` (`'Admin'` / `'Administración'`) — it was hardcoded English before. Gate unchanged (`window.isPlatformAdmin`).
+
+**Dashboard link — moved, renamed, re-gated:**
+
+- **Moved** from the top bar into `#nav-user-dropdown` (first item, above "Account profile").
+- **Renamed** `nav.dashboard` "Church dashboard" → **"Manage my church"** / **"Administrar mi iglesia"**. New key `nav.dashboardPlural` "Manage my churches" / "Administrar mis iglesias" — swapped in when `window._dashMultiOwner` is true, in three places that compose: `loadDashboardHeader` (right after it sets `_dashMultiOwner`), `updateAuthUI` (the dashLink line), and `applyTranslations` (so a language switch keeps the plural). Each flips the element's `data-i18n` attribute AND sets `textContent`, so the next `applyTranslations` pass stays consistent.
+- **Re-gated** on `window.hasChurchAccess` (owner **or** staff — the same signal `go('dashboard')` uses) instead of `accountType === 'church'`. **This was a real bug:** a staff member whose `account_type` wasn't `'church'` had no nav link to a dashboard they can legitimately open. Still hidden for platform admins (they use the Admin panel's own "Manage my church →" link).
+
+**Ripple renames (dict + every static HTML fallback copy — the dict is the runtime source of truth, HTML text only flashes pre-`applyTranslations`):**
+
+| Key | Old | New (EN / ES) |
+|---|---|---|
+| `admin.myChurchDashboard` | "My church dashboard →" | "Manage my church →" / "Administrar mi iglesia →" |
+| `ce.backToDashboard` | "← Back to dashboard" | "← Back to my church" / "← Volver a mi iglesia" |
+| `pricing.free.f2`, `ptable.dashboard` | "Dashboard access" | "Church management tools" / "Herramientas de gestión de la iglesia" — *note: both keys are currently unreferenced by the live pricing render (legacy), renamed for when/if they're re-wired* |
+| `help.a3/a4/a6/a8` | "your church dashboard", "your dashboard's X section" | "the tools for your church", "your church's X section" (ES: "las herramientas de tu iglesia", "de tu iglesia") |
+
+`help.*` and a few others store `’`/`—` as literal `\u2019`/`\u2014` in the EN dict and `\u00XX`-escape accented chars in the ES dict, while the static HTML `<p>` fallbacks use literal UTF-8 — so each string needed editing in whichever encoding that copy uses. Build stamp `2026-09-10-v273`.
