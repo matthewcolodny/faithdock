@@ -987,3 +987,20 @@ Reworked how a church's status reads to visitors. The data has two independent a
 **Left untouched, deliberately:** every admin-panel label (Verified / Pending / Rejected / Not verified / Unclaimed) and the `dashGiving.*` verification-gate tags — internal or accurate as-is. `pricing.title` "Become a Partner Church" stays (Partner = paid plan, so it's a coherent CTA).
 
 **Needs `migrations/017`** — `search_churches()` didn't return `plan_type`, so the directory-card **"FaithDock Partner"** rung can't show until that migration runs (pre-migration those churches fall back to "Managed by this church"). 017 is 014's function verbatim + `plan_type` added to the CTE and the `RETURNS TABLE`. `mapSearchRow()` and `findOrFetchChurchByName()` now carry `planType`. Verified locally (helper ladder, all four profile-page state combos, EN↔ES); the Partner rung on cards is the one thing pending the migration. Build stamp `2026-09-10-v265`.
+
+---
+
+## `churches.is_hidden` — keep test churches out of public discovery
+
+Every one of the 5 churches in the live directory is a test/internal entry (Lorem-ipsum descriptions, `test.com` sites, "Test N" names, "Isis" as a denomination, no connected payout account) — there are **zero real churches** yet. Rather than delete them (they're needed for ongoing testing), added a flag.
+
+**`migrations/018`:** `churches.is_hidden boolean not null default false`. A hidden church stays fully usable by its owner (dashboard, My Churches, event creation, direct `#church/<name>` URL) but drops off public discovery.
+
+- `grant select (is_hidden) on churches to anon, authenticated` — `search_churches` is SECURITY INVOKER and its `WHERE` now reads the column (same privilege-model lesson as the `churches.*` / stripe-column lockdown).
+- `search_churches` re-created (017's body + `and c.is_hidden = false` in the `bounded` CTE — return shape unchanged, so `create or replace`, no DROP). This covers the **directory grid, homepage "Churches near you", and all church search** in one place.
+- `admin_set_church_hidden(target_church_id uuid, hidden boolean)` — SECURITY DEFINER, `is_platform_admin()` gate (a church's normal UPDATE RLS is owner/permitted-staff only, so an admin can't flip this directly), same pattern as `review_church_verification`.
+- `update churches set is_hidden = true` on the 5 test ids.
+
+**Client:** the admin "All churches" list (`loadAdminChurchesList`) now pulls `is_hidden` for the page of rows (a small `churches.select('id, is_hidden').in('id', …)` after the RPC — `search_all_churches_admin` doesn't carry it and modifying that RPC's return shape wasn't worth it), shows a "Hidden" tag + dims the row, and renders a **Hide / Show** button next to Un-verify / Delete that calls `admin_set_church_hidden` then `loadAdminPanel()`. New i18n keys `admin.hide` / `admin.show` / `admin.hiddenTag` (EN + ES). Build stamp `2026-09-10-v266`.
+
+**Still open — hidden churches' EVENTS.** `search_events` (homepage "Upcoming events" + the Events page) has no repo copy — no Supabase CLI project, no linked config, no connection string, and the anon key can't introspect `pg_get_functiondef`. So the same `and c.is_hidden = false` on its churches join is **`migrations/019`, pending the user pasting `search_events`'s current definition** from the dashboard (SQL Editor: `select pg_get_functiondef('public.search_events'::regproc);`, or Database → Functions → search_events). Until 019, the 5 test churches' events still appear on the homepage and Events page even though the churches themselves are gone from the directory.

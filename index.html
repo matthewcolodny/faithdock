@@ -743,6 +743,7 @@
       'admin.noSupportMessagesMatch': 'No support messages match.', 'admin.message': 'message', 'admin.messages': 'messages',
       'admin.noFeedbackMatches': 'No feedback matches.', 'admin.item': 'item', 'admin.items': 'items',
       'admin.notVerified': 'Not verified', 'admin.unverify': 'Un-verify', 'admin.delete': 'Delete',
+      'admin.hide': 'Hide', 'admin.show': 'Show', 'admin.hiddenTag': 'Hidden',
       'admin.noChurchesMatch': 'No churches match.', 'admin.church': 'church', 'admin.churches': 'churches',
       'admin.unknownChurch': 'Unknown church', 'admin.noEmailGiven': 'no email given', 'admin.requestedOn': 'Requested {date}',
       'admin.noPendingClaims': 'No pending claims.', 'admin.pendingClaim': 'pending claim', 'admin.pendingClaimsWord': 'pending claims',
@@ -1445,6 +1446,7 @@
       'admin.noSupportMessagesMatch': 'Ningún mensaje de soporte coincide.', 'admin.message': 'mensaje', 'admin.messages': 'mensajes',
       'admin.noFeedbackMatches': 'Ningún comentario coincide.', 'admin.item': 'elemento', 'admin.items': 'elementos',
       'admin.notVerified': 'No verificada', 'admin.unverify': 'Quitar verificación', 'admin.delete': 'Eliminar',
+      'admin.hide': 'Ocultar', 'admin.show': 'Mostrar', 'admin.hiddenTag': 'Oculta',
       'admin.noChurchesMatch': 'Ninguna iglesia coincide.', 'admin.church': 'iglesia', 'admin.churches': 'iglesias',
       'admin.unknownChurch': 'Iglesia desconocida', 'admin.noEmailGiven': 'sin correo proporcionado', 'admin.requestedOn': 'Solicitado el {date}',
       'admin.noPendingClaims': 'No hay reclamos pendientes.', 'admin.pendingClaim': 'reclamo pendiente', 'admin.pendingClaimsWord': 'reclamos pendientes',
@@ -5152,7 +5154,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-10-v265 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-10-v266 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -17579,16 +17581,30 @@
 
     var rows = data || [];
     var totalCount = rows.length ? rows[0].total_count : 0;
+
+    // search_all_churches_admin doesn't carry is_hidden -- pull it for
+    // this page of rows so each can show its visibility state and the
+    // right Hide/Show label. (is_hidden is column-granted to
+    // authenticated by migration 018; churches SELECT is public.)
+    var hiddenById = {};
+    if (rows.length) {
+      var { data: hiddenRows } = await supabase.from('churches').select('id, is_hidden').in('id', rows.map(function(c){ return c.id; }));
+      (hiddenRows || []).forEach(function(h){ hiddenById[h.id] = !!h.is_hidden; });
+    }
+
     var html = rows.map(function(c){
       var st = c.verification_status || 'unverified';
       var statusLabel = st === 'verified' ? window.t('admin.verified') : st === 'pending' ? window.t('admin.pending') : st === 'rejected' ? window.t('admin.rejected') : window.t('admin.notVerified');
       var statusColor = st === 'verified' ? 'var(--gold)' : st === 'pending' ? 'var(--ink-mute)' : 'var(--clay)';
       var unclaimedTag = !c.owner_id ? ' · <span style="color:var(--clay);font-weight:600;">' + window.t('admin.unclaimed') + '</span>' : '';
-      return '<div class="registrant-row"><div>'
+      var isHidden = !!hiddenById[c.id];
+      var hiddenTag = isHidden ? ' · <span style="color:var(--ink-mute);font-weight:600;">' + window.t('admin.hiddenTag') + '</span>' : '';
+      return '<div class="registrant-row"' + (isHidden ? ' style="opacity:0.6;"' : '') + '><div>'
         + '<div class="registrant-name"><a href="#admin-church/' + c.id + '" data-route="admin-church" data-admin-church-id="' + c.id + '" style="color:inherit;border-bottom:1px solid var(--line);">' + c.name + '</a></div>'
-        + '<div class="registrant-date">' + (c.denomination || '—') + ' · <span style="color:' + statusColor + ';font-weight:600;">' + statusLabel + '</span>' + unclaimedTag + '</div>'
+        + '<div class="registrant-date">' + (c.denomination || '—') + ' · <span style="color:' + statusColor + ';font-weight:600;">' + statusLabel + '</span>' + unclaimedTag + hiddenTag + '</div>'
         + (c.address ? '<div class="registrant-date" style="font-size:11.5px;">' + c.address + '</div>' : '')
         + '</div>'
+        + '<button class="export-btn" data-toggle-hidden-church-id="' + c.id + '" data-toggle-hidden-to="' + (isHidden ? 'false' : 'true') + '" style="padding:6px 14px;">' + window.t(isHidden ? 'admin.show' : 'admin.hide') + '</button>'
         + (st === 'verified' ? '<button class="export-btn" data-unverify-church-id="' + c.id + '" style="padding:6px 14px;">' + window.t('admin.unverify') + '</button>' : '')
         + (!c.owner_id ? '<button class="export-btn" data-delete-unclaimed-church-id="' + c.id + '" data-delete-unclaimed-church-name="' + c.name.replace(/"/g, '&quot;') + '" style="padding:6px 14px;color:var(--clay);">' + window.t('admin.delete') + '</button>' : '')
         + '</div>';
@@ -18151,6 +18167,21 @@
     var newStatus = approveBtn ? 'verified' : rejectBtn ? 'rejected' : 'unverified';
     if (unverifyBtn && !confirm(window.t('admin.unverifyConfirm'))) return;
     await supabase.rpc('review_church_verification', { target_church_id: churchId, new_status: newStatus });
+    loadAdminPanel();
+  });
+
+  // Admin Hide/Show: flips churches.is_hidden via the platform-admin
+  // RPC (a church's normal UPDATE RLS is owner-only). A hidden church
+  // drops off the directory / homepage / search but stays fully usable
+  // by its owner.
+  document.addEventListener('click', async function(ev){
+    var toggleHiddenBtn = ev.target.closest ? ev.target.closest('[data-toggle-hidden-church-id]') : null;
+    if (!toggleHiddenBtn) return;
+    var targetId = toggleHiddenBtn.getAttribute('data-toggle-hidden-church-id');
+    var hideTo = toggleHiddenBtn.getAttribute('data-toggle-hidden-to') === 'true';
+    toggleHiddenBtn.disabled = true;
+    var { error } = await supabase.rpc('admin_set_church_hidden', { target_church_id: targetId, hidden: hideTo });
+    if (error) { alert(error.message); toggleHiddenBtn.disabled = false; return; }
     loadAdminPanel();
   });
 
