@@ -1018,3 +1018,14 @@ Every one of the 5 churches in the live directory is a test/internal entry (Lore
 - The Events page's own "Load more" is untouched — separate follow-up.
 
 **Denomination-tinted placeholders.** Logoless churches all got the same grey building icon — a wall of identical tiles. `churchCard()` now adds `.thumb--denom` with an inline `--thumb-hue` from `denomHue(c.tag)`: a hand-picked hue per known denomination (Baptist 210, Catholic 275, …), and a stable string hash for anything else (free-form CSV values, blanks → 220). CSS gives a muted wash + matching icon stroke, with `html[data-theme="dark"]` overrides (the app resolves `prefers-color-scheme` to the `data-theme` attribute at load, so no media query needed). Real logos (`c.logoUrl`) never get the class. Applies to the directory grid and the homepage "Churches near you" (both go through `churchCard`). Build stamp `2026-09-10-v269`.
+
+---
+
+## Directory: Card / List view toggle
+
+The directory has a **Cards / List** segmented toggle in `.dir-results-head` (next to the "N churches found" count). List view drops the thumbnail entirely — a logoless church costs zero extra height — and renders one compact `.church-row` (`churchRow()`): name + denomination tag + status tag on line 1, distance / next-service / next-event meta on line 2, a `>` chevron, and a denomination-hued left accent (`--thumb-hue` from the same `denomHue()`). Same `<a href="#church" data-route="church" data-church-name>` as `churchCard`'s anchor, so the existing click handler drives it.
+
+- **View state:** `directoryView()` / `setDirectoryView()` back onto `localStorage['fd-directory-view']` (`'list'` | `'cards'`, default cards), both wrapped in try/catch (private-mode throws on access). Per visitor, not synced anywhere.
+- **`paintDirectoryGrid()`** is the single place the grid is filled from `window.directoryLastRenderedRows`, in whichever view is active — it sets `#directory-grid`'s `className` (`grid` vs `church-list`) and inline `display` (`grid` vs `flex`), then `mapJoin`s the rows through `churchCard` or `churchRow`. Called by: `renderDirectory` (fresh page), `refreshDirectoryCardsText` (language switch), and the toggle handler. **Switching view does no network call and doesn't touch pagination** — it just repaints the cached rows.
+- The toggle handler (`[data-dir-view]` click, near the pager handler) writes the pref, calls `syncDirViewButtons()` (`.is-active` + `aria-pressed`), and repaints. `syncDirViewButtons()` also runs once at load so a returning list-view visitor sees the right button lit before the first render.
+- New i18n: `directory.viewCards` / `directory.viewList` / `directory.viewToggleLabel` (EN + ES). The homepage "Churches near you" strip is cards-only — untouched. Build stamp `2026-09-10-v270`.
