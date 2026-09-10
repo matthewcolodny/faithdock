@@ -237,7 +237,7 @@
       'legal.adaFeedbackHeading': "Tell us what isn't working",
       'legal.adaFeedback1': "If you use assistive technology and run into something on FaithDock that doesn't work the way it should, we want to know. Please tell us the page you were on, what you were trying to do, and what happened instead — that's the fastest way for us to reproduce and fix it.",
       'legal.adaContactPre': 'Reach us about accessibility at',
-      'common.loading': 'Loading...', 'common.loadMore': 'Load more', 'common.saved': 'Saved!', 'common.somethingWrong': 'Something went wrong.',
+      'common.loading': 'Loading...', 'common.loadMore': 'Load more', 'common.prev': 'Prev', 'common.next': 'Next', 'common.saved': 'Saved!', 'common.somethingWrong': 'Something went wrong.',
       'common.on': 'On', 'common.off': 'Off',
       'common.close': 'Close', 'common.toggleDarkMode': 'Toggle dark mode', 'common.menu': 'Menu', 'common.searchLocation': 'Search location', 'common.dismiss': 'Dismiss',
       'common.previousMonth': 'Previous month', 'common.nextMonth': 'Next month',
@@ -940,7 +940,7 @@
       'legal.adaFeedbackHeading': 'Cuéntanos qué no está funcionando',
       'legal.adaFeedback1': 'Si usas tecnología de asistencia y encuentras algo en FaithDock que no funciona como debería, queremos saberlo. Por favor cuéntanos en qué página estabas, qué intentabas hacer, y qué sucedió en su lugar — esa es la forma más rápida de reproducir y corregir el problema.',
       'legal.adaContactPre': 'Contáctanos sobre accesibilidad en',
-      'common.loading': 'Cargando...', 'common.loadMore': 'Cargar más', 'common.saved': '¡Guardado!', 'common.somethingWrong': 'Algo salió mal.',
+      'common.loading': 'Cargando...', 'common.loadMore': 'Cargar más', 'common.prev': 'Anterior', 'common.next': 'Siguiente', 'common.saved': '¡Guardado!', 'common.somethingWrong': 'Algo salió mal.',
       'common.on': 'Activado', 'common.off': 'Desactivado',
       'common.close': 'Cerrar', 'common.toggleDarkMode': 'Cambiar a modo oscuro', 'common.menu': 'Menú', 'common.searchLocation': 'Buscar ubicación', 'common.dismiss': 'Descartar',
       'common.previousMonth': 'Mes anterior', 'common.nextMonth': 'Mes siguiente',
@@ -1928,6 +1928,21 @@
     display:flex;align-items:center;justify-content:center;
   }
   .thumb svg{width:34px;height:34px;opacity:.55;}
+  /* Logoless placeholder: a muted wash + icon tint keyed to denomination
+     (--thumb-hue, set inline in churchCard) so the grid isn't a wall of
+     identical tiles. Real logos never get .thumb--denom. */
+  .thumb--denom{background:hsl(var(--thumb-hue,220) 34% 88%);}
+  .thumb--denom svg{stroke:hsl(var(--thumb-hue,220) 30% 46%);opacity:.7;}
+  html[data-theme="dark"] .thumb--denom{background:hsl(var(--thumb-hue,220) 22% 17%);}
+  html[data-theme="dark"] .thumb--denom svg{stroke:hsl(var(--thumb-hue,220) 24% 60%);opacity:.8;}
+  /* Directory numbered pager */
+  .dir-pager{display:flex;flex-wrap:wrap;align-items:center;gap:6px;}
+  .dir-pager-btn{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:34px;padding:0 10px;font-size:13px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);cursor:pointer;}
+  .dir-pager-btn:hover:not([disabled]):not(.dir-pager-current){border-color:var(--gold);}
+  .dir-pager-btn[disabled]{opacity:.4;cursor:default;}
+  .dir-pager-current{background:var(--brand);color:#fff;border-color:var(--brand);cursor:default;}
+  html[data-theme="dark"] .dir-pager-current{background:var(--gold);color:var(--brand);border-color:var(--gold);}
+  .dir-pager-gap{padding:0 2px;color:var(--ink-mute);}
   .card-body{padding:18px;}
   .tag{
     display:inline-block;font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.05em;
@@ -2612,9 +2627,7 @@
         <div id="directory-count" style="font-size:13.5px;color:var(--ink-mute);margin-bottom:16px;"></div>
         <div class="grid" id="directory-grid"></div>
         <div id="directory-empty" style="display:none;color:var(--ink-mute);font-size:14.5px;padding:40px 0;text-align:center;" data-i18n="filters.noChurchesMatch">No churches match these filters. Try widening your search.</div>
-        <div style="text-align:center;margin-top:24px;">
-          <button class="export-btn" id="directory-load-more-btn" style="display:none;padding:10px 24px;" data-i18n="common.loadMore">Load more</button>
-        </div>
+        <nav id="directory-pager" class="dir-pager" aria-label="Pagination" style="justify-content:center;margin-top:28px;"></nav>
       </div>
     </div>
   </div>
@@ -5156,7 +5169,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-10-v268 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-10-v269 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -5506,11 +5519,31 @@
   }
   window.churchStatusTag = churchStatusTag;
 
+  // A muted hue (0-359) for a church's placeholder thumbnail, keyed to
+  // denomination so a directory of logoless churches isn't a wall of
+  // identical tiles. Known denominations get hand-picked, well-spread
+  // hues; anything else (free-form CSV values, blanks) is hashed to a
+  // stable hue.
+  var DENOM_HUES = {
+    'baptist': 210, 'catholic': 275, 'episcopal': 330, 'lutheran': 25,
+    'methodist': 155, 'non-denominational': 45, 'pentecostal': 350,
+    'presbyterian': 190, 'other': 255
+  };
+  function denomHue(denom){
+    var key = String(denom == null ? '' : denom).trim().toLowerCase();
+    if (!key || key === '-' || key === '—') return 220;
+    if (DENOM_HUES[key] != null) return DENOM_HUES[key];
+    var h = 0;
+    for (var i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0;
+    return h % 360;
+  }
+  window.churchDenomHue = denomHue;
+
   function churchCard(c, clickable){
     var distText = formatChurchDistanceText(c.dist);
     var thumb = c.logoUrl
       ? '<div class="thumb" style="background-image:url(\'' + c.logoUrl + '\');background-size:contain;background-repeat:no-repeat;background-position:center;background-color:#fff;background-origin:content-box;padding:16px;box-sizing:border-box;">' + '</div>'
-      : '<div class="thumb">' + buildingIcon + '</div>';
+      : '<div class="thumb thumb--denom" style="--thumb-hue:' + denomHue(c.tag) + ';">' + buildingIcon + '</div>';
     var inner = ''
       + thumb
       + '<div class="card-body">'
@@ -6405,6 +6438,13 @@
     if(resolved.base === 'dashboard' && resolved.key){
       goDash(resolved.key, true);
     }
+    // #directory or #directory/N -- render the page the URL points at
+    // (covers a fresh load, a bookmark, and Back/Forward between pages).
+    // Needs supabase; on the very first pre-module call it isn't ready
+    // yet, and loadRealChurches() does the initial render itself.
+    if(resolved.base === 'directory' && window.supabase && typeof window.renderDirectory === 'function'){
+      window.renderDirectory(directoryPageFromHash());
+    }
   }
   window.showRouteFromHash = showRouteFromHash;
 
@@ -6527,6 +6567,11 @@
       }
       if(route === 'profile' && typeof window.loadProfilePage === 'function'){
         window.loadProfilePage();
+      }
+      // The nav "Churches" link (and any plain data-route="directory")
+      // is a fresh entry -> page 1, not wherever pagination was left.
+      if(route === 'directory' && typeof window.renderDirectory === 'function'){
+        window.renderDirectory(1);
       }
       go(fullRoute);
       // eslint-disable-next-line no-use-before-define -- navLinksEl is declared later in this block; this is inside a click handler callback that only runs on an actual click, long after the whole script (including that declaration) has finished executing. Verified by hand.
@@ -6841,8 +6886,19 @@
   window.enrichChurchesWithSchedule = enrichChurchesWithSchedule;
 
   var DIRECTORY_PAGE_SIZE = 24;
-  window.directoryOffset = 0;
+  window.directoryPage = 1;
   window.directoryLastFilters = null;
+
+  // The 1-based page the URL currently points at (#directory/N). Bare
+  // #directory (or anything not on the directory route) is page 1.
+  function directoryPageFromHash(){
+    if (typeof resolveRouteFromHash !== 'function') return 1;
+    var r = resolveRouteFromHash(location.hash);
+    if (r.base !== 'directory') return 1;
+    var n = parseInt(r.key, 10);
+    return (n && n > 0) ? n : 1;
+  }
+  window.directoryPageFromHash = directoryPageFromHash;
 
   function currentDirectoryFilters(){
     var checkedDenoms = [];
@@ -6872,16 +6928,21 @@
     };
   }
 
-  // append=false (default): a filter changed, replace the grid from
-  // scratch. append=true: "Load more" was clicked, add a page onto
-  // what's already shown.
-  async function renderDirectory(append){
+  // renderDirectory(n): render page n (1-based), grid replaced.
+  // renderDirectory() with no numeric arg: a filter changed -> snap to
+  // page 1. Either way the URL is kept in sync (#directory / #directory/N)
+  // while the directory route is showing.
+  async function renderDirectory(page){
+    if (!window.supabase) return; // not ready yet on the earliest calls
+    var targetPage = (typeof page === 'number' && page >= 1) ? Math.floor(page) : 1;
+
     var denomChecksEl = document.getElementById('filter-denom-checks');
     var f = currentDirectoryFilters();
     if (denomChecksEl) denomChecksEl.style.opacity = f.denomSearch ? '0.4' : '1';
 
-    if (!append) { window.directoryOffset = 0; window.directoryLastFilters = f; }
-    var offset = window.directoryOffset;
+    window.directoryPage = targetPage;
+    window.directoryLastFilters = f;
+    var offset = (targetPage - 1) * DIRECTORY_PAGE_SIZE;
 
     // denomSearch (free-text search within the denomination dropdown
     // itself) narrows which denominations count as "selected" rather
@@ -6903,59 +6964,100 @@
       denominations = f.checkedDenoms;
     }
 
-    var { data, error } = await window.supabase.rpc('search_churches', {
+    var baseParams = {
       p_keyword: f.keyword || null,
       p_denominations: denominations,
       p_user_lat: window.dirUserLat,
       p_user_lng: window.dirUserLng,
       p_max_distance_miles: f.maxDist > 0 ? f.maxDist : null,
       p_events_within_days: f.eventsWithin > 0 ? f.eventsWithin : null,
-      p_limit: DIRECTORY_PAGE_SIZE,
-      p_offset: offset
-    });
+      p_limit: DIRECTORY_PAGE_SIZE
+    };
+    var { data, error } = await window.supabase.rpc('search_churches', Object.assign({}, baseParams, { p_offset: offset }));
 
     var grid = document.getElementById('directory-grid');
     var empty = document.getElementById('directory-empty');
     var count = document.getElementById('directory-count');
-    var loadMoreBtn = document.getElementById('directory-load-more-btn');
+    var pager = document.getElementById('directory-pager');
 
     if (error) {
       grid.style.display = 'none';
       empty.style.display = 'block';
       empty.textContent = window.t('dir.somethingWentWrongLoading').replace('{error}', error.message);
-      loadMoreBtn.style.display = 'none';
+      if (pager) pager.innerHTML = '';
       return;
     }
 
     var rows = (data || []).map(mapSearchRow);
+    // total_count rides on each returned row (count(*) over()), so a page
+    // past the end comes back with zero rows AND no total. Probe page 1
+    // to tell "past the end" (clamp to the last real page) apart from
+    // "filters genuinely match nothing" (real empty state).
     var totalCount = (data && data.length) ? data[0].total_count : 0;
-    await enrichChurchesWithSchedule(rows);
+    if (rows.length === 0 && targetPage > 1) {
+      var probe = await window.supabase.rpc('search_churches', Object.assign({}, baseParams, { p_offset: 0 }));
+      var probeTotal = (probe && probe.data && probe.data.length) ? probe.data[0].total_count : 0;
+      if (probeTotal > 0) return renderDirectory(Math.ceil(probeTotal / DIRECTORY_PAGE_SIZE));
+      totalCount = 0;
+    }
+    var totalPages = Math.max(1, Math.ceil(totalCount / DIRECTORY_PAGE_SIZE));
 
-    rows.forEach(function(c){ var existing = churches.filter(function(x){ return x.id === c.id; })[0]; if (!existing) churches.push(c); });
-
-    if (!append) {
-      window.directoryLastRenderedRows = rows;
-      if (rows.length === 0) {
-        grid.innerHTML = '';
-        grid.style.display = 'none';
-        empty.style.display = 'block';
-        empty.textContent = window.t('filters.noChurchesMatch');
-      } else {
-        grid.style.display = 'grid';
-        empty.style.display = 'none';
-        grid.innerHTML = mapJoin(rows, function(c){ return churchCard(c, true); });
-      }
-    } else if (rows.length) {
-      window.directoryLastRenderedRows = (window.directoryLastRenderedRows || []).concat(rows);
-      grid.insertAdjacentHTML('beforeend', mapJoin(rows, function(c){ return churchCard(c, true); }));
+    // Belt-and-suspenders: page in range of the count we DID get back but
+    // still somehow beyond the last page -> re-render the last real page.
+    if (totalCount > 0 && targetPage > totalPages) {
+      return renderDirectory(totalPages);
     }
 
-    window.directoryOffset = offset + rows.length;
+    await enrichChurchesWithSchedule(rows);
+    rows.forEach(function(c){ var existing = churches.filter(function(x){ return x.id === c.id; })[0]; if (!existing) churches.push(c); });
+
+    window.directoryLastRenderedRows = rows;
+    if (rows.length === 0) {
+      grid.innerHTML = '';
+      grid.style.display = 'none';
+      empty.style.display = 'block';
+      empty.textContent = window.t('filters.noChurchesMatch');
+      if (pager) pager.innerHTML = '';
+    } else {
+      grid.style.display = 'grid';
+      empty.style.display = 'none';
+      grid.innerHTML = mapJoin(rows, function(c){ return churchCard(c, true); });
+      if (pager) pager.innerHTML = buildDirectoryPager(targetPage, totalPages);
+    }
+
     window.directoryLastTotalCount = totalCount;
     count.textContent = totalCount + ' ' + (totalCount === 1 ? window.t('filters.oneChurchFound') : window.t('filters.manyChurchesFound'));
-    loadMoreBtn.style.display = (window.directoryOffset < totalCount) ? 'inline-flex' : 'none';
+
+    // Keep the URL in step, but only while the directory route is the
+    // one on screen (renderDirectory also runs eagerly at startup from
+    // loadRealChurches, when the hash may be #home or anything else).
+    if (typeof resolveRouteFromHash === 'function' && resolveRouteFromHash(location.hash).base === 'directory') {
+      var wantHash = targetPage > 1 ? '#directory/' + targetPage : '#directory';
+      if (location.hash !== wantHash) safeHistoryUpdate(true, wantHash);
+    }
   }
   window.renderDirectory = renderDirectory;
+
+  // "‹ Prev  1 … 4 5 [6] 7 8 … 20  Next ›"  -- empty string when there's
+  // only one page. Buttons carry data-dir-page for the delegated handler.
+  function buildDirectoryPager(page, totalPages){
+    if (totalPages <= 1) return '';
+    function btn(n, label, opts){
+      opts = opts || {};
+      if (opts.current) return '<span class="dir-pager-btn dir-pager-current" aria-current="page">' + label + '</span>';
+      return '<button type="button" class="dir-pager-btn" data-dir-page="' + n + '"' + (opts.disabled ? ' disabled' : '') + '>' + label + '</button>';
+    }
+    var out = [btn(page - 1, '‹ ' + window.t('common.prev'), { disabled: page <= 1 })];
+    var want = {};
+    [1, totalPages, page, page - 1, page + 1, page - 2, page + 2].forEach(function(n){ if (n >= 1 && n <= totalPages) want[n] = true; });
+    var nums = Object.keys(want).map(Number).sort(function(a, b){ return a - b; });
+    for (var i = 0; i < nums.length; i++){
+      if (i > 0 && nums[i] - nums[i - 1] > 1) out.push('<span class="dir-pager-gap">…</span>');
+      out.push(btn(nums[i], String(nums[i]), { current: nums[i] === page }));
+    }
+    out.push(btn(page + 1, window.t('common.next') + ' ›', { disabled: page >= totalPages }));
+    return out.join('');
+  }
   // Re-formats the already-known count in the new language without a
   // server round-trip.
   window.refreshDirectoryCountText = function(){
@@ -6979,11 +7081,29 @@
       if (c.real) c.next = window.formatChurchServiceTimes(c.rawServiceTimes);
     });
     grid.innerHTML = mapJoin(window.directoryLastRenderedRows, function(c){ return churchCard(c, true); });
+    // Pager labels ("Prev"/"Next") are language-dependent too -- rebuild
+    // from the known page + total (no network call).
+    var pager = document.getElementById('directory-pager');
+    if (pager && window.directoryLastTotalCount !== undefined && window.directoryLastRenderedRows.length) {
+      var totalPages = Math.max(1, Math.ceil(window.directoryLastTotalCount / DIRECTORY_PAGE_SIZE));
+      pager.innerHTML = buildDirectoryPager(window.directoryPage || 1, totalPages);
+    }
   };
 
-  var directoryLoadMoreBtn = document.getElementById('directory-load-more-btn');
-  if (directoryLoadMoreBtn) {
-    directoryLoadMoreBtn.addEventListener('click', function(){ renderDirectory(true); });
+  var directoryPagerEl = document.getElementById('directory-pager');
+  if (directoryPagerEl) {
+    directoryPagerEl.addEventListener('click', function(ev){
+      var btn = ev.target && ev.target.closest ? ev.target.closest('[data-dir-page]') : null;
+      if (!btn || btn.disabled) return;
+      var n = parseInt(btn.getAttribute('data-dir-page'), 10);
+      if (!n || n < 1 || n === window.directoryPage) return;
+      // Push so Back/Forward step through pages; renderDirectory sees the
+      // hash already matches and won't add a second history entry.
+      safeHistoryUpdate(false, n > 1 ? '#directory/' + n : '#directory');
+      renderDirectory(n);
+      var head = document.querySelector('#page-directory .directory-layout') || document.getElementById('directory-grid');
+      if (head && head.scrollIntoView) head.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
   }
 
   // Homepage's small "Churches near you" preview — same RPC, just 3
@@ -8167,7 +8287,7 @@
     // Anyone who never triggered a re-render (denied location,
     // didn't search) would see a permanently blank page.
     if (typeof window.renderHomeChurches === 'function') window.renderHomeChurches();
-    if (typeof window.renderDirectory === 'function') window.renderDirectory();
+    if (typeof window.renderDirectory === 'function') window.renderDirectory(window.directoryPageFromHash ? window.directoryPageFromHash() : 1);
     if (typeof window.showRouteFromHash === 'function') window.showRouteFromHash(true);
     if (typeof window.checkForCompletedDonation === 'function') window.checkForCompletedDonation();
     if (typeof window.checkForCompletedEventTicket === 'function') window.checkForCompletedEventTicket();
