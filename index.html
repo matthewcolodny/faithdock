@@ -5278,7 +5278,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-10-v273 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-10-v274 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -8106,10 +8106,20 @@
     forChurchesNavLink.addEventListener('click', function(ev){
       ev.preventDefault();
       go('home');
-      setTimeout(function(){
+      // The homepage's "Churches near you" / "Upcoming events" grids
+      // render asynchronously and push the "For churches" band down
+      // after this handler runs, so a single immediate scroll lands
+      // ~one screen short. Re-align as the layout settles: a smooth
+      // pass first (real, focused tabs animate it), then two instant
+      // corrections to snap to the final position once the grids and
+      // any denomination-tinted thumbnails are in.
+      var toBand = function(smooth){
         var band = document.querySelector('.for-churches');
-        if (band && band.scrollIntoView) band.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 60);
+        if (band && band.scrollIntoView) band.scrollIntoView(smooth ? { behavior: 'smooth', block: 'start' } : { block: 'start' });
+      };
+      setTimeout(function(){ toBand(true); }, 80);
+      setTimeout(function(){ toBand(false); }, 550);
+      setTimeout(function(){ toBand(false); }, 1100);
     });
   }
 
