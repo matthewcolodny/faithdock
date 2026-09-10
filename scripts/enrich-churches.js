@@ -20,6 +20,13 @@
  *   4. Places Details on that result for formatted_phone_number + website.
  *   5. No confident match  ->  phone/website left blank, matched = "no".
  *
+ * `matched` column values:
+ *   yes      confident match, place is operational
+ *   closed   confident match, but Places says CLOSED_PERMANENTLY
+ *            (phone/website still filled from the listing; review these)
+ *   no       no confident match  ->  phone/website blank; see match_detail
+ *   skipped  row already had phone + website (run with --force to redo)
+ *
  * It never guesses: a weak or wrong-looking top result is reported as
  * unmatched rather than filled in.
  *
@@ -312,7 +319,7 @@ async function run(inPath, outPath, opts) {
   const out = fs.createWriteStream(outPath, { encoding: 'utf8' });
   out.write(csvRow(outHeaders));
 
-  const stats = { matched: 0, phone: 0, website: 0, noState: 0, noResult: 0, lowConf: 0, skipped: 0 };
+  const stats = { matched: 0, closed: 0, phone: 0, website: 0, noState: 0, noResult: 0, lowConf: 0, skipped: 0 };
 
   for (let i = 0; i < total; i++) {
     const src = rows[i];
@@ -356,12 +363,17 @@ async function run(inPath, outPath, opts) {
             const r = det.result || {};
             phone = r.formatted_phone_number || '';
             website = r.website || '';
-            matched = 'yes';
-            detail = (r.name || top.name || '') + ' — ' + (r.formatted_address || top.formatted_address || '');
             const bs = r.business_status || top.business_status;
+            // A permanently-closed place is still a confident match, but
+            // it gets its own `matched` value so a clean match is
+            // distinguishable without reading match_detail. A temporary
+            // closure is treated as a normal match (just noted).
+            matched = (bs === 'CLOSED_PERMANENTLY') ? 'closed' : 'yes';
+            detail = (r.name || top.name || '') + ' — ' + (r.formatted_address || top.formatted_address || '');
             if (bs === 'CLOSED_PERMANENTLY') detail += ' [permanently closed]';
             else if (bs === 'CLOSED_TEMPORARILY') detail += ' [temporarily closed]';
-            stats.matched++;
+            if (matched === 'closed') stats.closed++;
+            else stats.matched++;
             if (phone) stats.phone++;
             if (website) stats.website++;
           } else {
@@ -382,7 +394,7 @@ async function run(inPath, outPath, opts) {
     process.stderr.write(
       '[' + (i + 1) + '/' + total + '] ' + (name || '(no name)') +
       '  ->  ' + matched +
-      (matched === 'yes' ? ' (' + (phone ? '+phone' : 'no phone') + ', ' + (website ? '+website' : 'no website') + ')' : '') +
+      ((matched === 'yes' || matched === 'closed') ? ' (' + (phone ? '+phone' : 'no phone') + ', ' + (website ? '+website' : 'no website') + ')' : '') +
       '\n'
     );
 
@@ -395,6 +407,7 @@ async function run(inPath, outPath, opts) {
   process.stderr.write(
     '\nDone. ' + total + ' rows: ' + stats.matched + ' matched ' +
     '(phone: ' + stats.phone + ', website: ' + stats.website + '), ' +
+    stats.closed + ' matched but permanently closed, ' +
     followUp + ' need follow-up' +
     (stats.skipped ? ', ' + stats.skipped + ' skipped (already filled)' : '') + '.\n' +
     '  no state parsed from address : ' + stats.noState + '\n' +

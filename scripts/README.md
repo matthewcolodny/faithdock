@@ -21,6 +21,17 @@ GOOGLE_PLACES_API_KEY=xxxxx  node scripts/enrich-churches.js input.csv [output.c
   match *and* it's in the same state — then a Places **Details** call
   for `formatted_phone_number` / `website`. No confident match ⇒
   `phone`/`website` left blank, `matched = no`. It never guesses.
+- `matched` values:
+  - `yes` — confident match, place is operational
+  - `closed` — confident match, but Places reports it `CLOSED_PERMANENTLY`.
+    `phone`/`website` are still filled from the listing; review these
+    before importing. (A *temporary* closure stays `yes`, noted in
+    `match_detail`.)
+  - `no` — no confident match; `phone`/`website` blank; `match_detail`
+    says why (no state parsed / no results / low confidence + the
+    rejected top result)
+  - `skipped` — the row already had both `phone` and `website` (use
+    `--force` to re-query)
 - Needs the **legacy** "Places API" enabled in Google Cloud (not
   "Places API (New)") + billing on. `REQUEST_DENIED` means one of those.
 - Node 18+ (uses global `fetch`).
