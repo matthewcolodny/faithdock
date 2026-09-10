@@ -12,8 +12,15 @@
 -- filtering / distance calc / sorting / pagination -- with `plan_type`
 -- added to the `bounded` CTE and the final SELECT, and to the
 -- RETURNS TABLE signature. Nothing else changes.
+--
+-- The RETURNS TABLE shape changes (one new column), so Postgres
+-- requires DROP + CREATE -- `create or replace` errors with "cannot
+-- change return type of existing function". DROP loses the function's
+-- EXECUTE grants, so they're re-added explicitly at the end.
 
-create or replace function search_churches(
+drop function if exists search_churches(text, text[], double precision, double precision, double precision, integer, integer, integer);
+
+create function search_churches(
   p_keyword text default null::text,
   p_denominations text[] default null::text[],
   p_user_lat double precision default null::double precision,
@@ -76,5 +83,9 @@ as $$
     f.name asc
   limit p_limit offset p_offset;
 $$;
+
+-- Re-grant EXECUTE (DROP above removed the originals). search_churches
+-- is called unauthenticated from the public directory, so anon needs it.
+grant execute on function search_churches(text, text[], double precision, double precision, double precision, integer, integer, integer) to anon, authenticated;
 
 notify pgrst, 'reload schema';
