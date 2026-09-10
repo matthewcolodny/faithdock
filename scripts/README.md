@@ -1,0 +1,29 @@
+# scripts/
+
+One-off helper scripts. Not part of the deployed site (`index.html` /
+`pure-logic.js`) and not run automatically.
+
+## enrich-churches.js
+
+Adds `phone` + `website` to a church CSV using the Google Places API,
+with a `matched` flag and a `match_detail` note for manual follow-up.
+
+```
+GOOGLE_PLACES_API_KEY=xxxxx  node scripts/enrich-churches.js input.csv [output.csv]
+```
+
+- Input CSV needs at least `name` and `address` columns (`denomination`
+  and anything else is passed through). Output defaults to
+  `input.enriched.csv`.
+- Per row: parses a `City, ST` out of the address (the street / PO Box
+  part is ignored), does a Places **Text Search** for `"{name}, {city},
+  {state}"`, and only accepts the top result if the name is a close
+  match *and* it's in the same state — then a Places **Details** call
+  for `formatted_phone_number` / `website`. No confident match ⇒
+  `phone`/`website` left blank, `matched = no`. It never guesses.
+- Needs the **legacy** "Places API" enabled in Google Cloud (not
+  "Places API (New)") + billing on. `REQUEST_DENIED` means one of those.
+- Node 18+ (uses global `fetch`).
+- Flags: `--limit=N` (test on the first N rows), `--force` (re-query
+  rows that already have phone + website), `--selftest` (offline checks).
+- Env: `NAME_SIM_THRESHOLD` (0–1, default 0.5), `DELAY_MS` (default 200).
