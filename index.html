@@ -271,7 +271,9 @@
       'regQuestions.yes': 'Yes', 'regQuestions.discountCode': 'Discount code', 'regQuestions.optional': 'optional',
       'regQuestions.feesAddedAtCheckout': 'Card processing (and any applicable service fee) will be added at checkout — the final total appears there before you pay.',
       'regQuestions.codePlaceholder': 'CODE', 'regQuestions.answerAllRequired': 'Please answer every required question (marked with *).',
-      'church.unclaimedNotice': "This listing hasn't been claimed yet.", 'church.claimThisChurch': 'Claim this church',
+      'church.unclaimedNotice': "This is a community directory listing — the church hasn't set it up yet.", 'church.claimThisChurch': 'Claim this church',
+      'church.statusDirectoryListing': 'Directory listing', 'church.managedByChurch': 'Managed by this church', 'church.verifiedBadge': 'Verified church', 'church.partnerBadge': 'FaithDock Partner',
+      'church.verifiedBadgeTooltip': "FaithDock has verified this church's connected giving account. It doesn't imply anything else about the church.",
       'church.setAsChurchHome': 'Set as your Church Home!',
       'give.supportMinistry': "Support this church's ministry directly — donations go straight to their account.",
       'give.whatIsThisFor': 'What is this gift for?', 'give.generalFund': 'General Fund',
@@ -654,7 +656,7 @@
       'common.moreActions': 'More actions',
       'dir.somethingWentWrongLoading': 'Something went wrong loading churches: {error}',
       'events.followOrSetChurchHome': 'Follow a church or set one as your Church Home to see events picked for you here.',
-      'dashHeader.noChurchFound': 'No church found', 'dashHeader.staff': 'STAFF', 'dashHeader.owner': 'OWNER', 'dashHeader.partnerChurch': 'PARTNER CHURCH',
+      'dashHeader.noChurchFound': 'No church found', 'dashHeader.staff': 'STAFF', 'dashHeader.owner': 'OWNER', 'dashHeader.faithdockPartner': 'FAITHDOCK PARTNER', 'dashHeader.managedChurch': 'MANAGED CHURCH',
       'dashHeader.registerChurchFirst': 'Register a church first, or ask an owner to add you as staff.',
       'profile.checkEmailForConfirmationLink': 'Check {email} for a confirmation link to finish this change.',
       'auth.enterEmailFirst': 'Enter your email first.', 'auth.completeCaptcha': 'Please complete the CAPTCHA before continuing.', 'auth.checkEmailForResetLink': 'Check your email for a reset link.',
@@ -971,7 +973,9 @@
       'regQuestions.yes': 'Sí', 'regQuestions.discountCode': 'Código de descuento', 'regQuestions.optional': 'opcional',
       'regQuestions.feesAddedAtCheckout': 'El procesamiento de la tarjeta (y cualquier tarifa de servicio aplicable) se agregará al finalizar la compra — el total final aparece ahí antes de pagar.',
       'regQuestions.codePlaceholder': 'CÓDIGO', 'regQuestions.answerAllRequired': 'Por favor responde todas las preguntas obligatorias (marcadas con *).',
-      'church.unclaimedNotice': 'Este listado aún no ha sido reclamado.', 'church.claimThisChurch': 'Reclamar esta iglesia',
+      'church.unclaimedNotice': 'Este es un listado del directorio comunitario — la iglesia aún no lo ha configurado.', 'church.claimThisChurch': 'Reclamar esta iglesia',
+      'church.statusDirectoryListing': 'Listado del directorio', 'church.managedByChurch': 'Gestionada por esta iglesia', 'church.verifiedBadge': 'Iglesia verificada', 'church.partnerBadge': 'Socia de FaithDock',
+      'church.verifiedBadgeTooltip': 'FaithDock ha verificado la cuenta de donaciones conectada de esta iglesia. No implica nada más sobre la iglesia.',
       'church.setAsChurchHome': '¡Establecida como tu Iglesia Principal!',
       'give.supportMinistry': 'Apoya el ministerio de esta iglesia directamente — las donaciones van directo a su cuenta.',
       'give.whatIsThisFor': '¿Para qué es esta donación?', 'give.generalFund': 'Fondo General',
@@ -1354,7 +1358,7 @@
       'common.moreActions': 'Más acciones',
       'dir.somethingWentWrongLoading': 'Algo salió mal al cargar las iglesias: {error}',
       'events.followOrSetChurchHome': 'Sigue una iglesia o marca una como tu Iglesia de Origen para ver aquí eventos elegidos para ti.',
-      'dashHeader.noChurchFound': 'No se encontró ninguna iglesia', 'dashHeader.staff': 'PERSONAL', 'dashHeader.owner': 'PROPIETARIO', 'dashHeader.partnerChurch': 'IGLESIA ASOCIADA',
+      'dashHeader.noChurchFound': 'No se encontró ninguna iglesia', 'dashHeader.staff': 'PERSONAL', 'dashHeader.owner': 'PROPIETARIO', 'dashHeader.faithdockPartner': 'SOCIA DE FAITHDOCK', 'dashHeader.managedChurch': 'IGLESIA GESTIONADA',
       'dashHeader.registerChurchFirst': 'Registra una iglesia primero, o pídele a un propietario que te agregue como personal.',
       'profile.checkEmailForConfirmationLink': 'Revisa {email} para ver un enlace de confirmación y completar este cambio.',
       'auth.enterEmailFirst': 'Ingresa tu correo primero.', 'auth.completeCaptcha': 'Por favor completa el CAPTCHA antes de continuar.', 'auth.checkEmailForResetLink': 'Revisa tu correo para ver un enlace de restablecimiento.',
@@ -1931,6 +1935,7 @@
   .tag.sage{background:var(--sage-bg);color:var(--sage);}
   .tag.clay{background:var(--clay-bg);color:var(--clay);}
   .tag.gold{background:var(--gold-bg);color:var(--gold-ink);}
+  .tag.neutral{background:var(--paper);color:var(--ink-soft);border:1px solid var(--line);}
   .card-body h3{font-size:18px;margin:10px 0 4px;}
   .meta-row{display:flex;align-items:center;gap:6px;color:var(--ink-mute);font-size:13.5px;margin-top:6px;}
   .meta-row svg{width:14px;height:14px;flex-shrink:0;}
@@ -2769,14 +2774,16 @@
       <div>
         <div class="eyebrow" style="color:#8FA0C4;" id="church-eyebrow">Non-denominational · Austin, TX</div>
         <h1 id="church-name">Grace Fellowship Church</h1>
-        <span id="church-verified-badge" style="display:none;font-size:13px;font-weight:600;color:var(--gold);background:rgba(201,162,39,0.15);padding:4px 10px;border-radius:20px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px;vertical-align:-2px;margin-right:3px;"><path d="M20 6L9 17l-5-5"/></svg>Verified</span>
+        <span id="church-partner-badge" style="display:none;font-size:13px;font-weight:600;color:var(--gold-ink);background:var(--gold-bg);padding:4px 10px;border-radius:20px;margin-right:6px;"><svg viewBox="0 0 24 24" fill="currentColor" style="width:12px;height:12px;vertical-align:-1px;margin-right:3px;"><path d="M12 2l2.9 6.3L22 9.3l-5 4.9 1.2 7.1L12 17.8l-6.2 3.5L7 14.2 2 9.3l7.1-1L12 2z"/></svg><span data-i18n="church.partnerBadge">FaithDock Partner</span></span>
+        <span id="church-verified-badge" style="display:none;font-size:13px;font-weight:600;color:var(--gold);background:rgba(201,162,39,0.15);padding:4px 10px;border-radius:20px;" data-i18n-title="church.verifiedBadgeTooltip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px;vertical-align:-2px;margin-right:3px;"><path d="M20 6L9 17l-5-5"/></svg><span data-i18n="church.verifiedBadge">Verified church</span></span>
         <div class="sub">
           <span id="church-dist">0.8 mi away</span>
           <span id="church-next">Next service Sun 9:00 AM</span>
           <span id="church-home-count">142 Church Home members</span>
         </div>
+        <div id="church-managed-line" style="display:none;margin-top:10px;font-size:13px;color:#8FA0C4;" data-i18n="church.managedByChurch">Managed by this church</div>
         <div id="church-unclaimed-banner" style="display:none;margin-top:10px;font-size:13.5px;color:#C7CCD8;">
-          <span data-i18n="church.unclaimedNotice">This listing hasn't been claimed yet.</span>
+          <span data-i18n="church.unclaimedNotice">This is a community directory listing — the church hasn't set it up yet.</span>
           <button class="btn-outline" id="church-claim-btn" style="padding:6px 14px;margin-left:6px;font-size:12.5px;" data-i18n="church.claimThisChurch">Claim this church</button>
         </div>
       </div>
@@ -5145,7 +5152,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-10-v264 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-10-v265 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -5474,6 +5481,27 @@
   }
   window.formatChurchNextEventText = formatChurchNextEventText;
 
+  // The single status tag shown on a directory card, as a 4-rung
+  // ladder (highest applicable wins): unclaimed -> Directory listing;
+  // claimed + paid plan -> FaithDock Partner; claimed + verified
+  // giving account -> Verified church; claimed otherwise -> Managed by
+  // this church. Only for real (DB-backed) churches -- sample cards
+  // get nothing. Mirrors the profile-page logic in populateChurchPage().
+  function churchStatusTag(c){
+    if (!c || !c.real) return '';
+    if (!c.ownerId) {
+      return '<span class="tag neutral" style="margin-left:4px;">' + window.t('church.statusDirectoryListing') + '</span>';
+    }
+    if (c.planType && c.planType !== 'free') {
+      return '<span class="tag gold" style="margin-left:4px;">' + window.t('church.partnerBadge') + '</span>';
+    }
+    if (c.verificationStatus === 'verified') {
+      return '<span class="tag sage" style="margin-left:4px;">' + window.t('church.verifiedBadge') + '</span>';
+    }
+    return '<span class="tag neutral" style="margin-left:4px;">' + window.t('church.managedByChurch') + '</span>';
+  }
+  window.churchStatusTag = churchStatusTag;
+
   function churchCard(c, clickable){
     var distText = formatChurchDistanceText(c.dist);
     var thumb = c.logoUrl
@@ -5483,6 +5511,7 @@
       + thumb
       + '<div class="card-body">'
       + '<span class="tag sage">' + translateDenomination(c.tag) + '</span>'
+      + churchStatusTag(c)
       + '<h3>' + c.name + '</h3>'
       + '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/></svg>' + distText + '</div>'
       + '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>' + formatChurchNextText(c.next, (c.rawServiceTimes || []).length) + '</div>'
@@ -5535,12 +5564,27 @@
     }
     var detailsNameEl = document.getElementById('church-details-name');
     if (detailsNameEl) detailsNameEl.textContent = c.name;
+    // Church status on the profile page (see churchStatusTag() for the
+    // directory-card equivalent). These aren't mutually exclusive: a
+    // claimed church shows the "Managed by this church" line; if it's
+    // also on a paid plan it additionally gets the Partner badge, and
+    // if its giving account is verified it also gets the Verified badge.
+    var isClaimed = !!c.ownerId;
+    var isPaid = isClaimed && c.planType && c.planType !== 'free';
+    var isVerified = c.verificationStatus === 'verified';
+
     var verifiedBadge = document.getElementById('church-verified-badge');
-    if (verifiedBadge) verifiedBadge.style.display = (c.verificationStatus === 'verified') ? 'inline-block' : 'none';
+    if (verifiedBadge) verifiedBadge.style.display = isVerified ? 'inline-block' : 'none';
+
+    var partnerBadge = document.getElementById('church-partner-badge');
+    if (partnerBadge) partnerBadge.style.display = isPaid ? 'inline-block' : 'none';
+
+    var managedLine = document.getElementById('church-managed-line');
+    if (managedLine) managedLine.style.display = isClaimed ? 'block' : 'none';
 
     var unclaimedBanner = document.getElementById('church-unclaimed-banner');
     if (unclaimedBanner) {
-      unclaimedBanner.style.display = !c.ownerId ? 'block' : 'none';
+      unclaimedBanner.style.display = !isClaimed ? 'block' : 'none';
       unclaimedBanner.setAttribute('data-claim-church-id', c.id || '');
       unclaimedBanner.setAttribute('data-claim-church-name', c.name || '');
     }
@@ -6199,7 +6243,7 @@
         lat: row.lat, lng: row.lng, hasCoords: (row.lat != null && row.lng != null), real: true,
         logoUrl: row.logo_url, address: row.address, description: row.description, website: row.website,
         phone: row.phone, facebookUrl: row.facebook_url, instagramUrl: row.instagram_url,
-        verificationStatus: row.verification_status, ownerId: row.owner_id,
+        verificationStatus: row.verification_status, ownerId: row.owner_id, planType: row.plan_type,
         serviceTimesLabel: formattedServiceTimes, rawServiceTimes: row.service_times
       };
       churches.push(mapped);
@@ -6732,7 +6776,7 @@
       hasCoords: (row.lat != null && row.lng != null), real: true,
       logoUrl: row.logo_url, address: row.address, description: row.description, website: row.website,
       phone: row.phone, facebookUrl: row.facebook_url, instagramUrl: row.instagram_url,
-      verificationStatus: row.verification_status, ownerId: row.owner_id
+      verificationStatus: row.verification_status, ownerId: row.owner_id, planType: row.plan_type
     };
   }
 
@@ -8831,7 +8875,11 @@
     }
     document.getElementById('dash-church-name').textContent = myChurch.name;
     var roleLabel = myChurch.role === 'staff' ? ' · ' + window.t('dashHeader.staff') : ' · ' + window.t('dashHeader.owner');
-    document.getElementById('dash-church-tag').textContent = window.t('dashHeader.partnerChurch') + (myChurch.denomination ? ' · ' + myChurch.denomination.toUpperCase() : '') + roleLabel;
+    // "FAITHDOCK PARTNER" only for a church actually on a paid plan;
+    // a claimed church on the free tier is "MANAGED CHURCH".
+    var isPaidChurch = myChurch.planType && myChurch.planType !== 'free';
+    var churchStatusWord = isPaidChurch ? window.t('dashHeader.faithdockPartner') : window.t('dashHeader.managedChurch');
+    document.getElementById('dash-church-tag').textContent = churchStatusWord + (myChurch.denomination ? ' · ' + myChurch.denomination.toUpperCase() : '') + roleLabel;
 
     // Multi-church: shown for an owner of more than one church
     // (Large's "up to 5" / Multi-Church) OR a staff member granted
