@@ -1186,3 +1186,23 @@ Added ahead of the San Antonio metro import so a bad run can be reviewed and rol
 **Not touched:** the church profile page's own unclaimed banner (`#church-unclaimed-banner`, "This is a community directory listing — the church hasn't set it up yet. Claim this church") — that's set independently in `populateChurchPage()`, not through `churchStatusTag()`, and stays exactly as-is since it's actionable in context rather than a redundant per-card label.
 
 `church.statusDirectoryListing` (EN "Directory listing" / ES "Listado del directorio") is now an unused i18n key — left in place, not deleted. Build `2026-09-10-v281`.
+
+---
+
+## #register-church now gates unauthenticated visitors up front
+
+**Before:** an invite-unlocked but signed-out visitor who reached `#register-church` (bare or `/new` — the homepage "List your church" CTAs, the Pricing "Get started free" button, a direct/bookmarked URL) saw the full registration form. Nothing stopped them until they hit **Publish**, where the submit handler's own check (`showRcError('You need to sign up or log in first.')`) finally blocked it. The invite gate itself (`go()`'s existing `!fdInviteUnlocked()` check) only fires when the browser hasn't entered the code at all — it doesn't require an account.
+
+**Now:** `go()` gates `#register-church`/`#register-church/new` on `window.isSignedIn === false` (checked *after* the invite-gate condition, so an un-invited visitor still hits that first) and redirects straight to `#signup`, saving `'register-church/new'` via the existing `savePostLoginRoute`/`consumePostLoginRoute` mechanism (same one `dashboard` already uses). `updateAuthUI` gets the matching async redirect for the case `go()`'s synchronous check can't catch — landing directly on `#register-church` before auth has resolved, then resolving to signed-out (mirrors the existing dashboard redirect there line-for-line). Both use `=== false`, not bare falsy, so a still-unresolved auth state doesn't bounce a signed-in user — same deliberate leniency the dashboard check documents.
+
+**Landing on a genuinely blank form after sign-in:** `go()` only ever toggles page visibility, it never populates a page — so `routeAfterLogin()` (the single funnel every sign-in path already routes through) now special-cases `landingRoute === 'register-church/new'` the same way it already special-cases `'profile'`: calls `checkExistingChurch(user.id, 'new')`, the exact function the "Add a church" flow already uses to reset the form. That also repeats the plan-cap check, so an account that signs in already owning a church at its plan's limit correctly lands on Pricing instead of a form it can't use, rather than silently showing stale/wrong state.
+
+**Verified** (via `go()`/`checkExistingChurch` directly, `updateAuthUI`/`routeAfterLogin` aren't exposed on `window` so verified by exact structural match to the proven dashboard pattern instead):
+- signed-out (resolved false), invite-unlocked, bare `#register-church` and `#register-church/new` → both redirect to `#signup`, post-login route saved as `register-church/new`
+- unresolved auth (`undefined`) → form still shows (matches dashboard's documented leniency)
+- not invite-unlocked → invite gate takes precedence, bounces home, does *not* also redirect to signup
+- signed-in → form shows normally, no redirect
+- dirtied the form fields, then ran the exact post-login call (`checkExistingChurch(userId, 'new')`) → all fields reset to blank, heading/button back to "Register your church" / "Create church" (not edit mode)
+- same call with a mocked at-cap plan → correctly lands on `#pricing` instead
+
+No console errors. Build `2026-09-10-v282`.

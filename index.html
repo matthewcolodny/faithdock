@@ -5342,7 +5342,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-10-v281 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-10-v282 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -6452,6 +6452,24 @@
     if(route.split('/')[0] === 'register-church' && !window.isSignedIn && typeof window.fdInviteUnlocked === 'function' && !window.fdInviteUnlocked()){
       if(typeof window.openInviteGate === 'function') window.openInviteGate();
       route = 'home';
+    }
+    // Registering (or editing) a church needs an account -- a separate
+    // gate from the invite check above, which only covers whether this
+    // browser is allowed to sign up at all. Previously an invite-
+    // unlocked but signed-out visitor saw the blank registration form
+    // and was only stopped once they hit Publish; now they're sent
+    // straight to sign-in/sign-up, with their intent remembered so
+    // routeAfterLogin() lands them back on a blank register-church
+    // form afterward instead of wherever it would otherwise default
+    // to. window.isSignedIn === false specifically (not just falsy),
+    // same reasoning as the dashboard check above -- don't redirect
+    // while this is still unresolved. Covers the click-time case; the
+    // async case (already sitting on #register-church when auth
+    // resolves to signed-out, e.g. a direct link or a refresh) is
+    // handled by the matching redirect in updateAuthUI.
+    if(route.split('/')[0] === 'register-church' && window.isSignedIn === false){
+      if(typeof window.savePostLoginRoute === 'function') window.savePostLoginRoute('register-church/new');
+      route = 'signup';
     }
     var baseRoute = route.split('/')[0];
     // Only when actually leaving the dashboard entirely — staying on
@@ -10258,6 +10276,17 @@
       window.savePostLoginRoute('dashboard');
       window.go('signup', true);
     }
+    // Same as the dashboard redirect above, for the async case go()'s
+    // own register-church gate can't catch: landing directly on
+    // #register-church or #register-church/new (a bookmark, a typed
+    // URL, a refresh) before auth has resolved. go()'s gate only fires
+    // on a route *change* while isSignedIn is already known false; this
+    // catches "already sitting there" once it resolves to false.
+    if (!isSignedIn && typeof window.resolveRouteFromHash === 'function' && window.resolveRouteFromHash(location.hash).base === 'register-church') {
+      console.log('[FaithDock auth] REDIRECT: register-church -> signup (not signed in)');
+      window.savePostLoginRoute('register-church/new');
+      window.go('signup', true);
+    }
     if (isSignedIn && accountType !== 'church' && typeof window.resolveRouteFromHash === 'function' && window.resolveRouteFromHash(location.hash).base === 'dashboard') {
       console.log('[FaithDock auth] REDIRECT: dashboard -> home (accountType is "' + accountType + '", not "church")');
       window.go('home', true);
@@ -11181,6 +11210,19 @@
     // sign-in.
     if (landingRoute === 'profile' && typeof window.loadProfilePage === 'function') {
       window.loadProfilePage(undefined, user);
+    }
+    // Same reasoning as loadProfilePage above: go() only shows the page
+    // section, it never populates it. Someone who got bounced to
+    // sign-in from #register-church (see the gate in go() and the
+    // matching redirect in updateAuthUI) needs to land on a genuinely
+    // blank registration form, not whatever was last sitting in those
+    // fields -- checkExistingChurch(userId, 'new') is the same call the
+    // "Add a church" flow already uses to do that (it also repeats the
+    // plan-cap check, which is a real possibility here: signing in with
+    // an account that already owns a church at its plan's cap should
+    // still land them on Pricing, not a form they can't use).
+    if (landingRoute === 'register-church/new' && typeof window.checkExistingChurch === 'function') {
+      await window.checkExistingChurch(user.id, 'new');
     }
   }
 
