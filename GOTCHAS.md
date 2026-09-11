@@ -1125,3 +1125,23 @@ Each of the 5 pricing cards now carries a one-line progression tagline (`<p clas
 - Second, separate cause found while verifying: the **Multi-Church card's word price** ("Custom" / **"Personalizado"**) wrapped to 2 lines at 38px in a 222px column, dropping that one card's list ~24px in Spanish. Fixed with `.price-amount[data-i18n="pricing.multiChurch.price"]{font-size:23px;min-height:61px;display:flex;align-items:flex-end;}` — smaller text, one line, in a box the same height as a 38px numeric price. Pre-existing; only visible once the taglines made cross-card alignment matter.
 
 Verified: feature-list start positions within **1px** across all 5 cards at 5-col (EN and ES), aligned within rows at the 3-col breakpoint, no tagline clamped in any tested width, no horizontal overflow on mobile. Build `2026-09-10-v276`.
+
+---
+
+## Create-event form: primary fields + collapsed "Advanced options"
+
+`#page-create-event` was one long flat form. It's now a short primary screen plus a `<details id="ce-advanced">` disclosure — **layout only, every field kept its id, value, validation, and show/hide behavior**.
+
+**Primary (direct children of `.auth-card`, in this order):** Title → Starts/Ends → Venue name → Location (+ "use church address") → Description (RTE toolbar + editable + char count + AI Writing Assistant + its locked-state box + the RTE `<style>`) → Event graphic. Matches the spec's "Title, Date, Time, Location, Description, Graphic, Publish" (Publish = the existing Save-draft / Publish buttons, still after the error/success rows).
+
+**Advanced (`<details>`):** Rooms · Event contacts · Registration questions · Categories · Tags · Who is this for (audience) · Who can see this (visibility) · the whole Require-registration box (max participants, ticket price, fee mode, suggested donation, discount codes, volunteers + their questions, guests) · Repeats.
+
+**How it was reordered:** Description was between Title and Date; Graphic was between Questions and Categories. Rather than one 260-line rewrite, four surgical moves: (1) lift Date/Time/Venue/Location out of their spot after Description, (2) re-drop them right after Title, (3) pull Graphic out from between Questions and Categories, (4) re-drop it after Description and open `<details>` before Rooms; then close `</details>` before `#ce-error`. Inner blocks kept their original 6-space indent (HTML doesn't care; keeps the diff minimal). Every field is queried by `getElementById`/class in JS — no positional selectors, no `nextElementSibling` walks — so the reorder + wrap is inert to the logic.
+
+**Disclosure state:**
+- Default: collapsed. `<details>` has no `open` attribute, and `resetCreateEventForm()` sets `ceAdv.open = false` (the dashboard "Create event" button's path).
+- Editing: `editEvent()` sets `ceAdvEdit.open = !!( ev.registration_required || ev.price_cents || ev.suggested_donation_cents || ev.fee_mode==='absorb' || ev.allow_volunteers || ev.allow_guests || ceQuestions.length || ceVolunteerQuestions.length || (Array.isArray(ev.audience) && ev.audience.length) || selectedRoomIds.length || (ev.repeats && ev.repeats!=='none') )` right before `go('create-event/'+id)`. So an existing event opens with Advanced expanded iff it already uses one of those fields; otherwise collapsed. (`ev.repeats` is inert on edit — the repeats section is `display:none` when editing since occurrences are already generated — but it's in the check for completeness.)
+- Safety net: the one advanced-field validation that surfaces through `showCeError` (`ce.priceMustBePositive`) now also sets `ceAdv.open = true` so the erroring field is never hidden. Contacts / categories / tags / visibility are in Advanced but are **not** auto-expand triggers (per the spec's explicit list).
+- New i18n: `ce.advancedOptions` / `ce.advancedOptionsSub` (EN + ES).
+
+**Testing note:** `<details>` collapse, CSS `transform` transitions, and `content-visibility` are all throttled/frozen in a backgrounded tab — which is how both the Browser pane and Claude-in-Chrome drive pages this session. Verified via each element's own `getBoundingClientRect().height` (the `<details>` goes ~40px collapsed ↔ full height open) and by killing the chevron `transition` to read its settled `rotate(180deg)`; a *descendant's* rect height stays non-zero even when the `<details>` clips it, so it's not a reliable collapse check. Structure, toggle (summary click + `.open`), `resetCreateEventForm` collapse, the 11 editEvent triggers (against mocks), and the in-`<details>` sub-toggles (registration options, repeat-until, volunteer options + heading swap) all pass. Build `2026-09-10-v277`.

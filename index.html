@@ -800,6 +800,7 @@
       'rte.linkUrlPrompt': 'Link URL (include https://)', 'rte.linksMustStartWith': 'Links must start with https:// or mailto:',
       'audience.preschool': 'Preschool', 'audience.children': 'Children', 'audience.teens': 'Teens', 'audience.adults': 'Adults', 'audience.seniors': 'Seniors', 'audience.parents': 'Parents', 'audience.emptyNesters': 'Empty-nesters',
       'ce.backToDashboard': '← Back to my church', 'ce.newEvent': 'New event', 'ce.createAnEvent': 'Create an event', 'ce.editEvent': 'Edit event', 'ce.postsUnderChurchName': 'Posts under {church}.', 'ce.postingAs': 'Posting as',
+      'ce.advancedOptions': 'Advanced options', 'ce.advancedOptionsSub': 'registration, tickets, recurrence, and more',
       'ce.eventTitle': 'Event title', 'ce.eventTitlePlaceholder': 'Fall Community Picnic', 'ce.description': 'Description', 'ce.descriptionPlaceholder': "What's happening, who it's for",
       'ce.writingAssistant': 'Writing Assistant', 'ce.checkSpellingGrammar': 'Check Spelling and Grammar', 'ce.makeItFormal': 'Make it Formal', 'ce.makeItFriendly': 'Make it Friendly', 'ce.makeItInviting': 'Make it Inviting', 'ce.writeFromKeywords': 'Write from Keywords',
       'ce.rewritesReplaceHint': "Rewrites replace the current text — any bold, lists, or links in the draft won't carry through a rewrite.",
@@ -1525,6 +1526,7 @@
       'rte.linkUrlPrompt': 'URL del enlace (incluye https://)', 'rte.linksMustStartWith': 'Los enlaces deben comenzar con https:// o mailto:',
       'audience.preschool': 'Preescolar', 'audience.children': 'Niños', 'audience.teens': 'Adolescentes', 'audience.adults': 'Adultos', 'audience.seniors': 'Adultos mayores', 'audience.parents': 'Padres', 'audience.emptyNesters': 'Nido vacío',
       'ce.backToDashboard': '← Volver a mi iglesia', 'ce.newEvent': 'Nuevo evento', 'ce.createAnEvent': 'Crear un evento', 'ce.editEvent': 'Editar evento', 'ce.postsUnderChurchName': 'Se publica bajo {church}.', 'ce.postingAs': 'Publicando como',
+      'ce.advancedOptions': 'Opciones avanzadas', 'ce.advancedOptionsSub': 'inscripción, entradas, repetición y más',
       'ce.eventTitle': 'Título del evento', 'ce.eventTitlePlaceholder': 'Picnic comunitario de otoño', 'ce.description': 'Descripción', 'ce.descriptionPlaceholder': 'Qué va a pasar, para quién es',
       'ce.writingAssistant': 'Asistente de escritura', 'ce.checkSpellingGrammar': 'Revisar ortografía y gramática', 'ce.makeItFormal': 'Hacerlo formal', 'ce.makeItFriendly': 'Hacerlo amigable', 'ce.makeItInviting': 'Hacerlo atractivo', 'ce.writeFromKeywords': 'Escribir a partir de palabras clave',
       'ce.rewritesReplaceHint': 'Las reescrituras reemplazan el texto actual — cualquier negrita, lista o enlace en el borrador no se conservará tras una reescritura.',
@@ -2261,6 +2263,20 @@
   .chip button:hover{opacity:1;}
   .chip button svg{width:12px;height:12px;}
   .checkbox-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;margin-top:6px;}
+  /* Create-event form: everything past the primary fields is disclosed
+     under this collapsed <details>. Layout only -- every field inside
+     keeps its own id, value, validation, and show/hide behavior. */
+  #ce-advanced{margin-top:26px;border-top:1px solid var(--line);}
+  #ce-advanced-summary{
+    list-style:none;cursor:pointer;padding:14px 0 2px;
+    display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+    font-weight:600;font-size:14.5px;color:var(--ink);
+  }
+  #ce-advanced-summary::-webkit-details-marker{display:none;}
+  #ce-advanced-summary::marker{content:"";}
+  .ce-adv-chevron{width:16px;height:16px;flex-shrink:0;color:var(--ink-mute);transition:transform .15s;}
+  #ce-advanced[open] .ce-adv-chevron{transform:rotate(180deg);}
+  .ce-advanced-sub{font-weight:400;font-size:12px;color:var(--ink-mute);}
   .chip-suggestion{
     background:var(--paper);border:1px dashed var(--line);color:var(--ink-soft);
     font-size:12.5px;padding:5px 12px;border-radius:20px;cursor:pointer;
@@ -4091,6 +4107,25 @@
       <label data-i18n="ce.eventTitle">Event title</label>
       <input class="field" type="text" id="ce-title" placeholder="Fall Community Picnic" data-i18n-placeholder="ce.eventTitlePlaceholder">
 
+      <label data-i18n="ce.starts">Starts</label>
+      <div style="display:flex;gap:10px;">
+        <input class="field" type="date" id="ce-start-date" style="flex:1;">
+        <select class="field" id="ce-start-time" style="flex:1;"></select>
+      </div>
+      <label style="margin-top:14px;" data-i18n="ce.ends">Ends</label>
+      <div style="display:flex;gap:10px;">
+        <input class="field" type="date" id="ce-end-date" style="flex:1;">
+        <select class="field" id="ce-end-time" style="flex:1;"></select>
+      </div>
+      <div style="font-size:12px;color:var(--ink-mute);margin-top:4px;" data-i18n="ce.multiDayHint">For a multi-day event like a summer camp, just set the end date a few days after the start.</div>
+
+      <label style="margin-top:14px;" data-i18n="ce.venueName">Venue name (optional)</label>
+      <input class="field" type="text" id="ce-venue-name" placeholder="e.g. Fellowship Hall, Church lawn" data-i18n-placeholder="ce.venueNamePlaceholder">
+
+      <label style="margin-top:14px;" data-i18n="ce.location">Location</label>
+      <input class="field" type="text" id="ce-location" placeholder="Start typing an address..." data-i18n-placeholder="ce.locationAddressPlaceholder" autocomplete="off">
+      <label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="ce-use-church-address"> <span data-i18n="ce.useChurchAddress">Use my church's address</span></label>
+
       <label data-i18n="ce.description">Description</label>
       <div class="rte-toolbar" style="display:flex;gap:4px;border:1px solid var(--line);border-bottom:none;border-radius:8px 8px 0 0;background:var(--paper);padding:6px;">
         <button type="button" class="rte-btn" data-rte-cmd="bold" data-rte-target="ce-description" aria-label="Bold" data-i18n-title="rte.bold" style="font-weight:700;"><b>B</b></button>
@@ -4145,24 +4180,24 @@
         .rte-editable a{color:var(--gold);text-decoration:underline;cursor:pointer;}
       </style>
 
-      <label data-i18n="ce.starts">Starts</label>
-      <div style="display:flex;gap:10px;">
-        <input class="field" type="date" id="ce-start-date" style="flex:1;">
-        <select class="field" id="ce-start-time" style="flex:1;"></select>
+      <label data-i18n="ce.eventGraphic">Event graphic</label>
+      <div style="font-size:12px;color:var(--ink-mute);margin-bottom:6px;" data-i18n="ce.graphicHint">For a sharp result on the card, use an image at least 1200px wide.</div>
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div id="ce-image-preview" style="position:relative;width:64px;height:64px;border-radius:10px;background:var(--paper);border:1px solid var(--line);flex-shrink:0;background-size:cover;background-position:center;">
+          <button type="button" id="ce-image-remove-btn" aria-label="Remove image" data-i18n-title="ce.removeImage" title="Remove image" style="display:none;position:absolute;top:-8px;left:-8px;width:20px;height:20px;border-radius:50%;background:var(--clay);color:#fff;border:2px solid var(--paper);font-size:13px;line-height:1;cursor:pointer;align-items:center;justify-content:center;padding:0;">×</button>
+        </div>
+        <input type="file" id="ce-image" accept="image/*" style="position:absolute;width:1px;height:1px;overflow:hidden;opacity:0;">
+        <label for="ce-image" class="export-btn" style="cursor:pointer;padding:9px 14px;white-space:nowrap;" data-i18n="rc.chooseFile">Choose file</label>
+        <span id="ce-image-filename" style="font-size:13px;color:var(--ink-mute);" data-i18n="rc.noFileChosen">No file chosen</span>
       </div>
-      <label style="margin-top:14px;" data-i18n="ce.ends">Ends</label>
-      <div style="display:flex;gap:10px;">
-        <input class="field" type="date" id="ce-end-date" style="flex:1;">
-        <select class="field" id="ce-end-time" style="flex:1;"></select>
-      </div>
-      <div style="font-size:12px;color:var(--ink-mute);margin-top:4px;" data-i18n="ce.multiDayHint">For a multi-day event like a summer camp, just set the end date a few days after the start.</div>
+      <div id="ce-image-warning" style="display:none;color:var(--gold);font-size:12px;margin-top:6px;"></div>
 
-      <label style="margin-top:14px;" data-i18n="ce.venueName">Venue name (optional)</label>
-      <input class="field" type="text" id="ce-venue-name" placeholder="e.g. Fellowship Hall, Church lawn" data-i18n-placeholder="ce.venueNamePlaceholder">
-
-      <label style="margin-top:14px;" data-i18n="ce.location">Location</label>
-      <input class="field" type="text" id="ce-location" placeholder="Start typing an address..." data-i18n-placeholder="ce.locationAddressPlaceholder" autocomplete="off">
-      <label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="ce-use-church-address"> <span data-i18n="ce.useChurchAddress">Use my church's address</span></label>
+      <details id="ce-advanced">
+        <summary id="ce-advanced-summary">
+          <svg class="ce-adv-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          <span data-i18n="ce.advancedOptions">Advanced options</span>
+          <span class="ce-advanced-sub" data-i18n="ce.advancedOptionsSub">registration, tickets, recurrence, and more</span>
+        </summary>
 
       <label style="margin-top:14px;" data-i18n="ce.roomsUsed">Rooms used</label>
       <div style="font-size:12px;color:var(--ink-mute);margin-bottom:8px;" data-i18n="ce.roomsHint">Select every room this event uses — mark one as primary if it uses more than one. Managed in Settings → Facility rooms.</div>
@@ -4177,18 +4212,6 @@
       <div style="font-size:12px;color:var(--ink-mute);margin-bottom:8px;" data-i18n="ce.questionsHint">Ask registrants anything specific to this event — a T-shirt size, an allergy to plan food around, a childcare need. Answers are tied to this event's registrations only, never added to anyone's profile.</div>
       <div id="ce-questions-list"></div>
       <button type="button" class="export-btn" id="ce-add-question-btn" style="margin-top:4px;padding:7px 14px;font-size:12.5px;" data-i18n="ce.addAQuestion">+ Add a question</button>
-
-      <label data-i18n="ce.eventGraphic">Event graphic</label>
-      <div style="font-size:12px;color:var(--ink-mute);margin-bottom:6px;" data-i18n="ce.graphicHint">For a sharp result on the card, use an image at least 1200px wide.</div>
-      <div style="display:flex;align-items:center;gap:14px;">
-        <div id="ce-image-preview" style="position:relative;width:64px;height:64px;border-radius:10px;background:var(--paper);border:1px solid var(--line);flex-shrink:0;background-size:cover;background-position:center;">
-          <button type="button" id="ce-image-remove-btn" aria-label="Remove image" data-i18n-title="ce.removeImage" title="Remove image" style="display:none;position:absolute;top:-8px;left:-8px;width:20px;height:20px;border-radius:50%;background:var(--clay);color:#fff;border:2px solid var(--paper);font-size:13px;line-height:1;cursor:pointer;align-items:center;justify-content:center;padding:0;">×</button>
-        </div>
-        <input type="file" id="ce-image" accept="image/*" style="position:absolute;width:1px;height:1px;overflow:hidden;opacity:0;">
-        <label for="ce-image" class="export-btn" style="cursor:pointer;padding:9px 14px;white-space:nowrap;" data-i18n="rc.chooseFile">Choose file</label>
-        <span id="ce-image-filename" style="font-size:13px;color:var(--ink-mute);" data-i18n="rc.noFileChosen">No file chosen</span>
-      </div>
-      <div id="ce-image-warning" style="display:none;color:var(--gold);font-size:12px;margin-top:6px;"></div>
 
       <label style="margin-top:14px;" data-i18n="ce.categories">Categories</label>
       <div style="font-size:12px;color:var(--ink-mute);margin-bottom:8px;" data-i18n="ce.categoriesHint">Pick what applies — these are what people browse by on the events page, so events actually show up under the right icon regardless of how you word things elsewhere. Separate from the freeform tags below.</div>
@@ -4332,6 +4355,7 @@
           <div id="ce-exceptions-list" class="chip-list"></div>
         </div>
       </div>
+      </details>
 
       <div id="ce-error" style="display:none;color:var(--clay);font-size:13px;margin-top:14px;"></div>
       <div id="ce-success" style="display:none;color:var(--sage);font-size:13px;margin-top:14px;"></div>
@@ -5293,7 +5317,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-10-v276 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-10-v277 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12223,6 +12247,9 @@
     refreshCeChurchScope();
     document.getElementById('ce-heading').textContent = window.t('ce.createAnEvent');
     document.getElementById('ce-repeats-section').style.display = 'block';
+    // A brand-new event has nothing in Advanced yet -- start it collapsed.
+    var ceAdvReset = document.getElementById('ce-advanced');
+    if (ceAdvReset) ceAdvReset.open = false;
     document.getElementById('ce-title').value = '';
     document.getElementById('ce-description').innerHTML = '';
     document.getElementById('ce-description-count').textContent = '0 / 800';
@@ -12394,6 +12421,28 @@
       var editHeadingKey = ev.allow_volunteers ? 'ce.participantQuestions' : 'ce.registrationQuestions';
       ceQuestionsHeadingEdit.setAttribute('data-i18n', editHeadingKey);
       ceQuestionsHeadingEdit.textContent = window.t(editHeadingKey);
+    }
+
+    // Auto-expand "Advanced options" when this existing event already
+    // uses any of the fields that live under it, so nothing set on the
+    // event is hidden on open. (recurrence is included for completeness
+    // though the repeats section itself stays hidden when editing --
+    // occurrences are already generated and can't be re-driven here.)
+    var ceAdvEdit = document.getElementById('ce-advanced');
+    if (ceAdvEdit) {
+      ceAdvEdit.open = !!(
+        ev.registration_required ||
+        ev.price_cents ||
+        ev.suggested_donation_cents ||
+        ev.fee_mode === 'absorb' ||
+        ev.allow_volunteers ||
+        ev.allow_guests ||
+        (ceQuestions && ceQuestions.length) ||
+        (ceVolunteerQuestions && ceVolunteerQuestions.length) ||
+        (Array.isArray(ev.audience) && ev.audience.length) ||
+        (selectedRoomIds && selectedRoomIds.length) ||
+        (ev.repeats && ev.repeats !== 'none')
+      );
     }
 
     go('create-event/' + eventId);
@@ -12806,7 +12855,7 @@
       var maxGuests = (allowGuests && maxGuestsRaw) ? parseInt(maxGuestsRaw, 10) : null;
       var priceRaw = document.getElementById('ce-price').value;
       var priceCents = priceRaw ? Math.round(parseFloat(priceRaw) * 100) : null;
-      if (priceRaw && (isNaN(priceCents) || priceCents <= 0)) { showCeError(window.t('ce.priceMustBePositive')); return; }
+      if (priceRaw && (isNaN(priceCents) || priceCents <= 0)) { var ceAdvPriceErr = document.getElementById('ce-advanced'); if (ceAdvPriceErr) ceAdvPriceErr.open = true; showCeError(window.t('ce.priceMustBePositive')); return; }
       // Mutually exclusive with a ticket price by design (the hint text
       // says so too) -- a paid event already charges directly, so a
       // suggested-donation prompt on top of that would be a confusing
