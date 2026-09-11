@@ -6,7 +6,9 @@ One-off helper scripts. Not part of the deployed site (`index.html` /
 ## enrich-churches.js
 
 Adds `phone` + `website` to a church CSV using the Google Places API,
-with a `matched` flag and a `match_detail` note for manual follow-up.
+with a `matched` flag, a `match_detail` note, and a `place_types` column
+(Google's own category tags for the matched place, e.g. `church;
+place_of_worship; point_of_interest`) for manual follow-up.
 
 ```
 GOOGLE_PLACES_API_KEY=xxxxx  node scripts/enrich-churches.js input.csv [output.csv]
@@ -33,6 +35,11 @@ GOOGLE_PLACES_API_KEY=xxxxx  node scripts/enrich-churches.js input.csv [output.c
     rejected top result)
   - `skipped` — the row already had both `phone` and `website` (use
     `--force` to re-query)
+- `place_types` — the matched place's Google types (e.g. `church`,
+  `place_of_worship`), from the same Places Details call as `phone`/
+  `website` (no extra API cost). Blank when `matched` is `no`/`skipped`.
+  Use it to confirm a match is actually a church/place of worship, not
+  just some business that happened to share a name.
 - Needs the **legacy** "Places API" enabled in Google Cloud (not
   "Places API (New)") + billing on. `REQUEST_DENIED` means one of those.
 - Node 18+ (uses global `fetch`).

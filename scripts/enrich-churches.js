@@ -6,8 +6,11 @@
  * ------------------
  * Takes a CSV of churches (columns: name, denomination, address) and adds
  * phone + website columns using the Google Places API, plus a "matched"
- * flag and a "match_detail" note so you can see what needs manual
- * follow-up.
+ * flag, a "match_detail" note, and the place's "place_types" (Google's own
+ * category tags, e.g. "church; place_of_worship; point_of_interest") so you
+ * can see what needs manual follow-up -- and confirm a match is actually
+ * tagged as a church/place of worship, not just some business that happened
+ * to share a name.
  *
  * How it works, per row:
  *   1. Parse a city + state out of the `address` field. The street / PO Box
@@ -99,7 +102,7 @@ function textSearch(query) {
 function placeDetails(placeId) {
   return gget('https://maps.googleapis.com/maps/api/place/details/json', {
     place_id: placeId,
-    fields: 'formatted_phone_number,website,name,formatted_address,business_status',
+    fields: 'formatted_phone_number,website,name,formatted_address,business_status,types',
   });
 }
 
@@ -290,7 +293,7 @@ function printUsage() {
   process.stderr.write(
     'Usage:\n  GOOGLE_PLACES_API_KEY=xxx node scripts/enrich-churches.js input.csv [output.csv]\n\n' +
     'Input CSV needs at least "name" and "address" columns. Output adds\n' +
-    'phone, website, matched, match_detail.\n' +
+    'phone, website, matched, match_detail, place_types.\n' +
     'Flags: --limit=N, --force, --drop-closed, --selftest.\n'
   );
 }
@@ -315,13 +318,15 @@ async function run(inPath, outPath, opts) {
     die('Input CSV must have "name" and "address" columns. Found: ' + headers.join(', '));
   }
 
-  // Output = original columns, then phone / website / matched / match_detail
-  // (reused in place if the input already has one of those headers).
+  // Output = original columns, then phone / website / matched /
+  // match_detail / place_types (reused in place if the input already has
+  // one of those headers).
   const outHeaders = headers.slice();
   const phoneIdx = ensureCol(outHeaders, 'phone');
   const websiteIdx = ensureCol(outHeaders, 'website');
   const matchedIdx = ensureCol(outHeaders, 'matched');
   const detailIdx = ensureCol(outHeaders, 'match_detail');
+  const typesIdx = ensureCol(outHeaders, 'place_types');
 
   const total = Math.min(rows.length, opts.limit);
   const out = fs.createWriteStream(outPath, { encoding: 'utf8' });
@@ -346,6 +351,7 @@ async function run(inPath, outPath, opts) {
 
     let phone = cell(row, phoneIdx);
     let website = cell(row, websiteIdx);
+    let placeTypes = cell(row, typesIdx);
     let matched = 'no';
     let detail = '';
 
@@ -380,6 +386,7 @@ async function run(inPath, outPath, opts) {
             const r = det.result || {};
             phone = r.formatted_phone_number || '';
             website = r.website || '';
+            placeTypes = Array.isArray(r.types) ? r.types.join('; ') : '';
             const bs = r.business_status || top.business_status;
             // A permanently-closed place is still a confident match, but
             // it gets its own `matched` value so a clean match is
@@ -406,6 +413,7 @@ async function run(inPath, outPath, opts) {
     setCell(row, websiteIdx, website);
     setCell(row, matchedIdx, matched);
     setCell(row, detailIdx, detail);
+    setCell(row, typesIdx, placeTypes);
 
     const divert = opts.dropClosed && matched === 'closed';
     (divert ? openClosedOut() : out).write(csvRow(row));
