@@ -5342,7 +5342,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-10-v280 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-10-v281 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -5680,17 +5680,18 @@
   }
   window.formatChurchNextEventText = formatChurchNextEventText;
 
-  // The single status tag shown on a directory card, as a 4-rung
-  // ladder (highest applicable wins): unclaimed -> Directory listing;
-  // claimed + paid plan -> FaithDock Partner; claimed + verified
-  // giving account -> Verified church; claimed otherwise -> Managed by
-  // this church. Only for real (DB-backed) churches -- sample cards
-  // get nothing. Mirrors the profile-page logic in populateChurchPage().
+  // The single status tag shown on a directory card, as a 3-rung ladder
+  // above the unclaimed baseline (highest applicable wins): claimed +
+  // paid plan -> FaithDock Partner; claimed + verified giving account
+  // -> Verified church; claimed otherwise -> Managed by this church.
+  // Plain unclaimed renders nothing here -- that's the baseline state
+  // for most of the directory, so a tag announcing it on every card is
+  // noise, not signal. (It's still surfaced where it's actionable: the
+  // church profile page's own "Claim this church" banner, untouched --
+  // see populateChurchPage().) Only for real (DB-backed) churches --
+  // sample cards get nothing.
   function churchStatusTag(c){
-    if (!c || !c.real) return '';
-    if (!c.ownerId) {
-      return '<span class="tag neutral" style="margin-left:4px;">' + window.t('church.statusDirectoryListing') + '</span>';
-    }
+    if (!c || !c.real || !c.ownerId) return '';
     if (c.planType && c.planType !== 'free') {
       return '<span class="tag gold" style="margin-left:4px;">' + window.t('church.partnerBadge') + '</span>';
     }

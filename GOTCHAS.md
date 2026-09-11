@@ -1176,3 +1176,13 @@ Added ahead of the San Antonio metro import so a bad run can be reviewed and rol
 **Client (`index.html`):** one batch id is generated **once per "Add churches" click** — `new Date().toISOString() + '_' + filename` — and threaded through every 200-row chunk of that run, so a large multi-chunk CSV still counts as a single batch. New admin-panel section "Import batches" (right after "All churches"): one row per batch with date/filename/counts and Hide all / Delete all buttons, hidden entirely (replaced by an "All claimed" note) when a batch's unclaimed count is 0. Delete confirms via plain `confirm()` showing the exact unclaimed count — same pattern as `admin.deleteUnclaimedConfirm`. A status line under the list shows the last hide/delete result and **deliberately isn't cleared by the list's own reload** (`loadAdminImportBatchesList()` doesn't touch it) — the hide/delete handlers set it, then call `loadAdminPanel()`, which re-renders the list without wiping the message, same as the import modal's own status line persisting until it's reopened.
 
 **Testing note:** verified the whole click-through path (render both an in-progress and an all-claimed batch, Hide all, Delete-all-declined, Delete-all-accepted, both status message variants) against a stubbed `supabase.rpc`. Verified batch-id generation and the import RPC payload with a real file input + FileReader + a CSV with no `address` column (skips geocoding, which hangs in this sandboxed browser since `google.maps.Geocoder` isn't fully available there — a pre-existing dependency of the import flow, not something this change touches). No console errors. Build `2026-09-10-v280`.
+
+---
+
+## Directory/homepage cards: no tag for the baseline unclaimed state
+
+`churchStatusTag()` (used by `churchCard()` on the directory grid and the homepage "Churches near you" strip) no longer renders a "Directory listing" tag for a plain unclaimed church — that's the baseline for most of the directory, so a tag announcing it on every card was noise. The 3 elevated states are unchanged: claimed → "Managed by this church", claimed + verified giving → "Verified church", claimed + paid plan → "FaithDock Partner".
+
+**Not touched:** the church profile page's own unclaimed banner (`#church-unclaimed-banner`, "This is a community directory listing — the church hasn't set it up yet. Claim this church") — that's set independently in `populateChurchPage()`, not through `churchStatusTag()`, and stays exactly as-is since it's actionable in context rather than a redundant per-card label.
+
+`church.statusDirectoryListing` (EN "Directory listing" / ES "Listado del directorio") is now an unused i18n key — left in place, not deleted. Build `2026-09-10-v281`.
