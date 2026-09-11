@@ -2670,7 +2670,7 @@
           <a href="#" id="nav-logout-link" data-i18n="nav.logout">Log out</a>
         </div>
       </div>
-      <a href="#signup" id="nav-login-link" onclick="window.clearStalePostLoginRoute(); go('signup'); authTab('login'); return false;" data-i18n="nav.signin">Sign in</a>
+      <a href="#signup" id="nav-login-link" style="display:none;" onclick="window.clearStalePostLoginRoute(); go('signup'); authTab('login'); return false;" data-i18n="nav.signin">Sign in</a>
       <div id="nav-toggle-group" style="display:flex;align-items:center;gap:10px;margin-left:14px;">
         <button id="theme-toggle-btn" type="button" aria-label="Toggle dark mode" data-i18n-title="common.toggleDarkMode" style="background:none;border:1px solid rgba(255,255,255,0.3);border-radius:7px;width:31px;height:31px;display:flex;align-items:center;justify-content:center;color:#CBD2DE;cursor:pointer;flex-shrink:0;">
           <svg id="theme-toggle-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;display:none;"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
@@ -5372,7 +5372,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-10-v283 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-11-v284 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -9295,7 +9295,7 @@
   // short enough that anything even a few seconds later (a manual nav
   // click, or a refresh right after editing a church) still gets a
   // fully fresh query rather than stale cached data.
-  window._myChurchCache = null; // { userId, expires, promise }
+  window._myChurchCache = null; // { userId, expires, promise, settled, value }
   async function getMyChurch(knownUserId, retriesLeft){
     if (retriesLeft === undefined) {
       var cacheKey = knownUserId || '__current_user__';
@@ -9303,12 +9303,38 @@
       if (cached && cached.userId === cacheKey && cached.expires > Date.now()) {
         return cached.promise;
       }
-      var freshPromise = getMyChurchUncached(knownUserId, 3);
-      window._myChurchCache = { userId: cacheKey, expires: Date.now() + 1500, promise: freshPromise };
+      // settled/value let a SYNCHRONOUS caller (peekMyChurch, below) ask
+      // "do we already know the answer" without an await -- used by
+      // updateAuthUI/loadDashboardHeader/populatePricingPage to paint
+      // instantly, with no hide-then-reveal flash at all, when a very
+      // recent call on this same page (or the previous one, within the
+      // 1.5s window) already resolved this.
+      var cacheEntry = { userId: cacheKey, expires: Date.now() + 1500, promise: null, settled: false, value: undefined };
+      var freshPromise = getMyChurchUncached(knownUserId, 3).then(function(v){
+        cacheEntry.settled = true;
+        cacheEntry.value = v;
+        return v;
+      });
+      cacheEntry.promise = freshPromise;
+      window._myChurchCache = cacheEntry;
       return freshPromise;
     }
     return getMyChurchUncached(knownUserId, retriesLeft);
   }
+  // Synchronous "do we already know" check for the same cache
+  // getMyChurch() itself uses -- true only once the underlying call has
+  // actually settled (an in-flight-but-not-yet-resolved cache hit still
+  // reports known:false, since there's nothing to paint synchronously
+  // from yet).
+  function peekMyChurch(knownUserId){
+    var cacheKey = knownUserId || '__current_user__';
+    var cached = window._myChurchCache;
+    if (cached && cached.userId === cacheKey && cached.expires > Date.now() && cached.settled) {
+      return { known: true, value: cached.value };
+    }
+    return { known: false };
+  }
+  window.peekMyChurch = peekMyChurch;
   async function getMyChurchUncached(knownUserId, retriesLeft){
     var userId = knownUserId;
     if (!userId) {
@@ -10269,12 +10295,15 @@
       // account_type as the thing that actually decides dashboard
       // access. account_type is kept around for display only now
       // (the Profile page still shows it), never as a gate.
-      var { data: ownedForAccess } = await supabase.from('churches').select('id').eq('owner_id', sessionUser.id).limit(1);
-      var hasChurchAccess = !!(ownedForAccess && ownedForAccess.length);
-      if (!hasChurchAccess) {
-        var { data: staffForAccess } = await supabase.from('church_staff').select('id').eq('user_id', sessionUser.id).limit(1);
-        hasChurchAccess = !!(staffForAccess && staffForAccess.length);
-      }
+      // Routed through getMyChurch() (bare, matching the zero-arg call
+      // loadDashboardHeader() also makes) rather than this function's
+      // own separate owned/staffed existence queries -- getMyChurch()
+      // returns a row for either case, so its truthiness is exactly
+      // hasChurchAccess, and its own 1.5s cache means whichever of
+      // updateAuthUI() / loadDashboardHeader() runs first does the one
+      // real round trip and the other just reuses it, instead of both
+      // independently querying the same relationship on every load.
+      var hasChurchAccess = !!(await getMyChurch());
       if (myGeneration !== window.authUICheckGeneration) return;
       window.hasChurchAccess = hasChurchAccess;
     } else if (userMenu) {
@@ -17499,16 +17528,7 @@
     // Multi-Church's card is a static mailto "Contact Sales" link, not a
     // checkout button — it never gets an onclick or a "current plan"
     // disabled state here, unlike the four self-serve tiers below.
-
-    // Reset to signed-out/no-church defaults first, then override
-    // below only if there's an actual current plan to reflect. Same
-    // reset-first pattern for the title and the standalone cancel
-    // link — "Become a Partner Church" / hidden is the right default
-    // for anyone who isn't already a paying church, which is also
-    // exactly the state before the async myChurch lookup below
-    // resolves.
     var titleEl = document.getElementById('pricing-title');
-    if (titleEl) titleEl.textContent = window.t('pricing.title');
     // One "Cancel subscription" link per paid card (Starter/Standard/
     // Premium), shown only under whichever one is the viewer's actual
     // current plan -- never Free (nothing to cancel) or Multi-Church
@@ -17519,89 +17539,162 @@
       premium: document.getElementById('pricing-cancel-sub-premium')
     };
     Object.keys(cancelSubBtns).forEach(function(k){ if (cancelSubBtns[k]) cancelSubBtns[k].style.display = 'none'; });
-    freeBtn.textContent = window.t('pricing.free.cta'); freeBtn.disabled = false;
-    freeBtn.onclick = function(){
-      // Clears any plan chosen on a previous, abandoned visit here
-      // (e.g. clicked Starter, never finished registering, came back
-      // and picked Free instead) — otherwise that stale plan would
-      // wrongly resume into a Stripe checkout after this church is
-      // created.
-      try { sessionStorage.removeItem('faithdock_pendingPlan'); } catch (e) {}
-      go('register-church');
-    };
-    // Starter/Standard/Premium are church-level plans — checkout can't
-    // mean anything without a church to attach it to. For a
-    // not-yet-a-church visitor, the chosen plan is remembered
-    // (sessionStorage, survives the trip to register-church) and
-    // picked back up right after the church is actually created —
-    // see the register-church submit handler's new-church branch.
-    starterBtn.textContent = window.t('pricing.starter.cta'); starterBtn.disabled = false;
-    starterBtn.onclick = async function(){
-      var churchForCheckout = window.isSignedIn ? await getMyChurch() : null;
-      if (!churchForCheckout) { try { sessionStorage.setItem('faithdock_pendingPlan', 'starter'); } catch (e) {} go('register-church'); return; }
-      window.startPlanCheckout && window.startPlanCheckout('starter');
-    };
-    standardBtn.textContent = window.t('pricing.medium.cta'); standardBtn.disabled = false;
-    standardBtn.onclick = async function(){
-      var churchForCheckout = window.isSignedIn ? await getMyChurch() : null;
-      if (!churchForCheckout) { try { sessionStorage.setItem('faithdock_pendingPlan', 'standard'); } catch (e) {} go('register-church'); return; }
-      window.startPlanCheckout && window.startPlanCheckout('standard');
-    };
-    premiumBtn.textContent = window.t('pricing.large.cta'); premiumBtn.disabled = false;
-    premiumBtn.onclick = async function(){
-      var churchForCheckout = window.isSignedIn ? await getMyChurch() : null;
-      if (!churchForCheckout) { try { sessionStorage.setItem('faithdock_pendingPlan', 'premium'); } catch (e) {} go('register-church'); return; }
-      window.startPlanCheckout && window.startPlanCheckout('premium');
-    };
 
-    if (!window.isSignedIn) return;
-    var myChurch = await getMyChurch();
-    if (!myChurch) return;
-    var planType = myChurch.planType || 'free';
+    // Signed-out/no-church defaults -- correct outright for anyone who
+    // isn't already a paying church owner, which is also everyone this
+    // runs for before we can possibly know otherwise. Safe to paint
+    // even during the still-ambiguous window below (see hideUntilKnown)
+    // since nothing renders mid-synchronous-execution -- the browser
+    // only actually paints once hideUntilKnown has already suppressed
+    // whichever of these might be wrong.
+    function paintDefaults(){
+      if (titleEl) titleEl.textContent = window.t('pricing.title');
+      freeBtn.textContent = window.t('pricing.free.cta');
+      freeBtn.onclick = function(){
+        // Clears any plan chosen on a previous, abandoned visit here
+        // (e.g. clicked Starter, never finished registering, came back
+        // and picked Free instead) — otherwise that stale plan would
+        // wrongly resume into a Stripe checkout after this church is
+        // created.
+        try { sessionStorage.removeItem('faithdock_pendingPlan'); } catch (e) {}
+        go('register-church');
+      };
+      // Starter/Standard/Premium are church-level plans — checkout
+      // can't mean anything without a church to attach it to. For a
+      // not-yet-a-church visitor, the chosen plan is remembered
+      // (sessionStorage, survives the trip to register-church) and
+      // picked back up right after the church is actually created —
+      // see the register-church submit handler's new-church branch.
+      // These three re-check ownership live, at click time, via their
+      // own getMyChurch() call -- unlike Free's plain handler above,
+      // so there's no misfire risk for them even if clicked during the
+      // still-ambiguous window; only their label could be briefly
+      // wrong, which hideUntilKnown's visibility toggle covers.
+      starterBtn.textContent = window.t('pricing.starter.cta');
+      starterBtn.onclick = async function(){
+        var churchForCheckout = window.isSignedIn ? await getMyChurch() : null;
+        if (!churchForCheckout) { try { sessionStorage.setItem('faithdock_pendingPlan', 'starter'); } catch (e) {} go('register-church'); return; }
+        window.startPlanCheckout && window.startPlanCheckout('starter');
+      };
+      standardBtn.textContent = window.t('pricing.medium.cta');
+      standardBtn.onclick = async function(){
+        var churchForCheckout = window.isSignedIn ? await getMyChurch() : null;
+        if (!churchForCheckout) { try { sessionStorage.setItem('faithdock_pendingPlan', 'standard'); } catch (e) {} go('register-church'); return; }
+        window.startPlanCheckout && window.startPlanCheckout('standard');
+      };
+      premiumBtn.textContent = window.t('pricing.large.cta');
+      premiumBtn.onclick = async function(){
+        var churchForCheckout = window.isSignedIn ? await getMyChurch() : null;
+        if (!churchForCheckout) { try { sessionStorage.setItem('faithdock_pendingPlan', 'premium'); } catch (e) {} go('register-church'); return; }
+        window.startPlanCheckout && window.startPlanCheckout('premium');
+      };
+    }
 
-    // Already a partner church by this point (myChurch exists) --
-    // "Become a Partner Church" no longer makes sense as the heading
-    // for someone managing a plan they already have.
-    if (titleEl) titleEl.textContent = window.t('pricing.titleExisting');
+    // Overrides paintDefaults() once an actual paid church is
+    // confirmed. Split out so both the "already knew" (peekMyChurch
+    // hit) and "just resolved" paths below apply it identically.
+    function applyChurchState(myChurch){
+      if (!myChurch) return; // signed in, no church -- defaults above are already correct
+      var planType = myChurch.planType || 'free';
 
-    // An existing owner on a paid plan clicking "Get started free"
-    // landing on "Register your church" made no sense -- they already
-    // have one. Once there's a real paid church, this button becomes
-    // the same downgrade-to-Free action as the Billing panel's,
-    // instead of the signed-out/no-church registration flow set above.
-    // (multi_church is sales-negotiated, not a self-serve Stripe
-    // subscription, so there's nothing here to cancel via this path.)
-    if (planType !== 'free' && planType !== 'multi_church') {
-      freeBtn.textContent = window.t('dashBilling.downgradeToFree');
-      freeBtn.disabled = false;
-      freeBtn.onclick = function(){ performPlanDowngrade(myChurch, freeBtn); };
+      // Already a partner church by this point -- "Become a Partner
+      // Church" no longer makes sense as the heading for someone
+      // managing a plan they already have.
+      if (titleEl) titleEl.textContent = window.t('pricing.titleExisting');
 
-      // "Cancel subscription" sits directly under whichever card is
-      // the viewer's actual current plan -- not Free (nothing to
-      // cancel there) and not a fixed spot at the top of the page,
-      // so it always reads as "cancel THIS plan" rather than a
-      // generic, disconnected link.
-      var currentCancelBtn = cancelSubBtns[planType];
-      if (currentCancelBtn) {
-        currentCancelBtn.style.display = 'block';
-        currentCancelBtn.onclick = function(){ performPlanDowngrade(myChurch, currentCancelBtn); };
+      // An existing owner on a paid plan clicking "Get started free"
+      // landing on "Register your church" made no sense -- they
+      // already have one. Once there's a real paid church, this
+      // button becomes the same downgrade-to-Free action as the
+      // Billing panel's, instead of paintDefaults()'s signed-out/
+      // no-church registration handler. (multi_church is sales-
+      // negotiated, not a self-serve Stripe subscription, so there's
+      // nothing here to cancel via this path.)
+      if (planType !== 'free' && planType !== 'multi_church') {
+        freeBtn.textContent = window.t('dashBilling.downgradeToFree');
+        freeBtn.onclick = function(){ performPlanDowngrade(myChurch, freeBtn); };
+
+        // "Cancel subscription" sits directly under whichever card is
+        // the viewer's actual current plan -- not Free (nothing to
+        // cancel there) and not a fixed spot at the top of the page,
+        // so it always reads as "cancel THIS plan" rather than a
+        // generic, disconnected link.
+        var currentCancelBtn = cancelSubBtns[planType];
+        if (currentCancelBtn) {
+          currentCancelBtn.style.display = 'block';
+          currentCancelBtn.onclick = function(){ performPlanDowngrade(myChurch, currentCancelBtn); };
+        }
+      }
+
+      // multi_church has no button in this map — sales-negotiated
+      // plans aren't represented by any of these four self-serve
+      // buttons.
+      var currentBtnMap = { starter: starterBtn, standard: standardBtn, premium: premiumBtn };
+      var currentBtn = currentBtnMap[planType] || freeBtn;
+      // freeBtn is deliberately excluded from this "disable, it's your
+      // current plan" treatment when it's actually the downgrade
+      // action above -- planType === 'free' is the only case where
+      // currentBtn resolves to freeBtn at all, and in that case
+      // there's no downgrade override to protect, so this stays
+      // exactly as before.
+      if (currentBtn !== freeBtn || planType === 'free') {
+        currentBtn.textContent = window.t('pricing.yourCurrentPlan');
+        currentBtn.disabled = true;
+        currentBtn.onclick = null;
       }
     }
 
-    // multi_church has no button in this map — sales-negotiated plans
-    // aren't represented by any of these four self-serve buttons.
-    var currentBtnMap = { starter: starterBtn, standard: standardBtn, premium: premiumBtn };
-    var currentBtn = currentBtnMap[planType] || freeBtn;
-    // freeBtn is deliberately excluded from this "disable, it's your
-    // current plan" treatment when it's actually the downgrade action
-    // above -- planType === 'free' is the only case where currentBtn
-    // resolves to freeBtn at all, and in that case there's no
-    // downgrade override to protect, so this stays exactly as before.
-    if (currentBtn !== freeBtn || planType === 'free') {
-      currentBtn.textContent = window.t('pricing.yourCurrentPlan');
-      currentBtn.disabled = true;
-      currentBtn.onclick = null;
+    // Free stays visible throughout but starts (and, while ambiguous,
+    // stays) disabled -- a disabled button never dispatches a click
+    // event to its handler no matter which one is currently attached,
+    // so paintDefaults()'s plain go('register-church') handler can't
+    // fire for a signed-in owner during the loading window even though
+    // it's technically still wired. The title and the other three
+    // buttons are hidden via visibility (not display), so the page
+    // layout doesn't reflow once they reappear -- matching how the
+    // church-profile page already hides its Partner/Verified badges
+    // until populated, just without the layout jump a display:none
+    // <h1> would cause here.
+    function hideUntilKnown(){
+      freeBtn.disabled = true;
+      if (titleEl) titleEl.style.visibility = 'hidden';
+      starterBtn.style.visibility = 'hidden';
+      standardBtn.style.visibility = 'hidden';
+      premiumBtn.style.visibility = 'hidden';
     }
+    function revealNowKnown(){
+      freeBtn.disabled = false;
+      if (titleEl) titleEl.style.visibility = '';
+      starterBtn.style.visibility = '';
+      standardBtn.style.visibility = '';
+      premiumBtn.style.visibility = '';
+    }
+
+    if (!window.isSignedIn) {
+      // Unambiguous -- there's no church to look up, so nothing here
+      // is ever hidden or disabled in the first place.
+      paintDefaults();
+      return;
+    }
+
+    // Signed in: ambiguous until we know whether this account already
+    // owns a paid church. If getMyChurch() already has a settled,
+    // still-fresh answer cached -- loadDashboardHeader() resolved it
+    // moments ago on this same load, or on the previous page within
+    // the last 1.5s (see peekMyChurch/getMyChurch) -- use it
+    // immediately with no hide-then-reveal at all.
+    var peeked = window.peekMyChurch();
+    if (peeked.known) {
+      paintDefaults();
+      applyChurchState(peeked.value);
+      return;
+    }
+
+    paintDefaults();
+    hideUntilKnown();
+    var myChurch = await getMyChurch();
+    applyChurchState(myChurch);
+    revealNowKnown();
   }
   window.populatePricingPage = populatePricingPage;
 
