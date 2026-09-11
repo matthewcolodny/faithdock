@@ -1206,3 +1206,14 @@ Added ahead of the San Antonio metro import so a bad run can be reviewed and rol
 - same call with a mocked at-cap plan → correctly lands on `#pricing` instead
 
 No console errors. Build `2026-09-10-v282`.
+
+---
+
+## Comparison table: mobile layout (was unusably cramped)
+
+The `#compare` page's 3-column table (`min-width:600px`, `overflow-x:auto`) just looked cut off on a phone — no obvious "scroll for more" affordance, and the long feature sentences made the horizontal-scroll pattern a bad fit regardless. Below 700px it's now a stacked-card layout, CSS-only (no HTML or JS changes):
+
+- The header row collapses to a small 2-column legend ("FaithDock" / "Traditional church management software") above the cards — its "Feature" label is dropped since every card already leads with its own feature text. Reading the real, already-translated `<th>` text for this (rather than hardcoding new labels) is what keeps ES correct with zero new i18n keys.
+- Each data row becomes its own bordered/rounded card: the feature sentence spans the full width on top, then the FaithDock and Traditional-ChMS values sit side by side underneath, split by a vertical divider.
+
+**Bug caught during verification, fixed before shipping:** the first pass targeted the feature cell with `.compare-table tr:not(:first-child) .compare-feature-col{grid-column:1/-1;...}` — but that class only exists on the header `<th>`; a data row's feature `<td>` is a plain, class-less cell. The rule silently matched nothing, so the checkmark landed next to the feature text on the same grid row instead of below it, and the next row's value cell wrapped alone with nothing beside it. Fixed by targeting `tr:not(:first-child) td:first-child` (positional, not class-based) instead — confirmed via `getComputedStyle` that `grid-column` was actually `1 / -1` on the right element, then re-screenshotted every row (including the ✓/✓ parity row and the two-text-value pricing row) in both themes and in Spanish. Desktop (`>700px`) computed styles confirmed completely unaffected (`display:table`, `min-width:600px`, unchanged). Build `2026-09-10-v283`.

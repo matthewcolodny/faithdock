@@ -2502,7 +2502,37 @@
   .compare-yes{color:var(--sage);font-weight:700;}
   .compare-no{color:var(--ink-mute);}
   .compare-partial{color:var(--gold);font-size:12.5px;font-family:'IBM Plex Mono';}
-  @media (max-width:700px){ .compare-table th, .compare-table td{padding:12px;font-size:13px;} }
+  @media (max-width:700px){
+    /* The 3-column table (long feature sentences + 2 value columns)
+       doesn't fit a phone screen -- min-width:600px inside a ~380px
+       wrap just made it look cut off, with no obvious "scroll for
+       more" affordance. Below 700px each row becomes its own card:
+       the feature description full-width on top, then the FaithDock
+       and Traditional-ChMS values side by side underneath. The header
+       row collapses to a small 2-column legend above the cards (its
+       "Feature" label dropped -- redundant once every card leads with
+       its own feature text) instead of being duplicated per row, so
+       both languages stay correct with no extra i18n keys. */
+    .compare-table-wrap{overflow-x:visible;border:none;background:none;margin-top:24px;}
+    .compare-table{min-width:0;width:100%;border-collapse:separate;border-spacing:0;display:block;}
+    .compare-table tr:first-child{display:flex;margin-bottom:10px;}
+    .compare-table tr:first-child .compare-feature-col{display:none;}
+    .compare-table tr:first-child th{flex:1;text-align:center;font-size:11.5px;padding:6px;border-bottom:2px solid var(--line);}
+    .compare-table tr:not(:first-child){
+      display:grid;grid-template-columns:1fr 1fr;
+      border:1px solid var(--line);border-radius:12px;margin-bottom:10px;overflow:hidden;background:var(--card);
+    }
+    .compare-table tr:not(:first-child) td{padding:10px 12px;border-bottom:none;text-align:center;font-size:13px;}
+    /* The feature-description cell on a data row is just a plain first
+       <td> -- unlike the header, it never actually carries the
+       compare-feature-col class -- so this has to target it
+       positionally to span both columns. */
+    .compare-table tr:not(:first-child) td:first-child{
+      grid-column:1 / -1;text-align:left !important;font-weight:600;color:var(--ink);font-size:13.5px;
+      background:var(--paper);border-bottom:1px solid var(--line);
+    }
+    .compare-table tr:not(:first-child) td.compare-cloyst-col{border-right:1px solid var(--line);}
+  }
   /* ---- share modal ---- */
   .modal-overlay{
     display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(22,35,63,0.55);z-index:100;
@@ -5342,7 +5372,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-10-v282 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-10-v283 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
