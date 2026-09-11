@@ -3,6 +3,48 @@
 One-off helper scripts. Not part of the deployed site (`index.html` /
 `pure-logic.js`) and not run automatically.
 
+## filter-churches.js
+
+Splits a raw nonprofit-org extract (e.g. an IRS EO Business Master File
+pull for a metro area or the whole state — columns: `name`,
+`denomination`, `address`; `denomination` may be blank) into three files
+using name-keyword rules, **before** `enrich-churches.js` ever runs:
+
+```
+node scripts/filter-churches.js input.csv [outputPrefix]
+```
+
+- `outputPrefix` defaults to `input.csv` without its extension, so
+  `input.csv` → `input.clean.csv` / `input.excluded.csv` / `input.review.csv`.
+- **Stage 1 (candidate?):** a row is a religious-org candidate if its name
+  contains a religion keyword (`church`, `ministry`, `iglesia`, `baptist`,
+  ...) or it already has a non-blank `denomination`. Everything else is
+  **dropped** — not written to any file, since for a metro/statewide pull
+  the overwhelming majority of rows have nothing to do with churches.
+- **Stage 2 (what kind of candidate?):** `excluded.csv` for a confident
+  non-congregation match (`school`, `foundation`, `endowment`, `trust`,
+  `diocese`/`archdiocese`, `cemetery`, `insurance`, `credit union`,
+  `seminary`, `booster club`, `alumni association`, `charities`/
+  `charitable`, `capital campaign` — checked first, so it wins over
+  review); `review.csv` for ambiguous entity-type words (`association`,
+  `council`, `society`) that might be a single congregation or might be a
+  denominational/parachurch body; everything else → `clean.csv`.
+- **Every keyword check is word-boundary** (`\bministry\b`), never a
+  plain substring check — the first, ad hoc San Antonio pass used
+  substring matching and let "Resurrection Cemetery Administry Of The
+  Cordi-Marian Sisters" in as a candidate because "Administry" contains
+  "ministry". Re-validating the word-boundary version against San
+  Antonio's actual triaged output turned up 2 more real instances of the
+  same bug the old pass had gotten wrong silently ("Churchill" ≠
+  `\bchurch\b`, "Templeton" ≠ `\btemple\b` — see the file's own header
+  comment for the full story). Known trade-off in the other direction: a
+  real church name that mashes the keyword into another word with no
+  separator (`Rechurch210`, `...Familychurch`) won't match either, and
+  gets dropped instead of landing in `clean.csv` — spot-check the dropped
+  count on a new region rather than assuming 0 false negatives.
+- `--selftest` (offline checks, including the Administry/Churchill/
+  Templeton cases above).
+
 ## enrich-churches.js
 
 Adds `phone` + `website` to a church CSV using the Google Places API,
