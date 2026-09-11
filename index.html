@@ -376,6 +376,11 @@
       'pricing.eyebrow': 'Pricing', 'pricing.title': 'Become a Partner Church', 'pricing.titleExisting': 'Manage your plan', 'pricing.cancelSubscription': 'Cancel subscription',
       'pricing.subtitle': 'Free to be listed. Upgrade for tools that help you grow and stay connected with your congregation.',
       'pricing.compareLink': 'See how FaithDock compares →', 'pricing.perMonth': ' / month', 'pricing.mostPopular': 'Most popular',
+      'pricing.free.tagline': 'Get discovered. Your church and its events on the public map, at no cost.',
+      'pricing.starter.tagline': 'Run your events. Bigger limits, zero fees on tickets and giving, and room for a small team.',
+      'pricing.medium.tagline': 'Run your community. Reach everyone at once and keep groups, events, and members moving together.',
+      'pricing.large.tagline': 'Run your whole church. Unlimited team, top visibility in search, up to five churches on one account.',
+      'pricing.multiChurch.tagline': 'Run a network. Every church you oversee under one roof, with limits and billing set to fit.',
       'pricing.free.name': 'Free', 'pricing.free.f1': 'Listing in the public directory', 'pricing.free.f2': 'Church management tools',
       'pricing.free.f3': 'Up to 8 events / month, 3 groups', 'pricing.free.f4': 'Unlimited giving — 1% FaithDock fee applies',
       'pricing.free.f5': 'Event reminders', 'pricing.free.f6': 'Paid ticketed events — 3% FaithDock fee per ticket', 'pricing.free.cta': 'Get started free',
@@ -1096,6 +1101,11 @@
       'pricing.eyebrow': 'Precios', 'pricing.title': 'Únete como iglesia asociada', 'pricing.titleExisting': 'Administra tu plan', 'pricing.cancelSubscription': 'Cancelar suscripción',
       'pricing.subtitle': 'Gratis para aparecer en el directorio. Mejora tu plan para obtener herramientas que te ayuden a crecer y a mantenerte conectado con tu congregación.',
       'pricing.compareLink': 'Mira cómo se compara FaithDock →', 'pricing.perMonth': ' / mes', 'pricing.mostPopular': 'Más popular',
+      'pricing.free.tagline': 'Que te encuentren. Tu iglesia y sus eventos en el mapa público, sin costo.',
+      'pricing.starter.tagline': 'Gestiona tus eventos. Sin comisiones en entradas ni donaciones, más límites y un equipo pequeño.',
+      'pricing.medium.tagline': 'Dirige tu comunidad. Llega a todos a la vez y mantén grupos, eventos y miembros en marcha.',
+      'pricing.large.tagline': 'Dirige toda tu iglesia. Equipo ilimitado, prioridad en las búsquedas y hasta cinco iglesias por cuenta.',
+      'pricing.multiChurch.tagline': 'Dirige una red. Todas las iglesias que supervisas en un solo lugar, con límites y facturación a medida.',
       'pricing.free.name': 'Gratis', 'pricing.free.f1': 'Listado en el directorio público', 'pricing.free.f2': 'Herramientas de gestión de la iglesia',
       'pricing.free.f3': 'Hasta 8 eventos al mes, 3 grupos', 'pricing.free.f4': 'Donaciones ilimitadas \u2014 aplica una tarifa de FaithDock del 1%',
       'pricing.free.f5': 'Recordatorios de eventos', 'pricing.free.f6': 'Eventos con entrada de pago \u2014 tarifa de FaithDock del 3% por entrada', 'pricing.free.cta': 'Comenzar gratis',
@@ -2111,6 +2121,24 @@
   .price-card h3{font-size:19px;}
   .price-amount{font-family:'Fraunces';font-size:38px;color:var(--ink);margin:14px 0 4px;font-weight:600;overflow-wrap:break-word;}
   .price-amount span{font-size:15px;color:var(--ink-mute);font-family:'IBM Plex Sans';font-weight:400;}
+  /* Word price ("Custom" / "Personalizado") at a size that stays on one
+     line, in a box the same height as a 38px numeric price, so the
+     Multi-Church card's feature list lines up with the other four --
+     "Personalizado" wrapped at 38px and dropped that card ~1 line. */
+  .price-amount[data-i18n="pricing.multiChurch.price"]{font-size:23px;min-height:61px;display:flex;align-items:flex-end;}
+  /* One-line "what this tier is for" framing between the price and the
+     feature list. min-height keeps the five feature lists roughly
+     aligned across a row despite 1-3 line taglines. */
+  .price-tagline{
+    font-size:13px;line-height:1.45;color:var(--ink-soft);margin:2px 0 6px;
+    /* Force every tagline to occupy exactly 4 lines so the five feature
+       lists start at the same Y regardless of copy length or language.
+       min-height pads a shorter tagline up to 4 lines; line-clamp trims
+       a longer one down (a safety net -- the copy is written to fit). */
+    min-height:calc(4 * 1.45em);
+    display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:4;overflow:hidden;
+  }
+  @media (max-width:860px){ .price-tagline{min-height:0;-webkit-line-clamp:unset;} }
   .price-card ul{list-style:none;padding:0;margin:20px 0;flex:1;}
   .price-card li{padding:8px 0;border-top:1px solid var(--line);font-size:14.5px;display:flex;gap:8px;}
   .price-card li:first-child{border-top:none;}
@@ -3489,12 +3517,14 @@
       <div class="price-card">
         <h3 data-i18n="pricing.free.name">Free</h3>
         <div class="price-amount">$0<span data-i18n="pricing.perMonth"> / month</span></div>
+        <p class="price-tagline" data-i18n="pricing.free.tagline">Get discovered. Your church and its events on the public map, at no cost.</p>
         <ul id="price-features-free"></ul>
         <button class="price-btn" id="pricing-free-btn" onclick="go('register-church')" data-i18n="pricing.free.cta">Get started free</button>
       </div>
       <div class="price-card">
         <h3 data-i18n="pricing.starter.name">Starter</h3>
         <div class="price-amount">$19<span data-i18n="pricing.perMonth"> / month</span></div>
+        <p class="price-tagline" data-i18n="pricing.starter.tagline">Run your events. Bigger limits, zero fees on tickets and giving, and room for a small team.</p>
         <ul id="price-features-starter"></ul>
         <button class="price-btn" id="pricing-starter-btn" onclick="window.startPlanCheckout && window.startPlanCheckout('starter')" data-i18n="pricing.starter.cta">Start Starter plan</button>
         <button type="button" id="pricing-cancel-sub-starter" style="display:none;margin-top:10px;width:100%;background:none;border:none;padding:0;font-size:12.5px;color:var(--clay);cursor:pointer;border-bottom:1px solid var(--clay);" data-i18n="pricing.cancelSubscription">Cancel subscription</button>
@@ -3503,6 +3533,7 @@
         <span class="featured-badge" data-i18n="pricing.mostPopular">Most popular</span>
         <h3 data-i18n="pricing.medium.name">Standard</h3>
         <div class="price-amount">$39<span data-i18n="pricing.perMonth"> / month</span></div>
+        <p class="price-tagline" data-i18n="pricing.medium.tagline">Run your community. Reach everyone at once and keep groups, events, and members moving together.</p>
         <ul id="price-features-standard"></ul>
         <button class="price-btn" id="pricing-standard-btn" onclick="window.startPlanCheckout && window.startPlanCheckout('standard')" data-i18n="pricing.medium.cta">Start Standard plan</button>
         <button type="button" id="pricing-cancel-sub-standard" style="display:none;margin-top:10px;width:100%;background:none;border:none;padding:0;font-size:12.5px;color:var(--clay);cursor:pointer;border-bottom:1px solid var(--clay);" data-i18n="pricing.cancelSubscription">Cancel subscription</button>
@@ -3510,6 +3541,7 @@
       <div class="price-card">
         <h3 data-i18n="pricing.large.name">Premium</h3>
         <div class="price-amount">$79<span data-i18n="pricing.perMonth"> / month</span></div>
+        <p class="price-tagline" data-i18n="pricing.large.tagline">Run your whole church. Unlimited team, top visibility in search, up to five churches on one account.</p>
         <ul id="price-features-premium"></ul>
         <button class="price-btn" id="pricing-premium-btn" onclick="window.startPlanCheckout && window.startPlanCheckout('premium')" data-i18n="pricing.large.cta">Start Premium plan</button>
         <button type="button" id="pricing-cancel-sub-premium" style="display:none;margin-top:10px;width:100%;background:none;border:none;padding:0;font-size:12.5px;color:var(--clay);cursor:pointer;border-bottom:1px solid var(--clay);" data-i18n="pricing.cancelSubscription">Cancel subscription</button>
@@ -3517,6 +3549,7 @@
       <div class="price-card">
         <h3 data-i18n="pricing.multiChurch.name">Multi-Church</h3>
         <div class="price-amount" data-i18n="pricing.multiChurch.price">Custom</div>
+        <p class="price-tagline" data-i18n="pricing.multiChurch.tagline">Run a network. Every church you oversee under one roof, with limits and billing set to fit.</p>
         <ul id="price-features-multichurch"></ul>
         <a class="price-btn" id="pricing-multichurch-btn" href="mailto:team@faithdock.com" style="text-decoration:none;text-align:center;" data-i18n="pricing.multiChurch.cta">Contact Sales</a>
       </div>
@@ -5260,7 +5293,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-10-v275 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-10-v276 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">

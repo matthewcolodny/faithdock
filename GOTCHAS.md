@@ -1112,3 +1112,16 @@ if(route.split('/')[0] === 'register-church' && !window.isSignedIn && typeof win
 - No JS route-guard, redirect, or populate hook special-cased `#compare` — it's fully static HTML, so `go('compare')` is all it needs. The page's own "See plans" button (`onclick="go('pricing')"`) still works.
 
 Build stamp `2026-09-10-v275`.
+
+---
+
+## Pricing tiers: "what this tier is for" taglines
+
+Each of the 5 pricing cards now carries a one-line progression tagline (`<p class="price-tagline" data-i18n="pricing.<tier>.tagline">`) between `.price-amount` and the feature `<ul>` — **get found → run your events → run your community → run your whole church → run a network**. New keys `pricing.{free,starter,medium,large,multiChurch}.tagline` (EN + ES). No JS, no matrix change, no price/feature/gating change. (`medium` = Standard, `large` = Premium, matching the existing dict convention.)
+
+**Keeping the 5 feature lists aligned** took more than the proposed `min-height`:
+- Taglines wrap to 3–5 lines depending on copy length, language (ES runs ~15% longer), and column width (5-col ≈ 222px, 3-col ≈ 294px). A plain `min-height` only pads *up*; it can't stop a long ES tagline from pushing its own list down.
+- Fix: `.price-tagline` is `display:-webkit-box; -webkit-line-clamp:4; overflow:hidden` **and** `min-height:calc(4 * 1.45em)` — so every tagline occupies **exactly 4 lines**, padded up if short, clamped down if long (clamp is a safety net; the copy is written to fit 4 lines at 222px, and the two longest ES lines were trimmed so nothing actually clamps). Under `@media (max-width:860px)` (cards stack single-column) both are released — no point reserving 4 lines of blank space per stacked card.
+- Second, separate cause found while verifying: the **Multi-Church card's word price** ("Custom" / **"Personalizado"**) wrapped to 2 lines at 38px in a 222px column, dropping that one card's list ~24px in Spanish. Fixed with `.price-amount[data-i18n="pricing.multiChurch.price"]{font-size:23px;min-height:61px;display:flex;align-items:flex-end;}` — smaller text, one line, in a box the same height as a 38px numeric price. Pre-existing; only visible once the taglines made cross-card alignment matter.
+
+Verified: feature-list start positions within **1px** across all 5 cards at 5-col (EN and ES), aligned within rows at the 3-col breakpoint, no tagline clamped in any tested width, no horizontal overflow on mobile. Build `2026-09-10-v276`.
