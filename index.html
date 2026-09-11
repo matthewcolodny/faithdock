@@ -2651,7 +2651,7 @@
       </div>
       <p class="hero-for-churches">
         <span data-i18n="home.forChurchesQ">Are you a church?</span>
-        <a href="#register-church" data-route="register-church" data-add-church="true" data-i18n="home.forChurchesLink">List your church — free</a>
+        <a href="#register-church" data-route="register-church" data-list-church="true" data-i18n="home.forChurchesLink">List your church — free</a>
       </p>
     </div>
   </div>
@@ -2698,7 +2698,7 @@
           <span data-i18n="home.fc.p3b">Paid plans add check-in, groups, messaging, and giving.</span>
         </div>
       </div>
-      <a class="for-churches-cta" href="#register-church" data-route="register-church" data-add-church="true" data-i18n="home.fc.cta">List your church — free</a>
+      <a class="for-churches-cta" href="#register-church" data-route="register-church" data-list-church="true" data-i18n="home.fc.cta">List your church — free</a>
       <p class="for-churches-note" data-i18n="home.fc.note">FaithDock is in private testing. Listing is free; setting one up needs an invite code.</p>
     </div>
   </div>
@@ -5317,7 +5317,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-10-v278 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-10-v279 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -6688,6 +6688,34 @@
       ev.preventDefault();
       var route = el.getAttribute('data-route');
       var fullRoute = route;
+      // Homepage "List your church — free" CTAs (hero + For-churches band).
+      // Unlike the in-app "Add a church" buttons, these must never land on
+      // Pricing or event creation: sign-in is required (invite gate +
+      // account), but a signed-in visitor goes straight to the actual
+      // church-registration form -- or their dashboard if they already
+      // run a church. Handles the click fully and returns.
+      if (el.hasAttribute('data-list-church') && window.supabase) {
+        if (typeof window.fdInviteUnlocked === 'function' && !window.fdInviteUnlocked()) {
+          if (typeof window.openInviteGate === 'function') window.openInviteGate(function(){ el.click(); });
+          return;
+        }
+        var { data: listChurchUser } = await window.supabase.auth.getUser();
+        if (listChurchUser && listChurchUser.user) {
+          var alreadyOwnsChurch = false;
+          try {
+            var { data: listChurchUsage } = await window.supabase.rpc('get_my_plan_and_usage');
+            alreadyOwnsChurch = !!(listChurchUsage && listChurchUsage.length && listChurchUsage[0].churches_owned > 0);
+          } catch (e) {}
+          if (alreadyOwnsChurch) { go('dashboard'); return; }
+        }
+        // Signed in with no church yet, or signed out (invite-unlocked):
+        // the blank registration form. A signed-out visitor is prompted
+        // to sign in when they submit it, same as every other "Add a
+        // church" entry point.
+        if (typeof window.resetRegisterChurchFormToBlank === 'function') window.resetRegisterChurchFormToBlank();
+        go('register-church/new');
+        return;
+      }
       if (el.hasAttribute('data-add-church') && window.supabase) {
         // Private testing: creating a church needs the invite code.
         // Re-fire this same click once unlocked so the flow continues.
@@ -6747,7 +6775,7 @@
       // reveals the page, means the form is always freshly populated
       // no matter how stale page-load's own run might be by the time
       // this link is actually clicked.
-      if (route === 'register-church' && !el.hasAttribute('data-add-church') && typeof window.checkExistingChurch === 'function') {
+      if (route === 'register-church' && !el.hasAttribute('data-add-church') && !el.hasAttribute('data-list-church') && typeof window.checkExistingChurch === 'function') {
         await window.checkExistingChurch(undefined, undefined);
       }
       if(route === 'church' && el.hasAttribute('data-church-name')){

@@ -1145,3 +1145,18 @@ Verified: feature-list start positions within **1px** across all 5 cards at 5-co
 - New i18n: `ce.advancedOptions` / `ce.advancedOptionsSub` (EN + ES).
 
 **Testing note:** `<details>` collapse, CSS `transform` transitions, and `content-visibility` are all throttled/frozen in a backgrounded tab — which is how both the Browser pane and Claude-in-Chrome drive pages this session. Verified via each element's own `getBoundingClientRect().height` (the `<details>` goes ~40px collapsed ↔ full height open) and by killing the chevron `transition` to read its settled `rotate(180deg)`; a *descendant's* rect height stays non-zero even when the `<details>` clips it, so it's not a reliable collapse check. Structure, toggle (summary click + `.open`), `resetCreateEventForm` collapse, the 11 editEvent triggers (against mocks), and the in-`<details>` sub-toggles (registration options, repeat-until, volunteer options + heading swap) all pass. Build `2026-09-10-v277`.
+
+---
+
+## Homepage "List your church — free" CTAs: don't send signed-in visitors to Pricing
+
+Both CTAs -- the hero inline link (`home.forChurchesLink`) and the For-churches band button (`home.fc.cta`) -- were wired **identically** (`data-route="register-church" data-add-church="true"`), handled only by the one delegated `[data-route]` click listener. There was never a Pricing-vs-event-creation split between them (verified by instrumenting `go()` and simulating every auth state -- both produced the same call every time). Any "lands on event creation" sighting was the `#rc-next-step` "Create your first event →" link on the register-church page, or Pricing's own free-plan button (`onclick="go('register-church')"`) chaining onward.
+
+**The real bug (shared):** the `data-add-church` branch sends a *signed-in* visitor to `go('pricing')` -- via the "first church ever, pick a plan first" redirect (`limits.churches_owned === 0`) or the at-cap redirect (`churches_owned >= max_churches`). Correct for the in-app "Add a church" buttons (Profile / My Churches / dashboard `+`); wrong for a homepage CTA that literally says "free."
+
+**Fix:** the two homepage CTAs now use `data-list-church="true"` (not `data-add-church`), with a dedicated branch at the top of the `[data-route]` handler that fully handles the click and returns:
+- not invite-unlocked → invite gate (re-fires the click on unlock) -- unchanged
+- signed in **and owns ≥1 church** (`get_my_plan_and_usage().churches_owned > 0`) → `go('dashboard')`
+- otherwise (signed in with no church, or signed out + invite-unlocked) → `resetRegisterChurchFormToBlank()` + `go('register-church/new')` -- the real blank registration form, defaulting to the Free listing; a signed-out visitor is still prompted to sign in when they submit it
+
+The fall-through `route === 'register-church' && !data-add-church` edit-profile check also excludes `data-list-church` (defensive; the branch returns first). No i18n or visual change. Verified all four states, both CTAs identical in each, plus the not-unlocked invite-gate path and a real signed-out end-to-end (lands on `#register-church/new`, blank, `#rc-next-step` hidden). Build `2026-09-10-v279`.
