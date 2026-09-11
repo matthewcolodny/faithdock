@@ -1160,3 +1160,19 @@ Both CTAs -- the hero inline link (`home.forChurchesLink`) and the For-churches 
 - otherwise (signed in with no church, or signed out + invite-unlocked) → `resetRegisterChurchFormToBlank()` + `go('register-church/new')` -- the real blank registration form, defaulting to the Free listing; a signed-out visitor is still prompted to sign in when they submit it
 
 The fall-through `route === 'register-church' && !data-add-church` edit-profile check also excludes `data-list-church` (defensive; the branch returns first). No i18n or visual change. Verified all four states, both CTAs identical in each, plus the not-unlocked invite-gate path and a real signed-out end-to-end (lands on `#register-church/new`, blank, `#rc-next-step` hidden). Build `2026-09-10-v279`.
+
+---
+
+## CSV import batch tracking + admin bulk hide/delete
+
+Added ahead of the San Antonio metro import so a bad run can be reviewed and rolled back as one unit instead of church-by-church.
+
+**Schema (`supabase/migrations/020_import_batch_tracking.sql`, not yet run against the live DB — same manual-migration workflow as always):**
+- `churches.import_batch_id text`, `churches.import_source_filename text` (both null outside imports) + a partial index on `import_batch_id`.
+- `admin_import_churches` gets 2 new params (`p_batch_id`, `p_source_filename`) — a different signature from the existing 1-arg version, so this is `DROP FUNCTION admin_import_churches(jsonb)` + `CREATE` (same lesson as `search_churches` in migration 017 — `CREATE OR REPLACE` with an added param list creates a second overload instead of replacing the old one).
+- New RPCs, all `security definer` + `is_platform_admin()`-gated: `admin_list_import_batches()` (grouped listing: batch id, filename, earliest `created_at` as the batch date, row count, unclaimed count), `admin_hide_import_batch(p_batch_id)`, `admin_delete_import_batch(p_batch_id)`.
+- **Both bulk actions are scoped to `owner_id is null`** — same guard `admin_delete_unclaimed_church` already uses one row at a time. A church someone's genuinely claimed since the import doesn't get hidden or deleted out from under them; `admin_delete_import_batch` returns `(deleted_count, skipped_claimed_count)` so the UI can say so rather than silently deleting fewer rows than the batch's total.
+
+**Client (`index.html`):** one batch id is generated **once per "Add churches" click** — `new Date().toISOString() + '_' + filename` — and threaded through every 200-row chunk of that run, so a large multi-chunk CSV still counts as a single batch. New admin-panel section "Import batches" (right after "All churches"): one row per batch with date/filename/counts and Hide all / Delete all buttons, hidden entirely (replaced by an "All claimed" note) when a batch's unclaimed count is 0. Delete confirms via plain `confirm()` showing the exact unclaimed count — same pattern as `admin.deleteUnclaimedConfirm`. A status line under the list shows the last hide/delete result and **deliberately isn't cleared by the list's own reload** (`loadAdminImportBatchesList()` doesn't touch it) — the hide/delete handlers set it, then call `loadAdminPanel()`, which re-renders the list without wiping the message, same as the import modal's own status line persisting until it's reopened.
+
+**Testing note:** verified the whole click-through path (render both an in-progress and an all-claimed batch, Hide all, Delete-all-declined, Delete-all-accepted, both status message variants) against a stubbed `supabase.rpc`. Verified batch-id generation and the import RPC payload with a real file input + FileReader + a CSV with no `address` column (skips geocoding, which hangs in this sandboxed browser since `google.maps.Geocoder` isn't fully available there — a pre-existing dependency of the import flow, not something this change touches). No console errors. Build `2026-09-10-v280`.

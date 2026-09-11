@@ -756,6 +756,15 @@
       'admin.clientErrorsHint': 'JavaScript errors caught on the live site, most recent first. No automatic alerting — this is a place to check, not something that notifies anyone on its own.',
       'admin.importChurchesHint': 'Upload a CSV with a header row containing name (required) and any of: denomination, address, phone, website, logo_url. These are added as unclaimed listings — visible in the directory, with no owner until a church claims them. Addresses are automatically geocoded so distance search and the map work — this can take a moment for a large list.',
       'admin.addChurches': 'Add churches',
+      'admin.importBatches': 'Import batches',
+      'admin.importBatchesHint': 'Recent CSV imports, most recent first. "Hide all" and "Delete all" only affect churches from that batch that are still unclaimed — anything already claimed by a real owner is left alone.',
+      'admin.noImportBatches': 'No import batches yet.',
+      'admin.batchChurchesCount': '{n} churches, {unclaimed} unclaimed', 'admin.batchNoUnclaimedLeft': 'All claimed — nothing left to hide or delete.',
+      'admin.hideAll': 'Hide all', 'admin.deleteAll': 'Delete all',
+      'admin.deleteBatchConfirm': 'Permanently delete {n} unclaimed churches from this batch? This can’t be undone.',
+      'admin.batchHiddenSummary': 'Hid {n} churches from this batch.',
+      'admin.batchDeletedSummary': 'Deleted {n} churches from this batch.',
+      'admin.batchDeletedWithSkipped': 'Deleted {n} churches from this batch. {skipped} were left alone — already claimed.',
       'admin.supportMessages': 'Support messages', 'admin.searchMessages': 'Search messages...', 'admin.openAndResolved': 'Open & Resolved', 'admin.openOnly': 'Open only', 'admin.resolvedOnly': 'Resolved only',
       'admin.feedback': 'Feedback', 'admin.searchFeedback': 'Search feedback...',
       'admin.backToAdmin': '← Back to Admin', 'admin.churchDetailEyebrow': 'Platform admin · Church detail', 'admin.whatsOnTheChurchPage': "What's on the church page", 'admin.partnerGivingStatus': 'Partner & giving status', 'admin.staffHeading': 'Staff',
@@ -1482,6 +1491,15 @@
       'admin.clientErrorsHint': 'Errores de JavaScript detectados en el sitio en vivo, los más recientes primero. Sin alertas automáticas — este es un lugar para revisar, no algo que notifique a nadie por sí solo.',
       'admin.importChurchesHint': 'Sube un CSV con una fila de encabezado que contenga name (requerido) y cualquiera de: denomination, address, phone, website, logo_url. Se agregan como listados sin reclamar — visibles en el directorio, sin propietario hasta que una iglesia los reclame. Las direcciones se geocodifican automáticamente para que la búsqueda por distancia y el mapa funcionen — esto puede tardar un momento para una lista grande.',
       'admin.addChurches': 'Agregar iglesias',
+      'admin.importBatches': 'Lotes de importación',
+      'admin.importBatchesHint': 'Importaciones de CSV recientes, las más nuevas primero. "Ocultar todas" y "Eliminar todas" solo afectan a las iglesias de ese lote que aún no han sido reclamadas — las que ya reclamó un propietario real no se tocan.',
+      'admin.noImportBatches': 'Aún no hay lotes de importación.',
+      'admin.batchChurchesCount': '{n} iglesias, {unclaimed} sin reclamar', 'admin.batchNoUnclaimedLeft': 'Todas reclamadas — no queda nada que ocultar ni eliminar.',
+      'admin.hideAll': 'Ocultar todas', 'admin.deleteAll': 'Eliminar todas',
+      'admin.deleteBatchConfirm': '¿Eliminar permanentemente {n} iglesias sin reclamar de este lote? Esto no se puede deshacer.',
+      'admin.batchHiddenSummary': 'Se ocultaron {n} iglesias de este lote.',
+      'admin.batchDeletedSummary': 'Se eliminaron {n} iglesias de este lote.',
+      'admin.batchDeletedWithSkipped': 'Se eliminaron {n} iglesias de este lote. {skipped} se dejaron intactas — ya reclamadas.',
       'admin.supportMessages': 'Mensajes de soporte', 'admin.searchMessages': 'Buscar mensajes...', 'admin.openAndResolved': 'Abiertos y resueltos', 'admin.openOnly': 'Solo abiertos', 'admin.resolvedOnly': 'Solo resueltos',
       'admin.feedback': 'Comentarios', 'admin.searchFeedback': 'Buscar comentarios...',
       'admin.backToAdmin': '← Volver a Administración', 'admin.churchDetailEyebrow': 'Administración de la plataforma · Detalle de iglesia', 'admin.whatsOnTheChurchPage': 'Lo que aparece en la página de la iglesia', 'admin.partnerGivingStatus': 'Estado de asociación y donaciones', 'admin.staffHeading': 'Personal',
@@ -3284,6 +3302,13 @@
       <p style="color:var(--ink-mute);font-size:14px;padding:12px;" data-i18n="common.loading">Loading...</p>
     </div>
     <button class="export-btn" id="admin-churches-load-more-btn" style="display:none;margin-top:10px;" data-i18n="common.loadMore">Load more</button>
+
+    <h2 style="font-size:20px;margin-top:44px;margin-bottom:16px;" data-i18n="admin.importBatches">Import batches</h2>
+    <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:12px;max-width:600px;" data-i18n="admin.importBatchesHint">Recent CSV imports, most recent first. "Hide all" and "Delete all" only affect churches from that batch that are still unclaimed — anything already claimed by a real owner is left alone.</p>
+    <div id="admin-import-batches-status" style="display:none;font-size:12.5px;margin-bottom:8px;"></div>
+    <div id="admin-import-batches-list" style="max-height:320px;overflow-y:auto;border:1px solid var(--line);border-radius:10px;padding:4px;">
+      <p style="color:var(--ink-mute);font-size:14px;padding:12px;" data-i18n="common.loading">Loading...</p>
+    </div>
 
     <h2 style="font-size:20px;margin-top:44px;margin-bottom:16px;" data-i18n="admin.pendingClaims">Pending church claims</h2>
     <input class="field" type="text" id="admin-claims-search" placeholder="Search by church, name, or email..." data-i18n-placeholder="admin.searchByChurchNameEmail" style="max-width:320px;margin-bottom:12px;">
@@ -5317,7 +5342,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-10-v279 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-10-v280 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -17913,6 +17938,7 @@
     // once there are thousands of churches, not just dozens.
     loadAdminWaitlistList();
     loadAdminChurchesList();
+    loadAdminImportBatchesList();
     loadAdminClaimsList();
     loadAdminClaimsHistoryList();
     loadAdminUsersList();
@@ -18061,6 +18087,45 @@
       setTimeout(function(){ adminWaitlistCopyBtn.textContent = original; }, 1800);
     });
   }
+
+  // Recent CSV import runs, most recent first, with bulk Hide/Delete per
+  // batch. No pagination -- admin_list_import_batches caps at 100, and
+  // import runs are rare enough that a longer history isn't needed yet.
+  // Deliberately doesn't touch #admin-import-batches-status -- a Hide
+  // all/Delete all summary is set there right before this re-runs (see
+  // the click handlers below) and should persist through the refresh,
+  // same as the import modal's own status line persists until reopened.
+  async function loadAdminImportBatchesList(){
+    var listEl = document.getElementById('admin-import-batches-list');
+    if (!listEl) return;
+
+    var { data, error } = await supabase.rpc('admin_list_import_batches');
+    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:14px;padding:12px;">' + error.message + '</p>'; return; }
+
+    var batches = data || [];
+    if (!batches.length) {
+      listEl.innerHTML = '<p style="color:var(--ink-mute);font-size:14px;padding:12px;">' + window.t('admin.noImportBatches') + '</p>';
+      return;
+    }
+
+    listEl.innerHTML = batches.map(function(b){
+      var dateLabel = new Date(b.batch_date).toLocaleDateString(window.appLocale(), { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+      var filename = (b.source_filename || '').replace(/</g, '&lt;') || '—';
+      var countLine = window.t('admin.batchChurchesCount').replace('{n}', b.row_count).replace('{unclaimed}', b.unclaimed_count);
+      var batchIdAttr = String(b.import_batch_id).replace(/"/g, '&quot;');
+      var actions = b.unclaimed_count > 0
+        ? '<div class="registrant-actions">'
+          + '<button class="export-btn" data-hide-batch-id="' + batchIdAttr + '" style="padding:6px 14px;">' + window.t('admin.hideAll') + '</button>'
+          + '<button class="export-btn" data-delete-batch-id="' + batchIdAttr + '" data-delete-batch-count="' + b.unclaimed_count + '" style="padding:6px 14px;color:var(--clay);">' + window.t('admin.deleteAll') + '</button>'
+          + '</div>'
+        : '<div class="registrant-actions"><span style="font-size:12px;color:var(--ink-mute);">' + window.t('admin.batchNoUnclaimedLeft') + '</span></div>';
+      return '<div class="registrant-row"><div style="min-width:0;">'
+        + '<div class="registrant-name">' + filename + '</div>'
+        + '<div class="registrant-date">' + dateLabel + ' · ' + countLine + '</div>'
+        + '</div>' + actions + '</div>';
+    }).join('');
+  }
+  window.loadAdminImportBatchesList = loadAdminImportBatchesList;
 
   async function loadAdminChurchesList(append){
     var listEl = document.getElementById('admin-all-churches-list');
@@ -18392,6 +18457,9 @@
   // (reuses the CSV parser already built for congregation import).
   // ============================================================
   var importChurchesRows = [];
+  // Captured on file selection, read again when "Add churches" builds
+  // this run's batch id -- see admin_list_import_batches below.
+  var importChurchesFilename = null;
 
   var importChurchesOpenBtn = document.getElementById('import-churches-open-btn');
   if (importChurchesOpenBtn) {
@@ -18401,6 +18469,7 @@
       document.getElementById('import-churches-send-btn').style.display = 'none';
       document.getElementById('import-churches-status').style.display = 'none';
       importChurchesRows = [];
+      importChurchesFilename = null;
       document.getElementById('import-churches-modal').classList.add('open');
     });
   }
@@ -18412,6 +18481,7 @@
       var statusEl = document.getElementById('import-churches-status');
       statusEl.style.display = 'none';
       if (!file) return;
+      importChurchesFilename = file.name;
       var reader = new FileReader();
       reader.onload = function(){
         var rows = parseCsv(String(reader.result));
@@ -18497,6 +18567,13 @@
       var allRows = importChurchesRows.slice();
       var totalRows = allRows.length;
       var totalChunks = Math.ceil(totalRows / CHUNK_SIZE);
+      // One id for this whole run (every chunk below shares it), not
+      // per-chunk -- a "batch" in the admin panel's Import batches
+      // section means one CSV upload, regardless of how many 200-row
+      // chunks it took to insert. Timestamp + filename is enough to be
+      // unique and still readable in the SQL if ever inspected directly.
+      var importBatchId = new Date().toISOString() + '_' + (importChurchesFilename || 'import.csv');
+      var importBatchSourceFilename = importChurchesFilename || null;
       var totalInserted = 0, totalDuplicates = 0, totalUngeocoded = 0;
       var chunkErrors = [];
 
@@ -18536,7 +18613,7 @@
         totalUngeocoded += rows.filter(function(r){ return r.address && r.lat == null; }).length;
 
         statusEl.textContent = window.t('admin.batchSaving').replace('{n}', chunkNum).replace('{total}', totalChunks);
-        var { data: insertedIds, error: insertError } = await supabase.rpc('admin_import_churches', { rows: rows });
+        var { data: insertedIds, error: insertError } = await supabase.rpc('admin_import_churches', { rows: rows, p_batch_id: importBatchId, p_source_filename: importBatchSourceFilename });
         if (insertError) {
           chunkErrors.push(window.t('admin.batchLabel').replace('{n}', chunkNum) + ': ' + insertError.message);
           continue;
@@ -18703,6 +18780,40 @@
       var deleteChurchName = deleteUnclaimedBtn.getAttribute('data-delete-unclaimed-church-name');
       if (!confirm(window.t('admin.deleteUnclaimedConfirm').replace('{name}', deleteChurchName))) return;
       await supabase.rpc('admin_delete_unclaimed_church', { target_church_id: deleteUnclaimedBtn.getAttribute('data-delete-unclaimed-church-id') });
+      loadAdminPanel();
+      return;
+    }
+    var hideBatchBtn = ev.target.closest ? ev.target.closest('[data-hide-batch-id]') : null;
+    if (hideBatchBtn) {
+      var hideBatchStatusEl = document.getElementById('admin-import-batches-status');
+      var { data: hiddenCount, error: hideBatchError } = await supabase.rpc('admin_hide_import_batch', { p_batch_id: hideBatchBtn.getAttribute('data-hide-batch-id') });
+      if (hideBatchStatusEl) {
+        hideBatchStatusEl.style.display = 'block';
+        hideBatchStatusEl.style.color = hideBatchError ? 'var(--clay)' : 'var(--sage)';
+        hideBatchStatusEl.textContent = hideBatchError ? hideBatchError.message : window.t('admin.batchHiddenSummary').replace('{n}', hiddenCount);
+      }
+      loadAdminPanel();
+      return;
+    }
+    var deleteBatchBtn = ev.target.closest ? ev.target.closest('[data-delete-batch-id]') : null;
+    if (deleteBatchBtn) {
+      var deleteBatchCount = deleteBatchBtn.getAttribute('data-delete-batch-count');
+      if (!confirm(window.t('admin.deleteBatchConfirm').replace('{n}', deleteBatchCount))) return;
+      var { data: deleteBatchResult, error: deleteBatchError } = await supabase.rpc('admin_delete_import_batch', { p_batch_id: deleteBatchBtn.getAttribute('data-delete-batch-id') });
+      var deleteBatchStatusEl = document.getElementById('admin-import-batches-status');
+      if (deleteBatchStatusEl) {
+        deleteBatchStatusEl.style.display = 'block';
+        if (deleteBatchError) {
+          deleteBatchStatusEl.style.color = 'var(--clay)';
+          deleteBatchStatusEl.textContent = deleteBatchError.message;
+        } else {
+          var deleteBatchRow = (deleteBatchResult && deleteBatchResult.length) ? deleteBatchResult[0] : { deleted_count: 0, skipped_claimed_count: 0 };
+          deleteBatchStatusEl.style.color = 'var(--sage)';
+          deleteBatchStatusEl.textContent = deleteBatchRow.skipped_claimed_count
+            ? window.t('admin.batchDeletedWithSkipped').replace('{n}', deleteBatchRow.deleted_count).replace('{skipped}', deleteBatchRow.skipped_claimed_count)
+            : window.t('admin.batchDeletedSummary').replace('{n}', deleteBatchRow.deleted_count);
+        }
+      }
       loadAdminPanel();
       return;
     }
