@@ -1093,3 +1093,22 @@ if(route.split('/')[0] === 'register-church' && !window.isSignedIn && typeof win
 | `help.a3/a4/a6/a8` | "your church dashboard", "your dashboard's X section" | "the tools for your church", "your church's X section" (ES: "las herramientas de tu iglesia", "de tu iglesia") |
 
 `help.*` and a few others store `’`/`—` as literal `\u2019`/`\u2014` in the EN dict and `\u00XX`-escape accented chars in the ES dict, while the static HTML `<p>` fallbacks use literal UTF-8 — so each string needed editing in whichever encoding that copy uses. Build stamp `2026-09-10-v273`.
+
+---
+
+## Comparison page reframed + re-linked (`#compare` is live again)
+
+`#page-compare` was dormant (removed from `validRoutes`, no inbound link). It's now reframed and back in navigation:
+
+- **Claim** (`compare.subhead`) — was "A church management system is table stakes. What none of the others offer is a public directory that helps people actually find you" (absolute, falsifiable). Now: "Church management is table stakes — every tool in this space does events, check-in, giving, and groups. FaithDock adds a public directory designed to help people in your area discover your church and what's happening there."
+- **Headline** `compare.headline`: "FaithDock vs. Breeze vs. Planning Center" → "How FaithDock is different".
+- **Table** — was a 4-column feature-parity checklist vs. two named competitors (with a stale "$72/mo" and five rows all three products do). Now **2 comparison columns** (FaithDock vs. `compare.traditionalChms` "Traditional church management software") and **6 discovery-focused rows**: public church discovery, public event discovery, reach beyond your congregation, community discovery, one honest parity row (everyday church management ✓/✓), and a generic pricing row. Competitor cells are nuanced ("Share-by-link only", "Limited", "Built for members you already have") not bare "—", so it reads fair rather than strawman.
+- **Footnote** — no longer references named competitors or a year; describes what "traditional ChMS" means generically.
+- Old row keys (`compare.startingPrice`, `compare.breezePrice`, `compare.pcPrice`, `compare.publicDirectory`, `compare.congregationGrowth`, `compare.eventRegistration`, `compare.dayOfCheckin`, `compare.yesSeparateModule`, `compare.volunteersTracked`, `compare.givingTaxStatements`, `compare.yesExtraFees`, `compare.memberMobileApp`, `compare.pricingModel`, `compare.simpleTiers`, `compare.flatRate`, `compare.perModule`) **deleted** from both dicts; replaced by `compare.traditionalChms` / `rowPublicChurch` / `tradBuiltForMembers` / `rowPublicEvent` / `tradShareLinkOnly` / `rowBeyondCongregation` / `rowCommunityDiscovery` / `rowEverydayMgmt` / `rowPricing` / `fdFreeListingTiers` / `tradFlatOrModule`. `compare.limited` kept (reused). `compare.eyebrow` / `feature` / `readyToTry` / `seePlans` unchanged.
+
+**Re-wiring (the "nothing left half-wired" check):**
+- `'compare'` added to `validRoutes`; the "'app', 'give', 'conference' and 'compare' are deliberately NOT in this list" comment updated to drop compare.
+- The **dead `pricing.compareLink` key** found in the earlier audit is now live: rendered as an `<a href="#compare" data-route="compare">` under the Pricing page subtitle (replacing the "link removed per request" comment there), and **reworded** EN "See how FaithDock compares →" / ES "Mira cómo se compara FaithDock →" (was "…to Breeze & Planning Center →", which would contradict the now-competitor-free page).
+- No JS route-guard, redirect, or populate hook special-cased `#compare` — it's fully static HTML, so `go('compare')` is all it needs. The page's own "See plans" button (`onclick="go('pricing')"`) still works.
+
+Build stamp `2026-09-10-v275`.
