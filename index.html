@@ -5383,7 +5383,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-11-v291 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-11-v292 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -6672,6 +6672,16 @@
   async function findOrFetchChurchByName(name){
     var found = churches.filter(function(c){ return c.name === name; })[0];
     if (found) return found;
+    // Not ready yet -- same race documented in loadRealChurches() below:
+    // showRouteFromHash's very first call runs synchronously from the
+    // earlier classic <script> block, before the deferred module script
+    // has created window.supabase. Returning null here (rather than
+    // letting `.from` throw on undefined) is what showRouteFromHash's
+    // own `else if (window.supabase)` guard relies on to tell "not
+    // ready yet, do nothing this pass" apart from "confirmed not found,
+    // redirect" -- the guaranteed re-run once the module script
+    // finishes resolves it correctly either way.
+    if (!window.supabase) return null;
     var { data } = await window.supabase.from('churches').select(PUBLIC_CHURCH_COLUMNS).eq('name', name).limit(1);
     if (data && data.length) {
       var row = data[0];
@@ -6768,14 +6778,23 @@
         populateEventPage(matchedEvent);
         if(matchedEvent.real && typeof window.checkEventRegistrationStatus === 'function'){ window.checkEventRegistrationStatus(matchedEvent.id); }
         if(matchedEvent.real && matchedEvent.allowVolunteers && typeof window.checkEventCapacity === 'function'){ window.checkEventCapacity(matchedEvent.id, matchedEvent.maxParticipants, matchedEvent.maxVolunteers); }
-      } else {
+      } else if (window.supabase) {
         go('events', skipPush); return;
       }
+      // else: window.supabase isn't ready yet (this whole function's
+      // very first call runs synchronously on page load, before the
+      // deferred module script creates it) and this event isn't in the
+      // in-memory cache either -- do nothing this pass rather than
+      // bouncing to #events. showRouteFromHash(true) is guaranteed to
+      // run again once the module script finishes (loadRealChurches
+      // below, and the other post-module-load call sites), which
+      // resolves this correctly instead.
     }
     if(resolved.base === 'church' && resolved.key){
       var matchedChurch = await findOrFetchChurchByName(resolved.key);
       if(matchedChurch) populateChurchPage(matchedChurch);
-      else { go('directory', skipPush); return; }
+      else if (window.supabase) { go('directory', skipPush); return; }
+      // else: same not-ready-yet case as the #event branch above.
     }
     if(resolved.base === 'group' && resolved.key && typeof window.populateGroupPage === 'function'){
       window.populateGroupPage(resolved.key);
@@ -7841,6 +7860,10 @@
   async function findOrFetchEventById(id){
     var found = events.filter(function(e){ return String(e.id) === String(id); })[0];
     if (found) return found;
+    // Same not-ready-yet race as findOrFetchChurchByName above -- see
+    // its comment. Returning null (not throwing) is what
+    // showRouteFromHash's `else if (window.supabase)` guard relies on.
+    if (!window.supabase) return null;
     var { data } = await window.supabase.from('events')
       .select('id, title, description, start_at, end_at, location, registration_required, image_url, tags, category_tags, audience, allow_volunteers, max_participants, max_volunteers, contacts, price_cents, church_id, churches(name, plan_type)')
       .eq('id', id).limit(1);
