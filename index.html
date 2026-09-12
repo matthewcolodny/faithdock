@@ -2024,7 +2024,7 @@
      .thumb svg rule above since a solid shape reads best a bit larger
      than a thin-line outline would. */
   .thumb--denom{background:hsl(var(--thumb-hue,220) 34% 88%);}
-  .thumb--denom svg{width:46px;height:46px;fill:hsl(var(--thumb-hue,220) 30% 46%);opacity:.7;}
+  .thumb--denom svg{width:54px;height:54px;fill:hsl(var(--thumb-hue,220) 30% 46%);opacity:.7;}
   html[data-theme="dark"] .thumb--denom{background:hsl(var(--thumb-hue,220) 22% 17%);}
   html[data-theme="dark"] .thumb--denom svg{fill:hsl(var(--thumb-hue,220) 24% 60%);opacity:.8;}
   /* Directory numbered pager */
@@ -5383,7 +5383,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-11-v293 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-11-v294 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -5619,10 +5619,14 @@
   // second shape painted to match the background), so it shows through
   // correctly no matter the theme or hue. None of the shapes set their
   // own fill -- they inherit the SVG's fill, which .thumb--denom svg
-  // drives via CSS.
-  var buildingIcon = '<svg viewBox="0 0 24 24" fill="#16233F">'
-    + '<rect x="10.8" y="0.5" width="2.4" height="5.5" />'
-    + '<rect x="9" y="2.2" width="6" height="2" />'
+  // drives via CSS. The viewBox's top edge is pulled up to y=-3 (rather
+  // than reaching further down into the roof/body, which would have
+  // meant shrinking their proportions to make room) purely to give the
+  // now-taller cross headroom -- the roof and body coordinates below
+  // are untouched from round 4.
+  var buildingIcon = '<svg viewBox="0 -3 24 27" fill="#16233F">'
+    + '<rect x="10.8" y="-2.5" width="2.4" height="8.5" />'
+    + '<rect x="9" y="0.3" width="6" height="2.4" />'
     + '<path d="M2 13L12 5L22 13Z" />'
     + '<path fill-rule="evenodd" d="M6 13H18V21H6ZM9.5 21V16.5A2.5 2.5 0 0 1 14.5 16.5V21Z" />'
     + '</svg>';

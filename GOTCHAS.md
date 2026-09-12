@@ -1347,3 +1347,15 @@ Round 3's rounded/stroked style, per a fresh reference the user liked much bette
 **The cross, roof, and body are still three separate layered shapes, not one traced path** — same technique as round 2, just re-tuned: two `<rect>`s for the cross (sized and positioned so its base overlaps the roof's apex by a full unit, guaranteeing no visible seam between "cross" and "roof" even though they're independent elements), a wider/flatter roof triangle, and the body + rounded-arch door cutout via `fill-rule="evenodd"` (identical mechanism to round 2's door, just re-proportioned — narrower, taller, matching the new reference more closely).
 
 **Verified the same way as every prior round**: real markup, real 46px size, all 11 denomination hues, both themes — screenshots shown in the conversation. Logo/no-logo boundary reconfirmed directly against `churchCard()`'s output. No console errors. Build `2026-09-11-v293`.
+
+---
+
+## Church icon, round 5: taller cross, bigger overall
+
+Two small follow-up tweaks to round 4's design, per a closer look at the reference: the cross needed to read taller, and the whole icon needed to sit a bit larger in the card.
+
+**Size**: `.thumb--denom svg` went from 46px to 54px -- CSS-only, nothing about the icon's own coordinates changed for this part.
+
+**Taller cross without touching the roof or body**: the cross's vertical bar had nowhere left to grow within the existing `viewBox="0 0 24 24"` -- it already started almost at the top edge (y=0.5). Rather than shrinking the roof/body to free up room (which would have changed proportions nobody asked to change), pulled the viewBox's top edge up instead: `viewBox="0 -3 24 27"`. The cross extends into that new headroom (vertical bar now spans y=-2.5 to y=6, up from y=0.5 to y=6 -- same bottom/roof-junction point, so the "fused to the roof" connection from round 4 is completely undisturbed), while the roof and body paths are byte-for-byte what they were in round 4. The viewBox's aspect ratio technically shifts from 1:1 to 24:27, but rendered into a square box that's an imperceptible ~2px letterbox on a 54px icon, not a visible distortion -- confirmed by looking at it, not just by the math.
+
+**Verified the same way as every prior round**: real markup, real 54px size, all 11 denomination hues, both themes -- screenshots shown in the conversation, no clipping from the wider viewBox in either theme. Logo/no-logo boundary reconfirmed directly against `churchCard()`'s output. No console errors. Build `2026-09-11-v294`.
