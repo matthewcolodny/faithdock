@@ -5378,7 +5378,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-11-v287 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-11-v288 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -5928,7 +5928,7 @@
 
     // Street on line 1, "City, ST ZIP" on line 2 (split at the first
     // comma) so the city never breaks mid-word in the narrow side panel.
-    var addrText = c.address || 'Address not listed yet';
+    var addrText = c.address ? titleCaseAddress(c.address) : 'Address not listed yet';
     var commaAt = addrText.indexOf(',');
     var addrHtml = commaAt > 0
       ? addrText.slice(0, commaAt).trim() + '<br>' + addrText.slice(commaAt + 1).trim()
@@ -5972,7 +5972,7 @@
     if (c.instagramUrl) { igLink.href = c.instagramUrl; igLink.style.display = 'inline-block'; hasSocial = true; } else { igLink.style.display = 'none'; }
     socialRow.style.display = hasSocial ? 'flex' : 'none';
 
-    document.getElementById('church-location-address').textContent = c.address || 'Address not listed yet';
+    document.getElementById('church-location-address').textContent = c.address ? titleCaseAddress(c.address) : 'Address not listed yet';
     renderChurchMap(c);
 
     switchChurchTab('about');
@@ -6038,6 +6038,69 @@
     return denomI18nKeyMap[tag] ? window.t(denomI18nKeyMap[tag]) : tag;
   }
   window.translateDenomination = translateDenomination;
+
+  // Bulk CSV imports (the IRS EO Business Master File source used for
+  // the San Antonio import, and any future metro/statewide run) come in
+  // with the address field in raw ALL CAPS, unlike `name`, which was
+  // fixed up front in the import CSV itself. Fixing address the same
+  // way -- mutating stored data -- would mean re-running it for every
+  // future import AND a risky one-time UPDATE across every already-
+  // imported row. Doing it here instead, the same place
+  // translateDenomination/translateCategoryTag already normalize other
+  // raw-from-the-database strings at render time, fixes every row
+  // (imported yesterday or a year from now) with one function, and
+  // never touches the stored value -- a bad edge case is a code fix,
+  // not another data migration.
+  //
+  // ADDRESS_CONNECTORS reuses the exact word list + the same
+  // protect-first/last-word rule from the church-name connector-word
+  // fix earlier this session (that one lived only in a one-off Node
+  // script, never in this file, so there was nothing to literally
+  // import -- this ports the same logic here as real, reusable code).
+  var ADDRESS_CONNECTORS = new Set(['of', 'the', 'and', 'in', 'for', 'a', 'an', 'to']);
+  var US_STATE_CODES = new Set([
+    'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'DC', 'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA',
+    'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM',
+    'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA',
+    'WV', 'WI', 'WY', 'PR', 'VI', 'GU', 'AS', 'MP'
+  ]);
+  var ADDRESS_DIRECTIONALS = new Set(['N', 'S', 'E', 'W', 'NE', 'NW', 'SE', 'SW']);
+
+  // Capitalizes the first letter and any letter right after an
+  // apostrophe or hyphen ("o'connor" -> "O'Connor", "mary-jane" ->
+  // "Mary-Jane"), lowercasing everything else.
+  function capitalizeAddressWord(w){
+    return w.toLowerCase().replace(/(^|['-])([a-z])/g, function(m, sep, ch){ return sep + ch.toUpperCase(); });
+  }
+
+  function titleCaseAddress(address){
+    if (!address) return address;
+    var words = address.match(/[A-Za-z'-]+/g) || [];
+    var wi = 0;
+    return address.replace(/[A-Za-z'-]+/g, function(word){
+      var isFirst = (wi === 0), isLast = (wi === words.length - 1);
+      wi++;
+      var letters = word.replace(/[^A-Za-z]/g, '');
+      var upper = letters.toUpperCase();
+      // State codes and directionals both want the same result (forced
+      // uppercase) regardless of which one actually matches -- "NE" as
+      // Nebraska vs. "NE" as northeast never disagree on the output, so
+      // there's no real ambiguity to resolve between them.
+      if ((letters.length === 2 && US_STATE_CODES.has(upper)) || ADDRESS_DIRECTIONALS.has(upper) || upper === 'PO') {
+        return word.toUpperCase();
+      }
+      if (!isFirst && !isLast && ADDRESS_CONNECTORS.has(letters.toLowerCase())) return word.toLowerCase();
+      // "Mc" surname prefix (McQueeney, McAllen, ...) -- safe because no
+      // ordinary English word starts with literal "Mc"; deliberately NOT
+      // extended to "Mac" (Macon, Mace, Maceo are all real words/names
+      // that would get mangled by the same rule).
+      if (upper.length > 2 && upper.slice(0, 2) === 'MC') {
+        return 'Mc' + word.charAt(2).toUpperCase() + word.slice(3).toLowerCase();
+      }
+      return capitalizeAddressWord(word);
+    });
+  }
+  window.titleCaseAddress = titleCaseAddress;
 
   var badgeI18nKeyMap = {
     'Open to anyone': 'badge.openToAnyone', 'Members only': 'badge.membersOnly', 'No signup needed': 'badge.noSignupNeeded',
@@ -18111,7 +18174,7 @@
       verifList.innerHTML = pending.map(function(r){
         return '<div class="side-note" style="max-width:560px;">'
           + '<h4>' + r.name + '</h4>'
-          + '<p style="font-size:13px;color:var(--ink-mute);">' + (r.denomination || '—') + ' · ' + (r.address || window.t('admin.noAddressOnFile')) + '</p>'
+          + '<p style="font-size:13px;color:var(--ink-mute);">' + (r.denomination || '—') + ' · ' + (r.address ? titleCaseAddress(r.address) : window.t('admin.noAddressOnFile')) + '</p>'
           + (r.website ? '<p style="font-size:13px;"><a href="' + r.website + '" target="_blank" rel="noopener">' + r.website + '</a></p>' : '')
           + '<p style="font-size:12.5px;color:var(--ink-mute);">' + window.t('admin.requestedByOnDate').replace('{name}', r.owner_name || window.t('admin.unknown')).replace('{email}', r.owner_email).replace('{date}', new Date(r.requested_at).toLocaleDateString(window.appLocale())) + '</p>'
           + '<div style="display:flex;gap:8px;margin-top:12px;">'
@@ -18370,7 +18433,7 @@
       return '<div class="registrant-row"' + (isHidden ? ' style="opacity:0.6;"' : '') + '><div style="min-width:0;">'
         + '<div class="registrant-name"><a href="#admin-church/' + c.id + '" data-route="admin-church" data-admin-church-id="' + c.id + '" style="color:inherit;border-bottom:1px solid var(--line);">' + c.name + '</a></div>'
         + '<div class="registrant-date">' + (c.denomination || '—') + ' · <span style="color:' + statusColor + ';font-weight:600;">' + statusLabel + '</span>' + unclaimedTag + hiddenTag + '</div>'
-        + (c.address ? '<div class="registrant-date" style="font-size:11.5px;">' + c.address + '</div>' : '')
+        + (c.address ? '<div class="registrant-date" style="font-size:11.5px;">' + titleCaseAddress(c.address) + '</div>' : '')
         + '</div>'
         + actions
         + '</div>';
@@ -18540,7 +18603,7 @@
     var html = rows.map(function(c){
       return '<div class="registrant-row"><div>'
         + '<div class="registrant-name"><a href="#admin-church/' + c.id + '" data-route="admin-church" data-admin-church-id="' + c.id + '" style="color:inherit;border-bottom:1px solid var(--line);">' + c.name + '</a></div>'
-        + '<div class="registrant-date">' + (c.address || window.t('admin.noAddressOnFile')) + '</div>'
+        + '<div class="registrant-date">' + (c.address ? titleCaseAddress(c.address) : window.t('admin.noAddressOnFile')) + '</div>'
         + '</div></div>';
     }).join('');
 
@@ -18725,7 +18788,7 @@
           + (skipNotes.length ? ' (' + skipNotes.join(', ') + ' ' + window.t('admin.skipped') + ')' : '');
         previewList.innerHTML = parsed.slice(0, 200).map(function(p){
           var thumb = p.logo_url ? '<img src="' + p.logo_url + '" alt="" style="width:32px;height:32px;border-radius:6px;object-fit:cover;margin-right:10px;flex-shrink:0;">' : '';
-          return '<div class="registrant-row"><div style="display:flex;align-items:center;">' + thumb + '<div><div class="registrant-name">' + p.name + '</div><div class="registrant-date">' + (p.denomination || '—') + ' · ' + (p.address || window.t('admin.noAddress')) + '</div></div></div></div>';
+          return '<div class="registrant-row"><div style="display:flex;align-items:center;">' + thumb + '<div><div class="registrant-name">' + p.name + '</div><div class="registrant-date">' + (p.denomination || '—') + ' · ' + (p.address ? titleCaseAddress(p.address) : window.t('admin.noAddress')) + '</div></div></div></div>';
         }).join('');
         document.getElementById('import-churches-preview').style.display = 'block';
         document.getElementById('import-churches-send-btn').style.display = parsed.length ? 'inline-flex' : 'none';
@@ -18868,7 +18931,7 @@
 
     profileEl.innerHTML = ''
       + '<p style="font-size:14px;"><strong>' + window.t('admin.denomination') + ':</strong> ' + (c.denomination || '—') + '</p>'
-      + '<p style="font-size:14px;"><strong>' + window.t('admin.address') + ':</strong> ' + (c.address || '—') + '</p>'
+      + '<p style="font-size:14px;"><strong>' + window.t('admin.address') + ':</strong> ' + (c.address ? titleCaseAddress(c.address) : '—') + '</p>'
       + '<p style="font-size:14px;"><strong>' + window.t('admin.publicPhone') + ':</strong> ' + (c.phone || '—') + '</p>'
       + '<p style="font-size:14px;"><strong>' + window.t('admin.website') + ':</strong> ' + (c.website ? '<a href="' + c.website + '" target="_blank" rel="noopener">' + c.website + '</a>' : '—') + '</p>'
       + '<p style="font-size:14px;"><strong>' + window.t('admin.facebook') + ':</strong> ' + (c.facebook_url ? '<a href="' + c.facebook_url + '" target="_blank" rel="noopener">' + c.facebook_url + '</a>' : '—') + '</p>'
