@@ -5460,7 +5460,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-12-v300 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-12-v301 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -5839,7 +5839,18 @@
       return '<span class="tag gold" style="margin-left:4px;">' + window.t('church.partnerBadge') + '</span>';
     }
     if (c.verificationStatus === 'verified') {
-      return '<span class="tag sage" style="margin-left:4px;">' + window.t('church.verifiedBadge') + '</span>';
+      // A plain title (window.t() resolved inline at build time), not
+      // data-i18n-title -- this markup is a concatenated string built
+      // fresh on every card render, not static DOM applyTranslations()
+      // ever scans. applyTranslations() only fixes already-present
+      // [data-i18n-title] elements at load/language-switch time and
+      // deliberately skips re-rendering Directory/Events search
+      // results (see the language-toggle handler's own comment on
+      // that) -- a data-i18n-title here would sit on the element
+      // forever unresolved, since nothing would ever come back to
+      // process it. Same reasoning as why the tag's own label just
+      // below uses inline window.t() instead of data-i18n too.
+      return '<span class="tag sage" style="margin-left:4px;" title="' + window.t('church.verifiedBadgeTooltip') + '">' + window.t('church.verifiedBadge') + '</span>';
     }
     return '<span class="tag neutral" style="margin-left:4px;">' + window.t('church.managedByChurch') + '</span>';
   }
