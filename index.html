@@ -196,6 +196,9 @@
       'denom.baptist': 'Baptist', 'denom.catholic': 'Catholic', 'denom.episcopal': 'Episcopal', 'denom.lutheran': 'Lutheran',
       'denom.methodist': 'Methodist', 'denom.nonDenominational': 'Non-denominational', 'denom.pentecostal': 'Pentecostal',
       'denom.presbyterian': 'Presbyterian', 'denom.christianGeneral': 'Christian / General', 'denom.other': 'Other',
+      'denom.churchOfGod': 'Church of God', 'denom.churchOfChrist': 'Church of Christ', 'denom.apostolic': 'Apostolic',
+      'denom.orthodox': 'Orthodox', 'denom.protestantEvangelical': 'Protestant / Evangelical', 'denom.nazarene': 'Nazarene',
+      'denom.anglican': 'Anglican', 'denom.jewish': 'Jewish', 'denom.adventist': 'Adventist',
       'filters.oneChurchFound': 'church found', 'filters.manyChurchesFound': 'churches found',
       'filters.noChurchesMatch': 'No churches match these filters. Try widening your search.',
       'rc.churchName': 'Church name', 'rc.denomination': 'Denomination', 'rc.selectOne': 'Select one', 'rc.other': 'Other',
@@ -939,6 +942,9 @@
       'denom.baptist': 'Bautista', 'denom.catholic': 'Católica', 'denom.episcopal': 'Episcopal', 'denom.lutheran': 'Luterana',
       'denom.methodist': 'Metodista', 'denom.nonDenominational': 'No denominacional', 'denom.pentecostal': 'Pentecostal',
       'denom.presbyterian': 'Presbiteriana', 'denom.christianGeneral': 'Cristiana / General', 'denom.other': 'Otra',
+      'denom.churchOfGod': 'Iglesia de Dios', 'denom.churchOfChrist': 'Iglesia de Cristo', 'denom.apostolic': 'Apostólica',
+      'denom.orthodox': 'Ortodoxa', 'denom.protestantEvangelical': 'Protestante / Evangélica', 'denom.nazarene': 'Nazarena',
+      'denom.anglican': 'Anglicana', 'denom.jewish': 'Judía', 'denom.adventist': 'Adventista',
       'filters.oneChurchFound': 'iglesia encontrada', 'filters.manyChurchesFound': 'iglesias encontradas',
       'filters.noChurchesMatch': 'Ninguna iglesia coincide con estos filtros. Intenta ampliar tu búsqueda.',
       'rc.churchName': 'Nombre de la iglesia', 'rc.denomination': 'Denominación', 'rc.selectOne': 'Selecciona una', 'rc.other': 'Otra',
@@ -5457,7 +5463,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-12-v303 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-12-v304 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -6151,10 +6157,29 @@
   // "Catholic") from the database, which was never run through the
   // existing denom.* dictionary already used by the filter checkboxes
   // and the register-church dropdown.
+  //
+  // Audited every unique `denomination` value actually in the live
+  // table (not just the ones the register-church dropdown offers,
+  // since bulk CSV imports and an owner's own free-text "Other" entry
+  // both write values outside that dropdown's fixed list) against this
+  // map -- Church of God, Church of Christ, Apostolic, Orthodox,
+  // Protestant / Evangelical, Nazarene, Anglican, and Jewish were all
+  // real, currently-live values with no entry here at all, silently
+  // falling through to raw English text in Spanish mode. Added
+  // Adventist too, even though no live row currently has it, since a
+  // future import or free-text entry using it would hit the exact same
+  // gap otherwise. "Pentecostal" and "Episcopal" were checked
+  // specifically (a live report flagged Pentecostal as "not
+  // resolving") and are correct as-is, not missing anything -- both are
+  // genuinely the same word in Spanish (an invariable, borrowed
+  // ecclesiastical adjective), so an unchanged translation isn't a bug.
   var denomI18nKeyMap = {
     'Baptist': 'denom.baptist', 'Catholic': 'denom.catholic', 'Episcopal': 'denom.episcopal', 'Lutheran': 'denom.lutheran',
     'Methodist': 'denom.methodist', 'Non-denominational': 'denom.nonDenominational', 'Pentecostal': 'denom.pentecostal',
-    'Presbyterian': 'denom.presbyterian', 'Christian / General': 'denom.christianGeneral', 'Other': 'denom.other'
+    'Presbyterian': 'denom.presbyterian', 'Christian / General': 'denom.christianGeneral', 'Other': 'denom.other',
+    'Church of God': 'denom.churchOfGod', 'Church of Christ': 'denom.churchOfChrist', 'Apostolic': 'denom.apostolic',
+    'Orthodox': 'denom.orthodox', 'Protestant / Evangelical': 'denom.protestantEvangelical', 'Nazarene': 'denom.nazarene',
+    'Anglican': 'denom.anglican', 'Jewish': 'denom.jewish', 'Adventist': 'denom.adventist'
   };
   function translateDenomination(tag){
     return denomI18nKeyMap[tag] ? window.t(denomI18nKeyMap[tag]) : tag;
@@ -6241,7 +6266,31 @@
   // plausible church name ending in "Ltd" or "LLC" as a coincidental
   // word fragment the way "Zinc" ends in "inc", but the principle is the
   // same either way: match the actual suffix token, never a substring).
-  var CORPORATE_SUFFIX_RE = /,?\s*\b(?:incorporated|corporation|inc|corp|l\.l\.c\.|llc|ltd|limited)\.?\s*$/i;
+  //
+  // Truncates everything from the first matched suffix token onward,
+  // rather than requiring the token to be the very last word -- found as
+  // a real, live gap: "Second Baptist Church Incorporated of San Antonio
+  // Texas" and "Episcopal Church Corporation in West Texas" both have
+  // real content trailing the suffix itself (an IRS-import artifact —
+  // a locality bolted on after the legal-entity suffix), which the old
+  // end-anchored `\.?\s*$` version never touched. \b still guards the
+  // leading edge against a coincidental substring ("Increase Ministries",
+  // "Church of the Incarnation", "Income Tax Help Ministry" all pass
+  // through untouched — verified directly, not assumed) — once a real
+  // suffix token is found, though, everything after it is boilerplate by
+  // definition, whatever it happens to say. Also added "incorporation"
+  // (the noun form, not just "incorporated") after finding "Iglesia Vida
+  // Nueva Stone Oak Incorporation" in the live data — a variant this
+  // list never covered.
+  //
+  // l.l.c. is its own alternative, outside the shared trailing \b: its
+  // literal periods already self-delimit it (nothing can be a "word"
+  // continuation past a period), and requiring \b right after it broke
+  // on a name ending exactly at "L.L.C." — \b needs a word character on
+  // one side, but the last character consumed there is a period, not a
+  // letter. Confirmed by testing "Grace Church L.L.C." specifically
+  // before shipping this, not just reasoned through.
+  var CORPORATE_SUFFIX_RE = /,?\s*\b(?:l\.l\.c\.|(?:incorporated|incorporation|corporation|inc|corp|llc|ltd|limited)\b).*$/i;
   function displayChurchName(name){
     if (!name) return name;
     var stripped = name.replace(CORPORATE_SUFFIX_RE, '');
@@ -18404,7 +18453,7 @@
     else {
       verifList.innerHTML = pending.map(function(r){
         return '<div class="side-note" style="max-width:560px;">'
-          + '<h4>' + r.name + '</h4>'
+          + '<h4>' + displayChurchName(r.name) + '</h4>'
           + '<p style="font-size:13px;color:var(--ink-mute);">' + (r.denomination || '—') + ' · ' + (r.address ? titleCaseAddress(r.address) : window.t('admin.noAddressOnFile')) + '</p>'
           + (r.website ? '<p style="font-size:13px;"><a href="' + r.website + '" target="_blank" rel="noopener">' + r.website + '</a></p>' : '')
           + '<p style="font-size:12.5px;color:var(--ink-mute);">' + window.t('admin.requestedByOnDate').replace('{name}', r.owner_name || window.t('admin.unknown')).replace('{email}', r.owner_email).replace('{date}', new Date(r.requested_at).toLocaleDateString(window.appLocale())) + '</p>'
