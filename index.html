@@ -792,6 +792,9 @@
       'admin.churchNotFound': 'Church not found', 'admin.churchCouldNotLoad': 'This church could not be loaded.',
       'admin.viewPublicChurchPage': 'View public church page →',
       'admin.denomination': 'Denomination', 'admin.address': 'Address', 'admin.publicPhone': 'Public phone', 'admin.website': 'Website', 'admin.facebook': 'Facebook', 'admin.instagram': 'Instagram',
+      'admin.editChurchDetails': 'Edit details', 'admin.saveChanges': 'Save changes', 'admin.cancelEdit': 'Cancel',
+      'admin.detailsSaved': 'Details updated.', 'admin.savingChanges': 'Saving...', 'admin.churchNameRequired': 'Church name is required.',
+      'admin.geocodeFailedWarning': 'Saved, but couldn\'t find that exact address on the map — distance search and the map won\'t work for this church until the address is corrected.',
       'admin.description': 'Description', 'admin.noDescriptionYet': 'No description yet.',
       'admin.pendingReview': 'Pending review', 'admin.verification': 'Verification', 'admin.stripeConnected': 'Stripe connected', 'admin.stripeOnboardingComplete': 'Stripe onboarding complete', 'admin.yes': 'Yes', 'admin.no': 'No',
       'admin.ownerUserId': 'Owner user id: {id}',
@@ -1528,6 +1531,9 @@
       'admin.churchNotFound': 'Iglesia no encontrada', 'admin.churchCouldNotLoad': 'No se pudo cargar esta iglesia.',
       'admin.viewPublicChurchPage': 'Ver página pública de la iglesia →',
       'admin.denomination': 'Denominación', 'admin.address': 'Dirección', 'admin.publicPhone': 'Teléfono público', 'admin.website': 'Sitio web', 'admin.facebook': 'Facebook', 'admin.instagram': 'Instagram',
+      'admin.editChurchDetails': 'Editar detalles', 'admin.saveChanges': 'Guardar cambios', 'admin.cancelEdit': 'Cancelar',
+      'admin.detailsSaved': 'Detalles actualizados.', 'admin.savingChanges': 'Guardando...', 'admin.churchNameRequired': 'El nombre de la iglesia es obligatorio.',
+      'admin.geocodeFailedWarning': 'Guardado, pero no se encontró esa dirección exacta en el mapa — la búsqueda por distancia y el mapa no funcionarán para esta iglesia hasta que se corrija la dirección.',
       'admin.description': 'Descripción', 'admin.noDescriptionYet': 'Aún no hay descripción.',
       'admin.pendingReview': 'Revisión pendiente', 'admin.verification': 'Verificación', 'admin.stripeConnected': 'Stripe conectado', 'admin.stripeOnboardingComplete': 'Incorporación a Stripe completa', 'admin.yes': 'Sí', 'admin.no': 'No',
       'admin.ownerUserId': 'ID de usuario del propietario: {id}',
@@ -2776,7 +2782,7 @@
     <div class="location-row">
       <div class="autocomplete-wrap" style="flex:1;max-width:340px;display:flex;">
         <input class="field" type="text" id="dir-location-input" placeholder="Enter a city or address" data-i18n-placeholder="dir.enterCityOrAddress" autocomplete="off" style="border-radius:8px 0 0 8px;border-right:none;">
-        <button id="dir-location-search-btn" style="background:var(--brand);color:#fff;border:none;padding:0 16px;border-radius:0 8px 8px 0;cursor:pointer;" aria-label="Search location" data-i18n-title="common.searchLocation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;display:block;"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></button>
+        <button id="dir-location-search-btn" style="background:var(--gold);color:var(--brand);border:none;padding:0 16px;border-radius:0 8px 8px 0;cursor:pointer;" aria-label="Search location" data-i18n-title="common.searchLocation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;display:block;"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></button>
         <div class="autocomplete-list" id="dir-location-list"></div>
       </div>
       <button class="export-btn" id="dir-use-location-btn" data-i18n-title="events.useMyLocation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg> <span class="btn-label-text" data-i18n="events.useMyLocation">Use my location</span></button>
@@ -2869,7 +2875,7 @@
     <div class="location-row">
       <div class="autocomplete-wrap" style="flex:1;max-width:340px;display:flex;">
         <input class="field" type="text" id="events-location-input" placeholder="Enter a city or address" autocomplete="off" style="border-radius:8px 0 0 8px;border-right:none;" data-i18n-placeholder="events.locationPlaceholder">
-        <button id="events-location-search-btn" style="background:var(--brand);color:#fff;border:none;padding:0 16px;border-radius:0 8px 8px 0;cursor:pointer;" aria-label="Search location" data-i18n-title="common.searchLocation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;display:block;"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></button>
+        <button id="events-location-search-btn" style="background:var(--gold);color:var(--brand);border:none;padding:0 16px;border-radius:0 8px 8px 0;cursor:pointer;" aria-label="Search location" data-i18n-title="common.searchLocation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;display:block;"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></button>
         <div class="autocomplete-list" id="events-location-list"></div>
       </div>
       <button class="export-btn" id="events-use-location-btn" data-i18n-title="events.useMyLocation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg> <span class="btn-label-text" data-i18n="events.useMyLocation">Use my location</span></button>
@@ -3466,9 +3472,40 @@
     </div>
     <p id="admin-church-view-link" style="margin-top:8px;"></p>
 
-    <h2 style="font-size:20px;margin-top:36px;margin-bottom:16px;" data-i18n="admin.whatsOnTheChurchPage">What's on the church page</h2>
-    <div id="admin-church-profile" class="side-note" style="max-width:640px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;max-width:640px;margin-top:36px;">
+      <h2 style="font-size:20px;margin:0;" data-i18n="admin.whatsOnTheChurchPage">What's on the church page</h2>
+      <button type="button" class="export-btn" id="admin-church-edit-btn" style="padding:6px 14px;" data-i18n="admin.editChurchDetails">Edit details</button>
+    </div>
+    <div id="admin-church-profile" class="side-note" style="max-width:640px;margin-top:16px;">
       <p style="color:var(--ink-mute);font-size:14px;" data-i18n="common.loading">Loading...</p>
+    </div>
+
+    <!-- Editable core fields -- name, address, phone, website, denomination.
+         Hidden by default; toggled by #admin-church-edit-btn. Works for
+         claimed and unclaimed churches alike, but this is the only path
+         an unclaimed church's info can ever be corrected through, since
+         there's no owner to do it from the normal dashboard. -->
+    <div id="admin-church-edit-form" class="side-note" style="display:none;max-width:640px;margin-top:16px;">
+      <label style="display:block;font-size:12.5px;margin-bottom:4px;" data-i18n="rc.churchName">Church name</label>
+      <input class="field" type="text" id="admin-church-edit-name" style="margin-bottom:12px;">
+
+      <label style="display:block;font-size:12.5px;margin-bottom:4px;" data-i18n="admin.denomination">Denomination</label>
+      <input class="field" type="text" id="admin-church-edit-denomination" style="margin-bottom:12px;">
+
+      <label style="display:block;font-size:12.5px;margin-bottom:4px;" data-i18n="admin.address">Address</label>
+      <input class="field" type="text" id="admin-church-edit-address" style="margin-bottom:12px;">
+
+      <label style="display:block;font-size:12.5px;margin-bottom:4px;" data-i18n="admin.publicPhone">Public phone</label>
+      <input class="field" type="text" id="admin-church-edit-phone" style="margin-bottom:12px;">
+
+      <label style="display:block;font-size:12.5px;margin-bottom:4px;" data-i18n="admin.website">Website</label>
+      <input class="field" type="text" id="admin-church-edit-website" style="margin-bottom:14px;">
+
+      <div style="display:flex;gap:10px;align-items:center;">
+        <button type="button" class="btn-gold" id="admin-church-edit-save-btn" data-i18n="admin.saveChanges">Save changes</button>
+        <button type="button" class="export-btn" id="admin-church-edit-cancel-btn" data-i18n="admin.cancelEdit">Cancel</button>
+        <span id="admin-church-edit-status" style="font-size:13px;"></span>
+      </div>
     </div>
 
     <h2 style="font-size:20px;margin-top:44px;margin-bottom:16px;" data-i18n="admin.partnerGivingStatus">Partner & giving status</h2>
@@ -5391,7 +5428,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-11-v296 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-11-v297 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -19031,14 +19068,29 @@
     eventsEl.innerHTML = '<p style="color:var(--ink-mute);font-size:14px;">' + window.t('common.loading') + '</p>';
     groupsEl.innerHTML = '<p style="color:var(--ink-mute);font-size:14px;">' + window.t('common.loading') + '</p>';
 
+    // Editing (see #admin-church-edit-btn below) always starts from a
+    // fresh populate, so any stale form left open from a previously
+    // viewed church never leaks into this one.
+    var editForm = document.getElementById('admin-church-edit-form');
+    var editStatus = document.getElementById('admin-church-edit-status');
+    if (editForm) editForm.style.display = 'none';
+    if (editStatus) editStatus.textContent = '';
+    if (profileEl) profileEl.style.display = '';
+
     var { data: churchRows, error: churchError } = await supabase.from('churches').select(PUBLIC_CHURCH_COLUMNS).eq('id', churchId).limit(1);
     var c = (churchRows && churchRows.length) ? churchRows[0] : null;
     if (churchError || !c) {
       nameEl.textContent = window.t('admin.churchNotFound');
       profileEl.innerHTML = '<p style="color:var(--clay);font-size:14px;">' + (churchError ? churchError.message : window.t('admin.churchCouldNotLoad')) + '</p>';
       partnerEl.innerHTML = ''; staffEl.innerHTML = ''; eventsEl.innerHTML = ''; groupsEl.innerHTML = '';
+      window._adminChurchEditCurrent = null;
       return;
     }
+
+    // Raw (unstripped, untitle-cased) values -- the edit form always
+    // shows and saves exactly what's actually stored, never what
+    // displayChurchName()/titleCaseAddress() would render.
+    window._adminChurchEditCurrent = { id: c.id, name: c.name || '', denomination: c.denomination || '', address: c.address || '', phone: c.phone || '', website: c.website || '' };
 
     nameEl.textContent = displayChurchName(c.name);
     badgeEl.style.display = (c.verification_status === 'verified') ? 'inline-block' : 'none';
@@ -19104,6 +19156,117 @@
     }
   }
   window.populateAdminChurchPage = populateAdminChurchPage;
+
+  // Admin edit of a church's core fields (name, denomination, address,
+  // phone, website). The only path an unclaimed church's info can ever
+  // be corrected through -- there's no owner to do it from the normal
+  // dashboard -- but works for a claimed church too. Saves through
+  // admin_update_church_details (security definer, is_platform_admin()
+  // gated), since the normal churches UPDATE RLS is owner-only.
+  //
+  // Whatever gets typed here is saved byte-for-byte and re-rendered
+  // through the exact same displayChurchName()/titleCaseAddress() every
+  // other church goes through -- there's no separate "admin-locked"
+  // path and no second transform pass. That's sufficient, not just
+  // convenient: both functions only ever strip a specific known bad
+  // pattern (a trailing corporate suffix; ALL-CAPS-only address tokens)
+  // and are no-ops on anything already well-formed, so a deliberate
+  // correction like "RISE Church" (keeping the acronym capitalized)
+  // isn't a pattern either function touches -- it renders back out
+  // exactly as saved. If either function is ever generalized to do
+  // broader re-casing, an admin-authored value would need revisiting.
+  document.addEventListener('click', function(ev){
+    if (!ev.target.closest || !ev.target.closest('#admin-church-edit-btn')) return;
+    var current = window._adminChurchEditCurrent;
+    if (!current) return;
+    document.getElementById('admin-church-edit-name').value = current.name;
+    document.getElementById('admin-church-edit-denomination').value = current.denomination;
+    document.getElementById('admin-church-edit-address').value = current.address;
+    document.getElementById('admin-church-edit-phone').value = current.phone;
+    document.getElementById('admin-church-edit-website').value = current.website;
+    document.getElementById('admin-church-edit-status').textContent = '';
+    document.getElementById('admin-church-profile').style.display = 'none';
+    document.getElementById('admin-church-edit-form').style.display = 'block';
+  });
+
+  document.addEventListener('click', function(ev){
+    if (!ev.target.closest || !ev.target.closest('#admin-church-edit-cancel-btn')) return;
+    document.getElementById('admin-church-edit-form').style.display = 'none';
+    document.getElementById('admin-church-profile').style.display = '';
+  });
+
+  document.addEventListener('click', async function(ev){
+    var saveBtn = ev.target.closest ? ev.target.closest('#admin-church-edit-save-btn') : null;
+    if (!saveBtn) return;
+    var current = window._adminChurchEditCurrent;
+    if (!current) return;
+    var statusEl = document.getElementById('admin-church-edit-status');
+
+    var newName = document.getElementById('admin-church-edit-name').value.trim();
+    var newDenomination = document.getElementById('admin-church-edit-denomination').value.trim();
+    var newAddress = document.getElementById('admin-church-edit-address').value.trim();
+    var newPhone = document.getElementById('admin-church-edit-phone').value.trim();
+    var newWebsite = document.getElementById('admin-church-edit-website').value.trim();
+
+    if (!newName) {
+      statusEl.style.color = 'var(--clay)';
+      statusEl.textContent = window.t('admin.churchNameRequired');
+      return;
+    }
+
+    saveBtn.disabled = true;
+    statusEl.style.color = 'var(--ink-mute)';
+    statusEl.textContent = window.t('admin.savingChanges');
+
+    // Only re-geocode if the address actually changed -- an unrelated
+    // name/phone/website correction shouldn't spend a Places lookup or
+    // risk clobbering already-good coordinates.
+    var newLat, newLng;
+    var geocodeFailed = false;
+    if (newAddress !== current.address) {
+      try {
+        // geocodeAddressGoogle() has no timeout of its own -- it just
+        // waits on Google's own callback, which (confirmed live: no
+        // network request even fires in some environments) can hang
+        // indefinitely with the button stuck disabled and no way to
+        // recover short of reloading. 8s treats "took too long" the
+        // same as "no result" -- text fields still save either way,
+        // just without new coordinates.
+        var geoResult = await Promise.race([
+          geocodeAddressGoogle(newAddress),
+          new Promise(function(resolve){ setTimeout(function(){ resolve('__timeout__'); }, 8000); })
+        ]);
+        if (geoResult === '__timeout__' || !geoResult) { geocodeFailed = true; }
+        else { newLat = geoResult.lat; newLng = geoResult.lng; }
+      } catch (e) { geocodeFailed = true; }
+    }
+
+    var { error } = await supabase.rpc('admin_update_church_details', {
+      target_church_id: current.id,
+      p_name: newName,
+      p_denomination: newDenomination || null,
+      p_address: newAddress || null,
+      p_phone: newPhone || null,
+      p_website: newWebsite || null,
+      p_lat: newLat,
+      p_lng: newLng,
+      p_update_coords: newAddress !== current.address
+    });
+
+    saveBtn.disabled = false;
+    if (error) {
+      statusEl.style.color = 'var(--clay)';
+      statusEl.textContent = error.message;
+      return;
+    }
+
+    document.getElementById('admin-church-edit-form').style.display = 'none';
+    document.getElementById('admin-church-profile').style.display = '';
+    await populateAdminChurchPage(current.id);
+    var freshStatusEl = document.getElementById('admin-church-edit-status');
+    freshStatusEl.style.color = geocodeFailed ? 'var(--gold)' : 'var(--sage)';
+    freshStatusEl.textContent = geocodeFailed ? window.t('admin.geocodeFailedWarning') : window.t('admin.detailsSaved');
+  });
 
   document.addEventListener('click', async function(ev){
     var resolveBtn = ev.target.closest ? ev.target.closest('[data-resolve-support-id]') : null;
