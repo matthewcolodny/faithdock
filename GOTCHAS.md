@@ -1305,3 +1305,17 @@ Follow-up to the outline version above — at actual 34px card size the cross (a
 **Sized up**: `.thumb--denom svg` now renders at 46px, up from the shared 34px every other `.thumb svg` still uses (bumped independently since a solid shape needs more room to read clearly than a thin outline did, without changing the icon size used anywhere logos actually load).
 
 **Verified the same way as before, not just reasoned through**: re-rendered the real markup at actual size across the same 11 denomination hues, both themes — cross, roof, and door cutout all clearly legible everywhere this time, screenshots shown in the conversation. Re-confirmed the logo/no-logo boundary directly against `churchCard()`'s output (a logo'd church's HTML contains neither `thumb--denom` nor the door's `fill-rule="evenodd"` path; a logoless church's contains both). No console errors. Build `2026-09-11-v290`.
+
+---
+
+## Church icon, round 3: friendlier rounded style (chevron roof, floating cross, arched door)
+
+Round 2's flat solid silhouette worked but "looked weird" against a reference the user liked much better: a softer, rounded style with a chevron-shaped roof (thick rounded strokes with the ends peeking out past the walls, not a flush triangle), a cross floating clearly above the roof with a visible gap, and a rounded arched doorway rather than a plain rectangle. Rebuilt to match that style rather than iterate on the flat-silhouette shape further.
+
+**Now genuinely mixed fill + stroke**, not just fill: the roof and the cross are drawn as thick strokes with `stroke-linecap="round"` / `stroke-linejoin="round"` (the rounded peak and the rounded nubs where the roofline ends are exactly what round line caps/joins are for), while the body is still a filled shape with the door punched out via `fill-rule="evenodd"`, same cutout technique as round 2. This meant the CSS tint rule had to grow from `fill` only to `fill` *and* `stroke` — `.thumb--denom svg` now sets both to the same hue-derived color, so a stroked part and a filled part end up the same visible tint without needing two different variables.
+
+**Two SVG-fill-model gotchas, both handled explicitly rather than discovered live**: an open stroked path (the roof's `M...L...L...`, never closed with `Z`) still gets implicitly closed *for fill purposes* by the SVG spec — without `fill="none"` on that path, it would render as a solid filled triangle sitting behind its own stroke outline, which wasn't the intent. Symmetrically, the body's filled path needed `stroke="none"` so it doesn't pick up an unwanted default 1px stroke outline once the SVG element itself has a `stroke` color set via CSS.
+
+**This is the one place in the whole file that uses `stroke-linecap`/`stroke-linejoin`** — checked, no other icon anywhere sets either, so this is a deliberate, scoped exception for this one icon's friendlier look, not a change to the app's general icon style.
+
+**Verified the same way as both earlier rounds**: real markup, real 46px size, all 11 denomination hues, both themes — screenshots shown in the conversation. Logo/no-logo boundary reconfirmed directly against `churchCard()`'s output. No console errors. Build `2026-09-11-v291`.
