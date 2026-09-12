@@ -1335,3 +1335,15 @@ Flagged as a separate task a few fixes back, now root-caused and fixed. Loading 
 **Checked for the same latent bug elsewhere before calling this done**: the `group`/`admin-church`/`create-event` branches of the same function all call functions defined *inside* the module script itself (`populateGroupPage`, `populateAdminChurchPage`, `editEvent`) and are already guarded with `typeof window.X === 'function'` checks — safe by construction, no fix needed there.
 
 **Verified live**, not just reasoned through: the exact reported URL now loads with zero console errors and still correctly populates "Mercy Church San Antonio" (confirming the recovery pass still works); a bare `#church` (no key) still redirects to `#directory` immediately, unaffected; a deliberately nonexistent church name still correctly redirects to `#directory` once Supabase finishes loading, confirming the legitimate not-found path wasn't broken by the `else if` change; a plain homepage load is unaffected. Build `2026-09-11-v292`.
+
+---
+
+## Church icon, round 4: back to sharp fill, cross fused directly onto the roof
+
+Round 3's rounded/stroked style, per a fresh reference the user liked much better, needed to go back to a sharp flat-icon silhouette — but this time with the cross sitting flush on the roof peak (no gap, no separate floating steeple), a wider/flatter roof, and a rounded-arch door.
+
+**Reverted to pure fill, no strokes at all** — round 3's `.thumb--denom svg` CSS had grown a `stroke` alongside `fill` specifically to tint the rounded chevron roof and floating cross, both of which are gone now. Removed `stroke` from that rule entirely rather than leaving it as dead weight, since an unused `stroke` color with the SVG's default `stroke-width:1` would silently reappear as an unwanted 1px outline the moment any element in a future revision forgot to opt out.
+
+**The cross, roof, and body are still three separate layered shapes, not one traced path** — same technique as round 2, just re-tuned: two `<rect>`s for the cross (sized and positioned so its base overlaps the roof's apex by a full unit, guaranteeing no visible seam between "cross" and "roof" even though they're independent elements), a wider/flatter roof triangle, and the body + rounded-arch door cutout via `fill-rule="evenodd"` (identical mechanism to round 2's door, just re-proportioned — narrower, taller, matching the new reference more closely).
+
+**Verified the same way as every prior round**: real markup, real 46px size, all 11 denomination hues, both themes — screenshots shown in the conversation. Logo/no-logo boundary reconfirmed directly against `churchCard()`'s output. No console errors. Build `2026-09-11-v293`.

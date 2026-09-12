@@ -2017,16 +2017,16 @@
   .thumb svg{width:34px;height:34px;opacity:.55;}
   /* Logoless placeholder: a muted wash + icon tint keyed to denomination
      (--thumb-hue, set inline in churchCard) so the grid isn't a wall of
-     identical tiles. Real logos never get .thumb--denom. buildingIcon
-     mixes filled shapes (the body) with thick rounded strokes (the roof
-     chevron, the floating cross), so both `fill` and `stroke` need the
-     same tint -- sized up separately from the generic .thumb svg rule
-     above since this icon reads best a bit larger than a thin-line
-     outline would. */
+     identical tiles. Real logos never get .thumb--denom. buildingIcon is
+     pure solid fill again (no strokes -- back to a sharp, flat-icon
+     silhouette rather than round 3's rounded/stroked look), so it's
+     tinted via `fill` only -- sized up separately from the generic
+     .thumb svg rule above since a solid shape reads best a bit larger
+     than a thin-line outline would. */
   .thumb--denom{background:hsl(var(--thumb-hue,220) 34% 88%);}
-  .thumb--denom svg{width:46px;height:46px;fill:hsl(var(--thumb-hue,220) 30% 46%);stroke:hsl(var(--thumb-hue,220) 30% 46%);opacity:.7;}
+  .thumb--denom svg{width:46px;height:46px;fill:hsl(var(--thumb-hue,220) 30% 46%);opacity:.7;}
   html[data-theme="dark"] .thumb--denom{background:hsl(var(--thumb-hue,220) 22% 17%);}
-  html[data-theme="dark"] .thumb--denom svg{fill:hsl(var(--thumb-hue,220) 24% 60%);stroke:hsl(var(--thumb-hue,220) 24% 60%);opacity:.8;}
+  html[data-theme="dark"] .thumb--denom svg{fill:hsl(var(--thumb-hue,220) 24% 60%);opacity:.8;}
   /* Directory numbered pager */
   .dir-pager{display:flex;flex-wrap:wrap;align-items:center;gap:6px;}
   .dir-pager-btn{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:34px;padding:0 10px;font-size:13px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);cursor:pointer;}
@@ -5383,7 +5383,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-11-v292 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-11-v293 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -5604,27 +5604,27 @@
      description2:"All donations stay local, distributed through our partnership with the East Austin food pantry.",
      location:"New Hope Assembly, 1108 E 12th St, Austin, TX", audienceLabel:"Open to anyone"}
   ];
-  // Logoless-church placeholder: a floating rounded cross, a thick
-  // rounded-cap chevron roof, and a rounded-corner body with an arched
-  // doorway cutout -- softer/friendlier than a sharp geometric
-  // silhouette, deliberately generic (no specific architectural style)
-  // so it reads as "a church" in the abstract rather than one building.
-  // Mixes strokes (cross, roof) with a fill (body): neither the cross
-  // nor the roof path sets `fill` -- both explicitly turn it off
-  // instead, since SVG implicitly closes an open path for fill
-  // purposes, and an unwanted filled triangle behind the roof's stroke
-  // was exactly what turning it off avoids. The body path explicitly
-  // turns `stroke` off for the same reason in reverse -- otherwise it
-  // inherits a 1px default stroke outline alongside its fill. Neither
-  // sets its own color, so both inherit whichever of `fill`/`stroke`
-  // apply to them from the SVG, which is what .thumb--denom svg's CSS
-  // rule tints. The door is a true cutout (fill-rule="evenodd" on the
-  // body path, not a second shape painted to match the background), so
-  // it shows through correctly no matter the theme or hue.
-  var buildingIcon = '<svg viewBox="0 0 24 24" fill="#16233F" stroke="#16233F">'
-    + '<path d="M12 1.5V5.5M9.8 3H14.2" fill="none" stroke-width="1.7" stroke-linecap="round" />'
-    + '<path d="M5 12.5L12 6.5L19 12.5" fill="none" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" />'
-    + '<path stroke="none" fill-rule="evenodd" d="M8.2 12H15.8A1.2 1.2 0 0 1 17 13.2V19.8A1.2 1.2 0 0 1 15.8 21H8.2A1.2 1.2 0 0 1 7 19.8V13.2A1.2 1.2 0 0 1 8.2 12ZM10 21V17.5A2 2 0 0 1 14 17.5V21Z" />'
+  // Logoless-church placeholder: a solid silhouette where the cross
+  // sits fused directly onto the roof peak (no gap, no separate floating
+  // steeple -- one continuous shape from the cross tip down through the
+  // wide, flat roof into the body), with a rounded-arch doorway cutout.
+  // Deliberately generic, no specific architectural style, so it reads
+  // as "a church" in the abstract rather than one building. Back to
+  // pure fill (see the CSS comment above) -- the cross and roof are
+  // separate <rect>/<path> elements layered on top of each other rather
+  // than one traced outline, but since all three pieces are solid fills
+  // of the same inherited color with no gaps between them, they read as
+  // one seamless silhouette exactly as if they were a single path. The
+  // door is a true cutout (fill-rule="evenodd" on the body path, not a
+  // second shape painted to match the background), so it shows through
+  // correctly no matter the theme or hue. None of the shapes set their
+  // own fill -- they inherit the SVG's fill, which .thumb--denom svg
+  // drives via CSS.
+  var buildingIcon = '<svg viewBox="0 0 24 24" fill="#16233F">'
+    + '<rect x="10.8" y="0.5" width="2.4" height="5.5" />'
+    + '<rect x="9" y="2.2" width="6" height="2" />'
+    + '<path d="M2 13L12 5L22 13Z" />'
+    + '<path fill-rule="evenodd" d="M6 13H18V21H6ZM9.5 21V16.5A2.5 2.5 0 0 1 14.5 16.5V21Z" />'
     + '</svg>';
 
   // ============================================================
