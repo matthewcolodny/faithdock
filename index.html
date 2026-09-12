@@ -5391,7 +5391,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-11-v295 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-11-v296 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -5806,7 +5806,7 @@
       + '<div class="card-body">'
       + '<span class="tag sage">' + translateDenomination(c.tag) + '</span>'
       + churchStatusTag(c)
-      + '<h3>' + c.name + '</h3>'
+      + '<h3>' + displayChurchName(c.name) + '</h3>'
       + '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/></svg>' + distText + '</div>'
       + '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>' + formatChurchNextText(c.next, (c.rawServiceTimes || []).length) + '</div>'
       + (c.nextEvent ? '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>' + formatChurchNextEventText(c.nextEvent) + '</div>' : '')
@@ -5834,7 +5834,7 @@
     var inner = ''
       + '<div class="church-row-main">'
       + '<div class="church-row-head">'
-      + '<span class="church-row-name">' + c.name + '</span>'
+      + '<span class="church-row-name">' + displayChurchName(c.name) + '</span>'
       + '<span class="tag sage">' + translateDenomination(c.tag) + '</span>'
       + churchStatusTag(c)
       + '</div>'
@@ -5901,7 +5901,7 @@
   }
 
   function populateChurchPage(c){
-    document.getElementById('church-name').textContent = c.name;
+    document.getElementById('church-name').textContent = displayChurchName(c.name);
     document.getElementById('church-eyebrow').textContent = c.tag ? translateDenomination(c.tag) : window.t('church.genericLabel');
 
     var logoImgEl = document.getElementById('church-logo-img');
@@ -5915,7 +5915,7 @@
       else { detailsDenomTag.style.display = 'none'; }
     }
     var detailsNameEl = document.getElementById('church-details-name');
-    if (detailsNameEl) detailsNameEl.textContent = c.name;
+    if (detailsNameEl) detailsNameEl.textContent = displayChurchName(c.name);
     // Church status on the profile page (see churchStatusTag() for the
     // directory-card equivalent). These aren't mutually exclusive: a
     // claimed church shows the "Managed by this church" line; if it's
@@ -5938,7 +5938,11 @@
     if (unclaimedBanner) {
       unclaimedBanner.style.display = !isClaimed ? 'block' : 'none';
       unclaimedBanner.setAttribute('data-claim-church-id', c.id || '');
-      unclaimedBanner.setAttribute('data-claim-church-name', c.name || '');
+      // Stored already-display-stripped -- the claim modal (further
+      // down this file) reads this attribute purely to show the church
+      // name to the person claiming it, never to look anything up by
+      // it (the id attribute right above carries the real key).
+      unclaimedBanner.setAttribute('data-claim-church-name', displayChurchName(c.name) || '');
     }
 
     if (typeof computeChurchDistance === 'function') computeChurchDistance(c);
@@ -5951,7 +5955,7 @@
     if (c.homeCount) { homeCountEl.textContent = c.homeCount; homeCountEl.style.display = 'inline'; }
     else { homeCountEl.style.display = 'none'; }
 
-    document.getElementById('church-description').textContent = c.description || (c.name + ' hasn\'t added a description yet.');
+    document.getElementById('church-description').textContent = c.description || (displayChurchName(c.name) + ' hasn\'t added a description yet.');
     var desc2El = document.getElementById('church-description-2');
     if (c.description2) { desc2El.textContent = c.description2; desc2El.style.display = 'block'; }
     else { desc2El.style.display = 'none'; }
@@ -6017,7 +6021,10 @@
     if (typeof window.refreshAllCardRegistrationStates === 'function') window.refreshAllCardRegistrationStates();
     if (typeof window.loadPublicChurchGroups === 'function') window.loadPublicChurchGroups(c.id);
     window.currentPageChurchId = c.id;
-    window.currentPageChurchName = c.name;
+    // Stored already-display-stripped -- this is only ever read to
+    // populate the "Message {church}" modal's title text, never for
+    // any lookup.
+    window.currentPageChurchName = displayChurchName(c.name);
     if (typeof window.checkChurchGivingEnabled === 'function') window.checkChurchGivingEnabled(c.id);
     if (typeof window.checkChurchHomeStatus === 'function') window.checkChurchHomeStatus(c.id);
     if (typeof window.checkChurchFollowStatus === 'function') window.checkChurchFollowStatus(c.id);
@@ -6139,6 +6146,37 @@
     });
   }
   window.titleCaseAddress = titleCaseAddress;
+
+  // Same display-time approach as titleCaseAddress above -- the raw IRS
+  // source (and plenty of real church names generally) end in a trailing
+  // corporate suffix ("Overflow Worship Center Inc") that reads oddly on
+  // a public-facing directory. Never touches the stored `name` field
+  // itself, only what gets rendered -- routing (href="#church/<name>"),
+  // dedupe-key building, and every name === / name.filter(...) lookup
+  // all keep using the real, unstripped value, since those all have to
+  // agree with whatever's actually in the database.
+  //
+  // Word-boundary matching throughout, not a substring check -- exactly
+  // the lesson from the "ministry"/"Administry" and "Churchill"/"church"
+  // false positives earlier this session (see scripts/filter-churches.js
+  // and GOTCHAS.md). \b is what keeps this from firing on a name that
+  // merely ends in those letters as part of a real word (there's no
+  // plausible church name ending in "Ltd" or "LLC" as a coincidental
+  // word fragment the way "Zinc" ends in "inc", but the principle is the
+  // same either way: match the actual suffix token, never a substring).
+  var CORPORATE_SUFFIX_RE = /,?\s*\b(?:incorporated|corporation|inc|corp|l\.l\.c\.|llc|ltd|limited)\.?\s*$/i;
+  function displayChurchName(name){
+    if (!name) return name;
+    var stripped = name.replace(CORPORATE_SUFFIX_RE, '');
+    // Belt-and-suspenders per the spec: mop up anything the regex's own
+    // ,?\s*...\s*$ didn't already consume (e.g. a stray double comma).
+    stripped = stripped.replace(/[\s,]+$/, '');
+    // Never return an empty string -- a name that was somehow *only*
+    // "Inc" (or similar) falls back to showing the original untouched
+    // rather than a blank heading/card title.
+    return stripped || name;
+  }
+  window.displayChurchName = displayChurchName;
 
   var badgeI18nKeyMap = {
     'Open to anyone': 'badge.openToAnyone', 'Members only': 'badge.membersOnly', 'No signup needed': 'badge.noSignupNeeded',
@@ -9608,7 +9646,7 @@
       var multiChurchList = myChurch.role === 'owner' ? myChurch.ownedChurches : myChurch.staffedChurches;
       if (multiChurchList && multiChurchList.length > 1) {
         churchSwitcher.innerHTML = multiChurchList.map(function(c){
-          return '<option value="' + c.id + '"' + (c.id === myChurch.id ? ' selected' : '') + '>' + c.name + '</option>';
+          return '<option value="' + c.id + '"' + (c.id === myChurch.id ? ' selected' : '') + '>' + displayChurchName(c.name) + '</option>';
         }).join('');
         churchSwitcher.style.display = 'block';
         if (sidebarEditLink) sidebarEditLink.style.marginTop = '0';
@@ -9772,7 +9810,7 @@
       return '<button type="button" class="church-tile" data-enter-church-id="' + c.id + '"'
         + (c.id === activeId ? ' style="border-color:var(--gold);"' : '') + '>'
         + logo
-        + '<div class="church-tile-name">' + c.name + '</div>'
+        + '<div class="church-tile-name">' + displayChurchName(c.name) + '</div>'
         + denom
         + (statsHtml || '')
         + '<div class="church-tile-manage">' + window.t('myChurches.manage') + ' →</div>'
@@ -9869,7 +9907,7 @@
                 + '</div>';
             }).join('');
           }
-          return '<div class="overview-staff-card"><h4>' + c.name + '</h4>' + body + '</div>';
+          return '<div class="overview-staff-card"><h4>' + displayChurchName(c.name) + '</h4>' + body + '</div>';
         }).join('');
         if (staffHeading) staffHeading.style.display = '';
       }
@@ -11220,7 +11258,7 @@
         mapTypeControl: false,
         fullscreenControl: false
       });
-      new google.maps.Marker({ position: window.churchMapCenter, map: window.churchMapInstance, title: c.name });
+      new google.maps.Marker({ position: window.churchMapCenter, map: window.churchMapInstance, title: displayChurchName(c.name) });
       appendOpenInGoogleMapsButton(mapEmbed, c);
     } else {
       // Maps JS hasn't finished loading yet (rare -- it's a small,
@@ -12524,7 +12562,7 @@
     if (pickerWrap && pickerEl) {
       if (available.length > 1) {
         pickerEl.innerHTML = available.map(function(c){
-          return '<option value="' + c.id + '"' + (c.id === ceSelectedChurchId ? ' selected' : '') + '>' + c.name.replace(/</g, '&lt;') + '</option>';
+          return '<option value="' + c.id + '"' + (c.id === ceSelectedChurchId ? ' selected' : '') + '>' + displayChurchName(c.name).replace(/</g, '&lt;') + '</option>';
         }).join('');
         pickerWrap.style.display = 'block';
       } else {
@@ -13544,7 +13582,7 @@
           churchChecksHtml = '<label style="font-size:12.5px;">' + window.t('dashSettings.addToChurches') + '</label>'
             + '<div style="margin-bottom:10px;">'
             + myChurch.ownedChurches.map(function(c){
-                return '<label class="filter-check" style="display:block;margin-bottom:2px;"><input type="checkbox" class="team-invite-church-check" value="' + c.id + '"' + (c.id === myChurch.id ? ' checked' : '') + '> ' + c.name.replace(/</g, '&lt;') + '</label>';
+                return '<label class="filter-check" style="display:block;margin-bottom:2px;"><input type="checkbox" class="team-invite-church-check" value="' + c.id + '"' + (c.id === myChurch.id ? ' checked' : '') + '> ' + displayChurchName(c.name).replace(/</g, '&lt;') + '</label>';
               }).join('')
             + '</div>';
         }
@@ -18223,7 +18261,7 @@
       return '<div class="group-card" style="display:flex;align-items:center;gap:14px;justify-content:space-between;margin-bottom:10px;">'
         + '<a href="#" data-route="church" data-church-name="' + c.name.replace(/"/g, '&quot;') + '" style="display:flex;align-items:center;gap:14px;text-decoration:none;color:inherit;flex:1;min-width:0;">'
         + logoHtml
-        + '<div style="min-width:0;"><h4 style="margin-bottom:2px;">' + c.name + '</h4><div>' + labelsHtml + '</div></div>'
+        + '<div style="min-width:0;"><h4 style="margin-bottom:2px;">' + displayChurchName(c.name) + '</h4><div>' + labelsHtml + '</div></div>'
         + '</a>'
         + manageBtn
         + unfollowBtn
@@ -18504,11 +18542,11 @@
         + '<button class="export-btn" data-toggle-hidden-church-id="' + c.id + '" data-toggle-hidden-to="' + (isHidden ? 'false' : 'true') + '" style="padding:6px 14px;min-width:74px;justify-content:center;">' + window.t(isHidden ? 'admin.show' : 'admin.hide') + '</button>'
         + (st === 'verified' ? '<button class="export-btn" data-unverify-church-id="' + c.id + '" style="padding:6px 14px;">' + window.t('admin.unverify') + '</button>' : '')
         + (!c.owner_id
-            ? '<button class="export-btn" data-delete-unclaimed-church-id="' + c.id + '" data-delete-unclaimed-church-name="' + c.name.replace(/"/g, '&quot;') + '" style="padding:6px 14px;color:var(--clay);">' + window.t('admin.delete') + '</button>'
+            ? '<button class="export-btn" data-delete-unclaimed-church-id="' + c.id + '" data-delete-unclaimed-church-name="' + displayChurchName(c.name).replace(/"/g, '&quot;') + '" style="padding:6px 14px;color:var(--clay);">' + window.t('admin.delete') + '</button>'
             : '<span class="registrant-action-spacer" aria-hidden="true"></span>')
         + '</div>';
       return '<div class="registrant-row"' + (isHidden ? ' style="opacity:0.6;"' : '') + '><div style="min-width:0;">'
-        + '<div class="registrant-name"><a href="#admin-church/' + c.id + '" data-route="admin-church" data-admin-church-id="' + c.id + '" style="color:inherit;border-bottom:1px solid var(--line);">' + c.name + '</a></div>'
+        + '<div class="registrant-name"><a href="#admin-church/' + c.id + '" data-route="admin-church" data-admin-church-id="' + c.id + '" style="color:inherit;border-bottom:1px solid var(--line);">' + displayChurchName(c.name) + '</a></div>'
         + '<div class="registrant-date">' + (c.denomination || '—') + ' · <span style="color:' + statusColor + ';font-weight:600;">' + statusLabel + '</span>' + unclaimedTag + hiddenTag + '</div>'
         + (c.address ? '<div class="registrant-date" style="font-size:11.5px;">' + titleCaseAddress(c.address) + '</div>' : '')
         + '</div>'
@@ -18679,7 +18717,7 @@
     var totalCount = rows.length ? rows[0].total_count : 0;
     var html = rows.map(function(c){
       return '<div class="registrant-row"><div>'
-        + '<div class="registrant-name"><a href="#admin-church/' + c.id + '" data-route="admin-church" data-admin-church-id="' + c.id + '" style="color:inherit;border-bottom:1px solid var(--line);">' + c.name + '</a></div>'
+        + '<div class="registrant-name"><a href="#admin-church/' + c.id + '" data-route="admin-church" data-admin-church-id="' + c.id + '" style="color:inherit;border-bottom:1px solid var(--line);">' + displayChurchName(c.name) + '</a></div>'
         + '<div class="registrant-date">' + (c.address ? titleCaseAddress(c.address) : window.t('admin.noAddressOnFile')) + '</div>'
         + '</div></div>';
     }).join('');
@@ -19002,7 +19040,7 @@
       return;
     }
 
-    nameEl.textContent = c.name;
+    nameEl.textContent = displayChurchName(c.name);
     badgeEl.style.display = (c.verification_status === 'verified') ? 'inline-block' : 'none';
     viewLinkEl.innerHTML = '<a href="#church/' + encodeURIComponent(c.name) + '" data-route="church" data-church-name="' + c.name + '" style="font-size:13px;border-bottom:1px solid var(--gold);">' + window.t('admin.viewPublicChurchPage') + '</a>';
 
@@ -20819,9 +20857,9 @@
       var lines = [];
       if (succeeded.length) {
         var successText = foundId ? window.t('dashSettings.addedAndEmailed') : window.t('dashSettings.inviteSentAutoJoin');
-        lines.push(targetChurches.length > 1 ? successText + ' (' + succeeded.map(function(r){ return r.churchName; }).join(', ') + ')' : successText);
+        lines.push(targetChurches.length > 1 ? successText + ' (' + succeeded.map(function(r){ return displayChurchName(r.churchName); }).join(', ') + ')' : successText);
       }
-      problem.forEach(function(r){ lines.push((targetChurches.length > 1 ? r.churchName + ': ' : '') + r.message); });
+      problem.forEach(function(r){ lines.push((targetChurches.length > 1 ? displayChurchName(r.churchName) + ': ' : '') + r.message); });
 
       statusEl.textContent = lines.join(' · ');
       statusEl.style.color = problem.length && !succeeded.length ? 'var(--clay)' : (problem.length ? 'var(--gold)' : 'var(--sage)');
