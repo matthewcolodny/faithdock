@@ -5378,7 +5378,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-11-v288 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-11-v289 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -5599,7 +5599,15 @@
      description2:"All donations stay local, distributed through our partnership with the East Austin food pantry.",
      location:"New Hope Assembly, 1108 E 12th St, Austin, TX", audienceLabel:"Open to anyone"}
   ];
-  var buildingIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="#16233F" stroke-width="1.6"><path d="M6 20V11 A6 6 0 0 1 18 11 V20" /></svg>';
+  // Logoless-church placeholder: a plain gable roof + steeple + cross
+  // over a simple rectangular body, deliberately generic (no specific
+  // architectural style) so it reads as "a church" in the abstract.
+  // Kept as bare outline strokes with no stroke attribute of its own
+  // (same as the icon it replaces) so .thumb--denom svg's CSS-driven
+  // stroke color (the per-denomination tint) actually reaches it --
+  // an explicit stroke on an inner element would win over that rule
+  // and break tinting for this icon specifically.
+  var buildingIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="#16233F" stroke-width="1.6"><path d="M12 1V4M10.5 2H13.5M3 12L12 4L21 12M5 12V21H19V12M10 21V16H14V21" /></svg>';
 
   // ============================================================
   // Private-testing invite gate (client-side, soft)
