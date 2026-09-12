@@ -285,8 +285,7 @@
       'church.unclaimedNotice': "This is a community directory listing — the church hasn't set it up yet.", 'church.claimThisChurch': 'Claim this church',
       'church.claimCtaHeadline': 'Is this your church? Claim your free FaithDock profile.',
       'church.noEventsUnclaimedPivot': "This church hasn't added events yet. Are you a leader here? Claim this profile to start posting.",
-      'church.statusDirectoryListing': 'Directory listing', 'church.managedByChurch': 'Managed by this church', 'church.verifiedBadge': 'Verified church', 'church.partnerBadge': 'FaithDock Partner',
-      'church.verifiedBadgeTooltip': "FaithDock has verified this church's connected giving account. It doesn't imply anything else about the church.",
+      'church.statusDirectoryListing': 'Directory listing', 'church.managedByChurch': 'Managed by this church', 'church.partnerBadge': 'FaithDock Partner',
       'church.setAsChurchHome': 'Set as your Church Home!',
       'give.supportMinistry': "Support this church's ministry directly — donations go straight to their account.",
       'give.whatIsThisFor': 'What is this gift for?', 'give.generalFund': 'General Fund',
@@ -1029,8 +1028,7 @@
       'church.unclaimedNotice': 'Este es un listado del directorio comunitario — la iglesia aún no lo ha configurado.', 'church.claimThisChurch': 'Reclamar esta iglesia',
       'church.claimCtaHeadline': '¿Es esta tu iglesia? Reclama tu perfil gratuito de FaithDock.',
       'church.noEventsUnclaimedPivot': 'Esta iglesia aún no ha agregado eventos. ¿Eres un líder aquí? Reclama este perfil para empezar a publicar.',
-      'church.statusDirectoryListing': 'Listado del directorio', 'church.managedByChurch': 'Gestionada por esta iglesia', 'church.verifiedBadge': 'Iglesia verificada', 'church.partnerBadge': 'Socia de FaithDock',
-      'church.verifiedBadgeTooltip': 'FaithDock ha verificado la cuenta de donaciones conectada de esta iglesia. No implica nada más sobre la iglesia.',
+      'church.statusDirectoryListing': 'Listado del directorio', 'church.managedByChurch': 'Gestionada por esta iglesia', 'church.partnerBadge': 'Socia de FaithDock',
       'church.setAsChurchHome': '¡Establecida como tu Iglesia Principal!',
       'give.supportMinistry': 'Apoya el ministerio de esta iglesia directamente — las donaciones van directo a su cuenta.',
       'give.whatIsThisFor': '¿Para qué es esta donación?', 'give.generalFund': 'Fondo General',
@@ -3039,7 +3037,6 @@
         <div class="eyebrow" style="color:#8FA0C4;" id="church-eyebrow"></div>
         <h1 id="church-name"></h1>
         <span id="church-partner-badge" style="display:none;font-size:13px;font-weight:600;color:var(--gold-ink);background:var(--gold-bg);padding:4px 10px;border-radius:20px;margin-right:6px;"><svg viewBox="0 0 24 24" fill="currentColor" style="width:12px;height:12px;vertical-align:-1px;margin-right:3px;"><path d="M12 2l2.9 6.3L22 9.3l-5 4.9 1.2 7.1L12 17.8l-6.2 3.5L7 14.2 2 9.3l7.1-1L12 2z"/></svg><span data-i18n="church.partnerBadge">FaithDock Partner</span></span>
-        <span id="church-verified-badge" style="display:none;font-size:13px;font-weight:600;color:var(--gold);background:rgba(201,162,39,0.15);padding:4px 10px;border-radius:20px;" data-i18n-title="church.verifiedBadgeTooltip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px;vertical-align:-2px;margin-right:3px;"><path d="M20 6L9 17l-5-5"/></svg><span data-i18n="church.verifiedBadge">Verified church</span></span>
         <!-- Prominent by design -- this is the conversion moment for the
              858+ unclaimed listings that make up most of the directory,
              not a footnote. Sits right under the name/badges, above the
@@ -5460,7 +5457,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-12-v301 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-12-v302 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -5823,35 +5820,28 @@
   }
   window.formatChurchNextEventText = formatChurchNextEventText;
 
-  // The single status tag shown on a directory card, as a 3-rung ladder
-  // above the unclaimed baseline (highest applicable wins): claimed +
-  // paid plan -> FaithDock Partner; claimed + verified giving account
-  // -> Verified church; claimed otherwise -> Managed by this church.
-  // Plain unclaimed renders nothing here -- that's the baseline state
-  // for most of the directory, so a tag announcing it on every card is
-  // noise, not signal. (It's still surfaced where it's actionable: the
-  // church profile page's own "Claim this church" banner, untouched --
-  // see populateChurchPage().) Only for real (DB-backed) churches --
-  // sample cards get nothing.
+  // The single status tag shown on a directory card. Claimed -> Managed
+  // by this church; plain unclaimed renders nothing here -- that's the
+  // baseline state for most of the directory, so a tag announcing it on
+  // every card is noise, not signal. (It's still surfaced where it's
+  // actionable: the church profile page's own "Claim this church"
+  // banner, untouched -- see populateChurchPage().) Only for real
+  // (DB-backed) churches -- sample cards get nothing.
+  //
+  // FaithDock Partner and Verified church used to also appear here (a
+  // 3-rung ladder: paid plan -> Partner; verified giving account ->
+  // Verified; claimed otherwise -> Managed) -- removed as a display-only
+  // change. Partner is a business-relationship signal that didn't add
+  // anything useful for a visitor browsing cards and just took up space;
+  // it's kept on the profile page itself (the star badge, untouched --
+  // see populateChurchPage()). Verified was removed entirely, cards and
+  // profile page both -- there's no real, defined process behind what
+  // it currently claims, so no public-facing wording for it is honest
+  // right now. verification_status itself (and whatever it still gates,
+  // e.g. Stripe connection access) is completely untouched by this --
+  // display only.
   function churchStatusTag(c){
     if (!c || !c.real || !c.ownerId) return '';
-    if (c.planType && c.planType !== 'free') {
-      return '<span class="tag gold" style="margin-left:4px;">' + window.t('church.partnerBadge') + '</span>';
-    }
-    if (c.verificationStatus === 'verified') {
-      // A plain title (window.t() resolved inline at build time), not
-      // data-i18n-title -- this markup is a concatenated string built
-      // fresh on every card render, not static DOM applyTranslations()
-      // ever scans. applyTranslations() only fixes already-present
-      // [data-i18n-title] elements at load/language-switch time and
-      // deliberately skips re-rendering Directory/Events search
-      // results (see the language-toggle handler's own comment on
-      // that) -- a data-i18n-title here would sit on the element
-      // forever unresolved, since nothing would ever come back to
-      // process it. Same reasoning as why the tag's own label just
-      // below uses inline window.t() instead of data-i18n too.
-      return '<span class="tag sage" style="margin-left:4px;" title="' + window.t('church.verifiedBadgeTooltip') + '">' + window.t('church.verifiedBadge') + '</span>';
-    }
     return '<span class="tag neutral" style="margin-left:4px;">' + window.t('church.managedByChurch') + '</span>';
   }
   window.churchStatusTag = churchStatusTag;
@@ -6004,16 +5994,16 @@
     var detailsNameEl = document.getElementById('church-details-name');
     if (detailsNameEl) detailsNameEl.textContent = displayChurchName(c.name);
     // Church status on the profile page (see churchStatusTag() for the
-    // directory-card equivalent). These aren't mutually exclusive: a
-    // claimed church shows the "Managed by this church" line; if it's
-    // also on a paid plan it additionally gets the Partner badge, and
-    // if its giving account is verified it also gets the Verified badge.
+    // directory-card equivalent). Not mutually exclusive: a claimed
+    // church shows the "Managed by this church" line, and if it's also
+    // on a paid plan it additionally gets the Partner badge. The
+    // Verified badge that used to also appear here was removed
+    // (display only -- verification_status itself, and whatever it
+    // still gates elsewhere, is untouched): there's no real, defined
+    // process behind what it claimed, so no public-facing wording for
+    // it was honest.
     var isClaimed = !!c.ownerId;
     var isPaid = isClaimed && c.planType && c.planType !== 'free';
-    var isVerified = c.verificationStatus === 'verified';
-
-    var verifiedBadge = document.getElementById('church-verified-badge');
-    if (verifiedBadge) verifiedBadge.style.display = isVerified ? 'inline-block' : 'none';
 
     var partnerBadge = document.getElementById('church-partner-badge');
     if (partnerBadge) partnerBadge.style.display = isPaid ? 'inline-block' : 'none';
