@@ -283,6 +283,8 @@
       'regQuestions.feesAddedAtCheckout': 'Card processing (and any applicable service fee) will be added at checkout — the final total appears there before you pay.',
       'regQuestions.codePlaceholder': 'CODE', 'regQuestions.answerAllRequired': 'Please answer every required question (marked with *).',
       'church.unclaimedNotice': "This is a community directory listing — the church hasn't set it up yet.", 'church.claimThisChurch': 'Claim this church',
+      'church.claimCtaHeadline': 'Is this your church? Claim your free FaithDock profile.',
+      'church.noEventsUnclaimedPivot': "This church hasn't added events yet. Are you a leader here? Claim this profile to start posting.",
       'church.statusDirectoryListing': 'Directory listing', 'church.managedByChurch': 'Managed by this church', 'church.verifiedBadge': 'Verified church', 'church.partnerBadge': 'FaithDock Partner',
       'church.verifiedBadgeTooltip': "FaithDock has verified this church's connected giving account. It doesn't imply anything else about the church.",
       'church.setAsChurchHome': 'Set as your Church Home!',
@@ -1022,6 +1024,8 @@
       'regQuestions.feesAddedAtCheckout': 'El procesamiento de la tarjeta (y cualquier tarifa de servicio aplicable) se agregará al finalizar la compra — el total final aparece ahí antes de pagar.',
       'regQuestions.codePlaceholder': 'CÓDIGO', 'regQuestions.answerAllRequired': 'Por favor responde todas las preguntas obligatorias (marcadas con *).',
       'church.unclaimedNotice': 'Este es un listado del directorio comunitario — la iglesia aún no lo ha configurado.', 'church.claimThisChurch': 'Reclamar esta iglesia',
+      'church.claimCtaHeadline': '¿Es esta tu iglesia? Reclama tu perfil gratuito de FaithDock.',
+      'church.noEventsUnclaimedPivot': 'Esta iglesia aún no ha agregado eventos. ¿Eres un líder aquí? Reclama este perfil para empezar a publicar.',
       'church.statusDirectoryListing': 'Listado del directorio', 'church.managedByChurch': 'Gestionada por esta iglesia', 'church.verifiedBadge': 'Iglesia verificada', 'church.partnerBadge': 'Socia de FaithDock',
       'church.verifiedBadgeTooltip': 'FaithDock ha verificado la cuenta de donaciones conectada de esta iglesia. No implica nada más sobre la iglesia.',
       'church.setAsChurchHome': '¡Establecida como tu Iglesia Principal!',
@@ -3030,16 +3034,24 @@
         <h1 id="church-name">Grace Fellowship Church</h1>
         <span id="church-partner-badge" style="display:none;font-size:13px;font-weight:600;color:var(--gold-ink);background:var(--gold-bg);padding:4px 10px;border-radius:20px;margin-right:6px;"><svg viewBox="0 0 24 24" fill="currentColor" style="width:12px;height:12px;vertical-align:-1px;margin-right:3px;"><path d="M12 2l2.9 6.3L22 9.3l-5 4.9 1.2 7.1L12 17.8l-6.2 3.5L7 14.2 2 9.3l7.1-1L12 2z"/></svg><span data-i18n="church.partnerBadge">FaithDock Partner</span></span>
         <span id="church-verified-badge" style="display:none;font-size:13px;font-weight:600;color:var(--gold);background:rgba(201,162,39,0.15);padding:4px 10px;border-radius:20px;" data-i18n-title="church.verifiedBadgeTooltip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px;vertical-align:-2px;margin-right:3px;"><path d="M20 6L9 17l-5-5"/></svg><span data-i18n="church.verifiedBadge">Verified church</span></span>
+        <!-- Prominent by design -- this is the conversion moment for the
+             858+ unclaimed listings that make up most of the directory,
+             not a footnote. Sits right under the name/badges, above the
+             distance/service-time line, so it's the second thing read on
+             the page. Same #church-unclaimed-banner id and #church-claim-btn
+             button the claim flow already wired up further down this file --
+             only the position and visual weight changed here. -->
+        <div id="church-unclaimed-banner" style="display:none;margin-top:14px;background:rgba(201,162,39,0.16);border:1px solid var(--gold);border-radius:12px;padding:14px 16px;max-width:480px;">
+          <div style="font-weight:700;font-size:15px;color:#fff;margin-bottom:4px;" data-i18n="church.claimCtaHeadline">Is this your church? Claim your free FaithDock profile.</div>
+          <div style="font-size:13px;color:#C7CCD8;margin-bottom:10px;" data-i18n="church.unclaimedNotice">This is a community directory listing — the church hasn't set it up yet.</div>
+          <button class="btn-gold" id="church-claim-btn" style="padding:8px 18px;font-size:13px;" data-i18n="church.claimThisChurch">Claim this church</button>
+        </div>
         <div class="sub">
           <span id="church-dist">0.8 mi away</span>
           <span id="church-next">Next service Sun 9:00 AM</span>
           <span id="church-home-count">142 Church Home members</span>
         </div>
         <div id="church-managed-line" style="display:none;margin-top:10px;font-size:13px;color:#8FA0C4;" data-i18n="church.managedByChurch">Managed by this church</div>
-        <div id="church-unclaimed-banner" style="display:none;margin-top:10px;font-size:13.5px;color:#C7CCD8;">
-          <span data-i18n="church.unclaimedNotice">This is a community directory listing — the church hasn't set it up yet.</span>
-          <button class="btn-outline" id="church-claim-btn" style="padding:6px 14px;margin-left:6px;font-size:12.5px;" data-i18n="church.claimThisChurch">Claim this church</button>
-        </div>
       </div>
       <div style="display:flex;flex-wrap:wrap;gap:10px;">
         <button class="btn-outline" style="margin-right:0;" onclick="openContactChurchModal()" data-i18n="church.message">Message</button>
@@ -3065,6 +3077,14 @@
           <h3 style="font-size:19px;margin-bottom:16px;" data-i18n="church.upcomingEventsHere">Upcoming events here</h3>
           <div class="grid" style="grid-template-columns:1fr 1fr;" id="church-event-grid"></div>
           <p id="church-no-events" style="display:none;font-size:14px;color:var(--ink-mute);" data-i18n="church.noUpcomingEventsPosted">No upcoming events posted yet.</p>
+          <!-- Shown instead of #church-no-events specifically when the
+               church is unclaimed -- a claimed church with a genuinely
+               empty calendar still gets the plain state above; this pivot
+               only makes sense where there's no owner yet to fix it. -->
+          <div id="church-no-events-unclaimed" style="display:none;background:var(--gold-bg);border:1px solid var(--gold);border-radius:12px;padding:16px 18px;max-width:480px;">
+            <p style="font-size:14px;color:var(--ink);margin-bottom:10px;" data-i18n="church.noEventsUnclaimedPivot">This church hasn't added events yet. Are you a leader here? Claim this profile to start posting.</p>
+            <button class="btn-gold" id="church-events-claim-btn" style="padding:8px 16px;font-size:13px;" data-i18n="church.claimThisChurch">Claim this church</button>
+          </div>
         </div>
         <div id="church-tab-groups" class="church-tab-panel" style="display:none;">
           <div id="church-groups-list"><p style="color:var(--ink-mute);font-size:14px;" data-i18n="church.loadingGroups">Loading groups...</p></div>
@@ -5428,7 +5448,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-11-v297 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-11-v298 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -5926,14 +5946,21 @@
     } else {
       churchEvents = events.filter(function(e){ return e.church === c.name; });
     }
+    var noEventsUnclaimed = document.getElementById('church-no-events-unclaimed');
     if (churchEvents.length) {
       grid.style.display = 'grid';
       grid.innerHTML = mapJoin(churchEvents, eventCard);
       noEvents.style.display = 'none';
+      if (noEventsUnclaimed) noEventsUnclaimed.style.display = 'none';
     } else {
       grid.innerHTML = '';
       grid.style.display = 'none';
-      noEvents.style.display = 'block';
+      // A claimed church with a genuinely empty calendar gets the plain
+      // no-events state -- the "claim this profile" pivot only makes
+      // sense when there's actually no owner yet to have posted events.
+      var isClaimed = !!c.ownerId;
+      noEvents.style.display = isClaimed ? 'block' : 'none';
+      if (noEventsUnclaimed) noEventsUnclaimed.style.display = isClaimed ? 'none' : 'block';
     }
   }
 
@@ -17982,24 +18009,29 @@
   }
   window.openClaimModal = openClaimModal;
 
-  var churchClaimBtn = document.getElementById('church-claim-btn');
-  if (churchClaimBtn) {
-    churchClaimBtn.addEventListener('click', async function(){
-      var banner = document.getElementById('church-unclaimed-banner');
-      // Still recorded via the same pendingClaim mechanism (rather
-      // than reverting to reading the banner at submit time) so a
-      // not-yet-signed-in visitor's claim survives the sign-up
-      // detour and reopens automatically once they're back --  see
-      // the post-login landing logic below.
-      window.setPendingClaim(banner.getAttribute('data-claim-church-id'), banner.getAttribute('data-claim-church-name'));
-      var { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) {
-        showLoginRequired(window.t('loginRequired.claimChurch'));
-        return;
-      }
-      openClaimModal();
-    });
-  }
+  // Delegated (not a direct getElementById listener) because the claim
+  // CTA now appears twice on the page -- the header banner's button and
+  // the Events-tab empty-state pivot button -- and both should trigger
+  // the exact same flow. Either button works from the same
+  // #church-unclaimed-banner data attributes regardless of which one
+  // was clicked, since that's just where the current church's id/name
+  // are stashed, not tied to a specific button.
+  document.addEventListener('click', async function(ev){
+    if (!ev.target.closest || !ev.target.closest('#church-claim-btn, #church-events-claim-btn')) return;
+    var banner = document.getElementById('church-unclaimed-banner');
+    // Still recorded via the same pendingClaim mechanism (rather
+    // than reverting to reading the banner at submit time) so a
+    // not-yet-signed-in visitor's claim survives the sign-up
+    // detour and reopens automatically once they're back --  see
+    // the post-login landing logic below.
+    window.setPendingClaim(banner.getAttribute('data-claim-church-id'), banner.getAttribute('data-claim-church-name'));
+    var { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) {
+      showLoginRequired(window.t('loginRequired.claimChurch'));
+      return;
+    }
+    openClaimModal();
+  });
 
   var churchClaimSubmitBtn = document.getElementById('church-claim-submit-btn');
   if (churchClaimSubmitBtn) {
