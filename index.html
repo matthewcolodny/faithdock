@@ -2654,7 +2654,7 @@
       <a href="#directory" data-route="directory" data-i18n="nav.churches">Churches</a>
       <a href="#events" data-route="events" data-i18n="nav.events">Events</a>
       <a href="#home" id="nav-for-churches-link" data-i18n="nav.forChurches">For churches</a>
-      <a href="#pricing" data-route="pricing" data-i18n="nav.pricing">Pricing</a>
+      <a href="#pricing" data-route="pricing" id="nav-pricing-link" style="display:none;" data-i18n="nav.pricing">Pricing</a>
       <a href="#admin" id="nav-admin-link" data-route="admin" style="opacity:.75;display:none;white-space:nowrap;" data-i18n="nav.admin">Admin</a>
       <div id="nav-user-menu" style="position:relative;display:none;">
         <button id="nav-user-bubble" type="button">
@@ -5378,7 +5378,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-11-v286 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-11-v287 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -10239,6 +10239,7 @@
     }
     var loginLink = document.getElementById('nav-login-link');
     var dashLink = document.getElementById('nav-dashboard-link');
+    var pricingLink = document.getElementById('nav-pricing-link');
     var userMenu = document.getElementById('nav-user-menu');
     var userNameSpan = document.getElementById('nav-user-name');
     var isSignedIn = !!sessionUser;
@@ -10246,6 +10247,15 @@
     // was removed (signup is invite-gated during private testing; the
     // homepage hero + "For churches" band carry the register CTA).
     if (loginLink) loginLink.style.display = isSignedIn ? 'none' : '';
+    // Pricing is the conversion path for anyone who isn't already paying
+    // -- signed out, or signed in with no church / a free-tier church --
+    // so it's known and safe to reveal immediately for a signed-out
+    // visitor. A signed-in visitor's plan isn't known yet at this point
+    // (still hidden by its own HTML default, same hide-until-known
+    // pattern as #nav-login-link); the isSignedIn branch below reveals
+    // or keeps it hidden once getMyChurch() resolves, reusing that same
+    // call rather than firing a second fetch just for this link.
+    if (pricingLink && !isSignedIn) pricingLink.style.display = '';
     window.isSignedIn = isSignedIn;
 
     var accountType = null;
@@ -10311,9 +10321,16 @@
       // updateAuthUI() / loadDashboardHeader() runs first does the one
       // real round trip and the other just reuses it, instead of both
       // independently querying the same relationship on every load.
-      var hasChurchAccess = !!(await getMyChurch());
+      var myChurchForNav = await getMyChurch();
       if (myGeneration !== window.authUICheckGeneration) return;
+      var hasChurchAccess = !!myChurchForNav;
       window.hasChurchAccess = hasChurchAccess;
+      // Pricing hides only for someone already on a paid plan (owner or
+      // staff -- both get a planType off the same getMyChurch() row);
+      // no church yet, or a free-tier church, both still see it as the
+      // conversion path. Reuses this same call, not a second fetch.
+      var navPlanType = myChurchForNav ? (myChurchForNav.planType || 'free') : null;
+      if (pricingLink) pricingLink.style.display = (myChurchForNav && navPlanType !== 'free') ? 'none' : '';
     } else if (userMenu) {
       userMenu.style.display = 'none';
       window.isPlatformAdmin = false;
