@@ -5457,7 +5457,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-12-v302 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-12-v303 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -6796,19 +6796,38 @@
   // there's no reason to keep leaking it once noticed.
   var PUBLIC_CHURCH_COLUMNS = 'id, owner_id, name, description, address, city, state, created_at, denomination, website, logo_url, lat, lng, phone, facebook_url, instagram_url, stripe_account_id, stripe_onboarding_complete, verification_status, verification_requested_at, verification_reviewed_at, plan_type, subscription_status, current_period_end, dedupe_key, service_times';
 
+  // Once a church was cached here it stayed cached forever, for the
+  // life of the tab -- confirmed as a real bug (address/phone/name/
+  // verification_status all go stale on an already-visited profile
+  // page after an owner or admin edits the real record elsewhere,
+  // recoverable only with a hard reload). 45s is short enough that a
+  // just-made edit shows up on the very next profile-page visit shortly
+  // after, long enough that re-opening the same church's profile
+  // several times in one normal browsing session doesn't re-fetch on
+  // every single visit.
+  var CHURCH_CACHE_TTL_MS = 45000;
+  var churchCacheFetchedAt = {};
+
   async function findOrFetchChurchByName(name){
     var found = churches.filter(function(c){ return c.name === name; })[0];
-    if (found) return found;
+    // Demo/sample churches (the mock `churches` array above -- `real`
+    // is falsy) have no backing row to ever go stale against, so they
+    // always return as-is, no TTL applied.
+    var freshEnough = found && (!found.real || (churchCacheFetchedAt[name] && (Date.now() - churchCacheFetchedAt[name]) < CHURCH_CACHE_TTL_MS));
+    if (freshEnough) return found;
     // Not ready yet -- same race documented in loadRealChurches() below:
     // showRouteFromHash's very first call runs synchronously from the
     // earlier classic <script> block, before the deferred module script
-    // has created window.supabase. Returning null here (rather than
-    // letting `.from` throw on undefined) is what showRouteFromHash's
-    // own `else if (window.supabase)` guard relies on to tell "not
-    // ready yet, do nothing this pass" apart from "confirmed not found,
-    // redirect" -- the guaranteed re-run once the module script
-    // finishes resolves it correctly either way.
-    if (!window.supabase) return null;
+    // has created window.supabase. Falling back to whatever's already
+    // cached (rather than letting `.from` throw on undefined) is what
+    // showRouteFromHash's own `else if (window.supabase)` guard relies
+    // on to tell "not ready yet, do nothing this pass" apart from
+    // "confirmed not found, redirect" when nothing is cached yet either
+    // -- the guaranteed re-run once the module script finishes resolves
+    // it correctly either way. A stale-but-present cached copy is still
+    // better than nothing here, same reasoning as the empty-result
+    // fallback below.
+    if (!window.supabase) return found || null;
     var { data } = await window.supabase.from('churches').select(PUBLIC_CHURCH_COLUMNS).eq('name', name).limit(1);
     if (data && data.length) {
       var row = data[0];
@@ -6826,9 +6845,24 @@
         verificationStatus: row.verification_status, ownerId: row.owner_id, planType: row.plan_type,
         serviceTimesLabel: formattedServiceTimes, rawServiceTimes: row.service_times
       };
+      churchCacheFetchedAt[name] = Date.now();
+      if (found) {
+        // Refresh the existing object in place rather than pushing a
+        // second entry for the same name -- the lookup above always
+        // takes the first array match, so a duplicate push would leave
+        // the stale original permanently winning and this TTL would
+        // never actually fix anything.
+        for (var refreshKey in mapped) { found[refreshKey] = mapped[refreshKey]; }
+        return found;
+      }
       churches.push(mapped);
       return mapped;
     }
+    // Confirmed zero rows for this name (a genuine rename/delete), not
+    // just "the request didn't run" -- unlike the not-ready-yet branch
+    // above, a stale cached copy isn't returned here, since silently
+    // claiming a renamed/deleted church still exists is worse than the
+    // existing not-found handling in showRouteFromHash.
     return null;
   }
   window.findOrFetchChurchByName = findOrFetchChurchByName;
@@ -19330,7 +19364,15 @@
       : unverifyBtn.getAttribute('data-unverify-church-id');
     var newStatus = approveBtn ? 'verified' : rejectBtn ? 'rejected' : 'unverified';
     if (unverifyBtn && !confirm(window.t('admin.unverifyConfirm'))) return;
-    await supabase.rpc('review_church_verification', { target_church_id: churchId, new_status: newStatus });
+    var verificationClickedBtn = approveBtn || rejectBtn || unverifyBtn;
+    verificationClickedBtn.disabled = true;
+    // Matches admin_set_church_hidden's handler right below -- a failed
+    // RPC here (a permission edge case, an expired session) was
+    // previously completely silent, indistinguishable from success,
+    // since loadAdminPanel() ran unconditionally afterward regardless
+    // of whether the write actually happened.
+    var { error } = await supabase.rpc('review_church_verification', { target_church_id: churchId, new_status: newStatus });
+    if (error) { alert(error.message); verificationClickedBtn.disabled = false; return; }
     loadAdminPanel();
   });
 
