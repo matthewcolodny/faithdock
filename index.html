@@ -1825,7 +1825,12 @@
   html[data-theme="dark"] body{background:var(--paper);}
   html[data-theme="dark"] img{opacity:0.92;}
   html[data-theme="dark"] .auth-submit{background:var(--gold);color:var(--brand);}
-  html[data-theme="dark"] .search-bar button{background:var(--gold);color:var(--brand);}
+  /* .search-bar button's own gold-on-brand styling now lives in the base
+     rule above -- the hero band is the same brand navy in both themes,
+     so a dark-mode-only override left light mode with a button the same
+     color as its own background (worst on mobile, where .search-bar's
+     card background disappears and the button sits directly against
+     the hero with no separating boundary at all). */
   html{transition:background-color .2s ease;}
   body{transition:background-color .2s ease,color .2s ease;}
   *{box-sizing:border-box;}
@@ -1967,7 +1972,7 @@
     border-radius:8px;color:var(--ink);
   }
   .search-bar button{
-    background:var(--brand);color:#fff;border:none;padding:12px 24px;border-radius:8px;
+    background:var(--gold);color:var(--brand);border:none;padding:12px 24px;border-radius:8px;
     font-weight:600;font-size:14.5px;
   }
   @media (max-width:600px){
@@ -2083,7 +2088,10 @@
   }
   .directory-layout{display:grid;grid-template-columns:220px 1fr;gap:36px;margin-top:32px;align-items:start;}
   .filter-panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px;position:sticky;top:92px;}
-  .filter-group{margin-bottom:22px;}
+  /* position:relative so the denomination dropdown panel (position:
+     absolute) anchors to this element rather than the viewport -- see
+     the panel's own comment below for why that matters. */
+  .filter-group{margin-bottom:22px;position:relative;}
   .filter-group h4{font-family:'Fraunces';font-size:14px;color:var(--ink);margin-bottom:12px;}
   .filter-check{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--ink-soft);margin-bottom:9px;cursor:pointer;}
   .filter-check input{accent-color:var(--brand);width:14px;height:14px;flex-shrink:0;}
@@ -2787,7 +2795,7 @@
             <span id="denom-dropdown-label" data-i18n="filters.allSelected">All selected</span>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;flex-shrink:0;"><path d="M6 9l6 6 6-6"/></svg>
           </button>
-          <div id="denom-dropdown-panel" style="display:none;position:fixed;background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,0.16);padding:12px;z-index:200;max-height:320px;overflow-y:auto;">
+          <div id="denom-dropdown-panel" style="display:none;position:absolute;background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,0.16);padding:12px;z-index:200;max-height:min(440px, calc(100vh - 140px));overflow-y:auto;">
             <input class="field" type="text" id="filter-denom-search" placeholder="Search denomination..." style="margin-bottom:10px;" data-i18n-placeholder="filters.searchDenomination">
             <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:12px;">
               <button type="button" id="denom-select-all-btn" style="background:none;border:none;padding:0;color:var(--gold);border-bottom:1px solid var(--gold);cursor:pointer;font-size:12px;" data-i18n="filters.selectAll">Select all</button>
@@ -2928,7 +2936,7 @@
             <span id="events-denom-dropdown-label" data-i18n="filters.allSelected">All selected</span>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;flex-shrink:0;"><path d="M6 9l6 6 6-6"/></svg>
           </button>
-          <div id="events-denom-dropdown-panel" style="display:none;position:fixed;background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,0.16);padding:12px;z-index:200;max-height:320px;overflow-y:auto;">
+          <div id="events-denom-dropdown-panel" style="display:none;position:absolute;background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,0.16);padding:12px;z-index:200;max-height:min(440px, calc(100vh - 140px));overflow-y:auto;">
             <input class="field" type="text" id="events-filter-denom-search" placeholder="Search denomination..." style="margin-bottom:10px;" data-i18n-placeholder="filters.searchDenomination">
             <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:12px;">
               <button type="button" id="events-denom-select-all-btn" style="background:none;border:none;padding:0;color:var(--gold);border-bottom:1px solid var(--gold);cursor:pointer;font-size:12px;" data-i18n="filters.selectAll">Select all</button>
@@ -5383,7 +5391,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-11-v294 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-11-v295 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -7133,10 +7141,21 @@
       ev.stopPropagation();
       var willOpen = denomDropdownPanel.style.display === 'none';
       if (willOpen) {
-        var rect = denomDropdownBtn.getBoundingClientRect();
-        denomDropdownPanel.style.top = (rect.bottom + 6) + 'px';
-        denomDropdownPanel.style.left = rect.left + 'px';
-        denomDropdownPanel.style.width = rect.width + 'px';
+        // offsetTop/offsetLeft (relative to .filter-group, its
+        // position:relative parent), not getBoundingClientRect
+        // (viewport-relative) -- with position:fixed and viewport
+        // coordinates, the panel used to stay glued to wherever it was
+        // on SCREEN when opened, ignoring the button underneath it the
+        // moment the page scrolled: it covered whatever content had
+        // scrolled into that same spot, and no longer lined up with its
+        // own trigger button. offsetTop/offsetLeft + position:absolute
+        // instead put it in the same document flow as the button, so it
+        // scrolls together with it exactly like any other in-page
+        // element -- including while .filter-panel is mid-scroll under
+        // its own position:sticky.
+        denomDropdownPanel.style.top = (denomDropdownBtn.offsetTop + denomDropdownBtn.offsetHeight + 6) + 'px';
+        denomDropdownPanel.style.left = denomDropdownBtn.offsetLeft + 'px';
+        denomDropdownPanel.style.width = denomDropdownBtn.offsetWidth + 'px';
         denomDropdownPanel.style.display = 'block';
       } else {
         denomDropdownPanel.style.display = 'none';
@@ -7195,10 +7214,15 @@
       ev.stopPropagation();
       var willOpen = eventsDenomDropdownPanel.style.display === 'none';
       if (willOpen) {
-        var rect = eventsDenomDropdownBtn.getBoundingClientRect();
-        eventsDenomDropdownPanel.style.top = (rect.bottom + 6) + 'px';
-        eventsDenomDropdownPanel.style.left = rect.left + 'px';
-        eventsDenomDropdownPanel.style.width = rect.width + 'px';
+        // See the directory's denomDropdownBtn click handler for why
+        // this is offsetTop/offsetLeft (position:relative on
+        // .filter-group) rather than getBoundingClientRect
+        // (viewport-relative, which is what made this panel stay put
+        // on screen -- covering content and drifting away from its own
+        // button -- while the page scrolled underneath it).
+        eventsDenomDropdownPanel.style.top = (eventsDenomDropdownBtn.offsetTop + eventsDenomDropdownBtn.offsetHeight + 6) + 'px';
+        eventsDenomDropdownPanel.style.left = eventsDenomDropdownBtn.offsetLeft + 'px';
+        eventsDenomDropdownPanel.style.width = eventsDenomDropdownBtn.offsetWidth + 'px';
         eventsDenomDropdownPanel.style.display = 'block';
       } else {
         eventsDenomDropdownPanel.style.display = 'none';
