@@ -149,6 +149,7 @@
       'home.headline': 'Find your church home, and everything happening there.',
       'home.lead': "Search churches and events near you, follow the ones you love, and never miss what's next.",
       'home.locationPlaceholder': 'Enter your city or zip code', 'home.browseBtn': 'Browse churches',
+      'home.keywordPlaceholder': 'Search churches by name or keyword...',
       'home.viewDirectory': 'View directory', 'home.upcomingEvents': 'Upcoming events', 'home.viewAllEvents': 'View all events',
       'home.churchesNearYou': 'Churches near you', 'home.churchesNear': 'Churches near', 'home.upcomingEventsNear': 'Upcoming events near',
       'home.forChurchesQ': 'Are you a church?', 'home.forChurchesLink': 'List your church — free',
@@ -416,6 +417,7 @@
       'pricing.multiChurch.cta': 'Contact Sales',
       'events.title': 'Upcoming events near you', 'events.subtitle': 'Public and members-only events across all listed churches',
       'events.locationPlaceholder': 'Enter a city or address', 'events.useMyLocation': 'Use my location', 'events.when': 'When',
+      'events.keywordPlaceholder': 'Search events by name or keyword...',
       'events.orPickDates': "Or pick specific dates — handy if you're traveling and want to see what's happening while you're there.",
       'events.to': 'to', 'events.churchesIFollow': 'Churches I follow', 'events.myChurchHome': 'My Church Home',
       'events.tabAll': 'All', 'events.tabForYou': 'For you', 'events.tabToday': 'Today', 'events.tabWeekend': 'This weekend',
@@ -895,6 +897,7 @@
       'home.headline': 'Encuentra tu iglesia y todo lo que sucede allí.',
       'home.lead': 'Busca iglesias y eventos cerca de ti, sigue a las que más te gustan y no te pierdas nada.',
       'home.locationPlaceholder': 'Ingresa tu ciudad o código postal', 'home.browseBtn': 'Explorar iglesias',
+      'home.keywordPlaceholder': 'Busca iglesias por nombre o palabra clave...',
       'home.viewDirectory': 'Ver directorio', 'home.upcomingEvents': 'Próximos eventos', 'home.viewAllEvents': 'Ver todos los eventos',
       'home.churchesNearYou': 'Iglesias cerca de ti', 'home.churchesNear': 'Iglesias cerca de', 'home.upcomingEventsNear': 'Próximos eventos cerca de',
       'home.forChurchesQ': '¿Representas a una iglesia?', 'home.forChurchesLink': 'Registra tu iglesia — gratis',
@@ -1162,6 +1165,7 @@
       'pricing.large.cta': 'Comenzar plan Avanzado', 'pricing.yourCurrentPlan': 'Tu plan actual',
       'events.title': 'Próximos eventos cerca de ti', 'events.subtitle': 'Eventos públicos y solo para miembros en todas las iglesias listadas',
       'events.locationPlaceholder': 'Ingresa una ciudad o dirección', 'events.useMyLocation': 'Usar mi ubicación', 'events.when': 'Cuándo',
+      'events.keywordPlaceholder': 'Busca eventos por nombre o palabra clave...',
       'events.orPickDates': 'O elige fechas específicas — útil si estás de viaje y quieres ver qué sucede mientras estás allí.',
       'events.to': 'a', 'events.churchesIFollow': 'Iglesias que sigo', 'events.myChurchHome': 'Mi iglesia de origen',
       'events.tabAll': 'Todos', 'events.tabForYou': 'Para ti', 'events.tabToday': 'Hoy', 'events.tabWeekend': 'Este fin de semana',
@@ -1983,6 +1987,10 @@
     text-transform:uppercase;color:var(--gold);margin-bottom:18px;}
   .hero h1{font-size:52px;line-height:1.08;color:#fff;max-width:640px;}
   .hero p.lead{font-size:18px;color:#C7CCD8;max-width:520px;margin-top:18px;}
+  /* Keyword field first, location field second, one compact row even
+     on mobile (matches the reference mobile search-bar layout: icon +
+     keyword, a thin divider, icon + location, a circular search
+     button) rather than the old stacked full-width mobile layout. */
   .search-bar{
     margin-top:36px;background:var(--card);border-radius:12px;padding:8px;
     display:flex;gap:8px;max-width:560px;
@@ -2020,6 +2028,43 @@
   .for-churches-cta:hover{opacity:.92;}
   html[data-theme="dark"] .for-churches-cta{background:var(--gold);color:var(--brand);}
   .for-churches-note{font-size:12.5px;color:var(--ink-mute);margin-top:14px;}
+  /* Home hero's search bar specifically (the .search-bar class is
+     shared with the standalone Waitlist page's plain email-capture
+     form, which must keep its original text button/stacked-on-mobile
+     look) — keyword field first, location field second, one compact
+     row even on mobile with a circular icon-only submit button,
+     matching the reference mobile layout. */
+  .hero-search-bar{
+    align-items:center;gap:2px;padding:6px;flex-direction:row;background:var(--card);
+  }
+  .hero-search-bar input{
+    width:100%;padding:12px 14px;background:none;min-width:0;flex:1;
+  }
+  .search-bar-divider{width:1px;align-self:stretch;background:var(--line);flex-shrink:0;margin:8px 2px;}
+  .hero-search-bar button{
+    width:44px;height:44px;padding:0;border-radius:50%;
+    flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;margin-left:4px;
+  }
+  .hero-search-bar button svg{width:18px;height:18px;display:block;}
+  @media (max-width:600px){
+    .hero-search-bar{padding:4px;gap:0;}
+    .hero-search-bar input{font-size:13px;padding:10px 8px;}
+    /* .search-field-wrap's own min-width:160px (fine when the two
+       fields each get their own full-width row on Churches/Events)
+       is too wide for hero's single-row mobile layout — two of those
+       plus the divider and button don't fit in a 390px viewport and
+       the button gets pushed outside the bar entirely. Letting the
+       fields shrink below that floor here, with text-overflow
+       clipping cleanly rather than wrapping/overflowing, is what
+       keeps everything on one row and the button inside the card. */
+    .hero-search-bar .search-field-wrap{min-width:0;flex:1 1 0;}
+    .hero-search-bar .search-field-wrap input{padding-left:32px;text-overflow:ellipsis;}
+    .hero-search-bar .search-field-icon{left:8px;}
+    .hero-search-bar .search-field-icon svg{width:14px;height:14px;}
+    .search-bar-divider{margin:6px 1px;}
+    .hero-search-bar button{width:38px;height:38px;}
+    .hero-search-bar button svg{width:16px;height:16px;}
+  }
 
   /* ---- section headings ---- */
   .section-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:24px;}
@@ -2098,6 +2143,22 @@
 
   /* ---- directory ---- */
   .location-row{display:flex;align-items:center;gap:12px;margin-top:16px;flex-wrap:wrap;}
+  /* Inline search/pin icon sitting inside a text field (keyword and
+     location inputs on the Home hero, Directory and Events search
+     bars) — decorative only, purely a visual cue that the field is a
+     search box, so it's pointer-events:none and the input itself
+     still gets all clicks/focus. Reused across three pages rather
+     than styled per-page. */
+  .search-field-wrap{position:relative;flex:1;min-width:160px;}
+  .search-field-wrap input{padding-left:38px;}
+  /* input.field's own padding shorthand (defined further down, same
+     specificity as the rule above) would otherwise win on source
+     order and silently reset this back to its default left padding —
+     this more-specific pairing keeps the icon's clearance regardless
+     of where .field ends up in the stylesheet. */
+  .search-field-wrap input.field{padding-left:38px;}
+  .search-field-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--ink-mute);pointer-events:none;display:flex;}
+  .search-field-icon svg{width:16px;height:16px;}
   /* On narrow screens, "Use my location" shrinks to just the pin icon
      so the address input has room to breathe — the label stays
      available via the title/aria-label set from data-i18n-title. */
@@ -2116,9 +2177,12 @@
   .filter-check{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--ink-soft);margin-bottom:9px;cursor:pointer;}
   .filter-check input{accent-color:var(--brand);width:14px;height:14px;flex-shrink:0;}
   select.field{width:100%;padding:9px 10px;font-size:13.5px;}
-  /* Mobile-only "Filter searches" collapse for the Events page filter
-     panel — hidden on desktop, where the panel stays permanently
-     expanded as before. */
+  /* Mobile-only "Filter searches" collapse, shared by the Directory
+     (Churches) and Events page filter panels — hidden on desktop,
+     where the panel stays permanently expanded as before. Keyed off
+     the shared .filter-panel-toggle/.filter-panel-body classes (not
+     page-specific IDs) so any panel using this markup gets the same
+     collapse behavior for free. */
   .filter-panel-toggle{display:none;}
   @media (max-width:860px){
     .directory-layout{grid-template-columns:1fr;}
@@ -2130,8 +2194,8 @@
     }
     .filter-panel-toggle svg{width:16px;height:16px;flex-shrink:0;transition:transform .15s;}
     .filter-panel-toggle[aria-expanded="true"] svg{transform:rotate(180deg);}
-    #events-filter-body{display:none;margin-top:18px;}
-    #events-filter-body.open{display:block;}
+    .filter-panel-body{display:none;margin-top:18px;}
+    .filter-panel-body.open{display:block;}
   }
   /* Generic default — auto-fit so the unrelated Conference-page ticket
      grid (3 cards, also .pricing-grid/.price-card) still lays out
@@ -2728,9 +2792,17 @@
       <div class="eyebrow" data-i18n="home.eyebrow">Church &amp; event discovery</div>
       <h1 data-i18n="home.headline">Find your church home, and everything happening there.</h1>
       <p class="lead" data-i18n="home.lead">Search churches and events near you, follow the ones you love, and never miss what's next.</p>
-      <div class="search-bar">
-        <input type="text" id="hero-location-input" placeholder="Enter your city or zip code" data-i18n-placeholder="home.locationPlaceholder" autocomplete="off">
-        <button id="hero-browse-btn" data-i18n="home.browseBtn">Browse churches</button>
+      <div class="search-bar hero-search-bar">
+        <div class="search-field-wrap">
+          <span class="search-field-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></span>
+          <input type="text" id="hero-keyword-input" placeholder="Search churches by name or keyword..." data-i18n-placeholder="home.keywordPlaceholder" autocomplete="off">
+        </div>
+        <span class="search-bar-divider"></span>
+        <div class="search-field-wrap">
+          <span class="search-field-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
+          <input type="text" id="hero-location-input" placeholder="Enter your city or zip code" data-i18n-placeholder="home.locationPlaceholder" autocomplete="off">
+        </div>
+        <button id="hero-browse-btn" type="button" aria-label="Browse churches" data-i18n-title="home.browseBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></button>
       </div>
       <p class="hero-for-churches">
         <span data-i18n="home.forChurchesQ">Are you a church?</span>
@@ -2794,7 +2866,15 @@
     <h1 style="font-size:34px;" data-i18n="home.churchesNearYou">Churches near you</h1>
 
     <div class="location-row">
-      <div class="autocomplete-wrap" style="flex:1;max-width:340px;display:flex;">
+      <div class="search-field-wrap" style="max-width:340px;">
+        <span class="search-field-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></span>
+        <input class="field" type="text" id="dir-keyword-input" placeholder="Search by church name or keyword..." data-i18n-placeholder="filters.keywordPlaceholder">
+      </div>
+    </div>
+
+    <div class="location-row" style="margin-top:10px;">
+      <div class="autocomplete-wrap search-field-wrap" style="max-width:340px;display:flex;">
+        <span class="search-field-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
         <input class="field" type="text" id="dir-location-input" placeholder="Enter a city or address" data-i18n-placeholder="dir.enterCityOrAddress" autocomplete="off" style="border-radius:8px 0 0 8px;border-right:none;">
         <button id="dir-location-search-btn" style="background:var(--gold);color:var(--brand);border:none;padding:0 16px;border-radius:0 8px 8px 0;cursor:pointer;" aria-label="Search location" data-i18n-title="common.searchLocation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;display:block;"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></button>
         <div class="autocomplete-list" id="dir-location-list"></div>
@@ -2803,12 +2883,13 @@
       <span id="dir-location-status" style="font-size:13px;color:var(--ink-mute);"></span>
     </div>
 
-    <div class="location-row" style="margin-top:10px;">
-      <input class="field" type="text" id="dir-keyword-input" placeholder="Search by church name or keyword..." style="max-width:340px;" data-i18n-placeholder="filters.keywordPlaceholder">
-    </div>
-
     <div class="directory-layout">
       <aside class="filter-panel">
+        <button type="button" class="filter-panel-toggle" id="dir-filter-toggle" aria-expanded="false" aria-controls="dir-filter-body">
+          <span data-i18n="filters.filterSearches">Filter searches</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="filter-panel-body" id="dir-filter-body">
         <div class="filter-group">
           <h4 data-i18n="filters.denomination">Denomination</h4>
           <button type="button" id="denom-dropdown-btn" style="width:100%;padding:9px 10px;font-size:13.5px;color:var(--ink);border:1px solid var(--line);border-radius:8px;background:var(--card);display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
@@ -2855,6 +2936,7 @@
           </select>
         </div>
         <button class="export-btn" id="filter-reset" style="width:100%;justify-content:center;" data-i18n="filters.reset">Reset filters</button>
+        </div>
       </aside>
 
       <div>
@@ -2887,7 +2969,15 @@
     <p style="color:var(--ink-mute);margin-top:8px;" data-i18n="events.subtitle">Public and members-only events across all listed churches</p>
 
     <div class="location-row">
-      <div class="autocomplete-wrap" style="flex:1;max-width:340px;display:flex;">
+      <div class="search-field-wrap" style="max-width:340px;">
+        <span class="search-field-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></span>
+        <input class="field" type="text" id="events-keyword-input" placeholder="Search events by name or keyword..." data-i18n-placeholder="events.keywordPlaceholder">
+      </div>
+    </div>
+
+    <div class="location-row" style="margin-top:10px;">
+      <div class="autocomplete-wrap search-field-wrap" style="max-width:340px;display:flex;">
+        <span class="search-field-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
         <input class="field" type="text" id="events-location-input" placeholder="Enter a city or address" autocomplete="off" style="border-radius:8px 0 0 8px;border-right:none;" data-i18n-placeholder="events.locationPlaceholder">
         <button id="events-location-search-btn" style="background:var(--gold);color:var(--brand);border:none;padding:0 16px;border-radius:0 8px 8px 0;cursor:pointer;" aria-label="Search location" data-i18n-title="common.searchLocation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;display:block;"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></button>
         <div class="autocomplete-list" id="events-location-list"></div>
@@ -5463,7 +5553,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-12-v304 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-13-v305 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -8123,6 +8213,8 @@
   window.eventsOffset = 0;
 
   async function renderEvents(append){
+    var eventsKeywordEl = document.getElementById('events-keyword-input');
+    var eventsKeyword = eventsKeywordEl ? eventsKeywordEl.value.trim() : '';
     var maxDays = parseInt(document.getElementById('filter-when').value, 10) || 0;
 
     var fromInput = document.getElementById('filter-date-from');
@@ -8273,7 +8365,8 @@
       // An icon click overrides whatever the checkbox panel has
       // selected — same override relationship the checkboxes and
       // icons always had, just against the new dedicated field now.
-      p_category_tags: (window.activeCategoryTags && window.activeCategoryTags.length) ? window.activeCategoryTags : categoryTagsParam
+      p_category_tags: (window.activeCategoryTags && window.activeCategoryTags.length) ? window.activeCategoryTags : categoryTagsParam,
+      p_keyword: eventsKeyword || null
     });
 
     if (error) {
@@ -8377,10 +8470,21 @@
     clearTimeout(directorySearchDebounceTimer);
     directorySearchDebounceTimer = setTimeout(function(){ renderDirectory(); }, 350);
   }
+  // Same reasoning as the Directory keyword field above, applied to
+  // the new Events keyword field: search_events() is a real RPC call.
+  var eventsSearchDebounceTimer = null;
+  function debouncedRenderEvents(){
+    clearTimeout(eventsSearchDebounceTimer);
+    eventsSearchDebounceTimer = setTimeout(function(){ renderEvents(); }, 350);
+  }
 
   var filterDenomSearch = document.getElementById('filter-denom-search');
   if (filterDenomSearch) {
     filterDenomSearch.addEventListener('input', debouncedRenderDirectory);
+  }
+  var eventsKeywordInput = document.getElementById('events-keyword-input');
+  if (eventsKeywordInput) {
+    eventsKeywordInput.addEventListener('input', debouncedRenderEvents);
   }
   var dirKeywordInput = document.getElementById('dir-keyword-input');
   if (dirKeywordInput) {
@@ -8403,12 +8507,17 @@
   });
 
   document.addEventListener('click', function(ev){
-    if(ev.target.closest && ev.target.closest('#events-filter-toggle')){
-      var efToggleBtn = document.getElementById('events-filter-toggle');
-      var efBody = document.getElementById('events-filter-body');
-      if (efToggleBtn && efBody) {
-        var efNowOpen = efBody.classList.toggle('open');
-        efToggleBtn.setAttribute('aria-expanded', efNowOpen ? 'true' : 'false');
+    // Shared mobile "Filter searches" collapse toggle — works for any
+    // .filter-panel-toggle button (Directory and Events pages both
+    // use it) by following its aria-controls to the matching
+    // .filter-panel-body, rather than hardcoding one page's IDs.
+    var filterToggleBtn = ev.target.closest && ev.target.closest('.filter-panel-toggle');
+    if (filterToggleBtn) {
+      var fpBodyId = filterToggleBtn.getAttribute('aria-controls');
+      var fpBody = fpBodyId ? document.getElementById(fpBodyId) : null;
+      if (fpBody) {
+        var fpNowOpen = fpBody.classList.toggle('open');
+        filterToggleBtn.setAttribute('aria-expanded', fpNowOpen ? 'true' : 'false');
       }
     }
     if(ev.target.id === 'filter-reset'){
@@ -8644,6 +8753,8 @@
   // regardless of that browser-level restoration behavior.
   var heroSearchOnLoad = document.getElementById('hero-location-input');
   if (heroSearchOnLoad) heroSearchOnLoad.value = '';
+  var heroKeywordOnLoad = document.getElementById('hero-keyword-input');
+  if (heroKeywordOnLoad) heroKeywordOnLoad.value = '';
 
   var langToggleBtn = document.getElementById('lang-toggle-btn');
   if (langToggleBtn) {
@@ -9123,20 +9234,37 @@
     }, function(){ /* denied or unavailable — leave the generic "near you" headings as-is */ });
   }
 
+  // Shared by the "Browse churches" button, Enter in either hero
+  // field, and picking a suggestion from the hero location field's
+  // autocomplete — all three mean "go search the directory with
+  // whatever's in these two boxes right now."
+  function goToDirectoryFromHero(){
+    var heroKeywordInput = document.getElementById('hero-keyword-input');
+    var heroInput = document.getElementById('hero-location-input');
+    var typedKeyword = heroKeywordInput ? heroKeywordInput.value.trim() : '';
+    var typedLocation = heroInput ? heroInput.value.trim() : '';
+    var keywordInput = document.getElementById('dir-keyword-input');
+    if (keywordInput) keywordInput.value = typedKeyword;
+    // This box is a location field (it's pre-filled by geolocation
+    // detection above), so its value belongs in the directory's
+    // location input — not the keyword input. Keyword requires an
+    // exact name/description match, so a city name landing there
+    // by mistake was silently filtering out every real church.
+    var locationInput = document.getElementById('dir-location-input');
+    if (locationInput) locationInput.value = typedLocation;
+    go('directory');
+    if (typeof window.renderDirectory === 'function') window.renderDirectory();
+  }
+  window.goToDirectoryFromHero = goToDirectoryFromHero;
+
   var heroBrowseBtn = document.getElementById('hero-browse-btn');
   if (heroBrowseBtn) {
-    heroBrowseBtn.addEventListener('click', function(){
-      var heroInput = document.getElementById('hero-location-input');
-      var typed = heroInput ? heroInput.value.trim() : '';
-      // This box is a location field (it's pre-filled by geolocation
-      // detection above), so its value belongs in the directory's
-      // location input — not the keyword input. Keyword requires an
-      // exact name/description match, so a city name landing there
-      // by mistake was silently filtering out every real church.
-      var locationInput = document.getElementById('dir-location-input');
-      if (locationInput) locationInput.value = typed;
-      go('directory');
-      if (typeof window.renderDirectory === 'function') window.renderDirectory();
+    heroBrowseBtn.addEventListener('click', goToDirectoryFromHero);
+  }
+  var heroKeywordInputEl = document.getElementById('hero-keyword-input');
+  if (heroKeywordInputEl) {
+    heroKeywordInputEl.addEventListener('keydown', function(ev){
+      if (ev.key === 'Enter') { ev.preventDefault(); goToDirectoryFromHero(); }
     });
   }
 
@@ -9183,10 +9311,31 @@
   }
   window.setupDirLocationAutocomplete = setupDirLocationAutocomplete;
 
-  // The hero search bar deliberately has no autocomplete attached —
-  // it's a pure keyword search matching the nav bar's behavior. The
-  // Directory page's own dedicated location field (above) still
-  // handles precise, distance-based location search separately.
+  // Hero location field — same Places Autocomplete pattern as the
+  // Directory/Events location fields, so suggestions show up as you
+  // type there too. Picking one is the same as clicking "Browse
+  // churches": it takes you straight to the (now-filtered) directory
+  // rather than just filling the box and waiting for another click.
+  var heroLocationInputEl = document.getElementById('hero-location-input');
+  function setupHeroLocationAutocomplete(){
+    if (!heroLocationInputEl || !window.google || !google.maps || !google.maps.places) return;
+    var heroAutocomplete = new google.maps.places.Autocomplete(heroLocationInputEl, { fields: ['formatted_address', 'geometry'] });
+    heroAutocomplete.addListener('place_changed', function(){
+      var place = heroAutocomplete.getPlace();
+      if (place.geometry && place.geometry.location) {
+        window.dirUserLat = place.geometry.location.lat();
+        window.dirUserLng = place.geometry.location.lng();
+        heroLocationInputEl.value = place.formatted_address || heroLocationInputEl.value;
+        goToDirectoryFromHero();
+      }
+    });
+  }
+  window.setupHeroLocationAutocomplete = setupHeroLocationAutocomplete;
+  if (heroLocationInputEl) {
+    heroLocationInputEl.addEventListener('keydown', function(ev){
+      if (ev.key === 'Enter') { ev.preventDefault(); goToDirectoryFromHero(); }
+    });
+  }
 
   // Fallback for the search button / Enter key — geocodes whatever's
   // typed even if no Places suggestion was clicked.
@@ -11483,6 +11632,7 @@
     if (typeof setupCeLocationAutocomplete === 'function') setupCeLocationAutocomplete();
     if (typeof setupDirLocationAutocomplete === 'function') setupDirLocationAutocomplete();
     if (typeof setupEventsLocationAutocomplete === 'function') setupEventsLocationAutocomplete();
+    if (typeof setupHeroLocationAutocomplete === 'function') setupHeroLocationAutocomplete();
     if (typeof autoDetectHomeLocation === 'function') autoDetectHomeLocation();
   };
   if (window.googleMapsReady) { window._runGoogleMapsSetup(); }
