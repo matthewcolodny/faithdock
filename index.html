@@ -1859,6 +1859,14 @@
   body{transition:background-color .2s ease,color .2s ease;}
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
+  /* Search boxes (Home hero, Churches, Events, nav) use type="search"
+     rather than type="text" — semantically correct, and it also
+     discourages mobile browsers/password managers from treating them
+     as login-adjacent fields. Reset the native search-field chrome
+     some browsers apply by default so it doesn't fight our own
+     border/radius/padding. */
+  input[type="search"]{-webkit-appearance:none;appearance:none;}
+  input[type="search"]::-webkit-search-cancel-button{-webkit-appearance:none;appearance:none;}
   body{
     background:var(--paper);
     color:var(--ink-soft);
@@ -2745,7 +2753,7 @@
     </a>
     <div class="nav-search">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-      <input type="text" id="nav-search-input" placeholder="Search churches..." data-i18n-placeholder="nav.searchPlaceholder">
+      <input type="search" id="nav-search-input" placeholder="Search churches..." data-i18n-placeholder="nav.searchPlaceholder" autocomplete="off">
     </div>
     <nav class="links" id="nav-links">
       <a href="#directory" data-route="directory" data-i18n="nav.churches">Churches</a>
@@ -2795,12 +2803,12 @@
       <div class="search-bar hero-search-bar">
         <div class="search-field-wrap">
           <span class="search-field-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></span>
-          <input type="text" id="hero-keyword-input" placeholder="Search churches by name or keyword..." data-i18n-placeholder="home.keywordPlaceholder" autocomplete="off">
+          <input type="search" id="hero-keyword-input" placeholder="Search churches by name or keyword..." data-i18n-placeholder="home.keywordPlaceholder" autocomplete="off">
         </div>
         <span class="search-bar-divider"></span>
         <div class="search-field-wrap">
           <span class="search-field-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
-          <input type="text" id="hero-location-input" placeholder="Enter your city or zip code" data-i18n-placeholder="home.locationPlaceholder" autocomplete="off">
+          <input type="search" id="hero-location-input" placeholder="Enter your city or zip code" data-i18n-placeholder="home.locationPlaceholder" autocomplete="off">
         </div>
         <button id="hero-browse-btn" type="button" aria-label="Browse churches" data-i18n-title="home.browseBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></button>
       </div>
@@ -2868,14 +2876,14 @@
     <div class="location-row">
       <div class="search-field-wrap" style="max-width:340px;">
         <span class="search-field-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></span>
-        <input class="field" type="text" id="dir-keyword-input" placeholder="Search by church name or keyword..." data-i18n-placeholder="filters.keywordPlaceholder">
+        <input class="field" type="search" id="dir-keyword-input" placeholder="Search by church name or keyword..." data-i18n-placeholder="filters.keywordPlaceholder" autocomplete="off">
       </div>
     </div>
 
     <div class="location-row" style="margin-top:10px;">
       <div class="autocomplete-wrap search-field-wrap" style="max-width:340px;display:flex;">
         <span class="search-field-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
-        <input class="field" type="text" id="dir-location-input" placeholder="Enter a city or address" data-i18n-placeholder="dir.enterCityOrAddress" autocomplete="off" style="border-radius:8px 0 0 8px;border-right:none;">
+        <input class="field" type="search" id="dir-location-input" placeholder="Enter a city or address" data-i18n-placeholder="dir.enterCityOrAddress" autocomplete="off" style="border-radius:8px 0 0 8px;border-right:none;">
         <button id="dir-location-search-btn" style="background:var(--gold);color:var(--brand);border:none;padding:0 16px;border-radius:0 8px 8px 0;cursor:pointer;" aria-label="Search location" data-i18n-title="common.searchLocation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;display:block;"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></button>
         <div class="autocomplete-list" id="dir-location-list"></div>
       </div>
@@ -2971,14 +2979,14 @@
     <div class="location-row">
       <div class="search-field-wrap" style="max-width:340px;">
         <span class="search-field-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></span>
-        <input class="field" type="text" id="events-keyword-input" placeholder="Search events by name or keyword..." data-i18n-placeholder="events.keywordPlaceholder">
+        <input class="field" type="search" id="events-keyword-input" placeholder="Search events by name or keyword..." data-i18n-placeholder="events.keywordPlaceholder" autocomplete="off">
       </div>
     </div>
 
     <div class="location-row" style="margin-top:10px;">
       <div class="autocomplete-wrap search-field-wrap" style="max-width:340px;display:flex;">
         <span class="search-field-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
-        <input class="field" type="text" id="events-location-input" placeholder="Enter a city or address" autocomplete="off" style="border-radius:8px 0 0 8px;border-right:none;" data-i18n-placeholder="events.locationPlaceholder">
+        <input class="field" type="search" id="events-location-input" placeholder="Enter a city or address" autocomplete="off" style="border-radius:8px 0 0 8px;border-right:none;" data-i18n-placeholder="events.locationPlaceholder">
         <button id="events-location-search-btn" style="background:var(--gold);color:var(--brand);border:none;padding:0 16px;border-radius:0 8px 8px 0;cursor:pointer;" aria-label="Search location" data-i18n-title="common.searchLocation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;display:block;"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></button>
         <div class="autocomplete-list" id="events-location-list"></div>
       </div>
@@ -5553,7 +5561,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-13-v305 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-13-v306 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
