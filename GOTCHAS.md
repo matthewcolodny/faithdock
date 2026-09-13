@@ -1625,3 +1625,19 @@ Deliberately left untouched: `translateDenomination()`'s `denomI18nKeyMap` (stil
 Verified live in the local preview: `window.ALL_TRADITION_TAGS` no longer includes `'Jewish'`, and both Directory's and Events' Tradition dropdowns show FAMILY as Protestant → Catholic → Orthodox → Non-denominational with no gap or console error. Migration 024 is still pending the user running it in the Supabase SQL Editor -- until then, `denomination_tags` on any previously-tagged row may still contain a stale `'Jewish'` entry that the (now Jewish-less) UI simply can't select against, which is harmless but not fully cleaned up.
 
 Build `2026-09-13-v309`.
+
+---
+
+## Register/Edit church form's Denomination dropdown updated to match the Tradition taxonomy
+
+The `#rc-denomination` select (shared by both "Register your church" and "Edit your church" -- same form, same ids, just a different heading/button label depending on `window.rcIsEditing`) still had its original flat 9-option list from before migration 023 -- missing Orthodox, Anglican, Adventist, Church of God, Church of Christ, Apostolic, and Nazarene entirely, and using "Non-denominational" instead of "Protestant" as the closest Family-level option. A church owner picking their actual tradition had no way to select 7 of the 17 values the Tradition filter now recognizes.
+
+**Restructured into `<optgroup>`s matching the filter panel exactly** -- Family (Protestant/Catholic/Orthodox/Non-denominational) then Movement (Baptist through Christian/General), same order, same values, same existing `denom.*` i18n keys (all 17 already had EN/ES translations from the filter checkboxes, so this needed zero new dictionary entries). "Other" stays a bare option after both groups, unchanged.
+
+**`<optgroup>` doesn't support `data-i18n` for its heading** -- unlike every other translated element in this file, an optgroup only renders its `label` *attribute*, not textContent, so setting `.textContent` in `applyTranslations()` (what plain `data-i18n` does) would silently do nothing. Added a small `data-i18n-label` handler right alongside the existing `data-i18n-placeholder`/`data-i18n-title` attribute-translators (same pattern, different attribute) rather than leaving the group headings English-only in Spanish mode -- confirmed live via `applyTranslations('es')` that both optgroups relabel to "Familia"/"Movimiento".
+
+**Found and fixed a second, related bug while doing this**: `checkExistingChurch()`'s populate-the-edit-form logic had its own separate, even-narrower hardcoded `knownDenoms` list (missing Catholic entirely, on top of everything the dropdown itself was missing) used to decide whether an existing church's `denomination` value gets its real option selected or gets shunted into "Other" with a duplicate free-text copy. Editing a church already tagged "Orthodox" or "Church of God" -- both now valid, selectable dropdown options -- would still have incorrectly shown "Other" with the value copied into the free-text field below it, because `knownDenoms` didn't know about them. Replaced the stale local array with `ALL_TRADITION_TAGS` (the same shared constant the filter panels already reference) instead of just editing the duplicate list a third time, so this can't drift out of sync with the dropdown again. Verified via direct simulation in the browser console: `Orthodox` and `Church of God` now correctly select their real option with the free-text field hidden, while a genuinely unrecognized value still correctly falls back to "Other".
+
+The admin-only church-edit panel (`#admin-church-edit-denomination`, a free-text input, not a dropdown) was deliberately left untouched -- out of scope, and admins editing there can already type anything.
+
+Build `2026-09-13-v310`.

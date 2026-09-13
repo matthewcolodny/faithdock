@@ -1646,6 +1646,12 @@
       var key = el.getAttribute('data-i18n-title');
       if (dict[key]) { el.setAttribute('title', dict[key]); el.setAttribute('aria-label', dict[key]); }
     });
+    // <optgroup> only renders its `label` attribute, not textContent --
+    // same reason data-i18n-placeholder exists alongside plain data-i18n.
+    document.querySelectorAll('[data-i18n-label]').forEach(function(el){
+      var key = el.getAttribute('data-i18n-label');
+      if (dict[key]) el.setAttribute('label', dict[key]);
+    });
     // contenteditable fields (.rte-editable) show their placeholder via
     // CSS — :empty:before{content:attr(data-placeholder)} — not the
     // real placeholder attribute, since contenteditable divs don't
@@ -4297,15 +4303,27 @@
       <label data-i18n="rc.denomination">Denomination</label>
       <select class="field" id="rc-denomination">
         <option value="" data-i18n="rc.selectOne">Select one</option>
-        <option value="Non-denominational" data-i18n="denom.nonDenominational">Non-denominational</option>
-        <option value="Baptist" data-i18n="denom.baptist">Baptist</option>
-        <option value="Episcopal" data-i18n="denom.episcopal">Episcopal</option>
-        <option value="Lutheran" data-i18n="denom.lutheran">Lutheran</option>
-        <option value="Pentecostal" data-i18n="denom.pentecostal">Pentecostal</option>
-        <option value="Presbyterian" data-i18n="denom.presbyterian">Presbyterian</option>
-        <option value="Catholic" data-i18n="denom.catholic">Catholic</option>
-        <option value="Methodist" data-i18n="denom.methodist">Methodist</option>
-        <option value="Christian / General" data-i18n="denom.christianGeneral">Christian / General</option>
+        <optgroup label="Family" data-i18n-label="filters.family">
+          <option value="Protestant" data-i18n="denom.protestant">Protestant</option>
+          <option value="Catholic" data-i18n="denom.catholic">Catholic</option>
+          <option value="Orthodox" data-i18n="denom.orthodox">Orthodox</option>
+          <option value="Non-denominational" data-i18n="denom.nonDenominational">Non-denominational</option>
+        </optgroup>
+        <optgroup label="Movement" data-i18n-label="filters.movement">
+          <option value="Baptist" data-i18n="denom.baptist">Baptist</option>
+          <option value="Episcopal" data-i18n="denom.episcopal">Episcopal</option>
+          <option value="Lutheran" data-i18n="denom.lutheran">Lutheran</option>
+          <option value="Methodist" data-i18n="denom.methodist">Methodist</option>
+          <option value="Pentecostal" data-i18n="denom.pentecostal">Pentecostal</option>
+          <option value="Presbyterian" data-i18n="denom.presbyterian">Presbyterian</option>
+          <option value="Anglican" data-i18n="denom.anglican">Anglican</option>
+          <option value="Adventist" data-i18n="denom.adventist">Adventist</option>
+          <option value="Church of God" data-i18n="denom.churchOfGod">Church of God</option>
+          <option value="Church of Christ" data-i18n="denom.churchOfChrist">Church of Christ</option>
+          <option value="Apostolic" data-i18n="denom.apostolic">Apostolic</option>
+          <option value="Nazarene" data-i18n="denom.nazarene">Nazarene</option>
+          <option value="Christian / General" data-i18n="denom.christianGeneral">Christian / General</option>
+        </optgroup>
         <option value="Other" data-i18n="rc.other">Other</option>
       </select>
       <input class="field" type="text" id="rc-denomination-other" placeholder="Enter your denomination" style="display:none;margin-top:8px;" data-i18n-placeholder="rc.enterDenomination">
@@ -5615,7 +5633,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-13-v309 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-13-v310 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -9716,10 +9734,9 @@
     document.getElementById('rc-name').value = church.name || '';
     document.getElementById('rc-address').value = church.address || '';
     document.getElementById('rc-description').value = church.description || '';
-    var knownDenoms = ['Non-denominational','Baptist','Episcopal','Lutheran','Pentecostal','Presbyterian','Catholic','Methodist','Christian / General'];
     var denomSelect = document.getElementById('rc-denomination');
     var denomOther = document.getElementById('rc-denomination-other');
-    if (church.denomination && knownDenoms.indexOf(church.denomination) === -1) {
+    if (church.denomination && ALL_TRADITION_TAGS.indexOf(church.denomination) === -1) {
       denomSelect.value = 'Other';
       denomOther.value = church.denomination;
       denomOther.style.display = 'block';
