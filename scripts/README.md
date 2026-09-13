@@ -90,3 +90,31 @@ GOOGLE_PLACES_API_KEY=xxxxx  node scripts/enrich-churches.js input.csv [output.c
   permanently-closed matches to `<output>.closed.csv` so the main
   output is import-ready), `--selftest` (offline checks).
 - Env: `NAME_SIM_THRESHOLD` (0–1, default 0.5), `DELAY_MS` (default 200).
+
+## acronym-exceptions.js
+
+A church name that's been title-cased (whatever pipeline does that --
+there's no single shared title-caser in this repo today; the one that
+originally ran on the San Antonio import was a one-off never committed
+here) turns any all-caps acronym into a normal-looking word: `SATX` →
+`Satx`, `UMC` → `Umc`. This file fixes that, two ways:
+
+- **As a library** for any future import/cleanup script: `const {
+  applyAcronymCasing } = require('./acronym-exceptions'); const fixed =
+  applyAcronymCasing(name);`. `ACRONYM_EXCEPTIONS` is a flat array of
+  uppercase strings -- add a new region's or denomination's acronym as a
+  one-line edit, nothing else to touch. Every match is whole-word
+  (`\bSATX\b`), never a substring check, for the same reason
+  `filter-churches.js`'s keyword matching is (see that file's own header
+  for the "Administry"/"Churchill" story).
+- **As a one-off CLI audit** of the live database:
+  ```
+  node scripts/acronym-exceptions.js [--out=<path>] [--selftest]
+  ```
+  Fetches every current church name (read-only, via the same
+  publishable/anon Supabase key already embedded in `index.html`),
+  finds any acronym that isn't already in its canonical all-caps form,
+  and writes a ready-to-run `.sql` correction file -- it never writes to
+  the database itself. Default output is `acronym_casing_fixes.sql` in
+  the current directory. `--selftest` runs the offline checks only, no
+  network access.
