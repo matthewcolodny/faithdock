@@ -3717,24 +3717,33 @@
       </div>
       <div id="profile-name-status" style="display:none;font-size:12px;margin-top:8px;"></div>
 
-      <label style="margin-top:14px;" data-i18n="profile.changeEmail">Change email</label>
-      <div id="profile-email-hint" style="font-size:12px;color:var(--ink-mute);margin-bottom:6px;" data-i18n="profile.emailHintPassword">Requires confirming your current password. A confirmation link goes to the new address — the change doesn't take effect until that link is clicked.</div>
-      <input class="field" type="password" id="profile-email-current-password-input" placeholder="Current password" style="margin-bottom:8px;" data-i18n-placeholder="profile.currentPasswordPlaceholder" autocomplete="current-password">
-      <input class="field" type="email" id="profile-new-email-input" placeholder="New email address" data-i18n-placeholder="profile.newEmailPlaceholder" autocomplete="off">
-      <div id="profile-email-turnstile" class="cf-turnstile" data-sitekey="0x4AAAAAAEPCzYa8RdIrXXzR" data-size="flexible" data-callback="onProfileEmailCaptchaSuccess" data-expired-callback="onProfileEmailCaptchaExpired" style="margin-top:12px;"></div>
-      <button class="export-btn" id="profile-email-save-btn" style="margin-top:8px;" data-i18n="profile.updateEmail">Update email</button>
-      <div id="profile-email-status" style="display:none;font-size:12px;margin-top:8px;"></div>
+      <!-- Own <form> each, same reasoning as the signup/login/reset-
+           password forms elsewhere on this page -- a password field
+           with no <form> boundary at all was what let Chrome's mobile
+           autofill heuristic pair it with unrelated search boxes
+           elsewhere on the page. -->
+      <form id="profile-email-form">
+        <label style="margin-top:14px;" data-i18n="profile.changeEmail">Change email</label>
+        <div id="profile-email-hint" style="font-size:12px;color:var(--ink-mute);margin-bottom:6px;" data-i18n="profile.emailHintPassword">Requires confirming your current password. A confirmation link goes to the new address — the change doesn't take effect until that link is clicked.</div>
+        <input class="field" type="password" id="profile-email-current-password-input" placeholder="Current password" style="margin-bottom:8px;" data-i18n-placeholder="profile.currentPasswordPlaceholder" autocomplete="current-password">
+        <input class="field" type="email" id="profile-new-email-input" placeholder="New email address" data-i18n-placeholder="profile.newEmailPlaceholder" autocomplete="off">
+        <div id="profile-email-turnstile" class="cf-turnstile" data-sitekey="0x4AAAAAAEPCzYa8RdIrXXzR" data-size="flexible" data-callback="onProfileEmailCaptchaSuccess" data-expired-callback="onProfileEmailCaptchaExpired" style="margin-top:12px;"></div>
+        <button class="export-btn" type="submit" id="profile-email-save-btn" style="margin-top:8px;" data-i18n="profile.updateEmail">Update email</button>
+        <div id="profile-email-status" style="display:none;font-size:12px;margin-top:8px;"></div>
+      </form>
 
-      <label id="profile-password-label" style="margin-top:14px;" data-i18n="profile.changePassword">Change password</label>
-      <div style="font-size:12px;color:var(--ink-mute);margin-bottom:6px;" data-i18n="profile.passwordHint">At least 10 characters. Confirm your current password first, to keep this from being used by anyone who gets hold of an active, already-logged-in session but doesn't actually know it.</div>
-      <input class="field" type="password" id="profile-current-password-input" placeholder="Current password" style="margin-bottom:8px;" data-i18n-placeholder="profile.currentPasswordPlaceholder" autocomplete="current-password">
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <input class="field" type="password" id="profile-new-password-input" placeholder="New password" style="flex:1;min-width:140px;" data-i18n-placeholder="profile.newPasswordPlaceholder" autocomplete="new-password">
-        <input class="field" type="password" id="profile-confirm-password-input" placeholder="Confirm new password" style="flex:1;min-width:140px;" data-i18n-placeholder="profile.confirmNewPasswordPlaceholder" autocomplete="new-password">
-      </div>
-      <div id="profile-password-turnstile" class="cf-turnstile" data-sitekey="0x4AAAAAAEPCzYa8RdIrXXzR" data-size="flexible" data-callback="onProfilePasswordCaptchaSuccess" data-expired-callback="onProfilePasswordCaptchaExpired" style="margin-top:12px;"></div>
-      <button class="export-btn" id="profile-password-save-btn" style="margin-top:8px;" data-i18n="profile.updatePassword">Update password</button>
-      <div id="profile-password-status" style="display:none;font-size:12px;margin-top:8px;"></div>
+      <form id="profile-password-form">
+        <label id="profile-password-label" style="margin-top:14px;" data-i18n="profile.changePassword">Change password</label>
+        <div style="font-size:12px;color:var(--ink-mute);margin-bottom:6px;" data-i18n="profile.passwordHint">At least 10 characters. Confirm your current password first, to keep this from being used by anyone who gets hold of an active, already-logged-in session but doesn't actually know it.</div>
+        <input class="field" type="password" id="profile-current-password-input" placeholder="Current password" style="margin-bottom:8px;" data-i18n-placeholder="profile.currentPasswordPlaceholder" autocomplete="current-password">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <input class="field" type="password" id="profile-new-password-input" placeholder="New password" style="flex:1;min-width:140px;" data-i18n-placeholder="profile.newPasswordPlaceholder" autocomplete="new-password">
+          <input class="field" type="password" id="profile-confirm-password-input" placeholder="Confirm new password" style="flex:1;min-width:140px;" data-i18n-placeholder="profile.confirmNewPasswordPlaceholder" autocomplete="new-password">
+        </div>
+        <div id="profile-password-turnstile" class="cf-turnstile" data-sitekey="0x4AAAAAAEPCzYa8RdIrXXzR" data-size="flexible" data-callback="onProfilePasswordCaptchaSuccess" data-expired-callback="onProfilePasswordCaptchaExpired" style="margin-top:12px;"></div>
+        <button class="export-btn" type="submit" id="profile-password-save-btn" style="margin-top:8px;" data-i18n="profile.updatePassword">Update password</button>
+        <div id="profile-password-status" style="display:none;font-size:12px;margin-top:8px;"></div>
+      </form>
 
       <button class="export-btn" id="profile-signout-others-btn" style="margin-top:20px;" data-i18n="profile.signOutOtherDevices">Sign out of all other devices</button>
       <div style="font-size:12px;color:var(--ink-mute);margin-top:6px;" data-i18n="profile.signOutOtherDevicesHint">Ends every other signed-in session for your account — another phone, browser, or computer — without signing out this one.</div>
@@ -4180,7 +4189,20 @@
           <div style="flex:1;height:1px;background:var(--line);"></div>
         </div>
       </div>
-      <div id="signup-fields">
+      <!-- Real <form> boundaries for every auth flow on this page --
+           this whole SPA keeps every page's markup in the DOM at once
+           (just toggling display), so with no <form> anywhere, Chrome
+           was treating every input on the entire page as one giant
+           "formless form": a password field here was enough for it to
+           occasionally pop a save-password/sign-in autofill prompt on
+           unrelated search boxes elsewhere on the page. Signup, login,
+           and forgot-password get separate forms (not one shared one)
+           so a browser's password manager pairs each email/password
+           pair with the right flow instead of guessing across all
+           three. Submission is still fully JS-driven -- see the
+           `submit` listeners further down that call preventDefault()
+           and then trigger the existing button, unchanged. -->
+      <form id="signup-form">
         <label data-i18n="auth.fullName">Full name</label>
         <input class="field" type="text" id="signup-name" placeholder="Jamie Rivera" data-i18n-placeholder="auth.namePlaceholder" autocomplete="name">
         <label data-i18n="auth.email">Email</label>
@@ -4189,21 +4211,21 @@
         <input class="field" type="password" id="signup-password" placeholder="At least 10 characters" data-i18n-placeholder="auth.passwordPlaceholder" autocomplete="new-password">
         <label data-i18n="auth.confirmPassword">Confirm password</label>
         <input class="field" type="password" id="signup-password-confirm" placeholder="Type it again" data-i18n-placeholder="auth.confirmPasswordPlaceholder" autocomplete="new-password">
-      </div>
-      <div id="login-fields" style="display:none;">
+      </form>
+      <form id="login-form" style="display:none;">
         <label data-i18n="auth.email">Email</label>
         <input class="field" type="email" id="login-email" placeholder="jamie@email.com" data-i18n-placeholder="auth.emailPlaceholder" autocomplete="email">
         <label data-i18n="auth.password">Password</label>
         <input class="field" type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
         <div style="text-align:right;margin-top:8px;"><a href="#" id="forgot-password-link" style="font-size:12.5px;color:var(--ink-mute);border-bottom:1px solid var(--line);" data-i18n="auth.forgotPassword">Forgot password?</a></div>
-      </div>
-      <div id="forgot-password-fields" style="display:none;">
+      </form>
+      <form id="forgot-password-fields" style="display:none;">
         <label data-i18n="auth.email">Email</label>
         <input class="field" type="email" id="forgot-password-email" placeholder="jamie@email.com" data-i18n-placeholder="auth.emailPlaceholder" autocomplete="email">
         <div id="forgot-password-status" style="display:none;font-size:12.5px;margin-top:10px;"></div>
-        <button class="auth-submit" id="send-reset-link-btn" data-i18n="auth.sendResetLink">Send reset link</button>
+        <button class="auth-submit" type="submit" id="send-reset-link-btn" data-i18n="auth.sendResetLink">Send reset link</button>
         <div class="auth-note"><a href="#" id="back-to-login-link" style="border-bottom:1px solid var(--gold);" data-i18n="auth.backToLogin">← Back to log in</a></div>
-      </div>
+      </form>
       <div id="auth-turnstile-wrap">
         <div class="cf-turnstile" id="auth-turnstile" data-sitekey="0x4AAAAAAEPCzYa8RdIrXXzR" data-size="flexible" data-callback="onTurnstileSuccess" data-expired-callback="onTurnstileExpired" style="margin-top:12px;"></div>
       </div>
@@ -4220,12 +4242,14 @@
     <div class="auth-card">
       <div class="eyebrow" data-i18n="resetPw.eyebrow">Reset password</div>
       <h2 style="font-family:'Fraunces';font-size:22px;margin-bottom:16px;" data-i18n="resetPw.heading">Choose a new password</h2>
-      <label data-i18n="resetPw.newPassword">New password</label>
-      <input class="field" type="password" id="reset-password-new" placeholder="At least 10 characters" data-i18n-placeholder="auth.passwordPlaceholder" autocomplete="new-password">
-      <label data-i18n="resetPw.confirmNewPassword">Confirm new password</label>
-      <input class="field" type="password" id="reset-password-confirm" placeholder="Type it again" data-i18n-placeholder="auth.confirmPasswordPlaceholder" autocomplete="new-password">
-      <div id="reset-password-status" style="display:none;font-size:13px;margin-top:14px;"></div>
-      <button class="auth-submit" id="reset-password-submit-btn" data-i18n="resetPw.setNewPassword">Set new password</button>
+      <form id="reset-password-form">
+        <label data-i18n="resetPw.newPassword">New password</label>
+        <input class="field" type="password" id="reset-password-new" placeholder="At least 10 characters" data-i18n-placeholder="auth.passwordPlaceholder" autocomplete="new-password">
+        <label data-i18n="resetPw.confirmNewPassword">Confirm new password</label>
+        <input class="field" type="password" id="reset-password-confirm" placeholder="Type it again" data-i18n-placeholder="auth.confirmPasswordPlaceholder" autocomplete="new-password">
+        <div id="reset-password-status" style="display:none;font-size:13px;margin-top:14px;"></div>
+        <button class="auth-submit" type="submit" id="reset-password-submit-btn" data-i18n="resetPw.setNewPassword">Set new password</button>
+      </form>
     </div>
   </div>
 </section>
@@ -5561,7 +5585,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-13-v306 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-13-v307 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -7384,8 +7408,8 @@
   function authTab(which){
     document.getElementById('tab-signup').classList.toggle('active', which==='signup');
     document.getElementById('tab-login').classList.toggle('active', which==='login');
-    document.getElementById('signup-fields').style.display = which==='signup' ? 'block':'none';
-    document.getElementById('login-fields').style.display = which==='login' ? 'block':'none';
+    document.getElementById('signup-form').style.display = which==='signup' ? 'block':'none';
+    document.getElementById('login-form').style.display = which==='login' ? 'block':'none';
     // A login error (e.g. "Invalid login credentials") was staying
     // on screen after switching to Signup, since nothing here ever
     // cleared it — showing a login failure message underneath a
@@ -11289,8 +11313,8 @@
   function showForgotPasswordMode(on){
     document.getElementById('auth-tabs-wrap').style.display = on ? 'none' : 'flex';
     document.getElementById('oauth-buttons-wrap').style.display = on ? 'none' : 'block';
-    document.getElementById('login-fields').style.display = on ? 'none' : 'block';
-    document.getElementById('signup-fields').style.display = on ? 'none' : (document.getElementById('tab-signup').classList.contains('active') ? 'block' : 'none');
+    document.getElementById('login-form').style.display = on ? 'none' : 'block';
+    document.getElementById('signup-form').style.display = on ? 'none' : (document.getElementById('tab-signup').classList.contains('active') ? 'block' : 'none');
     document.getElementById('forgot-password-fields').style.display = on ? 'block' : 'none';
     document.getElementById('auth-submit-btn').style.display = on ? 'none' : 'block';
     document.getElementById('become-partner-note').style.display = on ? 'none' : 'block';
@@ -11316,8 +11340,14 @@
   }
 
   var sendResetLinkBtn = document.getElementById('send-reset-link-btn');
-  if (sendResetLinkBtn) {
-    sendResetLinkBtn.addEventListener('click', async function(){
+  var forgotPasswordFormEl = document.getElementById('forgot-password-fields');
+  if (sendResetLinkBtn && forgotPasswordFormEl) {
+    // Listening for the form's submit (not the button's click) is what
+    // makes Enter-in-the-email-field work too, now that this is a real
+    // <form> -- a type="submit" button inside a form triggers this same
+    // submit event when clicked, so this one listener covers both.
+    forgotPasswordFormEl.addEventListener('submit', async function(ev){
+      ev.preventDefault();
       var statusEl = document.getElementById('forgot-password-status');
       var email = document.getElementById('forgot-password-email').value;
       if (!email) { statusEl.textContent = window.t('auth.enterEmailFirst'); statusEl.style.color = 'var(--clay)'; statusEl.style.display = 'block'; return; }
@@ -11376,8 +11406,10 @@
   }
 
   var resetPasswordSubmitBtn = document.getElementById('reset-password-submit-btn');
-  if (resetPasswordSubmitBtn) {
-    resetPasswordSubmitBtn.addEventListener('click', async function(){
+  var resetPasswordFormEl = document.getElementById('reset-password-form');
+  if (resetPasswordSubmitBtn && resetPasswordFormEl) {
+    resetPasswordFormEl.addEventListener('submit', async function(ev){
+      ev.preventDefault();
       var statusEl = document.getElementById('reset-password-status');
       var newPassword = document.getElementById('reset-password-new').value;
       var confirmPassword = document.getElementById('reset-password-confirm').value;
@@ -11805,6 +11837,27 @@
       await window.checkExistingChurch(user.id, 'new');
     }
   }
+
+  // Signup and login are now real <form>s (see the comment on their
+  // markup for why), but the actual submit button (#auth-submit-btn,
+  // below) is shared between both tabs and deliberately stays outside
+  // either form -- its own click handler already branches on which tab
+  // is active, and duplicating that logic per-form would just be two
+  // copies to keep in sync. So each form's only job is to turn "Enter
+  // pressed in one of these fields" into a click on that same shared
+  // button, via the form's own submit event (which fires on Enter
+  // regardless of which field has focus) -- preventDefault() stops the
+  // browser from actually navigating/reloading, since there's nothing
+  // for a bare "submit this form" to usefully do here on its own.
+  ['signup-form', 'login-form'].forEach(function(formId){
+    var formEl = document.getElementById(formId);
+    if (formEl) {
+      formEl.addEventListener('submit', function(ev){
+        ev.preventDefault();
+        document.getElementById('auth-submit-btn').click();
+      });
+    }
+  });
 
   document.getElementById('auth-submit-btn').addEventListener('click', async function(){
     clearAuthError();
@@ -20211,8 +20264,10 @@
   }
 
   var profilePasswordSaveBtn = document.getElementById('profile-password-save-btn');
-  if (profilePasswordSaveBtn) {
-    profilePasswordSaveBtn.addEventListener('click', async function(){
+  var profilePasswordFormEl = document.getElementById('profile-password-form');
+  if (profilePasswordSaveBtn && profilePasswordFormEl) {
+    profilePasswordFormEl.addEventListener('submit', async function(ev){
+      ev.preventDefault();
       var statusEl = document.getElementById('profile-password-status');
       statusEl.style.display = 'none';
       var currentPassword = document.getElementById('profile-current-password-input').value;
@@ -20322,8 +20377,10 @@
   }
 
   var profileEmailSaveBtn = document.getElementById('profile-email-save-btn');
-  if (profileEmailSaveBtn) {
-    profileEmailSaveBtn.addEventListener('click', async function(){
+  var profileEmailFormEl = document.getElementById('profile-email-form');
+  if (profileEmailSaveBtn && profileEmailFormEl) {
+    profileEmailFormEl.addEventListener('submit', async function(ev){
+      ev.preventDefault();
       var statusEl = document.getElementById('profile-email-status');
       statusEl.style.display = 'none';
       var currentPassword = document.getElementById('profile-email-current-password-input').value;
