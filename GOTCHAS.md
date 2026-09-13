@@ -1611,3 +1611,17 @@ Build `2026-09-13-v307`. Not yet confirmed fixed on a real device -- code-level 
 - Confirmed both the Directory and Events Tradition dropdowns render the documented FAMILY (Protestant/Catholic/Orthodox/Jewish/Non-denominational) then MOVEMENT (Baptist through Christian/General) grouping, all checked by default, via direct DOM inspection on both pages before the migration ran (pure client-side rendering, unaffected by the RPC signature mismatch).
 
 Build `2026-09-13-v308`.
+
+---
+
+## Removed "Jewish" from the Tradition/Family filter
+
+Follow-up to the taxonomy above: dropped "Jewish" from both the Directory and Events Tradition dropdowns (the Family group is now Protestant/Catholic/Orthodox/Non-denominational) and from the shared `ALL_TRADITION_TAGS` array that drives both pages' filtering. Also updated the two now-stale code comments describing the Family group's contents (CSS section and the `ALL_TRADITION_TAGS` declaration) so they don't keep listing a tag that's no longer there.
+
+Deliberately left untouched: `translateDenomination()`'s `denomI18nKeyMap` (still maps `'Jewish'` → `denom.jewish` for the single-value `churches.denomination` column) and both EN/ES `denom.jewish` dictionary entries -- that's a separate display/translation mechanism for the free-text `denomination` string a church can still have on file, not the multi-value Tradition filter this change scopes to.
+
+**Backend migration 024** (`supabase/migrations/024_remove_jewish_tradition_tag.sql`) redefines `compute_denomination_tags()` (from migration 023) with the two Jewish-detection branches removed -- the `\mSynagogue\M`/`\mJewish\M` name-phrase check and the `denomination = 'jewish'` column check -- then re-runs the same backfill `UPDATE` so any row currently carrying a stale `'Jewish'` tag gets recomputed under the new rules. Verified this migration's function body matches migration 023's original branch-for-branch (diffed line by line) before writing it, so nothing else shifted. Unlike migration 023, this one doesn't touch `search_churches`'s signature at all, so there's no deploy-order hazard -- the index.html change and this migration can land in either order without breaking search.
+
+Verified live in the local preview: `window.ALL_TRADITION_TAGS` no longer includes `'Jewish'`, and both Directory's and Events' Tradition dropdowns show FAMILY as Protestant → Catholic → Orthodox → Non-denominational with no gap or console error. Migration 024 is still pending the user running it in the Supabase SQL Editor -- until then, `denomination_tags` on any previously-tagged row may still contain a stale `'Jewish'` entry that the (now Jewish-less) UI simply can't select against, which is harmless but not fully cleaned up.
+
+Build `2026-09-13-v309`.

@@ -2189,7 +2189,7 @@
   .filter-check{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--ink-soft);margin-bottom:9px;cursor:pointer;}
   .filter-check input{accent-color:var(--brand);width:14px;height:14px;flex-shrink:0;}
   /* Sub-heading inside the Tradition dropdown, splitting the checklist
-     into Family (Protestant/Catholic/Orthodox/Jewish/Non-denominational)
+     into Family (Protestant/Catholic/Orthodox/Non-denominational)
      and Movement (Baptist, Methodist, ...) groups -- purely a visual
      grouping label, not its own checkbox or filter-check row. */
   .filter-subgroup-label{font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:var(--ink-mute);margin:4px 0 6px;}
@@ -2925,7 +2925,6 @@
               <label class="filter-check"><input type="checkbox" class="denom-filter" value="Protestant" checked> <span data-i18n="denom.protestant">Protestant</span></label>
               <label class="filter-check"><input type="checkbox" class="denom-filter" value="Catholic" checked> <span data-i18n="denom.catholic">Catholic</span></label>
               <label class="filter-check"><input type="checkbox" class="denom-filter" value="Orthodox" checked> <span data-i18n="denom.orthodox">Orthodox</span></label>
-              <label class="filter-check"><input type="checkbox" class="denom-filter" value="Jewish" checked> <span data-i18n="denom.jewish">Jewish</span></label>
               <label class="filter-check"><input type="checkbox" class="denom-filter" value="Non-denominational" checked> <span data-i18n="denom.nonDenominational">Non-denominational</span></label>
               <div class="filter-subgroup-label" data-i18n="filters.movement">Movement</div>
               <label class="filter-check"><input type="checkbox" class="denom-filter" value="Baptist" checked> <span data-i18n="denom.baptist">Baptist</span></label>
@@ -3086,7 +3085,6 @@
               <label class="filter-check"><input type="checkbox" class="events-denom-filter" value="Protestant" checked> <span data-i18n="denom.protestant">Protestant</span></label>
               <label class="filter-check"><input type="checkbox" class="events-denom-filter" value="Catholic" checked> <span data-i18n="denom.catholic">Catholic</span></label>
               <label class="filter-check"><input type="checkbox" class="events-denom-filter" value="Orthodox" checked> <span data-i18n="denom.orthodox">Orthodox</span></label>
-              <label class="filter-check"><input type="checkbox" class="events-denom-filter" value="Jewish" checked> <span data-i18n="denom.jewish">Jewish</span></label>
               <label class="filter-check"><input type="checkbox" class="events-denom-filter" value="Non-denominational" checked> <span data-i18n="denom.nonDenominational">Non-denominational</span></label>
               <div class="filter-subgroup-label" data-i18n="filters.movement">Movement</div>
               <label class="filter-check"><input type="checkbox" class="events-denom-filter" value="Baptist" checked> <span data-i18n="denom.baptist">Baptist</span></label>
@@ -5617,7 +5615,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-13-v308 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-13-v309 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -6343,8 +6341,8 @@
   // Every value the Tradition dropdown's checkboxes can send as a
   // p_tradition_tags entry (Directory's #filter-denom-checks and
   // Events' #events-filter-denom-checks render the exact same list) --
-  // Family (broad: Protestant/Catholic/Orthodox/Jewish/Non-
-  // denominational) followed by Movement (Baptist, Methodist, ...).
+  // Family (broad: Protestant/Catholic/Orthodox/Non-denominational)
+  // followed by Movement (Baptist, Methodist, ...).
   // Kept as one flat array, not the checkbox DOM, so both pages' own
   // denomSearch-narrowing logic can filter it without querying the DOM
   // or duplicating this list a third time. Matches churches.
@@ -6353,7 +6351,7 @@
   // tags. "Other" is deliberately excluded -- it's a wildcard checkbox,
   // not a real tag any church carries.
   var ALL_TRADITION_TAGS = [
-    'Protestant', 'Catholic', 'Orthodox', 'Jewish', 'Non-denominational',
+    'Protestant', 'Catholic', 'Orthodox', 'Non-denominational',
     'Baptist', 'Episcopal', 'Lutheran', 'Methodist', 'Pentecostal', 'Presbyterian',
     'Anglican', 'Adventist', 'Church of God', 'Church of Christ', 'Apostolic',
     'Nazarene', 'Christian / General'
