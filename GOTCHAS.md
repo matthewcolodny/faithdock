@@ -1748,6 +1748,20 @@ Build `2026-09-14-v7`.
 
 ---
 
+## Dark-mode hero search bar contrast, and dropped "/ Other Christian" from the filter label
+
+**Two small requests handled together.**
+
+**1. Hero/waitlist search bar blending into its background in dark mode.** `.search-bar` (used by both the home hero and the waitlist page's email form, both living inside `.hero` sections) fills with `var(--card)`, which in dark mode is `#182338` -- close enough to the hero's own `var(--brand)` (`#16233F`) that the search box read as barely distinguishable from the page behind it, unlike the always-legible `.nav-search` right above it (`rgba(255,255,255,0.08)` fill, `rgba(255,255,255,0.14)` border -- a fixed translucent-white treatment, not tied to the `--card` variable). Added a dark-mode-only override reusing those exact nav-search values for `.search-bar`, plus a parallel override for `.search-bar input` at the `max-width:600px` breakpoint, since the mobile layout moves the fill from the shared container onto each individual input. Fixed both instances (home hero, waitlist) since they share the same class and the same underlying cause -- not scoped to just the reported page.
+
+**2. "Nontrinitarian / Other Christian" → "Nontrinitarian" in the Tradition filter.** Display-only change -- the `denom.trad.nontrinitarianOther` i18n value (and its two HTML fallback `<span>`s) dropped the "/ Other Christian" half, but the underlying `value`/`data-denom-parent` attribute on the checkbox (still the full `"Nontrinitarian / Other Christian"` string) and migration 026's own tag value were deliberately left untouched -- changing those would mean a new migration + re-tagging every church, for what was asked as a label edit. The group still alphabetizes correctly in the same position (Catholic, Christian / General, Nondenominational, Nontrinitarian, Orthodox, Protestant) since "Nontrinitarian" alone still sorts between "Nondenominational" and "Orthodox".
+
+Verified live in the browser: dark-mode hero search bar's computed `background-color`/`border` now match `.nav-search`'s exactly; the Nontrinitarian label reads correctly in both EN and ES.
+
+Build `2026-09-14-v8`.
+
+---
+
 ## Reported "Tx" casing + a Foursquare church badged "Non-denominational" — two separate data fixes
 
 A church card screenshot ("New Braunfels Central Tx Foursquare Church") surfaced two independent issues at once.

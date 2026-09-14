@@ -205,7 +205,7 @@
       'denom.trad.catholic': 'Catholic',
       'denom.trad.christianGeneral2': 'Christian / General',
       'denom.trad.nondenominational2': 'Nondenominational',
-      'denom.trad.nontrinitarianOther': 'Nontrinitarian / Other Christian',
+      'denom.trad.nontrinitarianOther': 'Nontrinitarian',
       'denom.trad.orthodox': 'Orthodox',
       'denom.trad.protestant': 'Protestant',
       'denom.body.romanCatholic': 'Roman Catholic',
@@ -985,7 +985,7 @@
       'denom.trad.catholic': 'Católica',
       'denom.trad.christianGeneral2': 'Cristiana / General',
       'denom.trad.nondenominational2': 'No denominacional',
-      'denom.trad.nontrinitarianOther': 'No Trinitaria / Otra Cristiana',
+      'denom.trad.nontrinitarianOther': 'No Trinitaria',
       'denom.trad.orthodox': 'Ortodoxa',
       'denom.trad.protestant': 'Protestante',
       'denom.body.romanCatholic': 'Católica Romana',
@@ -1919,6 +1919,24 @@
   html[data-theme="dark"] body{background:var(--paper);}
   html[data-theme="dark"] img{opacity:0.92;}
   html[data-theme="dark"] .auth-submit{background:var(--gold);color:var(--brand);}
+  /* .search-bar's own var(--card) fill (#182338 in dark mode) sits too
+     close to the hero's own var(--brand) background (#16233F) to read
+     as a distinct box -- the same translucent-white fill/border
+     .nav-search already uses reads clearly against that same brand
+     navy, so reuse it here instead of a second dark-mode card color.
+     Desktop only -- see the @media (max-width:600px) override below
+     for the mobile layout, where each input (not the shared container)
+     carries its own background. */
+  html[data-theme="dark"] .search-bar{
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.14);
+  }
+  @media (max-width:600px){
+    html[data-theme="dark"] .search-bar input{
+      background:rgba(255,255,255,0.08);
+      border:1px solid rgba(255,255,255,0.14);
+    }
+  }
   /* .search-bar button's own gold-on-brand styling now lives in the base
      rule above -- the hero band is the same brand navy in both themes,
      so a dark-mode-only override left light mode with a button the same
@@ -3020,7 +3038,7 @@
               </details>
               <label class="filter-check"><input type="checkbox" class="denom-filter" value="Christian / General" checked> <span data-i18n="denom.trad.christianGeneral2">Christian / General</span></label>
               <label class="filter-check"><input type="checkbox" class="denom-filter" value="Nondenominational" checked> <span data-i18n="denom.trad.nondenominational2">Nondenominational</span></label>
-              <label class="filter-check filter-check-parent"><input type="checkbox" class="denom-filter denom-parent" data-denom-parent="Nontrinitarian / Other Christian" value="Nontrinitarian / Other Christian" checked> <span data-i18n="denom.trad.nontrinitarianOther">Nontrinitarian / Other Christian</span></label>
+              <label class="filter-check filter-check-parent"><input type="checkbox" class="denom-filter denom-parent" data-denom-parent="Nontrinitarian / Other Christian" value="Nontrinitarian / Other Christian" checked> <span data-i18n="denom.trad.nontrinitarianOther">Nontrinitarian</span></label>
               <details class="filter-tradition-details">
                 <summary data-i18n="filters.specificBodies">Advanced</summary>
                 <label class="filter-check filter-check-child"><input type="checkbox" class="denom-filter denom-child" data-denom-parent="Nontrinitarian / Other Christian" value="Latter-day Saints (Mormon)" checked> <span data-i18n="denom.body.lds">Latter-day Saints (Mormon)</span></label>
@@ -3195,7 +3213,7 @@
               </details>
               <label class="filter-check"><input type="checkbox" class="events-denom-filter" value="Christian / General" checked> <span data-i18n="denom.trad.christianGeneral2">Christian / General</span></label>
               <label class="filter-check"><input type="checkbox" class="events-denom-filter" value="Nondenominational" checked> <span data-i18n="denom.trad.nondenominational2">Nondenominational</span></label>
-              <label class="filter-check filter-check-parent"><input type="checkbox" class="events-denom-filter events-denom-parent" data-denom-parent="Nontrinitarian / Other Christian" value="Nontrinitarian / Other Christian" checked> <span data-i18n="denom.trad.nontrinitarianOther">Nontrinitarian / Other Christian</span></label>
+              <label class="filter-check filter-check-parent"><input type="checkbox" class="events-denom-filter events-denom-parent" data-denom-parent="Nontrinitarian / Other Christian" value="Nontrinitarian / Other Christian" checked> <span data-i18n="denom.trad.nontrinitarianOther">Nontrinitarian</span></label>
               <details class="filter-tradition-details">
                 <summary data-i18n="filters.specificBodies">Advanced</summary>
                 <label class="filter-check filter-check-child"><input type="checkbox" class="events-denom-filter events-denom-child" data-denom-parent="Nontrinitarian / Other Christian" value="Latter-day Saints (Mormon)" checked> <span data-i18n="denom.body.lds">Latter-day Saints (Mormon)</span></label>
@@ -5768,7 +5786,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-14-v7 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-14-v8 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
