@@ -1740,6 +1740,14 @@ Build `2026-09-14-v6`.
 
 ---
 
+## Indented the "Advanced" disclosure under its parent denomination
+
+Reported via screenshot: "Advanced" sat flush with the left edge, same as its parent checkbox (Catholic, Nontrinitarian / Other Christian, etc.), instead of reading as nested under it. Added `margin-left:20px` to `.filter-tradition-details` -- the same indent already used for `.filter-check-child` -- so it now visually tucks under its group, matching the indent the group's own specific-denomination checkboxes use once expanded. Verified live: "Advanced" now sits indented under Catholic and Nontrinitarian / Other Christian in the dropdown.
+
+Build `2026-09-14-v7`.
+
+---
+
 ## Reported "Tx" casing + a Foursquare church badged "Non-denominational" — two separate data fixes
 
 A church card screenshot ("New Braunfels Central Tx Foursquare Church") surfaced two independent issues at once.
