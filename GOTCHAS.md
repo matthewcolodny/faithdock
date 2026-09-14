@@ -1790,6 +1790,22 @@ Build `2026-09-14-v10`.
 
 ---
 
+## Extended the clear button to the Directory/Events location fields -- more involved than the keyword one
+
+Follow-up to the keyword clear button above. The location field is structurally different (icon + input + an attached gold search button, all sharing one flex row with `border-right:none` on the input so it visually merges with the button) and, critically, its state isn't page-local the way the keyword fields are: `window.dirUserLat`/`Lng` plus `#dir-location-input`, `#events-location-input`, and the two home page "near you" headings are all one shared concept, kept in sync by the existing `setDirLocation()` whenever a location is set (autocomplete selection, geolocation, or the search button).
+
+**Markup**: couldn't reuse the keyword field's flat `.search-field-wrap` + absolutely-positioned button approach directly, since that wrap is a flex row shared with the attached search button -- positioning the clear button `right:8px` relative to the whole row would land it on top of that button, not at the input's own edge. Wrapped just the `<input>` in a new inner `.search-clear-wrap` div (`flex:1;min-width:0`) so the clear button positions relative to the input alone. Gave `.search-clear-wrap` its own `position:relative` (previously it only had one via combination with `.search-field-wrap` on the keyword fields) so it works standalone here too.
+
+**Behavior**: wrote `clearDirLocation()`, the mirror image of `setDirLocation()` -- resets `dirUserLat`/`Lng` to null, clears both location inputs and both status spans, resets both home headings back to their generic default text, and re-runs the same 4 renders `setDirLocation()` does. Clicking either page's clear button resets all of it, not just the field that was clicked, since leaving the other page's field (or the headings) showing a location that's no longer actually being filtered on would be a real, visible inconsistency. Deliberately leaves `hero-location-input` alone -- it's only ever conditionally synced (filled when blank, never overwritten), and clearing it could wipe out text someone's independently typing there; out of scope for what was asked.
+
+**Real bug caught by testing, not assumed away**: first wiring attempt referenced `clearDirLocation()` by its bare name from the same place the keyword buttons are wired -- assumed (wrongly) that a same-file function declaration is hoisted and reachable from anywhere else in that file. It isn't: this file has several separate top-level scopes, not one flat script, and the bare reference threw `ReferenceError: clearDirLocation is not defined` at click time, caught via the browser console during live testing, not by reasoning about the code. Fixed by exposing `window.clearDirLocation` and calling it through `window.*`, the same cross-scope bridge every other function in this file already uses. Also had to add explicit clear-button visibility resyncs inside `setDirLocation()` itself (mirroring the existing `goToDirectoryFromHero()` fix from the keyword feature) -- it writes both fields' `.value` programmatically too, which never fires the `input` event the buttons' own visibility listeners depend on.
+
+Verified live end-to-end after the fix: typing in one field shows only that field's own button; clicking either page's clear button empties both location fields, hides both buttons, resets `dirUserLat`/`Lng` to null, and resets both home headings -- confirmed symmetric from both the Directory and the Events side. Confirmed the hero field is untouched by an unrelated clear. Spanish translation confirmed. Visually confirmed the button sits cleanly inside the field with no overlap against the attached search button. All 4 non-module `<script>` blocks pass `node --check`.
+
+Build `2026-09-14-v11`.
+
+---
+
 ## Multi-part data-quality report: Spanish-language tagging gaps, an Ethiopian Orthodox miss, casing, and a "Ministries" hide widening
 
 Reported live with real examples across 4 church cards. Checked the actual database state for each before writing anything, rather than assuming.

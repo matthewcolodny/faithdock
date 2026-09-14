@@ -2255,15 +2255,22 @@
   .search-field-wrap input.field{padding-left:38px;}
   .search-field-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--ink-mute);pointer-events:none;display:flex;}
   .search-field-icon svg{width:16px;height:16px;}
-  /* Clear ("x") button for the Directory/Events keyword search fields
-     specifically -- a dedicated class, not a blanket rule on
-     .search-field-wrap, since that class is shared with the home
-     hero's own keyword field (not part of what was reported/asked
-     for). Restores a quick-clear affordance that quietly disappeared
-     when type="search" inputs had their native webkit clear-button
-     explicitly turned off elsewhere in this stylesheet (for an
-     unrelated mobile-autofill fix). Hidden by default -- shown only
-     once the field actually has text, toggled in JS. */
+  /* Clear ("x") button for the Directory/Events keyword AND location
+     search fields specifically -- a dedicated class, not a blanket
+     rule on .search-field-wrap, since that class is shared with the
+     home hero's own keyword/location fields (not part of what was
+     reported/asked for). Restores a quick-clear affordance that
+     quietly disappeared when type="search" inputs had their native
+     webkit clear-button explicitly turned off elsewhere in this
+     stylesheet (for an unrelated mobile-autofill fix). Hidden by
+     default -- shown only once the field actually has text, toggled
+     in JS. Declares its own position:relative (not just inherited
+     from .search-field-wrap) so it also works standalone -- the
+     location field's own wrap is a flex row shared with its attached
+     search button, so the clear button needs an inner wrapper around
+     just the input, not the whole row, to avoid overlapping that
+     button. */
+  .search-clear-wrap{position:relative;}
   .search-clear-wrap input.field{padding-right:32px;}
   .search-clear-btn{
     position:absolute;right:8px;top:50%;transform:translateY(-50%);
@@ -3019,7 +3026,10 @@
     <div class="location-row" style="margin-top:10px;">
       <div class="autocomplete-wrap search-field-wrap" style="max-width:340px;display:flex;">
         <span class="search-field-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
-        <input class="field" type="search" id="dir-location-input" placeholder="Enter a city or address" data-i18n-placeholder="dir.enterCityOrAddress" autocomplete="off" style="border-radius:8px 0 0 8px;border-right:none;">
+        <div class="search-clear-wrap" style="flex:1;min-width:0;">
+          <input class="field" type="search" id="dir-location-input" placeholder="Enter a city or address" data-i18n-placeholder="dir.enterCityOrAddress" autocomplete="off" style="border-radius:8px 0 0 8px;border-right:none;">
+          <button type="button" class="search-clear-btn" id="dir-location-clear-btn" aria-label="Clear location" data-i18n-title="common.clearSearch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+        </div>
         <button id="dir-location-search-btn" style="background:var(--gold);color:var(--brand);border:none;padding:0 16px;border-radius:0 8px 8px 0;cursor:pointer;" aria-label="Search location" data-i18n-title="common.searchLocation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;display:block;"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></button>
         <div class="autocomplete-list" id="dir-location-list"></div>
       </div>
@@ -3148,7 +3158,10 @@
     <div class="location-row" style="margin-top:10px;">
       <div class="autocomplete-wrap search-field-wrap" style="max-width:340px;display:flex;">
         <span class="search-field-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
-        <input class="field" type="search" id="events-location-input" placeholder="Enter a city or address" autocomplete="off" style="border-radius:8px 0 0 8px;border-right:none;" data-i18n-placeholder="events.locationPlaceholder">
+        <div class="search-clear-wrap" style="flex:1;min-width:0;">
+          <input class="field" type="search" id="events-location-input" placeholder="Enter a city or address" autocomplete="off" style="border-radius:8px 0 0 8px;border-right:none;" data-i18n-placeholder="events.locationPlaceholder">
+          <button type="button" class="search-clear-btn" id="events-location-clear-btn" aria-label="Clear location" data-i18n-title="common.clearSearch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+        </div>
         <button id="events-location-search-btn" style="background:var(--gold);color:var(--brand);border:none;padding:0 16px;border-radius:0 8px 8px 0;cursor:pointer;" aria-label="Search location" data-i18n-title="common.searchLocation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;display:block;"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></button>
         <div class="autocomplete-list" id="events-location-list"></div>
       </div>
@@ -5804,7 +5817,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-14-v10 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-14-v11 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -8877,6 +8890,19 @@
   }
   window.syncDirKeywordClearBtn = wireSearchClearBtn('dir-keyword-input', 'dir-keyword-clear-btn', debouncedRenderDirectory);
   wireSearchClearBtn('events-keyword-input', 'events-keyword-clear-btn', debouncedRenderEvents);
+  // Location fields' own clear buttons -- onClear calls
+  // window.clearDirLocation() (defined further down, in a different
+  // enclosing scope than this code -- confirmed the hard way, a bare
+  // `clearDirLocation()` reference here throws ReferenceError even
+  // though it's a plain function declaration, so this file's several
+  // separate scopes really don't share each other's locals the way a
+  // single flat script would; window.* is the only reliable bridge,
+  // same as every other cross-scope reference in this file), not a
+  // debounced render, since clearing location needs to reset the
+  // shared lat/lng state and the OTHER page's synced field too, not
+  // just re-run a search.
+  window.syncDirLocationClearBtn = wireSearchClearBtn('dir-location-input', 'dir-location-clear-btn', function(){ window.clearDirLocation(); });
+  window.syncEventsLocationClearBtn = wireSearchClearBtn('events-location-input', 'events-location-clear-btn', function(){ window.clearDirLocation(); });
 
   document.addEventListener('change', function(ev){
     if(ev.target.id === 'filter-has-events'){
@@ -9582,6 +9608,11 @@
     if (input && label) input.value = label;
     var eventsInput = document.getElementById('events-location-input');
     if (eventsInput && label) eventsInput.value = label;
+    // Same as clearDirLocation() below -- a programmatic .value write
+    // doesn't fire 'input', so the clear buttons' own visibility
+    // listeners never see this change unless re-synced explicitly.
+    if (typeof window.syncDirLocationClearBtn === 'function') window.syncDirLocationClearBtn();
+    if (typeof window.syncEventsLocationClearBtn === 'function') window.syncEventsLocationClearBtn();
     if (typeof window.renderDirectory === 'function') window.renderDirectory();
     if (typeof window.renderHomeChurches === 'function') window.renderHomeChurches();
     if (typeof window.renderEvents === 'function') window.renderEvents();
@@ -9599,6 +9630,46 @@
       if (eventsHeading) eventsHeading.textContent = window.t('home.upcomingEventsNear') + ' ' + label;
     }
   }
+
+  // Undoes everything setDirLocation() above does -- same shared state
+  // (window.dirUserLat/Lng), same two synced text fields, same two
+  // home headings, so clearing from either the Directory or the
+  // Events location field's own clear button has to reset all of it,
+  // not just the one field that was clicked, or the other page (and
+  // the home headings) would keep showing a location that's no longer
+  // actually being filtered on. Deliberately does NOT touch
+  // hero-location-input's text -- unlike the fields this clears, nothing
+  // already keeps that one FORCE-synced (setDirLocation only fills it
+  // when blank), and clearing it could wipe out text someone's mid-
+  // typing there for an unrelated hero search -- out of scope for what
+  // was asked (the Directory/Events location fields specifically).
+  function clearDirLocation(){
+    window.dirUserLat = null;
+    window.dirUserLng = null;
+    var input = document.getElementById('dir-location-input');
+    if (input) input.value = '';
+    var eventsInput = document.getElementById('events-location-input');
+    if (eventsInput) eventsInput.value = '';
+    var dirStatus = document.getElementById('dir-location-status');
+    if (dirStatus) dirStatus.textContent = '';
+    var eventsStatus = document.getElementById('events-location-status');
+    if (eventsStatus) eventsStatus.textContent = '';
+    var churchHeadingEl = document.getElementById('home-church-heading');
+    if (churchHeadingEl) churchHeadingEl.textContent = window.t('home.churchesNearYou');
+    var eventsHeadingEl = document.getElementById('home-events-heading');
+    if (eventsHeadingEl) eventsHeadingEl.textContent = window.t('home.upcomingEvents');
+    // Neither field's own 'input' listener fires for a programmatic
+    // .value assignment, so each clear button's visibility has to be
+    // re-synced explicitly here too (same reasoning as
+    // syncDirKeywordClearBtn in goToDirectoryFromHero()).
+    if (typeof window.syncDirLocationClearBtn === 'function') window.syncDirLocationClearBtn();
+    if (typeof window.syncEventsLocationClearBtn === 'function') window.syncEventsLocationClearBtn();
+    if (typeof window.renderDirectory === 'function') window.renderDirectory();
+    if (typeof window.renderHomeChurches === 'function') window.renderHomeChurches();
+    if (typeof window.renderEvents === 'function') window.renderEvents();
+    if (typeof window.renderHomeEvents === 'function') window.renderHomeEvents();
+  }
+  window.clearDirLocation = clearDirLocation;
 
   // Quietly attempts geolocation once on load so the homepage shows
   // "near you" content immediately, the way Eventbrite does — falls
