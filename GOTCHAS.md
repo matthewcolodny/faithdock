@@ -1762,6 +1762,20 @@ Build `2026-09-14-v8`.
 
 ---
 
+## Real bug: a multi-church owner's URL silently rewrote to #dashboard/churches while sitting on any other page
+
+Reported with three screenshots: refreshing on `#home` while signed in changed the URL bar to `#dashboard/churches` but the page kept showing the hero content; a further refresh actually landed on the dashboard's multi-church "Overview" grid. Root-caused by reading the actual functions involved, not guessed from the symptom.
+
+**Root cause**: `loadDashboardHeader()` -- called unconditionally as a bare top-level statement on every page load, and again from the general auth-state-refresh batch (session restore included) -- has logic meant for exactly one case: "bare `#dashboard`, multi-church owner -> default to the Overview grid instead of a single church's Events tab." That logic was gated only on `!curDashKey` (`resolveRouteFromHash(location.hash).key` being falsy), never on whether the current route's *base* was actually `dashboard`. `resolveRouteFromHash()` returns a falsy `.key` for `#home`, `#directory`, and literally every route without a `/<key>` suffix -- so a multi-church owner landing on almost any page got silently redirected into calling `goDash('churches', true)`, which does `history.replaceState`-based URL rewriting to `#dashboard/churches` but has zero awareness of, or effect on, which top-level `.page` element is actually visible. That's exactly the observed mismatch: URL says dashboard, rendered content doesn't change until a fresh page load resolves the now-wrong hash for real.
+
+**Fix**: added a `curRoute.base === 'dashboard'` check alongside the existing `!curDashKey` one, so the Overview-default redirect only fires when genuinely already on the dashboard route with no sub-key -- never from `#home`, `#directory`, or anywhere else. Single point of fix inside `loadDashboardHeader()` itself protects every call site (the bare top-level call, the auth-refresh batch, and the post-church-creation call) rather than requiring each caller to remember to gate it.
+
+**Verified the guard logic in isolation**, not the full end-to-end flow -- this repo has no way to simulate a real multi-church-owner login from this environment. Ran the exact same condition against `resolveRouteFromHash()`'s real output for 5 cases: `#home` (multi-owner) and `#directory` (multi-owner) both now correctly skip the redirect (the reported bug, confirmed fixed); bare `#dashboard` as a multi-owner still correctly redirects (the legitimate, intended case); bare `#dashboard` as a single-church owner still correctly does nothing; `#dashboard/settings` (multi-owner, already on a specific sub-page) correctly stays put. All 4 non-module `<script>` blocks pass `node --check`. The actual live user-facing fix (does refreshing `#home` as a real multi-church owner stay on `#home` now) still needs confirmation from someone who can reproduce the original report against the deployed site.
+
+Build `2026-09-14-v9`.
+
+---
+
 ## Reported "Tx" casing + a Foursquare church badged "Non-denominational" — two separate data fixes
 
 A church card screenshot ("New Braunfels Central Tx Foursquare Church") surfaced two independent issues at once.

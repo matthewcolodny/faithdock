@@ -5786,7 +5786,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-14-v8 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-14-v9 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -10325,8 +10325,26 @@
       dashNavLink.setAttribute('data-i18n', dashNavKey);
       dashNavLink.textContent = window.t(dashNavKey);
     }
-    var curDashKey = (typeof window.resolveRouteFromHash === 'function') ? window.resolveRouteFromHash(location.hash).key : null;
-    if (window._dashMultiOwner && !curDashKey) {
+    var curRoute = (typeof window.resolveRouteFromHash === 'function') ? window.resolveRouteFromHash(location.hash) : null;
+    var curDashKey = curRoute ? curRoute.key : null;
+    // REAL BUG FIXED HERE, found via a user report (screenshots showing
+    // the URL silently rewritten to #dashboard/churches while still
+    // sitting on #home, then landing on the dashboard for real after a
+    // second refresh): this used to be `if (window._dashMultiOwner &&
+    // !curDashKey)`, with no check that the current route was actually
+    // `dashboard` at all. loadDashboardHeader() runs unconditionally on
+    // every page load (a bare top-level call) and on every auth-state
+    // refresh (session restore included), regardless of which page is
+    // showing -- #home, #directory, anywhere -- and `resolveRouteFromHash()`
+    // returns a falsy `.key` for every one of those too (only
+    // `#dashboard/<key>`-shaped hashes have one), so `!curDashKey` was
+    // true almost everywhere, not just on bare `#dashboard`. That
+    // silently called goDash('churches', true), which rewrites
+    // location.hash to #dashboard/churches without ever telling the
+    // page router to actually switch pages -- hence the mismatch: URL
+    // says dashboard, rendered content stays whatever it was, until a
+    // fresh page load actually resolves the (now-wrong) hash.
+    if (window._dashMultiOwner && curRoute && curRoute.base === 'dashboard' && !curDashKey) {
       // Bare #dashboard -> land on the Overview grid rather than a
       // single church's Events tab.
       if (typeof window.goDash === 'function') window.goDash('churches', true);
