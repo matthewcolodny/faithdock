@@ -200,8 +200,8 @@
       'denom.churchOfGod': 'Church of God', 'denom.churchOfChrist': 'Church of Christ', 'denom.apostolic': 'Apostolic',
       'denom.orthodox': 'Orthodox', 'denom.protestantEvangelical': 'Protestant / Evangelical', 'denom.nazarene': 'Nazarene',
       'denom.anglican': 'Anglican', 'denom.jewish': 'Jewish', 'denom.adventist': 'Adventist', 'denom.protestant': 'Protestant',
-      'filters.tradition': 'Tradition', 'filters.family': 'Family', 'filters.movement': 'Movement',
-      'filters.searchTradition': 'Search tradition...',
+      'filters.tradition': 'Filter', 'filters.family': 'Denomination', 'filters.movement': 'Movement', 'rc.denomOptgroupFamily': 'Family',
+      'filters.searchTradition': 'Search',
       'filters.oneChurchFound': 'church found', 'filters.manyChurchesFound': 'churches found',
       'filters.noChurchesMatch': 'No churches match these filters. Try widening your search.',
       'rc.churchName': 'Church name', 'rc.denomination': 'Denomination', 'rc.selectOne': 'Select one', 'rc.other': 'Other',
@@ -958,8 +958,8 @@
       'denom.churchOfGod': 'Iglesia de Dios', 'denom.churchOfChrist': 'Iglesia de Cristo', 'denom.apostolic': 'Apostólica',
       'denom.orthodox': 'Ortodoxa', 'denom.protestantEvangelical': 'Protestante / Evangélica', 'denom.nazarene': 'Nazarena',
       'denom.anglican': 'Anglicana', 'denom.jewish': 'Judía', 'denom.adventist': 'Adventista', 'denom.protestant': 'Protestante',
-      'filters.tradition': 'Tradición', 'filters.family': 'Familia', 'filters.movement': 'Movimiento',
-      'filters.searchTradition': 'Buscar tradición...',
+      'filters.tradition': 'Filtro', 'filters.family': 'Denominación', 'filters.movement': 'Movimiento', 'rc.denomOptgroupFamily': 'Familia',
+      'filters.searchTradition': 'Buscar',
       'filters.oneChurchFound': 'iglesia encontrada', 'filters.manyChurchesFound': 'iglesias encontradas',
       'filters.noChurchesMatch': 'Ninguna iglesia coincide con estos filtros. Intenta ampliar tu búsqueda.',
       'rc.churchName': 'Nombre de la iglesia', 'rc.denomination': 'Denominación', 'rc.selectOne': 'Selecciona una', 'rc.other': 'Otra',
@@ -2210,12 +2210,17 @@
   .filter-group h4{font-family:'Fraunces';font-size:14px;color:var(--ink);margin-bottom:12px;}
   .filter-check{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--ink-soft);margin-bottom:9px;cursor:pointer;}
   .filter-check input{accent-color:var(--brand);width:14px;height:14px;flex-shrink:0;}
-  /* Sub-heading inside the Tradition dropdown, splitting the checklist
-     into Family (Protestant/Catholic/Orthodox/Non-denominational)
-     and Movement (Baptist, Methodist, ...) groups -- purely a visual
-     grouping label, not its own checkbox or filter-check row. */
-  .filter-subgroup-label{font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:var(--ink-mute);margin:4px 0 6px;}
-  .filter-subgroup-label:first-child{margin-top:0;}
+  /* Filter dropdown: each denomination (Protestant/Catholic/Orthodox/
+     Non-denominational) is its own parent checkbox, with its specific
+     movements -- plus a per-denomination "Other" catch-all -- nested
+     as indented child checkboxes underneath it. Checking or unchecking
+     the parent cascades to every child underneath it (see the
+     denom-filter change listener). Christian / General sits outside
+     this tree entirely, as its own standalone checkbox, since it isn't
+     a specific movement within one denomination the way Baptist or
+     Methodist is. */
+  .filter-check-parent{font-weight:600;}
+  .filter-check-child{margin-left:20px;}
   select.field{width:100%;padding:9px 10px;font-size:13.5px;}
   /* Mobile-only "Filter searches" collapse, shared by the Directory
      (Churches) and Events page filter panels — hidden on desktop,
@@ -2931,38 +2936,39 @@
         </button>
         <div class="filter-panel-body" id="dir-filter-body">
         <div class="filter-group">
-          <h4 data-i18n="filters.tradition">Tradition</h4>
+          <h4 data-i18n="filters.tradition">Filter</h4>
           <button type="button" id="denom-dropdown-btn" style="width:100%;padding:9px 10px;font-size:13.5px;color:var(--ink);border:1px solid var(--line);border-radius:8px;background:var(--card);display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
             <span id="denom-dropdown-label" data-i18n="filters.allSelected">All selected</span>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;flex-shrink:0;"><path d="M6 9l6 6 6-6"/></svg>
           </button>
           <div id="denom-dropdown-panel" style="display:none;position:absolute;background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,0.16);padding:12px;z-index:200;max-height:min(440px, calc(100vh - 140px));overflow-y:auto;">
-            <input class="field" type="text" id="filter-denom-search" placeholder="Search tradition..." style="margin-bottom:10px;" data-i18n-placeholder="filters.searchTradition">
+            <input class="field" type="text" id="filter-denom-search" placeholder="Search" style="margin-bottom:10px;" data-i18n-placeholder="filters.searchTradition">
             <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:12px;">
               <button type="button" id="denom-select-all-btn" style="background:none;border:none;padding:0;color:var(--gold);border-bottom:1px solid var(--gold);cursor:pointer;font-size:12px;" data-i18n="filters.selectAll">Select all</button>
               <button type="button" id="denom-clear-all-btn" style="background:none;border:none;padding:0;color:var(--ink-mute);border-bottom:1px solid var(--ink-mute);cursor:pointer;font-size:12px;" data-i18n="filters.uncheckAll">Uncheck all</button>
             </div>
             <div id="filter-denom-checks">
-              <div class="filter-subgroup-label" data-i18n="filters.family">Family</div>
-              <label class="filter-check"><input type="checkbox" class="denom-filter" value="Protestant" checked> <span data-i18n="denom.protestant">Protestant</span></label>
-              <label class="filter-check"><input type="checkbox" class="denom-filter" value="Catholic" checked> <span data-i18n="denom.catholic">Catholic</span></label>
-              <label class="filter-check"><input type="checkbox" class="denom-filter" value="Orthodox" checked> <span data-i18n="denom.orthodox">Orthodox</span></label>
-              <label class="filter-check"><input type="checkbox" class="denom-filter" value="Non-denominational" checked> <span data-i18n="denom.nonDenominational">Non-denominational</span></label>
-              <div class="filter-subgroup-label" data-i18n="filters.movement">Movement</div>
-              <label class="filter-check"><input type="checkbox" class="denom-filter" value="Baptist" checked> <span data-i18n="denom.baptist">Baptist</span></label>
-              <label class="filter-check"><input type="checkbox" class="denom-filter" value="Episcopal" checked> <span data-i18n="denom.episcopal">Episcopal</span></label>
-              <label class="filter-check"><input type="checkbox" class="denom-filter" value="Lutheran" checked> <span data-i18n="denom.lutheran">Lutheran</span></label>
-              <label class="filter-check"><input type="checkbox" class="denom-filter" value="Methodist" checked> <span data-i18n="denom.methodist">Methodist</span></label>
-              <label class="filter-check"><input type="checkbox" class="denom-filter" value="Pentecostal" checked> <span data-i18n="denom.pentecostal">Pentecostal</span></label>
-              <label class="filter-check"><input type="checkbox" class="denom-filter" value="Presbyterian" checked> <span data-i18n="denom.presbyterian">Presbyterian</span></label>
-              <label class="filter-check"><input type="checkbox" class="denom-filter" value="Anglican" checked> <span data-i18n="denom.anglican">Anglican</span></label>
-              <label class="filter-check"><input type="checkbox" class="denom-filter" value="Adventist" checked> <span data-i18n="denom.adventist">Adventist</span></label>
-              <label class="filter-check"><input type="checkbox" class="denom-filter" value="Church of God" checked> <span data-i18n="denom.churchOfGod">Church of God</span></label>
-              <label class="filter-check"><input type="checkbox" class="denom-filter" value="Church of Christ" checked> <span data-i18n="denom.churchOfChrist">Church of Christ</span></label>
-              <label class="filter-check"><input type="checkbox" class="denom-filter" value="Apostolic" checked> <span data-i18n="denom.apostolic">Apostolic</span></label>
-              <label class="filter-check"><input type="checkbox" class="denom-filter" value="Nazarene" checked> <span data-i18n="denom.nazarene">Nazarene</span></label>
+              <label class="filter-check filter-check-parent"><input type="checkbox" class="denom-filter denom-parent" data-denom-parent="Protestant" value="Protestant" checked> <span data-i18n="denom.protestant">Protestant</span></label>
+              <label class="filter-check filter-check-child"><input type="checkbox" class="denom-filter denom-child" data-denom-parent="Protestant" value="Baptist" checked> <span data-i18n="denom.baptist">Baptist</span></label>
+              <label class="filter-check filter-check-child"><input type="checkbox" class="denom-filter denom-child" data-denom-parent="Protestant" value="Episcopal" checked> <span data-i18n="denom.episcopal">Episcopal</span></label>
+              <label class="filter-check filter-check-child"><input type="checkbox" class="denom-filter denom-child" data-denom-parent="Protestant" value="Lutheran" checked> <span data-i18n="denom.lutheran">Lutheran</span></label>
+              <label class="filter-check filter-check-child"><input type="checkbox" class="denom-filter denom-child" data-denom-parent="Protestant" value="Methodist" checked> <span data-i18n="denom.methodist">Methodist</span></label>
+              <label class="filter-check filter-check-child"><input type="checkbox" class="denom-filter denom-child" data-denom-parent="Protestant" value="Pentecostal" checked> <span data-i18n="denom.pentecostal">Pentecostal</span></label>
+              <label class="filter-check filter-check-child"><input type="checkbox" class="denom-filter denom-child" data-denom-parent="Protestant" value="Presbyterian" checked> <span data-i18n="denom.presbyterian">Presbyterian</span></label>
+              <label class="filter-check filter-check-child"><input type="checkbox" class="denom-filter denom-child" data-denom-parent="Protestant" value="Anglican" checked> <span data-i18n="denom.anglican">Anglican</span></label>
+              <label class="filter-check filter-check-child"><input type="checkbox" class="denom-filter denom-child" data-denom-parent="Protestant" value="Adventist" checked> <span data-i18n="denom.adventist">Adventist</span></label>
+              <label class="filter-check filter-check-child"><input type="checkbox" class="denom-filter denom-child" data-denom-parent="Protestant" value="Church of God" checked> <span data-i18n="denom.churchOfGod">Church of God</span></label>
+              <label class="filter-check filter-check-child"><input type="checkbox" class="denom-filter denom-child" data-denom-parent="Protestant" value="Church of Christ" checked> <span data-i18n="denom.churchOfChrist">Church of Christ</span></label>
+              <label class="filter-check filter-check-child"><input type="checkbox" class="denom-filter denom-child" data-denom-parent="Protestant" value="Apostolic" checked> <span data-i18n="denom.apostolic">Apostolic</span></label>
+              <label class="filter-check filter-check-child"><input type="checkbox" class="denom-filter denom-child" data-denom-parent="Protestant" value="Nazarene" checked> <span data-i18n="denom.nazarene">Nazarene</span></label>
+              <label class="filter-check filter-check-child"><input type="checkbox" class="denom-filter denom-child" data-denom-parent="Protestant" value="Other" checked> <span data-i18n="denom.other">Other</span></label>
+              <label class="filter-check filter-check-parent"><input type="checkbox" class="denom-filter denom-parent" data-denom-parent="Catholic" value="Catholic" checked> <span data-i18n="denom.catholic">Catholic</span></label>
+              <label class="filter-check filter-check-child"><input type="checkbox" class="denom-filter denom-child" data-denom-parent="Catholic" value="Other" checked> <span data-i18n="denom.other">Other</span></label>
+              <label class="filter-check filter-check-parent"><input type="checkbox" class="denom-filter denom-parent" data-denom-parent="Orthodox" value="Orthodox" checked> <span data-i18n="denom.orthodox">Orthodox</span></label>
+              <label class="filter-check filter-check-child"><input type="checkbox" class="denom-filter denom-child" data-denom-parent="Orthodox" value="Other" checked> <span data-i18n="denom.other">Other</span></label>
+              <label class="filter-check filter-check-parent"><input type="checkbox" class="denom-filter denom-parent" data-denom-parent="Non-denominational" value="Non-denominational" checked> <span data-i18n="denom.nonDenominational">Non-denominational</span></label>
+              <label class="filter-check filter-check-child"><input type="checkbox" class="denom-filter denom-child" data-denom-parent="Non-denominational" value="Other" checked> <span data-i18n="denom.other">Other</span></label>
               <label class="filter-check"><input type="checkbox" class="denom-filter" value="Christian / General" checked> <span data-i18n="denom.christianGeneral">Christian / General</span></label>
-              <label class="filter-check"><input type="checkbox" class="denom-filter" value="Other" checked id="denom-other-checkbox"> <span data-i18n="denom.other">Other</span></label>
             </div>
           </div>
         </div>
@@ -3091,38 +3097,39 @@
         </button>
         <div class="filter-panel-body" id="events-filter-body">
         <div class="filter-group">
-          <h4 data-i18n="filters.tradition">Tradition</h4>
+          <h4 data-i18n="filters.tradition">Filter</h4>
           <button type="button" id="events-denom-dropdown-btn" style="width:100%;padding:9px 10px;font-size:13.5px;color:var(--ink);border:1px solid var(--line);border-radius:8px;background:var(--card);display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
             <span id="events-denom-dropdown-label" data-i18n="filters.allSelected">All selected</span>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;flex-shrink:0;"><path d="M6 9l6 6 6-6"/></svg>
           </button>
           <div id="events-denom-dropdown-panel" style="display:none;position:absolute;background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,0.16);padding:12px;z-index:200;max-height:min(440px, calc(100vh - 140px));overflow-y:auto;">
-            <input class="field" type="text" id="events-filter-denom-search" placeholder="Search tradition..." style="margin-bottom:10px;" data-i18n-placeholder="filters.searchTradition">
+            <input class="field" type="text" id="events-filter-denom-search" placeholder="Search" style="margin-bottom:10px;" data-i18n-placeholder="filters.searchTradition">
             <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:12px;">
               <button type="button" id="events-denom-select-all-btn" style="background:none;border:none;padding:0;color:var(--gold);border-bottom:1px solid var(--gold);cursor:pointer;font-size:12px;" data-i18n="filters.selectAll">Select all</button>
               <button type="button" id="events-denom-clear-all-btn" style="background:none;border:none;padding:0;color:var(--ink-mute);border-bottom:1px solid var(--ink-mute);cursor:pointer;font-size:12px;" data-i18n="filters.uncheckAll">Uncheck all</button>
             </div>
             <div id="events-filter-denom-checks">
-              <div class="filter-subgroup-label" data-i18n="filters.family">Family</div>
-              <label class="filter-check"><input type="checkbox" class="events-denom-filter" value="Protestant" checked> <span data-i18n="denom.protestant">Protestant</span></label>
-              <label class="filter-check"><input type="checkbox" class="events-denom-filter" value="Catholic" checked> <span data-i18n="denom.catholic">Catholic</span></label>
-              <label class="filter-check"><input type="checkbox" class="events-denom-filter" value="Orthodox" checked> <span data-i18n="denom.orthodox">Orthodox</span></label>
-              <label class="filter-check"><input type="checkbox" class="events-denom-filter" value="Non-denominational" checked> <span data-i18n="denom.nonDenominational">Non-denominational</span></label>
-              <div class="filter-subgroup-label" data-i18n="filters.movement">Movement</div>
-              <label class="filter-check"><input type="checkbox" class="events-denom-filter" value="Baptist" checked> <span data-i18n="denom.baptist">Baptist</span></label>
-              <label class="filter-check"><input type="checkbox" class="events-denom-filter" value="Episcopal" checked> <span data-i18n="denom.episcopal">Episcopal</span></label>
-              <label class="filter-check"><input type="checkbox" class="events-denom-filter" value="Lutheran" checked> <span data-i18n="denom.lutheran">Lutheran</span></label>
-              <label class="filter-check"><input type="checkbox" class="events-denom-filter" value="Methodist" checked> <span data-i18n="denom.methodist">Methodist</span></label>
-              <label class="filter-check"><input type="checkbox" class="events-denom-filter" value="Pentecostal" checked> <span data-i18n="denom.pentecostal">Pentecostal</span></label>
-              <label class="filter-check"><input type="checkbox" class="events-denom-filter" value="Presbyterian" checked> <span data-i18n="denom.presbyterian">Presbyterian</span></label>
-              <label class="filter-check"><input type="checkbox" class="events-denom-filter" value="Anglican" checked> <span data-i18n="denom.anglican">Anglican</span></label>
-              <label class="filter-check"><input type="checkbox" class="events-denom-filter" value="Adventist" checked> <span data-i18n="denom.adventist">Adventist</span></label>
-              <label class="filter-check"><input type="checkbox" class="events-denom-filter" value="Church of God" checked> <span data-i18n="denom.churchOfGod">Church of God</span></label>
-              <label class="filter-check"><input type="checkbox" class="events-denom-filter" value="Church of Christ" checked> <span data-i18n="denom.churchOfChrist">Church of Christ</span></label>
-              <label class="filter-check"><input type="checkbox" class="events-denom-filter" value="Apostolic" checked> <span data-i18n="denom.apostolic">Apostolic</span></label>
-              <label class="filter-check"><input type="checkbox" class="events-denom-filter" value="Nazarene" checked> <span data-i18n="denom.nazarene">Nazarene</span></label>
+              <label class="filter-check filter-check-parent"><input type="checkbox" class="events-denom-filter events-denom-parent" data-denom-parent="Protestant" value="Protestant" checked> <span data-i18n="denom.protestant">Protestant</span></label>
+              <label class="filter-check filter-check-child"><input type="checkbox" class="events-denom-filter events-denom-child" data-denom-parent="Protestant" value="Baptist" checked> <span data-i18n="denom.baptist">Baptist</span></label>
+              <label class="filter-check filter-check-child"><input type="checkbox" class="events-denom-filter events-denom-child" data-denom-parent="Protestant" value="Episcopal" checked> <span data-i18n="denom.episcopal">Episcopal</span></label>
+              <label class="filter-check filter-check-child"><input type="checkbox" class="events-denom-filter events-denom-child" data-denom-parent="Protestant" value="Lutheran" checked> <span data-i18n="denom.lutheran">Lutheran</span></label>
+              <label class="filter-check filter-check-child"><input type="checkbox" class="events-denom-filter events-denom-child" data-denom-parent="Protestant" value="Methodist" checked> <span data-i18n="denom.methodist">Methodist</span></label>
+              <label class="filter-check filter-check-child"><input type="checkbox" class="events-denom-filter events-denom-child" data-denom-parent="Protestant" value="Pentecostal" checked> <span data-i18n="denom.pentecostal">Pentecostal</span></label>
+              <label class="filter-check filter-check-child"><input type="checkbox" class="events-denom-filter events-denom-child" data-denom-parent="Protestant" value="Presbyterian" checked> <span data-i18n="denom.presbyterian">Presbyterian</span></label>
+              <label class="filter-check filter-check-child"><input type="checkbox" class="events-denom-filter events-denom-child" data-denom-parent="Protestant" value="Anglican" checked> <span data-i18n="denom.anglican">Anglican</span></label>
+              <label class="filter-check filter-check-child"><input type="checkbox" class="events-denom-filter events-denom-child" data-denom-parent="Protestant" value="Adventist" checked> <span data-i18n="denom.adventist">Adventist</span></label>
+              <label class="filter-check filter-check-child"><input type="checkbox" class="events-denom-filter events-denom-child" data-denom-parent="Protestant" value="Church of God" checked> <span data-i18n="denom.churchOfGod">Church of God</span></label>
+              <label class="filter-check filter-check-child"><input type="checkbox" class="events-denom-filter events-denom-child" data-denom-parent="Protestant" value="Church of Christ" checked> <span data-i18n="denom.churchOfChrist">Church of Christ</span></label>
+              <label class="filter-check filter-check-child"><input type="checkbox" class="events-denom-filter events-denom-child" data-denom-parent="Protestant" value="Apostolic" checked> <span data-i18n="denom.apostolic">Apostolic</span></label>
+              <label class="filter-check filter-check-child"><input type="checkbox" class="events-denom-filter events-denom-child" data-denom-parent="Protestant" value="Nazarene" checked> <span data-i18n="denom.nazarene">Nazarene</span></label>
+              <label class="filter-check filter-check-child"><input type="checkbox" class="events-denom-filter events-denom-child" data-denom-parent="Protestant" value="Other" checked> <span data-i18n="denom.other">Other</span></label>
+              <label class="filter-check filter-check-parent"><input type="checkbox" class="events-denom-filter events-denom-parent" data-denom-parent="Catholic" value="Catholic" checked> <span data-i18n="denom.catholic">Catholic</span></label>
+              <label class="filter-check filter-check-child"><input type="checkbox" class="events-denom-filter events-denom-child" data-denom-parent="Catholic" value="Other" checked> <span data-i18n="denom.other">Other</span></label>
+              <label class="filter-check filter-check-parent"><input type="checkbox" class="events-denom-filter events-denom-parent" data-denom-parent="Orthodox" value="Orthodox" checked> <span data-i18n="denom.orthodox">Orthodox</span></label>
+              <label class="filter-check filter-check-child"><input type="checkbox" class="events-denom-filter events-denom-child" data-denom-parent="Orthodox" value="Other" checked> <span data-i18n="denom.other">Other</span></label>
+              <label class="filter-check filter-check-parent"><input type="checkbox" class="events-denom-filter events-denom-parent" data-denom-parent="Non-denominational" value="Non-denominational" checked> <span data-i18n="denom.nonDenominational">Non-denominational</span></label>
+              <label class="filter-check filter-check-child"><input type="checkbox" class="events-denom-filter events-denom-child" data-denom-parent="Non-denominational" value="Other" checked> <span data-i18n="denom.other">Other</span></label>
               <label class="filter-check"><input type="checkbox" class="events-denom-filter" value="Christian / General" checked> <span data-i18n="denom.christianGeneral">Christian / General</span></label>
-              <label class="filter-check"><input type="checkbox" class="events-denom-filter" value="Other" checked id="events-denom-other-checkbox"> <span data-i18n="denom.other">Other</span></label>
             </div>
           </div>
         </div>
@@ -4324,7 +4331,7 @@
       <label data-i18n="rc.denomination">Denomination</label>
       <select class="field" id="rc-denomination">
         <option value="" data-i18n="rc.selectOne">Select one</option>
-        <optgroup label="Family" data-i18n-label="filters.family">
+        <optgroup label="Family" data-i18n-label="rc.denomOptgroupFamily">
           <option value="Protestant" data-i18n="denom.protestant">Protestant</option>
           <option value="Catholic" data-i18n="denom.catholic">Catholic</option>
           <option value="Orthodox" data-i18n="denom.orthodox">Orthodox</option>
@@ -5669,7 +5676,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-14-v1 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-14-v2 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -7602,6 +7609,20 @@
   }
   document.addEventListener('change', function(ev){
     if (ev.target.classList && ev.target.classList.contains('denom-filter')) {
+      // A denomination (parent) checkbox cascades to every movement --
+      // and that denomination's own "Other" -- nested under it:
+      // checking the denomination checks all of them, unchecking it
+      // unchecks all of them. One-directional only (an individual
+      // movement checkbox does not reach back up to toggle its
+      // parent), matching what was asked for. Runs before the later
+      // change listener that actually re-queries the DOM and
+      // re-renders, so the cascade is already applied by the time that
+      // reads these checkboxes.
+      if (ev.target.classList.contains('denom-parent')) {
+        var denomParentValue = ev.target.getAttribute('data-denom-parent');
+        var denomParentChecked = ev.target.checked;
+        document.querySelectorAll('.denom-child[data-denom-parent="' + denomParentValue + '"]').forEach(function(c){ c.checked = denomParentChecked; });
+      }
       updateDenomDropdownLabel();
     }
   });
@@ -7669,6 +7690,14 @@
   }
   document.addEventListener('change', function(ev){
     if (ev.target.classList && ev.target.classList.contains('events-denom-filter')) {
+      // Same denomination -> movements cascade as the Directory's own
+      // denom-filter change listener above -- see its comment for the
+      // reasoning.
+      if (ev.target.classList.contains('events-denom-parent')) {
+        var eventsDenomParentValue = ev.target.getAttribute('data-denom-parent');
+        var eventsDenomParentChecked = ev.target.checked;
+        document.querySelectorAll('.events-denom-child[data-denom-parent="' + eventsDenomParentValue + '"]').forEach(function(c){ c.checked = eventsDenomParentChecked; });
+      }
       updateEventsDenomDropdownLabel();
       if (typeof window.renderEvents === 'function') window.renderEvents();
     }
@@ -7860,7 +7889,18 @@
     if (f.denomSearch) {
       denominations = ALL_TRADITION_TAGS.filter(function(d){ return d.toLowerCase().indexOf(f.denomSearch.toLowerCase()) !== -1; });
     } else if (f.checkedDenoms.indexOf('Other') !== -1) {
-      denominations = null; // "Other" selected alongside/without specific ones — no tradition narrowing, rely on core-list membership being handled by not filtering
+      // "Other" selected -- no tradition narrowing, rely on core-list
+      // membership being handled by not filtering. The checklist now
+      // renders a separate "Other" checkbox nested under each
+      // denomination (Protestant/Catholic/Orthodox/Non-denominational)
+      // rather than one single checkbox, but there's still only one
+      // real underlying concept here -- a church whose denomination
+      // doesn't map to any known tag at all -- so any one of those
+      // four checkboxes being checked triggers this same "show
+      // everything" bypass. This is an existing, deliberate
+      // simplification (not new), just now reachable from four places
+      // instead of one.
+      denominations = null;
     } else {
       // Was `else if (f.checkedDenoms.length)` -- falsy at exactly 0
       // checked, so "Uncheck all" fell all the way through to the
@@ -8458,7 +8498,10 @@
     if (eventsDenomSearch) {
       eventsDenomFilterList = ALL_TRADITION_TAGS.filter(function(d){ return d.toLowerCase().indexOf(eventsDenomSearch.toLowerCase()) !== -1; });
     } else if (eventsCheckedDenoms.indexOf('Other') !== -1) {
-      eventsDenomFilterList = null; // same simplification as the Directory filter — "Other" selected means no narrowing, rather than trying to express "not in the core list"
+      // Same simplification as the Directory filter, and the same
+      // note about it now being reachable from four per-denomination
+      // "Other" checkboxes instead of one -- see that comment.
+      eventsDenomFilterList = null;
     } else if (eventsCheckedDenoms.length < eventsDenomChecks.length) {
       eventsDenomFilterList = eventsCheckedDenoms;
     }
