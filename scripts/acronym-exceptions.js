@@ -55,7 +55,7 @@ const path = require('path');
 // ---------------------------------------------------------------------
 const ACRONYM_EXCEPTIONS = [
   // Regional
-  'SATX', 'RGV',
+  'SATX', 'RGV', 'TX',
   // Denominational / parachurch
   'UPCI', 'UMC', 'EFCA', 'SBC', 'COGIC', 'AME', 'ELCA', 'PCA', 'AG'
 ];
@@ -91,6 +91,8 @@ function selftest() {
   eq(applyAcronymCasing('Mission Community Church- Efca'), 'Mission Community Church- EFCA', 'EFCA gets fixed');
   eq(applyAcronymCasing('Sherman Chapel Ame Church'), 'Sherman Chapel AME Church', 'AME gets fixed');
   eq(applyAcronymCasing('Christ Church Pca of San Antonio'), 'Christ Church PCA of San Antonio', 'PCA gets fixed');
+  eq(applyAcronymCasing('El Camino Christian Church Tx'), 'El Camino Christian Church TX', 'TX gets fixed');
+  eq(applyAcronymCasing('New Braunfels Central Tx Foursquare Church'), 'New Braunfels Central TX Foursquare Church', 'TX gets fixed mid-name too');
   eq(applyAcronymCasing('Already Correct SATX Church'), 'Already Correct SATX Church', 'already-correct input is a no-op');
   eq(applyAcronymCasing(applyAcronymCasing('Waypoint Church Satx')), 'Waypoint Church SATX', 'idempotent -- running twice is safe');
 
@@ -169,20 +171,25 @@ async function runScan(outPath) {
   }
 }
 
-(function main() {
-  const args = process.argv.slice(2);
-  if (args.includes('--selftest')) return selftest();
-  if (args.includes('--help') || args.includes('-h')) {
-    process.stderr.write('Usage: node scripts/acronym-exceptions.js [--out=<path>] [--selftest]\n');
-    process.exit(0);
-  }
-  const outArg = args.find(function (a) { return a.startsWith('--out='); });
-  const outPath = outArg ? outArg.slice('--out='.length) : path.join(process.cwd(), 'acronym_casing_fixes.sql');
+// Guarded so requiring this file as a library (church-name-hygiene.js
+// does) never triggers a live Supabase fetch as a side effect of just
+// loading the module -- only running it directly does.
+if (require.main === module) {
+  (function main() {
+    const args = process.argv.slice(2);
+    if (args.includes('--selftest')) return selftest();
+    if (args.includes('--help') || args.includes('-h')) {
+      process.stderr.write('Usage: node scripts/acronym-exceptions.js [--out=<path>] [--selftest]\n');
+      process.exit(0);
+    }
+    const outArg = args.find(function (a) { return a.startsWith('--out='); });
+    const outPath = outArg ? outArg.slice('--out='.length) : path.join(process.cwd(), 'acronym_casing_fixes.sql');
 
-  runScan(outPath).catch(function (err) {
-    process.stderr.write('Error: ' + err.message + '\n');
-    process.exit(1);
-  });
-})();
+    runScan(outPath).catch(function (err) {
+      process.stderr.write('Error: ' + err.message + '\n');
+      process.exit(1);
+    });
+  })();
+}
 
 module.exports = { ACRONYM_EXCEPTIONS, applyAcronymCasing };

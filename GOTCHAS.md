@@ -1737,3 +1737,15 @@ Build `2026-09-14-v5`.
 "See specific denominations" → "Advanced" for the `<details>/<summary>` toggle that expands each group's specific denominations (Catholic, Nontrinitarian / Other Christian, Orthodox, Protestant). Single shared `filters.specificBodies` i18n key drives all 8 instances (4 groups × Directory + Events), so one dict edit per language covered everything -- also updated the HTML fallback text in all 8 `<summary>` tags to match, per this file's usual convention of keeping the pre-translation fallback in sync with the EN dict value. ES: "Avanzado". Verified live in both languages on the Directory page.
 
 Build `2026-09-14-v6`.
+
+---
+
+## Reported "Tx" casing + a Foursquare church badged "Non-denominational" — two separate data fixes
+
+A church card screenshot ("New Braunfels Central Tx Foursquare Church") surfaced two independent issues at once.
+
+**1. "Tx" casing.** `scripts/acronym-exceptions.js`'s `TX` addition to `ACRONYM_EXCEPTIONS` (added earlier this session, but left uncommitted pending confirmation of an unrelated batch in the same file's history) was exactly the fix for this -- re-ran it live and it correctly caught the reported church plus 4 more. Committed the script on its own this time (`TX` in the exceptions list, 2 selftest cases, the `require.main === module` CLI guard) since it's now proven against a real, reported bug rather than still-unconfirmed -- `scripts/README.md` and `scripts/church-name-hygiene.js` stay held back separately, since that diff is unrelated (documents a different script) and still awaits the user's confirmation they ran `church_name_hygiene_fixes.sql`. Generated SQL as `san_antonio_metro_churches.fix_acronym_casing_tx.sql` (a new file, not overwriting the original 9-fix batch, which was confirmed already applied -- none of its rows appeared in this fresh scan).
+
+**2. Foursquare churches showing a "Non-denominational" badge.** Confirmed live against the database: all 3 Foursquare-named churches have `denomination_tags` already correctly `['Protestant', 'Pentecostal & Charismatic']` (migration 026's `compute_denomination_tags()` already matches "foursquare" in the name) -- so the Tradition *filter* was never wrong. The card *badge*, though, reads the single-value `denomination` column directly, which is `null` for all 3; the UI's own null-fallback (`row.denomination || 'Non-denominational'`, a deliberate default from earlier work so filter checkboxes still match) was what actually painted the misleading badge. Per the user's own confirmation ("foursquare churches are Pentecostal"), wrote `san_antonio_metro_churches.fix_denominations_foursquare.sql` setting `denomination = 'Pentecostal'` for all 3, id-scoped -- same shape as the pre-existing `fix_denominations.sql` (blank denomination, name states the tradition), extended rather than duplicated as its own follow-up file since that original batch was CSV-filename-scoped and these 3 weren't looked up that way.
+
+Both new `.sql` files are one-off, untracked, sent to the user to run by hand -- neither is a schema change, so no migration file needed.
