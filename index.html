@@ -5763,7 +5763,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-14-v3 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-14-v4 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -7950,6 +7950,7 @@
       keyword: keyword,
       denomSearch: denomSearch,
       checkedDenoms: checkedDenoms,
+      totalDenomChecks: checks.length,
       maxDist: maxDist,
       eventsWithin: eventsWithin
     };
@@ -7981,21 +7982,48 @@
     var denominations = null;
     if (f.denomSearch) {
       denominations = ALL_TRADITION_TAGS.filter(function(d){ return d.toLowerCase().indexOf(f.denomSearch.toLowerCase()) !== -1; });
-    } else if (f.checkedDenoms.indexOf('Other') !== -1) {
-      // "Other" selected -- no tradition narrowing, show everything. A
-      // single standalone checkbox (not nested under any group) -- a
-      // church whose denomination doesn't map to any of the groups at
-      // all (e.g. plain Jewish, Church of God, Church of Christ -- see
-      // migration 026's documented gaps) falls here.
+    } else if (f.checkedDenoms.length === f.totalDenomChecks) {
+      // Nothing has been unchecked at all (every box, including
+      // "Other", is still checked) -- functionally identical to "no
+      // filter," so skip sending a tag list.
+      //
+      // REAL BUG FIXED HERE, found via live testing: this used to be
+      // `else if (f.checkedDenoms.indexOf('Other') !== -1)` -- since
+      // "Other" defaults to checked and nothing in the UI nudges a
+      // user to uncheck it while narrowing by a specific denomination,
+      // that condition was true almost always, silently discarding
+      // every other checkbox's state and showing every church
+      // regardless of what was actually unchecked. Confirmed: unchecking
+      // Lutheran (or even the whole Protestant group) had zero effect
+      // on results as long as "Other" stayed checked, which is the
+      // default. This new condition only bypasses filtering when
+      // genuinely nothing was deselected.
       denominations = null;
+    } else if (f.checkedDenoms.length === 0) {
+      // "Uncheck all" -- an explicit empty array is a real, distinct
+      // value from null and correctly matches zero rows (null would
+      // mean "no filter," i.e. show every church, the opposite of what
+      // "Uncheck all" obviously means).
+      denominations = [];
     } else {
-      // Was `else if (f.checkedDenoms.length)` -- falsy at exactly 0
-      // checked, so "Uncheck all" fell all the way through to the
-      // unreachable default (denominations stays null, meaning "no
-      // filter," i.e. shows every church) instead of the obviously
-      // intended "show none." An explicit empty array here is a real,
-      // distinct value from null and correctly matches zero rows.
-      denominations = f.checkedDenoms;
+      // At least one box is unchecked but not all of them -- apply
+      // real narrowing. "Other" isn't a real tag (ALL_TRADITION_TAGS
+      // deliberately excludes it, and no church's denomination_tags
+      // array ever literally contains the string "Other"), so strip it
+      // before sending -- leaving it in would be harmless (never
+      // matches anything) but not meaningful.
+      //
+      // KNOWN GAP, not fixed here: if "Other" stays checked while some
+      // real tags get unchecked, a genuinely untagged/unclassified
+      // church (denomination_tags = {}) is now excluded too, even
+      // though "Other" being checked implies the user still wants to
+      // see those -- array-overlap (&&) can never match an empty
+      // array no matter what's in the list. Properly supporting that
+      // would need search_churches to accept a separate "include
+      // untagged" flag -- a real signature change, with migration
+      // 023's deploy-order hazard to repeat -- out of scope for this
+      // fix, which targets the reported bug above.
+      denominations = f.checkedDenoms.filter(function(v){ return v !== 'Other'; });
     }
 
     var baseParams = {
@@ -8584,12 +8612,18 @@
     var eventsDenomFilterList = null;
     if (eventsDenomSearch) {
       eventsDenomFilterList = ALL_TRADITION_TAGS.filter(function(d){ return d.toLowerCase().indexOf(eventsDenomSearch.toLowerCase()) !== -1; });
-    } else if (eventsCheckedDenoms.indexOf('Other') !== -1) {
-      // Same simplification as the Directory filter's standalone
-      // "Other" checkbox -- see that comment.
+    } else if (eventsCheckedDenoms.length === eventsDenomChecks.length) {
+      // Nothing has been unchecked at all -- functionally identical to
+      // "no filter." Same bug fix as the Directory filter's own
+      // version of this branch -- see that comment for the reasoning
+      // (this used to bypass filtering whenever "Other" alone was
+      // still checked, which is the default, silently ignoring every
+      // other checkbox's state).
       eventsDenomFilterList = null;
-    } else if (eventsCheckedDenoms.length < eventsDenomChecks.length) {
-      eventsDenomFilterList = eventsCheckedDenoms;
+    } else {
+      // "Other" isn't a real tag -- see the Directory filter's comment
+      // for why it's stripped here too.
+      eventsDenomFilterList = eventsCheckedDenoms.filter(function(v){ return v !== 'Other'; });
     }
     if (eventsDenomFilterList) {
       var denomChurchIds = [];
