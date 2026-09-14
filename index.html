@@ -278,7 +278,7 @@
       'common.loading': 'Loading...', 'common.loadMore': 'Load more', 'common.prev': 'Prev', 'common.next': 'Next', 'common.saved': 'Saved!', 'common.somethingWrong': 'Something went wrong.',
       'directory.viewCards': 'Cards', 'directory.viewList': 'List', 'directory.viewToggleLabel': 'View',
       'common.on': 'On', 'common.off': 'Off',
-      'common.close': 'Close', 'common.toggleDarkMode': 'Toggle dark mode', 'common.menu': 'Menu', 'common.searchLocation': 'Search location', 'common.dismiss': 'Dismiss',
+      'common.close': 'Close', 'common.toggleDarkMode': 'Toggle dark mode', 'common.menu': 'Menu', 'common.searchLocation': 'Search location', 'common.dismiss': 'Dismiss', 'common.clearSearch': 'Clear search',
       'common.previousMonth': 'Previous month', 'common.nextMonth': 'Next month',
       'shareModal.eyebrow': 'Share event', 'shareModal.scanToOpen': 'Scan to open, or print on a flyer', 'shareModal.copy': 'Copy',
       'staffPerms.eyebrow': 'Permissions', 'staffPerms.manageEvents': 'Create and manage events',
@@ -1058,7 +1058,7 @@
       'common.loading': 'Cargando...', 'common.loadMore': 'Cargar más', 'common.prev': 'Anterior', 'common.next': 'Siguiente', 'common.saved': '¡Guardado!', 'common.somethingWrong': 'Algo salió mal.',
       'directory.viewCards': 'Tarjetas', 'directory.viewList': 'Lista', 'directory.viewToggleLabel': 'Vista',
       'common.on': 'Activado', 'common.off': 'Desactivado',
-      'common.close': 'Cerrar', 'common.toggleDarkMode': 'Cambiar a modo oscuro', 'common.menu': 'Menú', 'common.searchLocation': 'Buscar ubicación', 'common.dismiss': 'Descartar',
+      'common.close': 'Cerrar', 'common.toggleDarkMode': 'Cambiar a modo oscuro', 'common.menu': 'Menú', 'common.searchLocation': 'Buscar ubicación', 'common.dismiss': 'Descartar', 'common.clearSearch': 'Limpiar búsqueda',
       'common.previousMonth': 'Mes anterior', 'common.nextMonth': 'Mes siguiente',
       'shareModal.eyebrow': 'Compartir evento', 'shareModal.scanToOpen': 'Escanea para abrir, o imprime en un volante', 'shareModal.copy': 'Copiar',
       'staffPerms.eyebrow': 'Permisos', 'staffPerms.manageEvents': 'Crear y administrar eventos',
@@ -2255,6 +2255,22 @@
   .search-field-wrap input.field{padding-left:38px;}
   .search-field-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--ink-mute);pointer-events:none;display:flex;}
   .search-field-icon svg{width:16px;height:16px;}
+  /* Clear ("x") button for the Directory/Events keyword search fields
+     specifically -- a dedicated class, not a blanket rule on
+     .search-field-wrap, since that class is shared with the home
+     hero's own keyword field (not part of what was reported/asked
+     for). Restores a quick-clear affordance that quietly disappeared
+     when type="search" inputs had their native webkit clear-button
+     explicitly turned off elsewhere in this stylesheet (for an
+     unrelated mobile-autofill fix). Hidden by default -- shown only
+     once the field actually has text, toggled in JS. */
+  .search-clear-wrap input.field{padding-right:32px;}
+  .search-clear-btn{
+    position:absolute;right:8px;top:50%;transform:translateY(-50%);
+    background:none;border:none;padding:4px;margin:0;cursor:pointer;color:var(--ink-mute);
+    display:none;align-items:center;justify-content:center;line-height:0;
+  }
+  .search-clear-btn svg{width:14px;height:14px;display:block;}
   /* On narrow screens, "Use my location" shrinks to just the pin icon
      so the address input has room to breathe — the label stays
      available via the title/aria-label set from data-i18n-title. */
@@ -2993,9 +3009,10 @@
     <h1 style="font-size:34px;" data-i18n="home.churchesNearYou">Churches near you</h1>
 
     <div class="location-row">
-      <div class="search-field-wrap" style="max-width:340px;">
+      <div class="search-field-wrap search-clear-wrap" style="max-width:340px;">
         <span class="search-field-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></span>
         <input class="field" type="search" id="dir-keyword-input" placeholder="Search by church name or keyword..." data-i18n-placeholder="filters.keywordPlaceholder" autocomplete="off">
+        <button type="button" class="search-clear-btn" id="dir-keyword-clear-btn" aria-label="Clear search" data-i18n-title="common.clearSearch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       </div>
     </div>
 
@@ -3121,9 +3138,10 @@
     <p style="color:var(--ink-mute);margin-top:8px;" data-i18n="events.subtitle">Public and members-only events across all listed churches</p>
 
     <div class="location-row">
-      <div class="search-field-wrap" style="max-width:340px;">
+      <div class="search-field-wrap search-clear-wrap" style="max-width:340px;">
         <span class="search-field-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></span>
         <input class="field" type="search" id="events-keyword-input" placeholder="Search events by name or keyword..." data-i18n-placeholder="events.keywordPlaceholder" autocomplete="off">
+        <button type="button" class="search-clear-btn" id="events-keyword-clear-btn" aria-label="Clear search" data-i18n-title="common.clearSearch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       </div>
     </div>
 
@@ -5786,7 +5804,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-14-v9 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-14-v10 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -8829,6 +8847,37 @@
     dirKeywordInput.addEventListener('input', debouncedRenderDirectory);
   }
 
+  // Directory/Events keyword fields' "x" clear button -- a real, live-
+  // reported gap: type="search" inputs had their native webkit clear
+  // button explicitly disabled elsewhere in this file (for an
+  // unrelated mobile-autofill fix), which silently took away the only
+  // way to quickly empty these two fields. Shown only once the field
+  // has text (checked on load too, not just on keystroke, since
+  // goToDirectoryFromHero() can land here with dir-keyword-input
+  // already pre-filled from the hero search). Returns the sync
+  // function so a caller that programmatically sets the input's value
+  // (rather than a real keystroke, which already fires 'input') can
+  // re-check visibility itself.
+  function wireSearchClearBtn(inputId, btnId, onClear){
+    var inputEl = document.getElementById(inputId);
+    var btnEl = document.getElementById(btnId);
+    if (!inputEl || !btnEl) return null;
+    function syncVisibility(){
+      btnEl.style.display = inputEl.value ? 'flex' : 'none';
+    }
+    inputEl.addEventListener('input', syncVisibility);
+    btnEl.addEventListener('click', function(){
+      inputEl.value = '';
+      syncVisibility();
+      inputEl.focus();
+      if (typeof onClear === 'function') onClear();
+    });
+    syncVisibility();
+    return syncVisibility;
+  }
+  window.syncDirKeywordClearBtn = wireSearchClearBtn('dir-keyword-input', 'dir-keyword-clear-btn', debouncedRenderDirectory);
+  wireSearchClearBtn('events-keyword-input', 'events-keyword-clear-btn', debouncedRenderEvents);
+
   document.addEventListener('change', function(ev){
     if(ev.target.id === 'filter-has-events'){
       var eventsDropdown = document.getElementById('filter-events');
@@ -9589,6 +9638,12 @@
     var typedLocation = heroInput ? heroInput.value.trim() : '';
     var keywordInput = document.getElementById('dir-keyword-input');
     if (keywordInput) keywordInput.value = typedKeyword;
+    // Programmatic value assignment above doesn't fire the 'input'
+    // event the clear button's own visibility toggle listens for, so
+    // it has to be re-synced explicitly here -- otherwise a hero
+    // search with a keyword lands on the directory with a filled
+    // field but no way to quickly clear it.
+    if (typeof window.syncDirKeywordClearBtn === 'function') window.syncDirKeywordClearBtn();
     // This box is a location field (it's pre-filled by geolocation
     // detection above), so its value belongs in the directory's
     // location input — not the keyword input. Keyword requires an

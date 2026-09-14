@@ -1776,6 +1776,20 @@ Build `2026-09-14-v9`.
 
 ---
 
+## Added a clear ("x") button to the Directory/Events keyword search fields
+
+Requested with a generic mockup showing a text field plus a "Clear" affordance. The underlying reason this was missing: `type="search"` inputs' native webkit clear-button was explicitly disabled site-wide earlier this session (`input[type="search"]::-webkit-search-cancel-button{-webkit-appearance:none;}`, part of the mobile-autofill fix) -- a side effect nobody replaced with an alternative, so these fields quietly lost their only quick-clear affordance.
+
+Scoped to exactly the two fields named (`#dir-keyword-input`, `#events-keyword-input`) -- deliberately NOT the home hero's own keyword field, even though it shares the same `.search-field-wrap` class, since that wasn't part of the request. Used a dedicated `.search-clear-wrap` class on the wrapping div rather than a blanket rule on `.search-field-wrap` itself, for exactly that reason. Button only shows once the field has text (JS-toggled on `input`), matching the reference mockup and standard search-clear UX (Google, native OS search fields) rather than always occupying visual space.
+
+**One real edge case caught and handled, not left as a gap**: `goToDirectoryFromHero()` can land on the Directory page with `#dir-keyword-input` already pre-filled (typing a keyword in the hero search and hitting Search carries it through) -- that's a programmatic `.value` assignment, which doesn't fire the `input` event the clear button's visibility toggle listens for. Exposed the wiring function's internal visibility-sync as `window.syncDirKeywordClearBtn` and call it explicitly right after that assignment, so the clear button correctly shows up immediately in that flow too, not just when someone types directly into the field. Verified live: typing a keyword in the hero and navigating to the directory shows the clear button already visible on arrival.
+
+Verified live on both pages: hidden by default, appears on typing, clicking clears the field, hides the button again, refocuses the input, and re-triggers the existing debounced render (so results actually refresh, not just the field). Spanish translation ("Limpiar búsqueda") confirmed correct. All 4 non-module `<script>` blocks pass `node --check`.
+
+Build `2026-09-14-v10`.
+
+---
+
 ## Multi-part data-quality report: Spanish-language tagging gaps, an Ethiopian Orthodox miss, casing, and a "Ministries" hide widening
 
 Reported live with real examples across 4 church cards. Checked the actual database state for each before writing anything, rather than assuming.
