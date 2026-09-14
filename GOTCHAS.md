@@ -1729,3 +1729,11 @@ Reported with a mobile screenshot: expanding the "Filter searches" collapse togg
 Verified live in both viewport sizes: desktop shows the toggle hidden and the heading visible reading "Filter searches"; mobile (375×812, expanded) shows the toggle visible reading "Filter searches" and the heading hidden -- confirmed on both Directory and Events pages, and confirmed the Spanish translation ("Filtrar búsqueda") resolves correctly for both. `filters.family`/`filters.movement` were noticed to be similarly orphaned (unused since the taxonomy v2 restructure replaced the old subgroup-label divs) but were left untouched -- out of scope for what was actually asked here.
 
 Build `2026-09-14-v5`.
+
+---
+
+## Renamed the Tradition filter's disclosure label to "Advanced"
+
+"See specific denominations" → "Advanced" for the `<details>/<summary>` toggle that expands each group's specific denominations (Catholic, Nontrinitarian / Other Christian, Orthodox, Protestant). Single shared `filters.specificBodies` i18n key drives all 8 instances (4 groups × Directory + Events), so one dict edit per language covered everything -- also updated the HTML fallback text in all 8 `<summary>` tags to match, per this file's usual convention of keeping the pre-translation fallback in sync with the EN dict value. ES: "Avanzado". Verified live in both languages on the Directory page.
+
+Build `2026-09-14-v6`.
