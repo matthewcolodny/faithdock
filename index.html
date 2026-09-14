@@ -200,7 +200,7 @@
       'denom.churchOfGod': 'Church of God', 'denom.churchOfChrist': 'Church of Christ', 'denom.apostolic': 'Apostolic',
       'denom.orthodox': 'Orthodox', 'denom.protestantEvangelical': 'Protestant / Evangelical', 'denom.nazarene': 'Nazarene',
       'denom.anglican': 'Anglican', 'denom.jewish': 'Jewish', 'denom.adventist': 'Adventist', 'denom.protestant': 'Protestant',
-      'filters.tradition': 'Filter', 'filters.family': 'Denomination', 'filters.movement': 'Movement', 'rc.denomOptgroupFamily': 'Family',
+      'filters.family': 'Denomination', 'filters.movement': 'Movement', 'rc.denomOptgroupFamily': 'Family',
       'filters.searchTradition': 'Search', 'filters.specificBodies': 'See specific denominations',
       'denom.trad.catholic': 'Catholic',
       'denom.trad.christianGeneral2': 'Christian / General',
@@ -980,7 +980,7 @@
       'denom.churchOfGod': 'Iglesia de Dios', 'denom.churchOfChrist': 'Iglesia de Cristo', 'denom.apostolic': 'Apostólica',
       'denom.orthodox': 'Ortodoxa', 'denom.protestantEvangelical': 'Protestante / Evangélica', 'denom.nazarene': 'Nazarena',
       'denom.anglican': 'Anglicana', 'denom.jewish': 'Judía', 'denom.adventist': 'Adventista', 'denom.protestant': 'Protestante',
-      'filters.tradition': 'Filtro', 'filters.family': 'Denominación', 'filters.movement': 'Movimiento', 'rc.denomOptgroupFamily': 'Familia',
+      'filters.family': 'Denominación', 'filters.movement': 'Movimiento', 'rc.denomOptgroupFamily': 'Familia',
       'filters.searchTradition': 'Buscar', 'filters.specificBodies': 'Ver denominaciones específicas',
       'denom.trad.catholic': 'Católica',
       'denom.trad.christianGeneral2': 'Cristiana / General',
@@ -2300,6 +2300,11 @@
     .filter-panel-toggle[aria-expanded="true"] svg{transform:rotate(180deg);}
     .filter-panel-body{display:none;margin-top:18px;}
     .filter-panel-body.open{display:block;}
+    /* The Tradition/Denomination section's own heading duplicates the
+       .filter-panel-toggle above it once expanded on mobile -- both
+       read "Filter searches". Desktop has no toggle at all, so it
+       still needs this heading; mobile doesn't. */
+    .filter-tradition-heading{display:none;}
   }
   /* Generic default — auto-fit so the unrelated Conference-page ticket
      grid (3 cards, also .pricing-grid/.price-card) still lays out
@@ -2995,7 +3000,7 @@
         </button>
         <div class="filter-panel-body" id="dir-filter-body">
         <div class="filter-group">
-          <h4 data-i18n="filters.tradition">Filter</h4>
+          <h4 class="filter-tradition-heading" data-i18n="filters.filterSearches">Filter searches</h4>
           <button type="button" id="denom-dropdown-btn" style="width:100%;padding:9px 10px;font-size:13.5px;color:var(--ink);border:1px solid var(--line);border-radius:8px;background:var(--card);display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
             <span id="denom-dropdown-label" data-i18n="filters.allSelected">All selected</span>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;flex-shrink:0;"><path d="M6 9l6 6 6-6"/></svg>
@@ -3170,7 +3175,7 @@
         </button>
         <div class="filter-panel-body" id="events-filter-body">
         <div class="filter-group">
-          <h4 data-i18n="filters.tradition">Filter</h4>
+          <h4 class="filter-tradition-heading" data-i18n="filters.filterSearches">Filter searches</h4>
           <button type="button" id="events-denom-dropdown-btn" style="width:100%;padding:9px 10px;font-size:13.5px;color:var(--ink);border:1px solid var(--line);border-radius:8px;background:var(--card);display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
             <span id="events-denom-dropdown-label" data-i18n="filters.allSelected">All selected</span>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;flex-shrink:0;"><path d="M6 9l6 6 6-6"/></svg>
@@ -5763,7 +5768,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-14-v4 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-14-v5 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">

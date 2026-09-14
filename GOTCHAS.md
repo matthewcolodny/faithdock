@@ -1717,3 +1717,15 @@ The user reported it directly: unchecking Lutheran, then unchecking the whole Pr
 **Verified live against the real production database** (this repo has no local Postgres, so this ran directly against the deployed Supabase instance via the anon key): confirmed "Concordia Lutheran Church" carries `denomination_tags: ["Protestant","Lutheran"]` right now, explaining the residual gap above. Reproduced the exact reported scenario (uncheck Lutheran, then uncheck the whole Protestant parent) in the local preview against that same live database -- before the fix, no combination of unchecked boxes changed the result set; after, unchecking the Protestant group correctly removed every church in that cluster from the results, and "Uncheck all" correctly showed "0 churches found". All 4 non-module `<script>` blocks pass `node --check`.
 
 Build `2026-09-14-v4`.
+
+---
+
+## Consolidated duplicate "Filter searches" / "Filter" labels on the mobile filter panel
+
+Reported with a mobile screenshot: expanding the "Filter searches" collapse toggle revealed a second, redundant "Filter" heading directly underneath it for the Tradition/Denomination section -- two labels for effectively the same thing, stacked. Desktop never had this problem visually (the `.filter-panel-toggle` is mobile-only, `display:none` on desktop), but it also never said "Filter searches" anywhere -- desktop's only label for that section was the bare "Filter" heading.
+
+**Fix**: repointed that heading's `data-i18n` from `filters.tradition` (a now-dead key, deleted from both EN/ES dicts) to the existing `filters.filterSearches` key, so its text is "Filter searches" on both platforms -- one wording, not two near-duplicates that could drift out of sync. Gave it a `.filter-tradition-heading` class and hid it specifically on mobile (`@media (max-width:860px)`, the same breakpoint that reveals `.filter-panel-toggle`), so mobile shows only the toggle's "Filter searches" once expanded, while desktop -- which has no toggle at all -- still gets a label via the heading. The "Distance" section's own heading (a sibling `.filter-group h4`) was deliberately left alone; only the Tradition/Denomination one was ever duplicating the toggle's text.
+
+Verified live in both viewport sizes: desktop shows the toggle hidden and the heading visible reading "Filter searches"; mobile (375×812, expanded) shows the toggle visible reading "Filter searches" and the heading hidden -- confirmed on both Directory and Events pages, and confirmed the Spanish translation ("Filtrar búsqueda") resolves correctly for both. `filters.family`/`filters.movement` were noticed to be similarly orphaned (unused since the taxonomy v2 restructure replaced the old subgroup-label divs) but were left untouched -- out of scope for what was actually asked here.
+
+Build `2026-09-14-v5`.
