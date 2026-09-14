@@ -55,7 +55,7 @@ const path = require('path');
 // ---------------------------------------------------------------------
 const ACRONYM_EXCEPTIONS = [
   // Regional
-  'SATX', 'RGV', 'TX',
+  'SATX', 'RGV', 'TX', 'SA',
   // Denominational / parachurch
   'UPCI', 'UMC', 'EFCA', 'SBC', 'COGIC', 'AME', 'ELCA', 'PCA', 'AG'
 ];
@@ -93,6 +93,7 @@ function selftest() {
   eq(applyAcronymCasing('Christ Church Pca of San Antonio'), 'Christ Church PCA of San Antonio', 'PCA gets fixed');
   eq(applyAcronymCasing('El Camino Christian Church Tx'), 'El Camino Christian Church TX', 'TX gets fixed');
   eq(applyAcronymCasing('New Braunfels Central Tx Foursquare Church'), 'New Braunfels Central TX Foursquare Church', 'TX gets fixed mid-name too');
+  eq(applyAcronymCasing('Life Community Church Sa'), 'Life Community Church SA', 'SA gets fixed');
   eq(applyAcronymCasing('Already Correct SATX Church'), 'Already Correct SATX Church', 'already-correct input is a no-op');
   eq(applyAcronymCasing(applyAcronymCasing('Waypoint Church Satx')), 'Waypoint Church SATX', 'idempotent -- running twice is safe');
 
@@ -102,6 +103,7 @@ function selftest() {
   // "Administry" elsewhere in this project (see filter-churches.js).
   eq(applyAcronymCasing('Agape Fellowship Church'), 'Agape Fellowship Church', '"AG" does not fire inside "Agape"');
   eq(applyAcronymCasing('Amen Chapel'), 'Amen Chapel', '"AME" does not fire inside "Amen"');
+  eq(applyAcronymCasing('Casa de Dios'), 'Casa de Dios', '"SA" does not fire inside "Casa"');
   eq(applyAcronymCasing('Sacred Heart Church'), 'Sacred Heart Church', 'no acronym present -- untouched');
   eq(applyAcronymCasing(''), '', 'empty string -- no-op');
   eq(applyAcronymCasing(null), null, 'null -- no-op, does not throw');

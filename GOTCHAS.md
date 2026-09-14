@@ -1776,6 +1776,26 @@ Build `2026-09-14-v9`.
 
 ---
 
+## Multi-part data-quality report: Spanish-language tagging gaps, an Ethiopian Orthodox miss, casing, and a "Ministries" hide widening
+
+Reported live with real examples across 4 church cards. Checked the actual database state for each before writing anything, rather than assuming.
+
+**1 & 2. Spanish "Luterana" and "Bautista" untagged.** Confirmed live: "Iglesia Luterana San Pablo" and all 6 live "Iglesia Bautista ..." rows had `denomination_tags: []` -- `compute_denomination_tags()` only ever recognized the English "Lutheran"/"Baptist" spellings. Migration 027 adds `\mluteran[oa]s?\M` (catches Luterano/Luterana/Luteranos/Luteranas) and `\mbautista\M` alongside the existing English patterns. "Bautista" doesn't inflect by gender in Spanish, so no suffix variants needed there.
+
+**3. "Yeshuas Messianic Fellowship" -- checked, already correct.** `denomination_tags` is already `['Protestant','Messianic Judaism']` -- migration 026 has clearly already been run and is working as designed. No fix needed; flagging this explicitly rather than silently doing nothing, so it's clear this one was verified, not overlooked.
+
+**4. "Debre Sahle St Michael Eritrean Ort Hodox Tewahdo Church" untagged.** Confirmed live: `denomination_tags: []`, `denomination: null`. Neither existing Oriental Orthodox signal matched -- "Tewahedo" (the pattern) vs. "Tewahdo" (this row's actual spelling, missing the middle "e", a genuinely common transliteration variant) is a straight miss, and "Orthodox" itself is split across two words in this row's own name ("Ort Hodox," almost certainly an OCR/import artifact not worth a one-off name correction). Migration 027 adds `\mtewahdo\M` as an explicit alternate spelling, plus `\mdebre\M` on its own -- Ge'ez/Amharic for "mountain/monastery," prefixing the large majority of Ethiopian/Eritrean Orthodox church names regardless of how the rest of the name is spelled or OCR'd, so it's a robust signal independent of either spelling issue.
+
+**5 & 6. "Of"/"At" mid-name casing and the "Sa" -> "SA" abbreviation.** Both are exactly what the still-uncommitted `scripts/church-name-hygiene.js` (from earlier this session) and `scripts/acronym-exceptions.js` already exist to fix -- the user's own live examples ("Gospel Of Truth Church Of The Living God International," "Life Community Church Sa") directly validate and supersede the earlier pending-confirmation state for that work, so committing both scripts now rather than continuing to hold them. Added `'SA'` to `ACRONYM_EXCEPTIONS` (with a false-positive guard selftest -- confirmed `\bSA\b` doesn't fire inside "Casa"). Re-ran `church-name-hygiene.js` fresh against live data: 1 nonprofit-hide, 25 name fixes (TX and SA casing, locator-suffix strips, Of/At lowercasing all bundled into one file), 1 still-flagged truncated name. Regenerated `church_name_hygiene_fixes.sql` supersedes the earlier, narrower `san_antonio_metro_churches.fix_acronym_casing_tx.sql` -- safe to run either or both (idempotent, matches on the pre-fix name), but the new file alone covers everything.
+
+**7. Widened the "hide Ministries orgs" pattern.** Migration 025 already has this (`\mministr(y|ies)\M`, `is_hidden = true`) but a live scan showed 46+ still-visible "Ministries"/"Ministry"-named orgs -- migration 025 evidently hasn't been run yet, which is the real answer to "hide all organizations that say Ministries." Separately, found one genuine pattern gap while checking: "Issues Of Life Ministrys" (misspelled, no apostrophe) doesn't match `\mministr(y|ies)\M` at all -- `\M` is a right-word-boundary anchor, and there's no boundary between the "y" and the trailing "s" in "Ministrys" (both are word characters), so the exact-token match silently misses it. Migration 027 widens the pattern to `\mministr(y|ies|ys)\M` and re-runs the hide UPDATE -- safe and idempotent regardless of whether 025 has already run, since it's scoped to `is_hidden = false`.
+
+**Still needed from the user**: run `supabase/migrations/027_denomination_pattern_gaps.sql` (tagging gaps + widened Ministries hide) and `church_name_hygiene_fixes.sql` (casing/hygiene) in the Supabase SQL Editor. Migration 025 (the Ministries feature itself, plus its own hide pass) is still separately pending from earlier too.
+
+No index.html changes in this pass -- purely migration + one-off SQL + the two hygiene scripts.
+
+---
+
 ## Reported "Tx" casing + a Foursquare church badged "Non-denominational" — two separate data fixes
 
 A church card screenshot ("New Braunfels Central Tx Foursquare Church") surfaced two independent issues at once.

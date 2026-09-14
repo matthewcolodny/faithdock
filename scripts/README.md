@@ -118,3 +118,45 @@ here) turns any all-caps acronym into a normal-looking word: `SATX` →
   the database itself. Default output is `acronym_casing_fixes.sql` in
   the current directory. `--selftest` runs the offline checks only, no
   network access.
+
+## church-name-hygiene.js
+
+Four unrelated live-data cleanups bundled into one scan, since they all
+read the same live `name` column:
+
+```
+node scripts/church-name-hygiene.js [--out=<path>] [--selftest]
+```
+
+1. **TX casing** -- "Tx" → "TX". Delegated entirely to
+   `acronym-exceptions.js`'s `applyAcronymCasing()` now that `TX` has
+   been added to `ACRONYM_EXCEPTIONS` there -- not reimplemented here.
+2. **Nonprofit hide** -- a name containing "nonprofit" / "non-profit" /
+   "non profit" (e.g. "...a Domestic Nonprofit") is an IRS-extract
+   artifact bleeding into the display name, not a real congregation
+   name. These get **hidden** (`churches.is_hidden = true`, the same
+   column `search_churches`/`search_events` already filter on per
+   migrations 018/019) -- not deleted, reversible.
+3. **Locator-suffix strip** -- a trailing " - City, TX"-style suffix
+   (e.g. "360 Inner City Church - San Antonio Tx") is also
+   import-artifact cruft and gets stripped back to the bare church name.
+4. **Minor-word casing** -- the same title-casing pass that broke
+   acronyms also over-capitalized short connector words that should
+   stay lowercase mid-name ("Church Of San Antonio" → "Church of San
+   Antonio"), except when the word is the first word of the name (a
+   name genuinely starting with "At"/"Of" is left alone).
+
+A name that still ends in "of"/"at" with nothing after it (after the
+fixes above) looks like a truncated import missing its trailing city --
+that's only flagged in its own section of the generated SQL as a
+comment, never auto-fixed, since the script has no way to know what
+actually belongs there.
+
+Output is a single review-first `.sql` file in three sections (hides,
+name fixes, truncation flags) with a before/after comment on every
+line -- same "generate SQL, a human runs it by hand" convention as
+every other script in this folder; this never writes to the database
+directly. The locator-suffix regex can't always tell a real city from a
+ministry descriptor after a dash, so the name-fix section specifically
+needs a human read before running. `--selftest` runs the offline checks
+only, no network access.
