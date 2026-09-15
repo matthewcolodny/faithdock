@@ -2239,8 +2239,11 @@
   .follow-heart-card svg{width:18px;height:18px;stroke:none !important;fill:#4A4A4A !important;opacity:1 !important;filter:drop-shadow(0 1px 2px rgba(0,0,0,.5));}
   .follow-heart-card[data-following="true"] svg{fill:#fff !important;}
   .follow-heart-row{
-    background:none;border:none;cursor:pointer;padding:2px;display:inline-flex;align-items:center;
-    flex-shrink:0;margin-left:auto;
+    /* Padding (not icon size) is what grows the click target here --
+       2px was reported as too easy to miss, landing the click on the
+       row itself (which navigates) instead of the heart. */
+    background:none;border:none;cursor:pointer;padding:9px;display:inline-flex;align-items:center;
+    flex-shrink:0;margin-left:auto;margin-right:-5px;
   }
   .follow-heart-row svg{width:17px;height:17px;stroke:none;fill:#4A4A4A;}
   .follow-heart-row[data-following="true"] svg{fill:#fff;}
@@ -5899,7 +5902,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v8 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v9 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">

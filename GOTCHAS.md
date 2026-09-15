@@ -2050,3 +2050,13 @@ Circle background and stroke/border both removed outright (`background:none`, `b
 `node --check` passes on all script blocks. Verified in a local preview: computed fill/stroke/opacity for both states, and the click-through fix via a simulated click + hash check. **Not tested**: light-theme List view specifically (the flagged legibility concern above), and the actual toggle against a live `church_follows` table.
 
 Build `2026-09-15-v8`.
+
+---
+
+## List view's follow-heart click target was too small -- easy to miss and hit the row instead
+
+Direct follow-up: 2px of padding around a 17px icon (~21px effective target) was too small to reliably hit, and missing it landed the click on the row itself, which navigates to the church page -- a plausible real annoyance given the previous entry's click-through bug meant this exact miss used to always misfire before the fix. Bumped `.follow-heart-row`'s padding to 9px (35x35px effective click target, confirmed via `getBoundingClientRect()` in a local preview, comfortably past typical minimum touch-target guidance) without changing the heart icon's own visual size -- only the invisible hit area grew. Added a small negative `margin-right` to keep the row's right-edge spacing looking the same as before relative to the chevron, since the extra padding would otherwise visibly push the icon and everything after it further right. Card view's heart (`.follow-heart-card`) wasn't touched -- the report was specifically about List view.
+
+Verified in a local preview: measured the actual click target size before/after, and confirmed by screenshot that the row's layout doesn't overflow or misalign with the extra padding. `node --check` passes.
+
+Build `2026-09-15-v9`.
