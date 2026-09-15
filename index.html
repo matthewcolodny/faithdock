@@ -2199,19 +2199,28 @@
     display:flex;align-items:center;justify-content:center;
   }
   .thumb svg{width:34px;height:34px;opacity:.55;}
-  /* Replaces the old "Managed by this church" text tag (confusing --
-     read as self-referential rather than "this listing is claimed") --
-     a small corner badge is a much more standard, immediately-legible
-     "claimed/verified" signal. .thumb is already position:relative, so
-     this just anchors to it directly; the full explanation is still
-     available via the title attribute on hover/long-press. */
-  .claimed-badge{
-    position:absolute;top:8px;right:8px;width:24px;height:24px;border-radius:50%;
-    background:var(--gold);display:flex;align-items:center;justify-content:center;
-    box-shadow:0 1px 3px rgba(0,0,0,.3);
+  /* Follow-church heart: replaces the earlier "Managed by this church"
+     badge attempt entirely, per direct feedback that a claimed/managed
+     signal doesn't make sense here yet -- this is a real, interactive
+     follow toggle instead. .thumb is already position:relative, so the
+     card version just anchors to it directly. Empty outline = not
+     followed, filled clay heart = followed -- toggled via the
+     data-following attribute, not a class swap, so a single CSS rule
+     covers both the button chrome and the fill state together. */
+  .follow-heart-card{
+    position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;
+    background:rgba(15,23,36,.55);border:none;display:flex;align-items:center;justify-content:center;
+    cursor:pointer;transition:background .15s;padding:0;
   }
-  .claimed-badge svg{width:13px;height:13px;opacity:1;stroke:#1a2740;}
-  .church-row-claimed-icon{width:13px;height:13px;vertical-align:-2px;margin-left:2px;color:var(--gold);flex-shrink:0;}
+  .follow-heart-card:hover{background:rgba(15,23,36,.75);}
+  .follow-heart-card svg{width:15px;height:15px;stroke:#fff;stroke-width:2;fill:none;}
+  .follow-heart-card[data-following="true"] svg{fill:var(--clay);stroke:var(--clay);}
+  .follow-heart-row{
+    background:none;border:none;cursor:pointer;padding:2px;display:inline-flex;align-items:center;
+    flex-shrink:0;margin-left:auto;
+  }
+  .follow-heart-row svg{width:17px;height:17px;stroke:var(--ink-mute);stroke-width:2;fill:none;}
+  .follow-heart-row[data-following="true"] svg{fill:var(--clay);stroke:var(--clay);}
   /* Logoless placeholder: a muted wash + icon tint keyed to denomination
      (--thumb-hue, set inline in churchCard) so the grid isn't a wall of
      identical tiles. Real logos never get .thumb--denom. buildingIcon is
@@ -3140,6 +3149,9 @@
             <option value="10" data-i18n="filters.within10">Within 10 miles</option>
             <option value="25" data-i18n="filters.within25">Within 25 miles</option>
           </select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-check" id="dir-filter-followed-wrap" style="display:none;"><input type="checkbox" id="dir-filter-followed-churches"> <span data-i18n="events.churchesIFollow">Churches I follow</span></label>
         </div>
         <div class="filter-group">
           <label class="filter-check"><input type="checkbox" id="filter-has-events"> <span data-i18n="filters.hasEvents">Has events</span></label>
@@ -5663,8 +5675,7 @@
             <div style="font-size:11.5px;color:var(--ink-mute);margin-bottom:6px;" data-i18n="dashSettings.addStaffHint">They'll get an email invite to accept — nobody is added until they do. If they don't have a FaithDock account yet, they'll need to create one first.</div>
             <input class="field" type="email" id="team-invite-email" placeholder="staffmember@email.com" data-i18n-placeholder="dashSettings.staffEmailPlaceholder" style="font-size:13px;padding:9px 10px;">
             <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line);">
-              <label style="font-size:12.5px;" data-i18n="staffPerms.eyebrow">Permissions</label>
-              <div style="font-size:11.5px;color:var(--ink-mute);margin-bottom:8px;" data-i18n="dashSettings.inviteAbilitiesHint">Chosen now, before they accept — not something you have to come back and set up afterward.</div>
+              <label style="font-size:12.5px;display:block;margin-bottom:8px;" data-i18n="staffPerms.eyebrow">Permissions</label>
               <label class="filter-check"><input type="checkbox" id="invite-perm-events"> <span data-i18n="staffPerms.manageEvents">Create and manage events</span></label>
               <label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-giving"> <span data-i18n="staffPerms.manageGiving">Manage giving settings (connect bank account)</span></label>
               <label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-groups"> <span data-i18n="staffPerms.manageGroups">Create and manage groups</span></label>
@@ -5877,7 +5888,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v6 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v7 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -6260,48 +6271,48 @@
   }
   window.formatChurchNextEventText = formatChurchNextEventText;
 
-  // Claimed-church indicator for the directory card/row. Plain
-  // unclaimed renders nothing -- that's the baseline state for most of
-  // the directory, so flagging it on every card would be noise, not
-  // signal. (It's still surfaced where it's actionable: the church
-  // profile page's own "Claim this church" banner, untouched -- see
-  // populateChurchPage().) Only for real (DB-backed) churches -- sample
-  // cards get nothing.
+  // Follow-church heart for the directory card/row. Two attempts at a
+  // status indicator lived in this spot before this one: first a
+  // "Managed by this church" text tag, then a checkmark badge after
+  // that text was reported as confusing -- both were dropped per
+  // direct feedback that a claimed/managed signal "doesn't make sense
+  // yet" here. This is a genuinely different, interactive feature
+  // instead: an empty heart toggles to a filled one on click, backed by
+  // the church_follows table the church profile page's own Follow
+  // button already uses (checkChurchFollowStatus() / the
+  // church-follow-btn handler below) -- same table, same click-to-
+  // toggle semantics, just reachable from the card/row too instead of
+  // only after opening the church's page.
   //
-  // Used to be a "Managed by this church" text tag -- reported as
-  // confusing (reads as a self-referential claim, and kept showing
-  // after signing out since it was never about the *viewer*, only
-  // about whether the church has an owner at all). Swapped for a
-  // small checkmark, a far more standard "claimed/verified" signal,
-  // with the same explanation still available via the title attribute
-  // on hover. claimedCardBadge() overlays the card's thumbnail corner
-  // (thumb is already position:relative); claimedRowIcon() sits inline
-  // next to the name for the List view, which has no thumbnail to
-  // anchor a corner badge to.
+  // Unlike the claimed indicator this replaces, followability doesn't
+  // depend on c.ownerId at all -- every real (DB-backed) church can be
+  // followed regardless of whether it's been claimed. Sample/demo cards
+  // (c.real falsy) get nothing, same as before, since there's no real
+  // church_follows row to ever back their state.
   //
-  // FaithDock Partner and Verified church used to also appear here (a
-  // 3-rung ladder: paid plan -> Partner; verified giving account ->
-  // Verified; claimed otherwise -> Managed) -- removed as a display-only
-  // change. Partner is a business-relationship signal that didn't add
-  // anything useful for a visitor browsing cards and just took up space;
-  // it's kept on the profile page itself (the star badge, untouched --
-  // see populateChurchPage()). Verified was removed entirely, cards and
-  // profile page both -- there's no real, defined process behind what
-  // it currently claims, so no public-facing wording for it is honest
-  // right now. verification_status itself (and whatever it still gates,
-  // e.g. Stripe connection access) is completely untouched by this --
-  // display only.
-  var CHECKMARK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
-  function claimedCardBadge(c){
-    if (!c || !c.real || !c.ownerId) return '';
-    return '<div class="claimed-badge" title="' + window.t('church.managedByChurch') + '">' + CHECKMARK_ICON + '</div>';
+  // followHeartCard() overlays the card's thumbnail corner (.thumb is
+  // already position:relative); followHeartRow() sits on the right
+  // side of the row for List view, which has no thumbnail to anchor a
+  // corner badge to. Both read window.myFollowedChurchIds (populated by
+  // loadEventFilterFollowState(), already computed for the Events
+  // page's own "Churches I follow" filter) to render the correct
+  // initial filled/empty state without a per-card query -- the actual
+  // click handling and DOM update on toggle live in the shared
+  // document-level delegated handler further down (search
+  // data-follow-church-id).
+  var HEART_ICON = '<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78Z"/></svg>';
+  function followHeartCard(c){
+    if (!c || !c.real || !c.id) return '';
+    var isFollowing = !!(window.myFollowedChurchIds && window.myFollowedChurchIds.indexOf(c.id) !== -1);
+    return '<button type="button" class="follow-heart-card" data-follow-church-id="' + c.id + '" data-following="' + isFollowing + '" aria-label="' + window.t('church.follow') + '" title="' + window.t('church.follow') + '">' + HEART_ICON + '</button>';
   }
-  function claimedRowIcon(c){
-    if (!c || !c.real || !c.ownerId) return '';
-    return '<svg class="church-row-claimed-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" title="' + window.t('church.managedByChurch') + '"><polyline points="20 6 9 17 4 12"/></svg>';
+  function followHeartRow(c){
+    if (!c || !c.real || !c.id) return '';
+    var isFollowing = !!(window.myFollowedChurchIds && window.myFollowedChurchIds.indexOf(c.id) !== -1);
+    return '<button type="button" class="follow-heart-row" data-follow-church-id="' + c.id + '" data-following="' + isFollowing + '" aria-label="' + window.t('church.follow') + '" title="' + window.t('church.follow') + '">' + HEART_ICON + '</button>';
   }
-  window.claimedCardBadge = claimedCardBadge;
-  window.claimedRowIcon = claimedRowIcon;
+  window.followHeartCard = followHeartCard;
+  window.followHeartRow = followHeartRow;
 
   // A muted hue (0-359) for a church's placeholder thumbnail, keyed to
   // denomination so a directory of logoless churches isn't a wall of
@@ -6325,7 +6336,7 @@
 
   function churchCard(c, clickable){
     var distText = formatChurchDistanceText(c.dist);
-    var badge = claimedCardBadge(c);
+    var badge = followHeartCard(c);
     var thumb = c.logoUrl
       ? '<div class="thumb" style="background-image:url(\'' + c.logoUrl + '\');background-size:contain;background-repeat:no-repeat;background-position:center;background-color:#fff;background-origin:content-box;padding:16px;box-sizing:border-box;">' + badge + '</div>'
       : '<div class="thumb thumb--denom" style="--thumb-hue:' + denomHue(c.tag) + ';">' + buildingIcon + badge + '</div>';
@@ -6362,11 +6373,11 @@
       + '<div class="church-row-main">'
       + '<div class="church-row-head">'
       + '<span class="church-row-name">' + displayChurchName(c.name) + '</span>'
-      + claimedRowIcon(c)
       + '<span class="tag sage">' + translateDenomination(c.tag) + '</span>'
       + '</div>'
       + (bits.length ? '<div class="church-row-meta">' + bits.join('<span class="church-row-sep">&middot;</span>') + '</div>' : '')
       + '</div>'
+      + followHeartRow(c)
       + '<svg class="church-row-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>';
     return '<a class="church-row" style="--thumb-hue:' + denomHue(c.tag) + ';" href="#church/' + encodeURIComponent(c.name) + '" data-route="church" data-church-name="' + c.name.replace(/"/g, '&quot;') + '">' + inner + '</a>';
   }
@@ -6450,10 +6461,13 @@
     }
     var detailsNameEl = document.getElementById('church-details-name');
     if (detailsNameEl) detailsNameEl.textContent = displayChurchName(c.name);
-    // Church status on the profile page (see claimedCardBadge()/
-    // claimedRowIcon() for the directory-card/row equivalent). Not
-    // mutually exclusive: a claimed church shows the "Managed by this
-    // church" line, and if it's also
+    // Church status on the profile page -- the directory card/row no
+    // longer has an equivalent "claimed" signal at all (see
+    // followHeartCard()/followHeartRow()'s own comment for why: swapped
+    // for an unrelated follow-church feature instead, per direct
+    // feedback that a claimed/managed indicator there didn't make sense
+    // yet). Not mutually exclusive: a claimed church shows the "Managed
+    // by this church" line, and if it's also
     // on a paid plan it additionally gets the Partner badge. The
     // Verified badge that used to also appear here was removed
     // (display only -- verification_status itself, and whatever it
@@ -8103,13 +8117,25 @@
     var eventsWithin = hasEventsChecked ? (eventsDropdownVal > 0 ? eventsDropdownVal : 36500) : 0;
     var keywordEl = document.getElementById('dir-keyword-input');
     var keyword = keywordEl ? keywordEl.value.trim() : '';
+    // Same p_church_ids narrowing search_events() already supports for
+    // its own "Churches I follow" filter -- search_churches() only
+    // gained the matching parameter in migration 031, specifically for
+    // this checkbox. Only ever rendered visible at all when
+    // myFollowedChurchIds is non-empty (see loadEventFilterFollowState),
+    // so an empty result here from a checked box would be a genuine
+    // "you follow 0 of the churches matching your other filters," not a
+    // sign something's broken.
+    var followedChecked = document.getElementById('dir-filter-followed-churches');
+    var wantFollowed = !!(followedChecked && followedChecked.checked);
+    var churchIds = wantFollowed ? (window.myFollowedChurchIds || []) : null;
     return {
       keyword: keyword,
       denomSearch: denomSearch,
       checkedDenoms: checkedDenoms,
       totalDenomChecks: checks.length,
       maxDist: maxDist,
-      eventsWithin: eventsWithin
+      eventsWithin: eventsWithin,
+      churchIds: churchIds
     };
   }
 
@@ -8190,7 +8216,8 @@
       p_user_lng: window.dirUserLng,
       p_max_distance_miles: f.maxDist > 0 ? f.maxDist : null,
       p_events_within_days: f.eventsWithin > 0 ? f.eventsWithin : null,
-      p_limit: DIRECTORY_PAGE_SIZE
+      p_limit: DIRECTORY_PAGE_SIZE,
+      p_church_ids: f.churchIds
     };
     var { data, error } = await window.supabase.rpc('search_churches', Object.assign({}, baseParams, { p_offset: offset }));
 
@@ -8425,6 +8452,12 @@
   async function loadEventFilterFollowState(){
     var followedWrap = document.getElementById('filter-followed-wrap');
     var homeWrap = document.getElementById('filter-home-wrap');
+    // Directory's own "Churches I follow" checkbox (migration 031 gave
+    // search_churches() the p_church_ids param this needs) -- same
+    // element-always-in-the-DOM reasoning as followedWrap/homeWrap
+    // above, so it's safe to update here too regardless of which page
+    // is currently showing.
+    var dirFollowedWrap = document.getElementById('dir-filter-followed-wrap');
     if (!followedWrap || !homeWrap) return;
 
     var { data: userData } = await window.supabase.auth.getUser();
@@ -8433,18 +8466,28 @@
       window.myChurchHomeId = null;
       followedWrap.style.display = 'none';
       homeWrap.style.display = 'none';
+      if (dirFollowedWrap) dirFollowedWrap.style.display = 'none';
       return;
     }
 
     var { data: followRows } = await window.supabase.from('church_follows').select('church_id').eq('user_id', userData.user.id);
     window.myFollowedChurchIds = (followRows || []).map(function(r){ return r.church_id; });
     followedWrap.style.display = window.myFollowedChurchIds.length ? 'flex' : 'none';
+    if (dirFollowedWrap) dirFollowedWrap.style.display = window.myFollowedChurchIds.length ? 'flex' : 'none';
 
     var { data: homeRows } = await window.supabase.from('church_memberships').select('church_id').eq('user_id', userData.user.id).eq('is_permanent', true).limit(1);
     window.myChurchHomeId = (homeRows && homeRows.length) ? homeRows[0].church_id : null;
     homeWrap.style.display = window.myChurchHomeId ? 'flex' : 'none';
 
     if (typeof window.renderEvents === 'function') window.renderEvents();
+    // Re-renders whichever church grid is currently built (Directory's
+    // full grid, or the Home page's small preview via renderHomeChurches)
+    // now that myFollowedChurchIds is populated -- otherwise every
+    // heart already on screen would stay stuck on its pre-sign-in
+    // (always-empty) state until something else happened to trigger a
+    // fresh render.
+    if (typeof window.renderDirectory === 'function') window.renderDirectory();
+    if (typeof window.renderHomeChurches === 'function') window.renderHomeChurches();
   }
   window.loadEventFilterFollowState = loadEventFilterFollowState;
 
@@ -9014,7 +9057,7 @@
       renderDirectory();
       return;
     }
-    if(ev.target.classList.contains('denom-filter') || ev.target.id === 'filter-distance' || ev.target.id === 'filter-events'){
+    if(ev.target.classList.contains('denom-filter') || ev.target.id === 'filter-distance' || ev.target.id === 'filter-events' || ev.target.id === 'dir-filter-followed-churches'){
       renderDirectory();
     }
     if(ev.target.classList.contains('type-filter') || ev.target.classList.contains('category-filter') || ev.target.id === 'filter-when' || ev.target.id === 'filter-date-from' || ev.target.id === 'filter-date-to' || ev.target.id === 'events-filter-distance'){
@@ -9044,6 +9087,8 @@
       document.getElementById('filter-events').value = '0';
       document.getElementById('filter-events').style.display = 'none';
       document.getElementById('filter-denom-search').value = '';
+      var dirFollowedCheck = document.getElementById('dir-filter-followed-churches');
+      if (dirFollowedCheck) dirFollowedCheck.checked = false;
       if (typeof window.updateDenomDropdownLabel === 'function') window.updateDenomDropdownLabel();
       renderDirectory();
     }
@@ -14594,8 +14639,7 @@
         // five retroactively via update_staff_abilities(), so letting
         // them set the same ones up front is no new privilege).
         var abilitiesChecklistHtml = '<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line);">'
-          + '<label style="font-size:12.5px;">' + window.t('staffPerms.eyebrow') + '</label>'
-          + '<div style="font-size:11.5px;color:var(--ink-mute);margin-bottom:8px;">' + window.t('dashSettings.inviteAbilitiesHint') + '</div>'
+          + '<label style="font-size:12.5px;display:block;margin-bottom:8px;">' + window.t('staffPerms.eyebrow') + '</label>'
           + '<label class="filter-check"><input type="checkbox" id="invite-perm-events"> ' + window.t('staffPerms.manageEvents') + '</label>'
           + '<label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-giving"> ' + window.t('staffPerms.manageGiving') + '</label>'
           + '<label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-groups"> ' + window.t('staffPerms.manageGroups') + '</label>'
@@ -18523,6 +18567,48 @@
     });
   }
 
+  // Same follow/unfollow toggle as church-follow-btn above, reachable
+  // straight from a directory card/row heart instead of only after
+  // opening the church's page -- one delegated handler covers every
+  // card/row on the page (and any re-rendered later) since they're all
+  // built from the same followHeartCard()/followHeartRow() markup.
+  // stopPropagation matters here specifically: the heart button sits
+  // inside the card/row's own <a href="#church/...">, so without it a
+  // click would also navigate to the church page.
+  document.addEventListener('click', async function(ev){
+    var heartBtn = ev.target.closest ? ev.target.closest('[data-follow-church-id]') : null;
+    if (!heartBtn) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+
+    var { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) {
+      showLoginRequired(window.t('loginRequired.followChurch'));
+      return;
+    }
+    var churchId = heartBtn.getAttribute('data-follow-church-id');
+    var isFollowing = heartBtn.getAttribute('data-following') === 'true';
+    heartBtn.disabled = true;
+    if (isFollowing) {
+      await supabase.from('church_follows').delete().eq('user_id', userData.user.id).eq('church_id', churchId);
+      window.myFollowedChurchIds = (window.myFollowedChurchIds || []).filter(function(id){ return id !== churchId; });
+    } else {
+      await supabase.from('church_follows').insert({ user_id: userData.user.id, church_id: churchId });
+      window.myFollowedChurchIds = (window.myFollowedChurchIds || []).concat([churchId]);
+    }
+    heartBtn.disabled = false;
+    // Flips just this one button's own state rather than re-rendering
+    // the whole grid -- every other heart on the page/other pages of
+    // results picks up the new window.myFollowedChurchIds the next time
+    // it's rendered fresh (page change, filter change, tab revisit).
+    heartBtn.setAttribute('data-following', isFollowing ? 'false' : 'true');
+    // If this church is the one currently open on its own profile
+    // page, keep that page's own Follow button in sync too, rather
+    // than leaving it showing the pre-toggle state until a refresh.
+    if (window.currentPageChurchId === churchId && typeof window.checkChurchFollowStatus === 'function') {
+      window.checkChurchFollowStatus(churchId);
+    }
+  });
 
   var contactChurchSendBtn = document.getElementById('contact-church-send-btn');
   if (contactChurchSendBtn) {
