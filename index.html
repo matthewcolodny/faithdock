@@ -6238,7 +6238,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v31 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v32 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -8864,24 +8864,32 @@
       return;
     }
 
-    var { data: followRows } = await window.supabase.from('church_follows').select('church_id').eq('user_id', userData.user.id);
-    window.myFollowedChurchIds = (followRows || []).map(function(r){ return r.church_id; });
-    followedWrap.style.display = window.myFollowedChurchIds.length ? 'flex' : 'none';
-    if (dirFollowedWrap) dirFollowedWrap.style.display = window.myFollowedChurchIds.length ? 'flex' : 'none';
-
-    var { data: homeRows } = await window.supabase.from('church_memberships').select('church_id').eq('user_id', userData.user.id).eq('is_permanent', true).limit(1);
-    window.myChurchHomeId = (homeRows && homeRows.length) ? homeRows[0].church_id : null;
-    homeWrap.style.display = window.myChurchHomeId ? 'flex' : 'none';
-
-    if (typeof window.renderEvents === 'function') window.renderEvents();
-    // Re-renders whichever church grid is currently built (Directory's
-    // full grid, or the Home page's small preview via renderHomeChurches)
-    // now that myFollowedChurchIds is populated -- otherwise every
-    // heart already on screen would stay stuck on its pre-sign-in
-    // (always-empty) state until something else happened to trigger a
-    // fresh render.
-    if (typeof window.renderDirectory === 'function') window.renderDirectory();
-    if (typeof window.renderHomeChurches === 'function') window.renderHomeChurches();
+    // These two queries are independent -- fired in parallel instead of
+    // one after the other, and the follow-status half is applied (and
+    // every heart-bearing grid re-rendered) the moment IT resolves,
+    // rather than waiting on the unrelated home-membership check too.
+    // Reported directly as a perceptible (1-2s) delay before followed
+    // hearts showed filled on load -- these were previously sequential
+    // awaits, each its own real network round trip.
+    var followPromise = window.supabase.from('church_follows').select('church_id').eq('user_id', userData.user.id).then(function(res){
+      window.myFollowedChurchIds = (res.data || []).map(function(r){ return r.church_id; });
+      followedWrap.style.display = window.myFollowedChurchIds.length ? 'flex' : 'none';
+      if (dirFollowedWrap) dirFollowedWrap.style.display = window.myFollowedChurchIds.length ? 'flex' : 'none';
+      if (typeof window.renderEvents === 'function') window.renderEvents();
+      // Re-renders whichever church grid is currently built (Directory's
+      // full grid, or the Home page's small preview via renderHomeChurches)
+      // now that myFollowedChurchIds is populated -- otherwise every
+      // heart already on screen would stay stuck on its pre-sign-in
+      // (always-empty) state until something else happened to trigger a
+      // fresh render.
+      if (typeof window.renderDirectory === 'function') window.renderDirectory();
+      if (typeof window.renderHomeChurches === 'function') window.renderHomeChurches();
+    });
+    var homePromise = window.supabase.from('church_memberships').select('church_id').eq('user_id', userData.user.id).eq('is_permanent', true).limit(1).then(function(res){
+      window.myChurchHomeId = (res.data && res.data.length) ? res.data[0].church_id : null;
+      homeWrap.style.display = window.myChurchHomeId ? 'flex' : 'none';
+    });
+    await Promise.all([followPromise, homePromise]);
   }
   window.loadEventFilterFollowState = loadEventFilterFollowState;
 
@@ -9997,7 +10005,24 @@
   // head script long before this module script starts, so nothing
   // stops it living this early.
   function renderOnceLocationKnown(renderFns){
-    function runAll(){ renderFns.forEach(function(fn){ fn(); }); }
+    function runAll(){ window._locationDecisionMade = true; renderFns.forEach(function(fn){ fn(); }); }
+    // window.earlyManualLocation/earlyGeoInstantCoords/earlyGeoDone are
+    // ALL one-time flags, set once during the very first page load and
+    // never cleared afterward -- correct for deciding whether that
+    // FIRST render should wait, but showRouteFromHash() calls this
+    // function again on every later navigation to #directory too
+    // (Back/Forward, clicking the nav link), long after the location
+    // question has already been settled. Without this fast-path, a
+    // later call would misread those same stale flags as "still
+    // deciding" and silently skip rendering -- a real, reported bug:
+    // the Directory grid never actually refreshed after navigating
+    // Back from a church's page, so a church just followed there kept
+    // showing its old, un-followed heart state. window._locationDecisionMade
+    // is set (via runAll() above, and inside applyDirLocationCoords())
+    // the FIRST time any branch below actually finalizes an outcome --
+    // every call after that just renders immediately, no further
+    // deferring needed.
+    if (window._locationDecisionMade) { runAll(); return; }
     var geoExpected = !!window.earlyManualLocation || !!window.earlyGeoInstantCoords || window.earlyGeoPermissionState === 'granted';
     if (!geoExpected) { runAll(); return; }
     if (window.earlyManualLocation || window.earlyGeoInstantCoords) {
@@ -10280,6 +10305,11 @@
   function applyDirLocationCoords(lat, lng){
     window.dirUserLat = lat;
     window.dirUserLng = lng;
+    // See renderOnceLocationKnown() above -- this is the other place a
+    // location decision gets finalized (the manual/instant-cache path,
+    // which renders here directly instead of through that function's
+    // own runAll()), so it has to set the same flag.
+    window._locationDecisionMade = true;
     if (typeof window.renderDirectory === 'function') window.renderDirectory();
     if (typeof window.renderHomeChurches === 'function') window.renderHomeChurches();
     if (typeof window.renderEvents === 'function') window.renderEvents();
@@ -19199,12 +19229,26 @@
   // [data-follow-church-id] attribute the directory card/row hearts
   // do, so the one shared delegated click handler further down
   // (search data-follow-church-id) already covers it, toggle logic
-  // and all; that handler already had a special case to call this
-  // function back afterward to keep this page's own heart in sync.
+  // and all, updating every matching element (including this one)
+  // directly and optimistically -- this function only needs to run
+  // once, on page load/populate.
   async function checkChurchFollowStatus(churchId){
     var slot = document.getElementById('church-follow-heart-slot');
     var heartEl = slot ? slot.querySelector('[data-follow-church-id]') : null;
     if (!heartEl) return;
+    // window.myFollowedChurchIds (populated by loadEventFilterFollowState(),
+    // already fetched for the Events/Directory "Churches I follow"
+    // filters) answers this instantly, with no network round trip, once
+    // it's been populated at least once this session -- reported
+    // directly as a 1-2 second delay before the heart showed filled;
+    // most of that was this function redundantly re-querying
+    // church_follows from scratch every single time instead of reusing
+    // data the app most likely already has by the time someone
+    // navigates to (as opposed to freshly loads) a church's page.
+    if (Array.isArray(window.myFollowedChurchIds)) {
+      heartEl.setAttribute('data-following', window.myFollowedChurchIds.indexOf(churchId) !== -1 ? 'true' : 'false');
+      return;
+    }
     var { data: userData } = await supabase.auth.getUser();
     if (!userData.user) {
       heartEl.setAttribute('data-following', 'false');
@@ -19237,27 +19281,39 @@
       return;
     }
     var churchId = heartBtn.getAttribute('data-follow-church-id');
-    var isFollowing = heartBtn.getAttribute('data-following') === 'true';
-    heartBtn.disabled = true;
-    if (isFollowing) {
-      await supabase.from('church_follows').delete().eq('user_id', userData.user.id).eq('church_id', churchId);
-      window.myFollowedChurchIds = (window.myFollowedChurchIds || []).filter(function(id){ return id !== churchId; });
-    } else {
-      await supabase.from('church_follows').insert({ user_id: userData.user.id, church_id: churchId });
-      window.myFollowedChurchIds = (window.myFollowedChurchIds || []).concat([churchId]);
+    var wasFollowing = heartBtn.getAttribute('data-following') === 'true';
+    var nowFollowing = !wasFollowing;
+    // This is a single-page app -- every other page's DOM (Directory's
+    // grid, Home's preview, this same church's own profile page) stays
+    // alive, just hidden, while looking at whichever one is currently
+    // showing. Updating every matching element here, not just the one
+    // actually clicked, is what makes a follow/unfollow made from one
+    // page (say, the profile page) already correct on another (say,
+    // Directory) the moment you navigate/go Back to it -- reported
+    // directly: following from a church's own page, then hitting Back
+    // to Directory, left that same church's card showing un-followed
+    // until something else happened to force a fresh render.
+    var matchingHearts = document.querySelectorAll('[data-follow-church-id="' + churchId + '"]');
+    function applyFollowState(following){
+      matchingHearts.forEach(function(el){ el.setAttribute('data-following', following ? 'true' : 'false'); });
+      window.myFollowedChurchIds = following
+        ? (window.myFollowedChurchIds || []).concat([churchId])
+        : (window.myFollowedChurchIds || []).filter(function(id){ return id !== churchId; });
     }
-    heartBtn.disabled = false;
-    // Flips just this one button's own state rather than re-rendering
-    // the whole grid -- every other heart on the page/other pages of
-    // results picks up the new window.myFollowedChurchIds the next time
-    // it's rendered fresh (page change, filter change, tab revisit).
-    heartBtn.setAttribute('data-following', isFollowing ? 'false' : 'true');
-    // If this church is the one currently open on its own profile
-    // page, keep that page's own Follow button in sync too, rather
-    // than leaving it showing the pre-toggle state until a refresh.
-    if (window.currentPageChurchId === churchId && typeof window.checkChurchFollowStatus === 'function') {
-      window.checkChurchFollowStatus(churchId);
-    }
+
+    // Optimistic -- flips every matching heart immediately, before the
+    // write below has even started, instead of waiting on a full
+    // network round trip to finish first. Reported directly as a
+    // perceptible delay on every single toggle. Reverted below if the
+    // write itself comes back with an error, rather than trusting it
+    // blindly.
+    applyFollowState(nowFollowing);
+    matchingHearts.forEach(function(el){ el.disabled = true; });
+    var writeResult = nowFollowing
+      ? await supabase.from('church_follows').insert({ user_id: userData.user.id, church_id: churchId })
+      : await supabase.from('church_follows').delete().eq('user_id', userData.user.id).eq('church_id', churchId);
+    matchingHearts.forEach(function(el){ el.disabled = false; });
+    if (writeResult.error) applyFollowState(wasFollowing);
   });
 
   var contactChurchSendBtn = document.getElementById('contact-church-send-btn');
