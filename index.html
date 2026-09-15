@@ -233,7 +233,7 @@
       'rc.description': 'Description', 'rc.logo': 'Logo', 'rc.removeLogo': 'Remove logo',
       'rc.serviceTimes': 'Service times', 'rc.removeServiceTime': 'Remove service time',
       'rc.serviceTimesHint': 'Add each time separately — e.g. for Sundays at 9 & 11 AM, add Sunday 9:00 AM, then add Sunday 11:00 AM.',
-      'rc.chooseFile': 'Choose file', 'rc.noFileChosen': 'No file chosen',
+      'rc.chooseFile': 'Choose file', 'rc.noFileChosen': 'No file chosen', 'rc.uploadingLogo': 'Uploading image…',
       'rc.facebook': 'Facebook', 'rc.instagram': 'Instagram',
       'rc.namePlaceholder': 'Grace Fellowship Church', 'rc.websitePlaceholder': 'https://yourchurch.org',
       'rc.createChurch': 'Create church', 'rc.saveChanges': 'Save changes',
@@ -1022,7 +1022,7 @@
       'rc.description': 'Descripción', 'rc.logo': 'Logotipo', 'rc.removeLogo': 'Quitar logotipo',
       'rc.serviceTimes': 'Horarios de servicio', 'rc.removeServiceTime': 'Quitar horario de servicio',
       'rc.serviceTimesHint': 'Agrega cada horario por separado — p. ej. para domingos a las 9 y 11 AM, agrega domingo 9:00 AM y luego domingo 11:00 AM.',
-      'rc.chooseFile': 'Elegir archivo', 'rc.noFileChosen': 'Ningún archivo seleccionado',
+      'rc.chooseFile': 'Elegir archivo', 'rc.noFileChosen': 'Ningún archivo seleccionado', 'rc.uploadingLogo': 'Subiendo imagen…',
       'rc.facebook': 'Facebook', 'rc.instagram': 'Instagram',
       'rc.namePlaceholder': 'Iglesia Comunidad de Gracia', 'rc.websitePlaceholder': 'https://tuiglesia.org',
       'rc.createChurch': 'Crear iglesia', 'rc.saveChanges': 'Guardar cambios',
@@ -2291,6 +2291,16 @@
      fixing it here, not assumed from the card fix alone. */
   html[data-theme="dark"] .follow-heart-row svg{stroke:none;fill:#4A4A4A;}
   html[data-theme="dark"] .follow-heart-row[data-following="true"] svg{fill:#fff;stroke:none;}
+  /* Indeterminate upload progress bar -- the Supabase JS storage
+     client's .upload() has no real byte-progress callback (it's a
+     plain fetch under the hood, and fetch doesn't expose upload
+     progress the way XMLHttpRequest does), so this is a genuinely
+     indeterminate "something is happening" indicator, not a real
+     percentage -- an animated sliding fill, not a value that reaches
+     100%. Reusable wherever a file upload needs the same treatment. */
+  .upload-progress-bar{width:100%;height:6px;border-radius:3px;background:var(--paper);border:1px solid var(--line);overflow:hidden;position:relative;}
+  .upload-progress-bar-fill{position:absolute;top:0;left:-40%;height:100%;width:40%;border-radius:3px;background:var(--gold);animation:uploadProgressSlide 1.1s ease-in-out infinite;}
+  @keyframes uploadProgressSlide{0%{left:-40%;}100%{left:100%;}}
   /* Directory numbered pager */
   .dir-pager{display:flex;flex-wrap:wrap;align-items:center;gap:6px;}
   .dir-pager-btn{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:34px;padding:0 10px;font-size:13px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);cursor:pointer;}
@@ -4648,6 +4658,16 @@
         <label for="rc-logo" class="export-btn" style="cursor:pointer;padding:9px 14px;white-space:nowrap;" data-i18n="rc.chooseFile">Choose file</label>
         <span id="rc-logo-filename" style="font-size:13px;color:var(--ink-mute);" data-i18n="rc.noFileChosen">No file chosen</span>
       </div>
+      <!-- Shown only while the logo is actually uploading (a large
+           image can take a noticeable few seconds) -- "Save changes"
+           already awaits this upload before saving anything else, so
+           nothing here changes when the save actually happens, it just
+           makes the existing wait visible instead of the button just
+           sitting there disabled with no explanation. -->
+      <div id="rc-logo-upload-progress" style="display:none;margin-top:10px;max-width:280px;">
+        <div style="font-size:12px;color:var(--ink-mute);margin-bottom:4px;" data-i18n="rc.uploadingLogo">Uploading image…</div>
+        <div class="upload-progress-bar"><div class="upload-progress-bar-fill"></div></div>
+      </div>
 
       <!-- Structured day+time picker, not a free-text field, on
            purpose — avoids the typo/inconsistent-formatting risk a
@@ -5946,7 +5966,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v14 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v15 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12786,6 +12806,8 @@
       // either one individually was.
     } finally {
       btn.disabled = false;
+      var rcUploadProgressElFinally = document.getElementById('rc-logo-upload-progress');
+      if (rcUploadProgressElFinally) rcUploadProgressElFinally.style.display = 'none';
     }
   });
 
@@ -12887,6 +12909,13 @@
       // editing other fields would silently wipe out an existing logo.
       var logoFile = document.getElementById('rc-logo').files[0];
       if (logoFile) {
+        // Save changes already awaits this upload before touching the
+        // church row at all -- this bar just makes that existing wait
+        // visible instead of leaving the disabled button with no
+        // explanation for however long a large image takes. Hidden
+        // again in the finally block below regardless of outcome.
+        var rcUploadProgressEl = document.getElementById('rc-logo-upload-progress');
+        if (rcUploadProgressEl) rcUploadProgressEl.style.display = 'block';
         var filePath = userData.user.id + '/' + Date.now() + '-' + logoFile.name;
         var { error: uploadError } = await supabase.storage.from('church-logos').upload(filePath, logoFile);
         if (uploadError) { showRcError('Logo upload failed: ' + uploadError.message); return; }

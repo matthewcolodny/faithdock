@@ -2088,3 +2088,19 @@ Light mode's new hollow-outline treatment (`stroke:#8A8A8A;fill:none` empty, `fi
 Verified in a local preview: computed fill/stroke for all four combinations (light/dark x empty/followed) match exactly what was asked, confirmed by screenshot for the light-mode pair. `node --check` passes.
 
 Build `2026-09-15-v14`.
+
+---
+
+## Added an upload-progress indicator for the church-logo field -- "Save changes" already waited for it, that part just wasn't visible
+
+User reported "Save changes" seeming to hang on a large logo image, asking whether it could show a progress bar, and whether saving should wait for the upload to finish. Checked the existing code before assuming either was missing: `rc-submit-btn`'s click handler already `await`s `supabase.storage.from('church-logos').upload(...)` before touching the `churches` row at all, and `btn.disabled = true` was already set for the whole operation -- the wait was real and already correct, it just had zero visual explanation, so a large upload looked identical to a hung button.
+
+**Genuinely indeterminate, not a fake percentage.** The Supabase JS storage client's `.upload()` is a plain `fetch` under the hood, which has no upload-progress event the way `XMLHttpRequest.upload.onprogress` does -- there's no real byte count to report without reimplementing the authenticated upload call by hand (bucket/path resolution, JWT header, content-type) outside the SDK, which felt like too much risk to a currently-working upload for what this needed. Built an honest animated sliding-fill bar (`@keyframes uploadProgressSlide`) instead of pretending to track real progress.
+
+Shown only around the actual `.storage.upload()` call (`#rc-logo-upload-progress`, initially `display:none`), and unconditionally hidden in the click handler's existing `finally` block (already there for `btn.disabled = false`) -- guarantees it never gets stuck visible regardless of which path the function exits through (success, a thrown error, or an early `return` from `showRcError`).
+
+Scoped to the register-church form's logo field (`rc-logo`/`rc-submit-btn`) only, matching the reported screenshot -- the Admin panel's separate church-edit form and the event-image upload field (`ce-image`) weren't touched, since neither was what was reported.
+
+Verified in a local preview: confirmed the element exists and starts hidden, and visually confirmed the bar/label render correctly by screenshot. `node --check` passes. **Not tested**: an actual large-file upload against live Supabase Storage.
+
+Build `2026-09-15-v15`.
