@@ -2310,6 +2310,26 @@
      fixing it here, not assumed from the card fix alone. */
   html[data-theme="dark"] .follow-heart-row svg{stroke:none;fill:#4A4A4A;}
   html[data-theme="dark"] .follow-heart-row[data-following="true"] svg{fill:#fff;stroke:none;}
+  /* Bigger on phones -- reported directly ("for mobile, can the heart
+     be bigger"). Bumps both the icon itself and, for the card version,
+     its button/hit-area to match (kept the same 10px margin all
+     around rather than just growing the icon inside an unchanged box,
+     so the larger heart doesn't start crowding the card's corner).
+     600px matches this file's own established phone-specific
+     breakpoint (see the several other max-width:600px rules already
+     in this stylesheet), not the broader ~860px tablet/layout one. */
+  @media (max-width:600px){
+    .follow-heart-card{width:34px;height:34px;}
+    /* !important required here too -- the base .follow-heart-card svg
+       rule above is itself !important (needed to beat
+       .thumb--denom svg's specificity on logoless cards), and a
+       non-!important rule can never override an !important one
+       regardless of media query or specificity. Learned from the same
+       mistake already made and fixed once for color/opacity on this
+       exact selector -- checked this time instead of repeating it. */
+    .follow-heart-card svg{width:22px !important;height:22px !important;}
+    .follow-heart-row svg{width:21px;height:21px;}
+  }
   /* Indeterminate upload progress bar -- the Supabase JS storage
      client's .upload() has no real byte-progress callback (it's a
      plain fetch under the hood, and fetch doesn't expose upload
@@ -6009,7 +6029,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v21 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v22 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -9436,6 +9456,29 @@
   if (heroSearchOnLoad) heroSearchOnLoad.value = '';
   var heroKeywordOnLoad = document.getElementById('hero-keyword-input');
   if (heroKeywordOnLoad) heroKeywordOnLoad.value = '';
+
+  // Mobile only -- reported directly: tapping a search field whenever
+  // it's sitting off-center (scrolled partway into view, or about to
+  // be covered by the on-screen keyboard) left it in an awkward spot
+  // instead of settling somewhere comfortable to actually type into.
+  // 'focusin' (not 'focus', which doesn't bubble) lets one delegated
+  // listener cover every keyword/location field across Home, Directory,
+  // and Events rather than wiring each one separately. Desktop has no
+  // on-screen keyboard displacing anything, so the same jump there
+  // would just be an unexplained page shift -- gated to narrow
+  // viewports only, matching this file's existing mobile breakpoint
+  // (.two-col's own max-width:860px).
+  var AUTO_CENTER_SEARCH_IDS = ['hero-keyword-input', 'hero-location-input', 'dir-keyword-input', 'dir-location-input', 'events-keyword-input', 'events-location-input'];
+  document.addEventListener('focusin', function(ev){
+    if (window.innerWidth > 860) return;
+    if (!ev.target || AUTO_CENTER_SEARCH_IDS.indexOf(ev.target.id) === -1) return;
+    // A brief delay, not immediate -- on-screen keyboards animate in
+    // over a few hundred ms, and centering before that finishes would
+    // just get shoved out of place again once the keyboard settles.
+    setTimeout(function(){
+      ev.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 300);
+  });
 
   var langToggleBtn = document.getElementById('lang-toggle-btn');
   if (langToggleBtn) {

@@ -2193,3 +2193,19 @@ Fixed by wrapping just the location portion in its own `<span style="white-space
 Verified in a local preview at mobile viewport width: confirmed by screenshot that "San Antonio" now stays together on one line instead of splitting, and confirmed via `innerHTML`/`querySelector` inspection that the escaping holds against injection. `node --check` passes.
 
 Build `2026-09-15-v21`.
+
+---
+
+## Mobile: search fields auto-center on focus; follow-heart made bigger
+
+Two small mobile-only requests in the same message.
+
+**Search fields auto-center on focus, mobile only.** Tapping a keyword/location field left it wherever it happened to be scrolled to, easy to end up half-covered once the on-screen keyboard opens. One delegated `focusin` listener (not `focus`, which doesn't bubble, so a delegated single listener wouldn't catch it) covers all six keyword/location inputs across Home, Directory, and Events, calling `scrollIntoView({behavior:'smooth', block:'center'})` after a 300ms delay (keyboards animate in over a few hundred ms; centering before that finishes just gets shoved out of place again once it settles). Gated to `window.innerWidth <= 860` -- desktop has no on-screen keyboard displacing anything, so the same jump there would just be an unexplained page shift. Verified in a local preview by stubbing `scrollIntoView` and dispatching a synthetic `focusin`: fires with the right options at 375px width, confirmed it does *not* fire at a genuine desktop width (1400px) -- the pane's own "desktop" preset turned out to render at 800px in this environment, narrower than the 860px gate, which would have made the test wrongly report success without an explicit wide resize to rule that out.
+
+**Follow-heart enlarged on phones**, per direct request. `600px` matches this file's own established phone-specific breakpoint (several other `max-width:600px` rules already exist in this stylesheet) rather than the broader ~860px tablet/layout one. Card heart's button/hit-area grows alongside its icon (28px -> 34px, 18px -> 22px) rather than just the icon inside an unchanged box, so it doesn't start crowding the card's corner; List row's icon grows on its own (17px -> 21px, its click target was already enlarged separately in an earlier fix). Caught and fixed a near-repeat of an earlier mistake before it shipped: the card heart's base size rule is `!important` (required to beat `.thumb--denom svg`'s specificity on logoless cards), so the mobile override needed `!important` too, or a non-!important media-query rule would silently lose regardless of matching -- checked this against the base rule before assuming a plain override would work.
+
+**Debugging note, not a real bug**: initial verification showed neither change taking effect in the local preview at all, despite `window.matchMedia('(max-width:600px)').matches` correctly returning `true`. Root cause was simply a stale page -- the preview tab had been open since before the edit landed, and CSS changes to an already-parsed stylesheet don't retroactively apply without at least a reload of the page that references it. A fresh navigate to the same URL resolved it immediately. Worth remembering given the *live* site's own still-splitting "San Antonio" screenshot from the previous request landed in the same conversation -- almost certainly the identical cause (a not-yet-refreshed page, or Cloudflare Pages still finishing its deploy) rather than the fix having failed, though that one couldn't be directly confirmed from here since it's the user's own device on the live domain, not this local preview.
+
+`node --check` passes on both changes. Verified in a local preview via computed style (`34px x 34px` / `22px x 22px` / `21px x 21px`, matching exactly) and by screenshot. **Not tested**: either behavior on an actual physical phone.
+
+Build `2026-09-15-v22`.
