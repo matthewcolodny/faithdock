@@ -1891,6 +1891,40 @@
     window.googleMapsReady = true;
     if (window._runGoogleMapsSetup) { window._runGoogleMapsSetup(); }
   };
+
+  // Kick geolocation off right now, in parallel with both this page's
+  // own (larger) module script further down AND Google's async Maps
+  // script -- navigator.geolocation needs neither one loaded first.
+  // Previously autoDetectHomeLocation() (in the module script) only
+  // ever ran once Maps was ready, so the browser's location fix
+  // couldn't even START until Maps had finished loading -- reported
+  // as the "near me" cards taking a second to switch on load. The
+  // result is cached here; autoDetectHomeLocation() reuses it instead
+  // of requesting a second, redundant location fix once Maps is ready.
+  window.earlyGeoCoords = null;
+  window.earlyGeoDone = false;
+  window.earlyGeoAppliedCoords = false;
+  window.earlyGeoCallbacks = [];
+  function _applyEarlyGeoCoordsOnce(lat, lng){
+    if (window.earlyGeoAppliedCoords) return;
+    if (typeof window.applyDirLocationCoords !== 'function') return;
+    window.earlyGeoAppliedCoords = true;
+    window.applyDirLocationCoords(lat, lng);
+  }
+  window._applyEarlyGeoCoordsOnce = _applyEarlyGeoCoordsOnce;
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function(pos){
+      window.earlyGeoCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      window.earlyGeoDone = true;
+      _applyEarlyGeoCoordsOnce(window.earlyGeoCoords.lat, window.earlyGeoCoords.lng);
+      window.earlyGeoCallbacks.forEach(function(cb){ cb(window.earlyGeoCoords); });
+      window.earlyGeoCallbacks = [];
+    }, function(){
+      window.earlyGeoDone = true;
+      window.earlyGeoCallbacks.forEach(function(cb){ cb(null); });
+      window.earlyGeoCallbacks = [];
+    });
+  }
 </script>
 <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCWZyWUym5T5P0v07WqHU8sibdIs55ilNo&libraries=places&loading=async&callback=initGoogleMaps"></script>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 172.84 172.84'%3E%3Crect width='172.84' height='172.84' rx='21.6' fill='%231B2A4A'/%3E%3Cpath fill-rule='evenodd' fill='%23C9A227' d='M35.68,122.45L89.09,17.75l49.11,104.7H35.68ZM81.67,60.71v74.46s12.45,0,12.45,0V60.71s-12.45,0-12.45,0ZM60.93,80.3h53.93s0,11.76,0,11.76h-53.93s0-11.76,0-11.76Z'/%3E%3Cpath fill='%23C9A227' d='M20.64,130.74c74.8,31.89,65.48,31.25,132.52,0H20.64Z'/%3E%3C/svg%3E">
@@ -6029,7 +6063,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v22 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v23 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -9928,22 +9962,42 @@
   window.dirUserLat = null;
   window.dirUserLng = null;
 
-  function setDirLocation(lat, lng, label){
+  // Split from setDirLocation() below into its own step: the actual
+  // church/event results only ever depend on lat/lng, never on the
+  // human-readable label, but autoDetectHomeLocation() used to wait
+  // for BOTH geolocation AND a separate reverse-geocoding network call
+  // to finish before showing anything -- reported directly as the
+  // cards taking noticeably long to switch on load. Applying coordinates
+  // the instant they're known (skipping the geocoding round-trip
+  // entirely for this part) is what actually makes that faster; the
+  // label itself still has to wait on geocoding regardless, since
+  // there's no way to know a place name without it.
+  function applyDirLocationCoords(lat, lng){
     window.dirUserLat = lat;
     window.dirUserLng = lng;
+    if (typeof window.renderDirectory === 'function') window.renderDirectory();
+    if (typeof window.renderHomeChurches === 'function') window.renderHomeChurches();
+    if (typeof window.renderEvents === 'function') window.renderEvents();
+    if (typeof window.renderHomeEvents === 'function') window.renderHomeEvents();
+  }
+  window.applyDirLocationCoords = applyDirLocationCoords;
+
+  // The label-only half of what setDirLocation() used to do in one
+  // step -- deliberately does NOT touch dirUserLat/Lng or re-run any
+  // of the render calls above, so calling this after
+  // applyDirLocationCoords() already ran doesn't trigger a second,
+  // redundant search for results that haven't actually changed.
+  function applyDirLocationLabel(label){
+    if (!label) return;
     var input = document.getElementById('dir-location-input');
-    if (input && label) input.value = label;
+    if (input) input.value = label;
     var eventsInput = document.getElementById('events-location-input');
-    if (eventsInput && label) eventsInput.value = label;
+    if (eventsInput) eventsInput.value = label;
     // Same as clearDirLocation() below -- a programmatic .value write
     // doesn't fire 'input', so the clear buttons' own visibility
     // listeners never see this change unless re-synced explicitly.
     if (typeof window.syncDirLocationClearBtn === 'function') window.syncDirLocationClearBtn();
     if (typeof window.syncEventsLocationClearBtn === 'function') window.syncEventsLocationClearBtn();
-    if (typeof window.renderDirectory === 'function') window.renderDirectory();
-    if (typeof window.renderHomeChurches === 'function') window.renderHomeChurches();
-    if (typeof window.renderEvents === 'function') window.renderEvents();
-    if (typeof window.renderHomeEvents === 'function') window.renderHomeEvents();
 
     // Same location state feeds the homepage's "near you" heading and
     // search box, so detecting it once (wherever that happens) shows
@@ -9951,24 +10005,33 @@
     var heroInput = document.getElementById('hero-location-input');
     var churchHeading = document.getElementById('home-church-heading');
     var eventsHeading = document.getElementById('home-events-heading');
-    if (label) {
-      if (heroInput && !heroInput.value) heroInput.value = label;
-      // A multi-word location ("San Antonio") could wrap mid-name on
-      // narrow screens ("San" stranded on its own line) -- reported
-      // directly with a screenshot. Wrapping just the location in its
-      // own nowrap span keeps it atomic: the line break can still fall
-      // before "Churches near ..." wraps, just never inside the place
-      // name itself. innerHTML, not textContent, so this span can
-      // exist -- label isn't always a trusted geocoding result (some
-      // call sites fall back to the raw text someone typed into the
-      // location field when a formatted_address wasn't available), so
-      // it's HTML-escaped first, same defensive pattern already used
-      // for the church-name link in showRcSuccess().
-      var labelEsc = String(label).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-      var labelHtml = '<span style="white-space:nowrap;">' + labelEsc + '</span>';
-      if (churchHeading) churchHeading.innerHTML = window.t('home.churchesNear') + ' ' + labelHtml;
-      if (eventsHeading) eventsHeading.innerHTML = window.t('home.upcomingEventsNear') + ' ' + labelHtml;
-    }
+    if (heroInput && !heroInput.value) heroInput.value = label;
+    // A multi-word location ("San Antonio") could wrap mid-name on
+    // narrow screens ("San" stranded on its own line) -- reported
+    // directly with a screenshot. Wrapping just the location in its
+    // own nowrap span keeps it atomic: the line break can still fall
+    // before "Churches near ..." wraps, just never inside the place
+    // name itself. innerHTML, not textContent, so this span can
+    // exist -- label isn't always a trusted geocoding result (some
+    // call sites fall back to the raw text someone typed into the
+    // location field when a formatted_address wasn't available), so
+    // it's HTML-escaped first, same defensive pattern already used
+    // for the church-name link in showRcSuccess().
+    var labelEsc = String(label).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    var labelHtml = '<span style="white-space:nowrap;">' + labelEsc + '</span>';
+    if (churchHeading) churchHeading.innerHTML = window.t('home.churchesNear') + ' ' + labelHtml;
+    if (eventsHeading) eventsHeading.innerHTML = window.t('home.upcomingEventsNear') + ' ' + labelHtml;
+  }
+  window.applyDirLocationLabel = applyDirLocationLabel;
+
+  // Still used by every OTHER call site (address autocomplete, "Use my
+  // location" button, etc.), which already have both lat/lng AND label
+  // available at the same moment -- for them, doing both steps together
+  // is correct and simplest. autoDetectHomeLocation() below is the one
+  // exception, deliberately calling the two pieces separately instead.
+  function setDirLocation(lat, lng, label){
+    applyDirLocationCoords(lat, lng);
+    applyDirLocationLabel(label);
   }
 
   // Undoes everything setDirLocation() above does -- same shared state
@@ -10017,8 +10080,17 @@
   // permission is denied or unavailable, rather than guessing a city.
   function autoDetectHomeLocation(){
     if (!navigator.geolocation || !(window.google && google.maps)) return;
-    navigator.geolocation.getCurrentPosition(function(pos){
-      var lat = pos.coords.latitude, lng = pos.coords.longitude;
+    function withCoords(lat, lng){
+      // Applied immediately, not after reverse geocoding finishes --
+      // the actual church/event cards only ever need lat/lng, and
+      // reported directly as feeling slow to switch on load when this
+      // whole function used to wait on the geocoding network call
+      // first even though the cards never needed its result at all.
+      // Usually already applied by the early head-script fix (see
+      // _applyEarlyGeoCoordsOnce) by the time this runs -- this call
+      // is a no-op then, and only does real work if this function's
+      // own gate (Maps loaded) resolved before the location fix did.
+      _applyEarlyGeoCoordsOnce(lat, lng);
       var geocoder = new google.maps.Geocoder();
       geocoder.geocode({ location: { lat: lat, lng: lng } }, function(results, status){
         var label = null;
@@ -10033,9 +10105,25 @@
             label = results[0].formatted_address;
           }
         }
-        setDirLocation(lat, lng, label);
+        // Label-only -- the cards above already have their real
+        // results by the time this resolves; this just fills in the
+        // location field/headings text once it's known, without
+        // re-running the same search a second time for no reason.
+        applyDirLocationLabel(label);
       });
-    }, function(){ /* denied or unavailable — leave the generic "near you" headings as-is */ });
+    }
+    // Reuse the geolocation fix the head script kicked off before
+    // this (much later, Maps-gated) function even ran, instead of
+    // requesting a second, redundant fix -- see the head-script
+    // comment near window.earlyGeoCoords for why that fix already
+    // exists by the time we get here almost always.
+    if (window.earlyGeoDone) {
+      if (window.earlyGeoCoords) withCoords(window.earlyGeoCoords.lat, window.earlyGeoCoords.lng);
+      return;
+    }
+    window.earlyGeoCallbacks.push(function(coords){
+      if (coords) withCoords(coords.lat, coords.lng);
+    });
   }
 
   // Shared by the "Browse churches" button, Enter in either hero
