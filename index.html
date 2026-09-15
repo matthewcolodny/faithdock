@@ -1923,6 +1923,24 @@
       window.earlyGeoDone = true;
       window.earlyGeoCallbacks.forEach(function(cb){ cb(null); });
       window.earlyGeoCallbacks = [];
+    }, {
+      // maximumAge lets the browser hand back a fix it already has
+      // cached internally instead of always requesting a brand new
+      // one -- with no options at all, the default is maximumAge:0,
+      // meaning EVERY page load/refresh forced a fresh GPS/network
+      // fix from scratch, no matter how recently the same device got
+      // one. Reported specifically as "when refreshing... on mobile
+      // about 3-5 seconds" -- mobile fixes are inherently slower than
+      // desktop's (often near-instant Wi-Fi/IP based lookup) even
+      // when fresh, so avoiding a repeat fresh fix on every reload
+      // matters far more on mobile. 5 minutes is generous enough to
+      // cover repeated reloads/navigation in one visit without being
+      // so long it'd show a meaningfully stale location on a later,
+      // separate visit. timeout added as a safety net -- previously
+      // unset (defaults to no timeout), so a slow/stuck real fix could
+      // hang this indefinitely with no fallback ever kicking in.
+      maximumAge: 300000,
+      timeout: 10000
     });
   }
 </script>
@@ -6063,7 +6081,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v23 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v24 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
