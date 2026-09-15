@@ -5966,7 +5966,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v15 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v16 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12806,8 +12806,6 @@
       // either one individually was.
     } finally {
       btn.disabled = false;
-      var rcUploadProgressElFinally = document.getElementById('rc-logo-upload-progress');
-      if (rcUploadProgressElFinally) rcUploadProgressElFinally.style.display = 'none';
     }
   });
 
@@ -13010,6 +13008,17 @@
       }
     } finally {
       btn.disabled = false;
+      // Corrected placement -- an earlier pass accidentally put this
+      // hide logic in the sign-in form's own finally block instead
+      // (a different handler entirely, whose finally happened to sit
+      // right before showRcError/showRcSuccess's definitions, which is
+      // what made the wrong edit look plausible at the time). Real bug,
+      // reported directly: the bar showed correctly but never hid after
+      // a successful save, because nothing in THIS handler ever reset
+      // it -- the sign-in handler's finally only runs when someone
+      // signs in, never during a church save.
+      var rcUploadProgressElFinally = document.getElementById('rc-logo-upload-progress');
+      if (rcUploadProgressElFinally) rcUploadProgressElFinally.style.display = 'none';
     }
   });
 

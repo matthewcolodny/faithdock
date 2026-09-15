@@ -2104,3 +2104,17 @@ Scoped to the register-church form's logo field (`rc-logo`/`rc-submit-btn`) only
 Verified in a local preview: confirmed the element exists and starts hidden, and visually confirmed the bar/label render correctly by screenshot. `node --check` passes. **Not tested**: an actual large-file upload against live Supabase Storage.
 
 Build `2026-09-15-v15`.
+
+---
+
+## The progress bar from the entry above never hid itself -- my own edit put the hide logic in the wrong handler entirely
+
+Real, live bug reported directly by the user: uploaded a large image, watched "Uploading image..." stay up seemingly forever, but separately confirmed via the directory grid that the church had actually saved successfully with the new logo. Asked one clarifying question before touching anything -- was the Save button *also* still stuck disabled, or had it gone back to normal? Answer: the button re-enabled fine, only the bar stayed stuck. Since both are set in the same `finally` block, that meant they couldn't both live in the block that actually runs for this handler -- a real, diagnosable clue, not a guess.
+
+**Root cause: the previous entry's edit landed in the wrong function.** `rc-submit-btn`'s real click handler opens one `try` and doesn't close it (into its own `finally`) until much later in the file, after both the edit-church and create-church branches. In between sits an unrelated block -- the *sign-in form's* own `try/finally` -- whose closing `finally { btn.disabled = false; }` happens to be immediately followed by `showRcError`/`showRcSuccess`'s function definitions (register-church's own helpers, defined once, positioned right after the sign-in handler purely by file-organization coincidence, not because they belong to it). The previous edit's `old_string` match (`} finally { btn.disabled = false; } }); function showRcError(msg){`) was unique in the file, so the Edit tool didn't -- and couldn't -- catch the mistake; the match itself was correct, the assumption about which handler it belonged to was wrong. Confirmed by reading the surrounding code (`routeAfterLogin triggered via manual sign-in path`, `window.awaitingEmailConfirmation` handling) rather than trusting the earlier placement.
+
+Net effect: the "show" call was correctly placed (inside the true `rc-submit-btn` handler, right before the actual `.storage.upload()` call), but the "hide" call sat in a handler that only ever runs when someone signs in -- never during a church save. The bar would show correctly and then simply never be told to stop.
+
+**Fix**: reverted the sign-in handler's `finally` back to just `btn.disabled = false;`, and added the hide logic to `rc-submit-btn`'s actual closing `finally` (the one that comes after both the edit and create branches, right before the "Real event creation" section comment) -- the same block that already correctly resets `btn.disabled` for both branches. `node --check` passes; not re-tested against a live large-file upload from here, since that needs the user's own Supabase project.
+
+Build `2026-09-15-v16`.
