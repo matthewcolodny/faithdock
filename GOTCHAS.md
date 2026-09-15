@@ -1982,3 +1982,15 @@ Follow-up to the "needs more information" item above. User provided both pieces 
 **Flagged, not silently fixed**: `startPaidEventCheckout()` in `index.html` builds its own `successUrl` for paid event tickets using the exact same `baseUrl + churchHash` pattern, passed to a *different* edge function (`stripe-event-checkout`) whose source has never been pasted into this repo either. Very likely has the identical bug, but unconfirmed -- asked the user to paste it rather than assuming and patching code never seen.
 
 `node --check` passes on the new file. Not deployed -- needs the same manual paste-into-dashboard-and-redeploy treatment as every other edge function change.
+
+---
+
+## stripe-event-checkout.ts had the identical bug -- confirmed once the user pasted it, not assumed
+
+Follow-up to the entry above. Asked the user to paste `stripe-event-checkout.ts`'s source since `startPaidEventCheckout()` in `index.html` builds its `successUrl` the exact same way as the giving flow. They did, and it's the same bug, character for character: `success_url: successUrl + (successUrl.indexOf('?') === -1 ? '?' : '&') + 'event_session_id={CHECKOUT_SESSION_ID}'` -- same query-string-after-hash-fragment problem, same two consequences (event registration's `confirm_registration` step never runs since `window.location.search` comes back empty, and the router's not-found fallback fires on the malformed hash).
+
+Fixed the same way: added a `buildSuccessUrl(rawSuccessUrl, paramName)` in this file (parameterized for `event_session_id` instead of `session_id` -- can't share the helper between the two functions, since each Supabase Edge Function deploys as a fully separate, standalone script with no shared module). Tracked `stripe-event-checkout.ts` in this repo for the first time too, same as its sibling.
+
+**Separately, user asked about a related-looking but actually-unrelated report**: a church card still showed "Managed by this church" after signing out. Traced `churchStatusTag()` -- the badge is driven purely by `!!c.ownerId` (does this church have *any* owner at all), not by who's currently signed in. It's a directory trust/quality signal ("this is a claimed, real listing" vs. an unclaimed auto-imported one), correctly church-scoped rather than viewer-scoped, so it's expected to persist regardless of session state. Not a bug -- explained rather than fixed, since assuming it should be personalized and changing the underlying logic would have been wrong. Flagged that the label itself reads ambiguously (sounds self-referential/personalized at a glance) and offered to reword it, but didn't change copy on a guess without the user weighing in first.
+
+`node --check` passes. Not deployed -- same manual paste-and-redeploy as every edge function change in this repo.
