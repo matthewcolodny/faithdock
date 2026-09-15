@@ -2060,3 +2060,31 @@ Direct follow-up: 2px of padding around a 17px icon (~21px effective target) was
 Verified in a local preview: measured the actual click target size before/after, and confirmed by screenshot that the row's layout doesn't overflow or misalign with the extra padding. `node --check` passes.
 
 Build `2026-09-15-v9`.
+
+---
+
+## Follow-heart color/shadow refinements (v10-v13) -- recorded after the fact, several quick rounds without a GOTCHAS entry each
+
+Three more direct-feedback rounds landed on the heart in quick succession without a paper trail at the time; recording the net effect now rather than leaving the gap.
+
+**v10**: renamed the "Churches I follow" filter checkbox label to "Followed Churches" (one shared i18n key, `events.churchesIFollow`, covers both the Events and Directory filter panels -- Spanish updated to "Iglesias seguidas" too). No functional change, no entry needed at the time.
+
+**v11**: made the card heart's *unfollowed* color theme-aware -- light grey (`#C7C7C7`) in light mode instead of the dark grey used everywhere, dark mode unchanged. Applied to both card and row.
+
+**v12**: light-mode card heart redesigned again, per more specific feedback -- empty state's fill now matches the card's own background color (`hsl(var(--thumb-hue,220) 34% 88%)`, the exact formula `.thumb--denom` itself uses) with a grey stroke outline, so it blends into the pastel placeholder rather than sitting on top as a solid shape; followed state turns solid white. Drop-shadow removed in light mode (no longer needed once the fill deliberately matches the card) but kept in dark mode, where there's no single "card color" a stroke-only heart could reliably blend into. Had to explicitly scope the dark-mode followed-state override under `html[data-theme="dark"]` -- the plain dark-mode default rule (specificity 0,0,2,2) otherwise outranks an unscoped `[data-following="true"]` rule (0,0,2,1), so a followed heart would silently never turn white in dark mode without it.
+
+**v13**: the click handler's brief `disabled = true` (blocking a double-click race while the follow/unfollow request is in flight) was showing the browser's default not-allowed cursor for that split second -- reported directly as a red "no entry" flash. Fixed with `.follow-heart-card:disabled, .follow-heart-row:disabled{cursor:pointer;}`, keeping the functional disable without the jarring cursor.
+
+---
+
+## List view heart redesigned again: hollow grey outline (light mode) / grey fill when followed, plus a confirmed-live dark-mode bug fix
+
+Continuing the same feedback thread: light mode's List view heart should be a grey-bordered, unfilled outline when empty, and a solid grey heart (no card-color-blend treatment like the card gets -- rows have no single background hue to blend into) when followed. Separately, dark mode's followed heart should be white.
+
+**The dark-mode "should be white" ask surfaced a real, live bug**, not just a preference -- checked before assuming: `.follow-heart-row[data-following="true"] svg{fill:#fff;}` was still unscoped (never got the same fix `.follow-heart-card` received in v12), so `html[data-theme="dark"] .follow-heart-row svg`'s higher specificity (0,0,2,2 vs. the unscoped rule's 0,0,2,1) was silently keeping a *followed* heart dark grey in dark mode List view. Confirmed via computed-style inspection in a local preview before fixing (`fill: rgb(74, 74, 74)` where white was expected), then fixed the same way as the card: `html[data-theme="dark"] .follow-heart-row[data-following="true"] svg{fill:#fff;}`, explicitly scoped so it outranks the dark-mode default.
+
+Light mode's new hollow-outline treatment (`stroke:#8A8A8A;fill:none` empty, `fill:#8A8A8A` solid grey when followed) didn't need `!important` the way the card's rules do -- confirmed there's no `.thumb--denom`-style generic `svg` rule that could leak into `.follow-heart-row`, since List rows have no thumbnail element for the heart to nest inside.
+
+Verified in a local preview: computed fill/stroke for all four combinations (light/dark x empty/followed) match exactly what was asked, confirmed by screenshot for the light-mode pair. `node --check` passes.
+
+Build `2026-09-15-v14`.

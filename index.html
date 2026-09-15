@@ -2274,9 +2274,23 @@
   }
   /* Same not-allowed-cursor flash fix as .follow-heart-card above. */
   .follow-heart-row:disabled{cursor:pointer;}
-  .follow-heart-row svg{width:17px;height:17px;stroke:none;fill:#C7C7C7;}
-  html[data-theme="dark"] .follow-heart-row svg{fill:#4A4A4A;}
-  .follow-heart-row[data-following="true"] svg{fill:#fff;}
+  /* Light mode: hollow grey outline when empty (no fill at all, unlike
+     the card's card-color-blend treatment -- List rows have no single
+     background hue to blend into the way a card's thumb does), solid
+     grey heart when followed. */
+  .follow-heart-row svg{width:17px;height:17px;stroke:#8A8A8A;stroke-width:1.5;fill:none;}
+  .follow-heart-row[data-following="true"] svg{fill:#8A8A8A;stroke:#8A8A8A;}
+  /* Dark mode default (empty) unchanged from before. The
+     [data-following="true"] override MUST be re-scoped under
+     html[data-theme="dark"] here too, same specificity trap already
+     hit and fixed for .follow-heart-card: the plain dark-mode default
+     just below is more specific (0,0,2,2) than an unscoped
+     [data-following="true"] rule (0,0,2,1), so without this a followed
+     heart silently stayed grey in dark mode instead of turning white --
+     confirmed as a real, live bug via computed-style inspection before
+     fixing it here, not assumed from the card fix alone. */
+  html[data-theme="dark"] .follow-heart-row svg{stroke:none;fill:#4A4A4A;}
+  html[data-theme="dark"] .follow-heart-row[data-following="true"] svg{fill:#fff;stroke:none;}
   /* Directory numbered pager */
   .dir-pager{display:flex;flex-wrap:wrap;align-items:center;gap:6px;}
   .dir-pager-btn{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:34px;padding:0 10px;font-size:13px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);cursor:pointer;}
@@ -5932,7 +5946,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v13 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v14 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
