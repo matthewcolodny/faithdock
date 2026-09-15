@@ -233,7 +233,7 @@
       'rc.description': 'Description', 'rc.logo': 'Logo', 'rc.removeLogo': 'Remove logo',
       'rc.serviceTimes': 'Service times', 'rc.removeServiceTime': 'Remove service time',
       'rc.serviceTimesHint': 'Add each time separately — e.g. for Sundays at 9 & 11 AM, add Sunday 9:00 AM, then add Sunday 11:00 AM.',
-      'rc.chooseFile': 'Choose file', 'rc.noFileChosen': 'No file chosen', 'rc.uploadingLogo': 'Uploading image…',
+      'rc.chooseFile': 'Choose file', 'rc.noFileChosen': 'No file chosen', 'rc.uploadingLogo': 'Uploading image…', 'rc.viewYourChurchPage': 'View your church page →',
       'rc.facebook': 'Facebook', 'rc.instagram': 'Instagram',
       'rc.namePlaceholder': 'Grace Fellowship Church', 'rc.websitePlaceholder': 'https://yourchurch.org',
       'rc.createChurch': 'Create church', 'rc.saveChanges': 'Save changes',
@@ -1022,7 +1022,7 @@
       'rc.description': 'Descripción', 'rc.logo': 'Logotipo', 'rc.removeLogo': 'Quitar logotipo',
       'rc.serviceTimes': 'Horarios de servicio', 'rc.removeServiceTime': 'Quitar horario de servicio',
       'rc.serviceTimesHint': 'Agrega cada horario por separado — p. ej. para domingos a las 9 y 11 AM, agrega domingo 9:00 AM y luego domingo 11:00 AM.',
-      'rc.chooseFile': 'Elegir archivo', 'rc.noFileChosen': 'Ningún archivo seleccionado', 'rc.uploadingLogo': 'Subiendo imagen…',
+      'rc.chooseFile': 'Elegir archivo', 'rc.noFileChosen': 'Ningún archivo seleccionado', 'rc.uploadingLogo': 'Subiendo imagen…', 'rc.viewYourChurchPage': 'Ver la página de tu iglesia →',
       'rc.facebook': 'Facebook', 'rc.instagram': 'Instagram',
       'rc.namePlaceholder': 'Iglesia Comunidad de Gracia', 'rc.websitePlaceholder': 'https://tuiglesia.org',
       'rc.createChurch': 'Crear iglesia', 'rc.saveChanges': 'Guardar cambios',
@@ -5966,7 +5966,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v16 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v17 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12815,10 +12815,17 @@
     el.textContent = msg;
     el.style.display = 'block';
   }
+  // innerHTML, not textContent -- the edit-save success message now
+  // carries a "View your church page" link (see rc-submit-btn's update
+  // branch below). Every other call site still passes a plain
+  // developer-authored string with no HTML in it, so this is a safe
+  // switch for them; the one call site that interpolates user data
+  // (the church's own name) escapes it itself before it ever reaches
+  // here, same as this file's existing escapeHtml() pattern elsewhere.
   function showRcSuccess(msg){
     var el = document.getElementById('rc-success');
     document.getElementById('rc-error').style.display = 'none';
-    el.textContent = msg;
+    el.innerHTML = msg;
     el.style.display = 'block';
   }
 
@@ -12930,7 +12937,20 @@
         // "permission denied for table churches".
         var { data, error } = await supabase.from('churches').update(payload).eq('id', rcEditingChurchId).select(PUBLIC_CHURCH_COLUMNS);
         if (error) { showRcError(error.message); return; }
-        showRcSuccess(geocodeWarning || ('Saved! "' + data[0].name + '" has been updated.'));
+        // Escaped for two different contexts -- churchNameHtml for the
+        // human-readable text between quotes (so a church name
+        // containing "<"/"&" can't break the message or inject markup),
+        // churchNameAttr for the data-church-name attribute value
+        // (quotes only, matching how churchCard()/churchRow() already
+        // escape the same field for the same [data-route="church"]
+        // click-delegation pattern this link reuses -- no new routing
+        // logic needed). Appended to both the plain success message and
+        // either geocodeWarning fallback, since the church saved fine
+        // in every one of those cases -- only the wording differs.
+        var churchNameHtml = data[0].name.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        var churchNameAttr = data[0].name.replace(/"/g, '&quot;');
+        var viewChurchLinkHtml = ' <a href="#church/' + encodeURIComponent(data[0].name) + '" data-route="church" data-church-name="' + churchNameAttr + '" style="color:inherit;text-decoration:underline;">' + window.t('rc.viewYourChurchPage') + '</a>';
+        showRcSuccess((geocodeWarning || ('Saved! "' + churchNameHtml + '" has been updated.')) + viewChurchLinkHtml);
         if (payload.logo_url) {
           document.getElementById('rc-logo-preview').style.backgroundImage = "url('" + payload.logo_url + "')";
         }

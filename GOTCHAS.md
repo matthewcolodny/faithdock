@@ -2118,3 +2118,21 @@ Net effect: the "show" call was correctly placed (inside the true `rc-submit-btn
 **Fix**: reverted the sign-in handler's `finally` back to just `btn.disabled = false;`, and added the hide logic to `rc-submit-btn`'s actual closing `finally` (the one that comes after both the edit and create branches, right before the "Real event creation" section comment) -- the same block that already correctly resets `btn.disabled` for both branches. `node --check` passes; not re-tested against a live large-file upload from here, since that needs the user's own Supabase project.
 
 Build `2026-09-15-v16`.
+
+---
+
+## Church-save success message now links to the public church page
+
+User asked for the "Saved!" message to include a "View your church page" link so an owner can quickly check their update on the public side without hunting for it themselves.
+
+**`showRcSuccess()` switched from `textContent` to `innerHTML`** to render an actual `<a>` tag -- checked every other call site first (all pass plain developer-authored strings with no `<`/`>`/`&` in them, so the switch is safe for those unchanged). The one call site that interpolates real user data (the church's own name, which anyone can type freely) escapes it itself before it ever reaches `showRcSuccess()`: `churchNameHtml` (`&`/`<`/`>` escaped, for the human-readable text between quotes) and `churchNameAttr` (`"` escaped, for the `data-church-name` attribute) are two separately-escaped values for two different contexts, not one shared string -- verified in a local preview with a deliberately hostile test name (`Test <b>2</b> & "Sons"`) that the `<b>` came through as literal escaped text, not a real bold element, before considering this safe.
+
+**Reused the existing `[data-route="church"]` click-delegation pattern** rather than inventing new navigation logic -- the link carries `data-route="church"` and `data-church-name="..."`, the same two attributes `churchCard()`/`churchRow()` already put on every directory card/row link, so the document-level click handler that already knows how to resolve and navigate to a church page picks it up for free.
+
+**Appended to both outcomes of a successful update, not just the plain-success case** -- the same link is appended whether the message ends up being the default "Saved!" text or one of the two `geocodeWarning` fallback strings (an exact-address-not-found or location-lookup-failure caveat), since the church itself saved successfully in every one of those cases; only the wording of what's said differs.
+
+Scoped to the edit/update branch only -- the create-new-church branch doesn't call `showRcSuccess()` at all (it redirects straight to the new church's dashboard instead), so there's no equivalent "stay on this page and see a message" moment to add the link to there.
+
+Verified in a local preview: rendered the exact same escaping logic against a hostile test name and confirmed via `querySelector` that the link's `href`/`data-church-name` are populated correctly and no real `<b>` element exists in the output. `node --check` passes.
+
+Build `2026-09-15-v17`.
