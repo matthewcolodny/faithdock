@@ -2179,3 +2179,17 @@ Confirmed no existing `-webkit-tap-highlight-color` reset anywhere in the styles
 Verified in a local preview: computed `webkitTapHighlightColor` on both `.church-card` and `.church-row` resolves to `rgba(0, 0, 0, 0)` (fully transparent) after the change. `node --check` passes -- pure CSS, no JS touched. **Not tested**: an actual physical mobile device/touchscreen, since this environment can only emulate viewport size, not real touch-highlight rendering.
 
 Build `2026-09-15-v20`.
+
+---
+
+## Multi-word location names ("San Antonio") could break mid-name on the homepage heading
+
+Reported with a mobile screenshot: "Churches near San / Antonio", the line break landing inside the city name itself rather than before it. `setDirLocation()` was building the whole heading (`"Churches near " + label`) as one plain string via `textContent`, so the browser was free to wrap anywhere a space allowed, including the one inside "San Antonio".
+
+Fixed by wrapping just the location portion in its own `<span style="white-space:nowrap;">` -- the location now wraps as one atomic unit; a break can still fall before "Churches near ..." if the line's too narrow, just never inside the place name. Applied to both the church heading and the parallel "Upcoming events near ..." heading, which builds from the exact same `label` and had the identical latent bug, unreported but not left as a known gap.
+
+**Switching `textContent` to `innerHTML` needed escaping first, checked rather than assumed safe.** Traced every call site of `setDirLocation()`: most pass a geocoding API's `formatted_address`, but a couple explicitly fall back to the raw text someone typed into the location field (`dirLocationInput.value`/`eventsLocationInput.value`) when a formatted address wasn't available -- meaning `label` isn't always trustworthy content. Escaped it (`&`/`<`/`>`) before building the span, same defensive pattern already used for the church-name link in `showRcSuccess()`. Verified against a deliberately hostile test string (`<b>XSS</b> & "Test"`) that it renders as literal escaped text, not a real bold element.
+
+Verified in a local preview at mobile viewport width: confirmed by screenshot that "San Antonio" now stays together on one line instead of splitting, and confirmed via `innerHTML`/`querySelector` inspection that the escaping holds against injection. `node --check` passes.
+
+Build `2026-09-15-v21`.

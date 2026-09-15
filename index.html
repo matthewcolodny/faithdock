@@ -6009,7 +6009,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v20 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v21 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -9910,8 +9910,21 @@
     var eventsHeading = document.getElementById('home-events-heading');
     if (label) {
       if (heroInput && !heroInput.value) heroInput.value = label;
-      if (churchHeading) churchHeading.textContent = window.t('home.churchesNear') + ' ' + label;
-      if (eventsHeading) eventsHeading.textContent = window.t('home.upcomingEventsNear') + ' ' + label;
+      // A multi-word location ("San Antonio") could wrap mid-name on
+      // narrow screens ("San" stranded on its own line) -- reported
+      // directly with a screenshot. Wrapping just the location in its
+      // own nowrap span keeps it atomic: the line break can still fall
+      // before "Churches near ..." wraps, just never inside the place
+      // name itself. innerHTML, not textContent, so this span can
+      // exist -- label isn't always a trusted geocoding result (some
+      // call sites fall back to the raw text someone typed into the
+      // location field when a formatted_address wasn't available), so
+      // it's HTML-escaped first, same defensive pattern already used
+      // for the church-name link in showRcSuccess().
+      var labelEsc = String(label).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      var labelHtml = '<span style="white-space:nowrap;">' + labelEsc + '</span>';
+      if (churchHeading) churchHeading.innerHTML = window.t('home.churchesNear') + ' ' + labelHtml;
+      if (eventsHeading) eventsHeading.innerHTML = window.t('home.upcomingEventsNear') + ' ' + labelHtml;
     }
   }
 
