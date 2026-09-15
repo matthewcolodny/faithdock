@@ -2328,3 +2328,13 @@ Removed the now-dead `church.followingCheck` i18n key (EN/ES) along with the but
 Verified in a local preview: clicked through from the homepage to a real church's profile page and confirmed by screenshot the heart renders top-right, level with "CHRISTIAN / GENERAL", both at desktop and mobile (375px) width -- the mobile screenshot in particular confirmed it doesn't crowd even a longer two-word denomination label. Confirmed via DOM inspection that the rendered heart carries the real church's UUID as `data-follow-church-id`, starts `data-following="false"`, and its empty-state stroke computes to `rgb(143, 160, 196)` (`#8FA0C4`) as intended. Clicked it while signed out and confirmed the shared delegated handler correctly opened the existing "Create a free account or sign in to follow churches" modal -- proof the heart is properly wired into the existing follow system, not just visually present. No console errors beyond the pre-existing, unrelated localhost Turnstile ones. `node --check`-equivalent syntax check passes. **Not tested**: the actual follow/unfollow toggle and its visual fill-state change while genuinely signed in, since this sandboxed preview has no real authenticated session to complete that flow with.
 
 Build `2026-09-15-v30`.
+
+---
+
+## Profile page follow heart sat flush against the page edge (even overlapping the scrollbar) instead of lining up with Message/Give
+
+Reported with two screenshots, one highlighting the browser's own scrollbar running right through the heart's column. Root cause: `.follow-heart-profile{position:absolute;top:0;right:0;}` -- `right:0` for an absolutely positioned element resolves against its containing block's *padding edge*, which for `.wrap` (its containing block here, `padding:0 28px`) sits at the outer/border edge, not inset by that padding at all. So `right:0` put the heart flush against the very edge of `.wrap` -- and by extension, on a browser window where `.wrap` doesn't hit its own 1080px max-width cap, flush against the actual edge of the page -- while Message/Give (normal-flow children, which DO respect padding) sat visibly further in, 28px inset from that same edge. Changed to `right:28px`, matching `.wrap`'s own padding value exactly, so the heart now lines up with Message/Give's own right edge instead of overshooting past it.
+
+Verified in a local preview: confirmed by screenshot the heart now sits inset from the page edge, and by direct `getBoundingClientRect()` comparison that its right edge (`981px`) matches the Give button's right edge (`981px`) exactly, pixel for pixel, at the tested window width. Pure CSS change -- no JS touched, `node --check`-equivalent syntax check passes trivially.
+
+Build `2026-09-15-v31`.
