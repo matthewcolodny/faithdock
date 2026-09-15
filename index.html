@@ -3838,7 +3838,24 @@
       <span data-i18n="church.unclaimedNoticeLead">See something incorrect? This is an unclaimed, community-sourced listing. Email us at</span>
       <a href="mailto:support@faithdock.com" style="color:inherit;border-bottom:1px solid var(--gold-ink);">support@faithdock.com</a>
       <span data-i18n="church.unclaimedNoticeMid">to report an issue, or</span>
-      <button type="button" id="church-bottom-claim-btn" style="background:none;border:none;padding:0;margin:0;font:inherit;font-weight:700;color:inherit;border-bottom:1px solid var(--gold-ink);cursor:pointer;" data-i18n="church.claimThisChurch">Claim this church</button>
+      <!-- A real <a>, not a <button> -- tried display:inline on a
+           <button> first, but Chromium's form controls keep their
+           forced inline-block box/baseline behavior regardless of the
+           declared display value (a real, confirmed browser quirk, not
+           a CSS specificity issue: the inline style genuinely said
+           display:inline, yet getComputedStyle still reported
+           inline-block). That mismatched baseline against the mailto
+           <a> right before it, which IS a plain inline element by
+           default -- their border-bottom underlines sat at visibly
+           different heights despite identical styling otherwise,
+           reported directly with a zoomed-in screenshot. A real <a>
+           here aligns exactly like the mailto link next to it, no
+           quirks. href="#" is safe -- the shared claim click handler
+           below now calls preventDefault(), same established pattern
+           already used throughout this file for href="#" + data-route/
+           delegated-click elements, so this never actually touches
+           location.hash (which this whole app's routing depends on). -->
+      <a href="#" id="church-bottom-claim-btn" style="color:inherit;font-weight:700;border-bottom:1px solid var(--gold-ink);cursor:pointer;" data-i18n="church.claimThisChurch">Claim this church</a>
       <span data-i18n="church.unclaimedNoticeEnd">to manage it yourself.</span>
     </div>
     <a href="#directory" data-route="directory" class="back-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg> <span data-i18n="church.backToDirectory">Back to directory</span></a>
@@ -6265,7 +6282,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v35 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v36 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -20141,13 +20158,22 @@
   // Delegated (not a direct getElementById listener) because the claim
   // CTA now appears three times on the page -- the header banner's
   // button, the Events-tab empty-state pivot button, and the bottom
-  // unclaimed notice's button -- and all three should trigger the
-  // exact same flow. Any of them works from the same
-  // #church-unclaimed-banner data attributes regardless of which one
-  // was clicked, since that's just where the current church's id/name
-  // are stashed, not tied to a specific button.
+  // unclaimed notice's link -- and all three should trigger the exact
+  // same flow. Any of them works from the same #church-unclaimed-banner
+  // data attributes regardless of which one was clicked, since that's
+  // just where the current church's id/name are stashed, not tied to a
+  // specific button.
   document.addEventListener('click', async function(ev){
-    if (!ev.target.closest || !ev.target.closest('#church-claim-btn, #church-events-claim-btn, #church-bottom-claim-btn')) return;
+    var claimTrigger = ev.target.closest ? ev.target.closest('#church-claim-btn, #church-events-claim-btn, #church-bottom-claim-btn') : null;
+    if (!claimTrigger) return;
+    // Only #church-bottom-claim-btn is a real <a href="#"> (needed so
+    // its underline baseline-aligns with the mailto link next to it --
+    // see the HTML comment where it's defined; a <button> here couldn't
+    // be made to match no matter what display value it was given).
+    // preventDefault() keeps that href="#" from ever actually touching
+    // location.hash, which this app's whole router depends on -- a
+    // no-op for the other two, already-plain <button> triggers.
+    ev.preventDefault();
     var banner = document.getElementById('church-unclaimed-banner');
     // Still recorded via the same pendingClaim mechanism (rather
     // than reverting to reading the banner at submit time) so a
