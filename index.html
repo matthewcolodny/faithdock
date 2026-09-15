@@ -282,7 +282,9 @@
       'common.previousMonth': 'Previous month', 'common.nextMonth': 'Next month',
       'shareModal.eyebrow': 'Share event', 'shareModal.scanToOpen': 'Scan to open, or print on a flyer', 'shareModal.copy': 'Copy',
       'staffPerms.eyebrow': 'Permissions', 'staffPerms.manageEvents': 'Create and manage events',
-      'staffPerms.manageGiving': 'Manage giving settings (connect bank account)', 'staffPerms.manageBilling': 'Manage billing',
+      'staffPerms.manageGiving': 'Manage giving settings (connect bank account)',
+      'staffPerms.manageGroups': 'Create and manage groups', 'staffPerms.manageMessages': 'Send messages and view delivery data',
+      'staffPerms.isManager': 'Manager — can also invite/remove staff and assign their abilities',
       'staffPerms.editProfile': 'Edit church profile', 'staffPerms.save': 'Save permissions',
       'memberInvite.title': "You've been invited!", 'memberInvite.thisChurch': 'This church',
       'memberInvite.body': 'invited you to join them on FaithDock. Want to set them as your Church Home? You can always change this later in your profile.',
@@ -625,7 +627,7 @@
       'dashSettings.removeMinistryFailed': 'Could not remove this ministry:',
       'dashSettings.churchProfileHint': 'Name, address, denomination, website, description, and logo are all managed from one page.',
       'dashSettings.givingHint': 'Connect a bank account so your church can accept donations directly through FaithDock. Donations go straight to your account — FaithDock never holds the funds.',
-      'dashSettings.team': 'Team', 'dashSettings.teamHint': 'Staff can create and edit events. Church profile and billing stay owner-only.',
+      'dashSettings.team': 'Team', 'dashSettings.teamHint': 'Staff can be given specific abilities — events, groups, messages, giving, or editing the profile. Billing and deleting the church always stay owner-only.',
       'dashSettings.addStaffByEmail': 'Add staff by email',
       'dashSettings.addStaffHint': "If they already have a FaithDock account, they're added right away. If not, they'll get an email invite and join automatically once they sign up.",
       'dashSettings.addToChurches': 'Add to', 'dashSettings.addToTeam': 'Add to team',
@@ -784,6 +786,7 @@
       'church.details': 'Details', 'church.upcomingEventsHere': 'Upcoming events here', 'church.noUpcomingEventsPosted': 'No upcoming events posted yet.', 'church.loadingGroups': 'Loading groups...', 'church.loadingMinistries': 'Loading ministries...', 'church.noMinistriesPosted': 'No ministries posted yet.', 'church.noMapAvailable': 'No map available for this listing yet.', 'church.openInGoogleMaps': 'Open in Google Maps', 'church.backToDirectory': 'Back to directory',
       'dashGiving.givingTrend': 'Giving trend', 'dashGiving.givingByFund': 'Giving by fund', 'dashGiving.fund': 'Fund',
       'dashSettings.ownerFallback': 'Owner', 'dashSettings.teamMemberFallback': 'Team member', 'dashSettings.ownerRoleLabel': 'Owner', 'dashSettings.permissions': 'Permissions',
+      'dashSettings.managerRoleLabel': 'Manager', 'dashSettings.assignAsManager': 'Assign as Manager (can invite/remove staff and assign their abilities)',
       'dashSettings.removeFromTeam': 'Remove from team', 'dashSettings.cancelInvite': 'Cancel invite',
       'dashEvents.editEventTip': 'Edit event',
       'admin.eyebrow': 'Platform admin', 'admin.heading': 'Admin', 'admin.myChurchDashboard': 'Manage my church →',
@@ -1064,7 +1067,9 @@
       'common.previousMonth': 'Mes anterior', 'common.nextMonth': 'Mes siguiente',
       'shareModal.eyebrow': 'Compartir evento', 'shareModal.scanToOpen': 'Escanea para abrir, o imprime en un volante', 'shareModal.copy': 'Copiar',
       'staffPerms.eyebrow': 'Permisos', 'staffPerms.manageEvents': 'Crear y administrar eventos',
-      'staffPerms.manageGiving': 'Administrar configuración de donaciones (conectar cuenta bancaria)', 'staffPerms.manageBilling': 'Administrar facturación',
+      'staffPerms.manageGiving': 'Administrar configuración de donaciones (conectar cuenta bancaria)',
+      'staffPerms.manageGroups': 'Crear y administrar grupos', 'staffPerms.manageMessages': 'Enviar mensajes y ver datos de entrega',
+      'staffPerms.isManager': 'Gerente — también puede invitar/quitar personal y asignar sus habilidades',
       'staffPerms.editProfile': 'Editar perfil de la iglesia', 'staffPerms.save': 'Guardar permisos',
       'memberInvite.title': '¡Has sido invitado!', 'memberInvite.thisChurch': 'Esta iglesia',
       'memberInvite.body': 'te invitó a unirte a ellos en FaithDock. ¿Quieres establecerla como tu Iglesia Principal? Siempre puedes cambiar esto después en tu perfil.',
@@ -1407,7 +1412,7 @@
       'dashSettings.removeMinistryFailed': 'No se pudo eliminar este ministerio:',
       'dashSettings.churchProfileHint': 'El nombre, la dirección, la denominación, el sitio web, la descripción y el logotipo se administran todos desde una sola página.',
       'dashSettings.givingHint': 'Conecta una cuenta bancaria para que tu iglesia pueda recibir donaciones directamente a través de FaithDock. Las donaciones van directamente a tu cuenta — FaithDock nunca retiene los fondos.',
-      'dashSettings.team': 'Equipo', 'dashSettings.teamHint': 'El personal puede crear y editar eventos. El perfil de la iglesia y la facturación son solo para el propietario.',
+      'dashSettings.team': 'Equipo', 'dashSettings.teamHint': 'El personal puede recibir habilidades específicas — eventos, grupos, mensajes, donativos o edición del perfil. La facturación y la eliminación de la iglesia son siempre solo para el propietario.',
       'dashSettings.addStaffByEmail': 'Agregar personal por correo electrónico',
       'dashSettings.addStaffHint': 'Si ya tienen una cuenta de FaithDock, se agregan de inmediato. Si no, recibirán una invitación por correo y se unirán automáticamente al registrarse.',
       'dashSettings.addToChurches': 'Agregar a', 'dashSettings.addToTeam': 'Agregar al equipo',
@@ -1566,6 +1571,7 @@
       'church.details': 'Detalles', 'church.upcomingEventsHere': 'Próximos eventos aquí', 'church.noUpcomingEventsPosted': 'Aún no hay próximos eventos publicados.', 'church.loadingGroups': 'Cargando grupos...', 'church.loadingMinistries': 'Cargando ministerios...', 'church.noMinistriesPosted': 'Aún no hay ministerios publicados.', 'church.noMapAvailable': 'No hay mapa disponible para este listado aún.', 'church.openInGoogleMaps': 'Abrir en Google Maps', 'church.backToDirectory': 'Volver al directorio',
       'dashGiving.givingTrend': 'Tendencia de donaciones', 'dashGiving.givingByFund': 'Donaciones por fondo', 'dashGiving.fund': 'Fondo',
       'dashSettings.ownerFallback': 'Propietario', 'dashSettings.teamMemberFallback': 'Miembro del equipo', 'dashSettings.ownerRoleLabel': 'Propietario', 'dashSettings.permissions': 'Permisos',
+      'dashSettings.managerRoleLabel': 'Gerente', 'dashSettings.assignAsManager': 'Asignar como Gerente (puede invitar/quitar personal y asignar sus habilidades)',
       'dashSettings.removeFromTeam': 'Quitar del equipo', 'dashSettings.cancelInvite': 'Cancelar invitación',
       'dashEvents.editEventTip': 'Editar evento',
       'admin.eyebrow': 'Administración de la plataforma', 'admin.heading': 'Administración', 'admin.myChurchDashboard': 'Administrar mi iglesia →',
@@ -5716,7 +5722,7 @@
           </div>
           <div class="side-note" style="margin-top:0;">
             <h4><span data-i18n="dashSettings.team">Team</span> <span class="mono" id="team-count" style="font-size:10px;color:var(--ink-mute);font-weight:400;"></span></h4>
-            <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:12px;" data-i18n="dashSettings.teamHint">Staff can create and edit events. Church profile and billing stay owner-only.</p>
+            <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:12px;" data-i18n="dashSettings.teamHint">Staff can be given specific abilities — events, groups, messages, giving, or editing the profile. Billing and deleting the church always stay owner-only.</p>
             <div id="team-list"></div>
             <div id="team-owner-controls" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--line);">
               <label style="font-size:12.5px;" data-i18n="dashSettings.addStaffByEmail">Add staff by email</label>
@@ -5831,7 +5837,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v1 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v2 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -5859,8 +5865,17 @@
 
     <label class="filter-check"><input type="checkbox" id="perm-events"> <span data-i18n="staffPerms.manageEvents">Create and manage events</span></label>
     <label class="filter-check" style="margin-top:10px;"><input type="checkbox" id="perm-giving"> <span data-i18n="staffPerms.manageGiving">Manage giving settings (connect bank account)</span></label>
-    <label class="filter-check" style="margin-top:10px;"><input type="checkbox" id="perm-billing"> <span data-i18n="staffPerms.manageBilling">Manage billing</span></label>
+    <label class="filter-check" style="margin-top:10px;"><input type="checkbox" id="perm-groups"> <span data-i18n="staffPerms.manageGroups">Create and manage groups</span></label>
+    <label class="filter-check" style="margin-top:10px;"><input type="checkbox" id="perm-messages"> <span data-i18n="staffPerms.manageMessages">Send messages and view delivery data</span></label>
     <label class="filter-check" style="margin-top:10px;"><input type="checkbox" id="perm-profile"> <span data-i18n="staffPerms.editProfile">Edit church profile</span></label>
+    <!-- Owner-only, tier-gated -- shown/hidden by loadTeamPanel's click
+         handler (data-manager / data-viewer-is-owner on the gear button),
+         never by a Manager: only the church owner can grant or revoke
+         the Manager role (update_staff_abilities() blocks a Manager
+         from touching this server-side regardless of what shows here). -->
+    <div id="perm-manager-row" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--line);">
+      <label class="filter-check"><input type="checkbox" id="perm-manager"> <span data-i18n="staffPerms.isManager">Manager — can also invite/remove staff and assign their abilities</span></label>
+    </div>
 
     <button class="btn-gold" id="staff-permissions-save-btn" style="margin-top:18px;width:100%;justify-content:center;" data-i18n="staffPerms.save">Save permissions</button>
     <div id="staff-permissions-status" style="display:none;font-size:12.5px;margin-top:10px;"></div>
@@ -9535,6 +9550,21 @@
   };
   window.planLimits = planLimits;
 
+  // Mirrors migration 029's plan_tiers.can_assign_manager (true for
+  // standard/premium/multi_church) -- this is only used to decide
+  // whether to show the "Assign as Manager" checkbox at all; the
+  // real gate is server-side in update_staff_abilities() and the
+  // team-invite insert, so a stale/missing entry here just hides a
+  // checkbox, it never grants anything on its own.
+  var tierAllowsManager = {
+    free: false,
+    starter: false,
+    standard: true,
+    premium: true,
+    multi_church: true
+  };
+  window.tierAllowsManager = tierAllowsManager;
+
   if (typeof window.__flushQueuedClientErrorLogs === 'function') window.__flushQueuedClientErrorLogs();
   // Re-run the current route's setup now that every module-script
   // function actually exists. showRouteFromHash (in the earlier
@@ -10352,7 +10382,7 @@
       var activeChurchIdForOwned = getActiveChurchId();
       var chosenChurch = (activeChurchIdForOwned && owned.filter(function(c){ return c.id === activeChurchIdForOwned; })[0]) || owned[0];
       if (chosenChurch.id !== activeChurchIdForOwned) setActiveChurchId(chosenChurch.id);
-      return { id: chosenChurch.id, name: chosenChurch.name, denomination: chosenChurch.denomination, planType: chosenChurch.plan_type, role: 'owner', canManageEvents: true, canManageGiving: true, canManageBilling: true, canEditProfile: true, ownedChurches: owned };
+      return { id: chosenChurch.id, name: chosenChurch.name, denomination: chosenChurch.denomination, planType: chosenChurch.plan_type, role: 'owner', canManageEvents: true, canManageGiving: true, canManageBilling: true, canEditProfile: true, canManageGroups: true, canManageMessages: true, isManager: true, ownedChurches: owned };
     }
 
     // No .limit(1) here either, as of this change -- church_staff's
@@ -10367,17 +10397,21 @@
     // which one this call resolves to, the same way they already do
     // for owners. For anyone staffing 0 or 1 churches this still
     // resolves identically to the old .limit(1) behavior.
-    var { data: staffRows, error: staffError } = await supabase.from('church_staff').select('church_id, can_manage_events, can_manage_giving, can_manage_billing, can_edit_profile, churches(id, name, denomination, plan_type)').eq('user_id', userId);
+    // can_manage_billing is deliberately NOT selected here -- it no
+    // longer exists as a column (migration 029: billing is owner-only
+    // with no exceptions, the ability was removed entirely, not just
+    // defaulted off).
+    var { data: staffRows, error: staffError } = await supabase.from('church_staff').select('church_id, can_manage_events, can_manage_giving, can_edit_profile, can_manage_groups, can_manage_messages, is_manager, churches(id, name, denomination, plan_type)').eq('user_id', userId);
     if (staffError) { console.error('getMyChurch (staff lookup):', staffError); }
     var staffedChurches = (staffRows || []).filter(function(sr){ return sr.churches; }).map(function(sr){
       var c = sr.churches;
-      return { id: c.id, name: c.name, denomination: c.denomination, plan_type: c.plan_type, can_manage_events: !!sr.can_manage_events, can_manage_giving: !!sr.can_manage_giving, can_manage_billing: !!sr.can_manage_billing, can_edit_profile: !!sr.can_edit_profile };
+      return { id: c.id, name: c.name, denomination: c.denomination, plan_type: c.plan_type, can_manage_events: !!sr.can_manage_events, can_manage_giving: !!sr.can_manage_giving, can_edit_profile: !!sr.can_edit_profile, can_manage_groups: !!sr.can_manage_groups, can_manage_messages: !!sr.can_manage_messages, is_manager: !!sr.is_manager };
     });
     if (staffedChurches.length) {
       var activeChurchIdForStaffed = getActiveChurchId();
       var chosenStaffed = (activeChurchIdForStaffed && staffedChurches.filter(function(sc){ return sc.id === activeChurchIdForStaffed; })[0]) || staffedChurches[0];
       if (chosenStaffed.id !== activeChurchIdForStaffed) setActiveChurchId(chosenStaffed.id);
-      return { id: chosenStaffed.id, name: chosenStaffed.name, denomination: chosenStaffed.denomination, planType: chosenStaffed.plan_type, role: 'staff', canManageEvents: chosenStaffed.can_manage_events, canManageGiving: chosenStaffed.can_manage_giving, canManageBilling: chosenStaffed.can_manage_billing, canEditProfile: chosenStaffed.can_edit_profile, staffedChurches: staffedChurches };
+      return { id: chosenStaffed.id, name: chosenStaffed.name, denomination: chosenStaffed.denomination, planType: chosenStaffed.plan_type, role: 'staff', canManageEvents: chosenStaffed.can_manage_events, canManageGiving: chosenStaffed.can_manage_giving, canEditProfile: chosenStaffed.can_edit_profile, canManageGroups: chosenStaffed.can_manage_groups, canManageMessages: chosenStaffed.can_manage_messages, isManager: chosenStaffed.is_manager, staffedChurches: staffedChurches };
     }
 
     // church_staff has RLS that depends on the server independently
@@ -10507,6 +10541,8 @@
     if (createEventBtn) createEventBtn.style.display = myChurch.canManageEvents ? 'inline-flex' : 'none';
     var dashBillingNavLink = document.querySelector('[data-dash="billing"]');
     if (dashBillingNavLink) dashBillingNavLink.style.display = myChurch.canManageBilling ? '' : 'none';
+    var dashMessagesNavLink = document.querySelector('[data-dash="messages"]');
+    if (dashMessagesNavLink) dashMessagesNavLink.style.display = myChurch.canManageMessages ? '' : 'none';
 
     var deleteChurchSection = document.getElementById('settings-delete-church-section');
     if (deleteChurchSection) {
@@ -10642,7 +10678,7 @@
       window.supabase.from('events').select('id, church_id, start_at').in('church_id', ids),
       window.supabase.from('church_memberships').select('church_id').in('church_id', ids),
       window.supabase.from('donations').select('church_id, amount_cents, created_at').in('church_id', ids).eq('status', 'succeeded'),
-      window.supabase.from('church_staff').select('church_id, user_id, can_manage_events, can_manage_giving, can_manage_billing, can_edit_profile, profiles!user_id(full_name)').in('church_id', ids)
+      window.supabase.from('church_staff').select('church_id, user_id, can_manage_events, can_manage_giving, can_manage_groups, can_manage_messages, is_manager, can_edit_profile, profiles!user_id(full_name)').in('church_id', ids)
     ]).then(function(res){
       if (window._dashChurchesGen !== myGen) return; // superseded
       var events = (res[0] && res[0].data) || [];
@@ -10707,9 +10743,11 @@
           } else {
             body = rows.map(function(s){
               var perms = [];
+              if (s.is_manager) perms.push(window.t('dashSettings.managerRoleLabel'));
               if (s.can_manage_events) perms.push(window.t('dash.events'));
               if (s.can_manage_giving) perms.push(window.t('dash.revenue'));
-              if (s.can_manage_billing) perms.push(window.t('dash.billing'));
+              if (s.can_manage_groups) perms.push(window.t('dash.groups'));
+              if (s.can_manage_messages) perms.push(window.t('dash.messages'));
               if (s.can_edit_profile) perms.push(window.t('dashOverview.permProfile'));
               if (!perms.length) perms.push(window.t('dashOverview.permViewOnly'));
               var name = (s.profiles && s.profiles.full_name) ? s.profiles.full_name : '—';
@@ -14356,15 +14394,22 @@
     if (!myChurch) { listEl.innerHTML = ''; countEl.textContent = ''; ownerControls.style.display = 'none'; return; }
 
     var isOwner = myChurch.role === 'owner';
-    ownerControls.style.display = isOwner ? 'block' : 'none';
+    // A Manager gets the same invite/remove/edit-abilities surface as
+    // the owner here -- what a Manager can't do (billing, deletion,
+    // touching another Manager's row, granting Manager status) is
+    // enforced server-side (RLS + the RPCs' own checks) and mirrored
+    // client-side below via canActOnThisRow and the owner-only Manager
+    // checkbox, not by hiding this whole panel from them.
+    var isOwnerOrManager = isOwner || !!myChurch.isManager;
+    ownerControls.style.display = isOwnerOrManager ? 'block' : 'none';
 
     var { data: churchRow } = await supabase.from('churches').select('owner_id, profiles(full_name)').eq('id', myChurch.id).limit(1);
     var ownerName = (churchRow && churchRow.length && churchRow[0].profiles) ? churchRow[0].profiles.full_name : window.t('dashSettings.ownerFallback');
 
     var staffRows = [];
-    if (isOwner) {
-      var { data: permData } = await supabase.rpc('get_staff_with_permissions', { target_church_id: myChurch.id });
-      staffRows = permData || [];
+    if (isOwnerOrManager) {
+      var { data: detailData } = await supabase.rpc('get_church_staff_detail', { target_church_id: myChurch.id });
+      staffRows = detailData || [];
     } else {
       var { data: basicStaffData } = await supabase.from('church_staff').select('id, profiles!user_id(full_name)').eq('church_id', myChurch.id);
       staffRows = (basicStaffData || []).map(function(s){ return { staff_id: s.id, full_name: (s.profiles && s.profiles.full_name) ? s.profiles.full_name : window.t('dashSettings.teamMemberFallback') }; });
@@ -14379,15 +14424,21 @@
 
     staffRows.forEach(function(s){
       var name = s.full_name || window.t('dashSettings.teamMemberFallback');
+      // A Manager can edit/remove regular staff but never another
+      // Manager -- real enforcement is server-side (RLS + the RPCs'
+      // own checks), this just keeps the buttons from being shown for
+      // an action that would only come back as an error.
+      var canActOnThisRow = isOwner || (isOwnerOrManager && !s.is_manager);
+      var roleLabel = s.is_manager ? window.t('dashSettings.managerRoleLabel') : window.t('admin.staff');
       html += '<div class="info-row" style="justify-content:space-between;">'
-        + '<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;vertical-align:-3px;margin-right:6px;"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>' + name + ' — ' + window.t('admin.staff') + '</span>'
+        + '<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;vertical-align:-3px;margin-right:6px;"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>' + name + ' — ' + roleLabel + '</span>'
         + '<span style="display:flex;gap:6px;">'
-        + (isOwner ? '<button class="qr-btn icon-tip" data-tip="' + window.t('dashSettings.permissions') + '" data-manage-permissions-id="' + s.staff_id + '" data-manage-permissions-name="' + name.replace(/"/g, '&quot;') + '" data-events="' + s.can_manage_events + '" data-giving="' + s.can_manage_giving + '" data-billing="' + s.can_manage_billing + '" data-profile="' + s.can_edit_profile + '" aria-label="' + window.t('dashSettings.permissions') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg></button>' : '')
-        + (isOwner ? '<button class="qr-btn" data-remove-staff-id="' + s.staff_id + '" aria-label="' + window.t('dashSettings.removeFromTeam') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>' : '')
+        + (canActOnThisRow ? '<button class="qr-btn icon-tip" data-tip="' + window.t('dashSettings.permissions') + '" data-manage-permissions-id="' + s.staff_id + '" data-manage-permissions-name="' + name.replace(/"/g, '&quot;') + '" data-events="' + s.can_manage_events + '" data-giving="' + s.can_manage_giving + '" data-groups="' + s.can_manage_groups + '" data-messages="' + s.can_manage_messages + '" data-manager="' + s.is_manager + '" data-profile="' + s.can_edit_profile + '" data-viewer-is-owner="' + isOwner + '" aria-label="' + window.t('dashSettings.permissions') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg></button>' : '')
+        + (canActOnThisRow ? '<button class="qr-btn" data-remove-staff-id="' + s.staff_id + '" aria-label="' + window.t('dashSettings.removeFromTeam') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>' : '')
         + '</span></div>';
     });
 
-    if (isOwner) {
+    if (isOwnerOrManager) {
       var { data: pendingInvites } = await supabase.from('church_staff_invites').select('id, email').eq('church_id', myChurch.id).eq('status', 'pending');
       if (pendingInvites && pendingInvites.length) {
         pendingInvites.forEach(function(inv){
@@ -14407,7 +14458,7 @@
     // actually use them. Swapped for a direct explanation and an
     // upgrade link instead of a form that can't do anything on this
     // plan.
-    if (isOwner) {
+    if (isOwnerOrManager) {
       if (staffLimit === 0) {
         ownerControls.innerHTML = '<p style="font-size:13px;color:var(--ink-mute);margin-bottom:10px;">' + window.t('dashSettings.staffFreeLocked') + '</p>'
           + '<a href="#pricing" data-route="pricing" class="export-btn" style="width:100%;justify-content:center;display:flex;">' + window.t('dashSettings.upgradeToAddTeam') + '</a>'
@@ -14426,7 +14477,7 @@
         // currently active church checked, so leaving every box
         // alone reproduces the exact original single-church behavior.
         var churchChecksHtml = '';
-        if (myChurch.ownedChurches && myChurch.ownedChurches.length > 1) {
+        if (isOwner && myChurch.ownedChurches && myChurch.ownedChurches.length > 1) {
           churchChecksHtml = '<label style="font-size:12.5px;">' + window.t('dashSettings.addToChurches') + '</label>'
             + '<div style="margin-bottom:10px;">'
             + myChurch.ownedChurches.map(function(c){
@@ -14434,10 +14485,21 @@
               }).join('')
             + '</div>';
         }
+        // Owner-only, and only on tiers whose plan_tiers.can_assign_manager
+        // is true (migration 029) -- a Manager can invite regular staff
+        // but can never grant the Manager role itself (update_staff_abilities()
+        // and the church_staff insert RLS both block that server-side
+        // regardless of what this checkbox shows; this just keeps the
+        // control from appearing somewhere it could never actually work).
+        var managerCheckHtml = '';
+        if (isOwner && window.tierAllowsManager && window.tierAllowsManager[myChurch.planType || 'free']) {
+          managerCheckHtml = '<label class="filter-check" style="display:block;margin:2px 0 10px;font-size:12.5px;"><input type="checkbox" id="team-invite-is-manager"> ' + window.t('dashSettings.assignAsManager') + '</label>';
+        }
         ownerControls.innerHTML = '<label style="font-size:12.5px;">' + window.t('dashSettings.addStaffByEmail') + '</label>'
           + '<div style="font-size:11.5px;color:var(--ink-mute);margin-bottom:6px;">' + window.t('dashSettings.addStaffHint') + '</div>'
           + churchChecksHtml
           + '<input class="field" type="email" id="team-invite-email" placeholder="staffmember@email.com" data-i18n-placeholder="dashSettings.staffEmailPlaceholder" style="font-size:13px;padding:9px 10px;">'
+          + managerCheckHtml
           + '<button class="export-btn" id="team-invite-btn" style="width:100%;justify-content:center;margin-top:8px;">' + window.t('dashSettings.addToTeam') + '</button>'
           + '<div id="team-invite-status" style="display:none;font-size:12px;margin-top:8px;"></div>';
         // The click handler below is bound once at page-load time,
@@ -16619,8 +16681,17 @@
     document.getElementById('staff-permissions-name').textContent = permBtn.getAttribute('data-manage-permissions-name');
     document.getElementById('perm-events').checked = permBtn.getAttribute('data-events') === 'true';
     document.getElementById('perm-giving').checked = permBtn.getAttribute('data-giving') === 'true';
-    document.getElementById('perm-billing').checked = permBtn.getAttribute('data-billing') === 'true';
+    document.getElementById('perm-groups').checked = permBtn.getAttribute('data-groups') === 'true';
+    document.getElementById('perm-messages').checked = permBtn.getAttribute('data-messages') === 'true';
     document.getElementById('perm-profile').checked = permBtn.getAttribute('data-profile') === 'true';
+    // Manager checkbox: only the actual owner can see/change it --
+    // matches update_staff_abilities()'s server-side rule that only
+    // the owner may grant or revoke Manager. A Manager viewing this
+    // modal for a regular staff member never sees this row at all.
+    var viewerIsOwner = permBtn.getAttribute('data-viewer-is-owner') === 'true';
+    var permManagerRow = document.getElementById('perm-manager-row');
+    if (permManagerRow) permManagerRow.style.display = viewerIsOwner ? 'block' : 'none';
+    document.getElementById('perm-manager').checked = permBtn.getAttribute('data-manager') === 'true';
     document.getElementById('staff-permissions-status').style.display = 'none';
     document.getElementById('staff-permissions-modal').classList.add('open');
   });
@@ -16636,13 +16707,22 @@
       if (!myChurch) return;
 
       staffPermissionsSaveBtn.disabled = true;
-      var { error } = await supabase.rpc('update_staff_permissions', {
+      // is_manager always reflects whatever the checkbox currently
+      // shows, which is only ever visible/editable for the actual
+      // owner (see the click handler above) -- for a Manager editing
+      // a regular staff member, the row stays hidden with its
+      // original unchecked state, so this always sends false for
+      // them, matching what update_staff_abilities() would enforce
+      // server-side anyway.
+      var { error } = await supabase.rpc('update_staff_abilities', {
         target_staff_id: currentPermissionsStaffId,
         target_church_id: myChurch.id,
-        new_can_manage_events: document.getElementById('perm-events').checked,
-        new_can_manage_giving: document.getElementById('perm-giving').checked,
-        new_can_manage_billing: document.getElementById('perm-billing').checked,
-        new_can_edit_profile: document.getElementById('perm-profile').checked
+        p_can_manage_events: document.getElementById('perm-events').checked,
+        p_can_manage_giving: document.getElementById('perm-giving').checked,
+        p_can_edit_profile: document.getElementById('perm-profile').checked,
+        p_can_manage_groups: document.getElementById('perm-groups').checked,
+        p_can_manage_messages: document.getElementById('perm-messages').checked,
+        p_is_manager: document.getElementById('perm-manager').checked
       });
       staffPermissionsSaveBtn.disabled = false;
 
@@ -20171,7 +20251,7 @@
       + '<p style="font-size:14px;"><strong>' + window.t('admin.stripeOnboardingComplete') + ':</strong> ' + (c.stripe_onboarding_complete ? window.t('admin.yes') : window.t('admin.no')) + '</p>'
       + (c.owner_id ? '<p style="font-size:13px;color:var(--ink-mute);margin-top:8px;">' + window.t('admin.ownerUserId').replace('{id}', c.owner_id) + '</p>' : '');
 
-    var { data: staffRows, error: staffError } = await supabase.from('church_staff').select('id, user_id, can_manage_events, can_manage_giving, can_manage_billing, can_edit_profile, profiles!user_id(full_name)').eq('church_id', churchId);
+    var { data: staffRows, error: staffError } = await supabase.from('church_staff').select('id, user_id, can_manage_events, can_manage_giving, can_manage_groups, can_manage_messages, is_manager, can_edit_profile, profiles!user_id(full_name)').eq('church_id', churchId);
     if (staffError) {
       staffEl.innerHTML = '<p style="color:var(--clay);font-size:14px;">' + staffError.message + '</p>';
     } else if (!staffRows || !staffRows.length) {
@@ -20179,9 +20259,11 @@
     } else {
       staffEl.innerHTML = staffRows.map(function(s){
         var perms = [];
+        if (s.is_manager) perms.push(window.t('dashSettings.managerRoleLabel'));
         if (s.can_manage_events) perms.push(window.t('dash.events'));
         if (s.can_manage_giving) perms.push(window.t('insights.giving'));
-        if (s.can_manage_billing) perms.push(window.t('dash.billing'));
+        if (s.can_manage_groups) perms.push(window.t('dash.groups'));
+        if (s.can_manage_messages) perms.push(window.t('dash.messages'));
         if (s.can_edit_profile) perms.push(window.t('profile.heading'));
         var name = (s.profiles && s.profiles.full_name) ? s.profiles.full_name : window.t('admin.unknown');
         return '<div class="registrant-row"><div><div class="registrant-name">' + name + '</div><div class="registrant-date">' + (perms.length ? window.t('admin.canManage') + ' ' + perms.join(', ') : window.t('admin.noManagementPermissions')) + '</div></div></div>';
@@ -22015,7 +22097,7 @@
   // myChurch.id. Returns a result object rather than touching the
   // DOM directly, so the caller can build one combined status message
   // covering however many churches were targeted.
-  async function inviteStaffToOneChurch(church, email, inviterName, foundId, userData){
+  async function inviteStaffToOneChurch(church, email, inviterName, foundId, userData, isManager){
     var staffLimit = planLimits[church.plan_type || church.planType || 'free'].staff;
     var { data: staffRows } = await supabase.from('church_staff').select('id').eq('church_id', church.id);
     if (staffLimit !== Infinity && staffRows && staffRows.length >= staffLimit) {
@@ -22026,9 +22108,16 @@
 
     if (foundId) {
       // They already have an account — add them directly and email a
-      // notification.
+      // notification. is_manager only applies here, not to the
+      // pending-invite branch below: church_staff_invites has no
+      // is_manager column, and its auto-accept-on-signup trigger is
+      // opaque from this repo, so it isn't safe to extend to also
+      // grant Manager the moment someone without an account yet signs
+      // up. Inviting a not-yet-registered person as Manager isn't
+      // supported by this UI as a result -- they can be promoted to
+      // Manager afterward from the team list once they've signed up.
       var { error: insertError } = await supabase.from('church_staff').insert({
-        church_id: church.id, user_id: foundId, invited_by: userData.user.id
+        church_id: church.id, user_id: foundId, invited_by: userData.user.id, is_manager: !!isManager
       });
       if (insertError) {
         return { churchName: church.name, ok: false, message: insertError.code === '23505' ? window.t('dashSettings.alreadyOnTeam') : insertError.message };
@@ -22080,13 +22169,23 @@
       btn.disabled = true;
 
       var myChurch = await getMyChurch();
-      if (!myChurch || myChurch.role !== 'owner') { btn.disabled = false; return; }
+      // Manager can invite regular staff same as the owner -- real
+      // enforcement is server-side (the "Manager can add regular
+      // staff" RLS policy, migration 029), this just stops the button
+      // from doing nothing for someone who's actually allowed to use it.
+      if (!myChurch || (myChurch.role !== 'owner' && !myChurch.isManager)) { btn.disabled = false; return; }
 
       var { data: userData } = await supabase.auth.getUser();
       var { data: myProfile } = await supabase.from('profiles').select('full_name').eq('id', userData.user.id).limit(1);
       var inviterName = (myProfile && myProfile.length && myProfile[0].full_name) ? myProfile[0].full_name : window.t('dashSettings.aFaithDockChurchOwner');
 
       var { data: foundId } = await supabase.rpc('get_user_id_by_email', { lookup_email: email });
+      // Only rendered at all for the owner on a tier that allows a
+      // Manager (see loadTeamPanel) -- absent for everyone else, so
+      // this naturally reads as false/unchecked for a Manager inviting
+      // staff, matching that a Manager can never grant Manager status.
+      var isManagerCheckbox = document.getElementById('team-invite-is-manager');
+      var inviteAsManager = !!(isManagerCheckbox && isManagerCheckbox.checked);
 
       // Multi-church: whatever's checked in the church list (only
       // rendered at all when this owner has more than one church) —
@@ -22104,7 +22203,7 @@
 
       var results = [];
       for (var i = 0; i < targetChurches.length; i++) {
-        results.push(await inviteStaffToOneChurch(targetChurches[i], email, inviterName, foundId, userData));
+        results.push(await inviteStaffToOneChurch(targetChurches[i], email, inviterName, foundId, userData, inviteAsManager));
       }
 
       // One combined status line covering however many churches were
