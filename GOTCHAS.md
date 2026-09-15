@@ -1994,3 +1994,19 @@ Fixed the same way: added a `buildSuccessUrl(rawSuccessUrl, paramName)` in this 
 **Separately, user asked about a related-looking but actually-unrelated report**: a church card still showed "Managed by this church" after signing out. Traced `churchStatusTag()` -- the badge is driven purely by `!!c.ownerId` (does this church have *any* owner at all), not by who's currently signed in. It's a directory trust/quality signal ("this is a claimed, real listing" vs. an unclaimed auto-imported one), correctly church-scoped rather than viewer-scoped, so it's expected to persist regardless of session state. Not a bug -- explained rather than fixed, since assuming it should be personalized and changing the underlying logic would have been wrong. Flagged that the label itself reads ambiguously (sounds self-referential/personalized at a glance) and offered to reword it, but didn't change copy on a guess without the user weighing in first.
 
 `node --check` passes. Not deployed -- same manual paste-and-redeploy as every edge function change in this repo.
+
+---
+
+## Swapped the confusing "Managed by this church" text tag for a checkmark badge
+
+Follow-up to the "not a bug, but the label is confusing" note above -- user came back and asked to remove the text from the card entirely, suggesting a corner checkmark instead. Implemented exactly that rather than just removing the signal outright, since it's still a real, useful distinction (claimed vs. unclaimed listing).
+
+**Split into two render paths**, since Card and List view have different anatomy: `claimedCardBadge()` returns a small absolutely-positioned gold circle + checkmark SVG, anchored to `.thumb` (already `position:relative`, confirmed by reading the existing CSS before adding to it) -- top-right corner of the card's photo/placeholder. `claimedRowIcon()` returns a plain inline checkmark SVG next to the name for List view, which has no thumbnail to anchor a corner badge to (its own comment already explains why: "the whole point is that a logoless church takes no extra vertical space"). Both keep the exact same underlying condition (`c.real && c.ownerId`) and the exact same explanatory text as a `title` attribute (hover/long-press) -- only the always-visible presentation changed, not the signal itself or who it's shown to.
+
+Replaced the single `churchStatusTag()` function (and its `window.churchStatusTag` export) with these two, updating both call sites (`churchCard()`, `churchRow()`) and one stale comment in `populateChurchPage()` that still referenced the old function name.
+
+**Scoped to the card/list views only, not the profile page.** The church detail page's own "Managed by this church" line (`#church-managed-line`, in `populateChurchPage()`) still shows the same text -- the user's report was specifically about "the card" (matching their screenshot, a directory search result), and changing the detail page's copy wasn't asked for. Left as a known follow-up if wanted, not silently extended past what was requested.
+
+Verified in a local static preview by injecting a synthetic claimed church directly through `churchCard()`/`churchRow()` (no live Supabase data needed for a pure rendering check) -- the badge renders as a legible gold circle with good contrast against the checkmark's navy stroke in both card and row layouts, confirmed by screenshot. `node --check` passes on all script blocks.
+
+Build `2026-09-15-v6`.

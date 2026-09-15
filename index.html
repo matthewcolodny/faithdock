@@ -2199,6 +2199,19 @@
     display:flex;align-items:center;justify-content:center;
   }
   .thumb svg{width:34px;height:34px;opacity:.55;}
+  /* Replaces the old "Managed by this church" text tag (confusing --
+     read as self-referential rather than "this listing is claimed") --
+     a small corner badge is a much more standard, immediately-legible
+     "claimed/verified" signal. .thumb is already position:relative, so
+     this just anchors to it directly; the full explanation is still
+     available via the title attribute on hover/long-press. */
+  .claimed-badge{
+    position:absolute;top:8px;right:8px;width:24px;height:24px;border-radius:50%;
+    background:var(--gold);display:flex;align-items:center;justify-content:center;
+    box-shadow:0 1px 3px rgba(0,0,0,.3);
+  }
+  .claimed-badge svg{width:13px;height:13px;opacity:1;stroke:#1a2740;}
+  .church-row-claimed-icon{width:13px;height:13px;vertical-align:-2px;margin-left:2px;color:var(--gold);flex-shrink:0;}
   /* Logoless placeholder: a muted wash + icon tint keyed to denomination
      (--thumb-hue, set inline in churchCard) so the grid isn't a wall of
      identical tiles. Real logos never get .thumb--denom. buildingIcon is
@@ -5864,7 +5877,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v5 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v6 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -6247,13 +6260,24 @@
   }
   window.formatChurchNextEventText = formatChurchNextEventText;
 
-  // The single status tag shown on a directory card. Claimed -> Managed
-  // by this church; plain unclaimed renders nothing here -- that's the
-  // baseline state for most of the directory, so a tag announcing it on
-  // every card is noise, not signal. (It's still surfaced where it's
-  // actionable: the church profile page's own "Claim this church"
-  // banner, untouched -- see populateChurchPage().) Only for real
-  // (DB-backed) churches -- sample cards get nothing.
+  // Claimed-church indicator for the directory card/row. Plain
+  // unclaimed renders nothing -- that's the baseline state for most of
+  // the directory, so flagging it on every card would be noise, not
+  // signal. (It's still surfaced where it's actionable: the church
+  // profile page's own "Claim this church" banner, untouched -- see
+  // populateChurchPage().) Only for real (DB-backed) churches -- sample
+  // cards get nothing.
+  //
+  // Used to be a "Managed by this church" text tag -- reported as
+  // confusing (reads as a self-referential claim, and kept showing
+  // after signing out since it was never about the *viewer*, only
+  // about whether the church has an owner at all). Swapped for a
+  // small checkmark, a far more standard "claimed/verified" signal,
+  // with the same explanation still available via the title attribute
+  // on hover. claimedCardBadge() overlays the card's thumbnail corner
+  // (thumb is already position:relative); claimedRowIcon() sits inline
+  // next to the name for the List view, which has no thumbnail to
+  // anchor a corner badge to.
   //
   // FaithDock Partner and Verified church used to also appear here (a
   // 3-rung ladder: paid plan -> Partner; verified giving account ->
@@ -6267,11 +6291,17 @@
   // right now. verification_status itself (and whatever it still gates,
   // e.g. Stripe connection access) is completely untouched by this --
   // display only.
-  function churchStatusTag(c){
+  var CHECKMARK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+  function claimedCardBadge(c){
     if (!c || !c.real || !c.ownerId) return '';
-    return '<span class="tag neutral" style="margin-left:4px;">' + window.t('church.managedByChurch') + '</span>';
+    return '<div class="claimed-badge" title="' + window.t('church.managedByChurch') + '">' + CHECKMARK_ICON + '</div>';
   }
-  window.churchStatusTag = churchStatusTag;
+  function claimedRowIcon(c){
+    if (!c || !c.real || !c.ownerId) return '';
+    return '<svg class="church-row-claimed-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" title="' + window.t('church.managedByChurch') + '"><polyline points="20 6 9 17 4 12"/></svg>';
+  }
+  window.claimedCardBadge = claimedCardBadge;
+  window.claimedRowIcon = claimedRowIcon;
 
   // A muted hue (0-359) for a church's placeholder thumbnail, keyed to
   // denomination so a directory of logoless churches isn't a wall of
@@ -6295,14 +6325,14 @@
 
   function churchCard(c, clickable){
     var distText = formatChurchDistanceText(c.dist);
+    var badge = claimedCardBadge(c);
     var thumb = c.logoUrl
-      ? '<div class="thumb" style="background-image:url(\'' + c.logoUrl + '\');background-size:contain;background-repeat:no-repeat;background-position:center;background-color:#fff;background-origin:content-box;padding:16px;box-sizing:border-box;">' + '</div>'
-      : '<div class="thumb thumb--denom" style="--thumb-hue:' + denomHue(c.tag) + ';">' + buildingIcon + '</div>';
+      ? '<div class="thumb" style="background-image:url(\'' + c.logoUrl + '\');background-size:contain;background-repeat:no-repeat;background-position:center;background-color:#fff;background-origin:content-box;padding:16px;box-sizing:border-box;">' + badge + '</div>'
+      : '<div class="thumb thumb--denom" style="--thumb-hue:' + denomHue(c.tag) + ';">' + buildingIcon + badge + '</div>';
     var inner = ''
       + thumb
       + '<div class="card-body">'
       + '<span class="tag sage">' + translateDenomination(c.tag) + '</span>'
-      + churchStatusTag(c)
       + '<h3>' + displayChurchName(c.name) + '</h3>'
       + '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/></svg>' + distText + '</div>'
       + '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>' + formatChurchNextText(c.next, (c.rawServiceTimes || []).length) + '</div>'
@@ -6332,8 +6362,8 @@
       + '<div class="church-row-main">'
       + '<div class="church-row-head">'
       + '<span class="church-row-name">' + displayChurchName(c.name) + '</span>'
+      + claimedRowIcon(c)
       + '<span class="tag sage">' + translateDenomination(c.tag) + '</span>'
-      + churchStatusTag(c)
       + '</div>'
       + (bits.length ? '<div class="church-row-meta">' + bits.join('<span class="church-row-sep">&middot;</span>') + '</div>' : '')
       + '</div>'
@@ -6420,9 +6450,10 @@
     }
     var detailsNameEl = document.getElementById('church-details-name');
     if (detailsNameEl) detailsNameEl.textContent = displayChurchName(c.name);
-    // Church status on the profile page (see churchStatusTag() for the
-    // directory-card equivalent). Not mutually exclusive: a claimed
-    // church shows the "Managed by this church" line, and if it's also
+    // Church status on the profile page (see claimedCardBadge()/
+    // claimedRowIcon() for the directory-card/row equivalent). Not
+    // mutually exclusive: a claimed church shows the "Managed by this
+    // church" line, and if it's also
     // on a paid plan it additionally gets the Partner badge. The
     // Verified badge that used to also appear here was removed
     // (display only -- verification_status itself, and whatever it
