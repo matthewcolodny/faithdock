@@ -2427,17 +2427,26 @@
      terracotta, not pink; --clay-bg's #F3E4DE is a pale beige, not
      pink either) -- checked before picking a new hex, not guessed. */
   .follow-heart-card[data-following="true"] svg{fill:#F0A8C4 !important;stroke:#8A8A8A !important;}
-  /* Dark mode: same specificity trap as .thumb--denom above applies to
-     the [data-following="true"] override too -- without also scoping
-     it under html[data-theme="dark"], the plain default rule just
-     above (0,0,2,2) would outrank the unscoped following-state rule
-     (0,0,2,1) and a followed heart would never actually turn white in
-     dark mode. Verified by computing specificity, not by trial and error. */
+  /* Dark mode: outlined-badge treatment, requested directly -- fill
+     matches var(--card) (the same background every card/panel already
+     uses) with a gold stroke when empty, so it reads as a deliberate
+     chip sitting on the thumbnail rather than trying to blend into it
+     (the earlier solid-grey-silhouette treatment existed specifically
+     because a photo thumb has no one color to blend into -- this sidesteps
+     that by not attempting to blend into the PHOTO at all, just matching
+     the site's own card chrome instead). Followed state drops the gold
+     stroke entirely and fills solid pink -- same specificity trap as
+     .thumb--denom above applies to the [data-following="true"] override
+     too, so it has to stay scoped under html[data-theme="dark"] here,
+     not left unscoped, or the plain dark-mode default just above (more
+     specific) would outrank it and a followed heart would never
+     actually turn pink in dark mode. Verified by computing specificity,
+     not by trial and error. */
   html[data-theme="dark"] .follow-heart-card svg{
-    stroke:none !important;fill:#4A4A4A !important;
+    stroke:var(--gold) !important;stroke-width:1.5 !important;fill:var(--card) !important;
     filter:drop-shadow(0 1px 2px rgba(0,0,0,.5));
   }
-  html[data-theme="dark"] .follow-heart-card[data-following="true"] svg{fill:#F0A8C4 !important;}
+  html[data-theme="dark"] .follow-heart-card[data-following="true"] svg{stroke:none !important;fill:#F0A8C4 !important;}
   .follow-heart-row{
     /* Padding (not icon size) is what grows the click target here --
        2px was reported as too easy to miss, landing the click on the
@@ -2453,17 +2462,21 @@
      grey heart when followed. */
   .follow-heart-row svg{width:17px;height:17px;stroke:#8A8A8A;stroke-width:1.5;fill:none;}
   .follow-heart-row[data-following="true"] svg{fill:#8A8A8A;stroke:#8A8A8A;}
-  /* Dark mode default (empty) unchanged from before. The
-     [data-following="true"] override MUST be re-scoped under
+  /* Dark mode: same outlined-badge treatment as .follow-heart-card
+     above, requested directly for both together -- fill matches
+     var(--card), which .church-row itself already uses as its own
+     background, so an empty heart's gold-stroked outline reads as a
+     cutout blending seamlessly into the row surface until followed.
+     The [data-following="true"] override MUST be re-scoped under
      html[data-theme="dark"] here too, same specificity trap already
      hit and fixed for .follow-heart-card: the plain dark-mode default
      just below is more specific (0,0,2,2) than an unscoped
      [data-following="true"] rule (0,0,2,1), so without this a followed
-     heart silently stayed grey in dark mode instead of turning white --
+     heart would silently stay outlined instead of turning solid pink --
      confirmed as a real, live bug via computed-style inspection before
      fixing it here, not assumed from the card fix alone. */
-  html[data-theme="dark"] .follow-heart-row svg{stroke:none;fill:#4A4A4A;}
-  html[data-theme="dark"] .follow-heart-row[data-following="true"] svg{fill:#fff;stroke:none;}
+  html[data-theme="dark"] .follow-heart-row svg{stroke:var(--gold);fill:var(--card);}
+  html[data-theme="dark"] .follow-heart-row[data-following="true"] svg{fill:#F0A8C4;stroke:none;}
   /* Bigger on phones -- reported directly ("for mobile, can the heart
      be bigger"). Bumps both the icon itself and, for the card version,
      its button/hit-area to match (kept the same 10px margin all
@@ -6282,7 +6295,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v36 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v37 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
