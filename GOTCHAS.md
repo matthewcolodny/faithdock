@@ -2150,3 +2150,20 @@ Scoped to Card view only -- List view has no thumbnail at all, so its heart neve
 Verified in a local preview: rendered a card with a real (placeholder) logo image and confirmed via computed style that the filled heart's fill is `rgb(240, 168, 196)` (`#F0A8C4`) in both light and dark mode, then confirmed by screenshot that it reads clearly against the white logo background. `node --check` passes.
 
 Build `2026-09-15-v18`.
+
+---
+
+## Three requests in one message: simplified the staff-invite prompt, made granted abilities visible after the fact, and fixed a mobile layout bug on Settings
+
+**Removed the ability tag pills from the staff-invite Accept/Decline modal** -- user judged them unnecessary there. `checkPendingStaffInvite()` no longer selects or renders `can_manage_*`/`is_manager` for the preview (still selected server-side by `accept_staff_invite()` itself when accepted, unaffected), and the now-empty `#staff-invite-prompt-abilities` div was removed from the modal markup.
+
+**Made granted abilities visible after the fact instead**, per the second half of the same request -- "their permissions should be viewable to an invited staff member in the staff page and profile":
+
+- **Staff page**: `loadTeamPanel()` previously gave a regular (non-owner, non-Manager) staff viewer a name-only list with no ability info at all, via a separate, narrower query than what the owner/Manager branch used. Checked `get_church_staff_detail()`'s own auth check first (migration 029) -- it's already callable by the owner *or any staff member* of the church, not owner/Manager-only -- so simplified to one unconditional call for every viewer, and added ability tags (same `tag sage` badge style the Overview panel already uses for this) to every row's display, not gated behind edit permissions. A regular staff member now sees the whole team's abilities, including their own, the same way an owner already could.
+- **Profile page**: added a new "Staff at [church]" row (`#profile-staff-row`), shown whenever `getMyChurch()` resolves to `role: 'staff'` for the currently active church, with the same ability tags. Verified `getMyChurch`/`displayChurchName` are callable bare (no `window.` prefix) from `loadProfilePage()`'s scope by confirming both are already called bare from dozens of other locations spanning the same script block, rather than assuming.
+
+**Fixed a real, reported mobile layout bug on Settings**, unrelated to the above but reported in the same message: the two-column Church-profile/Team layout stayed two narrow, cramped columns on mobile instead of collapsing to one. Root cause: `.two-col`'s own class rule already has a `max-width:860px` responsive breakpoint that collapses it to a single column, but the Settings page's specific `<div class="two-col">` carried an inline `style="grid-template-columns:1fr 320px;"` -- an inline style always wins over a media-query class rule regardless of screen width, so the breakpoint was being silently defeated only on this one page. Removed the inline override (the class's own default, `1fr 300px`, is close enough that dropping the extra 20px isn't a meaningful desktop change) and grepped every other `.two-col` usage in the file to confirm none of the other three had the same inline `grid-template-columns` override -- only Settings did.
+
+Verified in a local preview: confirmed via computed style that `.two-col`'s `grid-template-columns` is `375px` (a single column) at mobile viewport width, by screenshot that Settings reads full-width and legible on mobile now, and via direct DOM population that the new profile staff-row and the Staff page's per-row ability tags render correctly. `node --check` passes. **Not tested**: the real invite-accept flow and Staff page against a live Supabase project with real staff rows.
+
+Build `2026-09-15-v19`.

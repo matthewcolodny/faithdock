@@ -4011,6 +4011,18 @@
         <a href="#register-church" data-route="register-church" data-add-church="true" class="export-btn" style="display:inline-flex;" data-i18n="profile.addChurch">Add a church</a>
       </div>
       <div class="info-row" id="profile-church-home-row" style="display:none;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg> <a href="#" id="profile-church-home-link" data-route="church" style="color:inherit;">—</a></div>
+      <!-- Own staff abilities at whichever church is currently active --
+           answers a direct request that a staff member be able to see
+           what they were granted, somewhere they'd actually look,
+           rather than only on the Staff page (getMyChurch() already
+           resolves this, same data source that page uses). -->
+      <div class="info-row" id="profile-staff-row" style="display:none;align-items:flex-start;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:2px;"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
+        <div>
+          <div><span id="profile-staff-church-name">—</span> <span style="color:var(--ink-mute);" id="profile-staff-role-label"></span></div>
+          <div id="profile-staff-abilities-tags" style="margin-top:5px;display:flex;flex-wrap:wrap;gap:4px;"></div>
+        </div>
+      </div>
       <label style="margin-top:14px;" data-i18n="profile.phoneNumber">Phone number</label>
       <div style="display:flex;gap:8px;">
         <input class="field" type="tel" id="profile-phone-input" placeholder="(555) 123-4567" style="flex:1;" data-i18n-placeholder="profile.phonePlaceholder">
@@ -5805,7 +5817,19 @@
 
       <div class="dash-content" id="dash-settings">
         <h2 style="font-size:24px;margin-bottom:24px;" data-i18n="dash.settings">Settings</h2>
-        <div class="two-col" style="grid-template-columns:1fr 320px;">
+        <!-- No inline grid-template-columns override here on purpose --
+             .two-col's own class rule already has a responsive
+             max-width:860px breakpoint (collapses to a single column),
+             but an inline style always beats a media-query class rule
+             regardless of screen width, so the previous
+             "grid-template-columns:1fr 320px;" override was silently
+             defeating that breakpoint and keeping this page's two
+             columns cramped on mobile -- confirmed as a real, reported
+             bug via a mobile screenshot, not assumed. The class
+             default (1fr 300px) is close enough to the removed 320px
+             that dropping the override isn't a meaningful desktop
+             change. -->
+        <div class="two-col">
           <div>
             <div class="side-note" style="margin-top:0;">
               <h4 data-i18n="dashSettings.churchProfile">Church profile</h4>
@@ -5975,7 +5999,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v18 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v19 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -6073,8 +6097,7 @@
 <div class="modal-overlay" id="staff-invite-prompt-modal">
   <div class="modal-card">
     <h3 style="font-family:'Fraunces';font-size:20px;margin-bottom:10px;" data-i18n="staffInvite.title">Staff invitation</h3>
-    <p style="font-size:14px;color:var(--ink-mute);margin-bottom:12px;"><span id="staff-invite-prompt-church-name">A church</span> <span data-i18n="staffInvite.body">invited you to join their team on FaithDock as staff.</span></p>
-    <div id="staff-invite-prompt-abilities" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:20px;"></div>
+    <p style="font-size:14px;color:var(--ink-mute);margin-bottom:20px;"><span id="staff-invite-prompt-church-name">A church</span> <span data-i18n="staffInvite.body">invited you to join their team on FaithDock as staff.</span></p>
     <button class="btn-gold" id="staff-invite-accept-btn" style="width:100%;justify-content:center;" data-i18n="staffInvite.accept">Accept invitation</button>
     <button class="export-btn" id="staff-invite-decline-btn" style="width:100%;justify-content:center;margin-top:8px;" data-i18n="staffInvite.decline">Decline</button>
     <div id="staff-invite-prompt-status" style="display:none;font-size:12px;margin-top:10px;"></div>
@@ -14666,14 +14689,17 @@
     var { data: churchRow } = await supabase.from('churches').select('owner_id, profiles(full_name)').eq('id', myChurch.id).limit(1);
     var ownerName = (churchRow && churchRow.length && churchRow[0].profiles) ? churchRow[0].profiles.full_name : window.t('dashSettings.ownerFallback');
 
-    var staffRows = [];
-    if (isOwnerOrManager) {
-      var { data: detailData } = await supabase.rpc('get_church_staff_detail', { target_church_id: myChurch.id });
-      staffRows = detailData || [];
-    } else {
-      var { data: basicStaffData } = await supabase.from('church_staff').select('id, user_id, profiles!user_id(full_name)').eq('church_id', myChurch.id);
-      staffRows = (basicStaffData || []).map(function(s){ return { staff_id: s.id, user_id: s.user_id, full_name: (s.profiles && s.profiles.full_name) ? s.profiles.full_name : window.t('dashSettings.teamMemberFallback') }; });
-    }
+    // get_church_staff_detail() (migration 029) is callable by the
+    // owner OR any staff member of this church -- not owner/Manager-
+    // only -- so a regular staff member gets the exact same ability
+    // data everyone else does, not a name-only list. Lets every viewer
+    // see what abilities each teammate has (rendered below), not just
+    // their own -- matching how the Overview panel already shows the
+    // whole team's abilities to an owner, and answering a direct
+    // request that a staff member be able to see their own granted
+    // abilities somewhere after accepting an invite.
+    var { data: detailData } = await supabase.rpc('get_church_staff_detail', { target_church_id: myChurch.id });
+    var staffRows = detailData || [];
     var staffCount = staffRows.length;
     var staffLimit = window.planLimits ? window.planLimits[myChurch.planType || 'free'].staff : 8;
     countEl.textContent = '(' + (staffCount + 1) + ' / ' + (staffLimit === Infinity ? '\u221e' : staffLimit + 1) + ')';
@@ -14690,8 +14716,23 @@
       // an action that would only come back as an error.
       var canActOnThisRow = isOwner || (isOwnerOrManager && !s.is_manager);
       var roleLabel = s.is_manager ? window.t('dashSettings.managerRoleLabel') : window.t('admin.staff');
-      html += '<div class="info-row" style="justify-content:space-between;">'
-        + '<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;vertical-align:-3px;margin-right:6px;"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>' + name + ' — ' + roleLabel + '</span>'
+      // Ability tags shown to every viewer, not just the owner/Manager
+      // who can edit them -- same badge style the Overview panel
+      // already uses for this exact purpose. Answers a direct request
+      // that a staff member be able to see their own granted abilities
+      // somewhere after accepting an invite, not just trust what the
+      // inviter told them at invite time.
+      var rowAbilityTags = [];
+      if (s.can_manage_events) rowAbilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('dash.events') + '</span>');
+      if (s.can_manage_giving) rowAbilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('dash.revenue') + '</span>');
+      if (s.can_manage_groups) rowAbilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('dash.groups') + '</span>');
+      if (s.can_manage_messages) rowAbilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('dash.messages') + '</span>');
+      if (s.can_edit_profile) rowAbilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('dashOverview.permProfile') + '</span>');
+      var rowAbilityTagsHtml = '<div style="margin-top:5px;display:flex;flex-wrap:wrap;gap:4px;">'
+        + (rowAbilityTags.length ? rowAbilityTags.join('') : '<span style="font-size:11.5px;color:var(--ink-mute);">' + window.t('dashOverview.permViewOnly') + '</span>')
+        + '</div>';
+      html += '<div class="info-row" style="justify-content:space-between;align-items:flex-start;">'
+        + '<span><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;vertical-align:-3px;margin-right:6px;"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>' + name + ' — ' + roleLabel + '</span>' + rowAbilityTagsHtml + '</span>'
         + '<span style="display:flex;gap:6px;">'
         // Reuses the exact same directory-person-modal the Directory tab
         // already opens for any connected person (photo, roles, event/
@@ -16931,8 +16972,14 @@
     if (!userId || window.staffInvitePromptShown) return;
     var { data: userData } = await supabase.auth.getUser();
     if (!userData.user || !userData.user.email) return;
+    // Abilities themselves are no longer previewed here (removed per
+    // direct feedback -- not necessary at this point since they're now
+    // viewable after the fact on the Staff page/profile instead), but
+    // still selected via .select() since accept_staff_invite() doesn't
+    // need this client-side row to already have them -- the RPC reads
+    // straight from church_staff_invites itself.
     var { data: inviteRows } = await supabase.from('church_staff_invites')
-      .select('id, church_id, can_manage_events, can_manage_giving, can_manage_groups, can_manage_messages, can_edit_profile, is_manager, churches(name)')
+      .select('id, church_id, churches(name)')
       .ilike('email', userData.user.email)
       .eq('status', 'pending')
       .limit(1);
@@ -16942,17 +16989,6 @@
     var modal = document.getElementById('staff-invite-prompt-modal');
     if (!modal) return;
     document.getElementById('staff-invite-prompt-church-name').textContent = invite.churches ? invite.churches.name : window.t('staffInvite.aChurch');
-    // Shows the invitee exactly what they're being asked to accept --
-    // the same abilities the inviter picked on the invite form, not a
-    // surprise revealed only after joining.
-    var abilityTags = [];
-    if (invite.is_manager) abilityTags.push('<span class="tag gold" style="font-size:10px;">' + window.t('dashSettings.managerRoleLabel') + '</span>');
-    if (invite.can_manage_events) abilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('dash.events') + '</span>');
-    if (invite.can_manage_giving) abilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('dash.revenue') + '</span>');
-    if (invite.can_manage_groups) abilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('dash.groups') + '</span>');
-    if (invite.can_manage_messages) abilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('dash.messages') + '</span>');
-    if (invite.can_edit_profile) abilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('dashOverview.permProfile') + '</span>');
-    document.getElementById('staff-invite-prompt-abilities').innerHTML = abilityTags.join('');
     modal.setAttribute('data-invite-id', invite.id);
     modal.classList.add('open');
   }
@@ -21174,6 +21210,23 @@
       }
     } else {
       homeRow.style.display = 'none';
+    }
+
+    var staffRow = document.getElementById('profile-staff-row');
+    var myChurchForStaffRow = await getMyChurch(userData.user.id);
+    if (myChurchForStaffRow && myChurchForStaffRow.role === 'staff') {
+      document.getElementById('profile-staff-church-name').textContent = displayChurchName(myChurchForStaffRow.name);
+      document.getElementById('profile-staff-role-label').textContent = '— ' + (myChurchForStaffRow.isManager ? window.t('dashSettings.managerRoleLabel') : window.t('admin.staff'));
+      var profileAbilityTags = [];
+      if (myChurchForStaffRow.canManageEvents) profileAbilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('dash.events') + '</span>');
+      if (myChurchForStaffRow.canManageGiving) profileAbilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('dash.revenue') + '</span>');
+      if (myChurchForStaffRow.canManageGroups) profileAbilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('dash.groups') + '</span>');
+      if (myChurchForStaffRow.canManageMessages) profileAbilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('dash.messages') + '</span>');
+      if (myChurchForStaffRow.canEditProfile) profileAbilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('dashOverview.permProfile') + '</span>');
+      document.getElementById('profile-staff-abilities-tags').innerHTML = profileAbilityTags.length ? profileAbilityTags.join('') : '<span style="font-size:11.5px;color:var(--ink-mute);">' + window.t('dashOverview.permViewOnly') + '</span>';
+      staffRow.style.display = 'flex';
+    } else {
+      staffRow.style.display = 'none';
     }
 
     var { data: ownedChurchRows } = await supabase.from('churches').select('name').eq('owner_id', userData.user.id).limit(1);
