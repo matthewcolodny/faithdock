@@ -180,7 +180,7 @@
       'invite.title': 'FaithDock is in private testing', 'invite.body': 'Creating an account needs an invite code while we’re testing. Not a tester?',
       'invite.placeholder': 'Invite code', 'invite.submit': 'Unlock', 'invite.wrong': 'That code isn’t valid.', 'invite.waitlistLink': 'Request access',
       'dash.events': 'Events', 'dash.checkin': 'Check-In', 'dash.directory': 'Directory', 'dash.messages': 'Messages',
-      'dash.groups': 'Groups', 'dash.giving': 'Giving', 'dash.billing': 'Billing', 'dash.settings': 'Settings', 'dash.signout': 'Sign out',
+      'dash.groups': 'Groups', 'dash.giving': 'Giving', 'dash.billing': 'Billing', 'dash.settings': 'Settings', 'dash.signout': 'Sign out', 'dash.staff': 'Staff',
       'church.about': 'About', 'church.events': 'Events', 'church.groups': 'Groups', 'church.ministries': 'Ministries', 'church.location': 'Location',
       'church.message': 'Message', 'church.give': 'Give', 'church.follow': 'Follow church',
       'filters.keywordPlaceholder': 'Search by church name or keyword...', 'filters.denomination': 'Denomination',
@@ -496,7 +496,7 @@
       'dashCheckin.walkInTag': 'Walk-in', 'dashCheckin.noSearchMatch': 'No one matches that search.', 'dashCheckin.noOneRegisteredYet': 'No one has registered for this event yet.',
       'dashDir.all': 'All', 'dashDir.members': 'Members', 'dashDir.staff': 'Staff', 'dashDir.eventSignups': 'Event sign-ups',
       'dashDir.groupSignups': 'Group sign-ups', 'dashDir.importMembers': 'Import members', 'dashDir.searchPlaceholder': 'Search by name or email',
-      'dashDir.printProfile': 'Print profile', 'dashDir.printRoster': 'Print roster',
+      'dashDir.printProfile': 'Print profile', 'dashDir.printRoster': 'Print roster', 'dashDir.viewProfile': 'View profile',
       'dashDir.matchColumnsGuess': "Match your file's columns — best guesses are already picked, just fix anything wrong.",
       'dashDir.emailColumn': 'Email column', 'dashDir.fullNameColumn': "Full name column, or first name if your file splits it",
       'dashDir.lastNameColumn': 'Last name column', 'dashDir.lastNameColumnOptional': '(optional — combined with the column above)',
@@ -628,6 +628,7 @@
       'dashSettings.churchProfileHint': 'Name, address, denomination, website, description, and logo are all managed from one page.',
       'dashSettings.givingHint': 'Connect a bank account so your church can accept donations directly through FaithDock. Donations go straight to your account — FaithDock never holds the funds.',
       'dashSettings.team': 'Team', 'dashSettings.teamHint': 'Staff can be given specific abilities — events, groups, messages, giving, or editing the profile. Billing and deleting the church always stay owner-only.',
+      'dashSettings.teamMovedHint': 'Inviting staff, adjusting their abilities, and assigning the Manager role now live on their own page.', 'dashSettings.goToStaffPage': 'Go to Staff →',
       'dashSettings.addStaffByEmail': 'Add staff by email',
       'dashSettings.addStaffHint': "If they already have a FaithDock account, they're added right away. If not, they'll get an email invite and join automatically once they sign up.",
       'dashSettings.addToChurches': 'Add to', 'dashSettings.addToTeam': 'Add to team',
@@ -965,7 +966,7 @@
       'invite.title': 'FaithDock está en pruebas privadas', 'invite.body': 'Crear una cuenta requiere un código de invitación mientras estamos en pruebas. ¿No eres tester?',
       'invite.placeholder': 'Código de invitación', 'invite.submit': 'Desbloquear', 'invite.wrong': 'Ese código no es válido.', 'invite.waitlistLink': 'Solicitar acceso',
       'dash.events': 'Eventos', 'dash.checkin': 'Registro', 'dash.directory': 'Directorio', 'dash.messages': 'Mensajes',
-      'dash.groups': 'Grupos', 'dash.giving': 'Donaciones', 'dash.billing': 'Facturación', 'dash.settings': 'Configuración', 'dash.signout': 'Cerrar sesión',
+      'dash.groups': 'Grupos', 'dash.giving': 'Donaciones', 'dash.billing': 'Facturación', 'dash.settings': 'Configuración', 'dash.signout': 'Cerrar sesión', 'dash.staff': 'Personal',
       'church.about': 'Acerca de', 'church.events': 'Eventos', 'church.groups': 'Grupos', 'church.ministries': 'Ministerios', 'church.location': 'Ubicación',
       'church.message': 'Mensaje', 'church.give': 'Donar', 'church.follow': 'Seguir iglesia',
       'filters.keywordPlaceholder': 'Buscar por nombre de iglesia o palabra clave...', 'filters.denomination': 'Denominación',
@@ -1281,7 +1282,7 @@
       'dashCheckin.walkInTag': 'Sin inscripción', 'dashCheckin.noSearchMatch': 'Nadie coincide con esa búsqueda.', 'dashCheckin.noOneRegisteredYet': 'Aún nadie se ha inscrito en este evento.',
       'dashDir.all': 'Todos', 'dashDir.members': 'Miembros', 'dashDir.staff': 'Personal', 'dashDir.eventSignups': 'Inscripciones a eventos',
       'dashDir.groupSignups': 'Inscripciones a grupos', 'dashDir.importMembers': 'Importar miembros', 'dashDir.searchPlaceholder': 'Buscar por nombre o correo electrónico',
-      'dashDir.printProfile': 'Imprimir perfil', 'dashDir.printRoster': 'Imprimir lista',
+      'dashDir.printProfile': 'Imprimir perfil', 'dashDir.printRoster': 'Imprimir lista', 'dashDir.viewProfile': 'Ver perfil',
       'dashDir.matchColumnsGuess': 'Relaciona las columnas de tu archivo — ya elegimos las mejores opciones, solo corrige lo que esté mal.',
       'dashDir.emailColumn': 'Columna de correo electrónico', 'dashDir.fullNameColumn': 'Columna de nombre completo, o nombre si tu archivo lo separa',
       'dashDir.lastNameColumn': 'Columna de apellido', 'dashDir.lastNameColumnOptional': '(opcional — se combina con la columna anterior)',
@@ -1413,6 +1414,7 @@
       'dashSettings.churchProfileHint': 'El nombre, la dirección, la denominación, el sitio web, la descripción y el logotipo se administran todos desde una sola página.',
       'dashSettings.givingHint': 'Conecta una cuenta bancaria para que tu iglesia pueda recibir donaciones directamente a través de FaithDock. Las donaciones van directamente a tu cuenta — FaithDock nunca retiene los fondos.',
       'dashSettings.team': 'Equipo', 'dashSettings.teamHint': 'El personal puede recibir habilidades específicas — eventos, grupos, mensajes, donativos o edición del perfil. La facturación y la eliminación de la iglesia son siempre solo para el propietario.',
+      'dashSettings.teamMovedHint': 'Invitar personal, ajustar sus habilidades y asignar el rol de Gerente ahora viven en su propia página.', 'dashSettings.goToStaffPage': 'Ir a Personal →',
       'dashSettings.addStaffByEmail': 'Agregar personal por correo electrónico',
       'dashSettings.addStaffHint': 'Si ya tienen una cuenta de FaithDock, se agregan de inmediato. Si no, recibirán una invitación por correo y se unirán automáticamente al registrarse.',
       'dashSettings.addToChurches': 'Agregar a', 'dashSettings.addToTeam': 'Agregar al equipo',
@@ -4897,6 +4899,7 @@
         <a data-dash="groups"><span data-i18n="dash.groups">Groups</span> <span id="dash-groups-nav-badge" class="tag clay" style="display:none;font-size:9px;padding:2px 6px;vertical-align:2px;"></span></a>
         <a data-dash="giving" data-i18n="dash.revenue">Revenue</a>
         <a data-dash="insights" data-i18n="insights.title">Insights</a>
+        <a data-dash="staff" data-i18n="dash.staff">Staff</a>
         <a data-dash="billing" data-i18n="dash.billing">Billing</a>
         <a data-dash="plans" data-i18n="dash.plans">Plans</a>
         <a data-dash="settings" data-i18n="dash.settings">Settings</a>
@@ -5630,6 +5633,22 @@
         </div>
       </div>
 
+      <div class="dash-content" id="dash-staff">
+        <h2 style="font-size:24px;margin-bottom:24px;" data-i18n="dash.staff">Staff</h2>
+        <div class="side-note" style="margin-top:0;max-width:640px;">
+          <h4><span data-i18n="dashSettings.team">Team</span> <span class="mono" id="team-count" style="font-size:10px;color:var(--ink-mute);font-weight:400;"></span></h4>
+          <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:12px;" data-i18n="dashSettings.teamHint">Staff can be given specific abilities — events, groups, messages, giving, or editing the profile. Billing and deleting the church always stay owner-only.</p>
+          <div id="team-list"></div>
+          <div id="team-owner-controls" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--line);">
+            <label style="font-size:12.5px;" data-i18n="dashSettings.addStaffByEmail">Add staff by email</label>
+            <div style="font-size:11.5px;color:var(--ink-mute);margin-bottom:6px;" data-i18n="dashSettings.addStaffHint">If they already have a FaithDock account, they're added right away. If not, they'll get an email invite and join automatically once they sign up.</div>
+            <input class="field" type="email" id="team-invite-email" placeholder="staffmember@email.com" data-i18n-placeholder="dashSettings.staffEmailPlaceholder" style="font-size:13px;padding:9px 10px;">
+            <button class="export-btn" id="team-invite-btn" style="width:100%;justify-content:center;margin-top:8px;" data-i18n="dashSettings.addToTeam">Add to team</button>
+            <div id="team-invite-status" style="display:none;font-size:12px;margin-top:8px;"></div>
+          </div>
+        </div>
+      </div>
+
       <div class="dash-content" id="dash-billing">
         <h2 style="font-size:24px;margin-bottom:24px;" data-i18n="dash.billing">Billing</h2>
         <div class="side-note" style="max-width:460px;margin-top:0;" id="billing-plan-card">
@@ -5720,17 +5739,10 @@
               <div id="fund-add-status" style="display:none;font-size:12px;margin-top:8px;"></div>
             </div>
           </div>
-          <div class="side-note" style="margin-top:0;">
-            <h4><span data-i18n="dashSettings.team">Team</span> <span class="mono" id="team-count" style="font-size:10px;color:var(--ink-mute);font-weight:400;"></span></h4>
-            <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:12px;" data-i18n="dashSettings.teamHint">Staff can be given specific abilities — events, groups, messages, giving, or editing the profile. Billing and deleting the church always stay owner-only.</p>
-            <div id="team-list"></div>
-            <div id="team-owner-controls" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--line);">
-              <label style="font-size:12.5px;" data-i18n="dashSettings.addStaffByEmail">Add staff by email</label>
-              <div style="font-size:11.5px;color:var(--ink-mute);margin-bottom:6px;" data-i18n="dashSettings.addStaffHint">If they already have a FaithDock account, they're added right away. If not, they'll get an email invite and join automatically once they sign up.</div>
-              <input class="field" type="email" id="team-invite-email" placeholder="staffmember@email.com" data-i18n-placeholder="dashSettings.staffEmailPlaceholder" style="font-size:13px;padding:9px 10px;">
-              <button class="export-btn" id="team-invite-btn" style="width:100%;justify-content:center;margin-top:8px;" data-i18n="dashSettings.addToTeam">Add to team</button>
-              <div id="team-invite-status" style="display:none;font-size:12px;margin-top:8px;"></div>
-            </div>
+          <div class="side-note" style="margin-top:0;" id="settings-team-pointer-section">
+            <h4 data-i18n="dashSettings.team">Team</h4>
+            <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:14px;" data-i18n="dashSettings.teamMovedHint">Inviting staff, adjusting their abilities, and assigning the Manager role now live on their own page.</p>
+            <a data-dash="staff" class="btn-gold" style="display:inline-block;text-decoration:none;cursor:pointer;" data-i18n="dashSettings.goToStaffPage">Go to Staff →</a>
           </div>
         </div>
 
@@ -5837,7 +5849,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v2 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v3 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -10543,6 +10555,15 @@
     if (dashBillingNavLink) dashBillingNavLink.style.display = myChurch.canManageBilling ? '' : 'none';
     var dashMessagesNavLink = document.querySelector('[data-dash="messages"]');
     if (dashMessagesNavLink) dashMessagesNavLink.style.display = myChurch.canManageMessages ? '' : 'none';
+    // Dedicated Staff page: tiers 2-5 only (Starter/Standard/Premium/
+    // Multi-Church) -- free-tier churches get 0 staff seats
+    // (planLimits.free.staff === 0), so the whole page has nothing to
+    // offer them. Reuses isPaidChurch, already computed above for the
+    // church-status-tag wording.
+    var dashStaffNavLink = document.querySelector('[data-dash="staff"]');
+    if (dashStaffNavLink) dashStaffNavLink.style.display = isPaidChurch ? '' : 'none';
+    var settingsTeamPointer = document.getElementById('settings-team-pointer-section');
+    if (settingsTeamPointer) settingsTeamPointer.style.display = isPaidChurch ? 'block' : 'none';
 
     var deleteChurchSection = document.getElementById('settings-delete-church-section');
     if (deleteChurchSection) {
@@ -14411,8 +14432,8 @@
       var { data: detailData } = await supabase.rpc('get_church_staff_detail', { target_church_id: myChurch.id });
       staffRows = detailData || [];
     } else {
-      var { data: basicStaffData } = await supabase.from('church_staff').select('id, profiles!user_id(full_name)').eq('church_id', myChurch.id);
-      staffRows = (basicStaffData || []).map(function(s){ return { staff_id: s.id, full_name: (s.profiles && s.profiles.full_name) ? s.profiles.full_name : window.t('dashSettings.teamMemberFallback') }; });
+      var { data: basicStaffData } = await supabase.from('church_staff').select('id, user_id, profiles!user_id(full_name)').eq('church_id', myChurch.id);
+      staffRows = (basicStaffData || []).map(function(s){ return { staff_id: s.id, user_id: s.user_id, full_name: (s.profiles && s.profiles.full_name) ? s.profiles.full_name : window.t('dashSettings.teamMemberFallback') }; });
     }
     var staffCount = staffRows.length;
     var staffLimit = window.planLimits ? window.planLimits[myChurch.planType || 'free'].staff : 8;
@@ -14433,6 +14454,15 @@
       html += '<div class="info-row" style="justify-content:space-between;">'
         + '<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;vertical-align:-3px;margin-right:6px;"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>' + name + ' — ' + roleLabel + '</span>'
         + '<span style="display:flex;gap:6px;">'
+        // Reuses the exact same directory-person-modal the Directory tab
+        // already opens for any connected person (photo, roles, event/
+        // group sign-ups, giving history) -- that modal lives outside
+        // any .dash-content panel (a sibling of #dash-directory, not
+        // nested inside it), so it renders fine from this Staff tab too.
+        // It looks the person up out of directoryPeopleRaw by user_id,
+        // which loadDirectoryPeople() already populates unconditionally
+        // at dashboard load -- no separate fetch needed here.
+        + (s.user_id ? '<button class="qr-btn icon-tip" data-tip="' + window.t('dashDir.viewProfile') + '" data-view-person-id="' + s.user_id + '" aria-label="' + window.t('dashDir.viewProfile') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg></button>' : '')
         + (canActOnThisRow ? '<button class="qr-btn icon-tip" data-tip="' + window.t('dashSettings.permissions') + '" data-manage-permissions-id="' + s.staff_id + '" data-manage-permissions-name="' + name.replace(/"/g, '&quot;') + '" data-events="' + s.can_manage_events + '" data-giving="' + s.can_manage_giving + '" data-groups="' + s.can_manage_groups + '" data-messages="' + s.can_manage_messages + '" data-manager="' + s.is_manager + '" data-profile="' + s.can_edit_profile + '" data-viewer-is-owner="' + isOwner + '" aria-label="' + window.t('dashSettings.permissions') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg></button>' : '')
         + (canActOnThisRow ? '<button class="qr-btn" data-remove-staff-id="' + s.staff_id + '" aria-label="' + window.t('dashSettings.removeFromTeam') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>' : '')
         + '</span></div>';
@@ -14465,7 +14495,7 @@
           + '<div id="team-invite-status" style="display:none;font-size:12px;margin-top:8px;"></div>';
       } else {
         // Mirrors the static #team-owner-controls markup on the
-        // Settings page (same labels/placeholder, same i18n keys) —
+        // Staff page (same labels/placeholder, same i18n keys) —
         // this JS-built version is what actually renders when this
         // function runs, so it needs the same translation, not just
         // the static HTML template it's built to match.

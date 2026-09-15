@@ -1874,6 +1874,22 @@ Build `2026-09-15-v2`.
 
 ---
 
+## Gave staff its own dashboard page instead of a side-note tucked into Settings
+
+Follow-up to the Manager-role feature above, requested the same day once it was live: invite/manage staff was buried in a 320px sidebar column on the Settings page, easy to miss, and there was no way to see a staff member's actual profile (photo, contact info, event/group sign-ups, giving history) without hunting for them separately in Directory. Added a dedicated "Staff" nav item, positioned between Insights and Billing in the dashboard sidebar, gated to tiers 2-5 (Starter/Standard/Premium/Multi-Church) -- free-tier churches get 0 staff seats (`planLimits.free.staff === 0`), so the page has nothing to offer them and the nav link stays hidden, reusing the `isPaidChurch` flag `loadDashboardHeader()` already computed for the church-status-tag wording.
+
+**Pure relocation, not a rewrite**: `#team-list`, `#team-owner-controls`, and their child inputs/buttons kept their exact element IDs -- just moved from Settings' two-col sidebar into a new `<div class="dash-content" id="dash-staff">` panel. `loadTeamPanel()`, `bindTeamInviteBtn()`, and every click-delegated handler for invite/remove/edit-abilities/Manager-toggle needed zero logic changes, since they all operate on element IDs rather than caring which page currently holds them. Grepped for CSS selectors targeting those IDs first (`#team-list`, `#team-owner-controls`, `#team-count`) to confirm nothing styled them by page-context before moving them -- nothing did.
+
+**Settings keeps a pointer, not a dead end**: the old Team side-note is replaced with a short "Team management has moved" card and a `data-dash="staff"` link -- free for the existing `[data-dash]` click-delegation to handle, no new JS. Hidden for free-tier churches the same way the new nav link is, via the same `isPaidChurch` check.
+
+**"View their profile" reuses the Directory tab's existing person modal instead of building a new one.** Confirmed first that `#directory-person-modal` (and the other Directory modals) are DOM *siblings* of `#dash-directory`, not nested inside it -- `.dash-content{display:none} .dash-content.active{display:block}` means a modal nested inside a non-active tab's panel would never render regardless of its own `.open` class, so this only works because of where it already sits in the markup. Each staff row now carries `data-view-person-id="<user_id>"` on a small eye-icon button, which the Directory tab's own global click handler already listens for on `document` -- it looks the person up out of `directoryPeopleRaw`, which `loadDirectoryPeople()` populates unconditionally at dashboard load regardless of which tab is showing. Had to add `user_id` to the plain-staff-member branch's query too (`select('id, profiles!user_id(full_name)')` -> `select('id, user_id, profiles!user_id(full_name)')`) -- it was never selected before since nothing needed it prior to this.
+
+Verified from this environment: all non-module `<script>` blocks pass `node --check`. Loaded the page in a local static preview and confirmed via `document.getElementById`/`querySelector` that the new nav link, panel, and Settings pointer all exist exactly once each (no duplicate `#team-count` from the move). Could not exercise the actual owner/Manager/staff view-switching or the profile modal end-to-end -- needs a real signed-in session against a live Supabase project with real staff rows.
+
+Build `2026-09-15-v3`.
+
+---
+
 ## Multi-part data-quality report: Spanish-language tagging gaps, an Ethiopian Orthodox miss, casing, and a "Ministries" hide widening
 
 Reported live with real examples across 4 church cards. Checked the actual database state for each before writing anything, rather than assuming.
