@@ -6201,7 +6201,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v28 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v29 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -9922,6 +9922,67 @@
   import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
   import Filter from 'https://esm.sh/bad-words@3';
 
+  // Shared by loadRealChurches()/loadRealEvents() further down AND by
+  // the earlier, non-module <script> block's showRouteFromHash() (see
+  // window.renderOnceLocationKnown export below) -- calls renderFns
+  // (each a zero-arg thunk, so the typeof-guard inside still runs
+  // fresh at call time rather than capturing an early undefined) right
+  // now if no location is expected to arrive at all -- nothing better
+  // is coming, so there's no reason to wait. Otherwise holds off and
+  // calls them only once the real outcome is known, instead of
+  // painting an unfiltered/default list that then gets replaced by a
+  // correctly filtered one a moment later -- reported directly as
+  // results flashing before the real, location-filtered ones took
+  // over. Deliberately placed here, as close to the top of this script
+  // as possible, rather than near its other location-handling
+  // functions further down -- a real, reported instance of this exact
+  // flash traced back to showRouteFromHash(true) being called (from
+  // further down this same script, for an unrelated earlier fix)
+  // BEFORE this function used to be defined, falling through to an
+  // immediate, unfiltered render because the typeof-guard around it
+  // found nothing yet. This function only ever reads
+  // window.earlyGeo*/earlyManualLocation state, all already set by the
+  // head script long before this module script starts, so nothing
+  // stops it living this early.
+  function renderOnceLocationKnown(renderFns){
+    function runAll(){ renderFns.forEach(function(fn){ fn(); }); }
+    var geoExpected = !!window.earlyManualLocation || !!window.earlyGeoInstantCoords || window.earlyGeoPermissionState === 'granted';
+    if (!geoExpected) { runAll(); return; }
+    if (window.earlyManualLocation || window.earlyGeoInstantCoords) {
+      // Already applied (or about to be, imminently) by
+      // _applyInstantGeoIfPending()/applyDirLocationCoords() itself,
+      // independent of what earlyGeoDone/earlyGeoCoords say -- those
+      // two only ever track the SEPARATE real-GPS fix, which a manual
+      // location skips requesting entirely (see the early head
+      // script), so earlyGeoDone can already be true with no coords
+      // here even though a location genuinely is coming. Nothing to
+      // do in either case.
+      return;
+    }
+    if (window.earlyGeoDone) {
+      // Already resolved (denied/failed) by the time we got here
+      // despite being "expected" -- render unfiltered now, same as
+      // the branch above, rather than queuing a callback that's
+      // already been drained and will never fire again. If it
+      // resolved WITH coords instead, applyDirLocationCoords() has
+      // already rendered (or is about to, once it's defined) with the
+      // real location -- nothing to do in that case.
+      if (!window.earlyGeoCoords) runAll();
+      return;
+    }
+    // Still pending -- applyDirLocationCoords() (called moments later
+    // by whichever comes first, the instant-paint guess or the real
+    // fix) renders these itself once real coordinates are known. This
+    // fallback only fires if geolocation ultimately fails despite
+    // being expected to succeed, so the page doesn't end up
+    // permanently blank.
+    window.earlyGeoCallbacks.push(function(coords){ if (!coords) runAll(); });
+  }
+  // showRouteFromHash() (the earlier, non-module <script> block) needs
+  // this too, for its own unconditional renderDirectory() call when
+  // the URL already points straight at #directory on load.
+  window.renderOnceLocationKnown = renderOnceLocationKnown;
+
   // Content safety — checks user-entered text before it can be
   // submitted anywhere public-facing. Combines a maintained, general
   // profanity library with an additional list of church-specific
@@ -10094,61 +10155,20 @@
   // renderHomeChurches above), which only ever fetches a page at a
   // time. This function now just runs the page-load housekeping that
   // used to be chained after that fetch completed.
-  // Shared by loadRealChurches() and loadRealEvents() below: calls
-  // renderFns (each a zero-arg thunk, so the typeof-guard inside still
-  // runs fresh at call time rather than capturing an early undefined)
-  // right now if no location is expected to arrive at all -- nothing
-  // better is coming, so there's no reason to wait. Otherwise holds
-  // off and calls them only once the real outcome is known, instead
-  // of painting an unfiltered/default list that then gets replaced by
-  // a correctly filtered one a moment later -- reported directly as
-  // results flashing before the real, location-filtered ones took
-  // over. window.earlyGeoInstantCoords (a cached guess from last
-  // visit) and a 'granted' permission state are both known BEFORE any
-  // geolocation callback actually fires (queried/read in the head
-  // script well before this deferred module script even runs), which
-  // is what makes deciding this up front possible at all.
-  function renderOnceLocationKnown(renderFns){
-    function runAll(){ renderFns.forEach(function(fn){ fn(); }); }
-    var geoExpected = !!window.earlyManualLocation || !!window.earlyGeoInstantCoords || window.earlyGeoPermissionState === 'granted';
-    if (!geoExpected) { runAll(); return; }
-    if (window.earlyManualLocation || window.earlyGeoInstantCoords) {
-      // Already applied (or about to be, imminently) by
-      // _applyInstantGeoIfPending()/applyDirLocationCoords() itself,
-      // independent of what earlyGeoDone/earlyGeoCoords say -- those
-      // two only ever track the SEPARATE real-GPS fix, which a manual
-      // location skips requesting entirely (see the early head
-      // script), so earlyGeoDone can already be true with no coords
-      // here even though a location genuinely is coming. Nothing to
-      // do in either case.
-      return;
-    }
-    if (window.earlyGeoDone) {
-      // Already resolved (denied/failed) by the time we got here
-      // despite being "expected" -- render unfiltered now, same as
-      // the branch above, rather than queuing a callback that's
-      // already been drained and will never fire again. If it
-      // resolved WITH coords instead, applyDirLocationCoords() has
-      // already rendered (or is about to, once it's defined) with the
-      // real location -- nothing to do in that case.
-      if (!window.earlyGeoCoords) runAll();
-      return;
-    }
-    // Still pending -- applyDirLocationCoords() (called moments later
-    // by whichever comes first, the instant-paint guess or the real
-    // fix) renders these itself once real coordinates are known. This
-    // fallback only fires if geolocation ultimately fails despite
-    // being expected to succeed, so the page doesn't end up
-    // permanently blank.
-    window.earlyGeoCallbacks.push(function(coords){ if (!coords) runAll(); });
-  }
-  // showRouteFromHash() (the earlier, non-module <script> block) needs
-  // this too, for its own unconditional renderDirectory() call when
-  // the URL already points straight at #directory on load -- otherwise
-  // reloading while already on the Directory page would flash an
-  // unfiltered page before a manual/auto-detected location caught up,
-  // the exact bug this function exists to prevent everywhere else.
-  window.renderOnceLocationKnown = renderOnceLocationKnown;
+  // renderOnceLocationKnown() used to live here, but a real, reported
+  // flash bug traced it to being defined too late: an EARLIER, pre-
+  // existing "re-run the current route's setup" call to
+  // showRouteFromHash(true) -- added in an unrelated previous fix,
+  // and itself calling renderDirectory() unconditionally for a
+  // straight-to-#directory load -- runs before this point in the
+  // script, so window.renderOnceLocationKnown didn't exist yet for it
+  // to use, and it fell through to rendering immediately with
+  // whatever dirUserLat/Lng happened to be at that moment (not yet
+  // set). Moved to right after the imports above instead, where it
+  // has everything it actually needs (only window.earlyGeo*/
+  // earlyManualLocation state, all set by the head script long before
+  // this module script even starts) and is available before every
+  // call site that needs it, not just the ones textually below it.
 
   async function loadRealChurches(){
     if (typeof window.rebuildDenomFilterChecklist === 'function') window.rebuildDenomFilterChecklist();
@@ -10486,9 +10506,16 @@
     heroAutocomplete.addListener('place_changed', function(){
       var place = heroAutocomplete.getPlace();
       if (place.geometry && place.geometry.location) {
-        window.dirUserLat = place.geometry.location.lat();
-        window.dirUserLng = place.geometry.location.lng();
-        heroLocationInputEl.value = place.formatted_address || heroLocationInputEl.value;
+        // setDirLocation(), not a direct window.dirUserLat/Lng
+        // assignment -- a real, reported bug: picking a location here
+        // visibly worked (results updated correctly) but didn't
+        // persist past a refresh, because this was the one manual
+        // location entry point that bypassed setDirLocation() (and so
+        // never wrote the sessionStorage "remember this search" key
+        // every other entry point already does).
+        var heroLabel = place.formatted_address || heroLocationInputEl.value;
+        heroLocationInputEl.value = heroLabel;
+        setDirLocation(place.geometry.location.lat(), place.geometry.location.lng(), heroLabel);
         goToDirectoryFromHero();
       }
     });
