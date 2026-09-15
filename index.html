@@ -2192,6 +2192,16 @@
   .church-card, .event-card{
     background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
     overflow:hidden;transition:border-color .15s, transform .15s;display:block;
+    /* Mobile browsers paint a default translucent tap-highlight
+       overlay on any tapped link, covering its whole bounding box --
+       tapping the follow-heart button nested inside this <a> triggers
+       it on the ENTIRE card, not just the heart, even though the
+       heart's own click handler already correctly prevents navigation.
+       Reported directly as "the whole card blinks." preventDefault()/
+       stopPropagation() only stop the click's default action and JS
+       bubbling, not this browser-painted highlight, which responds to
+       touch state independently of either. */
+    -webkit-tap-highlight-color:transparent;
   }
   .church-card:hover, .event-card:hover{border-color:var(--gold);transform:translateY(-2px);}
   .thumb{
@@ -2330,7 +2340,7 @@
      church with no logo costs no extra height. Left accent keyed to the
      same denomination hue the card placeholder uses. */
   .church-list{display:flex;flex-direction:column;gap:8px;}
-  .church-row{display:flex;align-items:center;gap:14px;padding:11px 14px;background:var(--card);border:1px solid var(--line);border-left:3px solid hsl(var(--thumb-hue,220) 42% 62%);border-radius:10px;transition:border-color .15s;text-decoration:none;color:inherit;}
+  .church-row{display:flex;align-items:center;gap:14px;padding:11px 14px;background:var(--card);border:1px solid var(--line);border-left:3px solid hsl(var(--thumb-hue,220) 42% 62%);border-radius:10px;transition:border-color .15s;text-decoration:none;color:inherit;-webkit-tap-highlight-color:transparent;}
   .church-row:hover{border-color:var(--gold);border-left-color:hsl(var(--thumb-hue,220) 42% 62%);}
   html[data-theme="dark"] .church-row{border-left-color:hsl(var(--thumb-hue,220) 30% 46%);}
   html[data-theme="dark"] .church-row:hover{border-left-color:hsl(var(--thumb-hue,220) 30% 46%);}
@@ -5999,7 +6009,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v19 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v20 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">

@@ -2167,3 +2167,15 @@ Build `2026-09-15-v18`.
 Verified in a local preview: confirmed via computed style that `.two-col`'s `grid-template-columns` is `375px` (a single column) at mobile viewport width, by screenshot that Settings reads full-width and legible on mobile now, and via direct DOM population that the new profile staff-row and the Staff page's per-row ability tags render correctly. `node --check` passes. **Not tested**: the real invite-accept flow and Staff page against a live Supabase project with real staff rows.
 
 Build `2026-09-15-v19`.
+
+---
+
+## Mobile follow-heart tap made the whole card "blink" -- browser's default tap-highlight, not a JS bug
+
+User confirmed the earlier click-through fix actually works on mobile (tapping the heart no longer navigates), but noticed the whole card visibly flashes as if it were also tapped. Not a JS problem -- `preventDefault()`/`stopPropagation()` in the heart's click handler only stop the click's default action and its bubbling to other *JS listeners*; they have no effect on the browser's own tap-highlight overlay, which mobile WebKit/Chrome paint over an entire tapped link based on touch state alone, independent of what any click handler does. Since the heart sits inside the card's own `<a>`, a tap landing on the heart still lands inside the link's bounding box, so the browser highlighted the whole card regardless of the navigation being correctly suppressed.
+
+Confirmed no existing `-webkit-tap-highlight-color` reset anywhere in the stylesheet before adding one (would have been redundant/conflicting otherwise). Added `-webkit-tap-highlight-color:transparent` to `.church-card`/`.event-card` (shared rule) and `.church-row`, the two link-wrapped containers the follow-heart lives inside.
+
+Verified in a local preview: computed `webkitTapHighlightColor` on both `.church-card` and `.church-row` resolves to `rgba(0, 0, 0, 0)` (fully transparent) after the change. `node --check` passes -- pure CSS, no JS touched. **Not tested**: an actual physical mobile device/touchscreen, since this environment can only emulate viewport size, not real touch-highlight rendering.
+
+Build `2026-09-15-v20`.
