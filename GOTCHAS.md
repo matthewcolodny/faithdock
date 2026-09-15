@@ -1840,6 +1840,18 @@ Same deployment caveat as the delivery-tracking feature above: this is a further
 
 ---
 
+## Extended the reply_to-the-actual-sender fix to the three branches deliberately left out above
+
+User quoted the previous entry's own closing line back ("worth doing if you want, but a separate pass") and said "do it" -- extended the exact same `reply_to` fix to `member_invite`, `event_contact_notify`, and the default staff-invite branch in `smooth-action.ts`. All three previously sent with no `reply_to` at all, same gap `mass_email` had before the fix above.
+
+**Same pattern, no shared helper**: each branch derives its own `senderEmail` locally via `getUser(jwt)` against its own `Authorization` header, right before building its send payload -- not extracted into a shared function, matching how none of this file's other per-type branches share helpers either. The default (staff-invite) branch isn't wrapped in its own `if (body.type === ...)` block -- it's the trailing fallthrough -- so its copy uses distinct names (`supabaseAdminForInvite`, `inviteSenderEmail`, etc.) out of caution, even though JS block-scoping means the other three branches' identical names (`supabaseAdmin`, `senderEmail`, `authHeader`, `authData`) inside their own `if {}` blocks would never have collided with it anyway.
+
+**Checked staff-reachability per branch instead of assuming**: grepped `index.html` for `canManage*`-style gates near each trigger. `member_invite` (Directory/People's bulk CSV import + per-row "Resend invite") and `event_contact_notify` (fired when a contact is added during event creation/editing, gated only by `canManageEvents`) are both staff-reachable, same reasoning as `mass_email`. The default branch is the opposite: "Add staff by email" is gated `if (isOwner) { ... }` client-side, so `inviterName` there is never actually a staff member's name -- fixed anyway since it's still strictly better than every reply going to the shared `invites@faithdock.com` address, and keeps all four branches consistent.
+
+Same deployment caveat as both entries above, restated a third time in the file's own header comment: this backup was not diffed against the live dashboard source first (no dashboard access from this environment) -- diff before pasting, then redeploy and update the header's "confirmed deployed" date. `node --check` passes.
+
+---
+
 ## Multi-part data-quality report: Spanish-language tagging gaps, an Ethiopian Orthodox miss, casing, and a "Ministries" hide widening
 
 Reported live with real examples across 4 church cards. Checked the actual database state for each before writing anything, rather than assuming.

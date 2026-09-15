@@ -26,11 +26,28 @@
 // instead of leaving it unset. Messages has no staff permission gate,
 // so whoever clicked Send is frequently a staff member, not the owner --
 // a hardcoded owner reply_to would misroute replies away from the
-// person who actually needs to see them. This backup copy was NOT
-// fetched fresh from the live dashboard first (still no dashboard
-// access from this environment) -- diff against the actual live source
-// before pasting, then update this comment's "last confirmed deployed"
-// date once you've redeployed and confirmed it.
+// person who actually needs to see them.
+//
+// EDITED A THIRD TIME 2026-09-14, NOT YET CONFIRMED DEPLOYED: the same
+// reply_to-the-actual-sender fix extended to member_invite,
+// event_contact_notify, and the default staff-invite branch -- all
+// three previously sent with no reply_to at all, same gap as
+// mass_email had. Each derives its own senderEmail locally via the
+// same getUser(jwt) pattern (not shared/extracted, matching how none
+// of this file's other per-type branches share helpers either).
+// member_invite and event_contact_notify are both reachable by staff
+// (Directory/People has no visible permission gate; event
+// creation/editing only needs canManageEvents); the staff-invite
+// branch is confirmed owner-only in the UI (isOwner-gated
+// client-side), so inviterName there is never actually a staff
+// member's name -- fixed anyway for consistency with the other three,
+// since it's still a strict improvement over no reply_to at all.
+//
+// This backup copy was NOT fetched fresh from the live dashboard first
+// for any of the above (still no dashboard access from this
+// environment) -- diff against the actual live source before pasting,
+// then update this comment's "last confirmed deployed" date once
+// you've redeployed and confirmed it.
 //
 // Dispatches on body.type: welcome_email, contact_church, mass_email,
 // group_join_request, ownership_handoff, member_invite,
@@ -262,6 +279,24 @@ serve(async (req) => {
         });
       }
 
+      // reply_to the actual sender, same reasoning and pattern as
+      // mass_email above -- the Directory/People tab this is triggered
+      // from (bulk CSV import, the per-row "Resend invite" button) has
+      // no visible staff permission gate either, so inviterName here
+      // can already be a staff member's own name, not necessarily the
+      // owner's. getUser(jwt) is the only extra call needed; the
+      // client already sends its auth header on every
+      // supabase.functions.invoke() call.
+      const supabaseAdmin = createClient(Deno.env.get('SUPABASE_URL'), Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'));
+      let senderEmail = null;
+      const authHeader = req.headers.get('Authorization');
+      if (authHeader) {
+        try {
+          const { data: authData } = await supabaseAdmin.auth.getUser(authHeader.replace('Bearer ', ''));
+          senderEmail = authData && authData.user ? authData.user.email : null;
+        } catch (e) { /* best-effort — proceed without a sender email */ }
+      }
+
       const subject = `You're invited to connect with ${churchName} on FaithDock`;
       const chunkSize = 100;
       let totalSent = 0;
@@ -270,7 +305,9 @@ serve(async (req) => {
         const payload = chunk.map((r) => {
           const firstName = (r.name || '').split(' ')[0] || 'there';
           const html = `<p>Hi ${firstName},</p><p>${inviterName} has invited you to connect with <strong>${churchName}</strong> on FaithDock — see upcoming events, groups, and updates from your church home.</p><p>Sign up using this email address (${r.email}) and you'll be connected automatically:</p><p><a href="${signupUrl}">${signupUrl}</a></p>`;
-          return { from: 'FaithDock <invites@faithdock.com>', to: [r.email], subject: subject, html: html };
+          return senderEmail
+            ? { from: 'FaithDock <invites@faithdock.com>', to: [r.email], subject: subject, html: html, reply_to: senderEmail }
+            : { from: 'FaithDock <invites@faithdock.com>', to: [r.email], subject: subject, html: html };
         });
         const res = await fetch('https://api.resend.com/emails/batch', {
           method: 'POST',
@@ -302,6 +339,21 @@ serve(async (req) => {
         });
       }
 
+      // reply_to the actual sender, same reasoning and pattern as
+      // mass_email above -- event creation/editing (where a contact
+      // gets added) is reachable by any staff member with
+      // canManageEvents, not just the owner, so addedByName here is
+      // frequently a staff member's own name.
+      const supabaseAdmin = createClient(Deno.env.get('SUPABASE_URL'), Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'));
+      let senderEmail = null;
+      const authHeader = req.headers.get('Authorization');
+      if (authHeader) {
+        try {
+          const { data: authData } = await supabaseAdmin.auth.getUser(authHeader.replace('Bearer ', ''));
+          senderEmail = authData && authData.user ? authData.user.email : null;
+        } catch (e) { /* best-effort — proceed without a sender email */ }
+      }
+
       const subject = `You've been added as a contact for ${eventTitle}`;
       const chunkSize = 100;
       let totalSent = 0;
@@ -310,7 +362,9 @@ serve(async (req) => {
         const payload = chunk.map((r) => {
           const firstName = (r.name || '').split(' ')[0] || 'there';
           const html = `<p>Hi ${firstName},</p><p>${addedByName ? addedByName + ' has' : 'You\'ve'} listed you as a contact for <strong>${eventTitle}</strong>${eventWhen ? ' (' + eventWhen + ')' : ''} at ${churchName} on FaithDock.</p><p>People interested in the event may reach out to you with questions about it.</p>`;
-          return { from: 'FaithDock <invites@faithdock.com>', to: [r.email], subject: subject, html: html };
+          return senderEmail
+            ? { from: 'FaithDock <invites@faithdock.com>', to: [r.email], subject: subject, html: html, reply_to: senderEmail }
+            : { from: 'FaithDock <invites@faithdock.com>', to: [r.email], subject: subject, html: html };
         });
         const res = await fetch('https://api.resend.com/emails/batch', {
           method: 'POST',
@@ -329,7 +383,25 @@ serve(async (req) => {
       return new Response(JSON.stringify({ success: true, sentCount: totalSent }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    // Default: staff invite notification.
+    // Default: staff invite notification. Unlike the other three
+    // branches above, "Add staff by email" is owner-only in the UI
+    // (gated behind isOwner client-side) -- inviterName here is always
+    // the owner's own name, never a staff member's, since staff can't
+    // reach this form at all. Still worth the same reply_to fix: it's
+    // a strict improvement over no reply_to at all (today's behavior,
+    // replies going to the shared invites@faithdock.com address), and
+    // keeps this branch consistent with the other three rather than
+    // being the one exception.
+    const supabaseAdminForInvite = createClient(Deno.env.get('SUPABASE_URL'), Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'));
+    let inviteSenderEmail = null;
+    const inviteAuthHeader = req.headers.get('Authorization');
+    if (inviteAuthHeader) {
+      try {
+        const { data: inviteAuthData } = await supabaseAdminForInvite.auth.getUser(inviteAuthHeader.replace('Bearer ', ''));
+        inviteSenderEmail = inviteAuthData && inviteAuthData.user ? inviteAuthData.user.email : null;
+      } catch (e) { /* best-effort — proceed without a sender email */ }
+    }
+
     const { email, churchName, inviterName, hasAccount, signupUrl, loginUrl } = body;
     const subject = hasAccount
       ? `You've been added to ${churchName}'s team on FaithDock`
@@ -341,7 +413,11 @@ serve(async (req) => {
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${resendApiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from: 'FaithDock <invites@faithdock.com>', to: [email], subject: subject, html: html }),
+      body: JSON.stringify(
+        inviteSenderEmail
+          ? { from: 'FaithDock <invites@faithdock.com>', to: [email], subject: subject, html: html, reply_to: inviteSenderEmail }
+          : { from: 'FaithDock <invites@faithdock.com>', to: [email], subject: subject, html: html }
+      ),
     });
     const data = await res.json();
     if (!res.ok) {
