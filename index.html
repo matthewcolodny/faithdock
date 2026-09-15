@@ -2253,7 +2253,16 @@
     fill:hsl(var(--thumb-hue,220) 34% 88%) !important;
     opacity:1 !important;
   }
-  .follow-heart-card[data-following="true"] svg{fill:#fff !important;stroke:#8A8A8A !important;}
+  /* White used to be the followed fill in both themes, but a real
+     uploaded logo always sits on a hardcoded white background
+     (churchCard()'s background-color:#fff, theme-independent -- see
+     the "why is there a white border" thread), so a white heart went
+     invisible against it regardless of light/dark mode. #F0A8C4 is a
+     clear, soft rose pink, deliberately picked to not match any color
+     already in the palette (--clay's #E2917A/#A8503A read as coral/
+     terracotta, not pink; --clay-bg's #F3E4DE is a pale beige, not
+     pink either) -- checked before picking a new hex, not guessed. */
+  .follow-heart-card[data-following="true"] svg{fill:#F0A8C4 !important;stroke:#8A8A8A !important;}
   /* Dark mode: same specificity trap as .thumb--denom above applies to
      the [data-following="true"] override too -- without also scoping
      it under html[data-theme="dark"], the plain default rule just
@@ -2264,7 +2273,7 @@
     stroke:none !important;fill:#4A4A4A !important;
     filter:drop-shadow(0 1px 2px rgba(0,0,0,.5));
   }
-  html[data-theme="dark"] .follow-heart-card[data-following="true"] svg{fill:#fff !important;}
+  html[data-theme="dark"] .follow-heart-card[data-following="true"] svg{fill:#F0A8C4 !important;}
   .follow-heart-row{
     /* Padding (not icon size) is what grows the click target here --
        2px was reported as too easy to miss, landing the click on the
@@ -5966,7 +5975,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v17 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v18 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">

@@ -2136,3 +2136,17 @@ Scoped to the edit/update branch only -- the create-new-church branch doesn't ca
 Verified in a local preview: rendered the exact same escaping logic against a hostile test name and confirmed via `querySelector` that the link's `href`/`data-church-name` are populated correctly and no real `<b>` element exists in the output. `node --check` passes.
 
 Build `2026-09-15-v17`.
+
+---
+
+## Card-view followed heart was invisible against a real logo -- switched white fill to a distinct pink
+
+User noticed the followed (filled) heart was hard to see against a church's uploaded logo, in *both* light and dark mode -- traced this back to `churchCard()`'s own background handling: a real logo's `.thumb` always gets a hardcoded `background-color:#fff` (see the earlier "why is there a white border" thread, kept intentionally so a transparent-PNG logo doesn't show through to something odd), and that white background doesn't change with theme. The followed heart's fill was `#fff` in both themes too, so it blended into any real logo's background regardless of light/dark mode -- not a theme bug, a straight color collision.
+
+**Picked a hex that's genuinely new to the palette, not assumed distinct.** Checked the existing CSS variables first: `--clay` (`#A8503A` light / `#E2917A` dark) reads as coral/terracotta, not pink; `--clay-bg` (`#F3E4DE`) is a pale beige. Landed on `#F0A8C4`, a clear soft rose pink with no existing use anywhere in the stylesheet. Applied to both `.follow-heart-card[data-following="true"] svg` (light mode) and its `html[data-theme="dark"]`-scoped counterpart, replacing `#fff` in both -- the grey stroke stays unchanged in light mode.
+
+Scoped to Card view only -- List view has no thumbnail at all, so its heart never sits on a logo's white background and wasn't affected by this specific collision.
+
+Verified in a local preview: rendered a card with a real (placeholder) logo image and confirmed via computed style that the filled heart's fill is `rgb(240, 168, 196)` (`#F0A8C4`) in both light and dark mode, then confirmed by screenshot that it reads clearly against the white logo background. `node --check` passes.
+
+Build `2026-09-15-v18`.
