@@ -2199,28 +2199,6 @@
     display:flex;align-items:center;justify-content:center;
   }
   .thumb svg{width:34px;height:34px;opacity:.55;}
-  /* Follow-church heart: replaces the earlier "Managed by this church"
-     badge attempt entirely, per direct feedback that a claimed/managed
-     signal doesn't make sense here yet -- this is a real, interactive
-     follow toggle instead. .thumb is already position:relative, so the
-     card version just anchors to it directly. Empty outline = not
-     followed, filled clay heart = followed -- toggled via the
-     data-following attribute, not a class swap, so a single CSS rule
-     covers both the button chrome and the fill state together. */
-  .follow-heart-card{
-    position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;
-    background:rgba(15,23,36,.55);border:none;display:flex;align-items:center;justify-content:center;
-    cursor:pointer;transition:background .15s;padding:0;
-  }
-  .follow-heart-card:hover{background:rgba(15,23,36,.75);}
-  .follow-heart-card svg{width:15px;height:15px;stroke:#fff;stroke-width:2;fill:none;}
-  .follow-heart-card[data-following="true"] svg{fill:var(--clay);stroke:var(--clay);}
-  .follow-heart-row{
-    background:none;border:none;cursor:pointer;padding:2px;display:inline-flex;align-items:center;
-    flex-shrink:0;margin-left:auto;
-  }
-  .follow-heart-row svg{width:17px;height:17px;stroke:var(--ink-mute);stroke-width:2;fill:none;}
-  .follow-heart-row[data-following="true"] svg{fill:var(--clay);stroke:var(--clay);}
   /* Logoless placeholder: a muted wash + icon tint keyed to denomination
      (--thumb-hue, set inline in churchCard) so the grid isn't a wall of
      identical tiles. Real logos never get .thumb--denom. buildingIcon is
@@ -2233,6 +2211,39 @@
   .thumb--denom svg{width:54px;height:54px;fill:hsl(var(--thumb-hue,220) 30% 46%);opacity:.7;}
   html[data-theme="dark"] .thumb--denom{background:hsl(var(--thumb-hue,220) 22% 17%);}
   html[data-theme="dark"] .thumb--denom svg{fill:hsl(var(--thumb-hue,220) 24% 60%);opacity:.8;}
+  /* Follow-church heart: replaces the earlier "Managed by this church"
+     badge attempt entirely, per direct feedback that a claimed/managed
+     signal doesn't make sense here yet -- this is a real, interactive
+     follow toggle instead. .thumb is already position:relative, so the
+     card version just anchors to it directly. Plain silhouette, no
+     circle chrome or outline behind it (removed per direct feedback --
+     the first pass had both and it read as a badge, not a heart): a
+     drop-shadow is the only thing keeping it legible against whatever
+     photo happens to be behind it, since there's no background plate
+     to guarantee contrast anymore. Dark grey = not followed, white =
+     followed -- toggled via the data-following attribute, not a class
+     swap, so a single CSS rule covers the fill state.
+     fill/stroke/opacity are !important, not just reordered after
+     .thumb--denom svg above: for a logoless card the heart nests inside
+     .thumb--denom, and html[data-theme="dark"] .thumb--denom svg's
+     selector (0,0,2,2) is genuinely more specific than this block's
+     (0,0,1,1) regardless of source order -- confirmed via computed-style
+     inspection in a local preview (fill was silently coming out as the
+     denomination hue, not grey/white) before reaching for !important
+     here rather than guessing. */
+  .follow-heart-card{
+    position:absolute;top:8px;right:8px;width:28px;height:28px;
+    background:none;border:none;display:flex;align-items:center;justify-content:center;
+    cursor:pointer;padding:0;
+  }
+  .follow-heart-card svg{width:18px;height:18px;stroke:none !important;fill:#4A4A4A !important;opacity:1 !important;filter:drop-shadow(0 1px 2px rgba(0,0,0,.5));}
+  .follow-heart-card[data-following="true"] svg{fill:#fff !important;}
+  .follow-heart-row{
+    background:none;border:none;cursor:pointer;padding:2px;display:inline-flex;align-items:center;
+    flex-shrink:0;margin-left:auto;
+  }
+  .follow-heart-row svg{width:17px;height:17px;stroke:none;fill:#4A4A4A;}
+  .follow-heart-row[data-following="true"] svg{fill:#fff;}
   /* Directory numbered pager */
   .dir-pager{display:flex;flex-wrap:wrap;align-items:center;gap:6px;}
   .dir-pager-btn{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:34px;padding:0 10px;font-size:13px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);cursor:pointer;}
@@ -5888,7 +5899,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v7 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v8 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -7577,7 +7588,7 @@
   });
 
   document.addEventListener('click', async function(ev){
-    if(ev.target.closest && (ev.target.closest('.register-real-btn') || ev.target.closest('.qr-btn') || ev.target.closest('.group-join-btn') || ev.target.closest('#waitlist-banner-close'))){
+    if(ev.target.closest && (ev.target.closest('.register-real-btn') || ev.target.closest('.qr-btn') || ev.target.closest('.group-join-btn') || ev.target.closest('#waitlist-banner-close') || ev.target.closest('[data-follow-church-id]'))){
       return;
     }
     var el = ev.target.closest ? ev.target.closest('[data-route]') : null;
