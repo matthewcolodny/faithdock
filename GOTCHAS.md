@@ -2376,3 +2376,15 @@ Direct follow-up: "make the 'Claim this church' part bold and linked, but remove
 Verified in a local preview: confirmed by screenshot it now reads as bold underlined text inline with the sentence, no button box/background. Confirmed via computed style (`fontWeight:700`, transparent background, `1px solid` bottom border, zero padding, `cursor:pointer`) that the button-chrome removal is real, not just visual at a glance. Re-confirmed clicking it still opens the same "sign in to claim a church" modal as before (needed a brief wait in this test for the click handler's own `await supabase.auth.getUser()` to resolve before checking -- an artifact of the test itself, not a behavior change). `node --check`-equivalent syntax check passes.
 
 Build `2026-09-15-v34`.
+
+---
+
+## Church profile header content drifted right -- the follow heart's wrapper was a phantom 3rd flex item
+
+Reported with a screenshot, the eyebrow/name/claim-banner column circled in red, clearly shifted right of where the header nav and the tabs below it both start. Root cause: `#church-follow-heart-slot` (the empty div `populateChurchPage()` fills with the heart button, added when the "Follow church" button was replaced with a heart) is a plain, normal-flow `<div>` -- and `.wrap{display:flex;justify-content:space-between;}` treats it as a genuine THIRD flex item alongside the eyebrow/name column and the Message/Give button group, even though the *button* rendered inside it is `position:absolute` (removed from flow) once populated. `justify-content:space-between` on 3 items pins the first and last to the edges and spreads the middle one evenly between them -- so the eyebrow/name column, now stuck as flex item #2 of 3, got pushed away from the left edge toward the center instead of sitting flush against it, exactly matching the screenshot.
+
+Fixed by moving `position:absolute` from `.follow-heart-profile` (the button) onto `#church-follow-heart-slot` (the wrapper div) instead -- removing the WRAPPER from the flex flow, not just its contents, restores `.wrap` to effectively two flex items again, same as before this element existed. The button itself no longer needs its own positioning, just sits normally within its now-absolutely-positioned parent.
+
+Verified in a local preview: confirmed by screenshot at both desktop and mobile (375px) width that the eyebrow/name/claim-banner column is flush left again, matching the header nav and the About/Events/etc. tabs below it. Confirmed via `getBoundingClientRect()` that `#church-eyebrow`'s left edge is exactly `28px` (matching `.wrap`'s own padding, i.e. genuinely flush against the content area's left edge, not just visually close) and that the heart's right edge still matches the Give button's right edge exactly, unchanged from the previous fix. No console errors beyond the pre-existing, unrelated localhost Turnstile ones. Pure CSS change -- `node --check`-equivalent syntax check passes trivially.
+
+Build `2026-09-15-v35`.

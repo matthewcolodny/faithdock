@@ -2499,17 +2499,29 @@
      dark theme's --ink-mute) for visual harmony against that fixed
      background; #F0A8C4 for the followed state reuses the same pink
      the card/row hearts already use elsewhere on the site. */
+  /* position:absolute lives on the SLOT, not the button inside it --
+     a real, reported bug: with it on .follow-heart-profile alone, the
+     empty #church-follow-heart-slot div was still a normal, in-flow
+     flex child of .wrap (display:flex;justify-content:space-between),
+     making that a 3-item flex row instead of 2 -- space-between then
+     spread all three across the row instead of pinning just two to
+     the edges, shoving the whole eyebrow/name/claim-banner column
+     (the flex item now stuck in the middle) noticeably right of where
+     it belongs, confirmed by a screenshot with it circled. Putting the
+     absolute positioning on the slot itself removes IT from the flex
+     flow entirely, restoring .wrap to effectively two flex items again.
+     right:28px, not 0 -- matches .wrap's own padding:0 28px. Absolute
+     offsets resolve against the containing block's PADDING edge, which
+     for .wrap sits at its outer/border edge (padding is inside that
+     edge, not outside it) -- so right:0 put this flush against the
+     very edge of the page (overlapping the scrollbar on a narrow
+     browser window, reported directly with a separate screenshot)
+     instead of lining up with where Message/Give's own right edge
+     already sits, 28px in from that same edge as every other normal-
+     flow child of .wrap. */
+  #church-follow-heart-slot{position:absolute;top:0;right:28px;}
   .follow-heart-profile{
-    /* right:28px, not 0 -- matches .wrap's own padding:0 28px.
-       Absolute offsets resolve against the containing block's PADDING
-       edge, which for .wrap sits at its outer/border edge (padding is
-       inside that edge, not outside it) -- so right:0 put this flush
-       against the very edge of the page (overlapping the scrollbar on
-       a narrow browser window, reported directly with a screenshot)
-       instead of lining up with where Message/Give's own right edge
-       already sits, 28px in from that same edge as every other normal-
-       flow child of .wrap. */
-    position:absolute;top:0;right:28px;width:34px;height:34px;
+    width:34px;height:34px;
     background:none;border:none;cursor:pointer;padding:0;
     display:flex;align-items:center;justify-content:center;
   }
@@ -6253,7 +6265,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v34 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v35 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
