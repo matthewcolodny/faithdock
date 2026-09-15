@@ -319,6 +319,8 @@
       'regQuestions.codePlaceholder': 'CODE', 'regQuestions.answerAllRequired': 'Please answer every required question (marked with *).',
       'church.unclaimedNotice': "This is a community directory listing — the church hasn't set it up yet.", 'church.claimThisChurch': 'Claim this church',
       'church.claimCtaHeadline': 'Is this your church? Claim your free FaithDock profile.',
+      'church.unclaimedNoticeLead': 'See something incorrect? This is an unclaimed, community-sourced listing. Email us at',
+      'church.unclaimedNoticeMid': 'to report an issue, or', 'church.unclaimedNoticeEnd': 'to manage it yourself.',
       'church.noEventsUnclaimedPivot': "This church hasn't added events yet. Are you a leader here? Claim this profile to start posting.",
       'church.statusDirectoryListing': 'Directory listing', 'church.managedByChurch': 'Managed by this church', 'church.partnerBadge': 'FaithDock Partner',
       'church.setAsChurchHome': 'Set as your Church Home!',
@@ -1110,6 +1112,8 @@
       'regQuestions.codePlaceholder': 'CÓDIGO', 'regQuestions.answerAllRequired': 'Por favor responde todas las preguntas obligatorias (marcadas con *).',
       'church.unclaimedNotice': 'Este es un listado del directorio comunitario — la iglesia aún no lo ha configurado.', 'church.claimThisChurch': 'Reclamar esta iglesia',
       'church.claimCtaHeadline': '¿Es esta tu iglesia? Reclama tu perfil gratuito de FaithDock.',
+      'church.unclaimedNoticeLead': '¿Ves algo incorrecto? Este es un listado comunitario sin reclamar. Escríbenos a',
+      'church.unclaimedNoticeMid': 'para reportar un problema, o', 'church.unclaimedNoticeEnd': 'para administrarlo tú mismo.',
       'church.noEventsUnclaimedPivot': 'Esta iglesia aún no ha agregado eventos. ¿Eres un líder aquí? Reclama este perfil para empezar a publicar.',
       'church.statusDirectoryListing': 'Listado del directorio', 'church.managedByChurch': 'Gestionada por esta iglesia', 'church.partnerBadge': 'Socia de FaithDock',
       'church.setAsChurchHome': '¡Establecida como tu Iglesia Principal!',
@@ -3814,6 +3818,17 @@
         </div>
       </div>
     </div>
+    <!-- Same unclaimed check as #church-unclaimed-banner up top (see
+         populateChurchPage()) -- this one's at the bottom of the page
+         instead, a low-key second chance to report an error or claim
+         after actually reading the listing, not just on arrival. -->
+    <div id="church-bottom-unclaimed-notice" style="display:none;margin-top:28px;padding:16px 18px;background:var(--gold-bg);border:1px solid var(--gold);border-radius:12px;font-size:14px;color:var(--ink);line-height:1.7;">
+      <span data-i18n="church.unclaimedNoticeLead">See something incorrect? This is an unclaimed, community-sourced listing. Email us at</span>
+      <a href="mailto:support@faithdock.com" style="color:inherit;border-bottom:1px solid var(--gold-ink);">support@faithdock.com</a>
+      <span data-i18n="church.unclaimedNoticeMid">to report an issue, or</span>
+      <button type="button" class="btn-gold" id="church-bottom-claim-btn" style="padding:5px 14px;font-size:13px;vertical-align:middle;" data-i18n="church.claimThisChurch">Claim this church</button>
+      <span data-i18n="church.unclaimedNoticeEnd">to manage it yourself.</span>
+    </div>
     <a href="#directory" data-route="directory" class="back-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg> <span data-i18n="church.backToDirectory">Back to directory</span></a>
   </div>
 </section>
@@ -6238,7 +6253,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v32 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v33 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -6842,6 +6857,8 @@
       // it (the id attribute right above carries the real key).
       unclaimedBanner.setAttribute('data-claim-church-name', displayChurchName(c.name) || '');
     }
+    var bottomUnclaimedNotice = document.getElementById('church-bottom-unclaimed-notice');
+    if (bottomUnclaimedNotice) bottomUnclaimedNotice.style.display = !isClaimed ? 'block' : 'none';
 
     if (typeof computeChurchDistance === 'function') computeChurchDistance(c);
     var distText = formatChurchDistanceText(c.dist);
@@ -20110,14 +20127,15 @@
   window.openClaimModal = openClaimModal;
 
   // Delegated (not a direct getElementById listener) because the claim
-  // CTA now appears twice on the page -- the header banner's button and
-  // the Events-tab empty-state pivot button -- and both should trigger
-  // the exact same flow. Either button works from the same
+  // CTA now appears three times on the page -- the header banner's
+  // button, the Events-tab empty-state pivot button, and the bottom
+  // unclaimed notice's button -- and all three should trigger the
+  // exact same flow. Any of them works from the same
   // #church-unclaimed-banner data attributes regardless of which one
   // was clicked, since that's just where the current church's id/name
   // are stashed, not tied to a specific button.
   document.addEventListener('click', async function(ev){
-    if (!ev.target.closest || !ev.target.closest('#church-claim-btn, #church-events-claim-btn')) return;
+    if (!ev.target.closest || !ev.target.closest('#church-claim-btn, #church-events-claim-btn, #church-bottom-claim-btn')) return;
     var banner = document.getElementById('church-unclaimed-banner');
     // Still recorded via the same pendingClaim mechanism (rather
     // than reverting to reading the banner at submit time) so a
