@@ -1912,10 +1912,47 @@
     window.applyDirLocationCoords(lat, lng);
   }
   window._applyEarlyGeoCoordsOnce = _applyEarlyGeoCoordsOnce;
+
+  // Paint an instant guess from last visit while the real fix (above)
+  // is still in flight, instead of the cards sitting on "Set your
+  // location" for however long that takes -- the maximumAge cache
+  // below only helps a RELOAD within 5 minutes; a brand new tab or a
+  // browser restart still has nothing cached at the browser level and
+  // pays the full fix time. localStorage survives across those, so a
+  // week-old guess beats no guess: real coords always follow shortly
+  // after and silently correct it (a second render call, same as any
+  // other location update), so a stale guess only ever costs a brief,
+  // self-fixing flash -- never a wrong final result.
+  window.earlyGeoInstantApplied = false;
+  window.earlyGeoInstantCoords = null;
+  try {
+    var _fdLastGeoRaw = localStorage.getItem('fd_last_geo');
+    if (_fdLastGeoRaw) {
+      var _fdLastGeo = JSON.parse(_fdLastGeoRaw);
+      if (_fdLastGeo && typeof _fdLastGeo.lat === 'number' && typeof _fdLastGeo.lng === 'number'
+          && (Date.now() - _fdLastGeo.ts) < 7 * 24 * 60 * 60 * 1000) {
+        window.earlyGeoInstantCoords = { lat: _fdLastGeo.lat, lng: _fdLastGeo.lng };
+      }
+    }
+  } catch(e) { /* localStorage unavailable (private mode, etc.) -- just skip the instant guess */ }
+  // Called by the module script the moment applyDirLocationCoords()
+  // itself is defined, rather than waiting on Maps/geolocation timing
+  // at all -- that's the whole point of this being an instant paint.
+  window._applyInstantGeoIfPending = function(){
+    if (window.earlyGeoInstantApplied) return;
+    if (!window.earlyGeoInstantCoords) return;
+    if (typeof window.applyDirLocationCoords !== 'function') return;
+    window.earlyGeoInstantApplied = true;
+    window.applyDirLocationCoords(window.earlyGeoInstantCoords.lat, window.earlyGeoInstantCoords.lng);
+  };
+
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(function(pos){
       window.earlyGeoCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
       window.earlyGeoDone = true;
+      try {
+        localStorage.setItem('fd_last_geo', JSON.stringify({ lat: window.earlyGeoCoords.lat, lng: window.earlyGeoCoords.lng, ts: Date.now() }));
+      } catch(e) { /* private mode, storage full, etc. -- next visit just won't get an instant guess */ }
       _applyEarlyGeoCoordsOnce(window.earlyGeoCoords.lat, window.earlyGeoCoords.lng);
       window.earlyGeoCallbacks.forEach(function(cb){ cb(window.earlyGeoCoords); });
       window.earlyGeoCallbacks = [];
@@ -6081,7 +6118,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v24 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v25 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -9999,6 +10036,12 @@
     if (typeof window.renderHomeEvents === 'function') window.renderHomeEvents();
   }
   window.applyDirLocationCoords = applyDirLocationCoords;
+  // Paint the localStorage-cached guess from last visit right now, the
+  // instant this function exists -- deliberately not waiting on Maps
+  // or on a fresh geolocation fix, since the whole point is covering
+  // the time those take. See window._applyInstantGeoIfPending in the
+  // early head script for what it's applying and why.
+  if (typeof window._applyInstantGeoIfPending === 'function') window._applyInstantGeoIfPending();
 
   // The label-only half of what setDirLocation() used to do in one
   // step -- deliberately does NOT touch dirUserLat/Lng or re-run any
