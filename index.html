@@ -2241,6 +2241,12 @@
     background:none;border:none;display:flex;align-items:center;justify-content:center;
     cursor:pointer;padding:0;
   }
+  /* The click handler briefly sets disabled=true while the follow/
+     unfollow request is in flight, to block a double-click race --
+     browsers default a disabled button's cursor to not-allowed, which
+     flashed a jarring red "no entry" symbol for that split second.
+     Keeps the functional disable, just not that cursor. */
+  .follow-heart-card:disabled{cursor:pointer;}
   .follow-heart-card svg{
     width:18px;height:18px;
     stroke:#8A8A8A !important;stroke-width:1.5 !important;
@@ -2266,6 +2272,8 @@
     background:none;border:none;cursor:pointer;padding:9px;display:inline-flex;align-items:center;
     flex-shrink:0;margin-left:auto;margin-right:-5px;
   }
+  /* Same not-allowed-cursor flash fix as .follow-heart-card above. */
+  .follow-heart-row:disabled{cursor:pointer;}
   .follow-heart-row svg{width:17px;height:17px;stroke:none;fill:#C7C7C7;}
   html[data-theme="dark"] .follow-heart-row svg{fill:#4A4A4A;}
   .follow-heart-row[data-following="true"] svg{fill:#fff;}
@@ -5924,7 +5932,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v12 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v13 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
