@@ -5864,7 +5864,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v4 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v5 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -7711,6 +7711,11 @@
     // dashboard first opened -- covers switching away to check
     // something else and back, on top of the periodic poll below.
     if(view === 'events' && typeof window.loadDashboardEvents === 'function'){ window.loadDashboardEvents(); }
+    // Same reasoning as events above -- loadGivingInsights() otherwise
+    // only ever ran once, at page load, so a donation completed after
+    // that (e.g. testing the giving flow, then checking Insights) never
+    // showed up until a full page reload. Real bug, reported directly.
+    if(view === 'insights' && typeof window.loadGivingInsights === 'function'){ window.loadGivingInsights(); }
     // Plans reuses the exact same content and logic as the standalone
     // #pricing page (see restorePricingContentToStandalonePage() above)
     // rather than duplicating the whole plan-card grid a second time —
@@ -22281,17 +22286,30 @@
     // the abilities checklist picked on this form straight through, so
     // an accepted invite already has the right abilities instead of
     // defaulting to none and needing a follow-up edit.
-    var { error: inviteError } = await supabase.from('church_staff_invites').insert({
+    //
+    // Upsert, not a plain insert: church_staff_invites has a unique
+    // constraint on (church_id, email) (the pre-existing 23505 handling
+    // below already assumed this), and unlike before this change, a row
+    // for this email+church is now NEVER deleted -- accepting or
+    // declining just flips status, it doesn't remove the row. A plain
+    // insert would therefore permanently fail with "already invited"
+    // for anyone re-invited after being removed, or after their first
+    // invite was declined. Explicitly resets status back to 'pending'
+    // and clears responded_at, since ON CONFLICT DO UPDATE doesn't
+    // re-apply column defaults the way a fresh insert would.
+    var { error: inviteError } = await supabase.from('church_staff_invites').upsert({
       church_id: church.id, email: email, invited_by: userData.user.id,
       can_manage_events: abilities.can_manage_events,
       can_manage_giving: abilities.can_manage_giving,
       can_manage_groups: abilities.can_manage_groups,
       can_manage_messages: abilities.can_manage_messages,
       can_edit_profile: abilities.can_edit_profile,
-      is_manager: abilities.is_manager
-    });
+      is_manager: abilities.is_manager,
+      status: 'pending',
+      responded_at: null
+    }, { onConflict: 'church_id,email' });
     if (inviteError) {
-      return { churchName: church.name, ok: false, message: inviteError.code === '23505' ? window.t('dashSettings.alreadyInvitedEmail') : inviteError.message };
+      return { churchName: church.name, ok: false, message: inviteError.message };
     }
 
     // hasAccount only changes the email's wording (sign in vs. sign up
