@@ -28,26 +28,24 @@
 // a hardcoded owner reply_to would misroute replies away from the
 // person who actually needs to see them.
 //
-// EDITED A THIRD TIME 2026-09-14, NOT YET CONFIRMED DEPLOYED: the same
-// reply_to-the-actual-sender fix extended to member_invite,
-// event_contact_notify, and the default staff-invite branch -- all
-// three previously sent with no reply_to at all, same gap as
-// mass_email had. Each derives its own senderEmail locally via the
-// same getUser(jwt) pattern (not shared/extracted, matching how none
-// of this file's other per-type branches share helpers either).
-// member_invite and event_contact_notify are both reachable by staff
-// (Directory/People has no visible permission gate; event
-// creation/editing only needs canManageEvents); the staff-invite
+// EDITED A THIRD TIME 2026-09-14: the same reply_to-the-actual-sender
+// fix extended to member_invite, event_contact_notify, and the default
+// staff-invite branch -- all three previously sent with no reply_to at
+// all, same gap as mass_email had. Each derives its own senderEmail
+// locally via the same getUser(jwt) pattern (not shared/extracted,
+// matching how none of this file's other per-type branches share
+// helpers either). member_invite and event_contact_notify are both
+// reachable by staff (Directory/People has no visible permission gate;
+// event creation/editing only needs canManageEvents); the staff-invite
 // branch is confirmed owner-only in the UI (isOwner-gated
 // client-side), so inviterName there is never actually a staff
 // member's name -- fixed anyway for consistency with the other three,
 // since it's still a strict improvement over no reply_to at all.
 //
-// This backup copy was NOT fetched fresh from the live dashboard first
-// for any of the above (still no dashboard access from this
-// environment) -- diff against the actual live source before pasting,
-// then update this comment's "last confirmed deployed" date once
-// you've redeployed and confirmed it.
+// PASTED INTO THE DASHBOARD 2026-09-14 per the user's own confirmation
+// (all three edits above, on top of the already-deployed mass_email
+// reply_to fix) -- NOT independently re-verified from this environment
+// (no dashboard access here), taken on the user's word.
 //
 // Dispatches on body.type: welcome_email, contact_church, mass_email,
 // group_join_request, ownership_handoff, member_invite,
