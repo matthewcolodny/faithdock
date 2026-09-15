@@ -14,18 +14,23 @@
 // event_contact_notify feature and the member_invite fix documented in
 // GOTCHAS.md.
 //
-// EDITED 2026-09-15, NOT YET CONFIRMED DEPLOYED: the mass_email block
-// below now also writes to message_batches/message_log for delivery
-// tracking (see migration 028_message_delivery_tracking.sql and the new
-// resend-webhook.ts function) -- this was NOT fetched fresh from the
-// live Edge Functions dashboard first (no dashboard access from this
-// environment); it was edited directly against this repo's own backup
-// copy instead, on the assumption it still matched live as of the date
-// above. Diff this file against the actual dashboard source before
-// pasting it in, in case anything changed there since 2026-09-09 that
-// this backup doesn't know about. Once you've pasted this into the
-// dashboard, redeployed, and confirmed it's working, update this
-// comment's "last confirmed deployed" date to reflect that.
+// PASTED INTO THE DASHBOARD 2026-09-15 per the user's own confirmation
+// (message_batches/message_log delivery tracking, migration
+// 028_message_delivery_tracking.sql, the new resend-webhook.ts function)
+// -- NOT independently re-verified from this environment (no dashboard
+// access here), taken on the user's word.
+//
+// EDITED AGAIN 2026-09-15, NOT YET CONFIRMED DEPLOYED: mass_email's
+// outbound payload now sets reply_to to the actual sender's own email
+// (captured from the same JWT already used for senderId/created_by)
+// instead of leaving it unset. Messages has no staff permission gate,
+// so whoever clicked Send is frequently a staff member, not the owner --
+// a hardcoded owner reply_to would misroute replies away from the
+// person who actually needs to see them. This backup copy was NOT
+// fetched fresh from the live dashboard first (still no dashboard
+// access from this environment) -- diff against the actual live source
+// before pasting, then update this comment's "last confirmed deployed"
+// date once you've redeployed and confirmed it.
 //
 // Dispatches on body.type: welcome_email, contact_church, mass_email,
 // group_join_request, ownership_handoff, member_invite,
@@ -128,14 +133,24 @@ serve(async (req) => {
       // of this same type that doesn't send it — tracking is skipped, the
       // email itself still goes out exactly as before. A tracking failure
       // must never block or fail the actual send.
+      //
+      // senderEmail also drives reply_to below -- Messages has no staff
+      // permission gate at all (unlike Billing/Settings), so the person
+      // who actually clicked Send here is frequently a staff member the
+      // owner invited, not the owner. Hardcoding reply_to to the owner
+      // would misroute replies away from whoever the recipient actually
+      // needs to reach; getUser() already returns the sender's email
+      // alongside their id from the same JWT, so no second lookup needed.
       const supabaseAdmin = createClient(Deno.env.get('SUPABASE_URL'), Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'));
       let senderId = null;
+      let senderEmail = null;
       const authHeader = req.headers.get('Authorization');
       if (authHeader) {
         try {
           const { data: authData } = await supabaseAdmin.auth.getUser(authHeader.replace('Bearer ', ''));
           senderId = authData && authData.user ? authData.user.id : null;
-        } catch (e) { /* best-effort — proceed without a sender id */ }
+          senderEmail = authData && authData.user ? authData.user.email : null;
+        } catch (e) { /* best-effort — proceed without a sender id/email */ }
       }
 
       let batchId = null;
@@ -163,7 +178,11 @@ serve(async (req) => {
       let totalSent = 0;
       for (let i = 0; i < recipientEmails.length; i += chunkSize) {
         const chunk = recipientEmails.slice(i, i + chunkSize);
-        const payload = chunk.map((email) => ({ from: fromLine, to: [email], subject: subject, html: html }));
+        const payload = chunk.map((email) => (
+          senderEmail
+            ? { from: fromLine, to: [email], subject: subject, html: html, reply_to: senderEmail }
+            : { from: fromLine, to: [email], subject: subject, html: html }
+        ));
         const res = await fetch('https://api.resend.com/emails/batch', {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${resendApiKey}`, 'Content-Type': 'application/json' },

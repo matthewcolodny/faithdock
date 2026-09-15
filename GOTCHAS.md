@@ -1826,6 +1826,20 @@ Build `2026-09-15-v1`.
 
 ---
 
+## Mass-email replies had nowhere to go — and the right destination isn't always the owner
+
+Asked directly: "what happens when someone sends an email back?" Checked the actual code rather than guessing -- `mass_email` (mass announcements + individual directory messages) sends `from: "{churchName} via FaithDock <invites@faithdock.com>"` with no `reply_to` at all, so a reply defaults to that shared FaithDock address -- not the church, not whoever sent it, not anything this app tracks or shows anywhere. `contact_church` (a visitor messaging a church) already sets `reply_to` correctly; `mass_email` never got the same treatment.
+
+**Follow-up question sharpened the fix**: Messages has no staff permission gate at all (confirmed by checking -- `<a data-dash="messages">` has no `canManage*`-style conditional anywhere, unlike Billing/Settings), so whoever actually clicked Send is frequently a staff member the owner invited, not the owner themselves. A naive fix hardcoding `reply_to` to the church owner's email would have silently misrouted every staff-sent message's replies away from the person who actually needs to see them.
+
+**Fix, in `smooth-action.ts`'s `mass_email` branch**: `reply_to` is now set to the actual sender's own email, sourced from the exact same `getUser(jwt)` call already added for the delivery-tracking feature's `senderId`/`created_by` -- that call already returns the full user object, so grabbing `.email` alongside `.id` needed no second lookup, no new round trip. Falls back to no `reply_to` (today's existing behavior, not worse than before) if the auth header is ever missing.
+
+Scoped to `mass_email` only, matching what was actually asked -- `member_invite`, `event_contact_notify`, and the default staff-invite branch have their own different sender-attribution shapes (a plain `inviterName`/`addedByName` string, not structured the same way) and weren't part of this question.
+
+Same deployment caveat as the delivery-tracking feature above: this is a further edit to `smooth-action.ts`'s already-pasted-and-confirmed (per the user, 2026-09-15) tracking version -- diff against the live dashboard source before pasting this on top, then redeploy. `node --check` passes.
+
+---
+
 ## Multi-part data-quality report: Spanish-language tagging gaps, an Ethiopian Orthodox miss, casing, and a "Ministries" hide widening
 
 Reported live with real examples across 4 church cards. Checked the actual database state for each before writing anything, rather than assuming.
