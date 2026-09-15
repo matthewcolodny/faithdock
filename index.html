@@ -1905,6 +1905,20 @@
   window.earlyGeoDone = false;
   window.earlyGeoAppliedCoords = false;
   window.earlyGeoCallbacks = [];
+  // Queried early so it's already resolved (Permissions API never
+  // shows a prompt itself, and this promise settles almost
+  // immediately) by the time the module script needs it, well below
+  // -- lets that script tell "a location is genuinely expected to
+  // arrive" (permission already granted previously) apart from "we
+  // have no idea yet" (still 'prompt') or "definitely not coming"
+  // ('denied'), WITHOUT waiting on the geolocation call itself to
+  // find out. See renderOnceLocationKnown() in the module script.
+  window.earlyGeoPermissionState = null;
+  if (navigator.permissions && navigator.permissions.query) {
+    navigator.permissions.query({ name: 'geolocation' }).then(function(status){
+      window.earlyGeoPermissionState = status.state;
+    }).catch(function(){ /* unsupported query -- treated the same as unknown */ });
+  }
   function _applyEarlyGeoCoordsOnce(lat, lng){
     if (window.earlyGeoAppliedCoords) return;
     if (typeof window.applyDirLocationCoords !== 'function') return;
@@ -6118,7 +6132,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v25 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v26 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -9974,6 +9988,44 @@
   // renderHomeChurches above), which only ever fetches a page at a
   // time. This function now just runs the page-load housekeping that
   // used to be chained after that fetch completed.
+  // Shared by loadRealChurches() and loadRealEvents() below: calls
+  // renderFns (each a zero-arg thunk, so the typeof-guard inside still
+  // runs fresh at call time rather than capturing an early undefined)
+  // right now if no location is expected to arrive at all -- nothing
+  // better is coming, so there's no reason to wait. Otherwise holds
+  // off and calls them only once the real outcome is known, instead
+  // of painting an unfiltered/default list that then gets replaced by
+  // a correctly filtered one a moment later -- reported directly as
+  // results flashing before the real, location-filtered ones took
+  // over. window.earlyGeoInstantCoords (a cached guess from last
+  // visit) and a 'granted' permission state are both known BEFORE any
+  // geolocation callback actually fires (queried/read in the head
+  // script well before this deferred module script even runs), which
+  // is what makes deciding this up front possible at all.
+  function renderOnceLocationKnown(renderFns){
+    function runAll(){ renderFns.forEach(function(fn){ fn(); }); }
+    var geoExpected = !!window.earlyGeoInstantCoords || window.earlyGeoPermissionState === 'granted';
+    if (!geoExpected) { runAll(); return; }
+    if (window.earlyGeoDone) {
+      // Already resolved (denied/failed) by the time we got here
+      // despite being "expected" -- render unfiltered now, same as
+      // the branch above, rather than queuing a callback that's
+      // already been drained and will never fire again. If it
+      // resolved WITH coords instead, applyDirLocationCoords() has
+      // already rendered (or is about to, once it's defined) with the
+      // real location -- nothing to do in that case.
+      if (!window.earlyGeoCoords) runAll();
+      return;
+    }
+    // Still pending -- applyDirLocationCoords() (called moments later
+    // by whichever comes first, the instant-paint guess or the real
+    // fix) renders these itself once real coordinates are known. This
+    // fallback only fires if geolocation ultimately fails despite
+    // being expected to succeed, so the page doesn't end up
+    // permanently blank.
+    window.earlyGeoCallbacks.push(function(coords){ if (!coords) runAll(); });
+  }
+
   async function loadRealChurches(){
     if (typeof window.rebuildDenomFilterChecklist === 'function') window.rebuildDenomFilterChecklist();
     // These (and the render calls in loadRealEvents below) used to
@@ -9986,9 +10038,11 @@
     // re-trigger the render once this module script had finally run.
     // Anyone who never triggered a re-render (denied location,
     // didn't search) would see a permanently blank page.
-    if (typeof window.renderHomeChurches === 'function') window.renderHomeChurches();
     if (typeof window.renderForChurchesCount === 'function') window.renderForChurchesCount();
-    if (typeof window.renderDirectory === 'function') window.renderDirectory(window.directoryPageFromHash ? window.directoryPageFromHash() : 1);
+    renderOnceLocationKnown([
+      function(){ if (typeof window.renderHomeChurches === 'function') window.renderHomeChurches(); },
+      function(){ if (typeof window.renderDirectory === 'function') window.renderDirectory(window.directoryPageFromHash ? window.directoryPageFromHash() : 1); }
+    ]);
     if (typeof window.showRouteFromHash === 'function') window.showRouteFromHash(true);
     if (typeof window.checkForCompletedDonation === 'function') window.checkForCompletedDonation();
     if (typeof window.checkForCompletedEventTicket === 'function') window.checkForCompletedEventTicket();
@@ -14787,8 +14841,14 @@
   // after that fetch completed.
   async function loadRealEvents(){
     if (typeof window.rebuildTagFilterChecklist === 'function') window.rebuildTagFilterChecklist();
-    if (typeof window.renderHomeEvents === 'function') window.renderHomeEvents();
-    if (typeof window.renderEvents === 'function') window.renderEvents();
+    // Same "don't flash unfiltered results before the location-filtered
+    // ones replace them" gate used for churches above -- events have
+    // the identical problem, since renderEvents()/renderHomeEvents()
+    // also read window.dirUserLat/Lng.
+    renderOnceLocationKnown([
+      function(){ if (typeof window.renderHomeEvents === 'function') window.renderHomeEvents(); },
+      function(){ if (typeof window.renderEvents === 'function') window.renderEvents(); }
+    ]);
     if (typeof window.showRouteFromHash === 'function') window.showRouteFromHash(true);
     refreshAllCardRegistrationStates();
   }
