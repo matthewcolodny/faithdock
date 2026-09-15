@@ -2215,30 +2215,50 @@
      badge attempt entirely, per direct feedback that a claimed/managed
      signal doesn't make sense here yet -- this is a real, interactive
      follow toggle instead. .thumb is already position:relative, so the
-     card version just anchors to it directly. Plain silhouette, no
-     circle chrome or outline behind it (removed per direct feedback --
-     the first pass had both and it read as a badge, not a heart): a
-     drop-shadow is the only thing keeping it legible against whatever
-     photo happens to be behind it, since there's no background plate
-     to guarantee contrast anymore. Dark grey = not followed, white =
-     followed -- toggled via the data-following attribute, not a class
-     swap, so a single CSS rule covers the fill state.
-     fill/stroke/opacity are !important, not just reordered after
-     .thumb--denom svg above: for a logoless card the heart nests inside
-     .thumb--denom, and html[data-theme="dark"] .thumb--denom svg's
-     selector (0,0,2,2) is genuinely more specific than this block's
-     (0,0,1,1) regardless of source order -- confirmed via computed-style
-     inspection in a local preview (fill was silently coming out as the
-     denomination hue, not grey/white) before reaching for !important
-     here rather than guessing. */
+     card version just anchors to it directly. No circle chrome behind
+     it (removed per direct feedback -- the first pass had one and it
+     read as a badge, not a heart).
+     fill/stroke/opacity are !important, not just relying on source
+     order: for a logoless card the heart nests inside .thumb--denom,
+     and html[data-theme="dark"] .thumb--denom svg's selector (0,0,2,2)
+     is genuinely more specific than a plain .follow-heart-card svg rule
+     (0,0,1,1) regardless of where it's defined in the stylesheet --
+     confirmed via computed-style inspection in a local preview (fill
+     was silently coming out as the denomination hue, not grey/white)
+     before reaching for !important here rather than guessing.
+     Light mode (default) vs. dark mode are deliberately styled
+     differently, not just recolored: light mode's empty heart is a
+     grey outline whose FILL matches the card's own background color
+     (var(--thumb-hue), same formula .thumb--denom itself uses) so it
+     blends into whatever pastel placeholder is behind it rather than
+     sitting on top as a solid shape -- no drop-shadow needed there
+     since it's not competing with a photo for contrast. Dark mode
+     keeps the earlier solid-silhouette-plus-drop-shadow treatment,
+     since dark thumbnails (photos especially) don't have one single
+     "card color" a stroke-only heart could reliably blend into. */
   .follow-heart-card{
     position:absolute;top:8px;right:8px;width:28px;height:28px;
     background:none;border:none;display:flex;align-items:center;justify-content:center;
     cursor:pointer;padding:0;
   }
-  .follow-heart-card svg{width:18px;height:18px;stroke:none !important;fill:#C7C7C7 !important;opacity:1 !important;filter:drop-shadow(0 1px 2px rgba(0,0,0,.5));}
-  html[data-theme="dark"] .follow-heart-card svg{fill:#4A4A4A !important;}
-  .follow-heart-card[data-following="true"] svg{fill:#fff !important;}
+  .follow-heart-card svg{
+    width:18px;height:18px;
+    stroke:#8A8A8A !important;stroke-width:1.5 !important;
+    fill:hsl(var(--thumb-hue,220) 34% 88%) !important;
+    opacity:1 !important;
+  }
+  .follow-heart-card[data-following="true"] svg{fill:#fff !important;stroke:#8A8A8A !important;}
+  /* Dark mode: same specificity trap as .thumb--denom above applies to
+     the [data-following="true"] override too -- without also scoping
+     it under html[data-theme="dark"], the plain default rule just
+     above (0,0,2,2) would outrank the unscoped following-state rule
+     (0,0,2,1) and a followed heart would never actually turn white in
+     dark mode. Verified by computing specificity, not by trial and error. */
+  html[data-theme="dark"] .follow-heart-card svg{
+    stroke:none !important;fill:#4A4A4A !important;
+    filter:drop-shadow(0 1px 2px rgba(0,0,0,.5));
+  }
+  html[data-theme="dark"] .follow-heart-card[data-following="true"] svg{fill:#fff !important;}
   .follow-heart-row{
     /* Padding (not icon size) is what grows the click target here --
        2px was reported as too easy to miss, landing the click on the
@@ -5904,7 +5924,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v11 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v12 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
