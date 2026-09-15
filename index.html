@@ -292,6 +292,9 @@
       'ownershipHandoff.title': 'Church ownership offer', 'ownershipHandoff.aChurch': 'A church',
       'ownershipHandoff.body': "wants to make you the owner on FaithDock. You'll get full control — billing, staff, everything. This can't be undone with one click on either end, so take a moment before deciding.",
       'ownershipHandoff.accept': 'Accept ownership', 'ownershipHandoff.decline': 'Decline',
+      'staffInvite.title': 'Staff invitation', 'staffInvite.aChurch': 'A church',
+      'staffInvite.body': "invited you to join their team on FaithDock as staff.",
+      'staffInvite.accept': 'Accept invitation', 'staffInvite.decline': 'Decline',
       'switchHome.title': 'Switch Church Home?', 'switchHome.body': 'You already have a different Church Home. Switch it to this church instead?',
       'switchHome.yesSwitch': 'Yes, switch', 'switchHome.cancel': 'Cancel',
       'contactChurch.eyebrow': 'Message', 'contactChurch.sendAMessage': 'Send a message', 'contactChurch.messagePrefix': 'Message',
@@ -630,8 +633,8 @@
       'dashSettings.team': 'Team', 'dashSettings.teamHint': 'Staff can be given specific abilities — events, groups, messages, giving, or editing the profile. Billing and deleting the church always stay owner-only.',
       'dashSettings.teamMovedHint': 'Inviting staff, adjusting their abilities, and assigning the Manager role now live on their own page.', 'dashSettings.goToStaffPage': 'Go to Staff →',
       'dashSettings.addStaffByEmail': 'Add staff by email',
-      'dashSettings.addStaffHint': "If they already have a FaithDock account, they're added right away. If not, they'll get an email invite and join automatically once they sign up.",
-      'dashSettings.addToChurches': 'Add to', 'dashSettings.addToTeam': 'Add to team',
+      'dashSettings.addStaffHint': "They'll get an email invite to accept — nobody is added until they do. If they don't have a FaithDock account yet, they'll need to create one first.",
+      'dashSettings.addToChurches': 'Add to', 'dashSettings.addToTeam': 'Send invite',
       'dashSettings.staffEmailPlaceholder': 'staffmember@email.com',
       'dashSettings.staffFreeLocked': "Adding team members isn't included on the Free plan.",
       'dashSettings.upgradeToAddTeam': 'Upgrade to add your team',
@@ -770,9 +773,9 @@
       'groupMembers.noAccountFoundForEmail': 'No FaithDock account found for that email.', 'groupMembers.alreadyInGroup': 'That person is already in this group.', 'groupMembers.added': 'Added!',
       'dashSettings.aFaithDockChurchOwner': 'A FaithDock church owner', 'dashSettings.staffInvitesNotOnFree': "Staff invites aren't included on the Free plan. Upgrade to invite your team.",
       'dashSettings.teamAtMemberLimit': 'Your team is at the {limit}-member limit for your plan.', 'dashSettings.alreadyOnTeam': 'That person is already on your team.',
-      'dashSettings.addedButEmailFailed': 'Added to your team, but the email failed to send: {detail}', 'dashSettings.addedAndEmailed': "Added to your team — they've been emailed too!",
       'dashSettings.alreadyInvitedEmail': 'You already invited that email.', 'dashSettings.inviteSavedButEmailFailed': 'Invite saved, but the email failed to send: {detail}',
-      'dashSettings.inviteSentAutoJoin': "Invite sent! They'll join automatically once they sign up.",
+      'dashSettings.inviteSentPendingAccept': "Invite sent! They'll join your team once they accept.",
+      'dashSettings.inviteAbilitiesHint': "Chosen now, before they accept — not something you have to come back and set up afterward.",
       'events.sampleEventNotReal': "This is a sample event — registration isn't real here.",
       'events.paidCancelConfirm': "You paid ${amount} for this. Cancelling here does not automatically refund you — you'll need to contact the church directly about a refund. Cancel anyway?",
       'events.cancelledNoAutoRefund': "Cancelled — remember, this doesn't issue a refund automatically. Contact the church about that directly.",
@@ -1078,6 +1081,9 @@
       'ownershipHandoff.title': 'Oferta de propiedad de iglesia', 'ownershipHandoff.aChurch': 'Una iglesia',
       'ownershipHandoff.body': 'quiere hacerte el propietario en FaithDock. Obtendrás control total — facturación, personal, todo. Esto no se puede deshacer con un solo clic de ningún lado, así que tómate un momento antes de decidir.',
       'ownershipHandoff.accept': 'Aceptar propiedad', 'ownershipHandoff.decline': 'Rechazar',
+      'staffInvite.title': 'Invitación de personal', 'staffInvite.aChurch': 'Una iglesia',
+      'staffInvite.body': 'te invitó a unirte a su equipo en FaithDock como personal.',
+      'staffInvite.accept': 'Aceptar invitación', 'staffInvite.decline': 'Rechazar',
       'switchHome.title': '¿Cambiar Iglesia Principal?', 'switchHome.body': 'Ya tienes una Iglesia Principal diferente. ¿Cambiarla a esta iglesia en su lugar?',
       'switchHome.yesSwitch': 'Sí, cambiar', 'switchHome.cancel': 'Cancelar',
       'contactChurch.eyebrow': 'Mensaje', 'contactChurch.sendAMessage': 'Enviar un mensaje', 'contactChurch.messagePrefix': 'Mensaje a',
@@ -1416,8 +1422,8 @@
       'dashSettings.team': 'Equipo', 'dashSettings.teamHint': 'El personal puede recibir habilidades específicas — eventos, grupos, mensajes, donativos o edición del perfil. La facturación y la eliminación de la iglesia son siempre solo para el propietario.',
       'dashSettings.teamMovedHint': 'Invitar personal, ajustar sus habilidades y asignar el rol de Gerente ahora viven en su propia página.', 'dashSettings.goToStaffPage': 'Ir a Personal →',
       'dashSettings.addStaffByEmail': 'Agregar personal por correo electrónico',
-      'dashSettings.addStaffHint': 'Si ya tienen una cuenta de FaithDock, se agregan de inmediato. Si no, recibirán una invitación por correo y se unirán automáticamente al registrarse.',
-      'dashSettings.addToChurches': 'Agregar a', 'dashSettings.addToTeam': 'Agregar al equipo',
+      'dashSettings.addStaffHint': 'Recibirán una invitación por correo para aceptar — nadie se agrega hasta que lo hagan. Si aún no tienen una cuenta de FaithDock, primero deberán crear una.',
+      'dashSettings.addToChurches': 'Agregar a', 'dashSettings.addToTeam': 'Enviar invitación',
       'dashSettings.staffEmailPlaceholder': 'personal@email.com',
       'dashSettings.staffFreeLocked': 'Agregar miembros del equipo no está incluido en el plan Gratis.',
       'dashSettings.upgradeToAddTeam': 'Mejora tu plan para agregar tu equipo',
@@ -1556,9 +1562,9 @@
       'groupMembers.noAccountFoundForEmail': 'No se encontró ninguna cuenta de FaithDock para ese correo.', 'groupMembers.alreadyInGroup': 'Esa persona ya está en este grupo.', 'groupMembers.added': '¡Agregado!',
       'dashSettings.aFaithDockChurchOwner': 'Un propietario de iglesia de FaithDock', 'dashSettings.staffInvitesNotOnFree': 'Las invitaciones de personal no están incluidas en el plan Gratis. Mejora tu plan para invitar a tu equipo.',
       'dashSettings.teamAtMemberLimit': 'Tu equipo está en el límite de {limit} miembros de tu plan.', 'dashSettings.alreadyOnTeam': 'Esa persona ya está en tu equipo.',
-      'dashSettings.addedButEmailFailed': 'Agregado a tu equipo, pero el correo no se pudo enviar: {detail}', 'dashSettings.addedAndEmailed': '¡Agregado a tu equipo — también se le envió un correo!',
       'dashSettings.alreadyInvitedEmail': 'Ya invitaste a ese correo.', 'dashSettings.inviteSavedButEmailFailed': 'Invitación guardada, pero el correo no se pudo enviar: {detail}',
-      'dashSettings.inviteSentAutoJoin': '¡Invitación enviada! Se unirán automáticamente cuando se registren.',
+      'dashSettings.inviteSentPendingAccept': '¡Invitación enviada! Se unirán a tu equipo cuando la acepten.',
+      'dashSettings.inviteAbilitiesHint': 'Se eligen ahora, antes de que acepten — no es algo que tengas que configurar después.',
       'events.sampleEventNotReal': 'Este es un evento de muestra — la inscripción no es real aquí.',
       'events.paidCancelConfirm': 'Pagaste ${amount} por esto. Cancelar aquí no te reembolsa automáticamente — deberás contactar a la iglesia directamente sobre un reembolso. ¿Cancelar de todos modos?',
       'events.cancelledNoAutoRefund': 'Cancelado — recuerda que esto no emite un reembolso automáticamente. Contacta a la iglesia directamente sobre eso.',
@@ -5634,16 +5640,25 @@
       </div>
 
       <div class="dash-content" id="dash-staff">
-        <h2 style="font-size:24px;margin-bottom:24px;" data-i18n="dash.staff">Staff</h2>
+        <h2 style="font-size:24px;margin-bottom:24px;"><span data-i18n="dash.staff">Staff</span> <span id="staff-page-church-name" style="font-weight:400;font-size:16px;color:var(--ink-mute);"></span></h2>
         <div class="side-note" style="margin-top:0;max-width:640px;">
           <h4><span data-i18n="dashSettings.team">Team</span> <span class="mono" id="team-count" style="font-size:10px;color:var(--ink-mute);font-weight:400;"></span></h4>
           <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:12px;" data-i18n="dashSettings.teamHint">Staff can be given specific abilities — events, groups, messages, giving, or editing the profile. Billing and deleting the church always stay owner-only.</p>
           <div id="team-list"></div>
           <div id="team-owner-controls" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--line);">
             <label style="font-size:12.5px;" data-i18n="dashSettings.addStaffByEmail">Add staff by email</label>
-            <div style="font-size:11.5px;color:var(--ink-mute);margin-bottom:6px;" data-i18n="dashSettings.addStaffHint">If they already have a FaithDock account, they're added right away. If not, they'll get an email invite and join automatically once they sign up.</div>
+            <div style="font-size:11.5px;color:var(--ink-mute);margin-bottom:6px;" data-i18n="dashSettings.addStaffHint">They'll get an email invite to accept — nobody is added until they do. If they don't have a FaithDock account yet, they'll need to create one first.</div>
             <input class="field" type="email" id="team-invite-email" placeholder="staffmember@email.com" data-i18n-placeholder="dashSettings.staffEmailPlaceholder" style="font-size:13px;padding:9px 10px;">
-            <button class="export-btn" id="team-invite-btn" style="width:100%;justify-content:center;margin-top:8px;" data-i18n="dashSettings.addToTeam">Add to team</button>
+            <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line);">
+              <label style="font-size:12.5px;" data-i18n="staffPerms.eyebrow">Permissions</label>
+              <div style="font-size:11.5px;color:var(--ink-mute);margin-bottom:8px;" data-i18n="dashSettings.inviteAbilitiesHint">Chosen now, before they accept — not something you have to come back and set up afterward.</div>
+              <label class="filter-check"><input type="checkbox" id="invite-perm-events"> <span data-i18n="staffPerms.manageEvents">Create and manage events</span></label>
+              <label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-giving"> <span data-i18n="staffPerms.manageGiving">Manage giving settings (connect bank account)</span></label>
+              <label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-groups"> <span data-i18n="staffPerms.manageGroups">Create and manage groups</span></label>
+              <label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-messages"> <span data-i18n="staffPerms.manageMessages">Send messages and view delivery data</span></label>
+              <label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-profile"> <span data-i18n="staffPerms.editProfile">Edit church profile</span></label>
+            </div>
+            <button class="export-btn" id="team-invite-btn" style="width:100%;justify-content:center;margin-top:14px;" data-i18n="dashSettings.addToTeam">Send invite</button>
             <div id="team-invite-status" style="display:none;font-size:12px;margin-top:8px;"></div>
           </div>
         </div>
@@ -5849,7 +5864,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v3 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v4 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -5941,6 +5956,17 @@
     <button class="btn-gold" id="ownership-handoff-accept-btn" style="width:100%;justify-content:center;" data-i18n="ownershipHandoff.accept">Accept ownership</button>
     <button class="export-btn" id="ownership-handoff-decline-btn" style="width:100%;justify-content:center;margin-top:8px;" data-i18n="ownershipHandoff.decline">Decline</button>
     <div id="ownership-handoff-prompt-status" style="display:none;font-size:12px;margin-top:10px;"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="staff-invite-prompt-modal">
+  <div class="modal-card">
+    <h3 style="font-family:'Fraunces';font-size:20px;margin-bottom:10px;" data-i18n="staffInvite.title">Staff invitation</h3>
+    <p style="font-size:14px;color:var(--ink-mute);margin-bottom:12px;"><span id="staff-invite-prompt-church-name">A church</span> <span data-i18n="staffInvite.body">invited you to join their team on FaithDock as staff.</span></p>
+    <div id="staff-invite-prompt-abilities" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:20px;"></div>
+    <button class="btn-gold" id="staff-invite-accept-btn" style="width:100%;justify-content:center;" data-i18n="staffInvite.accept">Accept invitation</button>
+    <button class="export-btn" id="staff-invite-decline-btn" style="width:100%;justify-content:center;margin-top:8px;" data-i18n="staffInvite.decline">Decline</button>
+    <div id="staff-invite-prompt-status" style="display:none;font-size:12px;margin-top:10px;"></div>
   </div>
 </div>
 
@@ -11791,6 +11817,7 @@
       if (typeof window.loadMyEvents === 'function') window.loadMyEvents();
       if (typeof window.checkPendingMemberInvite === 'function') window.checkPendingMemberInvite(uid);
       if (typeof window.checkPendingOwnershipHandoff === 'function') window.checkPendingOwnershipHandoff(uid);
+      if (typeof window.checkPendingStaffInvite === 'function') window.checkPendingStaffInvite(uid);
     }, 400);
   });
 
@@ -14412,7 +14439,13 @@
     if (!listEl) return;
 
     var myChurch = await getMyChurch();
-    if (!myChurch) { listEl.innerHTML = ''; countEl.textContent = ''; ownerControls.style.display = 'none'; return; }
+    var staffPageChurchNameEl = document.getElementById('staff-page-church-name');
+    if (!myChurch) { listEl.innerHTML = ''; countEl.textContent = ''; ownerControls.style.display = 'none'; if (staffPageChurchNameEl) staffPageChurchNameEl.textContent = ''; return; }
+    // Every row below is scoped to this one church's church_id -- for
+    // an owner/staff member of more than one, nothing else on this
+    // page says which church is showing, so it goes in the heading
+    // itself rather than relying on the sidebar switcher alone.
+    if (staffPageChurchNameEl) staffPageChurchNameEl.textContent = myChurch.name ? '— ' + displayChurchName(myChurch.name) : '';
 
     var isOwner = myChurch.role === 'owner';
     // A Manager gets the same invite/remove/edit-abilities surface as
@@ -14515,6 +14548,24 @@
               }).join('')
             + '</div>';
         }
+        // Full abilities checklist, same five flags as the post-hoc
+        // edit-permissions modal (#perm-events etc.) but with distinct
+        // ids (invite-perm-*) since both can theoretically be in the
+        // DOM at once. Picked here, before the invite is even sent, so
+        // an accepted invite already carries the right abilities --
+        // see accept_staff_invite() in migration 030. Shown to both the
+        // owner and a Manager (a Manager can already set any of these
+        // five retroactively via update_staff_abilities(), so letting
+        // them set the same ones up front is no new privilege).
+        var abilitiesChecklistHtml = '<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line);">'
+          + '<label style="font-size:12.5px;">' + window.t('staffPerms.eyebrow') + '</label>'
+          + '<div style="font-size:11.5px;color:var(--ink-mute);margin-bottom:8px;">' + window.t('dashSettings.inviteAbilitiesHint') + '</div>'
+          + '<label class="filter-check"><input type="checkbox" id="invite-perm-events"> ' + window.t('staffPerms.manageEvents') + '</label>'
+          + '<label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-giving"> ' + window.t('staffPerms.manageGiving') + '</label>'
+          + '<label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-groups"> ' + window.t('staffPerms.manageGroups') + '</label>'
+          + '<label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-messages"> ' + window.t('staffPerms.manageMessages') + '</label>'
+          + '<label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-profile"> ' + window.t('staffPerms.editProfile') + '</label>'
+          + '</div>';
         // Owner-only, and only on tiers whose plan_tiers.can_assign_manager
         // is true (migration 029) -- a Manager can invite regular staff
         // but can never grant the Manager role itself (update_staff_abilities()
@@ -14523,14 +14574,15 @@
         // control from appearing somewhere it could never actually work).
         var managerCheckHtml = '';
         if (isOwner && window.tierAllowsManager && window.tierAllowsManager[myChurch.planType || 'free']) {
-          managerCheckHtml = '<label class="filter-check" style="display:block;margin:2px 0 10px;font-size:12.5px;"><input type="checkbox" id="team-invite-is-manager"> ' + window.t('dashSettings.assignAsManager') + '</label>';
+          managerCheckHtml = '<label class="filter-check" style="display:block;margin:14px 0 0;font-size:12.5px;"><input type="checkbox" id="team-invite-is-manager"> ' + window.t('dashSettings.assignAsManager') + '</label>';
         }
         ownerControls.innerHTML = '<label style="font-size:12.5px;">' + window.t('dashSettings.addStaffByEmail') + '</label>'
           + '<div style="font-size:11.5px;color:var(--ink-mute);margin-bottom:6px;">' + window.t('dashSettings.addStaffHint') + '</div>'
-          + churchChecksHtml
           + '<input class="field" type="email" id="team-invite-email" placeholder="staffmember@email.com" data-i18n-placeholder="dashSettings.staffEmailPlaceholder" style="font-size:13px;padding:9px 10px;">'
+          + churchChecksHtml
+          + abilitiesChecklistHtml
           + managerCheckHtml
-          + '<button class="export-btn" id="team-invite-btn" style="width:100%;justify-content:center;margin-top:8px;">' + window.t('dashSettings.addToTeam') + '</button>'
+          + '<button class="export-btn" id="team-invite-btn" style="width:100%;justify-content:center;margin-top:14px;">' + window.t('dashSettings.addToTeam') + '</button>'
           + '<div id="team-invite-status" style="display:none;font-size:12px;margin-top:8px;"></div>';
         // The click handler below is bound once at page-load time,
         // to the original HTML element — replacing this element's
@@ -16659,6 +16711,80 @@
     });
   }
 
+  // ============================================================
+  // Staff invite — recipient's side. Mirrors
+  // checkPendingOwnershipHandoff's structure exactly, for the same
+  // reason: accepting calls a security-definer RPC (accept_staff_invite,
+  // migration 030), not a direct client-side update, since creating a
+  // church_staff row is privileged and the invitee has no RLS rights to
+  // do it themselves. Whether this email already had a FaithDock
+  // account when the invite was sent makes no difference here --
+  // everyone lands on this exact same prompt, so nobody is ever
+  // silently added to a team without clicking Accept.
+  // ============================================================
+  async function checkPendingStaffInvite(userId){
+    if (!userId || window.staffInvitePromptShown) return;
+    var { data: userData } = await supabase.auth.getUser();
+    if (!userData.user || !userData.user.email) return;
+    var { data: inviteRows } = await supabase.from('church_staff_invites')
+      .select('id, church_id, can_manage_events, can_manage_giving, can_manage_groups, can_manage_messages, can_edit_profile, is_manager, churches(name)')
+      .ilike('email', userData.user.email)
+      .eq('status', 'pending')
+      .limit(1);
+    if (!inviteRows || !inviteRows.length) return;
+    var invite = inviteRows[0];
+    window.staffInvitePromptShown = true;
+    var modal = document.getElementById('staff-invite-prompt-modal');
+    if (!modal) return;
+    document.getElementById('staff-invite-prompt-church-name').textContent = invite.churches ? invite.churches.name : window.t('staffInvite.aChurch');
+    // Shows the invitee exactly what they're being asked to accept --
+    // the same abilities the inviter picked on the invite form, not a
+    // surprise revealed only after joining.
+    var abilityTags = [];
+    if (invite.is_manager) abilityTags.push('<span class="tag gold" style="font-size:10px;">' + window.t('dashSettings.managerRoleLabel') + '</span>');
+    if (invite.can_manage_events) abilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('dash.events') + '</span>');
+    if (invite.can_manage_giving) abilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('dash.revenue') + '</span>');
+    if (invite.can_manage_groups) abilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('dash.groups') + '</span>');
+    if (invite.can_manage_messages) abilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('dash.messages') + '</span>');
+    if (invite.can_edit_profile) abilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('dashOverview.permProfile') + '</span>');
+    document.getElementById('staff-invite-prompt-abilities').innerHTML = abilityTags.join('');
+    modal.setAttribute('data-invite-id', invite.id);
+    modal.classList.add('open');
+  }
+  window.checkPendingStaffInvite = checkPendingStaffInvite;
+
+  var staffInviteAcceptBtn = document.getElementById('staff-invite-accept-btn');
+  if (staffInviteAcceptBtn) {
+    staffInviteAcceptBtn.addEventListener('click', async function(){
+      var modal = document.getElementById('staff-invite-prompt-modal');
+      var inviteId = modal.getAttribute('data-invite-id');
+      var statusEl = document.getElementById('staff-invite-prompt-status');
+      staffInviteAcceptBtn.disabled = true;
+      var { error } = await supabase.rpc('accept_staff_invite', { invite_id: inviteId });
+      staffInviteAcceptBtn.disabled = false;
+      if (error) {
+        statusEl.textContent = error.message;
+        statusEl.style.color = 'var(--clay)';
+        statusEl.style.display = 'block';
+        return;
+      }
+      modal.classList.remove('open');
+      if (typeof window.go === 'function') window.go('dashboard');
+    });
+  }
+
+  var staffInviteDeclineBtn = document.getElementById('staff-invite-decline-btn');
+  if (staffInviteDeclineBtn) {
+    staffInviteDeclineBtn.addEventListener('click', async function(){
+      var modal = document.getElementById('staff-invite-prompt-modal');
+      var inviteId = modal.getAttribute('data-invite-id');
+      staffInviteDeclineBtn.disabled = true;
+      await supabase.rpc('decline_staff_invite', { invite_id: inviteId });
+      staffInviteDeclineBtn.disabled = false;
+      modal.classList.remove('open');
+    });
+  }
+
   var memberInviteAcceptBtn = document.getElementById('member-invite-accept-btn');
   if (memberInviteAcceptBtn) {
     memberInviteAcceptBtn.addEventListener('click', async function(){
@@ -17809,6 +17935,17 @@
     var personRow = ev.target.closest ? ev.target.closest('[data-view-person-id]') : null;
     if (!personRow) return;
     var personId = personRow.getAttribute('data-view-person-id');
+    // The Staff page's "view profile" button reuses this exact same
+    // handler/modal, but directoryPeopleRaw was only ever populated
+    // once at dashboard load for whichever church was active then --
+    // stale (or simply not yet including a just-invited person) for a
+    // multi-church owner who's since switched churches, or anyone who
+    // never visited the Directory tab this session. Re-fetch (scoped to
+    // the currently active church) before giving up, rather than
+    // trusting whatever's already cached.
+    if (!directoryPeopleRaw.some(function(p){ return p.user_id === personId; })) {
+      await loadDirectoryPeople();
+    }
     var person = directoryPeopleRaw.filter(function(p){ return p.user_id === personId; })[0];
     if (!person) return;
 
@@ -22127,7 +22264,7 @@
   // myChurch.id. Returns a result object rather than touching the
   // DOM directly, so the caller can build one combined status message
   // covering however many churches were targeted.
-  async function inviteStaffToOneChurch(church, email, inviterName, foundId, userData, isManager){
+  async function inviteStaffToOneChurch(church, email, inviterName, foundId, userData, abilities){
     var staffLimit = planLimits[church.plan_type || church.planType || 'free'].staff;
     var { data: staffRows } = await supabase.from('church_staff').select('id').eq('church_id', church.id);
     if (staffLimit !== Infinity && staffRows && staffRows.length >= staffLimit) {
@@ -22136,57 +22273,42 @@
         : window.t('dashSettings.teamAtMemberLimit').replace('{limit}', staffLimit) };
     }
 
-    if (foundId) {
-      // They already have an account — add them directly and email a
-      // notification. is_manager only applies here, not to the
-      // pending-invite branch below: church_staff_invites has no
-      // is_manager column, and its auto-accept-on-signup trigger is
-      // opaque from this repo, so it isn't safe to extend to also
-      // grant Manager the moment someone without an account yet signs
-      // up. Inviting a not-yet-registered person as Manager isn't
-      // supported by this UI as a result -- they can be promoted to
-      // Manager afterward from the team list once they've signed up.
-      var { error: insertError } = await supabase.from('church_staff').insert({
-        church_id: church.id, user_id: foundId, invited_by: userData.user.id, is_manager: !!isManager
-      });
-      if (insertError) {
-        return { churchName: church.name, ok: false, message: insertError.code === '23505' ? window.t('dashSettings.alreadyOnTeam') : insertError.message };
-      }
-      var loginUrl = window.location.origin + window.location.pathname + '#signup/login';
-      var { data: emailData, error: emailError } = await supabase.functions.invoke('smooth-action', {
-        body: { email: email, churchName: church.name, inviterName: inviterName, hasAccount: true, loginUrl: loginUrl }
-      });
-      if (emailError || (emailData && emailData.error)) {
-        var detail = emailError ? emailError.message : JSON.stringify(emailData.error);
-        if (emailError && emailError.context && typeof emailError.context.text === 'function') {
-          try { detail = await emailError.context.text(); } catch (e) {}
-        }
-        return { churchName: church.name, ok: true, emailFailed: true, message: window.t('dashSettings.addedButEmailFailed').replace('{detail}', detail) };
-      }
-      return { churchName: church.name, ok: true };
-    } else {
-      // No account yet — store a pending invite and email them a
-      // signup link. The database auto-accepts it the moment they
-      // sign up with this same email.
-      var { error: inviteError } = await supabase.from('church_staff_invites').insert({
-        church_id: church.id, email: email, invited_by: userData.user.id
-      });
-      if (inviteError) {
-        return { churchName: church.name, ok: false, message: inviteError.code === '23505' ? window.t('dashSettings.alreadyInvitedEmail') : inviteError.message };
-      }
-      var signupUrl = window.location.origin + window.location.pathname + '#signup';
-      var { data: emailData2, error: emailError2 } = await supabase.functions.invoke('smooth-action', {
-        body: { email: email, churchName: church.name, inviterName: inviterName, hasAccount: false, signupUrl: signupUrl }
-      });
-      if (emailError2 || (emailData2 && emailData2.error)) {
-        var detail2 = emailError2 ? emailError2.message : JSON.stringify(emailData2.error);
-        if (emailError2 && emailError2.context && typeof emailError2.context.text === 'function') {
-          try { detail2 = await emailError2.context.text(); } catch (e) {}
-        }
-        return { churchName: church.name, ok: true, emailFailed: true, message: window.t('dashSettings.inviteSavedButEmailFailed').replace('{detail}', detail2) };
-      }
-      return { churchName: church.name, ok: true };
+    // Always a pending invite now, whether or not this email already
+    // has a FaithDock account -- nobody is added to church_staff until
+    // they explicitly accept (accept_staff_invite(), migration 030),
+    // via the same prompt checkPendingStaffInvite() shows on sign-in
+    // that member invites and ownership handoffs already use. Carries
+    // the abilities checklist picked on this form straight through, so
+    // an accepted invite already has the right abilities instead of
+    // defaulting to none and needing a follow-up edit.
+    var { error: inviteError } = await supabase.from('church_staff_invites').insert({
+      church_id: church.id, email: email, invited_by: userData.user.id,
+      can_manage_events: abilities.can_manage_events,
+      can_manage_giving: abilities.can_manage_giving,
+      can_manage_groups: abilities.can_manage_groups,
+      can_manage_messages: abilities.can_manage_messages,
+      can_edit_profile: abilities.can_edit_profile,
+      is_manager: abilities.is_manager
+    });
+    if (inviteError) {
+      return { churchName: church.name, ok: false, message: inviteError.code === '23505' ? window.t('dashSettings.alreadyInvitedEmail') : inviteError.message };
     }
+
+    // hasAccount only changes the email's wording (sign in vs. sign up
+    // first) -- both cases now land on the exact same accept prompt.
+    var signupUrl = window.location.origin + window.location.pathname + '#signup';
+    var loginUrl = window.location.origin + window.location.pathname + '#signup/login';
+    var { data: emailData, error: emailError } = await supabase.functions.invoke('smooth-action', {
+      body: { email: email, churchName: church.name, inviterName: inviterName, hasAccount: !!foundId, signupUrl: signupUrl, loginUrl: loginUrl }
+    });
+    if (emailError || (emailData && emailData.error)) {
+      var detail = emailError ? emailError.message : JSON.stringify(emailData.error);
+      if (emailError && emailError.context && typeof emailError.context.text === 'function') {
+        try { detail = await emailError.context.text(); } catch (e) {}
+      }
+      return { churchName: church.name, ok: true, emailFailed: true, message: window.t('dashSettings.inviteSavedButEmailFailed').replace('{detail}', detail) };
+    }
+    return { churchName: church.name, ok: true };
   }
 
   function bindTeamInviteBtn(btn){
@@ -22215,7 +22337,18 @@
       // this naturally reads as false/unchecked for a Manager inviting
       // staff, matching that a Manager can never grant Manager status.
       var isManagerCheckbox = document.getElementById('team-invite-is-manager');
-      var inviteAsManager = !!(isManagerCheckbox && isManagerCheckbox.checked);
+      // Always rendered (unlike the Manager checkbox) -- a Manager can
+      // already grant any of these five retroactively via
+      // update_staff_abilities(), so letting them pick the same ones
+      // up front, before the invite is even sent, is no new privilege.
+      var abilities = {
+        can_manage_events: !!(document.getElementById('invite-perm-events') && document.getElementById('invite-perm-events').checked),
+        can_manage_giving: !!(document.getElementById('invite-perm-giving') && document.getElementById('invite-perm-giving').checked),
+        can_manage_groups: !!(document.getElementById('invite-perm-groups') && document.getElementById('invite-perm-groups').checked),
+        can_manage_messages: !!(document.getElementById('invite-perm-messages') && document.getElementById('invite-perm-messages').checked),
+        can_edit_profile: !!(document.getElementById('invite-perm-profile') && document.getElementById('invite-perm-profile').checked),
+        is_manager: !!(isManagerCheckbox && isManagerCheckbox.checked)
+      };
 
       // Multi-church: whatever's checked in the church list (only
       // rendered at all when this owner has more than one church) —
@@ -22233,18 +22366,20 @@
 
       var results = [];
       for (var i = 0; i < targetChurches.length; i++) {
-        results.push(await inviteStaffToOneChurch(targetChurches[i], email, inviterName, foundId, userData, inviteAsManager));
+        results.push(await inviteStaffToOneChurch(targetChurches[i], email, inviterName, foundId, userData, abilities));
       }
 
       // One combined status line covering however many churches were
       // targeted -- the common single-church case (the vast majority
       // of invites) reads exactly like the single outcome always did,
-      // since there's nothing to combine with just one result.
+      // since there's nothing to combine with just one result. Same
+      // message regardless of foundId now -- both cases land on the
+      // exact same accept prompt, just with different email wording.
       var succeeded = results.filter(function(r){ return r.ok && !r.emailFailed; });
       var problem = results.filter(function(r){ return !r.ok || r.emailFailed; });
       var lines = [];
       if (succeeded.length) {
-        var successText = foundId ? window.t('dashSettings.addedAndEmailed') : window.t('dashSettings.inviteSentAutoJoin');
+        var successText = window.t('dashSettings.inviteSentPendingAccept');
         lines.push(targetChurches.length > 1 ? successText + ' (' + succeeded.map(function(r){ return displayChurchName(r.churchName); }).join(', ') + ')' : successText);
       }
       problem.forEach(function(r){ lines.push((targetChurches.length > 1 ? displayChurchName(r.churchName) + ': ' : '') + r.message); });

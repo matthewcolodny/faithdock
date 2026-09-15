@@ -47,6 +47,20 @@
 // reply_to fix) -- NOT independently re-verified from this environment
 // (no dashboard access here), taken on the user's word.
 //
+// EDITED A FOURTH TIME 2026-09-15, NOT YET CONFIRMED DEPLOYED: the
+// default (staff-invite) branch's copy no longer says "added to your
+// team" for hasAccount:true -- as of the staff-invites-require-
+// acceptance change (migration 030_staff_invites_require_acceptance.sql),
+// nobody is ever added to church_staff instantly anymore, regardless of
+// whether the invitee already had a FaithDock account. Both cases are
+// now a pending church_staff_invites row that only becomes a real
+// church_staff row once the recipient explicitly clicks Accept on the
+// in-app prompt (accept_staff_invite() RPC) -- hasAccount only changes
+// whether the email says "sign in" or "sign up, then sign in." Note
+// also that this branch's earlier "confirmed owner-only in the UI"
+// claim (see the third edit above) is now stale: migration 029 lets a
+// Manager trigger this same invite flow too, not just the owner.
+//
 // Dispatches on body.type: welcome_email, contact_church, mass_email,
 // group_join_request, ownership_handoff, member_invite,
 // event_contact_notify, and a no-type default (staff invite, keyed on
@@ -401,12 +415,18 @@ serve(async (req) => {
     }
 
     const { email, churchName, inviterName, hasAccount, signupUrl, loginUrl } = body;
-    const subject = hasAccount
-      ? `You've been added to ${churchName}'s team on FaithDock`
-      : `You're invited to join ${churchName}'s team on FaithDock`;
+    // Wording only, as of the staff-invites-require-acceptance change
+    // (migration 030): this is now always a pending invite, never an
+    // instant add, regardless of hasAccount -- the actual church_staff
+    // row is only ever created once the recipient explicitly accepts
+    // (accept_staff_invite(), via the same in-app prompt member
+    // invites and ownership handoffs already use). hasAccount only
+    // changes whether they need to sign up first before they can sign
+    // in and see the accept prompt.
+    const subject = `You're invited to join ${churchName}'s team on FaithDock`;
     const html = hasAccount
-      ? `<p>Hi,</p><p>${inviterName} has added you as staff for <strong>${churchName}</strong> on FaithDock. Sign in to see your new dashboard access.</p><p><a href="${loginUrl}">${loginUrl}</a></p>`
-      : `<p>Hi,</p><p>${inviterName} has invited you to join <strong>${churchName}</strong>'s team on FaithDock.</p><p>Sign up using this email address and you'll automatically join the team:</p><p><a href="${signupUrl}">${signupUrl}</a></p>`;
+      ? `<p>Hi,</p><p>${inviterName} has invited you to join <strong>${churchName}</strong>'s team on FaithDock. Sign in to review and accept the invitation.</p><p><a href="${loginUrl}">${loginUrl}</a></p>`
+      : `<p>Hi,</p><p>${inviterName} has invited you to join <strong>${churchName}</strong>'s team on FaithDock.</p><p>Sign up using this email address, then sign in to review and accept the invitation:</p><p><a href="${signupUrl}">${signupUrl}</a></p>`;
 
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
