@@ -1963,3 +1963,22 @@ User tested the features shipped earlier the same day and reported five problems
 Verified from this environment: `node --check` passes on the two fixes above. Neither was testable end-to-end (both need a live donation/invite cycle against the user's actual Supabase project).
 
 Build `2026-09-15-v5`.
+
+---
+
+## Root-caused the Stripe redirect bug: a single query-string-after-hash bug explained both the redirect AND the missing Giving Insights amount
+
+Follow-up to the "needs more information" item above. User provided both pieces asked for: the live RLS policy list on `churches`, and `stripe-create-checkout.ts`'s full source (first time this function's code has ever been visible from this environment -- it was never backed up to this repo before, unlike `smooth-action.ts`/`resend-webhook.ts`).
+
+**RLS ruled out cleanly.** `churches are publicly readable` with `qual = true` -- an unconditional permissive SELECT policy. `is_hidden` was never the cause; confirms `018_church_is_hidden.sql`'s own header comment was accurate about live behavior, not just original intent.
+
+**The actual bug, found in the pasted source**: `success_url: successUrl + (successUrl.indexOf('?') === -1 ? '?' : '&') + 'session_id={CHECKOUT_SESSION_ID}'`. `successUrl` from the client is always a hash-routed SPA URL with no query string of its own (`https://faithdock.com/#church/My%20Church`, built in `bindGiveSubmitBtn` as `origin + pathname + hash`). Appending `?session_id=...` onto the end of that string puts the query string *after* the `#` fragment -- which browsers never parse as a query string; it's just more hash. One bug, two separately-reported symptoms:
+
+1. `window.location.search` is empty when Stripe redirects back, so `checkForCompletedDonation()` never finds `session_id`, never calls `confirm_donation`, and the donation row stays `status: 'pending'` forever -- this is why the amount never showed on Giving Insights. Not the staleness/no-refresh issue fixed two entries above (that fix is still correct and needed, just wasn't the actual cause of *this* specific report).
+2. The app's hash router tries to parse `"My Church?session_id=cs_test_..."` as the church name, finds no match, and falls through to `showRouteFromHash`'s not-found redirect -- landing on "Churches near you."
+
+**Fix**: `buildSuccessUrl()` splits the URL on its first `#`, inserts `session_id={CHECKOUT_SESSION_ID}` into the query string of the part *before* the fragment, then reassembles with the fragment after -- correct URL syntax (query string before fragment) instead of blind string concatenation. Tracked `stripe-create-checkout.ts` in this repo for the first time (`supabase/functions/stripe-create-checkout.ts`), same dashboard-only deploy convention as the other two edge functions, so future changes can diff against a known-good copy instead of starting from zero visibility again.
+
+**Flagged, not silently fixed**: `startPaidEventCheckout()` in `index.html` builds its own `successUrl` for paid event tickets using the exact same `baseUrl + churchHash` pattern, passed to a *different* edge function (`stripe-event-checkout`) whose source has never been pasted into this repo either. Very likely has the identical bug, but unconfirmed -- asked the user to paste it rather than assuming and patching code never seen.
+
+`node --check` passes on the new file. Not deployed -- needs the same manual paste-into-dashboard-and-redeploy treatment as every other edge function change.
