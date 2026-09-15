@@ -151,6 +151,8 @@
       'home.locationPlaceholder': 'Enter your city or zip code', 'home.browseBtn': 'Browse churches',
       'home.keywordPlaceholder': 'Search churches by name or keyword...',
       'home.viewDirectory': 'View directory', 'home.upcomingEvents': 'Upcoming events', 'home.viewAllEvents': 'View all events',
+      'home.noChurchesNearby': 'No churches found near you yet.', 'home.browseEventsInstead': 'Browse upcoming events',
+      'home.noEventsNearby': 'No upcoming events near you yet.', 'home.browseChurchesInstead': 'Browse churches near you',
       'home.churchesNearYou': 'Churches near you', 'home.churchesNear': 'Churches near', 'home.upcomingEventsNear': 'Upcoming events near',
       'home.forChurchesQ': 'Are you a church?', 'home.forChurchesLink': 'List your church — free',
       'home.fc.eyebrow': 'For churches',
@@ -373,6 +375,7 @@
       'myChurches.registerInstead': 'Registering your own church instead?',
       'myChurches.labelOwned': 'Owned', 'myChurches.labelStaff': 'Staff', 'myChurches.labelHome': 'Home', 'myChurches.labelFollowing': 'Following',
       'myChurches.unfollow': 'Unfollow', 'myChurches.manage': 'Manage',
+      'myChurches.unfollowedToast': 'Unfollowed {name}.', 'myChurches.undo': 'Undo',
       'profile.eyebrow': 'Your account', 'profile.heading': 'Profile', 'profile.changePhoto': 'Change photo',
       'profile.churchPartnerAccount': 'Church partner account', 'profile.individualAccount': 'Individual account',
       'profile.addChurch': 'Add a church', 'profile.churchHomeSuffix': '(Church Home)',
@@ -940,6 +943,8 @@
       'home.locationPlaceholder': 'Ingresa tu ciudad o código postal', 'home.browseBtn': 'Explorar iglesias',
       'home.keywordPlaceholder': 'Busca iglesias por nombre o palabra clave...',
       'home.viewDirectory': 'Ver directorio', 'home.upcomingEvents': 'Próximos eventos', 'home.viewAllEvents': 'Ver todos los eventos',
+      'home.noChurchesNearby': 'Aún no se encontraron iglesias cerca de ti.', 'home.browseEventsInstead': 'Ver próximos eventos',
+      'home.noEventsNearby': 'Aún no hay próximos eventos cerca de ti.', 'home.browseChurchesInstead': 'Ver iglesias cerca de ti',
       'home.churchesNearYou': 'Iglesias cerca de ti', 'home.churchesNear': 'Iglesias cerca de', 'home.upcomingEventsNear': 'Próximos eventos cerca de',
       'home.forChurchesQ': '¿Representas a una iglesia?', 'home.forChurchesLink': 'Registra tu iglesia — gratis',
       'home.fc.eyebrow': 'Para iglesias',
@@ -1162,6 +1167,7 @@
       'myChurches.registerInstead': '\u00bfRegistrando tu propia iglesia en su lugar?',
       'myChurches.labelOwned': 'Propietario', 'myChurches.labelStaff': 'Personal', 'myChurches.labelHome': 'Principal', 'myChurches.labelFollowing': 'Siguiendo',
       'myChurches.unfollow': 'Dejar de seguir', 'myChurches.manage': 'Administrar',
+      'myChurches.unfollowedToast': 'Dejaste de seguir a {name}.', 'myChurches.undo': 'Deshacer',
       'profile.eyebrow': 'Tu cuenta', 'profile.heading': 'Perfil', 'profile.changePhoto': 'Cambiar foto',
       'profile.churchPartnerAccount': 'Cuenta de iglesia asociada', 'profile.individualAccount': 'Cuenta individual',
       'profile.addChurch': 'Agregar una iglesia', 'profile.churchHomeSuffix': '(Iglesia Principal)',
@@ -2432,6 +2438,26 @@
        exact selector -- checked this time instead of repeating it. */
     .follow-heart-card svg{width:22px !important;height:22px !important;}
     .follow-heart-row svg{width:21px;height:21px;}
+  }
+  /* Brief "Undo" toast after unfollowing a church on My Churches --
+     requested directly, in case the click was an accident. Created
+     and appended to <body> once, on first use (see showUnfollowToast),
+     rather than living as static markup somewhere in the page. */
+  #unfollow-toast{
+    position:fixed;left:50%;bottom:24px;transform:translateX(-50%);
+    background:var(--ink);color:var(--paper);border-radius:var(--radius);
+    padding:12px 18px;display:flex;align-items:center;gap:16px;
+    box-shadow:0 4px 16px rgba(0,0,0,0.25);z-index:200;
+    font-size:14px;max-width:calc(100vw - 32px);
+    opacity:0;pointer-events:none;transition:opacity .2s ease;
+  }
+  #unfollow-toast.visible{opacity:1;pointer-events:auto;}
+  #unfollow-toast-undo{
+    background:none;border:none;color:var(--gold);font-weight:600;cursor:pointer;
+    font-size:14px;padding:0;flex-shrink:0;font-family:inherit;
+  }
+  @media (max-width:600px){
+    #unfollow-toast{left:16px;right:16px;bottom:16px;transform:none;max-width:none;}
   }
   /* Indeterminate upload progress bar -- the Supabase JS storage
      client's .upload() has no real byte-progress callback (it's a
@@ -6132,7 +6158,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v26 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v27 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -8617,6 +8643,18 @@
     });
   }
 
+  // Shared by both homepage preview grids below: when there's nothing
+  // to show (a real, live gap reported directly with a screenshot —
+  // the "Upcoming events near you" section could end up completely
+  // blank between its heading and the next section, with no
+  // indication anything was even tried), point at the other one
+  // instead rather than leaving the grid empty. .grid is a 3-column
+  // CSS grid, so grid-column:1/-1 spans this single message across
+  // all three instead of being squeezed into one narrow cell.
+  function homeEmptyStateHtml(message, href, route, linkText){
+    return '<p style="grid-column:1/-1;color:var(--ink-mute);font-size:14px;">' + message + ' <a href="' + href + '" data-route="' + route + '" style="border-bottom:1px solid var(--gold);">' + linkText + '</a></p>';
+  }
+
   // Homepage's small "Churches near you" preview — same RPC, just 3
   // results, no filters beyond location if we already have it.
   async function renderHomeChurches(){
@@ -8631,6 +8669,14 @@
       rows.forEach(function(c){ var existing = churches.filter(function(x){ return x.id === c.id; })[0]; if (!existing) churches.push(c); });
       window.homeChurchesLastRenderedRows = rows;
       homeGrid.innerHTML = mapJoin(rows, function(c){ return churchCard(c, true); });
+    } else {
+      // null, not [] -- refreshHomeChurchesText() below guards on
+      // "!window.homeChurchesLastRenderedRows" to skip re-rendering
+      // when there's nothing to re-render; [] is truthy and would
+      // pass that guard, wiping this empty-state message back out to
+      // a blank grid the next time the page language changes.
+      window.homeChurchesLastRenderedRows = null;
+      homeGrid.innerHTML = homeEmptyStateHtml(window.t('home.noChurchesNearby'), '#events', 'events', window.t('home.browseEventsInstead'));
     }
   }
   window.renderHomeChurches = renderHomeChurches;
@@ -9202,6 +9248,13 @@
       rows.forEach(function(e){ var existing = events.filter(function(x){ return x.id === e.id; })[0]; if (!existing) events.push(e); });
       window.homeEventsLastRenderedRows = rows;
       homeGrid.innerHTML = mapJoin(rows, eventCard);
+    } else {
+      // Reported directly with a screenshot: this grid could end up
+      // completely blank between the "Upcoming events" heading and the
+      // next section, with nothing pointing anywhere useful. null, not
+      // [] -- see the matching comment in renderHomeChurches() above.
+      window.homeEventsLastRenderedRows = null;
+      homeGrid.innerHTML = homeEmptyStateHtml(window.t('home.noEventsNearby'), '#directory', 'directory', window.t('home.browseChurchesInstead'));
     }
   }
   window.renderHomeEvents = renderHomeEvents;
@@ -21228,14 +21281,59 @@
     loadAdminPanel();
   });
 
+  // Brief "Undo" toast after unfollowing, in case the click was an
+  // accident -- requested directly. The delete itself still happens
+  // right away (matches the click the person actually made, and keeps
+  // this simple -- no "pending delete" state to track if they close
+  // the tab or navigate away before the toast times out); Undo just
+  // re-follows by re-inserting the same row, same as the follow-heart
+  // toggle elsewhere already does.
+  var unfollowToastTimer = null;
+  function showUnfollowToast(churchId, churchName){
+    var el = document.getElementById('unfollow-toast');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'unfollow-toast';
+      el.innerHTML = '<span id="unfollow-toast-msg"></span><button type="button" id="unfollow-toast-undo"></button>';
+      document.body.appendChild(el);
+    }
+    document.getElementById('unfollow-toast-msg').textContent = window.t('myChurches.unfollowedToast').replace('{name}', churchName);
+    document.getElementById('unfollow-toast-undo').textContent = window.t('myChurches.undo');
+    el.setAttribute('data-church-id', churchId);
+    el.classList.add('visible');
+    clearTimeout(unfollowToastTimer);
+    unfollowToastTimer = setTimeout(function(){ el.classList.remove('visible'); }, 6000);
+  }
+
   document.addEventListener('click', async function(ev){
+    var undoBtn = ev.target.closest ? ev.target.closest('#unfollow-toast-undo') : null;
+    if (undoBtn) {
+      var toastEl = document.getElementById('unfollow-toast');
+      var undoChurchId = toastEl ? toastEl.getAttribute('data-church-id') : null;
+      clearTimeout(unfollowToastTimer);
+      if (toastEl) toastEl.classList.remove('visible');
+      if (!undoChurchId) return;
+      var { data: undoUserData } = await supabase.auth.getUser();
+      if (!undoUserData.user) return;
+      await supabase.from('church_follows').upsert({ user_id: undoUserData.user.id, church_id: undoChurchId });
+      loadMyChurches();
+      return;
+    }
     var unfollowBtn = ev.target.closest ? ev.target.closest('[data-unfollow-church-id]') : null;
     if (!unfollowBtn) return;
     var { data: userData } = await supabase.auth.getUser();
     if (!userData.user) return;
     unfollowBtn.disabled = true;
-    await supabase.from('church_follows').delete().eq('user_id', userData.user.id).eq('church_id', unfollowBtn.getAttribute('data-unfollow-church-id'));
+    var unfollowChurchId = unfollowBtn.getAttribute('data-unfollow-church-id');
+    // Grabbed from the row itself rather than a fresh query -- the
+    // name is already sitting right there in the DOM (churchCard's
+    // own <h4>), same text loadMyChurches() just rendered it with.
+    var unfollowChurchCard = unfollowBtn.closest('.group-card');
+    var unfollowChurchNameEl = unfollowChurchCard ? unfollowChurchCard.querySelector('h4') : null;
+    var unfollowChurchName = unfollowChurchNameEl ? unfollowChurchNameEl.textContent : '';
+    await supabase.from('church_follows').delete().eq('user_id', userData.user.id).eq('church_id', unfollowChurchId);
     loadMyChurches();
+    showUnfollowToast(unfollowChurchId, unfollowChurchName);
   });
 
   // Multi-church ownership: switches which owned church the dashboard
