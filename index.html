@@ -751,7 +751,6 @@
       'dashDir.sending': 'Sending...', 'dashDir.sentToPerson': 'Sent to {name}!',
       'dashSettings.churchNameMismatch': "That doesn't match the church name exactly.", 'dashSettings.deletingChurch': 'Deleting church...',
       'dashGiving.verificationRequested': "Verification requested — we'll follow up soon.",
-      'church.followingCheck': 'Following ✓',
       'dashCheckin.couldNotUpdateStatus': 'Could not update check-in status: {error}', 'dashCheckin.pickEventFirst': 'Select an event first.', 'dashCheckin.removeWordFromName': 'Please remove "{word}" from the name.',
       'help.removeWord': 'Please remove "{word}".', 'help.thanksWellGetBack': "Thanks — we'll get back to you soon.",
       'profile.removeWord': 'Please remove "{word}".', 'profile.thanksForFeedback': 'Thanks for the feedback!',
@@ -1543,7 +1542,6 @@
       'dashDir.sending': 'Enviando...', 'dashDir.sentToPerson': '¡Enviado a {name}!',
       'dashSettings.churchNameMismatch': 'Eso no coincide exactamente con el nombre de la iglesia.', 'dashSettings.deletingChurch': 'Eliminando iglesia...',
       'dashGiving.verificationRequested': 'Verificación solicitada — te contactaremos pronto.',
-      'church.followingCheck': 'Siguiendo ✓',
       'dashCheckin.couldNotUpdateStatus': 'No se pudo actualizar el estado de registro: {error}', 'dashCheckin.pickEventFirst': 'Selecciona un evento primero.', 'dashCheckin.removeWordFromName': 'Por favor elimina "{word}" del nombre.',
       'help.removeWord': 'Por favor elimina "{word}".', 'help.thanksWellGetBack': 'Gracias — te responderemos pronto.',
       'profile.removeWord': 'Por favor elimina "{word}".', 'profile.thanksForFeedback': '¡Gracias por tus comentarios!',
@@ -2482,6 +2480,29 @@
     .follow-heart-card svg{width:22px !important;height:22px !important;}
     .follow-heart-row svg{width:21px;height:21px;}
   }
+  /* Church profile page's own follow heart, top-right of the banner,
+     level with the denomination eyebrow text -- replaces what used to
+     be a separate "Follow church" text button in the button row below
+     (requested directly: "replace the Follow Church button with the
+     heart and have it in the upper right corner across from
+     denomination"). Unlike .follow-heart-card/.follow-heart-row, this
+     one does NOT need a html[data-theme="dark"] variant -- .banner's
+     background is var(--brand), which (unlike --ink/--paper/etc.) is
+     never redefined under [data-theme="dark"], so this banner is
+     always the same dark navy regardless of site theme. #8FA0C4 for
+     the empty state matches #church-eyebrow's own hardcoded color
+     right next to it (also, not coincidentally, the same value as
+     dark theme's --ink-mute) for visual harmony against that fixed
+     background; #F0A8C4 for the followed state reuses the same pink
+     the card/row hearts already use elsewhere on the site. */
+  .follow-heart-profile{
+    position:absolute;top:0;right:0;width:34px;height:34px;
+    background:none;border:none;cursor:pointer;padding:0;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .follow-heart-profile:disabled{cursor:pointer;}
+  .follow-heart-profile svg{width:24px;height:24px;stroke:#8FA0C4;stroke-width:1.5;fill:none;}
+  .follow-heart-profile[data-following="true"] svg{fill:#F0A8C4;stroke:#F0A8C4;}
   /* Brief "Undo" toast after unfollowing a church on My Churches --
      requested directly, in case the click was an accident. Created
      and appended to <body> once, on first use (see showUnfollowToast),
@@ -3663,7 +3684,15 @@
 <!-- ================= CHURCH PROFILE ================= -->
 <section class="page" id="page-church">
   <div class="banner">
-    <div class="wrap">
+    <div class="wrap" style="position:relative;">
+      <!-- Rendered by populateChurchPage()/checkChurchFollowStatus(),
+           same as the directory card/list hearts (followHeartCard()/
+           followHeartRow()) -- empty until then so there's nothing to
+           mis-click before a real church id is known. Positioned via
+           .follow-heart-profile itself (position:absolute, top-right of
+           this now position:relative .wrap), independent of where this
+           div sits in the DOM/flex order. -->
+      <div id="church-follow-heart-slot"></div>
       <div>
         <div class="eyebrow" style="color:#8FA0C4;" id="church-eyebrow"></div>
         <h1 id="church-name"></h1>
@@ -3690,7 +3719,6 @@
       <div style="display:flex;flex-wrap:wrap;gap:10px;">
         <button class="btn-outline" style="margin-right:0;" onclick="openContactChurchModal()" data-i18n="church.message">Message</button>
         <button class="btn-outline" style="margin-right:0;" id="church-top-give-btn" onclick="openRealGiveTab()" data-i18n="church.give">Give</button>
-        <button class="btn-gold" id="church-follow-btn" data-i18n="church.follow">Follow church</button>
       </div>
     </div>
   </div>
@@ -6201,7 +6229,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v29 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v30 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -6590,11 +6618,11 @@
   // direct feedback that a claimed/managed signal "doesn't make sense
   // yet" here. This is a genuinely different, interactive feature
   // instead: an empty heart toggles to a filled one on click, backed by
-  // the church_follows table the church profile page's own Follow
-  // button already uses (checkChurchFollowStatus() / the
-  // church-follow-btn handler below) -- same table, same click-to-
-  // toggle semantics, just reachable from the card/row too instead of
-  // only after opening the church's page.
+  // the church_follows table the church profile page's own follow
+  // heart already uses (checkChurchFollowStatus() /
+  // #church-follow-heart-slot) -- same table, same click-to-toggle
+  // semantics, just reachable from the card/row too instead of only
+  // after opening the church's page.
   //
   // Unlike the claimed indicator this replaces, followability doesn't
   // depend on c.ownerId at all -- every real (DB-backed) church can be
@@ -6889,6 +6917,21 @@
     window.currentPageChurchName = displayChurchName(c.name);
     if (typeof window.checkChurchGivingEnabled === 'function') window.checkChurchGivingEnabled(c.id);
     if (typeof window.checkChurchHomeStatus === 'function') window.checkChurchHomeStatus(c.id);
+    // Rendered fresh (not just updated in place) on every page
+    // populate -- the slot has to actually contain THIS church's
+    // [data-follow-church-id] before the shared delegated click
+    // handler (search data-follow-church-id) has anything to find,
+    // same reasoning as followHeartCard()/followHeartRow() building
+    // their own markup fresh per card. Starts data-following="false";
+    // checkChurchFollowStatus() right below corrects it once the real
+    // query resolves, same two-step pattern the old text button used
+    // (default label, then corrected after an async check).
+    var followHeartSlot = document.getElementById('church-follow-heart-slot');
+    if (followHeartSlot) {
+      followHeartSlot.innerHTML = c.id
+        ? '<button type="button" class="follow-heart-profile" data-follow-church-id="' + c.id + '" data-following="false" aria-label="' + window.t('church.follow') + '" title="' + window.t('church.follow') + '">' + HEART_ICON + '</button>'
+        : '';
+    }
     if (typeof window.checkChurchFollowStatus === 'function') window.checkChurchFollowStatus(c.id);
   }
   window.populateChurchPage = populateChurchPage;
@@ -19141,50 +19184,35 @@
 
   // Church following — checks whether the signed-in visitor already
   // follows this church whenever its page loads, and keeps the
-  // button's own click handler in sync with the same state.
+  // profile page's own heart (#church-follow-heart-slot, rendered by
+  // populateChurchPage()) in sync with the same state. No dedicated
+  // click handler here anymore -- the heart carries the same
+  // [data-follow-church-id] attribute the directory card/row hearts
+  // do, so the one shared delegated click handler further down
+  // (search data-follow-church-id) already covers it, toggle logic
+  // and all; that handler already had a special case to call this
+  // function back afterward to keep this page's own heart in sync.
   async function checkChurchFollowStatus(churchId){
-    var btn = document.getElementById('church-follow-btn');
-    if (!btn) return;
+    var slot = document.getElementById('church-follow-heart-slot');
+    var heartEl = slot ? slot.querySelector('[data-follow-church-id]') : null;
+    if (!heartEl) return;
     var { data: userData } = await supabase.auth.getUser();
     if (!userData.user) {
-      btn.textContent = window.t('church.follow');
-      btn.setAttribute('data-following', 'false');
+      heartEl.setAttribute('data-following', 'false');
       return;
     }
     var { data } = await supabase.from('church_follows').select('id').eq('user_id', userData.user.id).eq('church_id', churchId).limit(1);
     var isFollowing = !!(data && data.length);
-    btn.textContent = isFollowing ? window.t('church.followingCheck') : window.t('church.follow');
-    btn.setAttribute('data-following', isFollowing ? 'true' : 'false');
+    heartEl.setAttribute('data-following', isFollowing ? 'true' : 'false');
   }
   window.checkChurchFollowStatus = checkChurchFollowStatus;
 
-  var churchFollowBtn = document.getElementById('church-follow-btn');
-  if (churchFollowBtn) {
-    churchFollowBtn.addEventListener('click', async function(){
-      var { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) {
-        showLoginRequired(window.t('loginRequired.followChurch'));
-        return;
-      }
-      if (!window.currentPageChurchId) return;
-
-      var isFollowing = churchFollowBtn.getAttribute('data-following') === 'true';
-      churchFollowBtn.disabled = true;
-      if (isFollowing) {
-        await supabase.from('church_follows').delete().eq('user_id', userData.user.id).eq('church_id', window.currentPageChurchId);
-      } else {
-        await supabase.from('church_follows').insert({ user_id: userData.user.id, church_id: window.currentPageChurchId });
-      }
-      churchFollowBtn.disabled = false;
-      checkChurchFollowStatus(window.currentPageChurchId);
-    });
-  }
-
-  // Same follow/unfollow toggle as church-follow-btn above, reachable
-  // straight from a directory card/row heart instead of only after
-  // opening the church's page -- one delegated handler covers every
-  // card/row on the page (and any re-rendered later) since they're all
-  // built from the same followHeartCard()/followHeartRow() markup.
+  // Shared follow/unfollow toggle -- handles clicks on ANY element
+  // carrying [data-follow-church-id]: directory card/row hearts (from
+  // followHeartCard()/followHeartRow()) AND the church profile page's
+  // own heart (#church-follow-heart-slot, from populateChurchPage()),
+  // all built from the same HEART_ICON markup. One delegated handler
+  // covers every one of them, including any re-rendered later.
   // stopPropagation matters here specifically: the heart button sits
   // inside the card/row's own <a href="#church/...">, so without it a
   // click would also navigate to the church page.
