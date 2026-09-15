@@ -10,9 +10,22 @@
 // updated file back into the dashboard's Code tab and redeploy, THEN
 // update this file to match so the backup doesn't drift.
 //
-// Confirmed deployed and working as of 2026-09-09 (this file is the exact
-// version live in production), including the event_contact_notify feature
-// and the member_invite fix documented in GOTCHAS.md.
+// Last CONFIRMED deployed and working: 2026-09-09, including the
+// event_contact_notify feature and the member_invite fix documented in
+// GOTCHAS.md.
+//
+// EDITED 2026-09-15, NOT YET CONFIRMED DEPLOYED: the mass_email block
+// below now also writes to message_batches/message_log for delivery
+// tracking (see migration 028_message_delivery_tracking.sql and the new
+// resend-webhook.ts function) -- this was NOT fetched fresh from the
+// live Edge Functions dashboard first (no dashboard access from this
+// environment); it was edited directly against this repo's own backup
+// copy instead, on the assumption it still matched live as of the date
+// above. Diff this file against the actual dashboard source before
+// pasting it in, in case anything changed there since 2026-09-09 that
+// this backup doesn't know about. Once you've pasted this into the
+// dashboard, redeployed, and confirmed it's working, update this
+// comment's "last confirmed deployed" date to reflect that.
 //
 // Dispatches on body.type: welcome_email, contact_church, mass_email,
 // group_join_request, ownership_handoff, member_invite,
@@ -100,11 +113,47 @@ serve(async (req) => {
     }
 
     if (body.type === 'mass_email') {
-      const { recipientEmails, subject, bodyHtml, churchName } = body;
+      const { recipientEmails, subject, bodyHtml, churchName, churchId, audienceLabel } = body;
       if (!recipientEmails || !recipientEmails.length) {
         return new Response(JSON.stringify({ error: 'No recipients found for this audience.' }), {
           status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
+      }
+
+      // Delivery/open/bounce tracking (see migration
+      // 028_message_delivery_tracking.sql and resend-webhook.ts): one
+      // message_batches row for this send, then one message_log row per
+      // recipient once we have Resend's own id for that email back. churchId
+      // is optional so this stays backward-compatible with any other caller
+      // of this same type that doesn't send it — tracking is skipped, the
+      // email itself still goes out exactly as before. A tracking failure
+      // must never block or fail the actual send.
+      const supabaseAdmin = createClient(Deno.env.get('SUPABASE_URL'), Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'));
+      let senderId = null;
+      const authHeader = req.headers.get('Authorization');
+      if (authHeader) {
+        try {
+          const { data: authData } = await supabaseAdmin.auth.getUser(authHeader.replace('Bearer ', ''));
+          senderId = authData && authData.user ? authData.user.id : null;
+        } catch (e) { /* best-effort — proceed without a sender id */ }
+      }
+
+      let batchId = null;
+      if (churchId) {
+        try {
+          const { data: batchRow, error: batchError } = await supabaseAdmin
+            .from('message_batches')
+            .insert({
+              church_id: churchId,
+              message_type: recipientEmails.length === 1 ? 'individual' : 'mass_email',
+              subject: subject,
+              audience_label: audienceLabel || null,
+              recipient_count: recipientEmails.length,
+              created_by: senderId,
+            })
+            .select('id').single();
+          if (!batchError && batchRow) batchId = batchRow.id;
+        } catch (e) { /* best-effort — send proceeds untracked */ }
       }
 
       const fromLine = `${churchName} via FaithDock <invites@faithdock.com>`;
@@ -126,10 +175,24 @@ serve(async (req) => {
             status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
           });
         }
+        const resData = await res.json();
+        if (batchId && resData && Array.isArray(resData.data)) {
+          const logRows = resData.data
+            .map((item, idx) => ({
+              batch_id: batchId,
+              church_id: churchId,
+              resend_email_id: item && item.id ? item.id : null,
+              recipient_email: chunk[idx],
+            }))
+            .filter((r) => r.resend_email_id);
+          if (logRows.length) {
+            try { await supabaseAdmin.from('message_log').insert(logRows); } catch (e) { /* best-effort */ }
+          }
+        }
         totalSent += chunk.length;
       }
 
-      return new Response(JSON.stringify({ success: true, sentCount: totalSent }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      return new Response(JSON.stringify({ success: true, sentCount: totalSent, batchId: batchId }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     if (body.type === 'group_join_request') {

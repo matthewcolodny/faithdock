@@ -529,6 +529,7 @@
       'dashMsg.scheduleForLater': 'Schedule for later instead of sending now', 'dashMsg.sendAnnouncement': 'Send announcement',
       'dashMsg.scheduledAnnouncements': 'Scheduled announcements',
       'dashMsg.nothingScheduled': 'Nothing scheduled right now.', 'dashMsg.cancelScheduled': 'Cancel',
+      'dashMsg.sentMessages': 'Sent messages', 'dashMsg.noSentMessages': 'No messages sent yet.',
       'dashGroups.newGroup': 'New group', 'dashGroups.groupName': 'Group name', 'dashGroups.description': 'Description',
       'dashGroups.descriptionPlaceholder': 'What this group is about', 'dashGroups.meetingSchedule': 'Meeting schedule',
       'dashGroups.onSpecificDate': 'On a specific date', 'dashGroups.everyWeek': 'Every week', 'dashGroups.every1st': 'Every 1st',
@@ -736,6 +737,7 @@
       'dashMessages.pickDateTimeToSchedule': 'Pick a date and time to schedule for.', 'dashMessages.scheduledTimeMustBeFuture': 'Scheduled time must be in the future.', 'dashMessages.scheduledFor': 'Scheduled for {datetime}!',
       'dashMessages.gatheringRecipients': 'Gathering recipients...', 'dashMessages.noRecipientsFound': 'No recipients found for this audience.',
       'dashMessages.sendingToN': 'Sending to {n} {personWord}...', 'dashMessages.sentToN': 'Sent to {n} {personWord}!',
+      'dashMessages.delivered': 'Delivered', 'dashMessages.opened': 'Opened', 'dashMessages.bounced': 'Bounced', 'dashMessages.pending': 'Pending', 'dashMessages.sentStatus': 'Sent',
       'dashDir.noEmailOnFile': 'No email address on file for this person.', 'dashDir.subjectAndMessageRequired': 'Subject and message are both required.', 'dashDir.removeWordBeforeSending': 'Please remove "{word}" before sending.',
       'dashDir.sending': 'Sending...', 'dashDir.sentToPerson': 'Sent to {name}!',
       'dashSettings.churchNameMismatch': "That doesn't match the church name exactly.", 'dashSettings.deletingChurch': 'Deleting church...',
@@ -1309,6 +1311,7 @@
       'dashMsg.scheduleForLater': 'Programar para más tarde en lugar de enviar ahora', 'dashMsg.sendAnnouncement': 'Enviar anuncio',
       'dashMsg.scheduledAnnouncements': 'Anuncios programados',
       'dashMsg.nothingScheduled': 'Nada programado por ahora.', 'dashMsg.cancelScheduled': 'Cancelar',
+      'dashMsg.sentMessages': 'Mensajes enviados', 'dashMsg.noSentMessages': 'Aún no se han enviado mensajes.',
       'dashGroups.newGroup': 'Nuevo grupo', 'dashGroups.groupName': 'Nombre del grupo', 'dashGroups.description': 'Descripción',
       'dashGroups.descriptionPlaceholder': 'De qué trata este grupo', 'dashGroups.meetingSchedule': 'Horario de reunión',
       'dashGroups.onSpecificDate': 'En una fecha específica', 'dashGroups.everyWeek': 'Cada semana', 'dashGroups.every1st': 'Cada 1.º',
@@ -1516,6 +1519,7 @@
       'dashMessages.pickDateTimeToSchedule': 'Elige una fecha y hora para programar.', 'dashMessages.scheduledTimeMustBeFuture': 'La hora programada debe ser en el futuro.', 'dashMessages.scheduledFor': '¡Programado para {datetime}!',
       'dashMessages.gatheringRecipients': 'Reuniendo destinatarios...', 'dashMessages.noRecipientsFound': 'No se encontraron destinatarios para esta audiencia.',
       'dashMessages.sendingToN': 'Enviando a {n} {personWord}...', 'dashMessages.sentToN': '¡Enviado a {n} {personWord}!',
+      'dashMessages.delivered': 'Entregado', 'dashMessages.opened': 'Abierto', 'dashMessages.bounced': 'Rebotado', 'dashMessages.pending': 'Pendiente', 'dashMessages.sentStatus': 'Enviado',
       'dashDir.noEmailOnFile': 'No hay correo registrado para esta persona.', 'dashDir.subjectAndMessageRequired': 'El asunto y el mensaje son obligatorios.', 'dashDir.removeWordBeforeSending': 'Por favor elimina "{word}" antes de enviar.',
       'dashDir.sending': 'Enviando...', 'dashDir.sentToPerson': '¡Enviado a {name}!',
       'dashSettings.churchNameMismatch': 'Eso no coincide exactamente con el nombre de la iglesia.', 'dashSettings.deletingChurch': 'Eliminando iglesia...',
@@ -2815,6 +2819,11 @@
   .registrant-action-spacer{display:inline-block;width:70px;}
   .registrant-name{font-size:13.5px;font-weight:500;color:var(--ink);}
   .registrant-date{font-size:11.5px;color:var(--ink-mute);font-family:'IBM Plex Mono';}
+  .msg-history-item{border-bottom:1px solid var(--line);padding:10px 0;}
+  .msg-history-item:last-child{border-bottom:none;}
+  .msg-history-item summary{cursor:pointer;list-style:revert;}
+  .msg-history-item summary::marker{color:var(--ink-mute);}
+  .msg-history-recipients{margin-top:8px;}
   .group-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin-bottom:14px;}
   .group-card h4{font-size:16px;margin-bottom:6px;}
   .group-card p{font-size:13.5px;color:var(--ink-soft);margin-bottom:10px;}
@@ -5322,6 +5331,11 @@
           <h4 data-i18n="dashMsg.scheduledAnnouncements">Scheduled announcements</h4>
           <div id="msg-scheduled-list"><p style="color:var(--ink-mute);font-size:13px;" data-i18n="common.loading">Loading...</p></div>
         </div>
+
+        <div class="side-note" style="max-width:560px;">
+          <h4 data-i18n="dashMsg.sentMessages">Sent messages</h4>
+          <div id="msg-history-list"><p style="color:var(--ink-mute);font-size:13px;" data-i18n="common.loading">Loading...</p></div>
+        </div>
         </div>
       </div>
 
@@ -5817,7 +5831,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-14-v11 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v1 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -9264,6 +9278,7 @@
       if (currentBase === 'dashboard' && typeof window.loadRecentlyJoinedPanel === 'function') window.loadRecentlyJoinedPanel();
       if (currentBase === 'dashboard' && typeof window.loadHouseholdsPanel === 'function') window.loadHouseholdsPanel();
       if (currentBase === 'dashboard' && typeof window.loadScheduledMessages === 'function') window.loadScheduledMessages();
+      if (currentBase === 'dashboard' && typeof window.loadMessageHistory === 'function') window.loadMessageHistory();
       // create-event has several JS-rendered lists (contacts,
       // questions, room checklist) whose option/placeholder text was
       // baked in at render time — redo them so a language toggle
@@ -17545,7 +17560,7 @@
       statusEl.textContent = window.t('dashMessages.sendingToN').replace('{n}', recipientEmails.length).replace('{personWord}', recipientEmails.length === 1 ? window.t('insights.personWord') : window.t('insights.peopleWord'));
 
       var { data, error } = await supabase.functions.invoke('smooth-action', {
-        body: { type: 'mass_email', recipientEmails: recipientEmails, subject: subject, bodyHtml: bodyHtml, churchName: myChurch.name }
+        body: { type: 'mass_email', recipientEmails: recipientEmails, subject: subject, bodyHtml: bodyHtml, churchName: myChurch.name, churchId: myChurch.id, audienceLabel: describeAudience(audience) }
       });
 
       msgSendBtn.disabled = false;
@@ -17563,7 +17578,22 @@
       statusEl.style.color = 'var(--sage)';
       document.getElementById('msg-subject').value = '';
       document.getElementById('msg-body').innerHTML = '';
+      if (typeof window.loadMessageHistory === 'function') window.loadMessageHistory();
     });
+  }
+
+  // Short human-readable summary of a mass-email audience selection, saved
+  // alongside each sent batch (message_batches.audience_label) purely for
+  // display in the Sent messages history below -- not used for anything
+  // functional, so this only needs to be good enough to recognize a past
+  // send at a glance.
+  function describeAudience(audience){
+    var parts = [];
+    if (audience.types.indexOf('members') !== -1) parts.push(window.t('dashMsg.allMembers'));
+    if (audience.types.indexOf('staff') !== -1) parts.push(window.t('dashMsg.allStaff'));
+    if (audience.groupIds.length) parts.push(audience.groupIds.length + ' ' + window.t('dash.groups'));
+    if (audience.eventIds.length) parts.push(audience.eventIds.length + ' ' + window.t('dash.events'));
+    return parts.join(', ');
   }
 
   async function loadScheduledMessages(){
@@ -17591,6 +17621,68 @@
     await supabase.from('scheduled_messages').update({ status: 'canceled' }).eq('id', cancelBtn.getAttribute('data-cancel-scheduled-id'));
     loadScheduledMessages();
   });
+
+  // Sent messages history — delivery/open/bounce stats come from
+  // message_log, populated by the resend-webhook edge function as Resend
+  // reports back on each email (see supabase/functions/resend-webhook.ts).
+  // Per-recipient detail is loaded lazily, only the first time a batch's
+  // <details> is expanded, to avoid pulling every recipient row for every
+  // past send just to render the summary list.
+  async function loadMessageHistory(){
+    var listEl = document.getElementById('msg-history-list');
+    if (!listEl) return;
+    var myChurch = await getMyChurch();
+    if (!myChurch) { listEl.innerHTML = ''; return; }
+
+    var { data: batches, error } = await supabase.from('message_batches').select('*').eq('church_id', myChurch.id).order('created_at', { ascending: false }).limit(20);
+    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:13px;">' + error.message + '</p>'; return; }
+    if (!batches || !batches.length) { listEl.innerHTML = '<p style="color:var(--ink-mute);font-size:13px;">' + window.t('dashMsg.noSentMessages') + '</p>'; return; }
+
+    var batchIds = batches.map(function(b){ return b.id; });
+    var { data: logRows } = await supabase.from('message_log').select('batch_id, delivered_at, first_opened_at, bounced_at').in('batch_id', batchIds);
+    var statsByBatch = {};
+    (logRows || []).forEach(function(r){
+      if (!statsByBatch[r.batch_id]) statsByBatch[r.batch_id] = { delivered: 0, opened: 0, bounced: 0 };
+      if (r.bounced_at) { statsByBatch[r.batch_id].bounced++; return; }
+      if (r.delivered_at) statsByBatch[r.batch_id].delivered++;
+      if (r.first_opened_at) statsByBatch[r.batch_id].opened++;
+    });
+
+    listEl.innerHTML = batches.map(function(b){
+      var stats = statsByBatch[b.id] || { delivered: 0, opened: 0, bounced: 0 };
+      var dateLabel = new Date(b.created_at).toLocaleString(window.appLocale());
+      var statsLine = window.t('dashMessages.delivered') + ': ' + stats.delivered + '/' + b.recipient_count
+        + ' · ' + window.t('dashMessages.opened') + ': ' + stats.opened
+        + (stats.bounced ? ' · ' + window.t('dashMessages.bounced') + ': ' + stats.bounced : '');
+      return '<details class="msg-history-item" data-batch-id="' + b.id + '">'
+        + '<summary><div class="registrant-name">' + escapeHtml(b.subject || '') + '</div>'
+        + '<div class="registrant-date">' + escapeHtml(b.audience_label || '') + ' · ' + dateLabel + '</div>'
+        + '<div style="font-size:12px;color:var(--ink-mute);margin-top:2px;">' + statsLine + '</div></summary>'
+        + '<div class="msg-history-recipients" data-loaded="">' + window.t('common.loading') + '</div>'
+        + '</details>';
+    }).join('');
+  }
+  window.loadMessageHistory = loadMessageHistory;
+  loadMessageHistory();
+
+  // The native 'toggle' event on <details> doesn't bubble, so this has to
+  // listen in the capture phase to catch it via delegation.
+  document.addEventListener('toggle', async function(ev){
+    var item = ev.target.closest ? ev.target.closest('.msg-history-item') : null;
+    if (!item || !item.open) return;
+    var recipEl = item.querySelector('.msg-history-recipients');
+    if (!recipEl || recipEl.getAttribute('data-loaded') === '1') return;
+    recipEl.setAttribute('data-loaded', '1');
+    var { data: recips, error: recipsError } = await supabase.from('message_log')
+      .select('recipient_email, resend_confirmed_at, delivered_at, first_opened_at, bounced_at')
+      .eq('batch_id', item.getAttribute('data-batch-id')).order('recipient_email');
+    if (recipsError) { recipEl.textContent = recipsError.message; return; }
+    recipEl.innerHTML = (recips || []).map(function(r){
+      var label = r.bounced_at ? window.t('dashMessages.bounced') : (r.first_opened_at ? window.t('dashMessages.opened') : (r.delivered_at ? window.t('dashMessages.delivered') : (r.resend_confirmed_at ? window.t('dashMessages.sentStatus') : window.t('dashMessages.pending'))));
+      var color = r.bounced_at ? 'var(--clay)' : (r.first_opened_at ? 'var(--gold)' : (r.delivered_at ? 'var(--sage)' : (r.resend_confirmed_at ? 'var(--ink-soft)' : 'var(--ink-mute)')));
+      return '<div style="display:flex;justify-content:space-between;gap:12px;padding:3px 0;font-size:12.5px;"><span>' + escapeHtml(r.recipient_email) + '</span><span style="color:' + color + ';font-weight:600;flex-shrink:0;">' + label + '</span></div>';
+    }).join('');
+  }, true);
 
   document.querySelectorAll('.directory-filter-btn').forEach(function(btn){
     btn.addEventListener('click', function(){
@@ -17735,7 +17827,7 @@
 
       var bodyHtml = bodyText.split('\n').map(function(line){ return '<p>' + escapeHtml(line) + '</p>'; }).join('');
       var { data, error } = await supabase.functions.invoke('smooth-action', {
-        body: { type: 'mass_email', recipientEmails: [currentDirectoryPersonEmail], subject: subject, bodyHtml: bodyHtml, churchName: myChurch.name }
+        body: { type: 'mass_email', recipientEmails: [currentDirectoryPersonEmail], subject: subject, bodyHtml: bodyHtml, churchName: myChurch.name, churchId: myChurch.id, audienceLabel: currentDirectoryPersonName }
       });
 
       directoryMessageSendBtn.disabled = false;
@@ -17753,6 +17845,7 @@
       statusEl.style.color = 'var(--sage)';
       document.getElementById('directory-message-subject').value = '';
       document.getElementById('directory-message-body').value = '';
+      if (typeof window.loadMessageHistory === 'function') window.loadMessageHistory();
       setTimeout(function(){
         document.getElementById('directory-person-modal').classList.remove('open');
         document.getElementById('directory-person-message-form').style.display = 'none';

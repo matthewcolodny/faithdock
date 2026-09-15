@@ -1806,6 +1806,26 @@ Build `2026-09-14-v11`.
 
 ---
 
+## New feature: real delivery/open/bounce tracking for outbound church messages
+
+Before this, every mass announcement and individual directory-person message was fire-and-forget: `{success, sentCount}` from `smooth-action`'s `mass_email` branch and nothing else -- no way to know if an email actually arrived, bounced, or was ever opened. This adds real tracking, surfaced as a "Sent messages" history panel on Dashboard → Messages, using Resend's own webhook callbacks rather than guessing.
+
+**Shape**: two new tables (`message_batches` -- one row per compose+send click; `message_log` -- one row per recipient within a batch, correlated to Resend via `resend_email_id`), a new `apply_resend_webhook_event()` SQL function that advances a log row's status forward-only (`sent → delivered → opened → clicked`, immune to Resend re-delivering an event out of order), a new `resend-webhook` edge function that receives and verifies Resend's Svix-signed callbacks and calls that function, and edits to `smooth-action.ts`'s existing `mass_email` branch to create the batch/log rows in the first place.
+
+**Migration renumbered 027 → 028.** Same collision as the denomination-pattern-gaps migration earlier today: `027` was already taken by `027_denomination_pattern_gaps.sql`, committed in this same local session, which the prompt's own disconnected scratch clone couldn't see. Confirmed via `ls supabase/migrations/` before creating the file, per the prompt's own instruction to check first.
+
+**Could not fetch the live `smooth-action.ts` source before editing, despite the standing rule to.** This environment has no access to the Supabase Edge Functions dashboard at all -- no credentials, no browser session, no management API reachable from here. Confirmed the repo's own tracked backup (dated "confirmed deployed 2026-09-09") matches the prompt's own expected "Find" block for the `mass_email` section character-for-character, and edited that local copy on the assumption it's still accurate -- but this is genuinely unverified against whatever's actually live today (2026-09-15). Rewrote the file's header comment to say so explicitly (NOT bumping the "confirmed deployed" date, since nothing has actually been confirmed deployed by this session) and to tell the user to diff before pasting into the dashboard, rather than silently presenting an edited backup as if it were a confirmed-safe change.
+
+**Deployment is entirely manual, same as every edge function in this repo.** Committing these files to git does nothing on its own -- `resend-webhook` needs to be created fresh in the Supabase dashboard (with Verify JWT explicitly turned OFF, since Resend calls it with no Supabase auth at all), `smooth-action.ts`'s full updated source needs to be pasted into its existing dashboard entry and redeployed, a webhook needs to be registered in the Resend dashboard pointed at the new function's URL, and `RESEND_WEBHOOK_SECRET` needs to be set as a Supabase Edge Function secret using the signing secret Resend generates when that webhook is created. None of the tracking data will appear until all of that is done by hand -- sends themselves are unaffected either way (churchId is optional in the payload; omitting it, or the tracking inserts failing, never blocks or fails the actual email).
+
+**Verified what this environment allows, nothing more claimed**: all `index.html` Find blocks matched exactly, no drift. All 4 non-module `<script>` blocks pass `node --check`, as do both edited/new `.ts` edge function files. Live in the browser: the new "Sent messages" panel renders with the correct heading and translated Spanish strings; `window.loadMessageHistory()` runs without throwing and correctly no-ops when signed out; the new `.msg-history-item` CSS (border-bottom, `:last-child` suppression, cursor, spacing) confirmed correct by injecting synthetic `<details>` markup and checking computed styles. **Could not test the actual send → webhook → status-update flow** -- that requires a real signed-in church-owner session, a real Resend account, and the Step 0 manual setup, none of which are reachable from here. The migration's own status-ladder logic (out-of-order event handling) was tested against a local Postgres instance per the prompt's own account, not independently re-verified here.
+
+**Deliberately out of scope, per the prompt**: `welcome_email`, `contact_church`, `group_join_request`, `ownership_handoff`, `member_invite`, `event_contact_notify`, and the default staff-invite branch stay untracked -- none of those are shown anywhere an owner would currently look for delivery stats. Same pattern (`churchId` + `audienceLabel` through to the same two tables) extends cleanly to any of them later if wanted.
+
+Build `2026-09-15-v1`.
+
+---
+
 ## Multi-part data-quality report: Spanish-language tagging gaps, an Ethiopian Orthodox miss, casing, and a "Ministries" hide widening
 
 Reported live with real examples across 4 church cards. Checked the actual database state for each before writing anything, rather than assuming.
