@@ -1933,7 +1933,27 @@
   }
   window._applyEarlyGeoCoordsOnce = _applyEarlyGeoCoordsOnce;
 
-  // Paint an instant guess from last visit while the real fix (above)
+  // A location someone explicitly SEARCHED for (typed a city, picked
+  // an autocomplete suggestion, hit "Use my location") takes priority
+  // over auto-detection entirely -- reported directly: searching a
+  // different city, then refreshing, was silently reverting to
+  // auto-detected "near me" instead of staying on the searched city.
+  // setDirLocation() (module script, the one shared choke point every
+  // manual search funnels through) writes this on every such search;
+  // sessionStorage so it survives a refresh but not a closed tab/new
+  // visit, where auto-detection should take back over.
+  window.earlyManualLocation = null;
+  try {
+    var _fdManualRaw = sessionStorage.getItem('fd_manual_location');
+    if (_fdManualRaw) {
+      var _fdManual = JSON.parse(_fdManualRaw);
+      if (_fdManual && typeof _fdManual.lat === 'number' && typeof _fdManual.lng === 'number') {
+        window.earlyManualLocation = _fdManual;
+      }
+    }
+  } catch(e) { /* sessionStorage unavailable (private mode, etc.) -- falls through to auto-detection below */ }
+
+  // Paint an instant guess from last visit while the real fix (below)
   // is still in flight, instead of the cards sitting on "Set your
   // location" for however long that takes -- the maximumAge cache
   // below only helps a RELOAD within 5 minutes; a brand new tab or a
@@ -1942,31 +1962,54 @@
   // week-old guess beats no guess: real coords always follow shortly
   // after and silently correct it (a second render call, same as any
   // other location update), so a stale guess only ever costs a brief,
-  // self-fixing flash -- never a wrong final result.
+  // self-fixing flash -- never a wrong final result. Skipped entirely
+  // when a manual location exists -- reading it would be pointless
+  // work the block below immediately overrides anyway.
   window.earlyGeoInstantApplied = false;
   window.earlyGeoInstantCoords = null;
-  try {
-    var _fdLastGeoRaw = localStorage.getItem('fd_last_geo');
-    if (_fdLastGeoRaw) {
-      var _fdLastGeo = JSON.parse(_fdLastGeoRaw);
-      if (_fdLastGeo && typeof _fdLastGeo.lat === 'number' && typeof _fdLastGeo.lng === 'number'
-          && (Date.now() - _fdLastGeo.ts) < 7 * 24 * 60 * 60 * 1000) {
-        window.earlyGeoInstantCoords = { lat: _fdLastGeo.lat, lng: _fdLastGeo.lng };
+  if (!window.earlyManualLocation) {
+    try {
+      var _fdLastGeoRaw = localStorage.getItem('fd_last_geo');
+      if (_fdLastGeoRaw) {
+        var _fdLastGeo = JSON.parse(_fdLastGeoRaw);
+        if (_fdLastGeo && typeof _fdLastGeo.lat === 'number' && typeof _fdLastGeo.lng === 'number'
+            && (Date.now() - _fdLastGeo.ts) < 7 * 24 * 60 * 60 * 1000) {
+          window.earlyGeoInstantCoords = { lat: _fdLastGeo.lat, lng: _fdLastGeo.lng };
+        }
       }
-    }
-  } catch(e) { /* localStorage unavailable (private mode, etc.) -- just skip the instant guess */ }
-  // Called by the module script the moment applyDirLocationCoords()
-  // itself is defined, rather than waiting on Maps/geolocation timing
-  // at all -- that's the whole point of this being an instant paint.
+    } catch(e) { /* localStorage unavailable (private mode, etc.) -- just skip the instant guess */ }
+  }
+  // Called by the module script the moment BOTH applyDirLocationCoords
+  // and applyDirLocationLabel exist, rather than waiting on Maps or
+  // geolocation timing at all -- that's the whole point of this being
+  // an instant paint. A remembered manual location wins over the
+  // last-known-location guess if both somehow exist.
   window._applyInstantGeoIfPending = function(){
     if (window.earlyGeoInstantApplied) return;
-    if (!window.earlyGeoInstantCoords) return;
     if (typeof window.applyDirLocationCoords !== 'function') return;
+    if (window.earlyManualLocation) {
+      window.earlyGeoInstantApplied = true;
+      window.applyDirLocationCoords(window.earlyManualLocation.lat, window.earlyManualLocation.lng);
+      if (window.earlyManualLocation.label && typeof window.applyDirLocationLabel === 'function') {
+        window.applyDirLocationLabel(window.earlyManualLocation.label);
+      }
+      return;
+    }
+    if (!window.earlyGeoInstantCoords) return;
     window.earlyGeoInstantApplied = true;
     window.applyDirLocationCoords(window.earlyGeoInstantCoords.lat, window.earlyGeoInstantCoords.lng);
   };
 
-  if (navigator.geolocation) {
+  if (window.earlyManualLocation) {
+    // A manual search is authoritative for this session -- skip
+    // requesting a fresh GPS fix (and the permission prompt that can
+    // come with it) altogether instead of silently racing it against,
+    // and potentially overwriting, the location the user already told
+    // us they want. earlyGeoDone:true with no coords is exactly the
+    // "resolved, nothing else is coming" state autoDetectHomeLocation()
+    // and renderOnceLocationKnown() already know how to no-op on.
+    window.earlyGeoDone = true;
+  } else if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(function(pos){
       window.earlyGeoCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
       window.earlyGeoDone = true;
@@ -6158,7 +6201,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v27 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v28 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -7836,7 +7879,17 @@
     // Needs supabase; on the very first pre-module call it isn't ready
     // yet, and loadRealChurches() does the initial render itself.
     if(resolved.base === 'directory' && window.supabase && typeof window.renderDirectory === 'function'){
-      window.renderDirectory(directoryPageFromHash());
+      // Gated the same way loadRealChurches() gates its own initial
+      // render (see renderOnceLocationKnown, module script) -- without
+      // this, reloading while already on #directory would call
+      // renderDirectory() immediately here, before a manual or
+      // auto-detected location has actually been applied yet, flashing
+      // an unfiltered page for a moment even after that fix landed.
+      if (typeof window.renderOnceLocationKnown === 'function') {
+        window.renderOnceLocationKnown([function(){ window.renderDirectory(directoryPageFromHash()); }]);
+      } else {
+        window.renderDirectory(directoryPageFromHash());
+      }
     }
   }
   window.showRouteFromHash = showRouteFromHash;
@@ -10057,8 +10110,19 @@
   // is what makes deciding this up front possible at all.
   function renderOnceLocationKnown(renderFns){
     function runAll(){ renderFns.forEach(function(fn){ fn(); }); }
-    var geoExpected = !!window.earlyGeoInstantCoords || window.earlyGeoPermissionState === 'granted';
+    var geoExpected = !!window.earlyManualLocation || !!window.earlyGeoInstantCoords || window.earlyGeoPermissionState === 'granted';
     if (!geoExpected) { runAll(); return; }
+    if (window.earlyManualLocation || window.earlyGeoInstantCoords) {
+      // Already applied (or about to be, imminently) by
+      // _applyInstantGeoIfPending()/applyDirLocationCoords() itself,
+      // independent of what earlyGeoDone/earlyGeoCoords say -- those
+      // two only ever track the SEPARATE real-GPS fix, which a manual
+      // location skips requesting entirely (see the early head
+      // script), so earlyGeoDone can already be true with no coords
+      // here even though a location genuinely is coming. Nothing to
+      // do in either case.
+      return;
+    }
     if (window.earlyGeoDone) {
       // Already resolved (denied/failed) by the time we got here
       // despite being "expected" -- render unfiltered now, same as
@@ -10078,6 +10142,13 @@
     // permanently blank.
     window.earlyGeoCallbacks.push(function(coords){ if (!coords) runAll(); });
   }
+  // showRouteFromHash() (the earlier, non-module <script> block) needs
+  // this too, for its own unconditional renderDirectory() call when
+  // the URL already points straight at #directory on load -- otherwise
+  // reloading while already on the Directory page would flash an
+  // unfiltered page before a manual/auto-detected location caught up,
+  // the exact bug this function exists to prevent everywhere else.
+  window.renderOnceLocationKnown = renderOnceLocationKnown;
 
   async function loadRealChurches(){
     if (typeof window.rebuildDenomFilterChecklist === 'function') window.rebuildDenomFilterChecklist();
@@ -10143,12 +10214,6 @@
     if (typeof window.renderHomeEvents === 'function') window.renderHomeEvents();
   }
   window.applyDirLocationCoords = applyDirLocationCoords;
-  // Paint the localStorage-cached guess from last visit right now, the
-  // instant this function exists -- deliberately not waiting on Maps
-  // or on a fresh geolocation fix, since the whole point is covering
-  // the time those take. See window._applyInstantGeoIfPending in the
-  // early head script for what it's applying and why.
-  if (typeof window._applyInstantGeoIfPending === 'function') window._applyInstantGeoIfPending();
 
   // The label-only half of what setDirLocation() used to do in one
   // step -- deliberately does NOT touch dirUserLat/Lng or re-run any
@@ -10191,6 +10256,18 @@
     if (eventsHeading) eventsHeading.innerHTML = window.t('home.upcomingEventsNear') + ' ' + labelHtml;
   }
   window.applyDirLocationLabel = applyDirLocationLabel;
+  // Paint whatever the early head script already knows about --
+  // either a manual location remembered from before this refresh, or
+  // (failing that) the localStorage-cached last-known-location guess
+  // -- right now, the instant both halves (coords AND label) actually
+  // exist to call. Deliberately waits until here, not right after
+  // applyDirLocationCoords() alone (a few lines up) -- doing it there
+  // would apply coordinates fine but silently skip the label (this
+  // function didn't exist yet at that point), which for a REMEMBERED
+  // MANUAL location specifically would leave the location text box
+  // blank even though real, correctly-filtered results were showing.
+  // See window._applyInstantGeoIfPending in the early head script.
+  if (typeof window._applyInstantGeoIfPending === 'function') window._applyInstantGeoIfPending();
 
   // Still used by every OTHER call site (address autocomplete, "Use my
   // location" button, etc.), which already have both lat/lng AND label
@@ -10200,6 +10277,21 @@
   function setDirLocation(lat, lng, label){
     applyDirLocationCoords(lat, lng);
     applyDirLocationLabel(label);
+    // Every manual location entry point (Directory/Events autocomplete,
+    // Enter/search-button geocoding, "Use my location" on either page)
+    // funnels through this one function -- the single choke point to
+    // remember "the user explicitly chose this" and have it survive a
+    // refresh. Reported directly: searching a different city, then
+    // refreshing, was silently reverting to auto-detected "near me"
+    // instead of staying put. sessionStorage, not localStorage -- it
+    // should survive a refresh (same tab) but NOT quietly override
+    // auto-detection forever once the tab/browser is actually closed
+    // and a genuinely new visit starts; see the early head-script
+    // read of this same key for how it takes priority over both
+    // geolocation and the localStorage last-known-location guess.
+    try {
+      sessionStorage.setItem('fd_manual_location', JSON.stringify({ lat: lat, lng: lng, label: label || null }));
+    } catch(e) { /* private mode, storage full, etc. -- refresh just won't remember this */ }
   }
 
   // Undoes everything setDirLocation() above does -- same shared state
@@ -10217,6 +10309,11 @@
   function clearDirLocation(){
     window.dirUserLat = null;
     window.dirUserLng = null;
+    // Clears the same "manual location" memory setDirLocation() writes
+    // -- otherwise clearing the field here would look cleared, but a
+    // refresh right after would bring the just-cleared search right
+    // back instead of falling through to auto-detection again.
+    try { sessionStorage.removeItem('fd_manual_location'); } catch(e) {}
     var input = document.getElementById('dir-location-input');
     if (input) input.value = '';
     var eventsInput = document.getElementById('events-location-input');
