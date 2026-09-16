@@ -2609,3 +2609,15 @@ Fixed three places:
 Verified: syntax-checked all four `<script>` blocks (0 errors), confirmed no duplicate/overlapping fetch -- the two new call sites (popstate-driven router vs. plain click handler) are mutually exclusive triggers, never both firing for the same navigation. **Not tested** end to end (rename a real church, confirm the switcher's own text updates via both a click and an actual browser Back) -- no real authenticated owner session available in this sandbox to drive that with.
 
 Build `2026-09-16-v48`.
+
+---
+
+## Follow-heart buttons flashed a rectangular focus outline on click
+
+Reported directly, with the root cause already identified: `.follow-heart-card`, `.follow-heart-row`, and `.follow-heart-profile` all set `border:none`, but `outline` is a separate CSS property entirely unaffected by that -- so a click still triggered the browser's default `:focus` outline, flashing a rectangle around the heart.
+
+Fixed with `:focus:not(:focus-visible){outline:none;}` on all three classes, not a blanket `:focus{outline:none;}` -- `:focus-visible` is the browser's own heuristic for "this focus almost certainly came from a keyboard, not a pointer," so scoping it this way only removes the outline for the mouse/touch-click case being fixed and leaves keyboard Tab navigation with a fully visible indicator, same accessibility bar as everywhere else in a project that already ships a dedicated Accessibility page.
+
+Verified directly in a local preview: a real mouse click on `.follow-heart-card` left `document.activeElement.matches(':focus-visible')` `false` and computed `outlineStyle: 'none'`; a real keyboard Tab onto the same class of button left `:focus-visible` `true` and computed `outlineStyle: 'auto'` (a real, visible outline). No console errors beyond the pre-existing, unrelated localhost Turnstile ones.
+
+Build `2026-09-16-v49`.

@@ -2421,6 +2421,18 @@
      flashed a jarring red "no entry" symbol for that split second.
      Keeps the functional disable, just not that cursor. */
   .follow-heart-card:disabled{cursor:pointer;}
+  /* A click on this button flashed a rectangular focus ring around it --
+     the browser's default :focus outline, a separate property from
+     border and completely unaffected by this rule's own border:none
+     above. Scoped to :not(:focus-visible) rather than a blanket
+     :focus{outline:none;}, which would also strip it for someone
+     tabbing here by keyboard -- :focus-visible is the browser's own
+     heuristic for "this focus almost certainly came from a keyboard,
+     not a mouse/touch click," so this only removes the outline for the
+     click case being fixed and leaves it fully intact for keyboard
+     navigation, which still needs a visible indicator (this site has a
+     dedicated Accessibility page committing to exactly that). */
+  .follow-heart-card:focus:not(:focus-visible){outline:none;}
   .follow-heart-card svg{
     width:18px;height:18px;
     stroke:#8A8A8A !important;stroke-width:1.5 !important;
@@ -2466,6 +2478,10 @@
   }
   /* Same not-allowed-cursor flash fix as .follow-heart-card above. */
   .follow-heart-row:disabled{cursor:pointer;}
+  /* Same focus-outline flash fix as .follow-heart-card above, same
+     :not(:focus-visible) scoping so keyboard Tab focus still gets a
+     visible outline here too. */
+  .follow-heart-row:focus:not(:focus-visible){outline:none;}
   /* Light mode: hollow grey outline when empty (no fill at all, unlike
      the card's card-color-blend treatment -- List rows have no single
      background hue to blend into the way a card's thumb does), solid
@@ -2549,6 +2565,10 @@
     display:flex;align-items:center;justify-content:center;
   }
   .follow-heart-profile:disabled{cursor:pointer;}
+  /* Same focus-outline flash fix as .follow-heart-card above, same
+     :not(:focus-visible) scoping so keyboard Tab focus still gets a
+     visible outline here too. */
+  .follow-heart-profile:focus:not(:focus-visible){outline:none;}
   .follow-heart-profile svg{width:24px;height:24px;stroke:#8FA0C4;stroke-width:1.5;fill:none;}
   .follow-heart-profile[data-following="true"] svg{fill:#F0A8C4;stroke:#F0A8C4;}
   /* Brief "Undo" toast after unfollowing a church on My Churches --
@@ -6338,7 +6358,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-16-v48 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-16-v49 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
