@@ -621,6 +621,7 @@
       'dashSettings.givingFunds': 'Giving funds',
       'dashSettings.givingFundsHint': 'Designated funds donors can choose from when giving — a building campaign, a mission trip, whatever your church tracks separately. Gifts with no fund selected count toward the General Fund.',
       'dashSettings.givingEnabledToggle': 'Show the "Give" button on your public page',
+      'dashSettings.toggleSaved': 'Saved', 'dashSettings.toggleSaveError': 'Could not save this setting. Please try again.',
       'dashSettings.messaging': 'Messaging', 'dashSettings.messagingEnabledToggle': 'Show the "Message" button on your public page',
       'dashSettings.messagingHint': 'Whether visitors can message your church from its public page, and who gets a copy when they do. Add more recipients by granting the "Receive contact messages" ability to staff from the Staff page.',
       'dashSettings.ownerReceivesMessagesToggle': 'Send me a copy of every message',
@@ -1418,6 +1419,7 @@
       'dashSettings.givingFunds': 'Fondos de donaciones',
       'dashSettings.givingFundsHint': 'Fondos designados que los donantes pueden elegir al donar — una campaña de construcción, un viaje misionero, lo que tu iglesia rastree por separado. Los regalos sin fondo seleccionado cuentan para el Fondo General.',
       'dashSettings.givingEnabledToggle': 'Mostrar el botón "Donar" en tu página pública',
+      'dashSettings.toggleSaved': 'Guardado', 'dashSettings.toggleSaveError': 'No se pudo guardar esta opción. Inténtalo de nuevo.',
       'dashSettings.messaging': 'Mensajería', 'dashSettings.messagingEnabledToggle': 'Mostrar el botón "Mensaje" en tu página pública',
       'dashSettings.messagingHint': 'Si los visitantes pueden enviar mensajes a tu iglesia desde su página pública, y quién recibe una copia cuando lo hacen. Agrega más destinatarios otorgando la habilidad "Recibir mensajes de contacto" al personal desde la página de Personal.',
       'dashSettings.ownerReceivesMessagesToggle': 'Enviarme una copia de cada mensaje',
@@ -6206,7 +6208,7 @@
                    loadGiveMessageToggles()/the settings-giving-enabled-
                    toggle change handler further down this file. -->
               <label class="filter-check" id="settings-giving-enabled-toggle-wrap" style="display:flex;margin-bottom:14px;">
-                <input type="checkbox" id="settings-giving-enabled-toggle" checked> <span data-i18n="dashSettings.givingEnabledToggle">Show the "Give" button on your public page</span>
+                <input type="checkbox" id="settings-giving-enabled-toggle" checked> <span data-i18n="dashSettings.givingEnabledToggle">Show the "Give" button on your public page</span> <span id="settings-giving-enabled-status" style="display:none;font-size:12px;"></span>
               </label>
               <div id="funds-list" style="margin-bottom:12px;"></div>
               <div style="display:flex;gap:8px;">
@@ -6219,12 +6221,11 @@
               <h4 data-i18n="dashSettings.messaging">Messaging</h4>
               <p style="font-size:13.5px;color:var(--ink-mute);margin-bottom:14px;" data-i18n="dashSettings.messagingHint">Whether visitors can message your church from its public page, and who gets a copy when they do. Add more recipients by granting the "Receive contact messages" ability to staff from the Staff page.</p>
               <label class="filter-check" style="display:flex;margin-bottom:10px;">
-                <input type="checkbox" id="settings-messaging-enabled-toggle" checked> <span data-i18n="dashSettings.messagingEnabledToggle">Show the "Message" button on your public page</span>
+                <input type="checkbox" id="settings-messaging-enabled-toggle" checked> <span data-i18n="dashSettings.messagingEnabledToggle">Show the "Message" button on your public page</span> <span id="settings-messaging-enabled-status" style="display:none;font-size:12px;"></span>
               </label>
               <label class="filter-check" style="display:flex;margin-bottom:14px;">
-                <input type="checkbox" id="settings-owner-receives-messages-toggle" checked> <span data-i18n="dashSettings.ownerReceivesMessagesToggle">Send me a copy of every message</span>
+                <input type="checkbox" id="settings-owner-receives-messages-toggle" checked> <span data-i18n="dashSettings.ownerReceivesMessagesToggle">Send me a copy of every message</span> <span id="settings-owner-receives-messages-status" style="display:none;font-size:12px;"></span>
               </label>
-              <div id="settings-messaging-status" style="display:none;font-size:12px;margin-top:4px;"></div>
             </div>
           </div>
           <div class="side-note" style="margin-top:0;" id="settings-team-pointer-section">
@@ -6337,7 +6338,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-16-v44 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-16-v45 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -15680,11 +15681,24 @@
   }
   window.loadGiveMessageToggles = loadGiveMessageToggles;
 
-  function bindGiveMessageToggleSave(elId, column){
+  function bindGiveMessageToggleSave(elId, column, statusElId){
     var el = document.getElementById(elId);
     if (!el) return;
     el.addEventListener('change', async function(){
-      var statusEl = document.getElementById('settings-messaging-status');
+      // Each checkbox gets its own inline status span (right next to its
+      // label) rather than one shared status div -- the Giving toggle
+      // lives in a different section than Messaging, so a single shared
+      // element had nowhere sensible to show for both. Real, reported
+      // gap: no Save button and no confirmation either -- "I have no way
+      // of knowing whether the change goes into effect." The write
+      // itself was already saving immediately on change; what was
+      // missing was ever telling the owner so.
+      var statusEl = document.getElementById(statusElId);
+      // Stored on the element itself, not a shared/global var -- three
+      // independent toggles each need their own pending-hide timer, or
+      // toggling one quickly after another would cancel/hide the wrong
+      // one's message.
+      if (statusEl && statusEl._hideTimer) { clearTimeout(statusEl._hideTimer); }
       var myChurch = await getMyChurch();
       if (!myChurch) return;
       var update = {};
@@ -15705,7 +15719,7 @@
         // Revert the checkbox -- the write didn't actually happen, so
         // the UI shouldn't claim it did.
         el.checked = !el.checked;
-        if (statusEl) { statusEl.textContent = (error && error.message) || 'Could not save this setting. Please try again.'; statusEl.style.color = 'var(--clay)'; statusEl.style.display = 'block'; }
+        if (statusEl) { statusEl.textContent = (error && error.message) || window.t('dashSettings.toggleSaveError'); statusEl.style.color = 'var(--clay)'; statusEl.style.display = 'inline'; }
         return;
       }
       // Real, reported bug: unchecking Give/Message here didn't hide
@@ -15727,12 +15741,17 @@
         var cachedChurchEntry = churches.filter(function(c){ return c.id === myChurch.id; })[0];
         if (cachedChurchEntry) cachedChurchEntry[toggleCacheKey] = el.checked;
       }
-      if (statusEl) statusEl.style.display = 'none';
+      if (statusEl) {
+        statusEl.textContent = '✓ ' + window.t('dashSettings.toggleSaved');
+        statusEl.style.color = 'var(--sage)';
+        statusEl.style.display = 'inline';
+        statusEl._hideTimer = setTimeout(function(){ statusEl.style.display = 'none'; }, 2500);
+      }
     });
   }
-  bindGiveMessageToggleSave('settings-giving-enabled-toggle', 'giving_enabled');
-  bindGiveMessageToggleSave('settings-messaging-enabled-toggle', 'messaging_enabled');
-  bindGiveMessageToggleSave('settings-owner-receives-messages-toggle', 'owner_receives_messages');
+  bindGiveMessageToggleSave('settings-giving-enabled-toggle', 'giving_enabled', 'settings-giving-enabled-status');
+  bindGiveMessageToggleSave('settings-messaging-enabled-toggle', 'messaging_enabled', 'settings-messaging-enabled-status');
+  bindGiveMessageToggleSave('settings-owner-receives-messages-toggle', 'owner_receives_messages', 'settings-owner-receives-messages-status');
 
   // ============================================================
   // Insights — giving trend, event attendance, and group
