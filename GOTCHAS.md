@@ -2560,3 +2560,23 @@ Separately, a real and legitimate gap the report also raised: there was no Save 
 Verified: syntax-checked all four `<script>` blocks (0 errors), confirmed the removed `#settings-messaging-status` div had no other reference left anywhere in the file. **Not tested**: the actual visual "✓ Saved" / error flash in a live browser, since reaching this page requires a real signed-in owner session this sandbox doesn't have.
 
 Build `2026-09-16-v45`.
+
+---
+
+## Renaming a church didn't update "Manage my churches" until a refresh
+
+Reported directly: renamed "Test 2 church" to "Test 3" from the church profile edit form, then went to the "Manage my churches" overview -- still showed the old name until a hard refresh. Same underlying class of bug as the Give/Message toggle cache staleness earlier this session (a successful write not telling every OTHER place that cached the same data), just a different write path and a different reader.
+
+Root cause: the edit form's save handler (the `rcEditingChurchId` branch) already correctly writes and re-reads the updated row, but never told anything else about it. The "Manage my churches" grid (`#dash-churches-grid`) reads from `window._dashOwnedChurches`, which is populated exactly once by `loadDashboardHeader()` -- nothing re-runs that after a profile edit saved from a completely different part of the dashboard, so the grid kept rendering whatever name it had at the last page load, indefinitely, until something (a full reload) re-ran `loadDashboardHeader()` from scratch.
+
+Fixed by patching every cache this save path can reach, at the point of a successful write, same pattern as the toggle fix:
+1. `findOrFetchChurchByName()`'s own `churches` array cache -- the stale entry is **dropped outright**, not patched, since it's keyed by name and a rename makes that key permanently wrong rather than just old; the next visit (by either name) does a correct fresh fetch on its own.
+2. `getMyChurch()`'s short-lived cache (`window._myChurchCache`) -- cleared outright rather than patched, since it carries several derived/joined fields (`ownedChurches`, `staffedChurches`, `role`) this form has no way to correctly recompute from the update response alone.
+3. `window._dashOwnedChurches` -- the entry for this church is patched in place (name/denomination/logo_url), and `loadDashboardChurchesPanel()` is called immediately afterward to re-render the grid on the spot if it's the panel currently showing.
+4. The dashboard header's own church-name text -- updated directly if this is the currently active church.
+
+This fixes the one reported path (the church profile edit form), not every write in the app that could leave some other cache stale -- that's the same category of bug as the toggle fix and the earlier My-Churches follow/unfollow sync fix, and each has needed its own targeted patch as it's been found, not a single systemic fix. Flagged directly to the user as scoped to this one save path, not a blanket "site-wide" guarantee.
+
+Verified: syntax-checked all four `<script>` blocks (0 errors). **Not tested** end to end (rename a real church, confirm the overview grid updates immediately with no reload) -- no real authenticated owner session available in this sandbox to drive that with.
+
+Build `2026-09-16-v46`.

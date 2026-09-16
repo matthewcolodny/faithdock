@@ -6338,7 +6338,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-16-v45 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-16-v46 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13695,6 +13695,48 @@
         var churchNameAttr = data[0].name.replace(/"/g, '&quot;');
         var viewChurchLinkHtml = ' <a href="#church/' + encodeURIComponent(data[0].name) + '" data-route="church" data-church-name="' + churchNameAttr + '" style="color:inherit;text-decoration:underline;">' + window.t('rc.viewYourChurchPage') + '</a>';
         showRcSuccess((geocodeWarning || ('Saved! "' + churchNameHtml + '" has been updated.')) + viewChurchLinkHtml);
+        // Site-wide staleness, reported directly: renamed a church here,
+        // "Manage my churches" still showed the old name until a hard
+        // refresh. Several other places cache this same church's data
+        // and never learn about an edit made here -- same class of bug
+        // as the Give/Message toggle cache (findOrFetchChurchByName's
+        // 45s TTL), just for a different set of fields and a different
+        // reader. Patched at the point of a successful write, same
+        // pattern, rather than leaving every one of these to a full
+        // page reload to pick up.
+        //
+        // (1) The public profile page's cache (findOrFetchChurchByName's
+        // `churches` array) is keyed by NAME, not id -- a rename makes
+        // that key permanently wrong, not just stale, so the stale entry
+        // is dropped outright rather than patched in place. The next
+        // visit under either the old or new name does a correct fresh
+        // fetch regardless.
+        var staleCacheIdx = -1;
+        for (var sci = 0; sci < churches.length; sci++) { if (churches[sci].id === rcEditingChurchId) { staleCacheIdx = sci; break; } }
+        if (staleCacheIdx !== -1) churches.splice(staleCacheIdx, 1);
+        // (2) getMyChurch()'s own short-lived cache -- cleared outright,
+        // not patched, since it carries several derived/joined fields
+        // (ownedChurches, staffedChurches, role) this form has no way to
+        // recompute correctly from `data` alone.
+        window._myChurchCache = null;
+        // (3) The "Manage my churches" overview grid reads from
+        // window._dashOwnedChurches, populated once by loadDashboardHeader()
+        // and otherwise never told about an edit made from this form.
+        if (window._dashOwnedChurches) {
+          var ownedEntry = window._dashOwnedChurches.filter(function(c){ return c.id === rcEditingChurchId; })[0];
+          if (ownedEntry) {
+            ownedEntry.name = data[0].name;
+            ownedEntry.denomination = data[0].denomination;
+            ownedEntry.logo_url = data[0].logo_url;
+          }
+        }
+        if (typeof window.loadDashboardChurchesPanel === 'function') window.loadDashboardChurchesPanel();
+        // (4) The dashboard header's own church-name text, if this is
+        // the currently active church.
+        var dashChurchNameEl = document.getElementById('dash-church-name');
+        if (dashChurchNameEl && window.getActiveChurchId && window.getActiveChurchId() === rcEditingChurchId) {
+          dashChurchNameEl.textContent = data[0].name;
+        }
         if (payload.logo_url) {
           document.getElementById('rc-logo-preview').style.backgroundImage = "url('" + payload.logo_url + "')";
         }
