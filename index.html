@@ -6337,7 +6337,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v42 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v43 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -15696,6 +15696,25 @@
         el.checked = !el.checked;
         if (statusEl) { statusEl.textContent = error.message; statusEl.style.color = 'var(--clay)'; statusEl.style.display = 'block'; }
         return;
+      }
+      // Real, reported bug: unchecking Give/Message here didn't hide
+      // the button on the public profile page. Root cause:
+      // findOrFetchChurchByName() (the public page's own data source)
+      // caches a church object for CHURCH_CACHE_TTL_MS (45s) -- if the
+      // owner had already viewed their own church's page earlier in
+      // the same session (a very likely thing to do right before
+      // checking Settings), that cached copy's givingEnabled/
+      // messagingEnabled stayed exactly as they were before this
+      // toggle, for up to 45 more seconds, regardless of this write
+      // having already succeeded. Patched directly here instead of
+      // just waiting it out -- only giving_enabled/messaging_enabled
+      // actually feed that page's button gating (owner_receives_messages
+      // doesn't, it's server-side/Settings-only), so only those two
+      // have a mapped camelCase cache key to update.
+      var toggleCacheKey = column === 'giving_enabled' ? 'givingEnabled' : (column === 'messaging_enabled' ? 'messagingEnabled' : null);
+      if (toggleCacheKey) {
+        var cachedChurchEntry = churches.filter(function(c){ return c.id === myChurch.id; })[0];
+        if (cachedChurchEntry) cachedChurchEntry[toggleCacheKey] = el.checked;
       }
       if (statusEl) statusEl.style.display = 'none';
     });
