@@ -321,7 +321,6 @@
       'church.claimCtaHeadline': 'Is this your church? Claim your free FaithDock profile.',
       'church.unclaimedNoticeLead': 'See something incorrect? This is an unclaimed, community-sourced listing. Email us at',
       'church.unclaimedNoticeMid': 'to report an issue, or', 'church.unclaimedNoticeEnd': 'to manage it yourself.',
-      'church.noEventsUnclaimedPivot': "This church hasn't added events yet. Are you a leader here? Claim this profile to start posting.",
       'church.statusDirectoryListing': 'Directory listing', 'church.managedByChurch': 'Managed by this church', 'church.partnerBadge': 'FaithDock Partner',
       'church.setAsChurchHome': 'Set as your Church Home!',
       'give.supportMinistry': "Support this church's ministry directly — donations go straight to their account.",
@@ -791,7 +790,7 @@
       'events.registeredButAnswersFailed': "Registered, but your answers couldn't be saved: {error}",
       'events.roleParticipant': 'participant', 'events.roleVolunteer': 'volunteer', 'events.onListAsRole': "You're on the list as a {role} — click the button again to unregister.",
       'events.couldNotFindEvent': 'Could not find that event.',
-      'church.details': 'Details', 'church.upcomingEventsHere': 'Upcoming events here', 'church.noUpcomingEventsPosted': 'No upcoming events posted yet.', 'church.loadingGroups': 'Loading groups...', 'church.loadingMinistries': 'Loading ministries...', 'church.noMinistriesPosted': 'No ministries posted yet.', 'church.noMapAvailable': 'No map available for this listing yet.', 'church.openInGoogleMaps': 'Open in Google Maps', 'church.backToDirectory': 'Back to directory',
+      'church.details': 'Details', 'church.noUpcomingEventsPosted': 'No events posted yet.', 'church.loadingGroups': 'Loading groups...', 'church.loadingMinistries': 'Loading ministries...', 'church.noMinistriesPosted': 'No ministries posted yet.', 'church.noMapAvailable': 'No map available for this listing yet.', 'church.openInGoogleMaps': 'Open in Google Maps', 'church.backToDirectory': 'Back to directory',
       'dashGiving.givingTrend': 'Giving trend', 'dashGiving.givingByFund': 'Giving by fund', 'dashGiving.fund': 'Fund',
       'dashSettings.ownerFallback': 'Owner', 'dashSettings.teamMemberFallback': 'Team member', 'dashSettings.ownerRoleLabel': 'Owner', 'dashSettings.permissions': 'Permissions',
       'dashSettings.managerRoleLabel': 'Manager', 'dashSettings.assignAsManager': 'Assign as Manager (can invite/remove staff and assign their abilities)',
@@ -1114,7 +1113,6 @@
       'church.claimCtaHeadline': '¿Es esta tu iglesia? Reclama tu perfil gratuito de FaithDock.',
       'church.unclaimedNoticeLead': '¿Ves algo incorrecto? Este es un listado comunitario sin reclamar. Escríbenos a',
       'church.unclaimedNoticeMid': 'para reportar un problema, o', 'church.unclaimedNoticeEnd': 'para administrarlo tú mismo.',
-      'church.noEventsUnclaimedPivot': 'Esta iglesia aún no ha agregado eventos. ¿Eres un líder aquí? Reclama este perfil para empezar a publicar.',
       'church.statusDirectoryListing': 'Listado del directorio', 'church.managedByChurch': 'Gestionada por esta iglesia', 'church.partnerBadge': 'Socia de FaithDock',
       'church.setAsChurchHome': '¡Establecida como tu Iglesia Principal!',
       'give.supportMinistry': 'Apoya el ministerio de esta iglesia directamente — las donaciones van directo a su cuenta.',
@@ -1584,7 +1582,7 @@
       'events.registeredButAnswersFailed': 'Inscrito, pero tus respuestas no se pudieron guardar: {error}',
       'events.roleParticipant': 'participante', 'events.roleVolunteer': 'voluntario', 'events.onListAsRole': 'Estás en la lista como {role} — haz clic en el botón de nuevo para cancelar tu inscripción.',
       'events.couldNotFindEvent': 'No se pudo encontrar ese evento.',
-      'church.details': 'Detalles', 'church.upcomingEventsHere': 'Próximos eventos aquí', 'church.noUpcomingEventsPosted': 'Aún no hay próximos eventos publicados.', 'church.loadingGroups': 'Cargando grupos...', 'church.loadingMinistries': 'Cargando ministerios...', 'church.noMinistriesPosted': 'Aún no hay ministerios publicados.', 'church.noMapAvailable': 'No hay mapa disponible para este listado aún.', 'church.openInGoogleMaps': 'Abrir en Google Maps', 'church.backToDirectory': 'Volver al directorio',
+      'church.details': 'Detalles', 'church.noUpcomingEventsPosted': 'Aún no hay eventos publicados.', 'church.loadingGroups': 'Cargando grupos...', 'church.loadingMinistries': 'Cargando ministerios...', 'church.noMinistriesPosted': 'Aún no hay ministerios publicados.', 'church.noMapAvailable': 'No hay mapa disponible para este listado aún.', 'church.openInGoogleMaps': 'Abrir en Google Maps', 'church.backToDirectory': 'Volver al directorio',
       'dashGiving.givingTrend': 'Tendencia de donaciones', 'dashGiving.givingByFund': 'Donaciones por fondo', 'dashGiving.fund': 'Fondo',
       'dashSettings.ownerFallback': 'Propietario', 'dashSettings.teamMemberFallback': 'Miembro del equipo', 'dashSettings.ownerRoleLabel': 'Propietario', 'dashSettings.permissions': 'Permisos',
       'dashSettings.managerRoleLabel': 'Gerente', 'dashSettings.assignAsManager': 'Asignar como Gerente (puede invitar/quitar personal y asignar sus habilidades)',
@@ -3775,17 +3773,15 @@
           <p id="church-description-2" style="display:none;"></p>
         </div>
         <div id="church-tab-events" class="church-tab-panel" style="display:none;">
-          <h3 style="font-size:19px;margin-bottom:16px;" data-i18n="church.upcomingEventsHere">Upcoming events here</h3>
+          <!-- No heading and no separate "unclaimed" claim-pivot box
+               anymore -- requested directly, to match the plain,
+               headerless "No X posted yet." treatment Groups/Ministries
+               already use (#church-groups-list/#church-ministries-list
+               below). The bottom-of-page unclaimed notice already
+               covers "claim this church" for an unclaimed listing, so a
+               second, tab-specific pivot here was redundant. -->
           <div class="grid" style="grid-template-columns:1fr 1fr;" id="church-event-grid"></div>
-          <p id="church-no-events" style="display:none;font-size:14px;color:var(--ink-mute);" data-i18n="church.noUpcomingEventsPosted">No upcoming events posted yet.</p>
-          <!-- Shown instead of #church-no-events specifically when the
-               church is unclaimed -- a claimed church with a genuinely
-               empty calendar still gets the plain state above; this pivot
-               only makes sense where there's no owner yet to fix it. -->
-          <div id="church-no-events-unclaimed" style="display:none;background:var(--gold-bg);border:1px solid var(--gold);border-radius:12px;padding:16px 18px;max-width:480px;">
-            <p style="font-size:14px;color:var(--ink);margin-bottom:10px;" data-i18n="church.noEventsUnclaimedPivot">This church hasn't added events yet. Are you a leader here? Claim this profile to start posting.</p>
-            <button class="btn-gold" id="church-events-claim-btn" style="padding:8px 16px;font-size:13px;" data-i18n="church.claimThisChurch">Claim this church</button>
-          </div>
+          <p id="church-no-events" style="display:none;font-size:14px;color:var(--ink-mute);" data-i18n="church.noUpcomingEventsPosted">No events posted yet.</p>
         </div>
         <div id="church-tab-groups" class="church-tab-panel" style="display:none;">
           <div id="church-groups-list"><p style="color:var(--ink-mute);font-size:14px;" data-i18n="church.loadingGroups">Loading groups...</p></div>
@@ -6295,7 +6291,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v37 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v38 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -6833,21 +6829,19 @@
     } else {
       churchEvents = events.filter(function(e){ return e.church === c.name; });
     }
-    var noEventsUnclaimed = document.getElementById('church-no-events-unclaimed');
     if (churchEvents.length) {
       grid.style.display = 'grid';
       grid.innerHTML = mapJoin(churchEvents, eventCard);
       noEvents.style.display = 'none';
-      if (noEventsUnclaimed) noEventsUnclaimed.style.display = 'none';
     } else {
+      // Same plain "No X posted yet." treatment regardless of claimed
+      // status now -- there used to be a separate gold claim-pivot box
+      // here for unclaimed churches specifically, removed in favor of
+      // the bottom-of-page unclaimed notice, which already covers
+      // "claim this church" without a second, tab-specific prompt.
       grid.innerHTML = '';
       grid.style.display = 'none';
-      // A claimed church with a genuinely empty calendar gets the plain
-      // no-events state -- the "claim this profile" pivot only makes
-      // sense when there's actually no owner yet to have posted events.
-      var isClaimed = !!c.ownerId;
-      noEvents.style.display = isClaimed ? 'block' : 'none';
-      if (noEventsUnclaimed) noEventsUnclaimed.style.display = isClaimed ? 'none' : 'block';
+      noEvents.style.display = 'block';
     }
   }
 
@@ -20169,15 +20163,16 @@
   window.openClaimModal = openClaimModal;
 
   // Delegated (not a direct getElementById listener) because the claim
-  // CTA now appears three times on the page -- the header banner's
-  // button, the Events-tab empty-state pivot button, and the bottom
-  // unclaimed notice's link -- and all three should trigger the exact
-  // same flow. Any of them works from the same #church-unclaimed-banner
-  // data attributes regardless of which one was clicked, since that's
-  // just where the current church's id/name are stashed, not tied to a
-  // specific button.
+  // CTA appears twice on the page -- the header banner's button and the
+  // bottom unclaimed notice's link -- and both should trigger the exact
+  // same flow. Either works from the same #church-unclaimed-banner data
+  // attributes regardless of which one was clicked, since that's just
+  // where the current church's id/name are stashed, not tied to a
+  // specific button. (A third, Events-tab-specific claim-pivot button
+  // used to live here too -- removed along with its whole empty-state
+  // box, in favor of the bottom notice covering that on its own.)
   document.addEventListener('click', async function(ev){
-    var claimTrigger = ev.target.closest ? ev.target.closest('#church-claim-btn, #church-events-claim-btn, #church-bottom-claim-btn') : null;
+    var claimTrigger = ev.target.closest ? ev.target.closest('#church-claim-btn, #church-bottom-claim-btn') : null;
     if (!claimTrigger) return;
     // Only #church-bottom-claim-btn is a real <a href="#"> (needed so
     // its underline baseline-aligns with the mailto link next to it --
