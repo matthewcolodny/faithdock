@@ -6337,7 +6337,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v41 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v42 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -19502,15 +19502,39 @@
   }
   window.checkChurchFollowStatus = checkChurchFollowStatus;
 
-  // Shared follow/unfollow toggle -- handles clicks on ANY element
-  // carrying [data-follow-church-id]: directory card/row hearts (from
-  // followHeartCard()/followHeartRow()) AND the church profile page's
-  // own heart (#church-follow-heart-slot, from populateChurchPage()),
-  // all built from the same HEART_ICON markup. One delegated handler
-  // covers every one of them, including any re-rendered later.
-  // stopPropagation matters here specifically: the heart button sits
-  // inside the card/row's own <a href="#church/...">, so without it a
-  // click would also navigate to the church page.
+  // Shared by every follow/unfollow entry point in the app -- the heart
+  // toggle below, AND My Churches' own separate "Unfollow" button/Undo
+  // toast (search data-unfollow-church-id) further down this file. This
+  // is a single-page app -- every other page's DOM (Directory's grid,
+  // Home's preview, a church's own profile page) stays alive, just
+  // hidden, while looking at whichever one is currently showing -- so
+  // updating every matching element here, not just whatever was actually
+  // clicked, is what keeps a follow/unfollow made from ANY one of these
+  // entry points already correct on all the others the moment you
+  // navigate/go Back to them. Originally lived only inside the heart
+  // handler below; hoisted out and given a churchId parameter after a
+  // real, reported gap: unfollowing from My Churches' own "Unfollow"
+  // button (a completely separate code path from this one) never
+  // touched window.myFollowedChurchIds or any other page's heart at
+  // all, so Directory's own card for that same church silently kept
+  // showing it as followed until something else forced a fresh render.
+  function applyFollowState(churchId, following){
+    document.querySelectorAll('[data-follow-church-id="' + churchId + '"]').forEach(function(el){
+      el.setAttribute('data-following', following ? 'true' : 'false');
+    });
+    window.myFollowedChurchIds = following
+      ? (window.myFollowedChurchIds || []).concat([churchId])
+      : (window.myFollowedChurchIds || []).filter(function(id){ return id !== churchId; });
+  }
+
+  // Handles clicks on ANY element carrying [data-follow-church-id]:
+  // directory card/row hearts (from followHeartCard()/followHeartRow())
+  // AND the church profile page's own heart (#church-follow-heart-slot,
+  // from populateChurchPage()), all built from the same HEART_ICON
+  // markup. One delegated handler covers every one of them, including
+  // any re-rendered later. stopPropagation matters here specifically:
+  // the heart button sits inside the card/row's own <a href="#church/...">,
+  // so without it a click would also navigate to the church page.
   document.addEventListener('click', async function(ev){
     var heartBtn = ev.target.closest ? ev.target.closest('[data-follow-church-id]') : null;
     if (!heartBtn) return;
@@ -19525,23 +19549,7 @@
     var churchId = heartBtn.getAttribute('data-follow-church-id');
     var wasFollowing = heartBtn.getAttribute('data-following') === 'true';
     var nowFollowing = !wasFollowing;
-    // This is a single-page app -- every other page's DOM (Directory's
-    // grid, Home's preview, this same church's own profile page) stays
-    // alive, just hidden, while looking at whichever one is currently
-    // showing. Updating every matching element here, not just the one
-    // actually clicked, is what makes a follow/unfollow made from one
-    // page (say, the profile page) already correct on another (say,
-    // Directory) the moment you navigate/go Back to it -- reported
-    // directly: following from a church's own page, then hitting Back
-    // to Directory, left that same church's card showing un-followed
-    // until something else happened to force a fresh render.
     var matchingHearts = document.querySelectorAll('[data-follow-church-id="' + churchId + '"]');
-    function applyFollowState(following){
-      matchingHearts.forEach(function(el){ el.setAttribute('data-following', following ? 'true' : 'false'); });
-      window.myFollowedChurchIds = following
-        ? (window.myFollowedChurchIds || []).concat([churchId])
-        : (window.myFollowedChurchIds || []).filter(function(id){ return id !== churchId; });
-    }
 
     // Optimistic -- flips every matching heart immediately, before the
     // write below has even started, instead of waiting on a full
@@ -19549,13 +19557,13 @@
     // perceptible delay on every single toggle. Reverted below if the
     // write itself comes back with an error, rather than trusting it
     // blindly.
-    applyFollowState(nowFollowing);
+    applyFollowState(churchId, nowFollowing);
     matchingHearts.forEach(function(el){ el.disabled = true; });
     var writeResult = nowFollowing
       ? await supabase.from('church_follows').insert({ user_id: userData.user.id, church_id: churchId })
       : await supabase.from('church_follows').delete().eq('user_id', userData.user.id).eq('church_id', churchId);
     matchingHearts.forEach(function(el){ el.disabled = false; });
-    if (writeResult.error) applyFollowState(wasFollowing);
+    if (writeResult.error) applyFollowState(churchId, wasFollowing);
   });
 
   var contactChurchSendBtn = document.getElementById('contact-church-send-btn');
@@ -21786,6 +21794,11 @@
       var { data: undoUserData } = await supabase.auth.getUser();
       if (!undoUserData.user) return;
       await supabase.from('church_follows').upsert({ user_id: undoUserData.user.id, church_id: undoChurchId });
+      // Keeps every OTHER page's heart for this church (Directory,
+      // Home, its own profile page) in sync with the re-follow too --
+      // same real gap as the plain Unfollow button below, just for the
+      // Undo half of the same feature.
+      applyFollowState(undoChurchId, true);
       loadMyChurches();
       return;
     }
@@ -21802,6 +21815,14 @@
     var unfollowChurchNameEl = unfollowChurchCard ? unfollowChurchCard.querySelector('h4') : null;
     var unfollowChurchName = unfollowChurchNameEl ? unfollowChurchNameEl.textContent : '';
     await supabase.from('church_follows').delete().eq('user_id', userData.user.id).eq('church_id', unfollowChurchId);
+    // Real, reported bug: this button used to only delete the row and
+    // refresh My Churches' own list -- it never told any OTHER page's
+    // heart for this same church (Directory's card in particular) that
+    // anything had changed, so going back to Directory afterward still
+    // showed it as followed until something else forced a fresh
+    // render. applyFollowState() is the same shared sync every heart
+    // toggle already uses -- see its own comment further up this file.
+    applyFollowState(unfollowChurchId, false);
     loadMyChurches();
     showUnfollowToast(unfollowChurchId, unfollowChurchName);
   });

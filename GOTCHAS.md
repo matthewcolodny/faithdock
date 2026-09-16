@@ -2504,3 +2504,15 @@ Checked those two past migrations directly rather than guessing further, and fou
 Re-sent the corrected migration file to the user to re-run (idempotent -- safe to run again in full, `alter table add column if not exists` and `grant` are both no-ops/harmless on already-applied state).
 
 No build bump -- migration-file-only fix again, `index.html` untouched.
+
+---
+
+## My Churches' own "Unfollow" button never synced with Directory's heart for the same church
+
+Reported directly: follow a church from Directory, go to My Churches, unfollow it there, go back to Directory -- still shows followed. Root cause: My Churches has TWO independent unfollow-related code paths that both write to `church_follows`, but only one of them ever kept `window.myFollowedChurchIds` and every page's `[data-follow-church-id]` heart in sync -- the shared heart-toggle handler (search `applyFollowState`, fixed earlier this session for the exact same class of bug in the other direction: following from a church's own page not showing up on Directory). My Churches' own dedicated "Unfollow" button (a plain text button, not a heart, used only on that one page's list) was a completely separate handler that deleted the row and refreshed My Churches' own list, full stop -- it never touched `window.myFollowedChurchIds` or any OTHER page's DOM at all. So Directory's already-rendered (hidden, not destroyed -- SPA) card for that same church kept showing `data-following="true"` indefinitely, since nothing ever told it otherwise, until something else happened to force a fresh Directory render.
+
+Fixed by hoisting `applyFollowState` (previously a closure defined fresh inside the heart-toggle handler on every click) out into a shared, top-level function taking `churchId` as a parameter, and calling it from both of My Churches' own follow-state-changing actions: the "Unfollow" button (`false`) and the undo toast's "Undo" button (`true`, since re-following via Undo had the exact same gap -- confirmed by reading that handler too, not just the one actually reported). Now every follow-state change in the app, regardless of which of the (now three) entry points triggered it, updates the same shared `window.myFollowedChurchIds` array and every matching heart site-wide.
+
+Verified in a local preview: confirmed the refactor introduces no syntax errors and the page loads cleanly with no new console errors beyond the pre-existing, unrelated localhost Turnstile ones. Did not re-verify the underlying `document.querySelectorAll` site-wide sync mechanism itself from scratch -- that exact mechanism was already directly tested and confirmed working earlier this session when the heart-toggle handler first got this same treatment; this change reuses it verbatim via a parameter instead of a closure, with two new call sites following the identical established pattern. **Not tested**: the exact real-world reported sequence end to end (follow from Directory, unfollow from My Churches, confirm Directory reflects it without a refresh), since this sandboxed preview has no real authenticated session to follow/unfollow a real church with.
+
+Build `2026-09-15-v42`.
