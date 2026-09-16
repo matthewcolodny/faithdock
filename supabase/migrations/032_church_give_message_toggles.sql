@@ -45,11 +45,7 @@ alter table churches add column if not exists owner_receives_messages boolean no
 -- needs its own matching grant, confirmed as the actual, established
 -- pattern here, not assumed. giving_enabled/messaging_enabled go to
 -- both anon and authenticated -- they gate a public church page's
--- Message/Give buttons for any visitor, signed in or not. UPDATE isn't
--- separately granted here, matching 023's own precedent -- churches
--- already has a working blanket UPDATE grant to authenticated (the
--- existing owner-only RLS policy is what actually restricts WHICH rows
--- get updated, not a column-level grant).
+-- Message/Give buttons for any visitor, signed in or not.
 grant select (giving_enabled) on churches to anon, authenticated;
 grant select (messaging_enabled) on churches to anon, authenticated;
 -- authenticated only, deliberately -- this one is never meant to be
@@ -58,6 +54,22 @@ grant select (messaging_enabled) on churches to anon, authenticated;
 -- page fetch and by the Edge Function (which uses the service-role key
 -- and bypasses grants/RLS entirely, so doesn't need this either way).
 grant select (owner_receives_messages) on churches to authenticated;
+
+-- ADDED after a second real, live bug report: unchecking Give/Message in
+-- Settings showed no error and left the checkbox unchecked, but a direct
+-- read of the row straight after showed the column still true in the
+-- database -- the write was silently going nowhere. The comment that used
+-- to be here claimed churches "already has a working blanket UPDATE grant
+-- to authenticated" for this, citing 023_denomination_tags.sql as
+-- precedent -- but rechecking that file shows denomination_tags is never
+-- actually written via a plain client-side .update() anywhere in
+-- index.html, so that precedent never actually proved a blanket UPDATE
+-- grant exists. Since SELECT on this table is confirmed column-level (not
+-- blanket) for these exact columns just above, UPDATE is granted the same
+-- explicit way here too rather than assumed again.
+grant update (giving_enabled) on churches to authenticated;
+grant update (messaging_enabled) on churches to authenticated;
+grant update (owner_receives_messages) on churches to authenticated;
 
 -- === church_staff / church_staff_invites: new grantable ability ===
 

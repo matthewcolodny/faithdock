@@ -6337,7 +6337,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v43 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-16-v44 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -15689,12 +15689,23 @@
       if (!myChurch) return;
       var update = {};
       update[column] = el.checked;
-      var { error } = await supabase.from('churches').update(update).eq('id', myChurch.id);
-      if (error) {
+      // .select() after .update() is deliberate, not decorative: a plain
+      // .update() with no .select() returns { error: null } even when RLS
+      // (or a missing grant) silently matched zero rows -- the request
+      // "succeeds" with nothing actually written, and the old code here
+      // had no way to tell the difference from a real save. Confirmed as
+      // the actual, live bug behind a real report: unchecking Give/Message
+      // in Settings never threw an error, the checkbox stayed unchecked,
+      // but a direct read of the row right after showed the column still
+      // true in the database. Checking `data` length here is what catches
+      // that silent-failure case and reports it instead of lying to the
+      // owner about whether their change was saved.
+      var { data, error } = await supabase.from('churches').update(update).eq('id', myChurch.id).select('id');
+      if (error || !data || !data.length) {
         // Revert the checkbox -- the write didn't actually happen, so
         // the UI shouldn't claim it did.
         el.checked = !el.checked;
-        if (statusEl) { statusEl.textContent = error.message; statusEl.style.color = 'var(--clay)'; statusEl.style.display = 'block'; }
+        if (statusEl) { statusEl.textContent = (error && error.message) || 'Could not save this setting. Please try again.'; statusEl.style.color = 'var(--clay)'; statusEl.style.display = 'block'; }
         return;
       }
       // Real, reported bug: unchecking Give/Message here didn't hide
