@@ -6337,7 +6337,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v40 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v41 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -7705,6 +7705,24 @@
   }
 
   function go(route, skipPush){
+    // Real, reported bug: unfollowing a church from My Churches, then
+    // navigating away (even just clicking the church's own name to view
+    // its profile) within the undo toast's 6-second window, then coming
+    // back later showed it as followed again -- with no visible undo
+    // click in between. Root cause: #unfollow-toast is a position:fixed
+    // element appended straight to <body>, outside any .page container,
+    // so it stays on screen through a route change instead of leaving
+    // with the page that spawned it -- meaning the very next click
+    // anywhere near the bottom of whatever page came next (a "Back to
+    // directory" link, anything else sitting at that same screen
+    // position) could land on its still-fully-interactive "Undo" button
+    // without the user ever noticing they'd hit it. Every navigation
+    // goes through this one function, so dismissing the toast right
+    // here -- not just after its own 6-second timer -- shrinks the
+    // accidental-click window down to "another click on the SAME page,
+    // before navigating," which is far less likely to be an accident.
+    var openUnfollowToast = document.getElementById('unfollow-toast');
+    if (openUnfollowToast) openUnfollowToast.classList.remove('visible');
     if(route === 'dashboard' && window.isSignedIn === false){ route = 'signup'; }
     // Dashboard access is now based on actually owning or staffing a
     // church — a real relationship — rather than a one-time
