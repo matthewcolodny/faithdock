@@ -2621,3 +2621,17 @@ Fixed with `:focus:not(:focus-visible){outline:none;}` on all three classes, not
 Verified directly in a local preview: a real mouse click on `.follow-heart-card` left `document.activeElement.matches(':focus-visible')` `false` and computed `outlineStyle: 'none'`; a real keyboard Tab onto the same class of button left `:focus-visible` `true` and computed `outlineStyle: 'auto'` (a real, visible outline). No console errors beyond the pre-existing, unrelated localhost Turnstile ones.
 
 Build `2026-09-16-v49`.
+
+---
+
+## Refreshing on Directory page 5+ silently reverted to page 1
+
+Reported directly: land on page 5 of Directory results, hit refresh, back on page 1. The URL already correctly encoded the page (`#directory/5`), and `directoryPageFromHash()` correctly reads it -- so the bug wasn't in the URL/hash layer at all.
+
+Root cause: `renderOnceLocationKnown()` (the gate that decides when it's safe to render Directory results, since real churches need a location to compute distance) has two totally different render paths depending on whether geolocation/a remembered location is expected. When NONE is expected, it runs its own `renderFns` callback array directly -- which correctly calls `renderDirectory(directoryPageFromHash())`. But when a location IS expected (geolocation already granted from a prior visit, or a manual location remembered in `sessionStorage` from before this exact refresh -- both very common on an ordinary refresh, not edge cases), that callback array is deliberately never run at all; its own comments say so explicitly ("`applyDirLocationCoords()` has already rendered... nothing to do in that case"). `applyDirLocationCoords()` is what renders instead once real coordinates land, and it called `renderDirectory()` with no page argument -- which, by `renderDirectory`'s own documented convention ("no arg -> a filter changed -> snap to page 1"), silently overwrote whatever page the hash still correctly pointed at.
+
+Fixed by giving `applyDirLocationCoords(lat, lng, resetToPageOne)` a third parameter, defaulting to page-preserving (`directoryPageFromHash()`) rather than always resetting. Its three page-load-time callers (early instant-geo guess, a manual location restored from `sessionStorage`, the real GPS fix finishing) all pass nothing and get the new, correct page-preserving default. `setDirLocation()` -- the one place someone is actually choosing a brand-new location to search (autocomplete, "Use my location", Enter in the location box) -- now passes `true` explicitly, since that genuinely is a new search and page 1 is the right landing spot (whatever page they were on for the OLD location's results may not even exist for the new one). `clearDirLocation()` was left untouched -- clearing the location filter is exactly the "a filter changed" case `renderDirectory()`'s own no-arg convention already exists for, same as every denomination/distance/keyword filter change elsewhere in this file.
+
+Verified live in a local preview: seeded `sessionStorage.fd_manual_location` (the exact mechanism a real remembered location uses) and set `location.hash = '#directory/3'`, then did a genuine `location.reload()` -- confirmed `window.directoryPage === 3` and the pager's `.dir-pager-current` element read "3" after the reload, not reset to 1. No console errors beyond the pre-existing, unrelated localhost Turnstile ones.
+
+Build `2026-09-16-v50`.

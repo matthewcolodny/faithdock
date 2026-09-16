@@ -6358,7 +6358,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-16-v49 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-16-v50 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -10532,7 +10532,7 @@
   // entirely for this part) is what actually makes that faster; the
   // label itself still has to wait on geocoding regardless, since
   // there's no way to know a place name without it.
-  function applyDirLocationCoords(lat, lng){
+  function applyDirLocationCoords(lat, lng, resetToPageOne){
     window.dirUserLat = lat;
     window.dirUserLng = lng;
     // See renderOnceLocationKnown() above -- this is the other place a
@@ -10540,7 +10540,30 @@
     // which renders here directly instead of through that function's
     // own runAll()), so it has to set the same flag.
     window._locationDecisionMade = true;
-    if (typeof window.renderDirectory === 'function') window.renderDirectory();
+    // Real, reported bug: land on page 5 of Directory results, hit
+    // refresh -- silently back on page 1. Root cause: on a normal
+    // refresh with geolocation already granted (or a remembered manual
+    // location -- see setDirLocation()'s sessionStorage below),
+    // renderOnceLocationKnown()'s own hash-aware renderFns callback
+    // (which reads directoryPageFromHash()) is deliberately never run --
+    // see its own comments above ("applyDirLocationCoords() has already
+    // rendered... nothing to do in that case"). This function is what
+    // actually renders in that case instead, and it called
+    // renderDirectory() with no page argument, which defaults to page 1
+    // (renderDirectory's own "no arg -> a filter changed -> snap to
+    // page 1" convention) -- silently overwriting whatever page the URL
+    // hash still correctly pointed at. resetToPageOne defaults to falsy
+    // (page-preserving) since every call site EXCEPT setDirLocation()
+    // below is page-load-time coordinate resolution (early instant-geo
+    // guess, restored manual location, the real GPS fix finishing) --
+    // none of those are a genuinely new search, so none of them should
+    // reset pagination. setDirLocation() is the one place a person is
+    // actually choosing a brand-new location to search, which passes
+    // true explicitly -- a real new search legitimately should land on
+    // page 1, since whatever page they were on for the OLD location's
+    // results may not even exist for the new one.
+    var dirPage = resetToPageOne ? 1 : (window.directoryPageFromHash ? window.directoryPageFromHash() : 1);
+    if (typeof window.renderDirectory === 'function') window.renderDirectory(dirPage);
     if (typeof window.renderHomeChurches === 'function') window.renderHomeChurches();
     if (typeof window.renderEvents === 'function') window.renderEvents();
     if (typeof window.renderHomeEvents === 'function') window.renderHomeEvents();
@@ -10607,7 +10630,11 @@
   // is correct and simplest. autoDetectHomeLocation() below is the one
   // exception, deliberately calling the two pieces separately instead.
   function setDirLocation(lat, lng, label){
-    applyDirLocationCoords(lat, lng);
+    // true: a real, user-chosen new search -- see applyDirLocationCoords()'s
+    // own comment for why this is the one call site that should reset
+    // pagination instead of preserving whatever page the URL hash
+    // already points at.
+    applyDirLocationCoords(lat, lng, true);
     applyDirLocationLabel(label);
     // Every manual location entry point (Directory/Events autocomplete,
     // Enter/search-button geocoding, "Use my location" on either page)
