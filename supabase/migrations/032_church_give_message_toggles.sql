@@ -39,13 +39,23 @@ alter table church_staff add column if not exists receives_contact_messages bool
 alter table church_staff_invites add column if not exists receives_contact_messages boolean not null default false;
 
 -- === get_church_staff_detail(): surface the new ability ===
--- Same function migration 029 created -- CREATE OR REPLACE with an
--- expanded return table is safe here (unlike search_churches/
--- search_events's drop-then-create hazard from migrations 023/031) since
--- this one's parameter list isn't changing, only its return shape, and
--- Postgres allows redefining a function's OUT columns via a plain
--- CREATE OR REPLACE as long as the column names/types are only being
--- appended, not reordered or removed.
+-- Same function migration 029 created. CORRECTED after actually running
+-- this migration and hitting it for real: unlike search_churches/
+-- search_events's PARAMETER-list hazard (migrations 023/031, fixed there
+-- with the same drop-then-create), this is a RETURN-type hazard --
+-- Postgres refuses to CREATE OR REPLACE a `returns table(...)` function
+-- with a different OUT-parameter row type at all, even just appending a
+-- column, full stop (42P13: "cannot change return type of existing
+-- function... Use DROP FUNCTION get_church_staff_detail(uuid) first").
+-- The comment that used to be here claimed appending columns was safe --
+-- it wasn't, confirmed by the actual error, not assumed the second time.
+-- Also explains why NONE of this migration's earlier statements (the
+-- churches/church_staff alter table adds) appeared to take effect either
+-- when first run: the SQL Editor runs a pasted script as one transaction,
+-- so this error rolled back everything before it too, not just this
+-- function.
+
+drop function if exists get_church_staff_detail(uuid);
 
 create or replace function get_church_staff_detail(target_church_id uuid)
 returns table (

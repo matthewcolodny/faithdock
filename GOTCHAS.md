@@ -2476,3 +2476,15 @@ Fixed at the one central choke point every single route change already goes thro
 Verified in a local preview: seeded a fake visible toast, called `window.go('directory')` directly, and confirmed its `visible` class was removed as a direct result of that one call -- not a timeout, not a coincidence. No console errors beyond the pre-existing, unrelated localhost Turnstile ones. `node --check`-equivalent syntax check passes. **Not tested**: the exact real-world sequence (unfollow, then a genuine accidental click elsewhere) end to end, since this sandboxed preview has no real authenticated session to unfollow a real church with -- the fix targets the mechanism directly confirmed above (the toast no longer outlives its own page), which is sufficient to close the reported gap regardless of exactly which second click the user's report involved.
 
 Build `2026-09-15-v41`.
+
+---
+
+## Migration 032 actually failed to apply: CREATE OR REPLACE can't change a table-function's return columns
+
+Running migration 032 for real (finally, after the earlier verification found the columns missing) surfaced the actual cause: `42P13: cannot change return type of existing function... Use DROP FUNCTION get_church_staff_detail(uuid) first`. The migration's own comment on that function had confidently claimed "Postgres allows redefining a function's OUT columns via a plain CREATE OR REPLACE as long as the column names/types are only being appended" -- that claim was wrong, not verified against real Postgres behavior when written. `CREATE OR REPLACE FUNCTION` on a `returns table(...)` function requires the OUT-parameter row type to match *exactly*; appending even one column is a different row type, full stop, no exception for pure appends. This is a distinct hazard from the parameter-list-overload issue migrations 023/031/032-elsewhere already knew to guard with drop-then-create -- that one's about the function's *input* signature; this one's about its *output* shape, and Postgres is strict about both but for different reasons.
+
+This also explains why the earlier verification found NONE of migration 032's changes live, not just this function: the Supabase SQL Editor runs a pasted multi-statement script as one transaction, so this error partway through rolled back the churches/church_staff `alter table` statements that ran successfully just above it too.
+
+Fixed by adding `drop function if exists get_church_staff_detail(uuid);` immediately before its `create or replace`, matching the pattern already used for `update_staff_abilities` (parameter-hazard) just below it in the same file. Corrected the file's own comment to state the real rule instead of the wrong one. Re-sent to the user to re-run.
+
+No build bump -- this is a migration-file-only fix, `index.html` untouched this pass.
