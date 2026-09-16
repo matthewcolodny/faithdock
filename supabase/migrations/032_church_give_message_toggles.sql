@@ -33,6 +33,32 @@ alter table churches add column if not exists messaging_enabled boolean not null
 -- this off without disabling messaging church-wide.
 alter table churches add column if not exists owner_receives_messages boolean not null default true;
 
+-- ADDED after actually running this migration and hitting a real, live
+-- "permission denied for table churches" (42501) trying to read the new
+-- columns as anon -- churches uses COLUMN-level SELECT grants for anon/
+-- authenticated, not a blanket table-level one (confirmed by checking
+-- migrations 018_church_is_hidden.sql and 023_denomination_tags.sql,
+-- which both explicitly grant their own new column the same way; a
+-- table-level grant would have covered these new columns automatically,
+-- a column-level one does not). Missed entirely the first time this
+-- migration was written -- every ALTER TABLE ADD COLUMN on churches
+-- needs its own matching grant, confirmed as the actual, established
+-- pattern here, not assumed. giving_enabled/messaging_enabled go to
+-- both anon and authenticated -- they gate a public church page's
+-- Message/Give buttons for any visitor, signed in or not. UPDATE isn't
+-- separately granted here, matching 023's own precedent -- churches
+-- already has a working blanket UPDATE grant to authenticated (the
+-- existing owner-only RLS policy is what actually restricts WHICH rows
+-- get updated, not a column-level grant).
+grant select (giving_enabled) on churches to anon, authenticated;
+grant select (messaging_enabled) on churches to anon, authenticated;
+-- authenticated only, deliberately -- this one is never meant to be
+-- publicly readable (same reasoning PUBLIC_CHURCH_COLUMNS in index.html
+-- already excludes it for), only needed by the owner's own Settings
+-- page fetch and by the Edge Function (which uses the service-role key
+-- and bypasses grants/RLS entirely, so doesn't need this either way).
+grant select (owner_receives_messages) on churches to authenticated;
+
 -- === church_staff / church_staff_invites: new grantable ability ===
 
 alter table church_staff add column if not exists receives_contact_messages boolean not null default false;

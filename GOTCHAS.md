@@ -2488,3 +2488,19 @@ This also explains why the earlier verification found NONE of migration 032's ch
 Fixed by adding `drop function if exists get_church_staff_detail(uuid);` immediately before its `create or replace`, matching the pattern already used for `update_staff_abilities` (parameter-hazard) just below it in the same file. Corrected the file's own comment to state the real rule instead of the wrong one. Re-sent to the user to re-run.
 
 No build bump -- this is a migration-file-only fix, `index.html` untouched this pass.
+
+---
+
+## IMPORTANT, project-wide: `churches` uses COLUMN-level SELECT grants, not a table-level one -- every new column needs its own `grant select`
+
+Discovered re-verifying migration 032 after the DROP FUNCTION fix above finally let it run clean: the `alter table` statements succeeded (confirmed -- the earlier "column does not exist" error was gone), but reading the new columns as anon now failed with a *different* error: `42501 permission denied for table churches`, hint `GRANT SELECT ON public.churches TO anon`. Isolated it directly against the live database: `select id, name` works fine as anon; `select giving_enabled` (or any of the other two new columns, tested individually) fails every time with that same error. Older columns added by *past* migrations (`is_hidden`, `denomination_tags`) work fine as anon too -- so this isn't "new columns generally need something," it's specific to this one table.
+
+Checked those two past migrations directly rather than guessing further, and found the actual answer: **both `018_church_is_hidden.sql` and `023_denomination_tags.sql` explicitly `grant select (their_new_column) on churches to anon, authenticated;` right after their own `alter table add column`** -- this project's `churches` table has column-level SELECT grants configured for anon/authenticated (not the usual blanket table-level `grant select on churches to anon`), meaning a normal table-level grant does NOT automatically cover a new column the way it would on a table using ordinary grants. Migration 032's first version missed this entirely -- neither the AI session that wrote it nor the review before shipping caught that this table specifically needs it, since most tables in this project (confirmed: `church_staff`/`church_staff_invites` both worked immediately with no extra grant needed) don't.
+
+**Fixed by adding `grant select (col) on churches to anon, authenticated;`** for `giving_enabled`/`messaging_enabled` (meant to be publicly readable -- they gate a public church page's buttons for any visitor) and `grant select (owner_receives_messages) on churches to authenticated;` only (deliberately not anon -- never meant to be publicly readable, same reasoning `PUBLIC_CHURCH_COLUMNS` in `index.html` already excludes it for). No matching UPDATE grant added -- `denomination_tags` (client-updatable via the register-church form) has no UPDATE grant in its own migration either, meaning `churches` already has a working blanket UPDATE grant to `authenticated`, with the existing owner-only RLS policy doing the actual row-level restriction; only SELECT is column-gated here.
+
+**Rule for next time, so this isn't rediscovered the hard way again**: any future migration that runs `alter table churches add column ...` MUST also add `grant select (that_column) on churches to anon, authenticated;` (or just `authenticated` for anything not meant to be publicly readable) in the same migration, or the new column will silently 42501 for every anon/authenticated read the moment it ships, exactly like this one did. This is specific to `churches` -- no other table in this project has shown the same requirement so far.
+
+Re-sent the corrected migration file to the user to re-run (idempotent -- safe to run again in full, `alter table add column if not exists` and `grant` are both no-ops/harmless on already-applied state).
+
+No build bump -- migration-file-only fix again, `index.html` untouched.
