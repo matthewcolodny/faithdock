@@ -3913,13 +3913,13 @@
     <div id="event-image-block" style="display:none;aspect-ratio:16/9;border-radius:var(--radius);background-size:cover;background-position:center;margin-bottom:24px;max-width:680px;"></div>
     <span class="tag sage" id="event-badge" data-i18n="badge.registrationOpen">Registration open</span>
     <span class="tag" id="event-fill-badge" style="display:none;margin-left:6px;"></span>
-    <h1 style="font-size:32px;margin-top:16px;" id="event-title">Fall Community Picnic</h1>
-    <p style="color:var(--ink-mute);margin-top:6px;"><span data-i18n="events.hostedByLabel">Hosted by</span> <a href="#church" data-route="church" data-church-name="Grace Fellowship Church" id="event-host-link" style="color:inherit;border-bottom:1px solid var(--gold);">Grace Fellowship Church</a></p>
+    <h1 style="font-size:32px;margin-top:16px;" id="event-title"></h1>
+    <p style="color:var(--ink-mute);margin-top:6px;"><span data-i18n="events.hostedByLabel">Hosted by</span> <a href="#church" data-route="church" id="event-host-link" style="color:inherit;border-bottom:1px solid var(--gold);"></a></p>
 
     <div class="two-col">
       <div class="content-block">
-        <p id="event-description">Join us for an afternoon of food, games, and live music on the church lawn. Open to the whole community — bring a blanket, your family, and an appetite. Food trucks on site, plus a bounce house for the kids.</p>
-        <p id="event-description-2">This is a great low-pressure way to meet the congregation if you're new to the area or just checking us out for the first time.</p>
+        <p id="event-description"></p>
+        <p id="event-description-2" style="display:none;"></p>
         <div id="event-tags-row" style="display:none;flex-wrap:wrap;gap:6px;margin:14px 0;"></div>
         <div id="event-role-choice" style="display:none;margin-bottom:12px;">
           <label class="filter-check"><input type="radio" name="event-role" value="participant" checked id="event-role-participant"> <span data-i18n="events.registerAsParticipant">Register as a participant</span> <span id="event-participant-count" class="mono" style="font-size:11px;color:var(--ink-mute);"></span></label>
@@ -3942,8 +3942,8 @@
       <div>
         <div class="side-note">
           <h4 data-i18n="events.eventDetails">Event details</h4>
-          <div class="info-row" id="event-when"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> Sat, Sep 12 · 12:00 PM – 3:00 PM</div>
-          <div class="info-row" id="event-location"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/></svg> Church lawn, 1420 Pleasant Valley Rd</div>
+          <div class="info-row" id="event-when"></div>
+          <div class="info-row" id="event-location"></div>
           <div class="info-row" id="event-audience-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg> <span data-i18n="events.openToAnyoneNoMembership">Open to anyone, no membership needed</span></div>
           <div class="info-row" id="event-ministries-row" style="display:none;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg> <span id="event-ministries-text"></span></div>
           <div id="event-contacts-block" style="display:none;margin-top:6px;"></div>
@@ -5231,10 +5231,24 @@
           </div>
         </div>
 
-        <div id="ce-registration-options" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--line);">
+        <!-- Deliberately OUTSIDE #ce-registration-options (below), not
+             gated by it -- reported directly: a capacity/headcount cap
+             is a useful thing to set even for an event that doesn't
+             require formal registration (e.g. "show up, first 50 get
+             in"), so it shouldn't be tied to the same toggle that also
+             controls ticket pricing/fees/discount codes, which
+             genuinely DO need registration to process. The submit
+             handler already reads this field's value unconditionally
+             (unlike max volunteers/guests, which are explicitly gated
+             by their own separate toggles) -- only the visibility was
+             ever tied to Require Registration, not the actual save
+             logic, so moving it here needed no submit-handler change. -->
+        <div style="margin-top:16px;">
           <label data-i18n="ce.maxParticipants">Max participants</label>
           <input class="field" type="number" id="ce-max-participants" min="1" placeholder="No limit" data-i18n-placeholder="ce.noLimit">
+        </div>
 
+        <div id="ce-registration-options" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--line);">
           <div id="ce-price-section">
             <label style="margin-top:14px;" data-i18n="ce.ticketPrice">Ticket price</label>
             <div style="font-size:12px;color:var(--ink-mute);margin-bottom:6px;" data-i18n="ce.ticketPriceHint">Leave blank for a free event. Charged through your church's own connected Stripe account, same as Giving. Only participants pay — volunteers register free.</div>
@@ -6358,7 +6372,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-16-v51 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-16-v52 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -15354,18 +15368,37 @@
         // -- the shared `events` array findOrFetchEventById() reads from
         // (used by the public event detail page, reached via a card
         // click on the Events listing, home preview, or a church
-        // profile's Events tab) was never told this event changed, and
-        // that function had no staleness fallback before this session's
-        // fix, so an already-cached copy of this exact event could show
-        // the OLD title/date/capacity indefinitely, even right after
-        // saving here. Dropping the TTL timestamp (not hand-patching the
-        // cached object's fields) forces the next lookup to genuinely
-        // re-fetch -- same "let the real function get it right, don't
-        // duplicate its logic" reasoning as the dashboard-header/church-
-        // switcher fix earlier this session, since a correct re-fetch
-        // also needs the joined church name/plan and the live
-        // registration count, neither of which is available from
-        // `data` here.
+        // profile's Events tab) was never told this event changed.
+        //
+        // FIRST FIX (this session, earlier) only did `delete
+        // eventCacheFetchedAt[ceEditingEventId]` -- clearing the TTL
+        // timestamp so findOrFetchEventById() would treat the entry as
+        // stale on its NEXT call. Tested live and confirmed NOT
+        // sufficient: edit -> immediately open the public detail page
+        // (no refresh) still showed the old data. Root cause the first
+        // fix missed: findOrFetchEventById() isn't actually the only
+        // lookup path. showRouteFromHash() (for a direct #event/<id>
+        // navigation or Back/Forward) and the global [data-route="event"]
+        // click handler (for a card click) BOTH check the raw `events`
+        // array directly first -- `events.filter(function(x){ return
+        // String(x.real ? x.id : x.title) === key; })[0]` -- and only
+        // fall back to findOrFetchEventById() if that comes up empty.
+        // Clearing the TTL timestamp alone does nothing for those two
+        // direct lookups: the stale object was still sitting right there
+        // in the array, so they found it and returned it immediately,
+        // never once calling the function whose cache was actually fixed.
+        // "View public page" is exactly this path -- confirmed by
+        // testing the exact reported repro, not assumed. Splicing the
+        // entry out of the array entirely (rather than only touching its
+        // TTL) fixes this at the root: with nothing left in the array
+        // under this id, BOTH direct lookups now correctly come up empty
+        // and fall through to findOrFetchEventById(), which does a
+        // genuinely fresh fetch (including the joined church name/plan
+        // and the live registration count, neither of which `data` here
+        // carries) and re-populates the array from scratch.
+        var staleEventIdx = -1;
+        for (var sei = 0; sei < events.length; sei++) { if (String(events[sei].id) === String(ceEditingEventId)) { staleEventIdx = sei; break; } }
+        if (staleEventIdx !== -1) events.splice(staleEventIdx, 1);
         delete eventCacheFetchedAt[ceEditingEventId];
         loadDashboardEvents();
         return;
