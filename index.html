@@ -6338,7 +6338,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-16-v47 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-16-v48 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -8086,6 +8086,29 @@
     if(resolved.base === 'dashboard' && resolved.key){
       goDash(resolved.key, true);
     }
+    // Real, reported bug: rename a church, navigate away, then navigate
+    // back to #dashboard (forward click OR browser/in-app Back, both of
+    // which reach here since popstate calls showRouteFromHash the same
+    // as any other navigation) -- the big header name showed the new
+    // name (only because the rename form directly patches that one
+    // element as an immediate save-time confirmation) but the church-
+    // switcher dropdown below it still showed the old one. Root cause:
+    // loadDashboardHeader() is the only thing that builds the switcher's
+    // <option> list, and until this line it only ever ran once at page
+    // load and again on auth-state changes (sign-in, session restore) --
+    // never on ordinary in-app navigation into #dashboard the way
+    // my-events/my-groups/profile above already refresh themselves on
+    // every visit. So the switcher (and everything else this function
+    // gates -- permission sections, the Overview grid's multi-owner
+    // check, ownership-transfer status) could silently go stale for the
+    // entire rest of a session after the very first time it rendered,
+    // with no reload-based navigation able to fix it short of an actual
+    // full page reload. Called after goDash() above so window._dashCurKey
+    // reflects the tab actually being landed on before this repopulates
+    // the sidebar/permission state around it.
+    if(typeof window.loadDashboardHeader === 'function'){
+      window.loadDashboardHeader();
+    }
     // #directory or #directory/N -- render the page the URL points at
     // (covers a fresh load, a bookmark, and Back/Forward between pages).
     // Needs supabase; on the very first pre-module call it isn't ready
@@ -8267,6 +8290,22 @@
       }
       if(route === 'profile' && typeof window.loadProfilePage === 'function'){
         window.loadProfilePage();
+      }
+      // Same per-route reload pattern as my-churches/profile above,
+      // previously missing here entirely for 'dashboard' -- clicking
+      // "Manage my church" or "← Back to my church" (both plain
+      // data-route="dashboard" links) never refreshed the header name,
+      // the multi-church switcher dropdown, or any of the other
+      // permission-gated sections loadDashboardHeader() builds, since
+      // this function was the ONLY thing that ever populated them and
+      // it previously only ran at page load and on auth-state changes.
+      // Real, reported bug: rename a church, click back to the
+      // dashboard from elsewhere -- the big header name (patched
+      // separately, directly, by the rename save handler) showed the
+      // new name, but this dropdown, never patched anywhere, kept
+      // showing the old one indefinitely.
+      if(route === 'dashboard' && typeof window.loadDashboardHeader === 'function'){
+        window.loadDashboardHeader();
       }
       // The nav "Churches" link (and any plain data-route="directory")
       // is a fresh entry -> page 1, not wherever pagination was left.
@@ -13719,24 +13758,25 @@
         // (ownedChurches, staffedChurches, role) this form has no way to
         // recompute correctly from `data` alone.
         window._myChurchCache = null;
-        // (3) The "Manage my churches" overview grid reads from
-        // window._dashOwnedChurches, populated once by loadDashboardHeader()
-        // and otherwise never told about an edit made from this form.
-        if (window._dashOwnedChurches) {
-          var ownedEntry = window._dashOwnedChurches.filter(function(c){ return c.id === rcEditingChurchId; })[0];
-          if (ownedEntry) {
-            ownedEntry.name = data[0].name;
-            ownedEntry.denomination = data[0].denomination;
-            ownedEntry.logo_url = data[0].logo_url;
-          }
-        }
+        // (3) Everything else the dashboard shows about this church --
+        // the big header name, the "Manage my churches" overview grid
+        // (window._dashOwnedChurches), and the multi-church switcher
+        // dropdown below the header -- all come from one place,
+        // loadDashboardHeader(). A previous version of this fix patched
+        // the header name and the overview grid's cached array directly
+        // in place here, but missed the switcher entirely: its <option>
+        // list is built inline inside loadDashboardHeader() with no
+        // separate patchable piece of state of its own, so a manual
+        // patch here could never have reached it without duplicating
+        // that same option-building logic a second time (and risking
+        // the two copies drifting apart later). Since window._myChurchCache
+        // was just cleared above, re-running the real function is both
+        // simpler and guaranteed to stay correct -- it re-fetches fresh
+        // and rebuilds the header text, the switcher, and
+        // window._dashOwnedChurches all from the same single fetch,
+        // exactly like the very first time it ran at page load.
+        if (typeof window.loadDashboardHeader === 'function') { await window.loadDashboardHeader(); }
         if (typeof window.loadDashboardChurchesPanel === 'function') window.loadDashboardChurchesPanel();
-        // (4) The dashboard header's own church-name text, if this is
-        // the currently active church.
-        var dashChurchNameEl = document.getElementById('dash-church-name');
-        if (dashChurchNameEl && window.getActiveChurchId && window.getActiveChurchId() === rcEditingChurchId) {
-          dashChurchNameEl.textContent = data[0].name;
-        }
         if (payload.logo_url) {
           document.getElementById('rc-logo-preview').style.backgroundImage = "url('" + payload.logo_url + "')";
         }

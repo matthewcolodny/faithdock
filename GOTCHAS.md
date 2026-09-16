@@ -2590,3 +2590,22 @@ Reported directly, pinpointing the exact cause: `profile-name-confirm-btn`'s suc
 Fixed by setting `#nav-user-name`'s text alongside `#profile-name` in the same success branch, right after the `update_profile_name` RPC succeeds.
 
 Build `2026-09-16-v47`.
+
+---
+
+## Dashboard header and church switcher dropdown went out of sync after a rename
+
+Reported directly, with a specific ask to check two named hypotheses: (1) the switcher built from data fetched once and never refreshed on back-navigation while the header re-fetches fresh, or (2) popstate/back restoring a cached prior render instead of re-fetching. Traced both.
+
+Actual root cause was closer to (1) than (2), but more specific: `loadDashboardHeader()` is the single function that builds the big header name, the multi-church switcher `<select>`'s `<option>` list, `window._dashOwnedChurches` (the "Manage my churches" grid), and several permission-gated sections -- but before this fix, it **only ever ran twice in a page's whole lifetime**: once at page load (`loadDashboardHeader();`, a bare top-level call), and again on auth-state changes (sign-in, session restore). Neither `go()` nor `goDash()` -- the two functions that actually handle navigating into and around `#dashboard` -- ever called it. Every other comparable route (`my-churches`, `my-events`, `my-groups`, `profile`) already had its own "refresh on every visit" hook in both `showRouteFromHash()` (covers popstate/back, since that's literally what popstate calls) and the generic `[data-route]` click handler (covers in-app forward clicks) -- `dashboard` was simply missing from both places.
+
+This explains the exact asymmetry reported: the header showed the new name only because the church-rename save handler (from the earlier "Manage my churches" cache-staleness fix, same session) directly patched `#dash-church-name`'s text as an immediate, same-page confirmation. The switcher was never patched by that same handler -- its `<option>` list has no standalone patchable piece of state; it only exists as markup built inline inside `loadDashboardHeader()`. So the header looked "live" purely by coincidence of a manual patch, while the switcher reflected whatever it was built with at the last of those two rare full-refresh events, indefinitely, regardless of how many times you navigated away and back.
+
+Fixed three places:
+1. `showRouteFromHash()` -- added a `loadDashboardHeader()` call whenever the resolved route is `dashboard`, right after the existing `goDash()` call. Covers popstate (browser Back) and any other path that flows through this router.
+2. The generic `[data-route]` click handler -- added the same call for `route === 'dashboard'`, matching the exact pattern already used for `my-churches`/`profile`/`directory` immediately above it. Covers in-app forward clicks (`nav-dashboard-link`, "← Back to my church" links) that never route through `showRouteFromHash()` at all.
+3. The church-rename save handler -- replaced the earlier direct-patch-in-place logic (header text + `_dashOwnedChurches` entry, from the previous fix) with a single `await loadDashboardHeader()` call now that `window._myChurchCache` is already cleared right before it. One real fetch instead of two parallel, hand-maintained patches that could drift apart from the real function's own logic over time -- the switcher bug this time was exactly that kind of drift (a patch that covered the header and the grid but missed the third thing built by the same function).
+
+Verified: syntax-checked all four `<script>` blocks (0 errors), confirmed no duplicate/overlapping fetch -- the two new call sites (popstate-driven router vs. plain click handler) are mutually exclusive triggers, never both firing for the same navigation. **Not tested** end to end (rename a real church, confirm the switcher's own text updates via both a click and an actual browser Back) -- no real authenticated owner session available in this sandbox to drive that with.
+
+Build `2026-09-16-v48`.
