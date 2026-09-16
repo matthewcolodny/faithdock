@@ -61,6 +61,20 @@
 // claim (see the third edit above) is now stale: migration 029 lets a
 // Manager trigger this same invite flow too, not just the owner.
 //
+// EDITED A FIFTH TIME 2026-09-15, NOT YET CONFIRMED DEPLOYED:
+// contact_church now sends to MULTIPLE recipients instead of hardcoding
+// the church owner as the sole address -- requested directly, alongside
+// new owner-facing Give/Message on-off toggles and a new grantable staff
+// ability (receives_contact_messages), all added in migration
+// 032_church_give_message_toggles.sql. Recipients are now: the owner
+// (unless they've turned off owner_receives_messages) plus any staff
+// member with receives_contact_messages = true, deduped, each address
+// resolved the same way the owner's always was (auth.admin.getUserById).
+// Also added a server-side messaging_enabled check -- the client hides
+// the "Message" button for a church with messaging turned off, but this
+// endpoint didn't previously re-verify that itself, so a direct API call
+// could have bypassed it.
+//
 // Dispatches on body.type: welcome_email, contact_church, mass_email,
 // group_join_request, ownership_handoff, member_invite,
 // event_contact_notify, and a no-type default (staff invite, keyed on
@@ -116,15 +130,44 @@ serve(async (req) => {
 
       const supabaseAdmin = createClient(Deno.env.get('SUPABASE_URL'), Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'));
       const { data: churchRow, error: churchError } = await supabaseAdmin
-        .from('churches').select('name, owner_id').eq('id', churchId).single();
+        .from('churches').select('name, owner_id, messaging_enabled, owner_receives_messages').eq('id', churchId).single();
       if (churchError || !churchRow || !churchRow.owner_id) {
         return new Response(JSON.stringify({ error: 'Could not find this church.' }), {
           status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
       }
 
-      const { data: ownerData, error: ownerError } = await supabaseAdmin.auth.admin.getUserById(churchRow.owner_id);
-      if (ownerError || !ownerData || !ownerData.user || !ownerData.user.email) {
+      // Server-side re-check, not just trusting the client hid the
+      // button -- migration 032_church_give_message_toggles.sql added
+      // this owner-facing on/off switch (Settings). messaging_enabled is
+      // a new column as of that migration; a row from before it ran
+      // still defaults to true via the column's own DB default, so this
+      // only ever actually blocks a church that explicitly turned it off.
+      if (churchRow.messaging_enabled === false) {
+        return new Response(JSON.stringify({ error: 'This church is not currently accepting messages.' }), {
+          status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      // Recipients: the owner (unless they've specifically opted out via
+      // owner_receives_messages) plus any staff member granted the new
+      // receives_contact_messages ability -- see migration
+      // 032_church_give_message_toggles.sql for why this is a distinct
+      // ability from can_manage_messages (outbound announcements) rather
+      // than reusing it. Multiple recipients are genuinely expected here
+      // (the whole point of the feature), not a single fallback address.
+      const recipientUserIds = [];
+      if (churchRow.owner_receives_messages !== false) recipientUserIds.push(churchRow.owner_id);
+      const { data: staffRows } = await supabaseAdmin
+        .from('church_staff').select('user_id').eq('church_id', churchId).eq('receives_contact_messages', true);
+      (staffRows || []).forEach((r) => { if (!recipientUserIds.includes(r.user_id)) recipientUserIds.push(r.user_id); });
+
+      const recipientEmails = [];
+      for (const uid of recipientUserIds) {
+        const { data: userData } = await supabaseAdmin.auth.admin.getUserById(uid);
+        if (userData && userData.user && userData.user.email) recipientEmails.push(userData.user.email);
+      }
+      if (!recipientEmails.length) {
         return new Response(JSON.stringify({ error: 'Could not find a contact email for this church.' }), {
           status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
@@ -135,7 +178,7 @@ serve(async (req) => {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${resendApiKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          from: 'FaithDock <invites@faithdock.com>', to: [ownerData.user.email], reply_to: senderEmail,
+          from: 'FaithDock <invites@faithdock.com>', to: recipientEmails, reply_to: senderEmail,
           subject: `[${churchRow.name}] ${subject}`, html: html,
         }),
       });

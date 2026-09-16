@@ -288,6 +288,7 @@
       'staffPerms.manageGroups': 'Create and manage groups', 'staffPerms.manageMessages': 'Send messages and view delivery data',
       'staffPerms.isManager': 'Manager — can also invite/remove staff and assign their abilities',
       'staffPerms.editProfile': 'Edit church profile', 'staffPerms.save': 'Save permissions',
+      'staffPerms.receiveMessages': 'Receive contact messages sent to this church', 'staffPerms.receiveMessagesTag': 'Receives Messages',
       'memberInvite.title': "You've been invited!", 'memberInvite.thisChurch': 'This church',
       'memberInvite.body': 'invited you to join them on FaithDock. Want to set them as your Church Home? You can always change this later in your profile.',
       'memberInvite.accept': 'Yes, set as my Church Home', 'memberInvite.decline': 'Not now',
@@ -619,6 +620,10 @@
       'dashSettings.keepAsStaff': 'Keep me on as staff after they accept', 'dashSettings.sendTransferRequest': 'Send transfer request',
       'dashSettings.givingFunds': 'Giving funds',
       'dashSettings.givingFundsHint': 'Designated funds donors can choose from when giving — a building campaign, a mission trip, whatever your church tracks separately. Gifts with no fund selected count toward the General Fund.',
+      'dashSettings.givingEnabledToggle': 'Show the "Give" button on your public page',
+      'dashSettings.messaging': 'Messaging', 'dashSettings.messagingEnabledToggle': 'Show the "Message" button on your public page',
+      'dashSettings.messagingHint': 'Whether visitors can message your church from its public page, and who gets a copy when they do. Add more recipients by granting the "Receive contact messages" ability to staff from the Staff page.',
+      'dashSettings.ownerReceivesMessagesToggle': 'Send me a copy of every message',
       'dashSettings.fundNamePlaceholder': 'e.g. Building Campaign',
       'dashSettings.removeRoomConfirm': 'Remove this room? It will no longer be selectable for new events — events that already used it keep that on record.',
       'dashSettings.removeRoomFailed': 'Could not remove this room:',
@@ -1080,6 +1085,7 @@
       'staffPerms.manageGroups': 'Crear y administrar grupos', 'staffPerms.manageMessages': 'Enviar mensajes y ver datos de entrega',
       'staffPerms.isManager': 'Gerente — también puede invitar/quitar personal y asignar sus habilidades',
       'staffPerms.editProfile': 'Editar perfil de la iglesia', 'staffPerms.save': 'Guardar permisos',
+      'staffPerms.receiveMessages': 'Recibir mensajes de contacto enviados a esta iglesia', 'staffPerms.receiveMessagesTag': 'Recibe Mensajes',
       'memberInvite.title': '¡Has sido invitado!', 'memberInvite.thisChurch': 'Esta iglesia',
       'memberInvite.body': 'te invitó a unirte a ellos en FaithDock. ¿Quieres establecerla como tu Iglesia Principal? Siempre puedes cambiar esto después en tu perfil.',
       'memberInvite.accept': 'Sí, establecer como mi Iglesia Principal', 'memberInvite.decline': 'Ahora no',
@@ -1411,6 +1417,10 @@
       'dashSettings.keepAsStaff': 'Mantenerme como personal después de que acepten', 'dashSettings.sendTransferRequest': 'Enviar solicitud de transferencia',
       'dashSettings.givingFunds': 'Fondos de donaciones',
       'dashSettings.givingFundsHint': 'Fondos designados que los donantes pueden elegir al donar — una campaña de construcción, un viaje misionero, lo que tu iglesia rastree por separado. Los regalos sin fondo seleccionado cuentan para el Fondo General.',
+      'dashSettings.givingEnabledToggle': 'Mostrar el botón "Donar" en tu página pública',
+      'dashSettings.messaging': 'Mensajería', 'dashSettings.messagingEnabledToggle': 'Mostrar el botón "Mensaje" en tu página pública',
+      'dashSettings.messagingHint': 'Si los visitantes pueden enviar mensajes a tu iglesia desde su página pública, y quién recibe una copia cuando lo hacen. Agrega más destinatarios otorgando la habilidad "Recibir mensajes de contacto" al personal desde la página de Personal.',
+      'dashSettings.ownerReceivesMessagesToggle': 'Enviarme una copia de cada mensaje',
       'dashSettings.fundNamePlaceholder': 'p. ej. Campaña de Construcción',
       'dashSettings.removeRoomConfirm': '¿Eliminar este salón? Ya no se podrá seleccionar para nuevos eventos — los eventos que ya lo usaron lo mantienen en su registro.',
       'dashSettings.removeRoomFailed': 'No se pudo eliminar este salón:',
@@ -3753,7 +3763,11 @@
         <div id="church-managed-line" style="display:none;margin-top:10px;font-size:13px;color:#8FA0C4;" data-i18n="church.managedByChurch">Managed by this church</div>
       </div>
       <div style="display:flex;flex-wrap:wrap;gap:10px;">
-        <button class="btn-outline" style="margin-right:0;" onclick="openContactChurchModal()" data-i18n="church.message">Message</button>
+        <!-- Both hidden for an unclaimed church, and independently for a
+             claimed one whose owner has turned that specific feature off
+             (Settings) -- see populateChurchPage()'s isClaimed/
+             c.messagingEnabled/c.givingEnabled block. -->
+        <button class="btn-outline" id="church-message-btn" style="margin-right:0;" onclick="openContactChurchModal()" data-i18n="church.message">Message</button>
         <button class="btn-outline" style="margin-right:0;" id="church-top-give-btn" onclick="openRealGiveTab()" data-i18n="church.give">Give</button>
       </div>
     </div>
@@ -6071,6 +6085,13 @@
               <label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-giving"> <span data-i18n="staffPerms.manageGiving">Manage giving settings (connect bank account)</span></label>
               <label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-groups"> <span data-i18n="staffPerms.manageGroups">Create and manage groups</span></label>
               <label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-messages"> <span data-i18n="staffPerms.manageMessages">Send messages and view delivery data</span></label>
+              <!-- Deliberately separate from can_manage_messages just
+                   above -- that one gates the OUTBOUND Messages/
+                   announcements dashboard feature; this is whether this
+                   staffer gets a copy of INBOUND contact-form messages
+                   visitors send from the church's public page (see
+                   migration 032_church_give_message_toggles.sql). -->
+              <label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-receive-messages"> <span data-i18n="staffPerms.receiveMessages">Receive contact messages sent to this church</span></label>
               <label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-profile"> <span data-i18n="staffPerms.editProfile">Edit church profile</span></label>
             </div>
             <button class="export-btn" id="team-invite-btn" style="width:100%;justify-content:center;margin-top:14px;" data-i18n="dashSettings.addToTeam">Send invite</button>
@@ -6173,12 +6194,37 @@
             <div class="side-note" id="settings-funds-section">
               <h4 data-i18n="dashSettings.givingFunds">Giving funds</h4>
               <p style="font-size:13.5px;color:var(--ink-mute);margin-bottom:14px;" data-i18n="dashSettings.givingFundsHint">Designated funds donors can choose from when giving — a building campaign, a mission trip, whatever your church tracks separately. Gifts with no fund selected count toward the General Fund.</p>
+              <!-- Requested directly, alongside removing Message/Give from
+                   unclaimed churches entirely: an on/off switch for
+                   whether the public "Give" button shows at all, placed
+                   by the funds list it affects rather than in the bank-
+                   connect section above (#settings-giving-section), which
+                   is about a DIFFERENT step (getting Stripe connected in
+                   the first place). checked/unchecked reflects
+                   churches.giving_enabled (migration
+                   032_church_give_message_toggles.sql), loaded/saved by
+                   loadGiveMessageToggles()/the settings-giving-enabled-
+                   toggle change handler further down this file. -->
+              <label class="filter-check" id="settings-giving-enabled-toggle-wrap" style="display:flex;margin-bottom:14px;">
+                <input type="checkbox" id="settings-giving-enabled-toggle" checked> <span data-i18n="dashSettings.givingEnabledToggle">Show the "Give" button on your public page</span>
+              </label>
               <div id="funds-list" style="margin-bottom:12px;"></div>
               <div style="display:flex;gap:8px;">
                 <input class="field" type="text" id="fund-add-name" placeholder="e.g. Building Campaign" data-i18n-placeholder="dashSettings.fundNamePlaceholder" style="flex:1;font-size:13px;padding:9px 10px;">
                 <button class="export-btn" id="fund-add-btn" style="flex-shrink:0;" data-i18n="dashSettings.add">Add</button>
               </div>
               <div id="fund-add-status" style="display:none;font-size:12px;margin-top:8px;"></div>
+            </div>
+            <div class="side-note" id="settings-messaging-section">
+              <h4 data-i18n="dashSettings.messaging">Messaging</h4>
+              <p style="font-size:13.5px;color:var(--ink-mute);margin-bottom:14px;" data-i18n="dashSettings.messagingHint">Whether visitors can message your church from its public page, and who gets a copy when they do. Add more recipients by granting the "Receive contact messages" ability to staff from the Staff page.</p>
+              <label class="filter-check" style="display:flex;margin-bottom:10px;">
+                <input type="checkbox" id="settings-messaging-enabled-toggle" checked> <span data-i18n="dashSettings.messagingEnabledToggle">Show the "Message" button on your public page</span>
+              </label>
+              <label class="filter-check" style="display:flex;margin-bottom:14px;">
+                <input type="checkbox" id="settings-owner-receives-messages-toggle" checked> <span data-i18n="dashSettings.ownerReceivesMessagesToggle">Send me a copy of every message</span>
+              </label>
+              <div id="settings-messaging-status" style="display:none;font-size:12px;margin-top:4px;"></div>
             </div>
           </div>
           <div class="side-note" style="margin-top:0;" id="settings-team-pointer-section">
@@ -6291,7 +6337,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v39 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v40 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -6321,6 +6367,7 @@
     <label class="filter-check" style="margin-top:10px;"><input type="checkbox" id="perm-giving"> <span data-i18n="staffPerms.manageGiving">Manage giving settings (connect bank account)</span></label>
     <label class="filter-check" style="margin-top:10px;"><input type="checkbox" id="perm-groups"> <span data-i18n="staffPerms.manageGroups">Create and manage groups</span></label>
     <label class="filter-check" style="margin-top:10px;"><input type="checkbox" id="perm-messages"> <span data-i18n="staffPerms.manageMessages">Send messages and view delivery data</span></label>
+    <label class="filter-check" style="margin-top:10px;"><input type="checkbox" id="perm-receive-messages"> <span data-i18n="staffPerms.receiveMessages">Receive contact messages sent to this church</span></label>
     <label class="filter-check" style="margin-top:10px;"><input type="checkbox" id="perm-profile"> <span data-i18n="staffPerms.editProfile">Edit church profile</span></label>
     <!-- Owner-only, tier-gated -- shown/hidden by loadTeamPanel's click
          handler (data-manager / data-viewer-is-owner on the gear button),
@@ -6895,6 +6942,20 @@
     }
     var bottomUnclaimedNotice = document.getElementById('church-bottom-unclaimed-notice');
     if (bottomUnclaimedNotice) bottomUnclaimedNotice.style.display = !isClaimed ? 'block' : 'none';
+
+    // Message/Give: hidden outright for an unclaimed church (requested
+    // directly -- "remove message and give from all unclaimed
+    // churches"), and independently for a claimed one whose owner has
+    // turned that specific feature off from Settings
+    // (giving_enabled/messaging_enabled, migration
+    // 032_church_give_message_toggles.sql). !== false, not a plain
+    // truthy check -- both columns default to true in the DB, and a
+    // church object built before this migration ran (or missing the
+    // field for any other reason) should read as "on," not "off."
+    var messageBtn = document.getElementById('church-message-btn');
+    if (messageBtn) messageBtn.style.display = (isClaimed && c.messagingEnabled !== false) ? '' : 'none';
+    var giveBtnTop = document.getElementById('church-top-give-btn');
+    if (giveBtnTop) giveBtnTop.style.display = (isClaimed && c.givingEnabled !== false) ? '' : 'none';
 
     if (typeof computeChurchDistance === 'function') computeChurchDistance(c);
     var distText = formatChurchDistanceText(c.dist);
@@ -7752,6 +7813,18 @@
   // without the account's own secret key, so this is an information-
   // disclosure fix, not a "someone could steal money" one — but
   // there's no reason to keep leaking it once noticed.
+  // giving_enabled/messaging_enabled (migration
+  // 032_church_give_message_toggles.sql) are NOT added to this constant,
+  // deliberately -- confirmed as a real, live problem by directly testing
+  // the query against the actual database before shipping this: adding a
+  // column that doesn't exist yet to a .select() list doesn't fail soft,
+  // it fails the WHOLE query (PostgREST error 42703, "column does not
+  // exist"), which would have broken every single church profile page
+  // fetch (this constant is used far beyond just the new toggle feature)
+  // for however long there is between this code deploying and the user
+  // actually running that migration by hand. Fetched separately, softly,
+  // right below instead -- see the giving_enabled/messaging_enabled
+  // block in findOrFetchChurchByName().
   var PUBLIC_CHURCH_COLUMNS = 'id, owner_id, name, description, address, city, state, created_at, denomination, denomination_tags, website, logo_url, lat, lng, phone, facebook_url, instagram_url, stripe_account_id, stripe_onboarding_complete, verification_status, verification_requested_at, verification_reviewed_at, plan_type, subscription_status, current_period_end, dedupe_key, service_times';
 
   // Once a church was cached here it stayed cached forever, for the
@@ -7803,6 +7876,21 @@
         verificationStatus: row.verification_status, ownerId: row.owner_id, planType: row.plan_type,
         serviceTimesLabel: formattedServiceTimes, rawServiceTimes: row.service_times
       };
+      // Fetched separately from the main row above, deliberately -- see
+      // the long comment on PUBLIC_CHURCH_COLUMNS for why baking these
+      // two into that same query would have broken the ENTIRE profile
+      // page fetch for every church until migration
+      // 032_church_give_message_toggles.sql is actually run. Soft
+      // failure here instead: if the columns don't exist yet, `error`
+      // is set, `toggleData` stays undefined, and mapped.givingEnabled/
+      // messagingEnabled simply stay undefined -- which populateChurchPage()'s
+      // own `!== false` checks already treat as "on," matching each
+      // column's DB default once the migration does run.
+      var { data: toggleData, error: toggleError } = await window.supabase.from('churches').select('giving_enabled, messaging_enabled').eq('id', row.id).limit(1);
+      if (!toggleError && toggleData && toggleData.length) {
+        mapped.givingEnabled = toggleData[0].giving_enabled;
+        mapped.messagingEnabled = toggleData[0].messaging_enabled;
+      }
       churchCacheFetchedAt[name] = Date.now();
       if (found) {
         // Refresh the existing object in place rather than pushing a
@@ -8146,6 +8234,17 @@
       }
       if(route === 'my-groups' && typeof window.loadMyGroups === 'function'){
         window.loadMyGroups();
+      }
+      // Real, reported bug: following a church from the Directory, then
+      // clicking the "My Churches" nav link, showed the old list until a
+      // full refresh. my-churches was missing from this same per-route
+      // reload pattern my-events/my-groups/profile already use -- its
+      // only other trigger was an auth-state-change/sign-in event, not
+      // navigating here, so a follow made mid-session (already signed
+      // in, no new auth event coming) never got picked up by a plain
+      // nav click.
+      if(route === 'my-churches' && typeof window.loadMyChurches === 'function'){
+        window.loadMyChurches();
       }
       if(route === 'profile' && typeof window.loadProfilePage === 'function'){
         window.loadProfilePage();
@@ -11211,17 +11310,17 @@
     // longer exists as a column (migration 029: billing is owner-only
     // with no exceptions, the ability was removed entirely, not just
     // defaulted off).
-    var { data: staffRows, error: staffError } = await supabase.from('church_staff').select('church_id, can_manage_events, can_manage_giving, can_edit_profile, can_manage_groups, can_manage_messages, is_manager, churches(id, name, denomination, plan_type)').eq('user_id', userId);
+    var { data: staffRows, error: staffError } = await supabase.from('church_staff').select('church_id, can_manage_events, can_manage_giving, can_edit_profile, can_manage_groups, can_manage_messages, is_manager, receives_contact_messages, churches(id, name, denomination, plan_type)').eq('user_id', userId);
     if (staffError) { console.error('getMyChurch (staff lookup):', staffError); }
     var staffedChurches = (staffRows || []).filter(function(sr){ return sr.churches; }).map(function(sr){
       var c = sr.churches;
-      return { id: c.id, name: c.name, denomination: c.denomination, plan_type: c.plan_type, can_manage_events: !!sr.can_manage_events, can_manage_giving: !!sr.can_manage_giving, can_edit_profile: !!sr.can_edit_profile, can_manage_groups: !!sr.can_manage_groups, can_manage_messages: !!sr.can_manage_messages, is_manager: !!sr.is_manager };
+      return { id: c.id, name: c.name, denomination: c.denomination, plan_type: c.plan_type, can_manage_events: !!sr.can_manage_events, can_manage_giving: !!sr.can_manage_giving, can_edit_profile: !!sr.can_edit_profile, can_manage_groups: !!sr.can_manage_groups, can_manage_messages: !!sr.can_manage_messages, is_manager: !!sr.is_manager, receives_contact_messages: !!sr.receives_contact_messages };
     });
     if (staffedChurches.length) {
       var activeChurchIdForStaffed = getActiveChurchId();
       var chosenStaffed = (activeChurchIdForStaffed && staffedChurches.filter(function(sc){ return sc.id === activeChurchIdForStaffed; })[0]) || staffedChurches[0];
       if (chosenStaffed.id !== activeChurchIdForStaffed) setActiveChurchId(chosenStaffed.id);
-      return { id: chosenStaffed.id, name: chosenStaffed.name, denomination: chosenStaffed.denomination, planType: chosenStaffed.plan_type, role: 'staff', canManageEvents: chosenStaffed.can_manage_events, canManageGiving: chosenStaffed.can_manage_giving, canEditProfile: chosenStaffed.can_edit_profile, canManageGroups: chosenStaffed.can_manage_groups, canManageMessages: chosenStaffed.can_manage_messages, isManager: chosenStaffed.is_manager, staffedChurches: staffedChurches };
+      return { id: chosenStaffed.id, name: chosenStaffed.name, denomination: chosenStaffed.denomination, planType: chosenStaffed.plan_type, role: 'staff', canManageEvents: chosenStaffed.can_manage_events, canManageGiving: chosenStaffed.can_manage_giving, canEditProfile: chosenStaffed.can_edit_profile, canManageGroups: chosenStaffed.can_manage_groups, canManageMessages: chosenStaffed.can_manage_messages, isManager: chosenStaffed.is_manager, receivesContactMessages: chosenStaffed.receives_contact_messages, staffedChurches: staffedChurches };
     }
 
     // church_staff has RLS that depends on the server independently
@@ -11346,6 +11445,13 @@
     if (settingsEditLink) settingsEditLink.style.display = myChurch.canEditProfile ? 'inline-block' : 'none';
     var settingsGivingSection = document.getElementById('settings-giving-section');
     if (settingsGivingSection) settingsGivingSection.style.display = myChurch.canManageGiving ? 'block' : 'none';
+    // The public "Give" on/off switch lives inside #settings-funds-section
+    // (positioned there deliberately -- see that section's own HTML
+    // comment), which isn't itself permission-gated, so this one label
+    // needs its own explicit canManageGiving check rather than inheriting
+    // a section-level hide.
+    var givingEnabledToggleWrap = document.getElementById('settings-giving-enabled-toggle-wrap');
+    if (givingEnabledToggleWrap) givingEnabledToggleWrap.style.display = myChurch.canManageGiving ? 'flex' : 'none';
 
     var createEventBtn = document.getElementById('dash-create-event-btn');
     if (createEventBtn) createEventBtn.style.display = myChurch.canManageEvents ? 'inline-flex' : 'none';
@@ -11353,6 +11459,12 @@
     if (dashBillingNavLink) dashBillingNavLink.style.display = myChurch.canManageBilling ? '' : 'none';
     var dashMessagesNavLink = document.querySelector('[data-dash="messages"]');
     if (dashMessagesNavLink) dashMessagesNavLink.style.display = myChurch.canManageMessages ? '' : 'none';
+    // New Messaging settings section (on/off switch + "send me a copy") --
+    // same canManageMessages ability that already gates the outbound
+    // Messages dashboard tab above, since both are messaging-related
+    // settings a staffer would need the same trust level for.
+    var settingsMessagingSection = document.getElementById('settings-messaging-section');
+    if (settingsMessagingSection) settingsMessagingSection.style.display = myChurch.canManageMessages ? 'block' : 'none';
     // Dedicated Staff page: tiers 2-5 only (Starter/Standard/Premium/
     // Multi-Church) -- free-tier churches get 0 staff seats
     // (planLimits.free.staff === 0), so the whole page has nothing to
@@ -15314,6 +15426,7 @@
       if (s.can_manage_giving) rowAbilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('dash.revenue') + '</span>');
       if (s.can_manage_groups) rowAbilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('dash.groups') + '</span>');
       if (s.can_manage_messages) rowAbilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('dash.messages') + '</span>');
+      if (s.receives_contact_messages) rowAbilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('staffPerms.receiveMessagesTag') + '</span>');
       if (s.can_edit_profile) rowAbilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('dashOverview.permProfile') + '</span>');
       var rowAbilityTagsHtml = '<div style="margin-top:5px;display:flex;flex-wrap:wrap;gap:4px;">'
         + (rowAbilityTags.length ? rowAbilityTags.join('') : '<span style="font-size:11.5px;color:var(--ink-mute);">' + window.t('dashOverview.permViewOnly') + '</span>')
@@ -15330,7 +15443,7 @@
         // which loadDirectoryPeople() already populates unconditionally
         // at dashboard load -- no separate fetch needed here.
         + (s.user_id ? '<button class="qr-btn icon-tip" data-tip="' + window.t('dashDir.viewProfile') + '" data-view-person-id="' + s.user_id + '" aria-label="' + window.t('dashDir.viewProfile') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg></button>' : '')
-        + (canActOnThisRow ? '<button class="qr-btn icon-tip" data-tip="' + window.t('dashSettings.permissions') + '" data-manage-permissions-id="' + s.staff_id + '" data-manage-permissions-name="' + name.replace(/"/g, '&quot;') + '" data-events="' + s.can_manage_events + '" data-giving="' + s.can_manage_giving + '" data-groups="' + s.can_manage_groups + '" data-messages="' + s.can_manage_messages + '" data-manager="' + s.is_manager + '" data-profile="' + s.can_edit_profile + '" data-viewer-is-owner="' + isOwner + '" aria-label="' + window.t('dashSettings.permissions') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg></button>' : '')
+        + (canActOnThisRow ? '<button class="qr-btn icon-tip" data-tip="' + window.t('dashSettings.permissions') + '" data-manage-permissions-id="' + s.staff_id + '" data-manage-permissions-name="' + name.replace(/"/g, '&quot;') + '" data-events="' + s.can_manage_events + '" data-giving="' + s.can_manage_giving + '" data-groups="' + s.can_manage_groups + '" data-messages="' + s.can_manage_messages + '" data-receive-messages="' + s.receives_contact_messages + '" data-manager="' + s.is_manager + '" data-profile="' + s.can_edit_profile + '" data-viewer-is-owner="' + isOwner + '" aria-label="' + window.t('dashSettings.permissions') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg></button>' : '')
         + (canActOnThisRow ? '<button class="qr-btn" data-remove-staff-id="' + s.staff_id + '" aria-label="' + window.t('dashSettings.removeFromTeam') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>' : '')
         + '</span></div>';
     });
@@ -15397,6 +15510,7 @@
           + '<label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-giving"> ' + window.t('staffPerms.manageGiving') + '</label>'
           + '<label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-groups"> ' + window.t('staffPerms.manageGroups') + '</label>'
           + '<label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-messages"> ' + window.t('staffPerms.manageMessages') + '</label>'
+          + '<label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-receive-messages"> ' + window.t('staffPerms.receiveMessages') + '</label>'
           + '<label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-profile"> ' + window.t('staffPerms.editProfile') + '</label>'
           + '</div>';
         // Owner-only, and only on tiers whose plan_tiers.can_assign_manager
@@ -15517,6 +15631,60 @@
     }).join('');
   }
   window.loadFundsPanel = loadFundsPanel;
+
+  // ============================================================
+  // Give/Message on-off switches, and whether the owner personally
+  // gets a copy of messages -- requested directly alongside removing
+  // both entirely from unclaimed churches (see populateChurchPage()).
+  // No separate Save button -- each checkbox saves its own single
+  // column the moment it changes, same immediate-save pattern already
+  // used for other Settings checkboxes in this file (e.g.
+  // ownership-transfer-keep-staff).
+  // ============================================================
+  async function loadGiveMessageToggles(){
+    var givingToggle = document.getElementById('settings-giving-enabled-toggle');
+    var messagingToggle = document.getElementById('settings-messaging-enabled-toggle');
+    var ownerReceivesToggle = document.getElementById('settings-owner-receives-messages-toggle');
+    if (!givingToggle && !messagingToggle && !ownerReceivesToggle) return;
+    var myChurch = await getMyChurch();
+    if (!myChurch) return;
+    var { data: rows } = await supabase.from('churches').select('giving_enabled, messaging_enabled, owner_receives_messages').eq('id', myChurch.id).limit(1);
+    if (!rows || !rows.length) return;
+    var row = rows[0];
+    // !== false, not a plain truthy read -- all three columns default to
+    // true in the DB (migration 032_church_give_message_toggles.sql);
+    // treating a missing/null value as "off" would flip every existing
+    // church's toggles to unchecked the first time this loads, before
+    // anyone actually touched them.
+    if (givingToggle) givingToggle.checked = row.giving_enabled !== false;
+    if (messagingToggle) messagingToggle.checked = row.messaging_enabled !== false;
+    if (ownerReceivesToggle) ownerReceivesToggle.checked = row.owner_receives_messages !== false;
+  }
+  window.loadGiveMessageToggles = loadGiveMessageToggles;
+
+  function bindGiveMessageToggleSave(elId, column){
+    var el = document.getElementById(elId);
+    if (!el) return;
+    el.addEventListener('change', async function(){
+      var statusEl = document.getElementById('settings-messaging-status');
+      var myChurch = await getMyChurch();
+      if (!myChurch) return;
+      var update = {};
+      update[column] = el.checked;
+      var { error } = await supabase.from('churches').update(update).eq('id', myChurch.id);
+      if (error) {
+        // Revert the checkbox -- the write didn't actually happen, so
+        // the UI shouldn't claim it did.
+        el.checked = !el.checked;
+        if (statusEl) { statusEl.textContent = error.message; statusEl.style.color = 'var(--clay)'; statusEl.style.display = 'block'; }
+        return;
+      }
+      if (statusEl) statusEl.style.display = 'none';
+    });
+  }
+  bindGiveMessageToggleSave('settings-giving-enabled-toggle', 'giving_enabled');
+  bindGiveMessageToggleSave('settings-messaging-enabled-toggle', 'messaging_enabled');
+  bindGiveMessageToggleSave('settings-owner-receives-messages-toggle', 'owner_receives_messages');
 
   // ============================================================
   // Insights — giving trend, event attendance, and group
@@ -17653,6 +17821,7 @@
   loadRoomsPanel();
   loadMinistriesPanel();
   loadFundsPanel();
+  loadGiveMessageToggles();
   loadGivingInsights();
   loadAttendanceInsights();
   loadGroupsInsights();
@@ -17667,6 +17836,7 @@
     document.getElementById('perm-giving').checked = permBtn.getAttribute('data-giving') === 'true';
     document.getElementById('perm-groups').checked = permBtn.getAttribute('data-groups') === 'true';
     document.getElementById('perm-messages').checked = permBtn.getAttribute('data-messages') === 'true';
+    document.getElementById('perm-receive-messages').checked = permBtn.getAttribute('data-receive-messages') === 'true';
     document.getElementById('perm-profile').checked = permBtn.getAttribute('data-profile') === 'true';
     // Manager checkbox: only the actual owner can see/change it --
     // matches update_staff_abilities()'s server-side rule that only
@@ -17706,7 +17876,8 @@
         p_can_edit_profile: document.getElementById('perm-profile').checked,
         p_can_manage_groups: document.getElementById('perm-groups').checked,
         p_can_manage_messages: document.getElementById('perm-messages').checked,
-        p_is_manager: document.getElementById('perm-manager').checked
+        p_is_manager: document.getElementById('perm-manager').checked,
+        p_receives_contact_messages: document.getElementById('perm-receive-messages').checked
       });
       staffPermissionsSaveBtn.disabled = false;
 
@@ -21892,6 +22063,7 @@
       if (myChurchForStaffRow.canManageGiving) profileAbilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('dash.revenue') + '</span>');
       if (myChurchForStaffRow.canManageGroups) profileAbilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('dash.groups') + '</span>');
       if (myChurchForStaffRow.canManageMessages) profileAbilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('dash.messages') + '</span>');
+      if (myChurchForStaffRow.receivesContactMessages) profileAbilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('staffPerms.receiveMessagesTag') + '</span>');
       if (myChurchForStaffRow.canEditProfile) profileAbilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('dashOverview.permProfile') + '</span>');
       document.getElementById('profile-staff-abilities-tags').innerHTML = profileAbilityTags.length ? profileAbilityTags.join('') : '<span style="font-size:11.5px;color:var(--ink-mute);">' + window.t('dashOverview.permViewOnly') + '</span>';
       staffRow.style.display = 'flex';
@@ -23270,6 +23442,7 @@
       can_manage_messages: abilities.can_manage_messages,
       can_edit_profile: abilities.can_edit_profile,
       is_manager: abilities.is_manager,
+      receives_contact_messages: abilities.receives_contact_messages,
       status: 'pending',
       responded_at: null
     }, { onConflict: 'church_id,email' });
@@ -23330,7 +23503,8 @@
         can_manage_groups: !!(document.getElementById('invite-perm-groups') && document.getElementById('invite-perm-groups').checked),
         can_manage_messages: !!(document.getElementById('invite-perm-messages') && document.getElementById('invite-perm-messages').checked),
         can_edit_profile: !!(document.getElementById('invite-perm-profile') && document.getElementById('invite-perm-profile').checked),
-        is_manager: !!(isManagerCheckbox && isManagerCheckbox.checked)
+        is_manager: !!(isManagerCheckbox && isManagerCheckbox.checked),
+        receives_contact_messages: !!(document.getElementById('invite-perm-receive-messages') && document.getElementById('invite-perm-receive-messages').checked)
       };
 
       // Multi-church: whatever's checked in the church list (only
