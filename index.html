@@ -6358,7 +6358,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-16-v50 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-16-v51 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -6894,6 +6894,12 @@
     if (c.real && c.id) {
       var { data } = await window.supabase.rpc('search_events', { p_church_ids: [c.id], p_limit: 50, p_offset: 0 });
       churchEvents = (data || []).map(mapSearchEventRow);
+      // Same staleness fix as renderEvents/renderHomeEvents -- without
+      // this, a church profile's own Events tab fetched fresh data but
+      // never told findOrFetchEventById's shared cache about it, so
+      // clicking through to one of these cards could still land on a
+      // stale detail page.
+      if (typeof mergeEventIntoCache === 'function') churchEvents.forEach(mergeEventIntoCache);
     } else {
       churchEvents = events.filter(function(e){ return e.church === c.name; });
     }
@@ -9299,21 +9305,39 @@
     };
   }
 
-  // Falls back to a direct fetch when an event isn't already in the
-  // in-memory array — the same gap findOrFetchChurchByName already
-  // covers for churches. Since loadDashboardEvents() (staff's own
-  // events table) queries the events table directly rather than
-  // going through search_events, events shown there were never
-  // getting added to the shared array — clicking the title, or "View
-  // public page" in its row menu, silently found nothing and never
-  // actually populated the event page.
+  // Real, reported staleness bug, same class as the church-page cache
+  // fixed earlier this session (findOrFetchChurchByName's 45s TTL) --
+  // but WORSE here, since this function previously had no staleness
+  // fallback at all: once an event was pushed into the shared `events`
+  // array (from the listing page, the home preview, a church profile's
+  // Events tab, anywhere), `found` above returned that exact same
+  // frozen object for the rest of the browser session, no matter how
+  // much time passed or how many registrations came in -- including
+  // AFTER editing that same event from the Dashboard, since the edit
+  // save handler only ever refreshed its own dashboard table, never
+  // this shared cache (see the event-edit submit handler's own comment
+  // on this). Confirmed the actual failure path: clicking an event card
+  // from the Events listing -- itself always freshly fetched on every
+  // render -- routes through the global [data-route="event"] click
+  // handler, which looks the event up in THIS array first, not the
+  // fresh row the card was just built from, so the card's own text
+  // could show up-to-date info while the detail page it links to still
+  // showed the stale cached version underneath it. Same TTL value as
+  // churches, same reasoning -- short enough that a genuinely stale
+  // view self-heals quickly, long enough not to re-fetch on every
+  // click during normal browsing.
+  var EVENT_CACHE_TTL_MS = 45000;
+  var eventCacheFetchedAt = {};
   async function findOrFetchEventById(id){
     var found = events.filter(function(e){ return String(e.id) === String(id); })[0];
-    if (found) return found;
+    var freshEnough = found && found.real && eventCacheFetchedAt[id] && (Date.now() - eventCacheFetchedAt[id]) < EVENT_CACHE_TTL_MS;
+    if (freshEnough) return found;
     // Same not-ready-yet race as findOrFetchChurchByName above -- see
     // its comment. Returning null (not throwing) is what
     // showRouteFromHash's `else if (window.supabase)` guard relies on.
-    if (!window.supabase) return null;
+    // A stale-but-present cached copy is still better than nothing here
+    // (same fallback churches' version uses), not a hard failure.
+    if (!window.supabase) return found || null;
     var { data } = await window.supabase.from('events')
       .select('id, title, description, start_at, end_at, location, registration_required, image_url, tags, category_tags, audience, allow_volunteers, max_participants, max_volunteers, contacts, price_cents, church_id, churches(name, plan_type)')
       .eq('id', id).limit(1);
@@ -9336,12 +9360,39 @@
         church_id: row.church_id, church_name: row.churches ? row.churches.name : null,
         church_plan_type: row.churches ? row.churches.plan_type : null
       });
+      eventCacheFetchedAt[id] = Date.now();
+      if (found) {
+        // Refresh the existing object in place, same reasoning as
+        // findOrFetchChurchByName's own refresh-in-place -- the lookup
+        // above always takes the first array match, so pushing a
+        // second entry for the same id would leave the stale original
+        // permanently winning.
+        for (var refreshKey in mapped) { found[refreshKey] = mapped[refreshKey]; }
+        return found;
+      }
       events.push(mapped);
       return mapped;
     }
-    return null;
+    return found || null;
   }
   window.findOrFetchEventById = findOrFetchEventById;
+
+  // Shared by every fresh-fetch render path below (renderEvents,
+  // renderHomeEvents, loadChurchEvents) to keep the shared `events`
+  // array -- and findOrFetchEventById's TTL clock -- in step with
+  // whatever real, current data those fresh fetches just returned.
+  // Previously each of these only pushed a row into the array if
+  // nothing with that id was there yet, silently discarding the fresh
+  // fetch's own up-to-date title/capacity otherwise -- so the listing
+  // card itself could show current info while findOrFetchEventById
+  // (what the detail page reached via a click actually reads from)
+  // kept returning whatever was cached first, no matter how stale.
+  function mergeEventIntoCache(e){
+    var existing = events.filter(function(x){ return x.id === e.id; })[0];
+    if (existing) { for (var mergeKey in e) { existing[mergeKey] = e[mergeKey]; } }
+    else { events.push(e); }
+    eventCacheFetchedAt[e.id] = Date.now();
+  }
 
   var EVENTS_PAGE_SIZE = 24;
   window.eventsOffset = 0;
@@ -9527,7 +9578,7 @@
     var rows = (data || []).map(mapSearchEventRow);
     var totalCount = (data && data.length) ? data[0].total_count : 0;
 
-    rows.forEach(function(e){ var existing = events.filter(function(x){ return x.id === e.id; })[0]; if (!existing) events.push(e); });
+    rows.forEach(mergeEventIntoCache);
 
     if (!append) {
       // Cache the already-rotated array, not the raw rows -- re-
@@ -9588,7 +9639,7 @@
     });
     if (data && data.length) {
       var rows = data.map(mapSearchEventRow);
-      rows.forEach(function(e){ var existing = events.filter(function(x){ return x.id === e.id; })[0]; if (!existing) events.push(e); });
+      rows.forEach(mergeEventIntoCache);
       window.homeEventsLastRenderedRows = rows;
       homeGrid.innerHTML = mapJoin(rows, eventCard);
     } else {
@@ -15298,6 +15349,24 @@
         await saveEventQuestions(ceEditingEventId);
         notifyNewEventContacts(cleanContacts, title, updatePayload.start_at, updatePayload.end_at, myChurches[0].name);
         showCeSuccess(window.t('ce.savedUpdated').replace('{title}', data[0].title));
+        // Real, reported staleness bug: this save only ever refreshed
+        // the Dashboard's own events table (loadDashboardEvents() below)
+        // -- the shared `events` array findOrFetchEventById() reads from
+        // (used by the public event detail page, reached via a card
+        // click on the Events listing, home preview, or a church
+        // profile's Events tab) was never told this event changed, and
+        // that function had no staleness fallback before this session's
+        // fix, so an already-cached copy of this exact event could show
+        // the OLD title/date/capacity indefinitely, even right after
+        // saving here. Dropping the TTL timestamp (not hand-patching the
+        // cached object's fields) forces the next lookup to genuinely
+        // re-fetch -- same "let the real function get it right, don't
+        // duplicate its logic" reasoning as the dashboard-header/church-
+        // switcher fix earlier this session, since a correct re-fetch
+        // also needs the joined church name/plan and the live
+        // registration count, neither of which is available from
+        // `data` here.
+        delete eventCacheFetchedAt[ceEditingEventId];
         loadDashboardEvents();
         return;
       }
