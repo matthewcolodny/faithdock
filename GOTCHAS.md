@@ -2580,3 +2580,13 @@ This fixes the one reported path (the church profile edit form), not every write
 Verified: syntax-checked all four `<script>` blocks (0 errors). **Not tested** end to end (rename a real church, confirm the overview grid updates immediately with no reload) -- no real authenticated owner session available in this sandbox to drive that with.
 
 Build `2026-09-16-v46`.
+
+---
+
+## Display name save didn't update the nav bar until a refresh
+
+Reported directly, pinpointing the exact cause: `profile-name-confirm-btn`'s success handler updated `#profile-name` (the profile page's own heading) but never touched `#nav-user-name` (the account dropdown label in the nav bar) -- a separate element the handler simply didn't know about, so the nav bar kept showing the old name until a full reload re-ran whatever populates it at page load.
+
+Fixed by setting `#nav-user-name`'s text alongside `#profile-name` in the same success branch, right after the `update_profile_name` RPC succeeds.
+
+Build `2026-09-16-v47`.

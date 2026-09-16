@@ -6338,7 +6338,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-16-v46 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-16-v47 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -22496,6 +22496,12 @@
         return;
       }
       document.getElementById('profile-name').textContent = newName;
+      // #nav-user-name is a separate element (the nav bar's account
+      // dropdown label) that this handler previously never touched --
+      // it kept showing the old name until a full reload re-ran
+      // whatever initially populated it.
+      var navUserNameEl = document.getElementById('nav-user-name');
+      if (navUserNameEl) navUserNameEl.textContent = newName;
       statusEl.textContent = window.t('profile.savedNameLocked60Days');
       statusEl.style.color = 'var(--sage)';
       statusEl.style.display = 'block';
