@@ -6377,7 +6377,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-16-v53 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-16-v54 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -24048,24 +24048,15 @@
   // directly instead, and simply does nothing to the cache if the
   // event isn't already sitting in it (nothing else needs it patched
   // right now if it isn't).
-  async function refreshEventCapacityBadge(eventId){
-    var cached = (window.events || []).filter(function(x){ return String(x.id) === String(eventId); })[0];
-    var maxParticipants = cached ? cached.maxParticipants : null;
-    var fillBadgeEl = document.getElementById('event-fill-badge');
-    if (!maxParticipants) {
-      // Uncapped events can never be "full" -- same gate
-      // mapSearchEventRow() uses, nothing to recompute or show.
-      if (fillBadgeEl) fillBadgeEl.style.display = 'none';
-      if (cached) cached.fillBadge = null;
-      return;
-    }
-    var { data: countsRows } = await supabase.rpc('get_event_registration_counts', { p_event_id: eventId });
-    var participantCount = (countsRows && countsRows[0] && countsRows[0].participant_count) || 0;
-    var fillRatio = participantCount / maxParticipants;
+  // Shared by the optimistic and real-fetch paths below so they can't
+  // drift from each other's rendering logic.
+  function applyFillBadgeFromCount(fillBadgeEl, cached, participantCount, maxParticipants){
+    var fillRatio = maxParticipants ? (participantCount / maxParticipants) : 0;
     var fillBadge = null;
-    if (fillRatio >= 1) { fillBadge = { label: 'Full', color: 'clay' }; }
-    else if (fillRatio >= 0.9) { fillBadge = { label: 'Almost full', color: 'gold' }; }
-
+    if (maxParticipants) {
+      if (fillRatio >= 1) { fillBadge = { label: 'Full', color: 'clay' }; }
+      else if (fillRatio >= 0.9) { fillBadge = { label: 'Almost full', color: 'gold' }; }
+    }
     if (fillBadgeEl) {
       if (fillBadge) {
         fillBadgeEl.className = 'tag ' + fillBadge.color;
@@ -24076,6 +24067,55 @@
       }
     }
     if (cached) { cached.confirmedParticipantCount = participantCount; cached.fillBadge = fillBadge; }
+  }
+
+  // Real, reported bug even after the first version of this fix:
+  // unregistered from a full event, the "Full" tag stayed, and a
+  // refresh later showed re-registered (almost certainly from clicking
+  // Register again out of confusion, since nothing visibly changed --
+  // capacity had genuinely freed up by then, so that click correctly
+  // succeeded). The network trace confirmed the DELETE succeeded (204)
+  // and get_event_registration_counts DID run and return 200 right
+  // after -- so the async re-fetch this function already did was
+  // firing, but the badge still didn't visibly change for however long
+  // that round trip actually took, and the original version never
+  // awaited it, so the button re-enabled and the status message showed
+  // before the badge had actually caught up.
+  //
+  // `optimisticDelta` (-1 on unregister, +1 on a fresh registration) is
+  // what actually fixes the reported symptom: applied synchronously,
+  // from the LAST count this cache entry already knew about, with zero
+  // network round trip -- this device's own action updates its own
+  // screen instantly, not whenever an RPC call happens to resolve. The
+  // real re-fetch below still runs right after to reconcile against
+  // whatever the server actually has (covers someone else registering
+  // in the same instant, or this cache entry never having a known
+  // count to begin with).
+  async function refreshEventCapacityBadge(eventId, optimisticDelta){
+    var cached = (window.events || []).filter(function(x){ return String(x.id) === String(eventId); })[0];
+    var maxParticipants = cached ? cached.maxParticipants : null;
+    var fillBadgeEl = document.getElementById('event-fill-badge');
+    if (!maxParticipants) {
+      // Uncapped events can never be "full" -- same gate
+      // mapSearchEventRow() uses, nothing to recompute or show.
+      if (fillBadgeEl) fillBadgeEl.style.display = 'none';
+      if (cached) cached.fillBadge = null;
+      return;
+    }
+    if (optimisticDelta && cached && cached.confirmedParticipantCount != null) {
+      applyFillBadgeFromCount(fillBadgeEl, cached, Math.max(0, cached.confirmedParticipantCount + optimisticDelta), maxParticipants);
+    }
+    var { data: countsRows, error } = await supabase.rpc('get_event_registration_counts', { p_event_id: eventId });
+    if (error) {
+      // The optimistic update above (if it ran) already reflects this
+      // device's own action correctly -- a failed reconciliation fetch
+      // isn't worth reverting that over, just leaves it unreconciled
+      // until the next successful check.
+      console.error('refreshEventCapacityBadge:', error);
+      return;
+    }
+    var participantCount = (countsRows && countsRows[0] && countsRows[0].participant_count) || 0;
+    applyFillBadgeFromCount(fillBadgeEl, cached, participantCount, maxParticipants);
   }
   window.refreshEventCapacityBadge = refreshEventCapacityBadge;
 
@@ -24148,7 +24188,7 @@
           return;
         }
         setEventRegisteredUI(btn, false, null);
-        if (typeof refreshEventCapacityBadge === 'function') refreshEventCapacityBadge(eventId);
+        if (typeof refreshEventCapacityBadge === 'function') await refreshEventCapacityBadge(eventId, -1);
         statusEl.textContent = window.t('events.cancelledNoAutoRefund');
         statusEl.style.display = 'block';
         btn.disabled = false;
@@ -24163,7 +24203,7 @@
         return;
       }
       setEventRegisteredUI(btn, false, null);
-      if (typeof refreshEventCapacityBadge === 'function') refreshEventCapacityBadge(eventId);
+      if (typeof refreshEventCapacityBadge === 'function') await refreshEventCapacityBadge(eventId, -1);
       statusEl.textContent = window.t('events.unregisteredPickRoleAgain');
       statusEl.style.display = 'block';
       btn.disabled = false;
@@ -24342,7 +24382,10 @@
     var savedRoleLabel = savedRole === 'volunteer' ? window.t('events.roleVolunteer') : window.t('events.roleParticipant');
 
     setEventRegisteredUI(btn, true, savedRole);
-    if (typeof refreshEventCapacityBadge === 'function') refreshEventCapacityBadge(eventId);
+    // Only a participant registration counts toward max_participants/
+    // the fill badge (mapSearchEventRow's own gate) -- a volunteer
+    // signup gets no optimistic bump, just the real reconciling fetch.
+    if (typeof refreshEventCapacityBadge === 'function') await refreshEventCapacityBadge(eventId, savedRole === 'participant' ? 1 : 0);
     // Flag-based, not a substring match against the (now-translated)
     // error text above — that match would silently break the moment
     // this string stopped being literal English.
