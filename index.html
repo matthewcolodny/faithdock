@@ -6291,7 +6291,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v38 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-15-v39 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -21624,7 +21624,23 @@
   document.addEventListener('click', function(ev){
     var manageBtn = ev.target.closest ? ev.target.closest('[data-manage-church-id]') : null;
     if (!manageBtn) return;
-    location.hash = '#dashboard';
+    // history.pushState directly, not a plain `location.hash = ...`
+    // assignment -- reported directly: pressing Back right after
+    // landing on the dashboard from here did nothing on the first
+    // press, then jumped past My Churches straight to home on the
+    // second. A raw hash assignment immediately followed by
+    // location.reload() (inside setActiveChurchAndReload below) is a
+    // known cross-browser gray area for the joint session history --
+    // the hash-change and the reload can interact inconsistently
+    // depending on the engine, since the reload fires before the
+    // hash-assignment's own (asynchronous) hashchange event has even
+    // had a chance to settle. Calling the History API directly, the
+    // same way every other navigation in this app already does via
+    // go()/safeHistoryUpdate, avoids that ambiguity -- it's a single,
+    // synchronous, well-defined operation on the history stack, with
+    // nothing left implicit for the browser to race against the
+    // reload that follows immediately after.
+    history.pushState(null, '', '#dashboard');
     window.setActiveChurchAndReload(manageBtn.getAttribute('data-manage-church-id'));
   });
 
