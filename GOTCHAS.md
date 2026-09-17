@@ -4112,3 +4112,30 @@ The verification block asserts **both directions** -- five functions closed to `
 The general rule, earned three times now: **for a privilege, `has_function_privilege` / `information_schema` is the evidence. A migration running clean is not.**
 
 **Migration 054 must be run by hand.** No client change.
+
+---
+
+## A batch of reported bugs, and the shape behind most of them
+
+Several reports at once, and four of them turned out to be the same thing.
+
+**"What's with all the refresh to see current status issues?"** There are two distinct causes, and both are structural rather than one-off.
+
+**(a) A hand-maintained list, in three places.** What gets reloaded is enumerated by hand in the route dispatcher, in the auth-settle batch, and in the language-toggle batch. Anything missing from the right one silently shows stale state, and nothing about the page looks wrong. That is why **refreshing "Manage your plan" reverted it to "Become a Partner Church"**: on a cold load the session has not been restored, so `window.isSignedIn` is false, `populatePricingPage()` paints the signed-out heading and returns -- and the auth-settle batch, which corrects exactly this for twenty-odd other loaders, never listed it.
+
+**(b) Nothing tells a panel it is stale after a mutation elsewhere.** Every save refreshed the panel it was saved *from*. **Adding a room while editing an event needed a refresh before Facility showed it** because the Facility counts, the room week grid and the check-in picker all read event rows and none of them were told. Now `refreshAfterEventChange()` names what an event change invalidates, in one place, and the three event-save sites call it. A named function rather than three more calls per site, because the failure mode is a site that forgets one -- and a forgotten refresh is invisible.
+
+**Focus mode button invisible in dark mode.** `--brand` is deliberately never redefined for dark, because there it serves as a foreground on gold. Every element using it as a *background* carries an explicit dark override -- `.auth-submit` and `.for-churches-cta` both do. The focus bar was added without one, so a `#16233F` bar sat on a `#101826` page and vanished, taking its exit button with it. Now gold with navy text, matching the house pattern. The enter button's `--line` border also read as almost nothing on dark, so it uses `--ink-mute`.
+
+**Unsaved-changes alert after pressing Publish.** Only opening and resetting the form cleared the dirty flag; a successful save did not, so leaving straight after publishing warned about changes that had just been written.
+
+**An email for walk-ins** (migration 055). Optional and labelled so, because a queue at the door is no place for a required field -- a name with no contact is still better than a volunteer skipping someone who would not give one. Validated in JS rather than relying on `type="email"`, which only runs on form submission and this is a button click.
+
+Two things about that column worth keeping:
+
+- **It deliberately has no GRANT statement.** Every reflex from 049-054 says to write one; it would do nothing, because `event_registrations` already carries table-wide privileges, so the new column is reachable by exactly whoever could already reach `guest_name`. Writing a privilege statement that reads as protection but is not is the specific mistake 049 made.
+- **`checkin_link_open()` still selects an explicit column list without it.** A door volunteer on a shared link sees names; a signed-in staff member sees contact details. That distinction is the whole point of 052, and a new column must not quietly undo it.
+
+**A deploy-ordering bug introduced and caught in the same pass.** Adding `guest_email` to the roster's select would have blanked the entire check-in list on any deploy landing before 055 -- a column that does not exist fails the *whole* select with 42703 rather than returning null for one field. Now it asks, and retries without on 42703. A retry rather than two parallel queries, because the roster is one list: a second query resolving separately would paint names first and contact details after, which at a door reads as the page moving under the volunteer's hand. Verified by stubbing the 42703 and watching the retry render the roster anyway.
+
+Build `2026-09-17-v109`; **migration 055 must be run by hand** (the walk-in email degrades to absent without it).

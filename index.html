@@ -728,6 +728,8 @@
       'checkinLink.invalidTitle': 'This check-in link is not active',
       'checkinLink.invalidBody': 'It may have expired, been revoked, or been typed incorrectly. Ask whoever set up the event for a new one.',
       'checkinLink.privacyNote': 'This page shows names only. It works for this one event and stops working when the link expires.',
+      'dashCheckin.emailOptional': 'Email (optional)',
+      'dashCheckin.badEmail': 'That email address does not look right.',
       'dashMsg.subjectPlaceholder': 'e.g. Sunday service update', 'dashMsg.message': 'Message', 'dashMsg.writeAnnouncement': 'Write your announcement...',
       'dashMsg.scheduleForLater': 'Schedule for later instead of sending now', 'dashMsg.sendAnnouncement': 'Send announcement',
       'dashMsg.scheduledAnnouncements': 'Scheduled announcements',
@@ -1613,6 +1615,8 @@
       'checkinLink.invalidTitle': 'Este enlace de registro no está activo',
       'checkinLink.invalidBody': 'Puede haber caducado, haber sido revocado o estar mal escrito. Pide uno nuevo a quien organizó el evento.',
       'checkinLink.privacyNote': 'Esta página muestra solo nombres. Funciona para este único evento y deja de funcionar cuando el enlace caduca.',
+      'dashCheckin.emailOptional': 'Correo (opcional)',
+      'dashCheckin.badEmail': 'Ese correo electrónico no parece correcto.',
       'dashMsg.subjectPlaceholder': 'p. ej. Actualización del servicio dominical', 'dashMsg.message': 'Mensaje', 'dashMsg.writeAnnouncement': 'Escribe tu anuncio...',
       'dashMsg.scheduleForLater': 'Programar para más tarde en lugar de enviar ahora', 'dashMsg.sendAnnouncement': 'Enviar anuncio',
       'dashMsg.scheduledAnnouncements': 'Anuncios programados',
@@ -3385,6 +3389,14 @@
   #checkin-focus-exit{display:none;}
   body.checkin-focus #checkin-focus-exit{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--brand);color:#fff;padding:10px 16px;border-radius:10px;margin-bottom:18px;font-size:13.5px;}
   body.checkin-focus #checkin-focus-enter{display:none;}
+  /* See .for-churches-cta above for the same pairing: on dark, the
+     brand navy becomes the TEXT and gold becomes the surface. */
+  html[data-theme="dark"] body.checkin-focus #checkin-focus-exit{background:var(--gold);color:var(--brand);}
+  html[data-theme="dark"] body.checkin-focus #checkin-focus-exit .export-btn{color:var(--brand);border-color:var(--brand);}
+  /* The enter button is an ordinary .export-btn, whose transparent
+     background and --line border read as almost nothing against a
+     dark page -- it looked like stray text rather than a control. */
+  #checkin-focus-enter{border-color:var(--ink-mute);}
   /* The account-less door page. Same intent as focus mode above,
      but it does not need to hide a dashboard -- there is no session
      here to protect, which is the whole reason this exists. */
@@ -6162,8 +6174,13 @@ Groups</span>
 
         <div class="side-note" style="margin-top:0;margin-bottom:20px;max-width:520px;display:none;" id="checkin-walkin-card">
           <label style="font-size:12.5px;" data-i18n="dashCheckin.addWalkIn">Add a walk-in</label>
-          <div style="display:flex;gap:8px;margin-top:6px;">
-            <input class="field" type="text" id="checkin-walkin-name" placeholder="Full name" style="flex:1;font-size:13px;padding:9px 10px;" data-i18n-placeholder="dashCheckin.fullName">
+          <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;">
+            <input class="field" type="text" id="checkin-walkin-name" placeholder="Full name" style="flex:1;min-width:140px;font-size:13px;padding:9px 10px;" data-i18n-placeholder="dashCheckin.fullName">
+            <!-- Optional, and labelled as such: a queue at the door is
+                 no place for a required field. A name with no way to
+                 follow up is still better than a volunteer skipping
+                 the person entirely because they would not give one. -->
+            <input class="field" type="email" id="checkin-walkin-email" placeholder="Email (optional)" style="flex:1;min-width:140px;font-size:13px;padding:9px 10px;" data-i18n-placeholder="dashCheckin.emailOptional">
             <button class="export-btn" id="checkin-walkin-add-btn" style="flex-shrink:0;" data-i18n="dashGroups.add">Add</button>
           </div>
           <div id="checkin-walkin-status" style="display:none;font-size:12px;margin-top:8px;"></div>
@@ -7086,7 +7103,7 @@ Groups</span>
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v108 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v109 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -11790,6 +11807,39 @@ Groups</span>
   // the work to the moment it's actually needed.
   window.resetDashboardPanels = function(){ _dashPanelsFlushed = false; };
 
+  // ============================================================
+  // What a change to an event makes stale.
+  //
+  // Reported as "adding a room in event edit needs a refresh before
+  // Facility shows it", which is one instance of a general shape:
+  // every save refreshed the panel it was saved FROM, and nothing
+  // told the other panels reading the same rows. The Facility room
+  // counts, the room week grid and the check-in event picker are
+  // all derived from events, and all three sat stale until a manual
+  // reload.
+  //
+  // A named function rather than three more calls at each save site,
+  // because the failure mode is a save site that forgets one -- and
+  // a forgotten refresh is invisible: the page looks finished and is
+  // simply wrong. Adding a panel that reads events means adding it
+  // here, once.
+  //
+  // Each call is guarded and independent: these loaders belong to
+  // different dashboard tabs, and one throwing (or not existing yet
+  // on a pre-migration deploy) must not stop the others.
+  window.refreshAfterEventChange = function(){
+    [
+      'loadDashboardEvents',      // the events table itself
+      'loadRoomsPanel',           // Facility: per-room upcoming counts
+      'loadRoomSchedule',         // Facility: the room week grid
+      'loadCheckinEventPicker'    // Check-In: the event dropdown
+    ].forEach(function(fn){
+      if (typeof window[fn] === 'function') {
+        try { window[fn](); } catch (e) { console.error('Refresh after event change failed:', fn, e); }
+      }
+    });
+  };
+
   // Supabase's email-change confirmation links redirect back here with
   // ?code=... (the final confirmation) or ?message=... (the first of
   // two, if "Secure email change" is enabled and both the old and new
@@ -14452,6 +14502,18 @@ Groups</span>
       }
       if (typeof window.loadMyGroups === 'function') window.loadMyGroups();
       if (typeof window.loadMyChurches === 'function') window.loadMyChurches();
+      // Reported: refreshing Manage your plan reverts it to "Become a
+      // Partner Church". populatePricingPage() returns early when
+      // window.isSignedIn is false, which it still is on a cold load
+      // -- the session has not been restored yet. It painted the
+      // signed-out page and nothing ever came back to correct it,
+      // because this batch never listed it.
+      //
+      // Called unconditionally like the loaders above it: its
+      // elements are in the DOM whichever page is showing, and the
+      // getMyChurch() it depends on is cached by this point, so the
+      // cost off-page is one cache read.
+      if (typeof window.populatePricingPage === 'function') window.populatePricingPage();
       if (typeof window.loadEventFilterFollowState === 'function') window.loadEventFilterFollowState();
       if (typeof window.loadAdminPanel === 'function') window.loadAdminPanel();
       if (typeof window.loadMyEvents === 'function') window.loadMyEvents();
@@ -16769,7 +16831,10 @@ Groups</span>
       alert('Could not update this event: ' + pubError.message);
       return;
     }
-    if (typeof window.loadDashboardEvents === 'function') window.loadDashboardEvents();
+    // Publishing changes what the Check-In picker offers and what the
+    // Facility grid shows, not just this table -- see
+    // refreshAfterEventChange().
+    window.refreshAfterEventChange();
   });
 
   // Reuses the exact same calendar-export functions already built
@@ -17180,7 +17245,12 @@ Groups</span>
         for (var sei = 0; sei < events.length; sei++) { if (String(events[sei].id) === String(ceEditingEventId)) { staleEventIdx = sei; break; } }
         if (staleEventIdx !== -1) events.splice(staleEventIdx, 1);
         delete eventCacheFetchedAt[ceEditingEventId];
-        loadDashboardEvents();
+        // Saved successfully, so there is nothing unsaved left to
+        // warn about. Without this, publishing and then clicking
+        // "Back to my church" prompted about losing changes that
+        // had just been written -- reported directly.
+        if (window.captureCreateEventSnapshot) window.captureCreateEventSnapshot();
+        window.refreshAfterEventChange();
         return;
       }
 
@@ -17259,6 +17329,8 @@ Groups</span>
 
       var countMsg = data.length > 1 ? window.t('ce.occurrencesCreated').replace('{n}', data.length) : window.t('ce.eventIsLive').replace('{title}', data[0].title);
       showCeSuccess(window.t('ce.createdUnderChurch').replace('{countMsg}', countMsg).replace('{church}', myChurches[0].name));
+      // Same as the edit path above: a saved form is not a dirty one.
+      if (window.captureCreateEventSnapshot) window.captureCreateEventSnapshot();
       ceTags = []; renderCeTags();
       ceExceptions = []; renderCeExceptions();
       loadDashboardEvents();
@@ -23032,7 +23104,9 @@ Groups</span>
       var regLabel = r.guest_name ? window.t('dashCheckin.walkInTag') : (r.role === 'volunteer' ? window.t('myEvents.volunteer') : window.t('myEvents.participant'));
       var checked = !!r.checked_in_at;
       return '<tr class="checkin-row" data-checked="' + checked + '" data-checkin-id="' + r.id + '">'
-        + '<td>' + r.displayName.replace(/</g, '&lt;') + '</td>'
+        + '<td>' + escapeHtml(r.displayName)
+          + (r.guest_email ? '<div style="font-size:11.5px;color:var(--ink-mute);">' + escapeHtml(r.guest_email) + '</div>' : '')
+          + '</td>'
         + '<td class="mono">' + regLabel + '</td>'
         + '<td class="checkin-status">' + (checked ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:16px;height:16px;color:var(--gold);"><path d="M20 6L9 17l-5-5"/></svg>' : '') + '</td>'
         + '</tr>';
@@ -23060,10 +23134,30 @@ Groups</span>
     }
     tbody.innerHTML = '<tr><td colspan="3" style="color:var(--ink-mute);">' + window.t('common.loading') + '</td></tr>';
 
+    // guest_email is new (migration 055), and a column that does not
+    // exist fails the WHOLE select with 42703 rather than returning
+    // null for that one field -- so naming it unconditionally would
+    // blank the entire check-in roster on any deploy that lands before
+    // the migration is run. Asked for, then retried without it.
+    //
+    // A retry rather than two parallel queries because the roster is
+    // one list: a second query that resolved separately could paint
+    // names first and contact details after, which at a door reads as
+    // the page changing under the volunteer's hand.
+    var REG_COLS_WITH_EMAIL = 'id, user_id, guest_name, guest_email, role, status, checked_in_at, profiles(full_name)';
+    var REG_COLS_BASE = 'id, user_id, guest_name, role, status, checked_in_at, profiles(full_name)';
     var { data, error } = await supabase.from('event_registrations')
-      .select('id, user_id, guest_name, role, status, checked_in_at, profiles(full_name)')
+      .select(REG_COLS_WITH_EMAIL)
       .eq('event_id', eventId)
       .eq('status', 'confirmed');
+    if (error && error.code === '42703') {
+      var retry = await supabase.from('event_registrations')
+        .select(REG_COLS_BASE)
+        .eq('event_id', eventId)
+        .eq('status', 'confirmed');
+      data = retry.data;
+      error = retry.error;
+    }
 
     if (error) {
       tbody.innerHTML = '<tr><td colspan="3" style="color:var(--clay);">' + escapeHtml(error.message) + '</td></tr>';
@@ -23072,7 +23166,7 @@ Groups</span>
 
     checkinCurrentRows = (data || []).map(function(r){
       return {
-        id: r.id, guest_name: r.guest_name, role: r.role, checked_in_at: r.checked_in_at,
+        id: r.id, guest_name: r.guest_name, guest_email: r.guest_email, role: r.role, checked_in_at: r.checked_in_at,
         displayName: r.guest_name || (r.profiles && r.profiles.full_name) || 'Unknown'
       };
     }).sort(function(a, b){ return a.displayName.localeCompare(b.displayName); });
@@ -23666,10 +23760,28 @@ Groups</span>
       // Immediately checked in — they're a walk-in, standing right
       // there, not someone who registered ahead of time and might
       // not show.
-      var { error } = await supabase.from('event_registrations').insert({
+      var walkinEmailInput = document.getElementById('checkin-walkin-email');
+      var walkinEmail = walkinEmailInput ? walkinEmailInput.value.trim() : '';
+      // Checked rather than trusted to the type="email" attribute,
+      // which only validates on form submission -- and this is a
+      // button click, not a form submit, so the browser never runs it.
+      if (walkinEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(walkinEmail)) {
+        statusEl.textContent = window.t('dashCheckin.badEmail');
+        statusEl.style.color = 'var(--clay)';
+        statusEl.style.display = 'block';
+        checkinWalkinAddBtn.disabled = false;
+        return;
+      }
+      var walkinPayload = {
         event_id: checkinCurrentEventId, guest_name: name, status: 'confirmed', role: 'participant',
         checked_in_at: new Date().toISOString()
-      });
+      };
+      // Only sent when there is one, so a deploy that lands before
+      // migration 055 still adds walk-ins by name instead of failing
+      // every one of them on an unknown column. Same soft-fetch
+      // reasoning used for every other new column in this app.
+      if (walkinEmail) walkinPayload.guest_email = walkinEmail;
+      var { error } = await supabase.from('event_registrations').insert(walkinPayload);
       checkinWalkinAddBtn.disabled = false;
       if (error) {
         statusEl.textContent = error.message;
@@ -23678,6 +23790,7 @@ Groups</span>
         return;
       }
       nameInput.value = '';
+      if (walkinEmailInput) walkinEmailInput.value = '';
       loadCheckinList(checkinCurrentEventId);
     });
   }
