@@ -6009,7 +6009,7 @@ Groups</span>
         <div class="side-note" id="dir-households-wrap" style="max-width:640px;">
           <h4 data-i18n="households.heading">Households</h4>
           <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:12px;" data-i18n="households.hint">Group people into families for reporting — average household size, how many people aren't yet grouped, that kind of thing. Purely organizational; doesn't change what anyone can see or do.</p>
-          <div id="households-list" style="margin-bottom:12px;"></div>
+          <div id="households-list" style="margin-bottom:12px;"><p style="color:var(--ink-mute);font-size:13px;" data-i18n="common.loading">Loading...</p></div>
           <button class="export-btn" id="household-add-open-btn" data-i18n="households.newHousehold">+ New household</button>
         </div>
 
@@ -6484,7 +6484,7 @@ Groups</span>
         <div class="side-note" style="margin-top:0;max-width:640px;">
           <h4><span data-i18n="dashSettings.team">Team</span> <span class="mono" id="team-count" style="font-size:10px;color:var(--ink-mute);font-weight:400;"></span></h4>
           <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:12px;" data-i18n="dashSettings.teamHint">Staff can be given specific abilities — events, groups, messages, giving, or editing the profile. Billing and deleting the church always stay owner-only.</p>
-          <div id="team-list"></div>
+          <div id="team-list"><p style="color:var(--ink-mute);font-size:13px;" data-i18n="common.loading">Loading...</p></div>
           <div id="team-owner-controls" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--line);">
             <label style="font-size:12.5px;" data-i18n="dashSettings.addStaffByEmail">Add staff by email</label>
             <div style="font-size:11.5px;color:var(--ink-mute);margin-bottom:6px;" data-i18n="dashSettings.addStaffHint">They'll get an email invite to accept — nobody is added until they do. If they don't have a FaithDock account yet, they'll need to create one first.</div>
@@ -6563,14 +6563,14 @@ Groups</span>
             <div class="side-note" id="settings-giving-section">
               <h4 data-i18n="dash.giving">Giving</h4>
               <p style="font-size:13.5px;color:var(--ink-mute);margin-bottom:14px;" data-i18n="dashSettings.givingHint">Connect a bank account so your church can accept donations directly through FaithDock. Donations go straight to your account — FaithDock never holds the funds.</p>
-              <div id="giving-status" style="font-size:13px;margin-bottom:12px;"></div>
+              <div id="giving-status" style="font-size:13px;margin-bottom:12px;"><p style="color:var(--ink-mute);font-size:13px;" data-i18n="common.loading">Loading...</p></div>
               <button class="btn-gold" id="giving-connect-btn" style="display:inline-block;" data-i18n="dashGiving.connectBank">Connect your bank account</button>
               <div id="giving-connect-status" style="display:none;font-size:12px;color:var(--clay);margin-top:10px;"></div>
             </div>
             <div class="side-note" id="settings-rooms-section">
               <h4 data-i18n="dashSettings.facilityRooms">Facility rooms</h4>
               <p style="font-size:13.5px;color:var(--ink-mute);margin-bottom:14px;" data-i18n="dashSettings.facilityRoomsHint">The spaces your church schedules — classrooms, the sanctuary, Rec Center, outdoor areas. These show up as options when creating an event.</p>
-              <div id="rooms-list" style="margin-bottom:12px;"></div>
+              <div id="rooms-list" style="margin-bottom:12px;"><p style="color:var(--ink-mute);font-size:13px;" data-i18n="common.loading">Loading...</p></div>
               <div style="display:flex;gap:8px;">
                 <input class="field" type="text" id="room-add-name" placeholder="e.g. Room 205 Classroom Adult" data-i18n-placeholder="dashSettings.roomNamePlaceholder" style="flex:1;font-size:13px;padding:9px 10px;">
                 <button class="export-btn" id="room-add-btn" style="flex-shrink:0;" data-i18n="dashSettings.add">Add</button>
@@ -6580,7 +6580,7 @@ Groups</span>
             <div class="side-note" id="settings-ministries-section">
               <h4 data-i18n="dashSettings.ministries">Ministries</h4>
               <p style="font-size:13.5px;color:var(--ink-mute);margin-bottom:14px;" data-i18n="dashSettings.ministriesHint">The programs your church runs — a food pantry, a youth group, a recovery meeting. These show up on your public profile and can be attached to events.</p>
-              <div id="ministries-list" style="margin-bottom:12px;"></div>
+              <div id="ministries-list" style="margin-bottom:12px;"><p style="color:var(--ink-mute);font-size:13px;" data-i18n="common.loading">Loading...</p></div>
               <div style="display:flex;flex-direction:column;gap:8px;">
                 <input class="field" type="text" id="ministry-add-name" placeholder="e.g. Food Pantry" data-i18n-placeholder="dashSettings.ministryNamePlaceholder" style="font-size:13px;padding:9px 10px;">
                 <textarea class="field" id="ministry-add-desc" placeholder="What it is, in a sentence (shown publicly)" data-i18n-placeholder="dashSettings.ministryDescPlaceholder" style="font-size:13px;padding:9px 10px;min-height:52px;resize:vertical;"></textarea>
@@ -6619,7 +6619,7 @@ Groups</span>
               <label class="filter-check" id="settings-giving-enabled-toggle-wrap" style="display:flex;margin-bottom:14px;">
                 <input type="checkbox" id="settings-giving-enabled-toggle" checked> <span data-i18n="dashSettings.givingEnabledToggle">Show the "Give" button on your public page</span> <span id="settings-giving-enabled-status" style="display:none;font-size:12px;"></span>
               </label>
-              <div id="funds-list" style="margin-bottom:12px;"></div>
+              <div id="funds-list" style="margin-bottom:12px;"><p style="color:var(--ink-mute);font-size:13px;" data-i18n="common.loading">Loading...</p></div>
               <div style="display:flex;gap:8px;">
                 <input class="field" type="text" id="fund-add-name" placeholder="e.g. Building Campaign" data-i18n-placeholder="dashSettings.fundNamePlaceholder" style="flex:1;font-size:13px;padding:9px 10px;">
                 <button class="export-btn" id="fund-add-btn" style="flex-shrink:0;" data-i18n="dashSettings.add">Add</button>
@@ -6747,7 +6747,7 @@ Groups</span>
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v85 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v86 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">

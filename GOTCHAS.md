@@ -3475,3 +3475,21 @@ Two details that would bite anyone reimplementing this: a `Response` body can on
 **Effect:** the homepage went from 27 requests to 9. Events plus Directory together now cost 13, less than the homepage alone did before.
 
 Build `2026-09-17-v85`. No migration.
+
+---
+
+## Six dashboard panels went blank instead of loading
+
+Asked whether the dashboard renders progressively or sits blank, the answer turned out to be "progressively, but unevenly".
+
+Only **1 of 24** panel loaders paints a loading state before its first `await`. That sounds bad, but it isn't the whole picture: **15 of 21** panel containers ship with static placeholder markup in the HTML, which paints with the document at ~527ms regardless of any query -- "Loading your events...", "Loading directory...", an em dash in each stat tile, and the Directory sub-panel headings. So the shell and its structure are visible early and content fills in over the next ~2.5s, which is the right pattern.
+
+Six containers had neither: `team-list`, `rooms-list`, `ministries-list`, `funds-list`, `giving-status`, `households-list` shipped empty *and* wrote nothing before awaiting, leaving blank gaps under their headings for a couple of seconds.
+
+That's worse than slow, it's ambiguous. An empty list is also a legitimate real state for most of these, so "still loading" and "you have no staff yet" looked identical. Fixed by giving them the same static `common.loading` placeholder the other fifteen already use -- no logic change, no new strings, and it inherits Spanish for free.
+
+Worth separating from the performance work that surfaced it: this doesn't make anything faster, it makes the same 3 seconds legible. The two are independent, and the perception fix was cheaper than any remaining query optimisation.
+
+Verified: all six show "Loading..." / "Cargando..." before data, the loaders still overwrite rather than append, and no placeholder is duplicated.
+
+Build `2026-09-17-v86`. No migration.
