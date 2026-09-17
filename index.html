@@ -409,6 +409,7 @@
       'staffPerms.receiveMessages': 'Receive contact messages sent to this church', 'staffPerms.receiveMessagesTag': 'Receives Messages',
       'staffPerms.manageMembers': 'Approve and manage church members', 'staffPerms.manageMembersTag': 'Members', 'staffPerms.checkIn': 'Check people in at events', 'staffPerms.checkInTag': 'Check-in',
       'dashGiving.bankAccount': 'Bank account',
+      'dashMsg.noneAvailable': 'None available',
       'staffPerms.givingTag': 'Giving',
       'staffPerms.manageRooms': 'Create and manage facility rooms', 'staffPerms.roomsTag': 'Facility',
       'staffPerms.manageMinistries': 'Create and manage ministries', 'staffPerms.ministriesTag': 'Ministries',
@@ -1259,6 +1260,7 @@
       'staffPerms.receiveMessages': 'Recibir mensajes de contacto enviados a esta iglesia', 'staffPerms.receiveMessagesTag': 'Recibe Mensajes',
       'staffPerms.manageMembers': 'Aprobar y gestionar los miembros de la iglesia', 'staffPerms.manageMembersTag': 'Miembros', 'staffPerms.checkIn': 'Registrar asistentes en los eventos', 'staffPerms.checkInTag': 'Registro',
       'dashGiving.bankAccount': 'Cuenta bancaria',
+      'dashMsg.noneAvailable': 'Ninguno disponible',
       'staffPerms.givingTag': 'Donaciones',
       'staffPerms.manageRooms': 'Crear y gestionar salas', 'staffPerms.roomsTag': 'Instalaciones',
       'staffPerms.manageMinistries': 'Crear y gestionar ministerios', 'staffPerms.ministriesTag': 'Ministerios',
@@ -2052,6 +2054,12 @@
     // Same fix, same reason, for the Events page's own denomination
     // dropdown (a separate checkbox set from the Directory's above).
     if (typeof window.updateEventsDenomDropdownLabel === 'function') window.updateEventsDenomDropdownLabel();
+    // And the three Messages recipient dropdowns, for the same reason
+    // squared: their button labels are written entirely in JS with no
+    // data-i18n at all, so the generic pass above does not merely reset
+    // them to a wrong value -- it never touches them, leaving the old
+    // language sitting there after a switch.
+    if (typeof window.refreshRecipientDropdowns === 'function') window.refreshRecipientDropdowns();
   }
   window.applyTranslations = applyTranslations;
   window.t = function(key){
@@ -6189,7 +6197,7 @@ Groups</span>
         <p style="color:var(--ink-mute);font-size:14px;margin-bottom:24px;max-width:520px;" data-i18n="dashMsg.description">Send a real email announcement to your congregation — check any combination of audiences below, everyone receives their own individual email.</p>
         <div class="side-note" style="margin-top:0;max-width:560px;">
           <label data-i18n="dashMsg.sendTo">Send to</label>
-          <div style="margin-top:6px;">
+          <div id="msg-audience-checks" style="margin-top:6px;">
             <label class="filter-check"><input type="checkbox" class="msg-audience-check" value="members"> <span data-i18n="dashMsg.allMembers">All congregation members</span></label>
             <label class="filter-check" style="margin-top:6px;"><input type="checkbox" class="msg-audience-check" value="staff"> <span data-i18n="dashMsg.allStaff">All staff</span></label>
           </div>
@@ -6843,7 +6851,7 @@ Groups</span>
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v97 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v98 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -15374,6 +15382,91 @@ Groups</span>
   // actually send would need a server-side check too; this closes the
   // client-side gap, not the whole gap.
   // ============================================================
+  // ============================================================
+  // Multi-select dropdowns for the Messages recipient pickers.
+  //
+  // Requested directly: Send to, Groups and Events should be
+  // dropdowns while still allowing several selections. With a dozen
+  // groups and a hundred events those flat checkbox lists pushed the
+  // subject and body far down the page, so composing a message meant
+  // scrolling past everything you were not sending to.
+  //
+  // Written once and applied three times rather than copied per
+  // picker. The two existing dropdowns on the Directory and Events
+  // filters are hand-rolled instances of this same idea; a third and
+  // fourth copy is how they would drift.
+  //
+  // The label listens on the CONTAINER, not on each checkbox.
+  // #msg-group-checks and #msg-event-checks have their innerHTML
+  // replaced whenever those lists load, which destroys every checkbox
+  // and any listener bound directly to one -- the count would freeze
+  // at whatever it was before the first load. Delegation survives the
+  // rebuild because the container itself is never replaced.
+  // ============================================================
+  function initRecipientDropdown(containerId, checkboxSelector){
+    var container = document.getElementById(containerId);
+    if (!container || container.getAttribute('data-dropdown-ready')) return;
+    container.setAttribute('data-dropdown-ready', '1');
+
+    var wrap = document.createElement('div');
+    wrap.style.position = 'relative';
+    wrap.style.marginTop = '6px';
+    container.parentNode.insertBefore(wrap, container);
+
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.setAttribute('aria-expanded', 'false');
+    btn.style.cssText = 'width:100%;padding:9px 10px;font-size:13.5px;color:var(--ink);border:1px solid var(--line);border-radius:8px;background:var(--card);display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;text-align:left;';
+    var labelSpan = document.createElement('span');
+    btn.appendChild(labelSpan);
+    btn.insertAdjacentHTML('beforeend', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;flex-shrink:0;"><path d="M6 9l6 6 6-6"/></svg>');
+    wrap.appendChild(btn);
+
+    var panel = document.createElement('div');
+    panel.style.cssText = 'display:none;position:absolute;left:0;right:0;margin-top:4px;background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,0.16);padding:12px;z-index:200;max-height:260px;overflow-y:auto;';
+    wrap.appendChild(panel);
+    panel.appendChild(container);
+
+    function refreshLabel(){
+      var boxes = container.querySelectorAll(checkboxSelector);
+      var total = boxes.length, checked = 0;
+      boxes.forEach(function(b){ if (b.checked) checked++; });
+      if (!total) labelSpan.textContent = window.t('dashMsg.noneAvailable');
+      else if (checked === 0) labelSpan.textContent = window.t('filters.noneSelected');
+      else if (checked === total) labelSpan.textContent = window.t('filters.allSelected');
+      else labelSpan.textContent = checked + ' ' + window.t('filters.nSelected');
+    }
+
+    btn.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      var opening = panel.style.display === 'none';
+      panel.style.display = opening ? 'block' : 'none';
+      btn.setAttribute('aria-expanded', opening ? 'true' : 'false');
+    });
+    // Clicks inside must not close it -- the whole point is ticking
+    // several boxes without reopening between each one.
+    panel.addEventListener('click', function(ev){ ev.stopPropagation(); });
+    document.addEventListener('click', function(){
+      panel.style.display = 'none';
+      btn.setAttribute('aria-expanded', 'false');
+    });
+    container.addEventListener('change', refreshLabel);
+    // Also refreshed when the list reloads, since replacing innerHTML
+    // fires no change event of its own.
+    container.__refreshDropdownLabel = refreshLabel;
+    refreshLabel();
+  }
+  window.initRecipientDropdown = initRecipientDropdown;
+  window.refreshRecipientDropdowns = function(){
+    ['msg-audience-checks','msg-group-checks','msg-event-checks'].forEach(function(id){
+      var el = document.getElementById(id);
+      if (el && el.__refreshDropdownLabel) el.__refreshDropdownLabel();
+    });
+  };
+  initRecipientDropdown('msg-audience-checks', '.msg-audience-check');
+  initRecipientDropdown('msg-group-checks', 'input[type="checkbox"]');
+  initRecipientDropdown('msg-event-checks', 'input[type="checkbox"]');
+
   async function updateMessagesAccess(){
     var content = document.getElementById('dash-messages-content');
     var locked = document.getElementById('dash-messages-locked');
@@ -20443,6 +20536,13 @@ Groups</span>
           return '<label class="filter-check" style="margin-top:4px;"><input type="checkbox" class="msg-event-check" value="' + e.id + '"> ' + e.title + ' (' + dateLabel + ')</label>';
         }).join('')
       : '<p style="color:var(--ink-mute);font-size:12.5px;">No events yet.</p>';
+
+    // Both lists were just replaced wholesale. Their dropdown labels
+    // count checkboxes, and replacing innerHTML fires no change event,
+    // so without this they would keep reading "None available" from
+    // before the data arrived -- the same class of staleness as a
+    // register button painted before its answer came back.
+    if (typeof window.refreshRecipientDropdowns === 'function') window.refreshRecipientDropdowns();
   }
   if (msgGroupChecksEl) populateMsgPickers();
 

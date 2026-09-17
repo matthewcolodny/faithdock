@@ -3760,3 +3760,23 @@ And it was duplication with teeth: `loadGivingStatus()` had to mirror every stat
 Final order: Revenue → Bank account → Giving (stats) → Giving trend → Giving by fund → Ticket sales → Giving funds. Verified in both languages, with exactly one connect section, one funds section and one connect button remaining.
 
 Build `2026-09-17-v97`. No migration.
+
+---
+
+## Messages recipient pickers became multi-select dropdowns
+
+Requested: Send to, Groups and Events should be dropdowns while still allowing several selections. With a dozen groups and a hundred events those flat checkbox lists pushed the subject and body far down the page, so composing a message meant scrolling past everything you were *not* sending to.
+
+**Written once, applied three times.** The Directory and Events filters already have hand-rolled dropdowns of exactly this shape; a third and fourth copy is how they drift. `initRecipientDropdown(containerId, checkboxSelector)` wraps an existing checkbox container in a button and panel, so the checkboxes themselves are untouched and every consumer of `.msg-audience-check` / `.msg-group-check` keeps working unchanged.
+
+**Three things that would each have looked like it worked:**
+
+- **The label listens on the CONTAINER, not the checkboxes.** `#msg-group-checks` and `#msg-event-checks` have their innerHTML replaced when those lists load, destroying every checkbox and any listener bound to one. The count would have frozen at whatever it was before the first load. Delegation survives because the container itself is never replaced -- verified by rebuilding the list and confirming a tick still updates the count.
+- **Replacing innerHTML fires no change event**, so `populateMsgPickers()` explicitly refreshes the labels after loading. Without it both would sit on "None available" after the data arrived -- the same staleness shape as a register button painted before its answer came back.
+- **The button label has no `data-i18n`** because it is written entirely in JS, so the generic translation pass does not merely reset it to a wrong value, it never touches it -- the old language would simply stay after a switch. It now re-renders alongside the two existing dropdown labels, which already had a comment explaining the same class of problem.
+
+**Clicks inside the panel stop propagation** so ticking several boxes does not close it between each one, which is the entire point of a multi-select.
+
+Verified: all three render as dropdowns; the panel opens, stays open across multiple ticks and closes on an outside click; the label reads "None selected" / "1 selected" / "All selected" and "None available" for an empty list; a rebuilt list still counts; and the label follows a language switch in both directions ("1 seleccionadas", "Ninguna seleccionada").
+
+Build `2026-09-17-v98`. No migration.
