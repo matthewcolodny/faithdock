@@ -4067,3 +4067,23 @@ It was only found by navigating to the page cold rather than by driving it from 
 Verified against stubbed RPCs, with `auth.getUser()` asserted to return **no user** throughout, so the whole flow is confirmed to work signed out rather than assumed to: invalid token shows the dead-link panel and no roster; a valid one loads names, roles and walk-in tags with a hostile name, event title and church name all rendering as text and zero elements created; tapping paints immediately, then reconciles to the value the server stored; a refused write reverts the paint and the count, which is what keeps optimism from repeating the v87 bug; search; and on the management side create, copy, QR (reusing the existing share modal, encoding exactly the copied URL), and revoke flipping a link dead and stripping its buttons.
 
 Build `2026-09-17-v108`; **migration 052 must be run by hand.**
+
+---
+
+## One definition of "who may run check-in"
+
+Since 052 the rule -- owner OR can_manage_events OR can_check_in -- existed twice: inline in `set_registration_checked_in()` and in `can_run_event_checkin()`, which 052 needed for four policies. 052 said explicitly that consolidating deserved its own migration rather than being done in passing, because replacing that function is replacing the only thing that makes check-in work at all. 053 is that migration.
+
+Two copies of an authorization rule is not a tidiness problem. It is a rule that can be changed in one place and not the other, and the half still giving the old answer is the half nobody is looking at.
+
+**The migration refuses to run if the live function is not what it expects.** Tracked is not verified -- nothing stops a function from having been edited directly in the dashboard, and silently reverting such an edit is precisely the damage a consolidation should not cause. So a DO block reads `pg_get_functiondef()` and aborts unless the live body still contains the three fragments that together *are* the 045 rule, checked individually so the error names the missing part. If they are all there, swapping them for the helper is a substitution of equals. If they are not, nothing changes and the message says to paste the current definition first.
+
+The already-consolidated case is checked **first**, so re-running the file is a harmless no-op rather than an abort complaining about a rule that is legitimately gone by then. Worth stating because the obvious ordering gets this backwards and produces a frightening error for the safest possible action.
+
+**And it verifies afterwards.** A second DO block confirms the new body calls the helper and no longer contains the inline test -- because `CREATE OR REPLACE` succeeding is not evidence the body is what was intended. That is not hypothetical here: 049 ran clean, every statement succeeded, and the property it claimed was absent the whole time. The alternative to a two-line check is finding out at a check-in desk.
+
+Everything else in the function is byte-for-byte what 045 left, so the diff is one condition rather than a rewritten function that happens to look similar.
+
+**Deliberately not changed:** the SELECT policy from 044 is *wider* than this rule -- any staff member can read registrations, not only those who can check people in. That asymmetry is correct. Attendance Insights, the involvement panel and the member reports all read those rows, and narrowing the read would blank those panels for, say, a treasurer with `can_manage_giving` and nothing else. Reading your own church's registrations and marking someone present are different permissions, and only the second one is this rule.
+
+**Migration 053 must be run by hand.** No client change.
