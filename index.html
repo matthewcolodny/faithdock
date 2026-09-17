@@ -2655,6 +2655,28 @@
     .hero-search-bar .search-field-wrap input{padding-left:32px;text-overflow:ellipsis;}
     .hero-search-bar .search-field-icon{left:8px;}
     .hero-search-bar .search-field-icon svg{width:14px;height:14px;}
+    /* The stacked mobile .search-bar gives each input its own card,
+       which is right there -- the bar itself goes transparent and the
+       fields become the only surfaces. The hero bar does NOT stack
+       (see .hero-search-bar above: it stays one row on a card), so
+       that treatment left dark mode showing two inset boxes inside an
+       outer box, with the divider between them doing nothing.
+       Reported from a side-by-side screenshot: light mode was one
+       pill split by a hairline, dark mode was three nested surfaces.
+
+       Both themes are named rather than just the dark one. In light
+       mode the per-input background happens to equal the bar behind
+       it, so the boxes were invisible and the rule looked harmless --
+       leaving it in place would mean the two themes are one palette
+       change away from diverging again. */
+    .hero-search-bar input,
+    html[data-theme="dark"] .hero-search-bar input{
+      background:none;border:none;border-radius:0;
+    }
+    /* var(--line) is nearly the card colour on dark, so the hairline
+       that carries the whole separation would barely register once it
+       is the only thing doing the job. */
+    html[data-theme="dark"] .hero-search-bar .search-bar-divider{background:rgba(255,255,255,0.18);}
     .search-bar-divider{margin:6px 1px;}
     .hero-search-bar button{width:38px;height:38px;}
     .hero-search-bar button svg{width:16px;height:16px;}
@@ -7204,7 +7226,7 @@ Groups</span>
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v112 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v113 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">

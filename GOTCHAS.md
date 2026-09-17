@@ -4247,3 +4247,19 @@ Worth noting what that policy was *called*. "users can upload their own profile 
 057 drops all five. After it, `storage.objects` carries exactly one INSERT and one UPDATE policy, both path-scoped -- confirmed from the catalog, not from the drops succeeding.
 
 **The ordering caveat that came with 057 still matters, in reverse now.** It said to confirm uploads worked *before* dropping the permissive policies, because if an upload was still failing the cause was not the policies, and removing the fallback would turn one broken upload into three. That fallback is now gone, so all three buckets -- profile photo, church logo, event image -- need an actual upload test, and any failure is no longer isolated to the reported one.
+
+---
+
+## The hero search looked different in dark mode
+
+Reported with a side-by-side screenshot: light mode was one pill split by a hairline, dark mode was two inset boxes inside an outer box.
+
+The cause is a rule that is correct where it was written and wrong where it also landed. On mobile the shared `.search-bar` **stacks**: the bar itself goes transparent and each input becomes its own card, which is the right treatment when the fields are the only surfaces left. The hero bar does not stack -- `.hero-search-bar` keeps one row on a card -- so it inherited per-input cards it had no use for, and the `.search-bar-divider` sitting between them had nothing left to do.
+
+Both themes are now excluded from that rule, not just dark. In light mode the per-input background happened to equal the bar behind it, so the boxes were invisible and the rule looked harmless -- but "invisible because two colours currently match" is not the same as "not applied", and leaving it would put the two themes one palette change away from diverging again.
+
+The divider also needed its own dark value. `var(--line)` is close enough to the card colour on dark that a hairline carrying the entire separation would barely register, which was fine while it was decorative and not once it became the only thing doing the job.
+
+Verified in both themes at 375px: inputs fully transparent with no border and no radius, one bar background, a 1px divider, everything on one row, no page overflow.
+
+Build `2026-09-17-v113`. No migration.
