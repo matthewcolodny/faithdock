@@ -3004,3 +3004,27 @@ Also switched the Recently-Joined handler's direct `.delete()` on `church_member
 Verified in a local preview by clicking the real buttons with `getMyChurch`'s cache seeded (`window._myChurchCache`) so the actual handler ran rather than a stand-in: approve fires `set_church_membership_status(approved)`, reject fires it with `rejected`, remove fires `remove_church_member`, and all three reload the Members panel and the Directory table.
 
 Build `2026-09-17-v67`. No new migration (035/036/037 still required).
+
+---
+
+## Events by church on the all-churches overview, and following events
+
+Two of the remaining requests from the same batch.
+
+**Events by church (tier 4/5 Overview).** Mirrors the existing Staff-by-church section -- same card/row classes -- rather than inventing a second layout for the same "one card per church, rows inside" idea. Each church lists its next five upcoming events with date, registration count, and a Members only tag where it applies. Count formatting follows what the data can actually support: `x/max` when capped, "n registered" when uncapped, "No signup needed" when registration is off (there is nothing to count).
+
+Two things worth noting in the implementation. The existing events query was widened rather than a second one added -- it already fetched `id, church_id, start_at` for the tile stats, so the extra fields ride along on the same round trip. And registration counts come from **one batched query** across every upcoming event (`.in('event_id', ids)`) rather than a call per event: a Multi-Church account with five churches can easily have dozens of events, and that many round trips to draw one panel is how a page starts feeling broken. It's fired after the grid is already on screen, so a slow count delays nothing else.
+
+Verified with stubbed queries driving the real panel: a capped event renders `2/10` (correctly counting only participants -- the volunteer row in the fixture is excluded), an uncapped one renders "0 registered", a no-signup one renders "No signup needed", a private event picks up the Members only tag, a past-dated event is excluded, and the rows come out soonest-first.
+
+**Following events.** `event_follows` (migration 038), deliberately defined properly since `church_follows` -- the thing it mirrors -- predates migration tracking and couldn't be copied: unique on `(user_id, event_id)`, cascade deletes on both foreign keys so removing an event or an account doesn't leave orphan rows, and three separate RLS policies (select/insert/delete, all `user_id = auth.uid()`) rather than one `FOR ALL`, so widening a single verb later -- letting a church see who follows its events, say -- is a change to one policy instead of a rewrite.
+
+Client side reuses the church-follow machinery rather than paralleling it: same `HEART_ICON`, same `.follow-heart-card` / `.follow-heart-profile` styling, same optimistic-then-revert write, same slot position on the detail page. It's the same gesture to the person using it and should feel identical. The only difference is `data-follow-event-id` instead of `data-follow-church-id`, which is what routes a click to the event handler. `applyEventFollowState()` exists for exactly the reason `applyFollowState()` does: the same event can be on screen twice at once (a listing card plus the detail page behind it, since this SPA hides pages rather than destroying them), and updating only the clicked heart is how the church version originally got this wrong.
+
+Initial state loads as a third parallel query alongside the existing follow/home lookups, for the same reason those two were split apart -- an event heart shouldn't wait on an unrelated church-membership check before it stops showing its pre-sign-in empty state.
+
+Verified in a local preview: the heart renders on cards in both states, the detail page slot reflects the same state, `applyEventFollowState()` updates a card and the detail heart *and* the ids array together in both directions, and a real click follows then unfollows, writes the right rows, and does **not** navigate despite the heart sitting inside a click-through card.
+
+**Scope note**: following is currently "keep an eye on this" only -- it does not hold a spot, does not touch capacity (a Full event is still followable, which is arguably when it matters most), and there is no notification or dedicated "events I follow" view yet. Those are the natural next steps rather than things half-wired now.
+
+Build `2026-09-17-v69`; **migration 038 must be run by hand** (and 035/036/037 if not yet).

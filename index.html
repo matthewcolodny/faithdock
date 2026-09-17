@@ -185,6 +185,7 @@
       'dash.groups': 'Groups', 'dash.giving': 'Giving', 'dash.billing': 'Billing', 'dash.settings': 'Settings', 'dash.signout': 'Sign out', 'dash.staff': 'Staff',
       'church.about': 'About', 'church.events': 'Events', 'church.groups': 'Groups', 'church.ministries': 'Ministries', 'church.location': 'Location',
       'church.message': 'Message', 'church.give': 'Give', 'church.follow': 'Follow church',
+      'events.followEvent': 'Follow event',
       'filters.keywordPlaceholder': 'Search by church name or keyword...', 'filters.denomination': 'Denomination',
       'filters.selectAll': 'Select all', 'filters.uncheckAll': 'Uncheck all',
       'filters.searchDenomination': 'Search denomination...', 'filters.distance': 'Distance', 'filters.anyDistance': 'Any distance',
@@ -347,6 +348,7 @@
       'groupPage.requestSentBang': 'Request sent!', 'groupPage.youreIn': "You're in!",
       'loginRequired.title': 'Sign in required', 'loginRequired.default': 'Create a free account or sign in to do that.',
       'loginRequired.followChurch': 'Create a free account or sign in to follow churches and get updates.',
+      'loginRequired.followEvent': 'Create a free account or sign in to follow events and keep track of them.',
       'loginRequired.subscribeToPlan': 'Create a free account or sign in to subscribe to a plan.',
       'loginRequired.claimChurch': 'Create a free account or sign in to claim a church.',
       'loginRequired.setChurchHome': 'Create a free account or sign in to set a Church Home.',
@@ -1002,6 +1004,7 @@
       'dash.groups': 'Grupos', 'dash.giving': 'Donaciones', 'dash.billing': 'Facturación', 'dash.settings': 'Configuración', 'dash.signout': 'Cerrar sesión', 'dash.staff': 'Personal',
       'church.about': 'Acerca de', 'church.events': 'Eventos', 'church.groups': 'Grupos', 'church.ministries': 'Ministerios', 'church.location': 'Ubicación',
       'church.message': 'Mensaje', 'church.give': 'Donar', 'church.follow': 'Seguir iglesia',
+      'events.followEvent': 'Seguir evento',
       'filters.keywordPlaceholder': 'Buscar por nombre de iglesia o palabra clave...', 'filters.denomination': 'Denominación',
       'filters.selectAll': 'Seleccionar todo', 'filters.uncheckAll': 'Desmarcar todo',
       'filters.searchDenomination': 'Buscar denominación...', 'filters.distance': 'Distancia', 'filters.anyDistance': 'Cualquier distancia',
@@ -1164,6 +1167,7 @@
       'groupPage.requestSentBang': '¡Solicitud enviada!', 'groupPage.youreIn': '¡Ya estás dentro!',
       'loginRequired.title': 'Inicio de sesión requerido', 'loginRequired.default': 'Crea una cuenta gratis o inicia sesión para hacer eso.',
       'loginRequired.followChurch': 'Crea una cuenta gratis o inicia sesión para seguir iglesias y recibir actualizaciones.',
+      'loginRequired.followEvent': 'Crea una cuenta gratis o inicia sesión para seguir eventos y no perderles la pista.',
       'loginRequired.subscribeToPlan': 'Crea una cuenta gratis o inicia sesión para suscribirte a un plan.',
       'loginRequired.claimChurch': 'Crea una cuenta gratis o inicia sesión para reclamar una iglesia.',
       'loginRequired.setChurchHome': 'Crea una cuenta gratis o inicia sesión para establecer una Iglesia Principal.',
@@ -4015,6 +4019,11 @@
   <div class="wrap" id="event-page-content" style="padding-top:44px;display:none;">
     <div id="event-image-block" style="display:none;aspect-ratio:16/9;border-radius:var(--radius);background-size:cover;background-position:center;margin-bottom:24px;max-width:680px;"></div>
     <span class="tag sage" id="event-badge" data-i18n="badge.registrationOpen">Registration open</span>
+    <!-- Absolute-positioned on the SLOT, not on the button inside it,
+         because a wrapper left in normal flow still counts as a flex
+         item to its parent and shifts everything else along -- the
+         exact bug the church page's own heart slot hit. -->
+    <div id="event-follow-heart-slot" style="position:absolute;top:0;right:28px;"></div>
     <h1 style="font-size:32px;margin-top:16px;" id="event-title"></h1>
     <p style="color:var(--ink-mute);margin-top:6px;"><span data-i18n="events.hostedByLabel">Hosted by</span> <a href="#church" data-route="church" id="event-host-link" style="color:inherit;border-bottom:1px solid var(--gold);"></a></p>
 
@@ -6516,7 +6525,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v68 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v69 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -6968,6 +6977,19 @@
     var isFollowing = !!(window.myFollowedChurchIds && window.myFollowedChurchIds.indexOf(c.id) !== -1);
     return '<button type="button" class="follow-heart-card" data-follow-church-id="' + c.id + '" data-following="' + isFollowing + '" aria-label="' + window.t('church.follow') + '" title="' + window.t('church.follow') + '">' + HEART_ICON + '</button>';
   }
+  // Following an EVENT. Same heart, same optimistic-then-sync
+  // behaviour, same .follow-heart-card styling -- deliberately, since
+  // to someone using the site it is the same gesture and should look
+  // and feel identical. Distinguished only by carrying
+  // data-follow-event-id instead of data-follow-church-id, which is
+  // what routes it to the event handler rather than the church one.
+  function followHeartEvent(e){
+    if (!e || !e.real || !e.id) return '';
+    var isFollowing = !!(window.myFollowedEventIds && window.myFollowedEventIds.indexOf(e.id) !== -1);
+    return '<button type="button" class="follow-heart-card" data-follow-event-id="' + e.id + '" data-following="' + isFollowing + '" aria-label="' + window.t('events.followEvent') + '" title="' + window.t('events.followEvent') + '">' + HEART_ICON + '</button>';
+  }
+  window.followHeartEvent = followHeartEvent;
+
   function followHeartRow(c){
     if (!c || !c.real || !c.id) return '';
     var isFollowing = !!(window.myFollowedChurchIds && window.myFollowedChurchIds.indexOf(c.id) !== -1);
@@ -7528,6 +7550,19 @@
     // Real data has arrived -- reveal the page. Called first so an early
     // return further down can't leave it stuck on "Loading...".
     setEventPageLoading(false);
+
+    // Follow heart, mirroring the church page's own slot. Reads
+    // myFollowedEventIds directly rather than doing its own query: that
+    // array is already loaded and kept current by the shared follow
+    // sync, so a per-page lookup would be a round trip to learn
+    // something the page already knows.
+    var eventHeartSlot = document.getElementById('event-follow-heart-slot');
+    if (eventHeartSlot) {
+      var alreadyFollowing = !!(e.real && e.id && window.myFollowedEventIds && window.myFollowedEventIds.indexOf(e.id) !== -1);
+      eventHeartSlot.innerHTML = (e.real && e.id)
+        ? '<button type="button" class="follow-heart-profile" data-follow-event-id="' + e.id + '" data-following="' + alreadyFollowing + '" aria-label="' + window.t('events.followEvent') + '" title="' + window.t('events.followEvent') + '">' + HEART_ICON + '</button>'
+        : '';
+    }
     document.getElementById('event-badge').className = 'tag ' + e.badge;
     document.getElementById('event-badge').textContent = translateBadgeLabel(e.badgeLabel);
     // Positioned right above the Register button (see its own HTML
@@ -7867,9 +7902,14 @@
   window.buildRecurrenceRule = buildRecurrenceRule;
 
   function eventCard(e){
+    // Heart lives inside the thumb, exactly where a church card's does
+    // (.follow-heart-card is position:absolute against it), so the
+    // gesture sits in the same place whichever kind of card you're
+    // looking at.
+    var eventHeart = followHeartEvent(e);
     var thumb = e.imageUrl
-      ? '<div class="thumb" style="background-image:url(\'' + e.imageUrl + '\');background-size:cover;background-position:center;">' + '</div>'
-      : '<div class="thumb thumb--event">' + calendarIcon + '</div>';
+      ? '<div class="thumb" style="background-image:url(\'' + e.imageUrl + '\');background-size:cover;background-position:center;">' + eventHeart + '</div>'
+      : '<div class="thumb thumb--event">' + calendarIcon + eventHeart + '</div>';
     var churchLabel = (e.church === 'A FaithDock church') ? window.t('church.genericName') : e.church;
     var distanceText = (e.distanceMiles != null) ? e.distanceMiles.toFixed(1) + ' mi ' + window.t('church.away') : null;
     var inner = ''
@@ -9396,6 +9436,7 @@
     var { data: userData } = await window.supabase.auth.getUser();
     if (!userData.user) {
       window.myFollowedChurchIds = [];
+      window.myFollowedEventIds = [];
       window.myChurchHomeId = null;
       followedWrap.style.display = 'none';
       homeWrap.style.display = 'none';
@@ -9432,7 +9473,17 @@
       window.myChurchHomeId = (res.data && res.data.length) ? res.data[0].church_id : null;
       homeWrap.style.display = window.myChurchHomeId ? 'flex' : 'none';
     });
-    await Promise.all([followPromise, homePromise]);
+    // Third independent query, fired alongside the other two for the
+    // same reason they were split apart: an event heart shouldn't wait
+    // on an unrelated church-membership lookup to stop showing its
+    // pre-sign-in empty state. Re-renders the event grids once it lands,
+    // exactly as the church half does for church grids.
+    var eventFollowPromise = window.supabase.from('event_follows').select('event_id').eq('user_id', userData.user.id).then(function(res){
+      window.myFollowedEventIds = (res.data || []).map(function(r){ return r.event_id; });
+      if (typeof window.refreshEventsCardsText === 'function') window.refreshEventsCardsText();
+      if (typeof window.refreshHomeEventsText === 'function') window.refreshHomeEventsText();
+    });
+    await Promise.all([followPromise, homePromise, eventFollowPromise]);
   }
   window.loadEventFilterFollowState = loadEventFilterFollowState;
 
@@ -20370,6 +20421,53 @@
       ? (window.myFollowedChurchIds || []).concat([churchId])
       : (window.myFollowedChurchIds || []).filter(function(id){ return id !== churchId; });
   }
+
+  // Event equivalent of applyFollowState, for the same reason it
+  // exists: the same event can be on screen more than once at a time
+  // (a listing card and the detail page behind it, since this SPA
+  // hides pages rather than destroying them), and updating only the
+  // heart that was clicked is how the church version originally got
+  // this wrong.
+  function applyEventFollowState(eventId, following){
+    document.querySelectorAll('[data-follow-event-id="' + eventId + '"]').forEach(function(el){
+      el.setAttribute('data-following', following ? 'true' : 'false');
+    });
+    window.myFollowedEventIds = following
+      ? (window.myFollowedEventIds || []).concat([eventId])
+      : (window.myFollowedEventIds || []).filter(function(id){ return id !== eventId; });
+  }
+  window.applyEventFollowState = applyEventFollowState;
+
+  document.addEventListener('click', async function(ev){
+    var heartBtn = ev.target.closest ? ev.target.closest('[data-follow-event-id]') : null;
+    if (!heartBtn) return;
+    // Same two guards the church heart needs: the heart sits inside the
+    // card's own click-through-to-the-event wrapper, so without these a
+    // follow would also navigate.
+    ev.preventDefault();
+    ev.stopPropagation();
+
+    var { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) {
+      showLoginRequired(window.t('loginRequired.followEvent'));
+      return;
+    }
+    var eventId = heartBtn.getAttribute('data-follow-event-id');
+    var wasFollowing = heartBtn.getAttribute('data-following') === 'true';
+    var nowFollowing = !wasFollowing;
+    var matchingHearts = document.querySelectorAll('[data-follow-event-id="' + eventId + '"]');
+
+    // Optimistic, then reverted if the write fails -- identical to the
+    // church heart, which was made optimistic after the round-trip delay
+    // on every toggle was reported as perceptible.
+    applyEventFollowState(eventId, nowFollowing);
+    matchingHearts.forEach(function(el){ el.disabled = true; });
+    var writeResult = nowFollowing
+      ? await supabase.from('event_follows').insert({ user_id: userData.user.id, event_id: eventId })
+      : await supabase.from('event_follows').delete().eq('user_id', userData.user.id).eq('event_id', eventId);
+    matchingHearts.forEach(function(el){ el.disabled = false; });
+    if (writeResult.error) applyEventFollowState(eventId, wasFollowing);
+  });
 
   // Handles clicks on ANY element carrying [data-follow-church-id]:
   // directory card/row hearts (from followHeartCard()/followHeartRow())
