@@ -3655,3 +3655,31 @@ The toggles are placed with the thing they govern -- Groups on the Groups dashbo
 Saving reuses the existing `bindGiveMessageToggleSave()` helper rather than a parallel implementation: it already carries the `.select()`-after-`.update()` row-count check that migration 032 needed, and these columns have the identical grant hazard, so a second implementation would only be a second place to forget it.
 
 Build `2026-09-17-v92`; **migration 046 must be run by hand** -- until then the toggles show as on and change nothing, and the tabs stay visible.
+
+---
+
+## Phase 1b: configuration moved out of Settings
+
+Settings had become the place things went when they had nowhere else: rooms, ministries, giving configuration, giving funds, messaging setup, and a pointer to the Team page. Five of those moved to the thing they configure, and the pointer was deleted.
+
+| moved | to |
+|---|---|
+| rooms | new **Facility** page |
+| ministries (with its visibility toggle) | new **Ministries** page |
+| messaging setup | **Messages** page |
+| giving configuration + funds | **Revenue** page |
+| team pointer | deleted -- it was only a signpost to a page that already exists |
+
+Also renamed the Staff nav to **Team & Permissions**, since that page manages both people and their abilities and "Permissions" alone made "add a person" read oddly.
+
+**The two new pages cost almost nothing structurally.** `goDash()` resolves a sub-view by looking for `#dash-<key>` and a matching nav link, with no allowlist to update -- so `#dashboard/facility` works as a deep link the moment the markup exists. Verified rather than assumed.
+
+**And they do not undo the panel-deferral work.** `loadRoomsPanel` and `loadMinistriesPanel` were already registered through `dashPanel()`, so moving their markup changes where they render, not when they load. A new dashboard page whose loader ran at module level would quietly hand back the gains from v84 -- worth stating explicitly, because it is exactly the kind of regression that looks like an unrelated performance drift months later.
+
+**Sections were cut with a balanced-tag scan, not a regex.** These blocks contain nested markup, and a regex cannot match balanced tags -- it would have silently truncated a section at its first inner `</div>` and left the remainder orphaned in Settings. Counting depth is the only correct way.
+
+Verified: every nav entry has a matching panel and there are no orphans; each moved section reports its new parent panel (`rooms-list` in `dash-facility`, funds and giving in `dash-giving`, messaging in `dash-messages`); the ministries visibility toggle travelled with its section; the groups toggle stayed on the Groups page; the deep link routes and marks the nav active; and the new labels translate (`Instalaciones`, `Ministerios`, `Equipo y permisos`).
+
+One pre-existing oddity noted, not touched: `dash-churches` has no nav link with a `data-dash` attribute -- it is reached by the "Overview" link through a different mechanism. Unrelated to this change.
+
+Build `2026-09-17-v93`. No migration.

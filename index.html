@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -298,7 +299,7 @@
       'invite.title': 'FaithDock is in private testing', 'invite.body': 'Creating an account needs an invite code while we’re testing. Not a tester?',
       'invite.placeholder': 'Invite code', 'invite.submit': 'Unlock', 'invite.wrong': 'That code isn’t valid.', 'invite.waitlistLink': 'Request access',
       'dash.events': 'Events', 'dash.checkin': 'Check-In', 'dash.directory': 'Directory', 'dash.messages': 'Messages',
-      'dash.groups': 'Groups', 'dash.giving': 'Giving', 'dash.billing': 'Billing', 'dash.settings': 'Settings', 'dash.signout': 'Sign out', 'dash.staff': 'Staff',
+      'dash.groups': 'Groups', 'dash.giving': 'Giving', 'dash.billing': 'Billing', 'dash.settings': 'Settings', 'dash.signout': 'Sign out', 'dash.staff': 'Team & Permissions',
       'church.about': 'About', 'church.events': 'Events', 'church.groups': 'Groups', 'church.ministries': 'Ministries', 'church.location': 'Location',
       'church.message': 'Message', 'church.give': 'Give', 'church.follow': 'Follow church',
       'events.followEvent': 'Follow event',
@@ -767,6 +768,9 @@
       'dashSettings.givingFundsHint': 'Designated funds donors can choose from when giving — a building campaign, a mission trip, whatever your church tracks separately. Gifts with no fund selected count toward the General Fund.',
       'dashSettings.givingEnabledToggle': 'Show the "Give" button on your public page',
       'dashSettings.groupsEnabledToggle': 'Show Groups on your public page',
+      'dash.facility': 'Facility', 'dash.ministries': 'Ministries',
+      'dashFacility.subtitle': 'Rooms you can assign to events.',
+      'dashMinistries.subtitle': 'Ministries you can assign to events, and whether they show on your public page.',
       'dashSettings.ministriesEnabledToggle': 'Show Ministries on your public page',
       'dashSettings.toggleSaved': 'Saved', 'dashSettings.toggleSaveError': 'Could not save this setting. Please try again.',
       'dashSettings.messaging': 'Messaging', 'dashSettings.messagingEnabledToggle': 'Show the "Message" button on your public page',
@@ -1139,7 +1143,7 @@
       'invite.title': 'FaithDock está en pruebas privadas', 'invite.body': 'Crear una cuenta requiere un código de invitación mientras estamos en pruebas. ¿No eres tester?',
       'invite.placeholder': 'Código de invitación', 'invite.submit': 'Desbloquear', 'invite.wrong': 'Ese código no es válido.', 'invite.waitlistLink': 'Solicitar acceso',
       'dash.events': 'Eventos', 'dash.checkin': 'Registro', 'dash.directory': 'Directorio', 'dash.messages': 'Mensajes',
-      'dash.groups': 'Grupos', 'dash.giving': 'Donaciones', 'dash.billing': 'Facturación', 'dash.settings': 'Configuración', 'dash.signout': 'Cerrar sesión', 'dash.staff': 'Personal',
+      'dash.groups': 'Grupos', 'dash.giving': 'Donaciones', 'dash.billing': 'Facturación', 'dash.settings': 'Configuración', 'dash.signout': 'Cerrar sesión', 'dash.staff': 'Equipo y permisos',
       'church.about': 'Acerca de', 'church.events': 'Eventos', 'church.groups': 'Grupos', 'church.ministries': 'Ministerios', 'church.location': 'Ubicación',
       'church.message': 'Mensaje', 'church.give': 'Donar', 'church.follow': 'Seguir iglesia',
       'events.followEvent': 'Seguir evento',
@@ -1601,6 +1605,9 @@
       'dashSettings.givingFundsHint': 'Fondos designados que los donantes pueden elegir al donar — una campaña de construcción, un viaje misionero, lo que tu iglesia rastree por separado. Los regalos sin fondo seleccionado cuentan para el Fondo General.',
       'dashSettings.givingEnabledToggle': 'Mostrar el botón "Donar" en tu página pública',
       'dashSettings.groupsEnabledToggle': 'Mostrar Grupos en tu página pública',
+      'dash.facility': 'Instalaciones', 'dash.ministries': 'Ministerios',
+      'dashFacility.subtitle': 'Salas que puedes asignar a los eventos.',
+      'dashMinistries.subtitle': 'Ministerios que puedes asignar a los eventos, y si aparecen en tu página pública.',
       'dashSettings.ministriesEnabledToggle': 'Mostrar Ministerios en tu página pública',
       'dashSettings.toggleSaved': 'Guardado', 'dashSettings.toggleSaveError': 'No se pudo guardar esta opción. Inténtalo de nuevo.',
       'dashSettings.messaging': 'Mensajería', 'dashSettings.messagingEnabledToggle': 'Mostrar el botón "Mensaje" en tu página pública',
@@ -5734,6 +5741,8 @@ Groups</span>
         <a data-dash="checkin" data-i18n="dash.checkin">Check-In</a>
         <a data-dash="directory" data-i18n="dash.directory">Directory</a>
         <a data-dash="messages" data-i18n="dash.messages">Messages</a>
+        <a data-dash="facility" data-i18n="dash.facility">Facility</a>
+        <a data-dash="ministries" data-i18n="dash.ministries">Ministries</a>
         <a data-dash="groups"><span data-i18n="dash.groups">Groups</span> <span id="dash-groups-nav-badge" class="tag clay" style="display:none;font-size:9px;padding:2px 6px;vertical-align:2px;"></span></a>
         <a data-dash="giving" data-i18n="dash.revenue">Revenue</a>
         <a data-dash="insights" data-i18n="insights.title">Insights</a>
@@ -6146,6 +6155,18 @@ Groups</span>
       </div>
 
       <div class="dash-content" id="dash-messages">
+    <!-- Moved from Settings: messaging configuration belongs with the
+         messaging page, not in a general settings list. -->
+    <div class="side-note" id="settings-messaging-section">
+              <h4 data-i18n="dashSettings.messaging">Messaging</h4>
+              <p style="font-size:13.5px;color:var(--ink-mute);margin-bottom:14px;" data-i18n="dashSettings.messagingHint">Whether visitors can message your church from its public page, and who gets a copy when they do. Add more recipients by granting the "Receive contact messages" ability to staff from the Staff page.</p>
+              <label class="filter-check" style="display:flex;margin-bottom:10px;">
+                <input type="checkbox" id="settings-messaging-enabled-toggle" checked> <span data-i18n="dashSettings.messagingEnabledToggle">Show the "Message" button on your public page</span> <span id="settings-messaging-enabled-status" style="display:none;font-size:12px;"></span>
+              </label>
+              <label class="filter-check" style="display:flex;margin-bottom:14px;">
+                <input type="checkbox" id="settings-owner-receives-messages-toggle" checked> <span data-i18n="dashSettings.ownerReceivesMessagesToggle">Send me a copy of every message</span> <span id="settings-owner-receives-messages-status" style="display:none;font-size:12px;"></span>
+              </label>
+            </div>
         <h2 style="font-size:24px;margin-bottom:24px;" data-i18n="dash.messages">Messages</h2>
         <div id="dash-messages-locked" style="display:none;margin-top:10px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--paper);font-size:12.5px;color:var(--ink-mute);max-width:560px;">
           <svg viewBox="0 0 24 24" fill="currentColor" style="width:13px;height:13px;vertical-align:-2px;margin-right:4px;"><path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2z"/></svg>
@@ -6336,6 +6357,41 @@ Groups</span>
       </div>
 
       <div class="dash-content" id="dash-giving">
+    <!-- Giving configuration and funds moved here from Settings.
+         Revenue is already giving + ticket sales, so this is where a
+         church reasons about money -- splitting the settings for it
+         into a different tab meant holding two places in your head. -->
+    <div class="side-note" id="settings-giving-section">
+              <h4 data-i18n="dash.giving">Giving</h4>
+              <p style="font-size:13.5px;color:var(--ink-mute);margin-bottom:14px;" data-i18n="dashSettings.givingHint">Connect a bank account so your church can accept donations directly through FaithDock. Donations go straight to your account — FaithDock never holds the funds.</p>
+              <div id="giving-status" style="font-size:13px;margin-bottom:12px;"><p style="color:var(--ink-mute);font-size:13px;" data-i18n="common.loading">Loading...</p></div>
+              <button class="btn-gold" id="giving-connect-btn" style="display:inline-block;" data-i18n="dashGiving.connectBank">Connect your bank account</button>
+              <div id="giving-connect-status" style="display:none;font-size:12px;color:var(--clay);margin-top:10px;"></div>
+            </div>
+    <div class="side-note" id="settings-funds-section">
+              <h4 data-i18n="dashSettings.givingFunds">Giving funds</h4>
+              <p style="font-size:13.5px;color:var(--ink-mute);margin-bottom:14px;" data-i18n="dashSettings.givingFundsHint">Designated funds donors can choose from when giving — a building campaign, a mission trip, whatever your church tracks separately. Gifts with no fund selected count toward the General Fund.</p>
+              <!-- Requested directly, alongside removing Message/Give from
+                   unclaimed churches entirely: an on/off switch for
+                   whether the public "Give" button shows at all, placed
+                   by the funds list it affects rather than in the bank-
+                   connect section above (#settings-giving-section), which
+                   is about a DIFFERENT step (getting Stripe connected in
+                   the first place). checked/unchecked reflects
+                   churches.giving_enabled (migration
+                   032_church_give_message_toggles.sql), loaded/saved by
+                   loadGiveMessageToggles()/the settings-giving-enabled-
+                   toggle change handler further down this file. -->
+              <label class="filter-check" id="settings-giving-enabled-toggle-wrap" style="display:flex;margin-bottom:14px;">
+                <input type="checkbox" id="settings-giving-enabled-toggle" checked> <span data-i18n="dashSettings.givingEnabledToggle">Show the "Give" button on your public page</span> <span id="settings-giving-enabled-status" style="display:none;font-size:12px;"></span>
+              </label>
+              <div id="funds-list" style="margin-bottom:12px;"><p style="color:var(--ink-mute);font-size:13px;" data-i18n="common.loading">Loading...</p></div>
+              <div style="display:flex;gap:8px;">
+                <input class="field" type="text" id="fund-add-name" placeholder="e.g. Building Campaign" data-i18n-placeholder="dashSettings.fundNamePlaceholder" style="flex:1;font-size:13px;padding:9px 10px;">
+                <button class="export-btn" id="fund-add-btn" style="flex-shrink:0;" data-i18n="dashSettings.add">Add</button>
+              </div>
+              <div id="fund-add-status" style="display:none;font-size:12px;margin-top:8px;"></div>
+            </div>
         <h2 style="font-size:24px;margin-bottom:24px;" data-i18n="dash.revenue">Revenue</h2>
 
         <div id="giving-tab-connect-section" class="side-note" style="max-width:520px;display:none;">
@@ -6558,7 +6614,55 @@ Groups</span>
            restorePricingContentToStandalonePage(). -->
       <div class="dash-content" id="dash-plans"></div>
 
-      <div class="dash-content" id="dash-settings">
+      <!-- Facility and Ministries were sections buried in Settings. They
+       are their own pages now, on the principle running through this
+       whole reorganisation: configuration belongs with the thing it
+       configures, and Settings should hold what is genuinely global
+       rather than everything that lacked a home.
+
+       Both are ordinary .dash-content panels, so goDash() routes to
+       them with no allowlist to update -- #dashboard/facility works
+       as a deep link for free. Their loaders were already registered
+       through dashPanel(), so moving the markup does not reintroduce
+       the load-on-every-page cost that deferral removed. -->
+  <div class="dash-content" id="dash-facility">
+    <h2 style="font-family:'Fraunces';font-size:22px;margin-bottom:4px;" data-i18n="dash.facility">Facility</h2>
+    <p style="color:var(--ink-mute);font-size:13.5px;margin-bottom:18px;" data-i18n="dashFacility.subtitle">Rooms you can assign to events.</p>
+    <div class="side-note" id="settings-rooms-section">
+              <h4 data-i18n="dashSettings.facilityRooms">Facility rooms</h4>
+              <p style="font-size:13.5px;color:var(--ink-mute);margin-bottom:14px;" data-i18n="dashSettings.facilityRoomsHint">The spaces your church schedules — classrooms, the sanctuary, Rec Center, outdoor areas. These show up as options when creating an event.</p>
+              <div id="rooms-list" style="margin-bottom:12px;"><p style="color:var(--ink-mute);font-size:13px;" data-i18n="common.loading">Loading...</p></div>
+              <div style="display:flex;gap:8px;">
+                <input class="field" type="text" id="room-add-name" placeholder="e.g. Room 205 Classroom Adult" data-i18n-placeholder="dashSettings.roomNamePlaceholder" style="flex:1;font-size:13px;padding:9px 10px;">
+                <button class="export-btn" id="room-add-btn" style="flex-shrink:0;" data-i18n="dashSettings.add">Add</button>
+              </div>
+              <div id="room-add-status" style="display:none;font-size:12px;margin-top:8px;"></div>
+            </div>
+  </div>
+
+  <div class="dash-content" id="dash-ministries">
+    <h2 style="font-family:'Fraunces';font-size:22px;margin-bottom:4px;" data-i18n="dash.ministries">Ministries</h2>
+    <p style="color:var(--ink-mute);font-size:13.5px;margin-bottom:18px;" data-i18n="dashMinistries.subtitle">Ministries you can assign to events, and whether they show on your public page.</p>
+    <div class="side-note" id="settings-ministries-section">
+              <!-- Lives with the thing it governs rather than in a
+                   general settings list. Moves to the Ministries page
+                   along with this whole section. -->
+              <label class="filter-check" id="settings-ministries-enabled-toggle-wrap" style="display:flex;margin-bottom:14px;">
+                <input type="checkbox" id="settings-ministries-enabled-toggle" checked> <span data-i18n="dashSettings.ministriesEnabledToggle">Show Ministries on your public page</span>
+              </label>
+              <div id="settings-ministries-enabled-status" style="display:none;font-size:12px;margin-bottom:10px;"></div>
+              <h4 data-i18n="dashSettings.ministries">Ministries</h4>
+              <p style="font-size:13.5px;color:var(--ink-mute);margin-bottom:14px;" data-i18n="dashSettings.ministriesHint">The programs your church runs — a food pantry, a youth group, a recovery meeting. These show up on your public profile and can be attached to events.</p>
+              <div id="ministries-list" style="margin-bottom:12px;"><p style="color:var(--ink-mute);font-size:13px;" data-i18n="common.loading">Loading...</p></div>
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <input class="field" type="text" id="ministry-add-name" placeholder="e.g. Food Pantry" data-i18n-placeholder="dashSettings.ministryNamePlaceholder" style="font-size:13px;padding:9px 10px;">
+                <textarea class="field" id="ministry-add-desc" placeholder="What it is, in a sentence (shown publicly)" data-i18n-placeholder="dashSettings.ministryDescPlaceholder" style="font-size:13px;padding:9px 10px;min-height:52px;resize:vertical;"></textarea>
+                <button class="export-btn" id="ministry-add-btn" style="align-self:flex-start;" data-i18n="dashSettings.add">Add</button>
+              </div>
+              <div id="ministry-add-status" style="display:none;font-size:12px;margin-top:8px;"></div>
+            </div>
+  </div>
+  <div class="dash-content" id="dash-settings">
         <h2 style="font-size:24px;margin-bottom:24px;" data-i18n="dash.settings">Settings</h2>
         <!-- No inline grid-template-columns override here on purpose --
              .two-col's own class rule already has a responsive
@@ -6579,41 +6683,9 @@ Groups</span>
               <p style="font-size:13.5px;color:var(--ink-mute);margin-bottom:14px;" data-i18n="dashSettings.churchProfileHint">Name, address, denomination, website, description, and logo are all managed from one page.</p>
               <a href="#register-church" data-route="register-church" id="dash-edit-profile-settings-link" class="btn-gold" style="display:inline-block;text-decoration:none;" data-i18n="dash.editChurchProfile">Edit church profile →</a>
             </div>
-            <div class="side-note" id="settings-giving-section">
-              <h4 data-i18n="dash.giving">Giving</h4>
-              <p style="font-size:13.5px;color:var(--ink-mute);margin-bottom:14px;" data-i18n="dashSettings.givingHint">Connect a bank account so your church can accept donations directly through FaithDock. Donations go straight to your account — FaithDock never holds the funds.</p>
-              <div id="giving-status" style="font-size:13px;margin-bottom:12px;"><p style="color:var(--ink-mute);font-size:13px;" data-i18n="common.loading">Loading...</p></div>
-              <button class="btn-gold" id="giving-connect-btn" style="display:inline-block;" data-i18n="dashGiving.connectBank">Connect your bank account</button>
-              <div id="giving-connect-status" style="display:none;font-size:12px;color:var(--clay);margin-top:10px;"></div>
-            </div>
-            <div class="side-note" id="settings-rooms-section">
-              <h4 data-i18n="dashSettings.facilityRooms">Facility rooms</h4>
-              <p style="font-size:13.5px;color:var(--ink-mute);margin-bottom:14px;" data-i18n="dashSettings.facilityRoomsHint">The spaces your church schedules — classrooms, the sanctuary, Rec Center, outdoor areas. These show up as options when creating an event.</p>
-              <div id="rooms-list" style="margin-bottom:12px;"><p style="color:var(--ink-mute);font-size:13px;" data-i18n="common.loading">Loading...</p></div>
-              <div style="display:flex;gap:8px;">
-                <input class="field" type="text" id="room-add-name" placeholder="e.g. Room 205 Classroom Adult" data-i18n-placeholder="dashSettings.roomNamePlaceholder" style="flex:1;font-size:13px;padding:9px 10px;">
-                <button class="export-btn" id="room-add-btn" style="flex-shrink:0;" data-i18n="dashSettings.add">Add</button>
-              </div>
-              <div id="room-add-status" style="display:none;font-size:12px;margin-top:8px;"></div>
-            </div>
-            <div class="side-note" id="settings-ministries-section">
-              <!-- Lives with the thing it governs rather than in a
-                   general settings list. Moves to the Ministries page
-                   along with this whole section. -->
-              <label class="filter-check" id="settings-ministries-enabled-toggle-wrap" style="display:flex;margin-bottom:14px;">
-                <input type="checkbox" id="settings-ministries-enabled-toggle" checked> <span data-i18n="dashSettings.ministriesEnabledToggle">Show Ministries on your public page</span>
-              </label>
-              <div id="settings-ministries-enabled-status" style="display:none;font-size:12px;margin-bottom:10px;"></div>
-              <h4 data-i18n="dashSettings.ministries">Ministries</h4>
-              <p style="font-size:13.5px;color:var(--ink-mute);margin-bottom:14px;" data-i18n="dashSettings.ministriesHint">The programs your church runs — a food pantry, a youth group, a recovery meeting. These show up on your public profile and can be attached to events.</p>
-              <div id="ministries-list" style="margin-bottom:12px;"><p style="color:var(--ink-mute);font-size:13px;" data-i18n="common.loading">Loading...</p></div>
-              <div style="display:flex;flex-direction:column;gap:8px;">
-                <input class="field" type="text" id="ministry-add-name" placeholder="e.g. Food Pantry" data-i18n-placeholder="dashSettings.ministryNamePlaceholder" style="font-size:13px;padding:9px 10px;">
-                <textarea class="field" id="ministry-add-desc" placeholder="What it is, in a sentence (shown publicly)" data-i18n-placeholder="dashSettings.ministryDescPlaceholder" style="font-size:13px;padding:9px 10px;min-height:52px;resize:vertical;"></textarea>
-                <button class="export-btn" id="ministry-add-btn" style="align-self:flex-start;" data-i18n="dashSettings.add">Add</button>
-              </div>
-              <div id="ministry-add-status" style="display:none;font-size:12px;margin-top:8px;"></div>
-            </div>
+            
+            
+            
             <div class="side-note" id="settings-ownership-section" style="display:none;">
               <h4 data-i18n="dashSettings.transferOwnership">Transfer ownership</h4>
               <p style="font-size:13.5px;color:var(--ink-mute);margin-bottom:14px;" data-i18n="dashSettings.transferOwnershipHint">Hand this church off to someone else. Nothing changes until they explicitly accept — this doesn't transfer instantly just because you send it, and you can cancel it anytime before they respond.</p>
@@ -6628,46 +6700,10 @@ Groups</span>
               <button class="btn-gold" id="ownership-transfer-send-btn" data-i18n="dashSettings.sendTransferRequest">Send transfer request</button>
               <div id="ownership-transfer-status" style="display:none;font-size:12px;margin-top:10px;"></div>
             </div>
-            <div class="side-note" id="settings-funds-section">
-              <h4 data-i18n="dashSettings.givingFunds">Giving funds</h4>
-              <p style="font-size:13.5px;color:var(--ink-mute);margin-bottom:14px;" data-i18n="dashSettings.givingFundsHint">Designated funds donors can choose from when giving — a building campaign, a mission trip, whatever your church tracks separately. Gifts with no fund selected count toward the General Fund.</p>
-              <!-- Requested directly, alongside removing Message/Give from
-                   unclaimed churches entirely: an on/off switch for
-                   whether the public "Give" button shows at all, placed
-                   by the funds list it affects rather than in the bank-
-                   connect section above (#settings-giving-section), which
-                   is about a DIFFERENT step (getting Stripe connected in
-                   the first place). checked/unchecked reflects
-                   churches.giving_enabled (migration
-                   032_church_give_message_toggles.sql), loaded/saved by
-                   loadGiveMessageToggles()/the settings-giving-enabled-
-                   toggle change handler further down this file. -->
-              <label class="filter-check" id="settings-giving-enabled-toggle-wrap" style="display:flex;margin-bottom:14px;">
-                <input type="checkbox" id="settings-giving-enabled-toggle" checked> <span data-i18n="dashSettings.givingEnabledToggle">Show the "Give" button on your public page</span> <span id="settings-giving-enabled-status" style="display:none;font-size:12px;"></span>
-              </label>
-              <div id="funds-list" style="margin-bottom:12px;"><p style="color:var(--ink-mute);font-size:13px;" data-i18n="common.loading">Loading...</p></div>
-              <div style="display:flex;gap:8px;">
-                <input class="field" type="text" id="fund-add-name" placeholder="e.g. Building Campaign" data-i18n-placeholder="dashSettings.fundNamePlaceholder" style="flex:1;font-size:13px;padding:9px 10px;">
-                <button class="export-btn" id="fund-add-btn" style="flex-shrink:0;" data-i18n="dashSettings.add">Add</button>
-              </div>
-              <div id="fund-add-status" style="display:none;font-size:12px;margin-top:8px;"></div>
-            </div>
-            <div class="side-note" id="settings-messaging-section">
-              <h4 data-i18n="dashSettings.messaging">Messaging</h4>
-              <p style="font-size:13.5px;color:var(--ink-mute);margin-bottom:14px;" data-i18n="dashSettings.messagingHint">Whether visitors can message your church from its public page, and who gets a copy when they do. Add more recipients by granting the "Receive contact messages" ability to staff from the Staff page.</p>
-              <label class="filter-check" style="display:flex;margin-bottom:10px;">
-                <input type="checkbox" id="settings-messaging-enabled-toggle" checked> <span data-i18n="dashSettings.messagingEnabledToggle">Show the "Message" button on your public page</span> <span id="settings-messaging-enabled-status" style="display:none;font-size:12px;"></span>
-              </label>
-              <label class="filter-check" style="display:flex;margin-bottom:14px;">
-                <input type="checkbox" id="settings-owner-receives-messages-toggle" checked> <span data-i18n="dashSettings.ownerReceivesMessagesToggle">Send me a copy of every message</span> <span id="settings-owner-receives-messages-status" style="display:none;font-size:12px;"></span>
-              </label>
-            </div>
+            
+            
           </div>
-          <div class="side-note" style="margin-top:0;" id="settings-team-pointer-section">
-            <h4 data-i18n="dashSettings.team">Team</h4>
-            <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:14px;" data-i18n="dashSettings.teamMovedHint">Inviting staff, adjusting their abilities, and assigning the Manager role now live on their own page.</p>
-            <a data-dash="staff" class="btn-gold" style="display:inline-block;text-decoration:none;cursor:pointer;" data-i18n="dashSettings.goToStaffPage">Go to Staff →</a>
-          </div>
+          
         </div>
 
         <div class="side-note" id="settings-delete-church-section" style="display:none;border-color:var(--clay);">
@@ -6773,7 +6809,7 @@ Groups</span>
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v92 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v93 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
