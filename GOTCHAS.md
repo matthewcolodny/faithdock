@@ -4139,3 +4139,25 @@ Two things about that column worth keeping:
 **A deploy-ordering bug introduced and caught in the same pass.** Adding `guest_email` to the roster's select would have blanked the entire check-in list on any deploy landing before 055 -- a column that does not exist fails the *whole* select with 42703 rather than returning null for one field. Now it asks, and retries without on 42703. A retry rather than two parallel queries, because the roster is one list: a second query resolving separately would paint names first and contact details after, which at a door reads as the page moving under the volunteer's hand. Verified by stubbing the 42703 and watching the retry render the roster anyway.
 
 Build `2026-09-17-v109`; **migration 055 must be run by hand** (the walk-in email degrades to absent without it).
+
+---
+
+## The mobile dashboard, and an inline style that beat every stylesheet
+
+Three reports: the events page "stretched at the bottom" on mobile, and a request for two columns rather than one long one.
+
+**What was actually stretched** -- measured, not eyeballed. The month calendar at the bottom of Events: at 375px the seven columns are **42px wide** and `min-height` made each cell **64px tall**. Half again taller than wide is the "stretched", and the event chips were the reason for the height -- a 9px title in a 36px box renders as two characters and an ellipsis, so the calendar spent all that height showing nothing.
+
+A month grid on a phone can show *which* days have something, not *what*. The chips are now 6px dots and the cells are roughly square (42×46, down from 42×64; the calendar lost 90px of height), and tapping a day opens the day list that dense days already had. The dots take the solid `--sage`/`--gold`/`--clay` rather than the muted `-bg` pair the desktop chip uses, because a 6px dot in a background tint is invisible.
+
+The table itself was fine: no page overflow, and it scrolls internally (982px of content in a 301px box) exactly as intended. Worth recording, because "the table is broken" was the obvious guess and it was wrong.
+
+**The inline style that made a CSS fix look like it worked.** `.dash-nav{display:grid;grid-template-columns:1fr 1fr}` applied and did nothing: computed style reported `grid-template-columns: 1fr 1fr` **and `display: block`**. The dashboard has two sidebars (per-church and multi-church overview) and the JS toggling them set `style.display = 'block'` to show one -- an inline style, which beats every stylesheet rule. The grid columns and gap were inherited from the media query while `display` never changed, so the element computed as a two-column grid that was laying nothing out.
+
+Fixed by having the toggle set `display = ''` rather than `'block'`, handing the decision back to CSS, which is the only thing that knows the viewport width. Nav height went 599px → 349px.
+
+This is worth remembering as a shape: **an element can report the exact computed values you set and still ignore them**, because the property that activates them was overridden somewhere else. Reading `gridTemplateColumns` alone would have confirmed the fix worked.
+
+**Stat cards two-up**, with the stacking fallback at 339px rather than the 380px first written -- 380 would have caught the iPhone SE and mini and undone the change on exactly the narrow screens it was for. Caught by measuring at 375px and finding one column.
+
+Build `2026-09-17-v110`. No migration.

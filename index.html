@@ -3403,7 +3403,17 @@
   body.checkin-link-page header,
   body.checkin-link-page footer,
   body.checkin-link-page .promo-bar{display:none;}
-  @media (max-width:860px){.dash{grid-template-columns:1fr;}}
+  @media (max-width:860px){
+    .dash{grid-template-columns:1fr;}
+    /* Requested: two columns rather than one long one. The sidebar
+       stacks above the content on a phone, and as a single column of
+       block links it was a screen and a half of navigation before any
+       actual page content. Two columns halves that. */
+    .dash-side{padding:20px 16px;}
+    .dash-nav{display:grid;grid-template-columns:1fr 1fr;gap:4px 8px;}
+    .dash-nav a{margin-bottom:0;padding:9px 10px;font-size:13.5px;}
+    .dash-tag{margin-bottom:16px;}
+  }
   /* Grid items default to min-width:auto, i.e. their content's own
      natural min-content width -- not 0 -- so a 1fr track doesn't
      actually shrink below whatever its widest child needs. That's
@@ -3441,7 +3451,15 @@
   .msg-reply{margin-top:auto;display:flex;gap:10px;padding-top:16px;border-top:1px solid var(--line);}
   .msg-reply input{flex:1;}
   .stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:36px;}
-  @media (max-width:640px){.stat-row{grid-template-columns:1fr;}}
+  /* Same reasoning as the nav above: three stacked stat cards push
+     the actual content of every dashboard page below the fold. Two
+     up fits comfortably at 375px, the width of the most common
+     phone -- the numbers are short and the labels already wrap. The
+     stacking fallback is set below every current phone width rather
+     than at 380px, which would have caught the iPhone SE and mini and
+     undone the change on exactly the screens that need it most. */
+  @media (max-width:640px){.stat-row{grid-template-columns:1fr 1fr;gap:10px;}}
+  @media (max-width:339px){.stat-row{grid-template-columns:1fr;}}
   .stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;min-width:0;}
   .stat .num{font-family:'Fraunces';font-size:28px;color:var(--ink);}
   .stat .lbl{font-size:12.5px;color:var(--ink-mute);margin-top:4px;font-family:'IBM Plex Mono';}
@@ -3531,9 +3549,19 @@
   .event-tab-btn.active{color:var(--ink);border-bottom-color:var(--gold);}
   .event-tab-btn:hover{color:var(--ink);}
   @media (max-width: 640px){
-    .cal-day{min-height:64px;padding:3px;}
+    .cal-day{min-height:46px;padding:3px;cursor:pointer;}
     .cal-dow{font-size:9px;padding:6px 2px;}
-    .cal-event-chip{font-size:9px;}
+    /* font-size:0 rather than a separate element, so the same
+       markup serves both layouts and nothing has to know which one
+       it is rendering for. */
+    .cal-event-chip{font-size:0;line-height:0;display:inline-block;
+      width:6px;height:6px;border-radius:50%;padding:0;margin:0 2px 2px 0;vertical-align:top;}
+    /* The desktop chip uses the muted -bg pair for a filled label.
+       A 6px dot needs the solid colour or it disappears. */
+    .cal-event-chip.sage{background:var(--sage);}
+    .cal-event-chip.gold{background:var(--gold);}
+    .cal-event-chip.clay{background:var(--clay);}
+    .cal-more-link{font-size:9px;padding:0;}
     /* Category icons wrap onto several rows of four here rather than
        stretching across one, so all of them sit visible at once
        instead of requiring a swipe, matching the stacked reference
@@ -7103,7 +7131,7 @@ Groups</span>
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v109 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v110 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13204,8 +13232,15 @@ Groups</span>
     var ovHeader = document.getElementById('dash-overview-header');
     var inOverview = multi && !!DASH_OVERVIEW_VIEWS[view];
 
-    if (navOverview) navOverview.style.display = inOverview ? 'block' : 'none';
-    if (navChurch) navChurch.style.display = inOverview ? 'none' : 'block';
+    // Empty string, not 'block'. An inline style beats every
+    // stylesheet rule, so hardcoding 'block' here silently defeated
+    // the phone layout's .dash-nav{display:grid} -- the grid columns
+    // and gap applied while display stayed block, so the nav computed
+    // as a two-column grid that was laying nothing out. Clearing the
+    // property instead hands the decision back to CSS, which is what
+    // knows about viewport width.
+    if (navOverview) navOverview.style.display = inOverview ? '' : 'none';
+    if (navChurch) navChurch.style.display = inOverview ? 'none' : '';
     if (churchCtx) churchCtx.style.display = inOverview ? 'none' : 'block';
     if (ovHeader) ovHeader.style.display = inOverview ? 'block' : 'none';
     if (allLink) allLink.style.display = (multi && !inOverview) ? 'block' : 'none';
@@ -13751,7 +13786,8 @@ Groups</span>
         }).join('');
       }
 
-      html += '<div class="cal-day' + (otherMonth ? ' other-month' : '') + (isToday ? ' today' : '') + '">'
+      html += '<div class="cal-day' + (otherMonth ? ' other-month' : '') + (isToday ? ' today' : '') + '"'
+        + (dayEvents.length ? ' data-cal-day-date="' + key + '"' : '') + '>'
         + '<div class="cal-day-num">' + cellDate + '</div>'
         + cellBodyHtml
         + '</div>';
@@ -13802,6 +13838,18 @@ Groups</span>
   });
 
   document.addEventListener('click', function(ev){
+    // Phone-only: the dots are 6px, which is not a tap target, so the
+    // whole cell opens the day list that dense days already use.
+    // Narrow screens only -- on desktop the chips are readable and
+    // clickable, and a modal on a stray click in the whitespace
+    // would be a step backwards.
+    var dayCell = ev.target.closest ? ev.target.closest('[data-cal-day-date]') : null;
+    if (dayCell && !(ev.target.closest && ev.target.closest('[data-cal-event-id]'))
+        && window.matchMedia('(max-width: 640px)').matches
+        && typeof window.openCalDayModal === 'function') {
+      window.openCalDayModal(dayCell.getAttribute('data-cal-day-date'));
+      return;
+    }
     var chip = ev.target.closest ? ev.target.closest('[data-cal-event-id]') : null;
     if (chip) {
       document.getElementById('cal-day-modal').classList.remove('open');
@@ -13810,21 +13858,30 @@ Groups</span>
     }
 
     var moreLink = ev.target.closest ? ev.target.closest('[data-cal-more-date]') : null;
-    if (moreLink) {
-      var key = moreLink.getAttribute('data-cal-more-date');
-      var dayEvents = getEventsForDateKey(key);
-      var firstDate = dayEvents.length ? new Date(dayEvents[0].start_at) : null;
-      document.getElementById('cal-day-modal-title').textContent = firstDate
-        ? firstDate.toLocaleDateString(window.appLocale(), { weekday: 'long', month: 'long', day: 'numeric' })
-        : window.t('dash.events');
-      document.getElementById('cal-day-modal-list').innerHTML = dayEvents.map(function(e){
-        var timeStr = new Date(e.start_at).toLocaleTimeString(window.appLocale(), { hour: 'numeric', minute: '2-digit' });
-        return '<div class="cal-event-chip ' + calBadgeClass(e) + '" data-cal-event-id="' + e.id + '" style="display:block;white-space:normal;font-size:13px;padding:8px 10px;margin-bottom:6px;">'
-          + '<strong>' + timeStr + '</strong> — ' + e.title.replace(/</g, '&lt;') + '</div>';
-      }).join('');
-      document.getElementById('cal-day-modal').classList.add('open');
-    }
+    if (moreLink) window.openCalDayModal(moreLink.getAttribute('data-cal-more-date'));
   });
+
+  // Was inlined in the "N events" handler above. Extracted because the
+  // phone layout needs the same list from a different trigger (a tap
+  // anywhere in a day cell, since a 6px dot is not a tap target), and
+  // two copies of a renderer is how the two drift apart.
+  //
+  // The style overrides here undo the phone dot rules deliberately:
+  // inside the modal there is room for the real title, and this is
+  // the only place on a phone where the event names are legible.
+  window.openCalDayModal = function(key){
+    var dayEvents = getEventsForDateKey(key);
+    var firstDate = dayEvents.length ? new Date(dayEvents[0].start_at) : null;
+    document.getElementById('cal-day-modal-title').textContent = firstDate
+      ? firstDate.toLocaleDateString(window.appLocale(), { weekday: 'long', month: 'long', day: 'numeric' })
+      : window.t('dash.events');
+    document.getElementById('cal-day-modal-list').innerHTML = dayEvents.map(function(e){
+      var timeStr = new Date(e.start_at).toLocaleTimeString(window.appLocale(), { hour: 'numeric', minute: '2-digit' });
+      return '<div class="cal-event-chip ' + calBadgeClass(e) + '" data-cal-event-id="' + e.id + '" style="display:block;white-space:normal;font-size:13px;line-height:1.4;width:auto;height:auto;border-radius:6px;padding:8px 10px;margin-bottom:6px;">'
+        + '<strong>' + timeStr + '</strong> — ' + escapeHtml(e.title) + '</div>';
+    }).join('');
+    document.getElementById('cal-day-modal').classList.add('open');
+  };
 
   var dashEventsTogglePastBtn = document.getElementById('dash-events-toggle-past-btn');
   if (dashEventsTogglePastBtn) {
