@@ -3132,3 +3132,21 @@ As anon I could see exactly one event and zero category tags in use, so the rema
 A category lives in six places in this file and all six have to agree, or a filter click sends a value nothing else recognises. Verified by reading all three sets out of the live DOM -- icon row, create-event checkboxes, sidebar filter checklist -- and asserting they're the same set, that no retired value survives anywhere, and that every tag resolves through `translateCategoryTag()`. That last check was initially wrong and worth recording: run in English, a correctly-mapped tag translates to a string equal to itself, so everything looked unmapped. Re-run in Spanish, where a real mapping always changes the string, all eight resolve.
 
 Build `2026-09-17-v74`. No migration; one untracked data script to run if any event turns out to carry a retired tag.
+
+---
+
+## Category icons fill the row instead of scrolling inside it
+
+Three requests together: show the full "Classes & Studies" rather than the short "Classes", make the icons big enough on desktop to reach the end of the line below them, and get rid of the horizontal scrollbar.
+
+They turned out to be one change. The row was a fixed-size flex scroller -- 84px circles, `flex-shrink:0`, `overflow-x:auto` -- so its width had nothing to do with the page's, and `auto` put a scrollbar track under it. It's now a grid of equal fractional columns, with each circle sized at `width:100%` of its column and `aspect-ratio:1` keeping it round. The circles came out at 100px and the row now starts and ends exactly on the tab row's edges below it (28 and 981, measured, not eyeballed), with nothing that can overflow.
+
+`grid-auto-flow:column` + `grid-auto-columns:1fr` rather than an explicit `repeat(8,1fr)`: the column count then follows however many buttons are actually in the markup. The category set has already been edited twice in two days, and a hardcoded 8 would eventually leave a ninth button wrapped onto its own line or an empty column at the end, with nothing to point at why.
+
+**The trap that came with it**: the phone layout at `max-width:640px` sets `grid-template-columns:repeat(4,1fr)` to wrap into rows of four. `grid-auto-flow:column` from the desktop rule still applies inside that media query and overrides `grid-template-columns`, squeezing all eight back into one line -- so the mobile rule needs an explicit `grid-auto-flow:row`. It also needs `aspect-ratio:auto` to undo the desktop ratio, since a quarter of a phone screen is small enough that a column-filling circle makes the glyph inside hard to read; phones stay at a fixed 64px. Checked at 375px rather than assumed: two rows of four, 64px circles, no scrollbar, and the longer label wrapping cleanly onto a second line.
+
+The svg is sized in percent now (39%, the ratio the old fixed 33px-in-84px pair already had) so the glyph grows with its circle and there's no second number to keep in sync.
+
+"Classes & Studies" is the only category showing its full name in the row -- Support Groups and Sports & Recreation still show short forms. That's deliberate but inconsistent, and worth revisiting as a set rather than one at a time.
+
+Build `2026-09-17-v75`.

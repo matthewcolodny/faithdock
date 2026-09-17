@@ -476,7 +476,7 @@
       'events.hostedBy': 'hosted by', 'events.hostedByLabel': 'Hosted by', 'events.linkCopied': 'Link copied!', 'events.linkCopiedInstagram': 'Link copied — paste it into your Instagram Story or bio.',
       'category.volunteer': 'Volunteer', 'category.celebrations': 'Celebrations',
       'category.fellowship': 'Fellowship', 'category.worship': 'Worship',
-      'category.classesStudies': 'Classes & Studies', 'category.classesShort': 'Classes',
+      'category.classesStudies': 'Classes & Studies',
       'category.supportGroups': 'Support Groups', 'category.supportShort': 'Support',
       'category.sportsRecreation': 'Sports & Recreation', 'category.sportsShort': 'Sports',
       'category.trips': 'Trips',
@@ -1300,7 +1300,7 @@
       'events.hostedBy': 'organizado por', 'events.hostedByLabel': 'Organizado por', 'events.linkCopied': '¡Enlace copiado!', 'events.linkCopiedInstagram': 'Enlace copiado — pégalo en tu historia o biografía de Instagram.',
       'category.volunteer': 'Voluntariado', 'category.celebrations': 'Celebraciones',
       'category.fellowship': 'Compañerismo', 'category.worship': 'Adoración',
-      'category.classesStudies': 'Clases y estudios', 'category.classesShort': 'Clases',
+      'category.classesStudies': 'Clases y estudios',
       'category.supportGroups': 'Grupos de apoyo', 'category.supportShort': 'Apoyo',
       'category.sportsRecreation': 'Deportes y recreación', 'category.sportsShort': 'Deportes',
       'category.trips': 'Viajes',
@@ -3190,10 +3190,30 @@
   .mini-chart-value{font-size:9.5px;color:var(--ink-mute);margin-bottom:3px;white-space:nowrap;}
   .mini-chart-label{font-size:9px;color:var(--ink-mute);margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
 
-  .event-category-row{display:flex;gap:22px;overflow-x:auto;padding:18px 2px 22px;margin-bottom:4px;-webkit-overflow-scrolling:touch;}
-  .event-category-btn{display:flex;flex-direction:column;align-items:center;gap:8px;background:none;border:none;cursor:pointer;flex-shrink:0;min-width:66px;padding:0;}
-  .event-category-icon{width:84px;height:84px;border-radius:50%;border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--ink);transition:border-color .15s,color .15s;flex-shrink:0;}
-  .event-category-icon svg{width:33px;height:33px;}
+  /* Requested directly: on desktop these should fill the row, ending
+     flush with the line below, and never show a horizontal scrollbar.
+     So: one equal column per category instead of a fixed-size flex
+     scroller.
+     grid-auto-flow:column + grid-auto-columns:1fr rather than an
+     explicit repeat(8,1fr) on purpose -- the count then follows however
+     many buttons are actually in the markup, so adding or retiring a
+     category (which has happened twice already) can't silently leave a
+     ninth one wrapping onto its own line or an empty column at the end.
+     overflow-x is visible, not auto: with equal fractional columns
+     there is nothing that CAN overflow, and `auto` was what put a
+     scrollbar track under the row even when it wasn't needed. */
+  .event-category-row{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:22px;overflow-x:visible;padding:18px 0 22px;margin-bottom:4px;}
+  .event-category-btn{display:flex;flex-direction:column;align-items:center;gap:8px;background:none;border:none;cursor:pointer;min-width:0;padding:0;}
+  /* Sized from its column rather than pinned at 84px, which is what
+     makes the first and last circles land flush with the content edges
+     and the row reach the same right-hand edge as the tab row below it.
+     aspect-ratio (already used elsewhere in this file) keeps them
+     circular at whatever width the column works out to, so there's no
+     second number to keep in sync with the first. */
+  .event-category-icon{width:100%;aspect-ratio:1;border-radius:50%;border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--ink);transition:border-color .15s,color .15s;}
+  /* Percentage, not pixels, so the glyph grows with its circle -- 39%
+     is the ratio the old fixed pair (33px in 84px) already had. */
+  .event-category-icon svg{width:39%;height:39%;}
   .event-category-btn:hover .event-category-icon{border-color:var(--gold);color:var(--gold);}
   .event-category-btn.active .event-category-icon{border-color:var(--gold);background:var(--gold);color:#fff;}
   .event-category-btn span{font-size:12px;color:var(--ink);text-align:center;line-height:1.2;}
@@ -3205,12 +3225,19 @@
     .cal-day{min-height:64px;padding:3px;}
     .cal-dow{font-size:9px;padding:6px 2px;}
     .cal-event-chip{font-size:9px;}
-    /* Category icons: swap the horizontal scroller for a wrapping
-       4-column grid so all 8 sit visible at once instead of requiring
-       a swipe, matching the stacked reference layout. */
-    .event-category-row{display:grid;grid-template-columns:repeat(4,1fr);gap:20px 4px;overflow-x:visible;padding:18px 0 22px;}
+    /* Category icons wrap onto several rows of four here rather than
+       stretching across one, so all of them sit visible at once
+       instead of requiring a swipe, matching the stacked reference
+       layout. grid-auto-flow has to be reset to row explicitly: the
+       desktop rule above sets it to column, and left alone it would
+       override grid-template-columns and lay these out in a single
+       squeezed line again. */
+    .event-category-row{display:grid;grid-auto-flow:row;grid-template-columns:repeat(4,1fr);gap:20px 4px;overflow-x:visible;padding:18px 0 22px;}
     .event-category-btn{min-width:0;}
-    .event-category-icon{width:64px;height:64px;}
+    /* Back to a fixed size on phones: a quarter of a narrow screen is
+       small enough that letting the circle fill its column makes the
+       icon inside it hard to make out. */
+    .event-category-icon{width:64px;height:64px;aspect-ratio:auto;}
     .event-category-icon svg{width:26px;height:26px;}
   }
 
@@ -3733,12 +3760,13 @@
            merged. The open book won because it's the one that reads as
            "studying" rather than "a book", and because the row already
            has a closed-rectangle glyph in Holidays' old slot's
-           neighbours. Short label in the row, full name everywhere a
-           full name fits -- same split Support Groups and Sports &
-           Recreation already use. -->
+           neighbours. Unlike Support Groups and Sports & Recreation,
+           this one shows its FULL name in the row rather than a short
+           form -- requested directly, and the wider columns leave room
+           for it to wrap onto a second line without crowding. -->
       <button class="event-category-btn" data-category-tag="Classes & Studies">
         <div class="event-category-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
-        <span data-i18n="category.classesShort">Classes</span>
+        <span data-i18n="category.classesStudies">Classes &amp; Studies</span>
       </button>
       <button class="event-category-btn" data-category-tag="Support Groups">
         <div class="event-category-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.6z"/></svg></div>
@@ -6592,7 +6620,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v74 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v75 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
