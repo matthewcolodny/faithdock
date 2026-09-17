@@ -699,6 +699,7 @@
       'dashMsg.description': 'Send a real email announcement to your congregation — check any combination of audiences below, everyone receives their own individual email.',
       'dashMsg.sendTo': 'Send to', 'dashMsg.allMembers': 'All congregation members', 'dashMsg.allStaff': 'All staff',
       'dashMsg.loadingGroups': 'Loading groups...', 'dashMsg.loadingEvents': 'Loading events...',
+      'dashMsg.noGroupsYet': 'No groups yet.', 'dashMsg.noEventsYet': 'No events yet.',
       'dashMsg.subjectPlaceholder': 'e.g. Sunday service update', 'dashMsg.message': 'Message', 'dashMsg.writeAnnouncement': 'Write your announcement...',
       'dashMsg.scheduleForLater': 'Schedule for later instead of sending now', 'dashMsg.sendAnnouncement': 'Send announcement',
       'dashMsg.scheduledAnnouncements': 'Scheduled announcements',
@@ -1555,6 +1556,7 @@
       'dashMsg.description': 'Envía un anuncio real por correo electrónico a tu congregación — marca cualquier combinación de audiencias a continuación, cada persona recibe su propio correo individual.',
       'dashMsg.sendTo': 'Enviar a', 'dashMsg.allMembers': 'Todos los miembros de la congregación', 'dashMsg.allStaff': 'Todo el personal',
       'dashMsg.loadingGroups': 'Cargando grupos...', 'dashMsg.loadingEvents': 'Cargando eventos...',
+      'dashMsg.noGroupsYet': 'Aún no hay grupos.', 'dashMsg.noEventsYet': 'Aún no hay eventos.',
       'dashMsg.subjectPlaceholder': 'p. ej. Actualización del servicio dominical', 'dashMsg.message': 'Mensaje', 'dashMsg.writeAnnouncement': 'Escribe tu anuncio...',
       'dashMsg.scheduleForLater': 'Programar para más tarde en lugar de enviar ahora', 'dashMsg.sendAnnouncement': 'Enviar anuncio',
       'dashMsg.scheduledAnnouncements': 'Anuncios programados',
@@ -6919,7 +6921,7 @@ Groups</span>
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v104 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v105 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -20721,7 +20723,7 @@ Groups</span>
     var { data: groupsData } = await supabase.from('groups').select('id, name').eq('church_id', myChurch.id).order('name');
     msgGroupChecksEl.innerHTML = (groupsData && groupsData.length)
       ? groupsData.map(function(g){ return '<label class="filter-check" style="margin-top:4px;"><input type="checkbox" class="msg-group-check" value="' + escapeHtml(g.id) + '"> ' + escapeHtml(g.name) + '</label>'; }).join('')
-      : '<p style="color:var(--ink-mute);font-size:12.5px;">No groups yet.</p>';
+      : '<p style="color:var(--ink-mute);font-size:12.5px;">' + window.t('dashMsg.noGroupsYet') + '</p>';
 
     var { data: eventsData } = await supabase.from('events').select('id, title, start_at').eq('church_id', myChurch.id).order('start_at', { ascending: false });
     msgEventChecksEl.innerHTML = (eventsData && eventsData.length)
@@ -20729,7 +20731,7 @@ Groups</span>
           var dateLabel = new Date(e.start_at).toLocaleDateString(window.appLocale(), { month: 'short', day: 'numeric' });
           return '<label class="filter-check" style="margin-top:4px;"><input type="checkbox" class="msg-event-check" value="' + escapeHtml(e.id) + '"> ' + escapeHtml(e.title) + ' (' + escapeHtml(dateLabel) + ')</label>';
         }).join('')
-      : '<p style="color:var(--ink-mute);font-size:12.5px;">No events yet.</p>';
+      : '<p style="color:var(--ink-mute);font-size:12.5px;">' + window.t('dashMsg.noEventsYet') + '</p>';
 
     // Both lists were just replaced wholesale. Their dropdown labels
     // count checkboxes, and replacing innerHTML fires no change event,
