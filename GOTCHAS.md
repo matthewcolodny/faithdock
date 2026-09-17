@@ -3614,3 +3614,24 @@ Function bodies were taken verbatim from tracked migration 035 and modified, not
 Verified: both checkboxes exist, labels render translated in English and Spanish, the modal populate reads the new `data-check-in` attribute, and the app loads clean.
 
 Build `2026-09-17-v90`; **migration 045 must be run by hand**, and before deploying -- `update_staff_abilities` gains a parameter, so saving permissions will fail with PGRST202 until it is applied.
+
+---
+
+## Staff permission presets
+
+At nine abilities the permissions modal was a wall of checkboxes, and adding `can_check_in` took nine coordinated edits. Presets make the common shapes one click, ahead of Phase 2 adding rooms and ministries and taking the wall to eleven.
+
+**The presets are not stored.** There is no role column and nothing new in the database. Picking one ticks boxes; the selector itself is *derived* from the boxes whenever any of them changes, so it can never disagree with what is about to be saved. A stored role would be a second source of truth that drifts the moment somebody toggles one box, leaving two answers to "what can this person do" -- the same class of bug as a church name cached in two places, which this project has already chased more than once.
+
+**Two flags are deliberately excluded**, and the reasons differ:
+
+- `is_manager` is an *escalation* -- owner-only and tier-gated -- that deserves a deliberate separate decision. Including it would also make every preset fail to match for a Manager, who can never see or set it, so their modal would permanently read "Custom".
+- `receives_contact_messages` is *routing*, not an access level. Quietly switching on somebody's inbox as a side effect of picking a job title would be wrong.
+
+**The groupings are reasoned, not arbitrary.** Groups & Discipleship includes members because you cannot run groups without managing who is in them. Events Coordinator deliberately does **not** set check-in, because managing events already grants it implicitly server-side (`set_registration_checked_in`), and ticking a redundant box would imply it could be turned off independently -- it cannot.
+
+**"Custom" is an outcome, not a choice.** There is no set of boxes it means, so selecting it leaves everything alone and the selector snaps back to whatever the flags actually match -- rather than clearing the person's permissions, which is what a naive lookup-and-apply would have done.
+
+Verified: each preset ticks exactly its own flags; unticking one box from Administrator flips the label to Custom and re-ticking snaps it back; selecting Custom changes no flags and re-derives the label; `is_manager` and `receives_contact_messages` survive every preset untouched in both directions; and all seven names translate.
+
+Build `2026-09-17-v91`. No migration -- this is entirely a UI layer over the abilities that already exist.
