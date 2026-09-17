@@ -6416,7 +6416,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-16-v56 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-16-v57 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -6950,7 +6950,17 @@
   async function loadChurchEvents(c, grid, noEvents){
     var churchEvents;
     if (c.real && c.id) {
-      var { data } = await window.supabase.rpc('search_events', { p_church_ids: [c.id], p_limit: 50, p_offset: 0 });
+      // The error is read, not discarded, deliberately: this call
+      // silently returned nothing for a long time (a duplicate
+      // search_events overload made it ambiguous -- see migration 034)
+      // and, because `error` was thrown away here, the failure rendered
+      // as a perfectly plausible "No events posted yet." empty state
+      // instead of anything anyone could notice. Same silent-failure
+      // class as the unregister bug in migration 033. An empty result
+      // and a failed call are NOT the same thing and shouldn't look
+      // identical.
+      var { data, error: churchEventsError } = await window.supabase.rpc('search_events', { p_church_ids: [c.id], p_limit: 50, p_offset: 0 });
+      if (churchEventsError) console.error('loadChurchEvents search_events:', churchEventsError);
       churchEvents = (data || []).map(mapSearchEventRow);
       // Same staleness fix as renderEvents/renderHomeEvents -- without
       // this, a church profile's own Events tab fetched fresh data but
@@ -9695,9 +9705,14 @@
   async function renderHomeEvents(){
     var homeGrid = document.getElementById('home-event-grid');
     if (!homeGrid) return;
-    var { data } = await window.supabase.rpc('search_events', {
+    // Same reasoning as loadChurchEvents() above -- this exact call was
+    // silently failing (PGRST203, duplicate search_events overload; see
+    // migration 034) and showing the "No upcoming events near you yet"
+    // empty state instead, which looks like a legitimate answer.
+    var { data, error: homeEventsError } = await window.supabase.rpc('search_events', {
       p_from_date: new Date().toISOString(), p_user_lat: window.dirUserLat, p_user_lng: window.dirUserLng, p_limit: 3, p_offset: 0
     });
+    if (homeEventsError) console.error('renderHomeEvents search_events:', homeEventsError);
     if (data && data.length) {
       var rows = data.map(mapSearchEventRow);
       rows.forEach(mergeEventIntoCache);

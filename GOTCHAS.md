@@ -2772,3 +2772,33 @@ Fixed in `033_event_registrations_self_service_rls.sql`: adds a DELETE policy an
 **Worth noting plainly**: this almost certainly never worked -- not a regression, a feature that was wired up client-side but never had the database permission to actually do anything. Every client-side fix earlier in this thread (badge timing, the optimistic update, the bfcache handler, the RPC count investigation) was chasing symptoms of a write that silently did nothing. The thing that finally cracked it was adding the row-count check that made the failure *visible*, which should have been the first move rather than the fifth -- this exact silent-write hole had already been found and fixed on another feature (the Give/Message toggles) earlier in the same session.
 
 Build `2026-09-16-v56` (client-side); migration 033 is the actual fix and has to be run by hand.
+
+**Verified after 033 was run**: the RPC's `participant_count` for the test event went from `1` to `0` -- the delete actually landed for the first time -- and the Full badge correctly renders hidden. Confirmed on production, not just locally.
+
+**Correction to the previous entry**: the "RPC disagrees with a raw filtered count" finding in it was NOT a bug, and that entry's conclusion was wrong. `get_event_registration_counts` is SECURITY DEFINER precisely so it can report real totals; a raw `event_registrations` count run as anon returns 0 because RLS correctly hides other people's registration rows. The two "disagreeing" numbers were RLS working exactly as designed, compared against each other incorrectly. Nothing is wrong with that RPC and its source does not need to be dug up.
+
+---
+
+## Two search_events overloads existed at once, silently breaking the homepage events preview and every church's Events tab
+
+Found while verifying 033, not reported -- both had been failing silently, probably for a long time.
+
+`renderHomeEvents()` (homepage "Upcoming events near you") and `loadChurchEvents()` (a church profile's Events tab) were returning nothing at all and rendering their empty states ("No upcoming events near you yet" / "No events posted yet") no matter how many real, public, upcoming events existed.
+
+Cause: two `search_events` functions live in the database simultaneously. Migration 022 added `p_keyword` using a plain `CREATE OR REPLACE`, reasoning in its own comment that *"appending, not inserting, keeps this a backward-compatible CREATE OR REPLACE for any other caller still on the old signature."* That is wrong in one specific way: `CREATE OR REPLACE` only replaces a function with the **same parameter list**. Adding a parameter -- even with a default, even appended last -- creates a **separate function**. Migration 019's 11-arg version stayed live next to 022's 12-arg one.
+
+PostgREST picks an overload from the set of named arguments sent, so this broke callers *selectively*, which is exactly why nobody caught it:
+
+| Call site | Args sent | Result |
+|---|---|---|
+| `renderEvents()` (main Events page) | all 12, incl. `p_keyword` | matches only the 12-arg version — **works** |
+| `renderHomeEvents()` | 5 | both versions satisfy it — **PGRST203, broken** |
+| `loadChurchEvents()` | 3 | same ambiguity — **PGRST203, broken** |
+
+Because the main Events page was fine, Events always "looked fine." Verified live against production by replicating each call site's exact argument set. Also checked `search_churches` the same way -- **not** affected, since migrations 023/031 correctly used drop-then-create for its signature changes. This is the identical hazard those migrations already documented; 022 is the one place it was missed.
+
+Fixed in `034_drop_stale_search_events_overload.sql` (drops the old 11-arg version, leaving one unambiguous candidate).
+
+**Second, equally important half**: both broken call sites destructured only `{ data }` and threw `error` away entirely, so a hard RPC failure rendered as a completely plausible empty state. That is the same silent-failure class as the unregister bug immediately above, and it is why this hid indefinitely. Both now read the error and log it. An empty result and a failed call are not the same thing and must not look identical -- this is the third distinct bug in this session traceable to a swallowed error, after the Give/Message toggle grants and the unregister RLS gap.
+
+Build `2026-09-16-v57`; migration 034 must be run by hand.
