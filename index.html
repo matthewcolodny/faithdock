@@ -372,6 +372,9 @@
       'myEvents.signInPrompt': 'Sign in to see your events.',
       'myEvents.volunteer': 'Volunteer', 'myEvents.participant': 'Participant',
       'myEvents.following': 'Following', 'myEvents.unfollow': 'Unfollow',
+      'events.registeredClickToUnregister': '✓ Registered — click to unregister',
+      'events.registeredAsVolunteer': 'Registered as a volunteer',
+      'events.registeredAsParticipant': 'Registered as a participant',
       'myGroups.signInPrompt': 'Sign in to see your groups.',
       'myGroups.noneYet': "You haven't joined any groups yet.",
       'myGroups.pendingApproval': 'Pending approval', 'myGroups.leader': 'Leader',
@@ -475,7 +478,7 @@
       'category.community': 'Community', 'category.worship': 'Worship', 'category.classes': 'Classes',
       'category.supportGroups': 'Support Groups', 'category.supportShort': 'Support',
       'category.sportsRecreation': 'Sports & Recreation', 'category.sportsShort': 'Sports',
-      'category.studies': 'Studies',
+      'category.studies': 'Studies', 'category.trips': 'Trips',
       'badge.openToAnyone': 'Open to anyone', 'badge.membersOnly': 'Members only', 'badge.noSignupNeeded': 'No signup needed',
       'badge.publicEvent': 'Public event', 'badge.registrationRequired': 'Registration required',
       'ce.visibilityMembersListed': 'Members only — anyone can see it, only members can register',
@@ -1192,6 +1195,9 @@
       'myEvents.signInPrompt': 'Inicia sesi\u00f3n para ver tus eventos.',
       'myEvents.volunteer': 'Voluntario', 'myEvents.participant': 'Participante',
       'myEvents.following': 'Siguiendo', 'myEvents.unfollow': 'Dejar de seguir',
+      'events.registeredClickToUnregister': '✓ Inscrito — haz clic para cancelar',
+      'events.registeredAsVolunteer': 'Inscrito como voluntario',
+      'events.registeredAsParticipant': 'Inscrito como participante',
       'myGroups.signInPrompt': 'Inicia sesi\u00f3n para ver tus grupos.',
       'myGroups.noneYet': 'A\u00fan no te has unido a ning\u00fan grupo.',
       'myGroups.pendingApproval': 'Aprobaci\u00f3n pendiente', 'myGroups.leader': 'L\u00edder',
@@ -1295,7 +1301,7 @@
       'category.community': 'Comunidad', 'category.worship': 'Adoración', 'category.classes': 'Clases',
       'category.supportGroups': 'Grupos de apoyo', 'category.supportShort': 'Apoyo',
       'category.sportsRecreation': 'Deportes y recreación', 'category.sportsShort': 'Deportes',
-      'category.studies': 'Estudios',
+      'category.studies': 'Estudios', 'category.trips': 'Viajes',
       'badge.openToAnyone': 'Abierto a todos', 'badge.membersOnly': 'Solo miembros', 'badge.noSignupNeeded': 'No requiere inscripción',
       'badge.publicEvent': 'Evento público', 'badge.registrationRequired': 'Requiere inscripción',
       'ce.visibilityMembersListed': 'Solo miembros — cualquiera puede verlo, solo los miembros pueden inscribirse',
@@ -3740,6 +3746,17 @@
         <div class="event-category-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
         <span data-i18n="category.studies">Studies</span>
       </button>
+      <!-- A suitcase rather than a plane or a bus: "Trips" here covers
+           mission trips, retreats and youth trips alike, and a plane
+           would quietly imply the international ones while a bus would
+           imply the local ones. Luggage is also the established glyph
+           for a section literally called Trips elsewhere on the web,
+           so it needs no learning. Handle plus the horizontal band is
+           what keeps it reading as luggage rather than a briefcase. -->
+      <button class="event-category-btn" data-category-tag="Trips">
+        <div class="event-category-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M2 13h20"/></svg></div>
+        <span data-i18n="category.trips">Trips</span>
+      </button>
     </div>
 
     <div class="event-tab-row">
@@ -5367,6 +5384,7 @@
         <label class="filter-check"><input type="checkbox" class="ce-category" value="Support Groups"> <span data-i18n="category.supportGroups">Support Groups</span></label>
         <label class="filter-check"><input type="checkbox" class="ce-category" value="Sports & Recreation"> <span data-i18n="category.sportsRecreation">Sports & Recreation</span></label>
         <label class="filter-check"><input type="checkbox" class="ce-category" value="Studies"> <span data-i18n="category.studies">Studies</span></label>
+        <label class="filter-check"><input type="checkbox" class="ce-category" value="Trips"> <span data-i18n="category.trips">Trips</span></label>
       </div>
 
       <label style="margin-top:14px;" data-i18n="ce.tags">Tags</label>
@@ -6574,7 +6592,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v72 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v73 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -7390,7 +7408,7 @@
     'Volunteer': 'category.volunteer', 'Celebrations': 'category.celebrations', 'Holidays': 'category.holidays',
     'Community': 'category.community', 'Worship': 'category.worship', 'Classes': 'category.classes',
     'Support Groups': 'category.supportGroups', 'Sports & Recreation': 'category.sportsRecreation',
-    'Studies': 'category.studies'
+    'Studies': 'category.studies', 'Trips': 'category.trips'
   };
   function translateCategoryTag(tag){
     return categoryI18nKeyMap[tag] ? window.t(categoryI18nKeyMap[tag]) : tag;
@@ -7755,11 +7773,19 @@
       // people actually read.
       if (!samePageEventAlreadyRegistered) {
         registerBtn.textContent = e.priceCents ? window.t('events.register') + ' — $' + (e.priceCents / 100).toFixed(2) : window.t('events.register');
+        // This button is static markup carrying data-i18n, so its key
+        // has to follow whatever was just written into it -- otherwise
+        // a language switch re-applies the ORIGINAL key ("Register for
+        // this event") over a real event's shorter label, or over a
+        // price. Same reasoning as setEventRegisteredUI().
+        if (e.priceCents) registerBtn.removeAttribute('data-i18n');
+        else registerBtn.setAttribute('data-i18n', 'events.register');
       }
     } else {
       registerBtn.removeAttribute('data-event-id');
       registerBtn.style.display = 'inline-block';
       registerBtn.textContent = window.t('events.registerForEvent');
+      registerBtn.setAttribute('data-i18n', 'events.registerForEvent');
     }
 
     // suggested_donation_cents isn't part of the search_events RPC's
@@ -8004,6 +8030,12 @@
         var cardRegRoles = window.myRegisteredEventRoles || {};
         var cardIsRegistered = Object.prototype.hasOwnProperty.call(cardRegRoles, e.id);
         var cardRole = cardRegRoles[e.id];
+        var cardRoleKey = cardRole === 'volunteer' ? 'events.registeredAsVolunteer' : 'events.registeredAsParticipant';
+        // Whichever key this element's CURRENT text came from, so a
+        // language switch re-applies the right string rather than
+        // resetting a registered button back to "Register" -- see
+        // setEventRegisteredUI()'s comment on the same thing.
+        var cardBtnKey = cardIsRegistered ? 'events.registeredClickToUnregister' : (e.priceCents ? '' : 'events.register');
         var cardRoleHtml = '';
         if(e.allowVolunteers){
           // Hidden while registered for the same reason the detail page
@@ -8013,17 +8045,17 @@
             + '<label><input type="radio" name="card-role-' + e.id + '" value="participant" checked> ' + window.t('events.participant') + '</label>'
             + '<label><input type="radio" name="card-role-' + e.id + '" value="volunteer"> ' + window.t('events.volunteerRole') + '</label>'
             + '</div>'
-            + '<div class="role-registered-label" style="' + (cardIsRegistered ? '' : 'display:none;') + 'margin-top:10px;font-size:12px;color:var(--sage);font-weight:500;">'
-            + (cardIsRegistered ? (cardRole === 'volunteer' ? 'Registered as a volunteer' : 'Registered as a participant') : '')
+            + '<div class="role-registered-label"' + (cardIsRegistered ? ' data-i18n="' + cardRoleKey + '"' : '') + ' style="' + (cardIsRegistered ? '' : 'display:none;') + 'margin-top:10px;font-size:12px;color:var(--sage);font-weight:500;">'
+            + (cardIsRegistered ? window.t(cardRoleKey) : '')
             + '</div>';
         }
         // Text and classes deliberately mirror setEventRegisteredUI()
-        // exactly, including its hardcoded English -- if these two ever
-        // disagree, the async refresh would itself become a visible
-        // flicker, which is the bug this is fixing.
+        // exactly, down to going through the same window.t() keys -- if
+        // these two ever disagree, the async refresh would itself become
+        // a visible flicker, which is the bug this is fixing.
         inner += cardRoleHtml
-          + '<button class="export-btn register-real-btn' + (cardIsRegistered ? ' btn-registered' : '') + '" data-event-id="' + e.id + '" data-registered="' + (cardIsRegistered ? 'true' : 'false') + '" style="width:100%;justify-content:center;margin-top:12px;">'
-          + (cardIsRegistered ? '✓ Registered — click to unregister' : (e.priceCents ? window.t('events.register') + ' — $' + (e.priceCents / 100).toFixed(2) : window.t('events.register')))
+          + '<button class="export-btn register-real-btn' + (cardIsRegistered ? ' btn-registered' : '') + '" data-event-id="' + e.id + '" data-registered="' + (cardIsRegistered ? 'true' : 'false') + '"' + (cardBtnKey ? ' data-i18n="' + cardBtnKey + '"' : '') + ' style="width:100%;justify-content:center;margin-top:12px;">'
+          + (cardIsRegistered ? window.t('events.registeredClickToUnregister') : (e.priceCents ? window.t('events.register') + ' — $' + (e.priceCents / 100).toFixed(2) : window.t('events.register')))
           + '</button>'
           + '<div class="register-status mono" style="font-size:11px;color:var(--ink-mute);margin-top:6px;display:none;"></div>';
       }
@@ -9489,16 +9521,18 @@
   function rebuildCategoryFilterChecklist(){
     var container = document.getElementById('filter-tags-checks');
     if (!container) return;
-    // Fixed set of eight — the same categories shown as icons on the
-    // events page — not derived from whatever's actually in use,
-    // since these are meant to be a stable, official set rather than
-    // however organizers have happened to word their own tags.
-    var categories = ['Volunteer', 'Celebrations', 'Holidays', 'Community', 'Worship', 'Classes', 'Support Groups', 'Sports & Recreation', 'Studies'].sort();
+    // A fixed set — the same categories shown as icons on the events
+    // page — not derived from whatever's actually in use, since these
+    // are meant to be a stable, official set rather than however
+    // organizers have happened to word their own tags. (This comment
+    // used to say "set of eight" while the list held nine; a count in
+    // a comment is wrong the first time anyone adds one, so it's gone.)
+    var categories = ['Volunteer', 'Celebrations', 'Holidays', 'Community', 'Worship', 'Classes', 'Support Groups', 'Sports & Recreation', 'Studies', 'Trips'].sort();
     var categoryI18nKey = {
       'Volunteer': 'category.volunteer', 'Celebrations': 'category.celebrations', 'Holidays': 'category.holidays',
       'Community': 'category.community', 'Worship': 'category.worship', 'Classes': 'category.classes',
       'Support Groups': 'category.supportGroups', 'Sports & Recreation': 'category.sportsRecreation',
-      'Studies': 'category.studies'
+      'Studies': 'category.studies', 'Trips': 'category.trips'
     };
     container.innerHTML = categories.map(function(t){
       var displayLabel = categoryI18nKey[t] ? window.t(categoryI18nKey[t]) : t;
@@ -24886,18 +24920,43 @@
     var vRadio = container.querySelector('input[type="radio"][value="volunteer"]');
 
     if (isRegistered) {
-      btn.textContent = '✓ Registered — click to unregister';
+      // These four strings were hardcoded English while the rest of the
+      // site translates, so they stayed English under ES. Kept in sync
+      // with eventCard()'s render-time copy of this same markup -- see
+      // its comment: if the two ever disagree, the async refresh that
+      // runs after every render becomes its own visible flicker, which
+      // is the bug that render-time copy exists to fix.
+      btn.textContent = window.t('events.registeredClickToUnregister');
+      // The key moves with the state, which is the whole trick here.
+      // applyTranslations() rewrites textContent for EVERY [data-i18n]
+      // element on a language switch, so a button left carrying its
+      // original "Register" key would silently revert to Register while
+      // the person is still registered -- translating these strings
+      // without this would have shipped a new bug, not a fix.
+      btn.setAttribute('data-i18n', 'events.registeredClickToUnregister');
       btn.classList.add('btn-registered');
       btn.setAttribute('data-registered', 'true');
       if (choiceEl) choiceEl.style.display = 'none';
       if (labelEl) {
-        labelEl.textContent = role === 'volunteer' ? 'Registered as a volunteer' : 'Registered as a participant';
+        var roleKey = role === 'volunteer' ? 'events.registeredAsVolunteer' : 'events.registeredAsParticipant';
+        labelEl.textContent = window.t(roleKey);
+        labelEl.setAttribute('data-i18n', roleKey);
         labelEl.style.display = 'block';
       }
     } else {
       var eventIdForPrice = btn.getAttribute('data-event-id');
       var matchedForPrice = eventIdForPrice ? (events.filter(function(x){ return String(x.id) === eventIdForPrice; })[0]) : null;
-      btn.textContent = (matchedForPrice && matchedForPrice.priceCents) ? 'Register — $' + (matchedForPrice.priceCents / 100).toFixed(2) : 'Register';
+      if (matchedForPrice && matchedForPrice.priceCents) {
+        btn.textContent = window.t('events.register') + ' — $' + (matchedForPrice.priceCents / 100).toFixed(2);
+        // No single key can describe "Register — $12.00", and leaving a
+        // plain 'events.register' key here would have applyTranslations
+        // drop the price on the next language switch. Better a label
+        // that lags a switch than one that loses what it costs.
+        btn.removeAttribute('data-i18n');
+      } else {
+        btn.textContent = window.t('events.register');
+        btn.setAttribute('data-i18n', 'events.register');
+      }
       btn.classList.remove('btn-registered');
       btn.setAttribute('data-registered', 'false');
       if (labelEl) labelEl.style.display = 'none';

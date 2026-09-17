@@ -3094,3 +3094,23 @@ The card markup deliberately duplicates `setEventRegisteredUI()`'s output down t
 **Noted, not fixed**: `setEventRegisteredUI()` hardcodes "✓ Registered — click to unregister", "Registered as a volunteer" and "Registered as a participant" in English, with no `window.t()` keys, so they stay English under ES. Pre-existing, and out of scope for a rendering fix.
 
 Build `2026-09-17-v72`.
+
+---
+
+## A Trips category, and the translation bug hiding behind translating four strings
+
+**Trips.** Added as a full category rather than just an icon, since an icon with nothing behind it filters to nothing. A category lives in six places in this file and all six had to agree: the icon row on the Events page, the EN and ES dictionaries, the create-event checkbox grid, the sidebar filter checklist's `categories` array, and the two separate `categoryI18nKey` maps (one for rendering tags on cards, one for building that checklist). No migration: `category_tags` is a plain `text[]` with no constraint in any tracked migration, and the client already writes arbitrary strings into it.
+
+A suitcase, not a plane or a bus. "Trips" covers mission trips, retreats and youth trips alike -- a plane quietly implies the international ones, a bus the local ones, and luggage is the established glyph for a section literally called Trips elsewhere on the web, so it needs no learning.
+
+Also deleted a comment claiming a "fixed set of eight" above a list of nine. A count in a comment is wrong the first time anyone adds one.
+
+**The translation bug.** The four registered-button strings were hardcoded English. Translating them looked like a five-minute job and would have shipped a *new* bug, because `applyTranslations()` rewrites `textContent` for every `[data-i18n]` element on the page on a language switch -- and the register button is static markup carrying `data-i18n="events.registerForEvent"`. Switching language while registered would have reset a correct "✓ Inscrito" back to "Register for this event", state and all.
+
+The fix is that **the key moves with the state**: whenever anything writes this button's text, it also sets the `data-i18n` key that text came from, so a later language switch re-applies the right string instead of an obsolete one. Three writers had to learn this together -- `setEventRegisteredUI()`, `eventCard()`'s render-time copy (v72), and `populateEventPage()`.
+
+The priced case gets the opposite treatment: "Register — $12.00" is a composed string no single key can describe, so the key is *removed*. Better a label that lags a language switch than one that silently loses what the event costs.
+
+Verified in both languages: the painted card and the post-refresh card remain byte-identical (the v72 equality that keeps the async refresh from becoming its own flicker -- translating these strings is exactly the kind of change that could have broken it); a registered button survives an EN->ES->EN round trip still registered and correctly translated; and a priced button keeps its price across a switch.
+
+Build `2026-09-17-v73`. No migration.
