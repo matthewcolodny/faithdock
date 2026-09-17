@@ -4263,3 +4263,21 @@ The divider also needed its own dark value. `var(--line)` is close enough to the
 Verified in both themes at 375px: inputs fully transparent with no border and no radius, one bar background, a 1px divider, everything on one row, no page overflow.
 
 Build `2026-09-17-v113`. No migration.
+
+---
+
+## Feedback moves to the footer
+
+Asked for: feedback out of the profile tabs and onto a link beside Accessibility, and the "Delete account" tab renamed to "Account".
+
+The form moves into a modal keeping **every id it already had**, so the existing submit handler needed no change for the move itself. Worth stating because the tempting version is to rebuild the form in the modal and wire a new handler, which is how a second, subtly different copy of a working thing gets created.
+
+**What the move did break, and it is not obvious.** The handler read `userData.user.id` with no guard. That was safe while the form lived on a page you had to be signed in to open -- the page's own routing was the check. In the footer it is on every page including the signed-out homepage, so the first anonymous visitor to try it would have hit a TypeError on a null user and seen nothing happen at all.
+
+So the modal resolves signed-in state **on open, not once at load** (the footer is on every page and who is signed in changes under it), and shows a short "sign in to send feedback" line with a link instead of the form. The handler keeps its own guard as well, because the two protect different things: the UI decides what to show, the guard decides what happens if the form is reached anyway.
+
+Feedback rows carry a `user_id`, so there is genuinely nothing to attach an anonymous note to. Saying so up front beats letting somebody type a paragraph and then fail.
+
+Verified in both states: signed out, the footer link opens the modal with the note and no form, and forcing the form open and submitting produces the sign-in message with the button re-enabled rather than a stuck disabled button; signed in, the form shows and submits `{user_id, message}`. On the profile page the feedback card is gone, four panels remain with one card each, and the last tab reads "Account".
+
+Build `2026-09-17-v114`. No migration.

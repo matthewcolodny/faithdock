@@ -733,7 +733,8 @@
       'dashCheckin.emailOptional': 'Email (optional)',
       'dashCheckin.badEmail': 'That email address does not look right.',
       'profile.tabProfile': 'Profile', 'profile.tabEmail': 'Email',
-      'profile.tabPassword': 'Password', 'profile.tabDelete': 'Delete account',
+      'profile.tabPassword': 'Password', 'profile.tabAccount': 'Account',
+      'profile.feedbackSignIn': 'Sign in to send feedback, so we can follow up with you.',
       'dashMsg.subjectPlaceholder': 'e.g. Sunday service update', 'dashMsg.message': 'Message', 'dashMsg.writeAnnouncement': 'Write your announcement...',
       'dashMsg.scheduleForLater': 'Schedule for later instead of sending now', 'dashMsg.sendAnnouncement': 'Send announcement',
       'dashMsg.scheduledAnnouncements': 'Scheduled announcements',
@@ -1624,7 +1625,8 @@
       'dashCheckin.emailOptional': 'Correo (opcional)',
       'dashCheckin.badEmail': 'Ese correo electrónico no parece correcto.',
       'profile.tabProfile': 'Perfil', 'profile.tabEmail': 'Correo',
-      'profile.tabPassword': 'Contraseña', 'profile.tabDelete': 'Eliminar cuenta',
+      'profile.tabPassword': 'Contraseña', 'profile.tabAccount': 'Cuenta',
+      'profile.feedbackSignIn': 'Inicia sesión para enviar comentarios, así podemos responderte.',
       'dashMsg.subjectPlaceholder': 'p. ej. Actualización del servicio dominical', 'dashMsg.message': 'Mensaje', 'dashMsg.writeAnnouncement': 'Escribe tu anuncio...',
       'dashMsg.scheduleForLater': 'Programar para más tarde en lugar de enviar ahora', 'dashMsg.sendAnnouncement': 'Enviar anuncio',
       'dashMsg.scheduledAnnouncements': 'Anuncios programados',
@@ -4944,7 +4946,7 @@ Groups</span>
       <button class="event-tab-btn active" data-profile-tab="profile" data-i18n="profile.tabProfile">Profile</button>
       <button class="event-tab-btn" data-profile-tab="email" data-i18n="profile.tabEmail">Email</button>
       <button class="event-tab-btn" data-profile-tab="password" data-i18n="profile.tabPassword">Password</button>
-      <button class="event-tab-btn" data-profile-tab="delete" data-i18n="profile.tabDelete">Delete account</button>
+      <button class="event-tab-btn" data-profile-tab="delete" data-i18n="profile.tabAccount">Account</button>
     </div>
 
     <div class="prof-panel" id="prof-panel-profile">
@@ -5064,14 +5066,6 @@ Groups</span>
          and hiding the way out of an account behind a tab nobody
          thinks to open is a bad trade for tidiness. -->
     <button class="export-btn" id="profile-signout-btn" style="margin-top:20px;" data-i18n="profile.signOut">Sign out</button>
-
-    <div class="side-note" style="margin-top:20px;">
-      <h4 data-i18n="profile.sendFeedback">Send feedback</h4>
-      <p style="font-size:13px;color:var(--ink-mute);" data-i18n="profile.feedbackDesc">Found a bug, or have an idea for FaithDock? Let us know.</p>
-      <textarea class="field" id="profile-feedback-input" rows="4" placeholder="What's on your mind?" data-i18n-placeholder="profile.feedbackPlaceholder"></textarea>
-      <button class="export-btn" id="profile-feedback-submit-btn" style="margin-top:10px;" data-i18n="profile.sendFeedback">Send feedback</button>
-      <div id="profile-feedback-status" style="display:none;font-size:12px;margin-top:8px;"></div>
-    </div>
 
     <div class="prof-panel" id="prof-panel-delete" style="display:none;">
     <div class="side-note" style="margin-top:20px;border-color:var(--clay);">
@@ -6134,6 +6128,33 @@ Groups</span>
             <button class="export-btn" id="cal-today-btn" style="padding:6px 14px;font-size:12.5px;" data-i18n="dashEvents.today">Today</button>
           </div>
           <div class="cal-grid" id="cal-grid"></div>
+        </div>
+      </div>
+
+      <!-- Moved off the profile page and onto the footer, so it is
+           reachable from anywhere rather than only from a page you
+           have to be signed in to open. Keeps every id the original
+           card had, so the existing submit handler needs no change
+           beyond the signed-out guard it always should have had. -->
+      <div class="modal-overlay" id="feedback-modal">
+        <div class="modal-card" style="max-width:460px;">
+          <button class="modal-close" onclick="document.getElementById('feedback-modal').classList.remove('open')" aria-label="Close" data-i18n-title="common.close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
+          <h3 style="font-family:'Fraunces';font-size:18px;margin-bottom:6px;" data-i18n="profile.sendFeedback">Send feedback</h3>
+          <p style="font-size:13px;color:var(--ink-mute);margin-bottom:12px;" data-i18n="profile.feedbackDesc">Found a bug, or have an idea for FaithDock? Let us know.</p>
+          <!-- Feedback rows carry a user_id, so there is nothing to
+               attach an anonymous note to. Said plainly instead of
+               letting someone type a paragraph and then fail. -->
+          <div id="feedback-signin-note" style="display:none;font-size:13px;color:var(--ink-mute);">
+            <span data-i18n="profile.feedbackSignIn">Sign in to send feedback, so we can follow up with you.</span>
+            <a href="#signup/login" data-route="signup" style="border-bottom:1px solid var(--gold);margin-left:4px;" data-i18n="nav.logIn">Log in</a>
+          </div>
+          <div id="feedback-form-wrap">
+            <textarea class="field" id="profile-feedback-input" rows="4" placeholder="What's on your mind?" data-i18n-placeholder="profile.feedbackPlaceholder"></textarea>
+            <button class="export-btn" id="profile-feedback-submit-btn" style="margin-top:10px;" data-i18n="profile.sendFeedback">Send feedback</button>
+            <div id="profile-feedback-status" style="display:none;font-size:12px;margin-top:8px;"></div>
+          </div>
         </div>
       </div>
 
@@ -7226,7 +7247,7 @@ Groups</span>
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v113 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v114 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -26371,6 +26392,27 @@ Groups</span>
     });
   }
 
+  var footerFeedbackLink = document.getElementById('footer-feedback-link');
+  if (footerFeedbackLink) footerFeedbackLink.addEventListener('click', async function(ev){
+    ev.preventDefault();
+    // Resolved on OPEN rather than once at load: the footer is on
+    // every page, and whether someone is signed in changes under it.
+    var { data: fbUser } = await supabase.auth.getUser();
+    var signedIn = !!(fbUser && fbUser.user);
+    var note = document.getElementById('feedback-signin-note');
+    var wrap = document.getElementById('feedback-form-wrap');
+    if (note) note.style.display = signedIn ? 'none' : 'block';
+    if (wrap) wrap.style.display = signedIn ? 'block' : 'none';
+    document.getElementById('feedback-modal').classList.add('open');
+  });
+  // The sign-in link inside the modal navigates, so the modal has to
+  // get out of the way or it sits open over the page it sent them to.
+  document.addEventListener('click', function(ev){
+    if (ev.target.closest && ev.target.closest('#feedback-signin-note a')) {
+      document.getElementById('feedback-modal').classList.remove('open');
+    }
+  });
+
   var profileFeedbackSubmitBtn = document.getElementById('profile-feedback-submit-btn');
   if (profileFeedbackSubmitBtn) {
     profileFeedbackSubmitBtn.addEventListener('click', async function(){
@@ -26392,6 +26434,17 @@ Groups</span>
       // userData that only ever existed inside loadProfilePage's own,
       // already-closed function body.
       var { data: userData } = await supabase.auth.getUser();
+      // This used to read userData.user.id unguarded, which was safe
+      // only because the form lived on a page you had to be signed in
+      // to reach. It is in the footer now, on every page, so a
+      // signed-out submit would have thrown on a null user.
+      if (!userData || !userData.user) {
+        statusEl.textContent = window.t('profile.feedbackSignIn');
+        statusEl.style.color = 'var(--clay)';
+        statusEl.style.display = 'block';
+        profileFeedbackSubmitBtn.disabled = false;
+        return;
+      }
       var { error } = await supabase.from('platform_feedback').insert({ user_id: userData.user.id, message: message });
       profileFeedbackSubmitBtn.disabled = false;
 
