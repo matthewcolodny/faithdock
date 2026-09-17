@@ -3896,3 +3896,21 @@ Four details worth keeping:
 Verified with migration 048 deliberately unrun: the table returns PGRST205, the Messages composer still renders completely, and `scheduled_messages` is still readable -- so the drafts feature degrades to absent rather than taking the page with it.
 
 Build `2026-09-17-v103`; **migration 048 must be run by hand.**
+
+---
+
+## The Messages recipient lists were empty until you refreshed
+
+Reported right after drafts shipped: the group and event lists in the composer only appeared on a second page load.
+
+`populateMsgPickers()` was called as a bare top-level statement while the module was still evaluating -- before the session had been restored. `getMyChurch()` returned null, the function returned early, and **nothing ever called it again**. A refresh worked because the second load found a session already in place and won the race. It is the same shape as the auth-timing bugs elsewhere in this file, but with a worse failure mode: the early return is silent, so the page looks finished rather than broken.
+
+Fixed by registering it through `dashPanel()` like the other twenty-four loaders, so it runs when the dashboard actually opens rather than when the script parses.
+
+**That registry also closed a bug that had not been reported yet, and was worse than the visible one.** Switching churches used to reload the page, which re-ran this loader by accident. v102 replaced the reload with an in-place swap -- so these lists would have gone on showing the *previous* church's groups and events. Their ids are what a send actually resolves, so the failure would not have been a stale label, it would have been an announcement delivered to another church's group. Worth noting for its own sake: removing a page reload silently un-does every initialisation that was relying on it, and those call sites do not announce themselves.
+
+While in there, `g.name` and `e.title` were interpolated raw into `innerHTML` -- two stored-XSS sites of exactly the class audited earlier, missed because that pass swept card renderers and this is a picker. Both escaped. Verified by rendering a group named `Youth <img src=x onerror=...>` and an event title carrying an attribute breakout: both come back as text, zero elements created, neither payload fires.
+
+The load-timing fix was verified by counting runs rather than by looking at the page: zero while the dashboard is closed, one on opening it, two after `resetDashboardPanels()` + `runDashboardPanels()` -- and still two groups rather than four, so the re-run replaces rather than appends.
+
+Build `2026-09-17-v104`. No migration.

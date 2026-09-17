@@ -6919,7 +6919,7 @@ Groups</span>
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v103 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v104 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -20720,14 +20720,14 @@ Groups</span>
 
     var { data: groupsData } = await supabase.from('groups').select('id, name').eq('church_id', myChurch.id).order('name');
     msgGroupChecksEl.innerHTML = (groupsData && groupsData.length)
-      ? groupsData.map(function(g){ return '<label class="filter-check" style="margin-top:4px;"><input type="checkbox" class="msg-group-check" value="' + g.id + '"> ' + g.name + '</label>'; }).join('')
+      ? groupsData.map(function(g){ return '<label class="filter-check" style="margin-top:4px;"><input type="checkbox" class="msg-group-check" value="' + escapeHtml(g.id) + '"> ' + escapeHtml(g.name) + '</label>'; }).join('')
       : '<p style="color:var(--ink-mute);font-size:12.5px;">No groups yet.</p>';
 
     var { data: eventsData } = await supabase.from('events').select('id, title, start_at').eq('church_id', myChurch.id).order('start_at', { ascending: false });
     msgEventChecksEl.innerHTML = (eventsData && eventsData.length)
       ? eventsData.map(function(e){
           var dateLabel = new Date(e.start_at).toLocaleDateString(window.appLocale(), { month: 'short', day: 'numeric' });
-          return '<label class="filter-check" style="margin-top:4px;"><input type="checkbox" class="msg-event-check" value="' + e.id + '"> ' + e.title + ' (' + dateLabel + ')</label>';
+          return '<label class="filter-check" style="margin-top:4px;"><input type="checkbox" class="msg-event-check" value="' + escapeHtml(e.id) + '"> ' + escapeHtml(e.title) + ' (' + escapeHtml(dateLabel) + ')</label>';
         }).join('')
       : '<p style="color:var(--ink-mute);font-size:12.5px;">No events yet.</p>';
 
@@ -20738,7 +20738,24 @@ Groups</span>
     // register button painted before its answer came back.
     if (typeof window.refreshRecipientDropdowns === 'function') window.refreshRecipientDropdowns();
   }
-  if (msgGroupChecksEl) populateMsgPickers();
+  // Registered like every other panel rather than called once here.
+  //
+  // As a bare top-level call this ran while the module was still
+  // evaluating -- before the session had been restored -- so
+  // getMyChurch() returned null, the function returned early, and
+  // NOTHING ever called it again. The group and event lists stayed
+  // empty until a full page refresh, which is exactly what was
+  // reported: the second load found a session already in place and
+  // won the race.
+  //
+  // The registry also fixes a worse problem that arrived with
+  // in-place church switching (v102). Before that, switching churches
+  // reloaded the page, which re-ran this by accident. Now it does
+  // not -- so these lists would have kept showing the PREVIOUS
+  // church's groups and events, and their ids are what a send
+  // actually uses. Messaging the wrong church's group is not a
+  // cosmetic bug.
+  if (msgGroupChecksEl) dashPanel(populateMsgPickers);
 
   // Reads every checked box across all four audience sources and
   // returns a plain description of the selection — used both to
