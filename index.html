@@ -6416,7 +6416,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-16-v57 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-16-v58 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -7455,13 +7455,35 @@
 
     var registerBtn = document.getElementById('event-register-btn');
     var registerStatus = document.getElementById('event-register-status');
+    // Real, reported bug: refreshing an event page you're registered for
+    // flashed "Register" a couple of times before settling on
+    // "Registered". This function runs several times per page load (the
+    // classic script's own first showRouteFromHash call, then again once
+    // the module script is ready, then again when auth resolves), and it
+    // used to blow the registered state away every single time -- the
+    // async checkEventRegistrationStatus() would put it back a moment
+    // later, and the eye caught every round trip of that.
+    //
+    // The reset itself is still right when this is a DIFFERENT event
+    // than the button currently describes: the previous event's
+    // registered state is meaningless for a new one and must not leak
+    // across. It's only wrong when re-populating the SAME event, where
+    // the state already on screen is known-good and the pending status
+    // check will confirm (or correct) it regardless. Keyed on the
+    // button's own data-event-id, which is the only thing that already
+    // tracks which event it currently belongs to.
+    var samePageEventAlreadyRegistered = !!(e.real && e.id
+      && registerBtn.getAttribute('data-event-id') === String(e.id)
+      && registerBtn.getAttribute('data-registered') === 'true');
     registerStatus.style.display = 'none';
     registerStatus.textContent = '';
     registerBtn.disabled = false;
-    registerBtn.setAttribute('data-registered', 'false');
-    registerBtn.classList.remove('btn-registered');
+    if (!samePageEventAlreadyRegistered) {
+      registerBtn.setAttribute('data-registered', 'false');
+      registerBtn.classList.remove('btn-registered');
+    }
     var roleLabel = document.getElementById('event-role-registered-label');
-    if (roleLabel) roleLabel.style.display = 'none';
+    if (roleLabel && !samePageEventAlreadyRegistered) roleLabel.style.display = 'none';
 
     // A "no signup needed" event has no registration UI at all — not the
     // role radios, not the Register button — just a short note in their
@@ -7473,7 +7495,11 @@
 
     var roleChoice = document.getElementById('event-role-choice');
     if (e.real && e.allowVolunteers && !regNotRequired) {
-      roleChoice.style.display = 'block';
+      // Hidden, not shown, while already registered -- picking a role is
+      // meaningless until you unregister, and setEventRegisteredUI()
+      // hides these for exactly that reason. Re-showing them on every
+      // re-populate was part of the same flashing this guard fixes.
+      roleChoice.style.display = samePageEventAlreadyRegistered ? 'none' : 'block';
       document.getElementById('event-role-participant').checked = true;
       document.getElementById('event-participant-count').textContent = '';
       document.getElementById('event-volunteer-count').textContent = '';
@@ -7486,7 +7512,13 @@
     if (e.real) {
       registerBtn.setAttribute('data-event-id', e.id);
       registerBtn.style.display = regNotRequired ? 'none' : 'inline-block';
-      registerBtn.textContent = e.priceCents ? window.t('events.register') + ' — $' + (e.priceCents / 100).toFixed(2) : window.t('events.register');
+      // Same guard as above: overwriting the label with "Register" while
+      // it correctly reads "✓ Registered — click to unregister" is the
+      // single most visible half of the flashing, since it's the text
+      // people actually read.
+      if (!samePageEventAlreadyRegistered) {
+        registerBtn.textContent = e.priceCents ? window.t('events.register') + ' — $' + (e.priceCents / 100).toFixed(2) : window.t('events.register');
+      }
     } else {
       registerBtn.removeAttribute('data-event-id');
       registerBtn.style.display = 'inline-block';
@@ -15627,6 +15659,16 @@
       var eventId = btn.getAttribute('data-event-id');
       if (Object.prototype.hasOwnProperty.call(myRegs, eventId)) {
         setEventRegisteredUI(btn, true, myRegs[eventId]);
+      } else {
+        // The else branch was missing entirely, which made this
+        // one-directional: it could turn a button INTO the registered
+        // state but never back out of one, so a card still showing
+        // "Registered" for a registration that no longer exists stayed
+        // that way every time this ran. `data` above is the full,
+        // authoritative list of this user's confirmed registrations, so
+        // an event id absent from it genuinely means "not registered"
+        // -- there's no ambiguity to be careful about here.
+        setEventRegisteredUI(btn, false, null);
       }
     });
   }
@@ -24026,6 +24068,28 @@
   }
   window.setEventRegisteredUI = setEventRegisteredUI;
 
+  // Real, reported bug: register (or unregister) on an event's detail
+  // page, press Back, and the card for that same event on the listing
+  // you came from still showed the OLD state until a full refresh.
+  // setEventRegisteredUI() only ever updates the ONE button handed to
+  // it, but the same event is routinely on screen in more than one
+  // place at once -- this is an SPA, so the listing page it was reached
+  // from is hidden, not destroyed, and its card (with its own
+  // .register-real-btn for the same event id) is still sitting in the
+  // DOM the whole time.
+  //
+  // Exactly the same shape as the follow-heart bug fixed earlier, and
+  // fixed the same way: one shared function that updates EVERY element
+  // showing this piece of state, so no caller has to remember which
+  // other copies exist. See applyFollowState() -- same reasoning, same
+  // structure, deliberately.
+  function applyEventRegisteredState(eventId, isRegistered, role){
+    document.querySelectorAll('.register-real-btn[data-event-id="' + eventId + '"]').forEach(function(btn){
+      setEventRegisteredUI(btn, isRegistered, role);
+    });
+  }
+  window.applyEventRegisteredState = applyEventRegisteredState;
+
   async function checkEventRegistrationStatus(eventId){
     var btn = document.getElementById('event-register-btn');
     if (!btn) return;
@@ -24275,7 +24339,7 @@
           btn.disabled = false;
           return;
         }
-        setEventRegisteredUI(btn, false, null);
+        applyEventRegisteredState(eventId, false, null);
         if (typeof refreshEventCapacityBadge === 'function') await refreshEventCapacityBadge(eventId, -1);
         statusEl.textContent = window.t('events.cancelledNoAutoRefund');
         statusEl.style.display = 'block';
@@ -24295,7 +24359,7 @@
         btn.disabled = false;
         return;
       }
-      setEventRegisteredUI(btn, false, null);
+      applyEventRegisteredState(eventId, false, null);
       if (typeof refreshEventCapacityBadge === 'function') await refreshEventCapacityBadge(eventId, -1);
       statusEl.textContent = window.t('events.unregisteredPickRoleAgain');
       statusEl.style.display = 'block';
@@ -24474,7 +24538,7 @@
     var savedRole = (confirmRow && confirmRow.length) ? confirmRow[0].role : role;
     var savedRoleLabel = savedRole === 'volunteer' ? window.t('events.roleVolunteer') : window.t('events.roleParticipant');
 
-    setEventRegisteredUI(btn, true, savedRole);
+    applyEventRegisteredState(eventId, true, savedRole);
     // Only a participant registration counts toward max_participants/
     // the fill badge (mapSearchEventRow's own gate) -- a volunteer
     // signup gets no optimistic bump, just the real reconciling fetch.

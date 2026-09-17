@@ -2802,3 +2802,21 @@ Fixed in `034_drop_stale_search_events_overload.sql` (drops the old 11-arg versi
 **Second, equally important half**: both broken call sites destructured only `{ data }` and threw `error` away entirely, so a hard RPC failure rendered as a completely plausible empty state. That is the same silent-failure class as the unregister bug immediately above, and it is why this hid indefinitely. Both now read the error and log it. An empty result and a failed call are not the same thing and must not look identical -- this is the third distinct bug in this session traceable to a swallowed error, after the Give/Message toggle grants and the unregister RLS gap.
 
 Build `2026-09-16-v57`; migration 034 must be run by hand.
+
+---
+
+## Two follow-ups once unregistering finally worked: stale cards on Back, and the button flashing on refresh
+
+Both reported right after 033/034 went in, and both are ordinary UI-state bugs that were simply invisible while the underlying write was broken.
+
+**1. Register/unregister, press Back, the listing card still showed the old state until a refresh.** `setEventRegisteredUI()` only ever updates the single button handed to it, but the same event is routinely on screen in more than one place: this is an SPA, so the listing page a detail page was reached from is *hidden, not destroyed*, and its card -- with its own `.register-real-btn` for the same event id -- sits in the DOM the whole time. Fixed with `applyEventRegisteredState(eventId, isRegistered, role)`, which updates **every** button for that event id, called from all three success paths (register, free unregister, paid cancel). This is deliberately the same shape as `applyFollowState()`, which fixed the identical bug for follow hearts earlier in this session -- same problem, same solution, so there's one way to do this rather than two.
+
+Also fixed a real second-order bug in `refreshAllCardRegistrationStates()` found while looking at this: it had no `else` branch, so it could turn a button **into** the registered state but never back out of one. A card still reading "Registered" for a registration that no longer existed stayed that way every time it ran. Its query returns the user's full authoritative list of confirmed registrations, so an absent event id unambiguously means "not registered" -- the else branch now says so.
+
+**2. Refreshing an event page you're registered for flashed "Register" a couple of times before settling.** `populateEventPage()` unconditionally reset the button to the unregistered state (`data-registered='false'`, dropped `btn-registered`, overwrote the label with "Register", re-showed the role radios). It runs several times per page load -- the classic script's own first `showRouteFromHash`, again once the module script is ready, again when auth resolves -- and the async `checkEventRegistrationStatus()` put the state back a moment later each time, so the eye caught every round trip.
+
+The reset is still correct when populating a **different** event (that event's state is meaningless for a new one and must not leak across), so it's now keyed on the button's own `data-event-id`: skipped only when re-populating the *same* event, where what's on screen is already known-good and the pending status check will confirm or correct it regardless.
+
+Verified in a local preview by driving the real functions directly: marking the button registered then re-populating the **same** event preserved "✓ Registered — click to unregister", while populating a **different** event correctly reset to "Register" (so the guard fixes the flash without letting state leak between events); and `applyEventRegisteredState()` flipped both a listing card's button and the detail page's button for the same event id, in both directions.
+
+Build `2026-09-16-v58`. No migration needed.
