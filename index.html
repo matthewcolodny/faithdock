@@ -366,11 +366,12 @@
       'churchClaim.submitted': "Claim submitted — we'll review it and follow up by email.",
       'myChurches.eyebrow': 'Your churches', 'myChurches.title': 'My Churches', 'myChurches.subtitle': 'Every church you\'re connected to — home, owned, staffed, or followed — in one place.',
       'myGroups.eyebrow': 'Your groups', 'myGroups.title': 'My Groups', 'myGroups.subtitle': "Every group you've joined, across every church.",
-      'myEvents.eyebrow': 'Your events', 'myEvents.title': 'My Events', 'myEvents.subtitle': "Every event you've registered for, across every church, in order.",
+      'myEvents.eyebrow': 'Your events', 'myEvents.title': 'My Events', 'myEvents.subtitle': "Every event you've registered for or followed, across every church, in order.",
       'myEvents.upcoming': 'Upcoming', 'myEvents.past': 'Past', 'myEvents.all': 'All', 'myEvents.allChurches': 'All churches',
       'myEvents.noEventsMatch': 'No events match this filter.',
       'myEvents.signInPrompt': 'Sign in to see your events.',
       'myEvents.volunteer': 'Volunteer', 'myEvents.participant': 'Participant',
+      'myEvents.following': 'Following', 'myEvents.unfollow': 'Unfollow',
       'myGroups.signInPrompt': 'Sign in to see your groups.',
       'myGroups.noneYet': "You haven't joined any groups yet.",
       'myGroups.pendingApproval': 'Pending approval', 'myGroups.leader': 'Leader',
@@ -1185,11 +1186,12 @@
       'churchClaim.submitted': 'Solicitud enviada — la revisaremos y te contactaremos por correo.',
       'myChurches.eyebrow': 'Tus iglesias', 'myChurches.title': 'Mis iglesias', 'myChurches.subtitle': 'Cada iglesia con la que tienes una conexión — tu iglesia principal, las que posees, en las que sirves, o que sigues — en un solo lugar.',
       'myGroups.eyebrow': 'Tus grupos', 'myGroups.title': 'Mis grupos', 'myGroups.subtitle': 'Cada grupo al que te has unido, en todas las iglesias.',
-      'myEvents.eyebrow': 'Tus eventos', 'myEvents.title': 'Mis eventos', 'myEvents.subtitle': 'Cada evento en el que te has registrado, en todas las iglesias, en orden.',
+      'myEvents.eyebrow': 'Tus eventos', 'myEvents.title': 'Mis eventos', 'myEvents.subtitle': 'Cada evento en el que te has registrado o que sigues, en todas las iglesias, en orden.',
       'myEvents.upcoming': 'Pr\u00f3ximos', 'myEvents.past': 'Pasados', 'myEvents.all': 'Todos', 'myEvents.allChurches': 'Todas las iglesias',
       'myEvents.noEventsMatch': 'Ning\u00fan evento coincide con este filtro.',
       'myEvents.signInPrompt': 'Inicia sesi\u00f3n para ver tus eventos.',
       'myEvents.volunteer': 'Voluntario', 'myEvents.participant': 'Participante',
+      'myEvents.following': 'Siguiendo', 'myEvents.unfollow': 'Dejar de seguir',
       'myGroups.signInPrompt': 'Inicia sesi\u00f3n para ver tus grupos.',
       'myGroups.noneYet': 'A\u00fan no te has unido a ning\u00fan grupo.',
       'myGroups.pendingApproval': 'Aprobaci\u00f3n pendiente', 'myGroups.leader': 'L\u00edder',
@@ -4016,7 +4018,13 @@
        Same loading-then-content shape #page-group already uses: show a
        single quiet line until there's real data, then swap. -->
   <div id="event-page-loading" class="wrap" style="padding-top:44px;color:var(--ink-mute);font-size:14px;" data-i18n="common.loading">Loading...</div>
-  <div class="wrap" id="event-page-content" style="padding-top:44px;display:none;">
+  <!-- position:relative is load-bearing, not decoration: it's the
+       containing block the follow-heart slot below positions against.
+       Without it the slot resolved against the viewport instead and
+       landed up behind the site header, which read as "there's no
+       heart on the event page at all". The church page's own .wrap
+       carries the same inline position:relative for the same reason. -->
+  <div class="wrap" id="event-page-content" style="padding-top:44px;position:relative;display:none;">
     <div id="event-image-block" style="display:none;aspect-ratio:16/9;border-radius:var(--radius);background-size:cover;background-position:center;margin-bottom:24px;max-width:680px;"></div>
     <span class="tag sage" id="event-badge" data-i18n="badge.registrationOpen">Registration open</span>
     <!-- Absolute-positioned on the SLOT, not on the button inside it,
@@ -4125,7 +4133,7 @@
   <div class="wrap" style="padding-top:44px;">
     <div class="eyebrow" data-i18n="myEvents.eyebrow">Your events</div>
     <h1 style="font-size:34px;" data-i18n="myEvents.title">My Events</h1>
-    <p style="color:var(--ink-mute);margin-top:8px;" data-i18n="myEvents.subtitle">Every event you've registered for, across every church, in order.</p>
+    <p style="color:var(--ink-mute);margin-top:8px;" data-i18n="myEvents.subtitle">Every event you've registered for or followed, across every church, in order.</p>
 
     <div style="display:flex;gap:12px;margin-top:24px;flex-wrap:wrap;">
       <select class="field" id="my-events-time-filter" style="width:auto;min-width:160px;">
@@ -6525,7 +6533,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v69 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v70 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -8485,7 +8493,15 @@
   });
 
   document.addEventListener('click', async function(ev){
-    if(ev.target.closest && (ev.target.closest('.register-real-btn') || ev.target.closest('.qr-btn') || ev.target.closest('.group-join-btn') || ev.target.closest('#waitlist-banner-close') || ev.target.closest('[data-follow-church-id]'))){
+    // [data-follow-event-id] belongs in this list for the same reason
+    // [data-follow-church-id] does, and leaving it out is a real,
+    // reported bug: tapping the heart on an event card navigated
+    // straight to the event instead of just filling the heart. The
+    // heart's own handler calls stopPropagation(), but that does NOT
+    // stop other listeners bound to the SAME element -- both handlers
+    // are on `document` -- so the only thing that actually keeps a
+    // card's navigation from firing is this explicit bail-out.
+    if(ev.target.closest && (ev.target.closest('.register-real-btn') || ev.target.closest('.qr-btn') || ev.target.closest('.group-join-btn') || ev.target.closest('#waitlist-banner-close') || ev.target.closest('[data-follow-church-id]') || ev.target.closest('[data-follow-event-id]'))){
       return;
     }
     var el = ev.target.closest ? ev.target.closest('[data-route]') : null;
@@ -22796,6 +22812,12 @@
     window.setActiveChurchAndReload(manageBtn.getAttribute('data-manage-church-id'));
   });
 
+  // One entry per EVENT, not one per relationship: an event you both
+  // registered for and hearted is still one event, and listing it twice
+  // is exactly the duplication My Churches already avoids by merging
+  // Owned / Staff / Home / Following into a single card carrying several
+  // tags. Same shape here -- { event, labels } -- deliberately, so the
+  // two pages stay readable as the same idea.
   var myEventsRaw = [];
 
   function renderMyEventsList(){
@@ -22804,17 +22826,22 @@
     var churchFilter = document.getElementById('my-events-church-filter').value;
     var now = new Date();
 
-    var filtered = myEventsRaw.filter(function(r){
-      if (!r.events) return false;
-      var startAt = new Date(r.events.start_at);
+    var filtered = myEventsRaw.filter(function(entry){
+      var e = entry.event;
+      if (!e) return false;
+      var startAt = new Date(e.start_at);
       if (timeFilter === 'upcoming' && startAt < now) return false;
       if (timeFilter === 'past' && startAt >= now) return false;
-      if (churchFilter !== 'all' && (!r.events.churches || r.events.churches.name !== churchFilter)) return false;
+      if (churchFilter !== 'all' && (!e.churches || e.churches.name !== churchFilter)) return false;
       return true;
     });
 
+    // Chronological regardless of relationship -- the page's own
+    // subtitle promises "in order", and a followed event you're trying
+    // to decide about is most useful sitting next to the ones you've
+    // already committed to, not exiled below them.
     filtered.sort(function(a, b){
-      return new Date(a.events.start_at) - new Date(b.events.start_at);
+      return new Date(a.event.start_at) - new Date(b.event.start_at);
     });
 
     if (!filtered.length) {
@@ -22822,18 +22849,34 @@
       return;
     }
 
-    listEl.innerHTML = filtered.map(function(r){
-      var e = r.events;
+    var labelHtml = {
+      volunteer: '<span class="tag gold" style="font-size:10px;margin-right:4px;">' + window.t('myEvents.volunteer') + '</span>',
+      participant: '<span class="tag sage" style="font-size:10px;margin-right:4px;">' + window.t('myEvents.participant') + '</span>',
+      following: '<span class="tag" style="font-size:10px;margin-right:4px;">' + window.t('myEvents.following') + '</span>'
+    };
+
+    listEl.innerHTML = filtered.map(function(entry){
+      var e = entry.event;
       var churchName = e.churches ? e.churches.name : '';
       var dateLabel = new Date(e.start_at).toLocaleDateString(window.appLocale(), { weekday: 'short', month: 'short', day: 'numeric' })
         + ' · ' + new Date(e.start_at).toLocaleTimeString(window.appLocale(), { hour: 'numeric', minute: '2-digit' });
-      var roleTag = r.role === 'volunteer' ? '<span class="tag gold" style="font-size:10px;">' + window.t('myEvents.volunteer') + '</span>' : '<span class="tag sage" style="font-size:10px;">' + window.t('myEvents.participant') + '</span>';
-      return '<a href="#" data-route="event" data-event-key="' + e.id + '" class="group-card" style="display:block;text-decoration:none;color:inherit;cursor:pointer;">'
+      var tagsHtml = entry.labels.map(function(l){ return labelHtml[l] || ''; }).join('');
+      // Independent relationships, same as My Churches' unfollow: this
+      // shows whenever Following is one of the labels, not only when
+      // it's the sole one, because un-hearting an event you're also
+      // registered for must not cancel that registration.
+      var unfollowBtn = entry.labels.indexOf('following') !== -1
+        ? '<button class="export-btn" data-unfollow-event-id="' + e.id + '" style="flex-shrink:0;">' + window.t('myEvents.unfollow') + '</button>'
+        : '';
+      return '<div class="group-card" style="display:flex;align-items:center;gap:14px;justify-content:space-between;margin-bottom:10px;">'
+        + '<a href="#" data-route="event" data-event-key="' + e.id + '" style="display:block;text-decoration:none;color:inherit;flex:1;min-width:0;cursor:pointer;">'
         + '<div class="group-schedule" style="margin-bottom:6px;">' + dateLabel + '</div>'
         + '<h4>' + e.title + '</h4>'
         + '<p style="margin-bottom:8px;">' + churchName + '</p>'
-        + roleTag
-        + '</a>';
+        + tagsHtml
+        + '</a>'
+        + unfollowBtn
+        + '</div>';
     }).join('');
   }
 
@@ -22848,18 +22891,48 @@
       return;
     }
 
-    var { data: rows, error } = await supabase.from('event_registrations')
-      .select('role, events(id, title, start_at, end_at, location, churches(name))')
-      .eq('user_id', userData.user.id).eq('status', 'confirmed');
-    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:14px;">' + error.message + '</p>'; return; }
+    var eventFields = 'id, title, start_at, end_at, location, churches(name)';
+    var results = await Promise.all([
+      supabase.from('event_registrations')
+        .select('role, events(' + eventFields + ')')
+        .eq('user_id', userData.user.id).eq('status', 'confirmed'),
+      supabase.from('event_follows')
+        .select('event_id, events(' + eventFields + ')')
+        .eq('user_id', userData.user.id)
+    ]);
+    var regRes = results[0], followRes = results[1];
+    if (regRes.error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:14px;">' + regRes.error.message + '</p>'; return; }
+    // A follows failure is logged, not fatal. Registrations are the
+    // thing this page exists for and they loaded fine; blanking them out
+    // because the newer, secondary query failed would trade a small
+    // missing feature for a big broken page. Logged rather than
+    // swallowed because a silently-empty follows list is precisely the
+    // "plausible empty state" that hid the search_events overload bug
+    // for weeks (see GOTCHAS).
+    if (followRes.error) console.error('My Events: event_follows query failed', followRes.error);
 
-    myEventsRaw = rows || [];
+    var byId = {};
+    function addEventToMap(e, label){
+      if (!e || !e.id) return;
+      if (!byId[e.id]) { byId[e.id] = { event: e, labels: [] }; }
+      if (byId[e.id].labels.indexOf(label) === -1) byId[e.id].labels.push(label);
+    }
+    (regRes.data || []).forEach(function(r){ addEventToMap(r.events, r.role === 'volunteer' ? 'volunteer' : 'participant'); });
+    (followRes.data || []).forEach(function(r){ addEventToMap(r.events, 'following'); });
+
+    myEventsRaw = Object.keys(byId).map(function(id){ return byId[id]; });
+
+    // Keeps every heart elsewhere in the app agreeing with what this
+    // page just read -- and, more to the point, keeps this page's own
+    // Unfollow button working off the same list the hearts do.
+    window.myFollowedEventIds = (followRes.data || []).map(function(r){ return r.event_id; });
 
     var churchFilterEl = document.getElementById('my-events-church-filter');
     var churchNames = [];
-    myEventsRaw.forEach(function(r){
-      if (r.events && r.events.churches && r.events.churches.name && churchNames.indexOf(r.events.churches.name) === -1) {
-        churchNames.push(r.events.churches.name);
+    myEventsRaw.forEach(function(entry){
+      var e = entry.event;
+      if (e && e.churches && e.churches.name && churchNames.indexOf(e.churches.name) === -1) {
+        churchNames.push(e.churches.name);
       }
     });
     churchFilterEl.innerHTML = '<option value="all">' + window.t('myEvents.allChurches') + '</option>' + churchNames.map(function(n){ return '<option value="' + n.replace(/"/g, '&quot;') + '">' + n + '</option>'; }).join('');
@@ -22867,6 +22940,29 @@
     renderMyEventsList();
   }
   window.loadMyEvents = loadMyEvents;
+
+  document.addEventListener('click', async function(ev){
+    var unfollowEventBtn = ev.target.closest ? ev.target.closest('[data-unfollow-event-id]') : null;
+    if (!unfollowEventBtn) return;
+    var { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) return;
+    unfollowEventBtn.disabled = true;
+    var unfollowEventId = unfollowEventBtn.getAttribute('data-unfollow-event-id');
+    var { error: unfollowEventError } = await supabase.from('event_follows')
+      .delete().eq('user_id', userData.user.id).eq('event_id', unfollowEventId);
+    if (unfollowEventError) {
+      unfollowEventBtn.disabled = false;
+      console.error('Unfollow event failed', unfollowEventError);
+      return;
+    }
+    // Same shared sync every event heart already goes through, for the
+    // same reason the church version does: this row is not the only
+    // place this event's follow state is on screen, and the Events page
+    // or a church tab sitting behind this one would otherwise keep
+    // showing a filled heart until something forced a re-render.
+    applyEventFollowState(unfollowEventId, false);
+    loadMyEvents();
+  });
 
   var myEventsTimeFilter = document.getElementById('my-events-time-filter');
   var myEventsChurchFilter = document.getElementById('my-events-church-filter');

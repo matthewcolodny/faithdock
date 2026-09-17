@@ -3028,3 +3028,33 @@ Verified in a local preview: the heart renders on cards in both states, the deta
 **Scope note**: following is currently "keep an eye on this" only -- it does not hold a spot, does not touch capacity (a Full event is still followable, which is arguably when it matters most), and there is no notification or dedicated "events I follow" view yet. Those are the natural next steps rather than things half-wired now.
 
 Build `2026-09-17-v69`; **migration 038 must be run by hand** (and 035/036/037 if not yet).
+
+---
+
+## The event heart: two bugs, and a verification that passed for the wrong reason
+
+Both reported immediately after v69 shipped, and the second one is the more instructive.
+
+**1. Tapping the heart on an event card opened the event instead.** The heart's own handler calls `stopPropagation()`, which is the instinctive fix and is not one here: `stopPropagation()` stops the event travelling to *other elements*, but it does not stop other listeners bound to the **same** element. Both the heart handler and the `[data-route]` navigation handler are bound to `document`, so they are siblings on one element and the navigation handler ran regardless. The only thing that actually keeps a card's navigation from firing is the explicit bail-out list already in that handler -- which is why `[data-follow-church-id]` is in it -- and `[data-follow-event-id]` had simply never been added.
+
+**2. There was no heart on the event detail page at all.** `#event-follow-heart-slot` is `position:absolute`, and `#event-page-content` had no `position:relative`, so the slot resolved against the viewport instead of the content wrap and landed behind the site header. The church page's `.wrap` carries an inline `position:relative` for precisely this reason; the event page's didn't. Load-bearing, not decoration, and now commented as such in both places.
+
+**The part worth remembering.** v69's verification explicitly claimed the heart "does not navigate" -- and it did navigate. The test used a made-up event id, so the navigation path bailed out early (`findOrFetchEventById` returns null, alerts, returns) long before it would have changed the hash. The assertion `hashChanged === false` was true for a reason that had nothing to do with the thing being tested. A negative assertion is only worth anything if you have shown the mechanism it's negating would otherwise fire: re-run with a **real** cached event and it failed immediately. Re-verified that way, plus `elementFromPoint` at the detail heart's own centre returning the heart rather than the header.
+
+Build `2026-09-17-v70`.
+
+---
+
+## Followed events on My Events
+
+Hearting an event now puts it on My Events, which is the point of following -- v69 shipped the gesture with nowhere for it to land.
+
+Merged rather than appended: one entry per **event**, not per relationship, so an event you both registered for and hearted is a single row carrying both tags. This is the same `{ event, labels }` shape (and the same `byId` merge) that `loadMyChurches()` already uses for Owned / Staff / Home / Following, deliberately, so the two pages read as the same idea. Unfollow shows whenever Following is one of the labels rather than only when it's the sole one -- un-hearting an event must not cancel a registration for it -- and routes through `applyEventFollowState()` so hearts on any other page agree immediately.
+
+Sorting stays purely chronological. A followed event you're still deciding about is most useful next to the ones you've committed to, not exiled below them, and the page's own subtitle promises "in order".
+
+One defensive choice: a failed `event_follows` query is logged and skipped, not fatal. Registrations are what this page exists for, and blanking them because the newer secondary query failed trades a small missing feature for a big broken page -- relevant right now, since the page behaves correctly on a database where **038 has not been run yet**. Logged rather than swallowed, because a silently-empty list is exactly the plausible-looking empty state that hid the `search_events` overload for weeks.
+
+Verified against stubbed queries driving the real loader: a followed-only event appears with a Following tag and an Unfollow button, a registered-and-followed event appears **once** with both tags, unfollowing the followed-only row removes it, unfollowing the dual row keeps it and drops only the tag, and a 42P01 on `event_follows` still renders the registrations.
+
+Build `2026-09-17-v70`; **migration 038 must be run by hand** for any of this to persist.
