@@ -406,7 +406,7 @@
       'staffPerms.isManager': 'Manager — can also invite/remove staff and assign their abilities',
       'staffPerms.editProfile': 'Edit church profile', 'staffPerms.save': 'Save permissions',
       'staffPerms.receiveMessages': 'Receive contact messages sent to this church', 'staffPerms.receiveMessagesTag': 'Receives Messages',
-      'staffPerms.manageMembers': 'Approve and manage church members', 'staffPerms.manageMembersTag': 'Members',
+      'staffPerms.manageMembers': 'Approve and manage church members', 'staffPerms.manageMembersTag': 'Members', 'staffPerms.checkIn': 'Check people in at events', 'staffPerms.checkInTag': 'Check-in',
       'memberInvite.title': "You've been invited!", 'memberInvite.thisChurch': 'This church',
       'memberInvite.body': 'invited you to join them on FaithDock. Want to set them as your Church Home? You can always change this later in your profile.',
       'memberInvite.accept': 'Yes, set as my Church Home', 'memberInvite.decline': 'Not now',
@@ -1241,7 +1241,7 @@
       'staffPerms.isManager': 'Gerente — también puede invitar/quitar personal y asignar sus habilidades',
       'staffPerms.editProfile': 'Editar perfil de la iglesia', 'staffPerms.save': 'Guardar permisos',
       'staffPerms.receiveMessages': 'Recibir mensajes de contacto enviados a esta iglesia', 'staffPerms.receiveMessagesTag': 'Recibe Mensajes',
-      'staffPerms.manageMembers': 'Aprobar y gestionar los miembros de la iglesia', 'staffPerms.manageMembersTag': 'Miembros',
+      'staffPerms.manageMembers': 'Aprobar y gestionar los miembros de la iglesia', 'staffPerms.manageMembersTag': 'Miembros', 'staffPerms.checkIn': 'Registrar asistentes en los eventos', 'staffPerms.checkInTag': 'Registro',
       'memberInvite.title': '¡Has sido invitado!', 'memberInvite.thisChurch': 'Esta iglesia',
       'memberInvite.body': 'te invitó a unirte a ellos en FaithDock. ¿Quieres establecerla como tu Iglesia Principal? Siempre puedes cambiar esto después en tu perfil.',
       'memberInvite.accept': 'Sí, establecer como mi Iglesia Principal', 'memberInvite.decline': 'Ahora no',
@@ -6503,6 +6503,7 @@ Groups</span>
                    migration 032_church_give_message_toggles.sql). -->
               <label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-receive-messages"> <span data-i18n="staffPerms.receiveMessages">Receive contact messages sent to this church</span></label>
               <label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-manage-members"> <span data-i18n="staffPerms.manageMembers">Approve and manage church members</span></label>
+              <label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-check-in"> <span data-i18n="staffPerms.checkIn">Check people in at events</span></label>
               <label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-profile"> <span data-i18n="staffPerms.editProfile">Edit church profile</span></label>
             </div>
             <button class="export-btn" id="team-invite-btn" style="width:100%;justify-content:center;margin-top:14px;" data-i18n="dashSettings.addToTeam">Send invite</button>
@@ -6747,7 +6748,7 @@ Groups</span>
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v89 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v90 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -6779,6 +6780,13 @@ Groups</span>
     <label class="filter-check" style="margin-top:10px;"><input type="checkbox" id="perm-messages"> <span data-i18n="staffPerms.manageMessages">Send messages and view delivery data</span></label>
     <label class="filter-check" style="margin-top:10px;"><input type="checkbox" id="perm-receive-messages"> <span data-i18n="staffPerms.receiveMessages">Receive contact messages sent to this church</span></label>
     <label class="filter-check" style="margin-top:10px;"><input type="checkbox" id="perm-manage-members"> <span data-i18n="staffPerms.manageMembers">Approve and manage church members</span></label>
+    <!-- A lesser permission than managing events, deliberately: a door
+         volunteer should be able to tick people in without being able to
+         edit or delete the event they are standing at. Managing events
+         still grants check-in implicitly (see set_registration_checked_in),
+         so this box is only needed for someone who does check-in and
+         nothing else. -->
+    <label class="filter-check" style="margin-top:10px;"><input type="checkbox" id="perm-check-in"> <span data-i18n="staffPerms.checkIn">Check people in at events</span></label>
     <label class="filter-check" style="margin-top:10px;"><input type="checkbox" id="perm-profile"> <span data-i18n="staffPerms.editProfile">Edit church profile</span></label>
     <!-- Owner-only, tier-gated -- shown/hidden by loadTeamPanel's click
          handler (data-manager / data-viewer-is-owner on the gear button),
@@ -16810,6 +16818,7 @@ Groups</span>
       if (s.can_manage_messages) rowAbilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('dash.messages') + '</span>');
       if (s.receives_contact_messages) rowAbilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('staffPerms.receiveMessagesTag') + '</span>');
       if (s.can_manage_members) rowAbilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('staffPerms.manageMembersTag') + '</span>');
+      if (s.can_check_in) rowAbilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('staffPerms.checkInTag') + '</span>');
       if (s.can_edit_profile) rowAbilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('dashOverview.permProfile') + '</span>');
       var rowAbilityTagsHtml = '<div style="margin-top:5px;display:flex;flex-wrap:wrap;gap:4px;">'
         + (rowAbilityTags.length ? rowAbilityTags.join('') : '<span style="font-size:11.5px;color:var(--ink-mute);">' + window.t('dashOverview.permViewOnly') + '</span>')
@@ -16826,7 +16835,7 @@ Groups</span>
         // which loadDirectoryPeople() already populates unconditionally
         // at dashboard load -- no separate fetch needed here.
         + (s.user_id ? '<button class="qr-btn icon-tip" data-tip="' + window.t('dashDir.viewProfile') + '" data-view-person-id="' + s.user_id + '" aria-label="' + window.t('dashDir.viewProfile') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg></button>' : '')
-        + (canActOnThisRow ? '<button class="qr-btn icon-tip" data-tip="' + window.t('dashSettings.permissions') + '" data-manage-permissions-id="' + s.staff_id + '" data-manage-permissions-name="' + name.replace(/"/g, '&quot;') + '" data-events="' + s.can_manage_events + '" data-giving="' + s.can_manage_giving + '" data-groups="' + s.can_manage_groups + '" data-messages="' + s.can_manage_messages + '" data-receive-messages="' + s.receives_contact_messages + '" data-manage-members="' + s.can_manage_members + '" data-manager="' + s.is_manager + '" data-profile="' + s.can_edit_profile + '" data-viewer-is-owner="' + isOwner + '" aria-label="' + window.t('dashSettings.permissions') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg></button>' : '')
+        + (canActOnThisRow ? '<button class="qr-btn icon-tip" data-tip="' + window.t('dashSettings.permissions') + '" data-manage-permissions-id="' + s.staff_id + '" data-manage-permissions-name="' + name.replace(/"/g, '&quot;') + '" data-events="' + s.can_manage_events + '" data-giving="' + s.can_manage_giving + '" data-groups="' + s.can_manage_groups + '" data-messages="' + s.can_manage_messages + '" data-receive-messages="' + s.receives_contact_messages + '" data-manage-members="' + s.can_manage_members + '" data-check-in="' + !!s.can_check_in + '" data-manager="' + s.is_manager + '" data-profile="' + s.can_edit_profile + '" data-viewer-is-owner="' + isOwner + '" aria-label="' + window.t('dashSettings.permissions') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg></button>' : '')
         + (canActOnThisRow ? '<button class="qr-btn" data-remove-staff-id="' + s.staff_id + '" aria-label="' + window.t('dashSettings.removeFromTeam') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>' : '')
         + '</span></div>';
     });
@@ -16895,6 +16904,7 @@ Groups</span>
           + '<label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-messages"> ' + window.t('staffPerms.manageMessages') + '</label>'
           + '<label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-receive-messages"> ' + window.t('staffPerms.receiveMessages') + '</label>'
           + '<label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-manage-members"> ' + window.t('staffPerms.manageMembers') + '</label>'
+          + '<label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-check-in"> ' + window.t('staffPerms.checkIn') + '</label>'
           + '<label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-profile"> ' + window.t('staffPerms.editProfile') + '</label>'
           + '</div>';
         // Owner-only, and only on tiers whose plan_tiers.can_assign_manager
@@ -19270,6 +19280,7 @@ Groups</span>
     document.getElementById('perm-messages').checked = permBtn.getAttribute('data-messages') === 'true';
     document.getElementById('perm-receive-messages').checked = permBtn.getAttribute('data-receive-messages') === 'true';
     document.getElementById('perm-manage-members').checked = permBtn.getAttribute('data-manage-members') === 'true';
+    document.getElementById('perm-check-in').checked = permBtn.getAttribute('data-check-in') === 'true';
     document.getElementById('perm-profile').checked = permBtn.getAttribute('data-profile') === 'true';
     // Manager checkbox: only the actual owner can see/change it --
     // matches update_staff_abilities()'s server-side rule that only
@@ -19311,7 +19322,8 @@ Groups</span>
         p_can_manage_messages: document.getElementById('perm-messages').checked,
         p_is_manager: document.getElementById('perm-manager').checked,
         p_receives_contact_messages: document.getElementById('perm-receive-messages').checked,
-        p_can_manage_members: document.getElementById('perm-manage-members').checked
+        p_can_manage_members: document.getElementById('perm-manage-members').checked,
+        p_can_check_in: document.getElementById('perm-check-in').checked
       });
       staffPermissionsSaveBtn.disabled = false;
 
@@ -25452,7 +25464,8 @@ Groups</span>
         can_edit_profile: !!(document.getElementById('invite-perm-profile') && document.getElementById('invite-perm-profile').checked),
         is_manager: !!(isManagerCheckbox && isManagerCheckbox.checked),
         receives_contact_messages: !!(document.getElementById('invite-perm-receive-messages') && document.getElementById('invite-perm-receive-messages').checked),
-        can_manage_members: !!(document.getElementById('invite-perm-manage-members') && document.getElementById('invite-perm-manage-members').checked)
+        can_manage_members: !!(document.getElementById('invite-perm-manage-members') && document.getElementById('invite-perm-manage-members').checked),
+        can_check_in: !!(document.getElementById('invite-perm-check-in') && document.getElementById('invite-perm-check-in').checked)
       };
 
       // Multi-church: whatever's checked in the church list (only

@@ -3586,3 +3586,31 @@ Verified by driving the real handler with the exact button the row template emit
 **Noted while in here, not fixed:** `loadDashboardEvents()` queries `event_registrations` once per event inside its render loop -- the N+1 tail visible in the performance traces. It is now ~90-110ms per event and was explicitly measured as not worth chasing, but this is where it lives if that changes.
 
 Build `2026-09-17-v89`. No migration.
+
+---
+
+## can_check_in: a lesser permission for door volunteers
+
+Check-in was gated on `can_manage_events`, which also grants editing and deleting the event. For the usual case -- a rotating volunteer on a shared tablet at a door -- that is far too much.
+
+**The rule is an OR, on purpose:**
+
+```
+owner  OR  can_manage_events  OR  can_check_in
+```
+
+`can_check_in` is a *lesser* permission, not a replacement. Someone who manages events keeps check-in implicitly, because removing it would be a surprising regression that nobody would think to fix by granting a new flag. `can_check_in` grants check-in **and nothing else**, which is the entire point.
+
+That structure is also why this migration needs **no backfill and cannot remove anyone's access** -- existing staff keep working through the `can_manage_events` clause. Migration 044 deliberately left this column out for exactly this reason: adding it defaulting to false *in the same migration that repaired check-in* would have locked every existing staff member out on the spot, which is a worse failure than the bug being fixed.
+
+**Adding one ability touched nine places**, which is worth recording as the real cost of a boolean-per-permission model:
+
+`church_staff` column · `church_staff_invites` column (mirrored, or it can never be granted to someone who has not joined) · `set_registration_checked_in` (the gate) · `get_church_staff_detail` (DROP required -- return type gains a column, 42P13) · `update_staff_abilities` (DROP required -- new parameter means a new signature, or PGRST203) · `accept_staff_invite` (insert + conflict update) · the permissions modal · the invite form, twice (a static one and a dynamically built one) · the staff row's ability tag and its `data-` attribute.
+
+This is the concrete argument for the role presets discussed earlier: at 9 abilities the permissions panel is already a wall of checkboxes, and each new one is nine edits that must all land or the flag is silently ungrantable.
+
+Function bodies were taken verbatim from tracked migration 035 and modified, not reconstructed from memory -- the same discipline that `get_directory_people` earned, where a reconstruction would silently have become the new truth.
+
+Verified: both checkboxes exist, labels render translated in English and Spanish, the modal populate reads the new `data-check-in` attribute, and the app loads clean.
+
+Build `2026-09-17-v90`; **migration 045 must be run by hand**, and before deploying -- `update_staff_abilities` gains a parameter, so saving permissions will fail with PGRST202 until it is applied.
