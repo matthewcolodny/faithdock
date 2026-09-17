@@ -6888,7 +6888,7 @@ Groups</span>
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v101 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v102 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12216,9 +12216,52 @@ Groups</span>
   // in their own closures during a session, and reloading sidesteps
   // that whole class of stale-state bugs instead of hot-refreshing
   // every one of them individually.
+  // Switches the dashboard to another church WITHOUT a full page
+  // reload. Kept under the old name so every call site is unchanged.
+  //
+  // Reported directly: switching churches on a multi-church account is
+  // slow to repopulate and gets worse over several switches. It was a
+  // location.reload() -- re-downloading and re-parsing 1.7MB, re-running
+  // all initialisation and re-firing the entire dashboard load, roughly
+  // a hundred requests, every time you changed the dropdown.
+  //
+  // The reload existed because some panels were said to cache the church
+  // in closures. That is no longer true: all 24 registered panel loaders
+  // resolve the church by calling getMyChurch() inside themselves (two
+  // do it transitively through sub-loaders), so re-running them picks up
+  // the new active church -- audited before removing the reload rather
+  // than assumed from the comment.
+  //
+  // Clearing _myChurchCache is what makes that true. getMyChurch()
+  // resolves against getActiveChurchId(), and its cache would otherwise
+  // keep answering with the PREVIOUS church for up to 1.5 seconds --
+  // which is exactly long enough for every panel to load the wrong data
+  // and look like the switch silently failed.
   function setActiveChurchAndReload(id){
     setActiveChurchId(id);
-    location.reload();
+
+    var canSwapInPlace = typeof window.resetDashboardPanels === 'function'
+      && typeof window.runDashboardPanels === 'function'
+      && typeof window.loadDashboardHeader === 'function';
+    // Falls back to the old behaviour rather than half-switching if the
+    // panel registry is not available for any reason.
+    if (!canSwapInPlace) { location.reload(); return; }
+
+    window._myChurchCache = null;
+
+    // Reached from My Churches -> Manage, which pushes #dashboard and
+    // used to rely on the reload to actually go there.
+    var dashPage = document.getElementById('page-dashboard');
+    if (dashPage && !dashPage.classList.contains('active') && typeof window.showRouteFromHash === 'function') {
+      window.showRouteFromHash(true);
+    }
+
+    window.loadDashboardHeader();
+    // Billing and Plans are outside the dashPanel registry and do hold
+    // per-church state, so they are refreshed explicitly.
+    if (typeof window.loadBillingPanel === 'function') window.loadBillingPanel();
+    window.resetDashboardPanels();
+    window.runDashboardPanels();
   }
   window.setActiveChurchAndReload = setActiveChurchAndReload;
 

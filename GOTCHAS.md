@@ -3850,3 +3850,23 @@ Applied to both tables built this way (events and groups), not just the reported
 Verified by measurement with the table actually on screen: identical left edges (856), right edges (973) and widths (116) across rows holding two and three buttons. A first attempt measured while the page was hidden and "matched" at 0 and 0 -- true, meaningless, and the same shape of empty assertion that has come up repeatedly today.
 
 Build `2026-09-17-v101`. No migration.
+
+---
+
+## Switching churches did a full page reload
+
+Reported on a multi-church account: changing church in the sidebar dropdown is slow to repopulate, and gets worse over several switches.
+
+`setActiveChurchAndReload()` did exactly what its name said -- `location.reload()`. Every switch re-downloaded and re-parsed **1.8MB** of document, re-ran all initialisation, and re-fired the entire dashboard load. The worsening-over-several-switches part fits that too: each reload starts a fresh burst of ~100 requests that contend with each other, which is the same contention that made individual queries take 4-6 seconds in the earlier performance traces.
+
+**Why the reload existed, and why it no longer needs to.** A comment elsewhere explains that some panels "cache the church in closures". That was presumably true when written and is not now: all 24 registered panel loaders resolve the church by calling `getMyChurch()` inside themselves -- two of them transitively through sub-loaders -- so re-running them picks up the new active church. Audited every one before removing the reload rather than trusting the comment, since a stale comment is exactly the kind of thing that survives a refactor.
+
+**Clearing `_myChurchCache` is what makes the swap correct.** `getMyChurch()` resolves against `getActiveChurchId()` and its cache would otherwise keep answering with the PREVIOUS church for up to 1.5 seconds -- long enough for every panel to load the wrong church's data and look like the switch had silently failed. That would have been a worse bug than the slowness.
+
+Billing and Plans sit outside the `dashPanel()` registry and do hold per-church state, so they are refreshed explicitly. The function falls back to `location.reload()` if the panel registry is unavailable for any reason, rather than half-switching.
+
+**Verified**: a sentinel value set on `window` survives the switch, which a reload would have wiped; the active church id is stored; the church cache is cleared; and the panels are reset and re-run exactly once.
+
+**Not verified**: the request-count saving, which needs a signed-in session. Signed out, every panel bails at `getMyChurch()` returning null, so the in-place switch measured zero requests -- true and meaningless, the same empty measurement that has come up repeatedly. The reload cost is measured and real (1,813,358 bytes re-parsed per switch); the panel-refresh cost that replaces it is not.
+
+Build `2026-09-17-v102`. No migration.
