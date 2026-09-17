@@ -4038,3 +4038,32 @@ The earlier revoke on `churches` had been **SELECT-only**. Reading "churches use
 Stated plainly because it matters more than the fix: **this was found structurally, not by exploiting it.** Taking over a real church to prove the point was not on the table, so what is confirmed is that the policy permits the write and no privilege or trigger prevents it — not that somebody has done it.
 
 **Migration 051 must be run by hand.** No client change.
+
+---
+
+## Account-less check-in links
+
+A link (and QR) that lets a door volunteer work one event's roster with no FaithDock account.
+
+Focused mode was the previous answer, and it hid the dashboard rather than removing it — the tablet was still signed in as somebody, one URL edit away from the Directory. The GOTCHAS entry for it said so at the time: "NOT a security boundary, and it must not be mistaken for one." This is the boundary. The door page never signs anyone in, and the roster arrives through an RPC rather than a table read, so the client cannot widen what it sees even if someone edits it.
+
+**The token is a bearer secret**, so everything about it is bounded rather than merely secret: scoped to one event and never a church, expiring by default a few hours after the event ends, revocable with effect on the next request, and capped at 90 days however it is asked for — without a ceiling, "expires" is a field rather than a property.
+
+**The door sees names only.** This is the significant line in migration 052. The signed-in roster reads `user_id`, `guest_name`, `role`, `status` and the joined profile; the link RPC returns a display name, participant-or-volunteer, and whether they are already checked in. The audience is different: a signed-in staff member is someone the church chose, while the holder of a link is whoever the link reached. Handing a congregation's email addresses to a URL is not a thing to do for the convenience of a check-in desk.
+
+Details worth keeping:
+
+- **`event_id` is in the WHERE clause of the write, not checked beforehand.** It is what stops a valid token for one event ticking a registration belonging to another. Scoping the link to a single event is the entire security model, so the scope belongs in the statement that writes.
+- **Missing, revoked and expired all return the same answer.** Distinguishing them would confirm to somebody guessing tokens that they had found a real one.
+- **The token is stored in plain text**, deliberately. Hashing it means showing it once, so a church that loses the QR printout needs a new one. Against the exposure — one event's names, bounded, revocable — reprinting the same code wins. The row is readable only by people who could already open that roster while signed in.
+- **The grants REVOKE first.** Straight from 050: this project grants new public tables to both roles by default, so without the revoke, anon could read every token in the database. That is the same mistake 049 made, avoided this time because it had just been paid for.
+- **Two v4 uuids rather than `gen_random_bytes`.** 244 bits without depending on pgcrypto — an extension dependency for the one value that must never be guessable is a dependency worth not having. Hex is URL-safe, so the token survives being a path segment.
+- **Revoking checks the returned row count**, because an update matching zero rows reports success, and here that would mean telling somebody a link was dead while it kept letting people in.
+
+**The bug the fixtures caught.** Loading the door page cold showed one row out of three. Browsers restore a text input's last-typed value on reload as their own feature, so a leftover search term silently filtered the roster — and the volunteer sees a short list with no indication that it is filtered. This codebase already knew: the hero search is cleared on load for exactly this reason. The same fault was already present on the signed-in check-in roster, before this feature existed, and is fixed in the same pass. Same desk, same confusion.
+
+It was only found by navigating to the page cold rather than by driving it from an already-open session — the state that breaks it is the state a real volunteer arrives in.
+
+Verified against stubbed RPCs, with `auth.getUser()` asserted to return **no user** throughout, so the whole flow is confirmed to work signed out rather than assumed to: invalid token shows the dead-link panel and no roster; a valid one loads names, roles and walk-in tags with a hostile name, event title and church name all rendering as text and zero elements created; tapping paints immediately, then reconciles to the value the server stored; a refused write reverts the paint and the count, which is what keeps optimism from repeating the v87 bug; search; and on the management side create, copy, QR (reusing the existing share modal, encoding exactly the copied URL), and revoke flipping a link dead and stripping its buttons.
+
+Build `2026-09-17-v108`; **migration 052 must be run by hand.**

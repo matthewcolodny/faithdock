@@ -714,6 +714,20 @@
       'dashFacility.nUpcoming': '{n} upcoming', 'dashFacility.noUpcoming': 'nothing booked',
       'dashSettings.removeRoomStillBooked': 'This room still has {n} upcoming event(s):',
       'ce.roomAlreadyBooked': 'Already booked at this time:',
+      'checkinLink.sectionTitle': 'Check-in links',
+      'checkinLink.sectionHint': 'A link or QR code that lets a volunteer check people in for this event without a FaithDock account. It shows names only, and stops working when it expires or you revoke it.',
+      'checkinLink.labelPlaceholder': 'e.g. Front door tablet',
+      'checkinLink.create': 'Create link', 'checkinLink.created': 'Link created.',
+      'checkinLink.none': 'No links for this event yet.', 'checkinLink.untitled': 'Untitled link',
+      'checkinLink.copy': 'Copy link', 'checkinLink.copied': 'Link copied.', 'checkinLink.qr': 'QR code',
+      'checkinLink.revoke': 'Revoke link', 'checkinLink.revoked': 'Revoked', 'checkinLink.expired': 'Expired',
+      'checkinLink.activeUntil': 'Works until {when}', 'checkinLink.lastUsed': 'Last used {when}',
+      'checkinLink.confirmRevoke': 'Revoke this link? Anyone holding it stops being able to check people in.',
+      'checkinLink.revokeFailed': 'That link could not be revoked.',
+      'checkinLink.markFailed': 'That did not save. The link may have expired or been revoked.',
+      'checkinLink.invalidTitle': 'This check-in link is not active',
+      'checkinLink.invalidBody': 'It may have expired, been revoked, or been typed incorrectly. Ask whoever set up the event for a new one.',
+      'checkinLink.privacyNote': 'This page shows names only. It works for this one event and stops working when the link expires.',
       'dashMsg.subjectPlaceholder': 'e.g. Sunday service update', 'dashMsg.message': 'Message', 'dashMsg.writeAnnouncement': 'Write your announcement...',
       'dashMsg.scheduleForLater': 'Schedule for later instead of sending now', 'dashMsg.sendAnnouncement': 'Send announcement',
       'dashMsg.scheduledAnnouncements': 'Scheduled announcements',
@@ -1585,6 +1599,20 @@
       'dashFacility.nUpcoming': '{n} próximos', 'dashFacility.noUpcoming': 'sin reservas',
       'dashSettings.removeRoomStillBooked': 'Esta sala todavía tiene {n} evento(s) próximo(s):',
       'ce.roomAlreadyBooked': 'Ya reservada a esta hora:',
+      'checkinLink.sectionTitle': 'Enlaces de registro',
+      'checkinLink.sectionHint': 'Un enlace o código QR que permite a un voluntario registrar asistentes a este evento sin tener cuenta de FaithDock. Muestra solo nombres y deja de funcionar cuando caduca o lo revocas.',
+      'checkinLink.labelPlaceholder': 'p. ej. Tableta de la entrada',
+      'checkinLink.create': 'Crear enlace', 'checkinLink.created': 'Enlace creado.',
+      'checkinLink.none': 'Aún no hay enlaces para este evento.', 'checkinLink.untitled': 'Enlace sin título',
+      'checkinLink.copy': 'Copiar enlace', 'checkinLink.copied': 'Enlace copiado.', 'checkinLink.qr': 'Código QR',
+      'checkinLink.revoke': 'Revocar enlace', 'checkinLink.revoked': 'Revocado', 'checkinLink.expired': 'Caducado',
+      'checkinLink.activeUntil': 'Funciona hasta {when}', 'checkinLink.lastUsed': 'Usado por última vez {when}',
+      'checkinLink.confirmRevoke': '¿Revocar este enlace? Quien lo tenga dejará de poder registrar asistentes.',
+      'checkinLink.revokeFailed': 'No se pudo revocar el enlace.',
+      'checkinLink.markFailed': 'No se guardó. Es posible que el enlace haya caducado o se haya revocado.',
+      'checkinLink.invalidTitle': 'Este enlace de registro no está activo',
+      'checkinLink.invalidBody': 'Puede haber caducado, haber sido revocado o estar mal escrito. Pide uno nuevo a quien organizó el evento.',
+      'checkinLink.privacyNote': 'Esta página muestra solo nombres. Funciona para este único evento y deja de funcionar cuando el enlace caduca.',
       'dashMsg.subjectPlaceholder': 'p. ej. Actualización del servicio dominical', 'dashMsg.message': 'Mensaje', 'dashMsg.writeAnnouncement': 'Escribe tu anuncio...',
       'dashMsg.scheduleForLater': 'Programar para más tarde en lugar de enviar ahora', 'dashMsg.sendAnnouncement': 'Enviar anuncio',
       'dashMsg.scheduledAnnouncements': 'Anuncios programados',
@@ -3357,6 +3385,12 @@
   #checkin-focus-exit{display:none;}
   body.checkin-focus #checkin-focus-exit{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--brand);color:#fff;padding:10px 16px;border-radius:10px;margin-bottom:18px;font-size:13.5px;}
   body.checkin-focus #checkin-focus-enter{display:none;}
+  /* The account-less door page. Same intent as focus mode above,
+     but it does not need to hide a dashboard -- there is no session
+     here to protect, which is the whole reason this exists. */
+  body.checkin-link-page header,
+  body.checkin-link-page footer,
+  body.checkin-link-page .promo-bar{display:none;}
   @media (max-width:860px){.dash{grid-template-columns:1fr;}}
   /* Grid items default to min-width:auto, i.e. their content's own
      natural min-content width -- not 0 -- so a 1fr track doesn't
@@ -5538,6 +5572,29 @@ Groups</span>
 </section>
 
 <!-- ================= CREATE EVENT (real) ================= -->
+<section class="page" id="page-checkin-link">
+  <div style="max-width:560px;margin:0 auto;padding:24px 16px 60px;">
+    <div id="cl-invalid" style="display:none;text-align:center;padding:40px 0;">
+      <h2 style="font-family:'Fraunces';font-size:22px;margin-bottom:8px;" data-i18n="checkinLink.invalidTitle">This check-in link is not active</h2>
+      <p style="color:var(--ink-mute);font-size:13.5px;" data-i18n="checkinLink.invalidBody">It may have expired, been revoked, or been typed incorrectly. Ask whoever set up the event for a new one.</p>
+    </div>
+    <div id="cl-main" style="display:none;">
+      <p style="font-size:12px;color:var(--ink-mute);letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px;" id="cl-church"></p>
+      <h2 style="font-family:'Fraunces';font-size:22px;margin-bottom:2px;" id="cl-title"></h2>
+      <p style="color:var(--ink-mute);font-size:13px;margin-bottom:18px;" id="cl-when"></p>
+      <div class="stat-row" style="grid-template-columns:1fr;margin-bottom:14px;">
+        <div class="stat"><div class="num" id="cl-count">— / —</div><div class="lbl" data-i18n="dashCheckin.tapToCheckIn">TAP A ROW TO CHECK SOMEONE IN</div></div>
+      </div>
+      <input class="field" id="cl-search" type="text" placeholder="Search by name" data-i18n-placeholder="dashCheckin.searchByName" style="margin-bottom:14px;">
+      <table class="roster" id="cl-table">
+        <tr><th data-i18n="dashCheckin.name">Name</th><th data-i18n="dashCheckin.registration">Registration</th><th></th></tr>
+        <tbody id="cl-tbody"></tbody>
+      </table>
+      <p style="color:var(--ink-mute);font-size:11.5px;margin-top:16px;" data-i18n="checkinLink.privacyNote">This page shows names only. It works for this one event and stops working when the link expires.</p>
+    </div>
+  </div>
+</section>
+
 <section class="page" id="page-create-event">
   <div class="auth-wrap" style="max-width:560px;">
     <div class="auth-card">
@@ -6118,6 +6175,20 @@ Groups</span>
             <tr><td colspan="3" style="color:var(--ink-mute);" data-i18n="dashCheckin.selectEventFirst">Select an event above to see its check-in list.</td></tr>
           </tbody>
         </table>
+
+        <!-- Hidden until an event is chosen: a link belongs to one
+             event, so there is nothing to create or list before
+             then. -->
+        <div class="side-note" id="checkin-links-section" style="max-width:560px;display:none;">
+          <h4 data-i18n="checkinLink.sectionTitle">Check-in links</h4>
+          <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:12px;" data-i18n="checkinLink.sectionHint">A link or QR code that lets a volunteer check people in for this event without a FaithDock account. It shows names only, and stops working when it expires or you revoke it.</p>
+          <div style="display:flex;gap:8px;margin-bottom:12px;">
+            <input class="field" type="text" id="checkin-link-label" placeholder="e.g. Front door tablet" data-i18n-placeholder="checkinLink.labelPlaceholder" style="flex:1;font-size:13px;padding:9px 10px;margin:0;">
+            <button class="export-btn" id="checkin-link-create-btn" style="flex-shrink:0;" data-i18n="checkinLink.create">Create link</button>
+          </div>
+          <div id="checkin-link-status" style="display:none;font-size:12px;margin-bottom:10px;"></div>
+          <div id="checkin-links-list"></div>
+        </div>
       </div>
 
       <div class="dash-content" id="dash-directory">
@@ -7015,7 +7086,7 @@ Groups</span>
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v107 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v108 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -9045,6 +9116,19 @@ Groups</span>
     }
     if(resolved.base === 'group' && resolved.key && typeof window.populateGroupPage === 'function'){
       window.populateGroupPage(resolved.key);
+    }
+    // The door page. The body class strips the site chrome, because
+    // every link in the header leads somewhere this person has no
+    // account for -- and a nav bar is an invitation to wander off
+    // the one screen the device is propped up to show.
+    document.body.classList.toggle('checkin-link-page', resolved.base === 'checkin-link');
+    if(resolved.base === 'checkin-link'){
+      if(!resolved.key){ go('home', skipPush); return; }
+      // Guarded on window.supabase rather than assumed: this
+      // function's first call runs before the deferred module
+      // script exists. It runs again once that finishes, which is
+      // the pass that actually loads the roster.
+      if(typeof window.loadCheckinLinkPage === 'function'){ window.loadCheckinLinkPage(resolved.key); }
     }
     if(resolved.base === 'admin-church' && resolved.key && typeof window.populateAdminChurchPage === 'function'){
       window.populateAdminChurchPage(resolved.key);
@@ -11089,7 +11173,10 @@ Groups</span>
   // 'compare' IS in the list -- the comparison page was reframed
   // (generic "traditional ChMS" instead of named competitors, no
   // absolute claims) and re-linked from the Pricing page.
-  var validRoutes = ['home','directory','events','church','event','group','my-groups','my-events','my-churches','profile','pricing','compare','signup','reset-password','register-church','create-event','dashboard','admin','admin-church','help','privacy','terms','ada','waitlist'];
+    // 'checkin-link' takes the token as its key segment. Tokens are
+  // hex (see migration 052), so they survive being a path segment
+  // without encoding and cannot contain the '/' the router splits on.
+  var validRoutes = ['home','directory','events','church','event','group','my-groups','my-events','my-churches','profile','pricing','compare','signup','reset-password','register-church','create-event','dashboard','admin','admin-church','help','privacy','terms','ada','waitlist','checkin-link'];
   showRouteFromHash(true);
   applyTranslations(savedLang);
 
@@ -22954,6 +23041,16 @@ Groups</span>
 
   async function loadCheckinList(eventId){
     checkinCurrentEventId = eventId;
+    // Same browser-restored-search problem as the account-less door
+    // page, and it was already here before that page existed: pick an
+    // event after a reload and the roster silently comes up filtered
+    // by whatever was last typed. Same desk, same confusion.
+    var checkinSearchReset = document.getElementById('checkin-search');
+    if (checkinSearchReset) checkinSearchReset.value = '';
+    // Links belong to an event, so the list follows the picker
+    // rather than being its own panel -- there is nothing to show
+    // before an event is chosen.
+    if (typeof window.loadCheckinLinks === 'function') window.loadCheckinLinks();
     var tbody = document.getElementById('checkin-tbody');
     if (!eventId) {
       tbody.innerHTML = '<tr><td colspan="3" style="color:var(--ink-mute);" data-i18n="dashCheckin.selectEventFirst">Select an event above to see its check-in list.</td></tr>';
@@ -22983,6 +23080,255 @@ Groups</span>
     renderCheckinTable();
   }
   window.loadCheckinList = loadCheckinList;
+
+  // ============================================================
+  // Account-less check-in links.
+  //
+  // A door volunteer holds a link (or scans a QR) and works ONE
+  // event's roster with no FaithDock account. Focus mode was the
+  // previous answer and it hid the dashboard rather than removing it:
+  // the device was still signed in as somebody, one URL edit from the
+  // Directory. This never signs anyone in at all.
+  //
+  // The token is a bearer secret, so everything about it is bounded --
+  // one event, an expiry, revocable, and names only. See migration
+  // 052; the client cannot widen any of that, which is the point of
+  // the roster arriving through an RPC rather than a table read.
+  // ============================================================
+  var clToken = null;
+  var clRows = [];
+  var clEvent = null;
+
+  function clRender(){
+    var tbody = document.getElementById('cl-tbody');
+    var countEl = document.getElementById('cl-count');
+    if (!tbody) return;
+    var searchVal = (document.getElementById('cl-search').value || '').toLowerCase();
+
+    countEl.textContent = clRows.filter(function(r){ return r.checked_in_at; }).length + ' / ' + clRows.length;
+
+    var filtered = clRows.filter(function(r){
+      return !searchVal || String(r.name || '').toLowerCase().indexOf(searchVal) !== -1;
+    });
+    if (!filtered.length) {
+      tbody.innerHTML = '<tr><td colspan="3" style="color:var(--ink-mute);">'
+        + window.t(clRows.length ? 'dashCheckin.noSearchMatch' : 'dashCheckin.noOneRegisteredYet') + '</td></tr>';
+      return;
+    }
+    tbody.innerHTML = filtered.map(function(r){
+      var label = r.is_walk_in ? window.t('dashCheckin.walkInTag')
+        : (r.role === 'volunteer' ? window.t('myEvents.volunteer') : window.t('myEvents.participant'));
+      var checked = !!r.checked_in_at;
+      return '<tr class="checkin-row" data-checked="' + checked + '" data-cl-id="' + escapeHtml(r.id) + '">'
+        + '<td>' + escapeHtml(r.name) + '</td>'
+        + '<td class="mono">' + escapeHtml(label) + '</td>'
+        + '<td class="checkin-status">' + (checked ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:16px;height:16px;color:var(--gold);"><path d="M20 6L9 17l-5-5"/></svg>' : '') + '</td>'
+        + '</tr>';
+    }).join('');
+  }
+
+  async function loadCheckinLinkPage(token){
+    var mainEl = document.getElementById('cl-main');
+    var invalidEl = document.getElementById('cl-invalid');
+    if (!mainEl || !invalidEl || !window.supabase) return;
+    clToken = token;
+    // Browsers restore a text input's last-typed value on reload as
+    // their own feature, independent of anything set here. On a
+    // check-in desk that is not cosmetic: a leftover search term
+    // silently hides most of the roster, and the volunteer sees a
+    // short list with no indication that it is filtered. Caught by
+    // loading this page cold and finding one row of three.
+    //
+    // Cleared here rather than once at script-eval time, so it also
+    // resets when the same device reopens the page later in the day.
+    // The hero search does the same thing for the same reason.
+    var clSearchReset = document.getElementById('cl-search');
+    if (clSearchReset) clSearchReset.value = '';
+
+    var { data, error } = await supabase.rpc('checkin_link_open', { p_token: token });
+    // An error and an invalid token land in the same place on purpose.
+    // The person at the door cannot act on the difference between "no
+    // such link" and "the database said no", and distinguishing them
+    // here would also tell somebody guessing tokens when they had
+    // found a real one.
+    if (error || !data || !data.valid) {
+      mainEl.style.display = 'none';
+      invalidEl.style.display = 'block';
+      if (error) console.error('Check-in link failed:', error);
+      return;
+    }
+
+    clEvent = data.event;
+    clRows = data.roster || [];
+    invalidEl.style.display = 'none';
+    mainEl.style.display = 'block';
+    document.getElementById('cl-church').textContent = clEvent.church_name || '';
+    document.getElementById('cl-title').textContent = clEvent.title || '';
+    document.getElementById('cl-when').textContent = clEvent.start_at
+      ? new Date(clEvent.start_at).toLocaleString(window.appLocale(), { weekday: 'long', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit' })
+      : '';
+    clRender();
+  }
+  window.loadCheckinLinkPage = loadCheckinLinkPage;
+
+  var clSearchEl = document.getElementById('cl-search');
+  if (clSearchEl) clSearchEl.addEventListener('input', clRender);
+
+  document.addEventListener('click', async function(ev){
+    var row = ev.target.closest ? ev.target.closest('[data-cl-id]') : null;
+    if (!row || !clToken) return;
+    var id = row.getAttribute('data-cl-id');
+    var record = clRows.filter(function(r){ return r.id === id; })[0];
+    if (!record) return;
+
+    // Painted before the round trip, then reconciled against what the
+    // server actually stored -- a check-in desk with a queue in front
+    // of it cannot wait on latency per person. The revert below is
+    // what keeps that from becoming the v87 bug, where an optimistic
+    // tick hid a write that never happened.
+    var wasChecked = !!record.checked_in_at;
+    record.checked_in_at = wasChecked ? null : new Date().toISOString();
+    clRender();
+
+    var { data: stored, error } = await supabase.rpc('checkin_link_mark', {
+      p_token: clToken,
+      p_registration_id: id,
+      p_checked_in: !wasChecked
+    });
+    if (error) {
+      record.checked_in_at = wasChecked ? new Date().toISOString() : null;
+      clRender();
+      alert(window.t('checkinLink.markFailed'));
+      return;
+    }
+    // The stored value, not the guess: if the server wrote a different
+    // time (or nothing) the screen follows it rather than the hope.
+    record.checked_in_at = stored;
+    clRender();
+  });
+
+  // ---- Managing links, from the Check-In panel --------------------
+  function checkinLinkUrl(token){
+    return location.origin + location.pathname + '#checkin-link/' + token;
+  }
+
+  function setCheckinLinkStatus(msg, colorVar){
+    var el = document.getElementById('checkin-link-status');
+    if (!el) return;
+    el.textContent = msg;
+    el.style.color = 'var(' + (colorVar || '--ink-mute') + ')';
+    el.style.display = msg ? 'block' : 'none';
+  }
+
+  async function loadCheckinLinks(){
+    var section = document.getElementById('checkin-links-section');
+    var listEl = document.getElementById('checkin-links-list');
+    if (!section || !listEl) return;
+    if (!checkinCurrentEventId) { section.style.display = 'none'; return; }
+
+    var { data, error } = await supabase.from('event_checkin_links')
+      .select('id, token, label, expires_at, revoked_at, last_used_at, created_at')
+      .eq('event_id', checkinCurrentEventId)
+      .order('created_at', { ascending: false });
+
+    // Soft failure: the roster above is the reason this page exists.
+    // If 052 has not been run, the section simply is not there.
+    if (error) { section.style.display = 'none'; console.error('Check-in links unavailable:', error); return; }
+    section.style.display = 'block';
+
+    if (!data || !data.length) {
+      listEl.innerHTML = '<p style="color:var(--ink-mute);font-size:12.5px;">' + window.t('checkinLink.none') + '</p>';
+      return;
+    }
+    var now = Date.now();
+    listEl.innerHTML = data.map(function(l){
+      var expired = new Date(l.expires_at).getTime() <= now;
+      var dead = !!l.revoked_at || expired;
+      var state = l.revoked_at ? window.t('checkinLink.revoked')
+        : (expired ? window.t('checkinLink.expired')
+          : window.t('checkinLink.activeUntil').replace('{when}', new Date(l.expires_at).toLocaleString(window.appLocale(), { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })));
+      return '<div class="info-row" style="display:block;">'
+        + '<div style="display:flex;justify-content:space-between;gap:10px;align-items:baseline;">'
+          + '<span style="min-width:0;"><strong style="' + (dead ? 'font-weight:500;color:var(--ink-mute);' : '') + '">'
+            + escapeHtml(l.label || window.t('checkinLink.untitled')) + '</strong>'
+            + '<span style="color:var(--ink-mute);font-size:12px;"> — ' + escapeHtml(state) + '</span></span>'
+        + '</div>'
+        + (l.last_used_at ? '<div style="font-size:11.5px;color:var(--ink-mute);margin-top:2px;">'
+            + escapeHtml(window.t('checkinLink.lastUsed').replace('{when}', new Date(l.last_used_at).toLocaleString(window.appLocale(), { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })))
+            + '</div>' : '')
+        + '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;">'
+          + (dead ? '' : '<button class="export-btn" data-cl-copy="' + escapeHtml(l.token) + '">' + window.t('checkinLink.copy') + '</button>')
+          + (dead ? '' : '<button class="export-btn" data-cl-qr="' + escapeHtml(l.token) + '">' + window.t('checkinLink.qr') + '</button>')
+          + (l.revoked_at ? '' : '<button class="qr-btn" data-cl-revoke="' + escapeHtml(l.id) + '" aria-label="' + window.t('checkinLink.revoke') + '">×</button>')
+        + '</div>'
+      + '</div>';
+    }).join('');
+  }
+  window.loadCheckinLinks = loadCheckinLinks;
+
+  var checkinLinkCreateBtn = document.getElementById('checkin-link-create-btn');
+  if (checkinLinkCreateBtn) checkinLinkCreateBtn.addEventListener('click', async function(){
+    if (!checkinCurrentEventId) return;
+    checkinLinkCreateBtn.disabled = true;
+    setCheckinLinkStatus(window.t('common.loading'));
+    var labelEl = document.getElementById('checkin-link-label');
+    var { data, error } = await supabase.rpc('create_event_checkin_link', {
+      p_event_id: checkinCurrentEventId,
+      p_label: labelEl.value.trim() || null,
+      p_expires_at: null
+    });
+    checkinLinkCreateBtn.disabled = false;
+    if (error || !data) {
+      setCheckinLinkStatus(error ? error.message : window.t('common.somethingWrong'), '--clay');
+      return;
+    }
+    labelEl.value = '';
+    setCheckinLinkStatus(window.t('checkinLink.created'), '--sage');
+    loadCheckinLinks();
+  });
+
+  document.addEventListener('click', async function(ev){
+    if (!ev.target.closest) return;
+
+    var copyBtn = ev.target.closest('[data-cl-copy]');
+    if (copyBtn) {
+      var url = checkinLinkUrl(copyBtn.getAttribute('data-cl-copy'));
+      if (navigator.clipboard) navigator.clipboard.writeText(url);
+      setCheckinLinkStatus(window.t('checkinLink.copied'), '--sage');
+      return;
+    }
+
+    var qrBtn = ev.target.closest('[data-cl-qr]');
+    if (qrBtn) {
+      // Reuses the existing share modal rather than building a second
+      // QR surface. Same generator, same markup, one place to change
+      // if it ever moves off an external service.
+      var qrUrl = checkinLinkUrl(qrBtn.getAttribute('data-cl-qr'));
+      document.getElementById('share-modal-title').textContent = window.t('checkinLink.sectionTitle');
+      document.getElementById('share-modal-link').value = qrUrl;
+      document.getElementById('share-modal-qr').src = 'https://api.qrserver.com/v1/create-qr-code/?size=280x280&margin=8&data=' + encodeURIComponent(qrUrl);
+      document.getElementById('share-modal').classList.add('open');
+      return;
+    }
+
+    var revokeBtn = ev.target.closest('[data-cl-revoke]');
+    if (revokeBtn) {
+      if (!confirm(window.t('checkinLink.confirmRevoke'))) return;
+      var res = await supabase.from('event_checkin_links')
+        .update({ revoked_at: new Date().toISOString() })
+        .eq('id', revokeBtn.getAttribute('data-cl-revoke'))
+        .select('id');
+      // Row count, not just the error -- an update matching zero rows
+      // reports success, and here that would mean telling somebody a
+      // link was dead while it kept letting people in.
+      if (res.error || !res.data || !res.data.length) {
+        alert(res.error ? res.error.message : window.t('checkinLink.revokeFailed'));
+        return;
+      }
+      loadCheckinLinks();
+    }
+  });
+
 
   // ============================================================
   // Staff permission presets.
