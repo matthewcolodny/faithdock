@@ -3381,3 +3381,24 @@ Extension-owned functions are excluded via `pg_depend ... deptype = 'e'`. This m
 Trading real query performance for a warning that carries no privilege risk is a bad trade. Worth recording because the obvious move is to clear every warning the linter raises, and "the linter is satisfied" is not the same as "the system is better". The migration says how to sweep them too, for anyone who decides the clean dashboard is worth benchmarking for.
 
 No build stamp: server-side only.
+
+---
+
+## The storage-bucket listing warning was a false positive
+
+The Advisor's `public_bucket_allows_listing` flagged all three public buckets (`church-logos`, `event-images`, `profile-photos`) as letting any client enumerate every file. Tested before acting, and the exposure does not exist:
+
+- The database shows 2 churches with a `logo_url`, so `church-logos` is demonstrably not empty.
+- `list('')` at the bucket root returns `[]`.
+- `list('<folder>')` using the exact uuid folder taken from a real logo URL **also** returns `[]`.
+- A `HEAD` on the public object URL returns 200, so the objects themselves serve fine.
+
+Files exist, public URLs work, and listing returns nothing even when the folder name is already known. Whatever that SELECT policy says, it is not granting enumeration. The lint is a heuristic -- it sees a broad-looking SELECT policy on `storage.objects` and infers listing works.
+
+**Recommendation recorded so nobody re-opens it: leave those policies alone.** Dropping them buys no security and risks breaking a path that isn't visible from here.
+
+The trap this avoided is worth naming. An earlier probe of the same thing was *inconclusive* -- `list()` returned `[]` with no error, and Supabase returns `[]` both for "empty" and for "denied", so it looked like it might be empty. The resolving move was to establish independently (from the `churches` table) that files definitely exist, which turns an empty listing from ambiguous into proof. Reporting "no files listed" as either safety or exposure without that step would have been a guess in a security review.
+
+Also a reminder that a linter finding is a hypothesis, not a result. Of this run's ~200 warnings, one was a genuine vulnerability (`get_user_id_by_email`), a handful were real hardening, ~150 were noise inherent to how PostgREST works, and this one was simply wrong about the system.
+
+No migration, no build stamp -- deliberately no change.
