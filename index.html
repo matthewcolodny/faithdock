@@ -2445,33 +2445,25 @@
   .thumb--denom svg{width:54px;height:54px;fill:hsl(var(--thumb-hue,220) 30% 46%);opacity:.7;}
   html[data-theme="dark"] .thumb--denom{background:hsl(var(--thumb-hue,220) 22% 17%);}
   html[data-theme="dark"] .thumb--denom svg{fill:hsl(var(--thumb-hue,220) 24% 60%);opacity:.8;}
-  /* Follow-church heart: replaces the earlier "Managed by this church"
-     badge attempt entirely, per direct feedback that a claimed/managed
-     signal doesn't make sense here yet -- this is a real, interactive
-     follow toggle instead. .thumb is already position:relative, so the
-     card version just anchors to it directly. No circle chrome behind
-     it (removed per direct feedback -- the first pass had one and it
-     read as a badge, not a heart).
-     fill/stroke/opacity are !important, not just relying on source
-     order: for a logoless card the heart nests inside .thumb--denom,
-     and html[data-theme="dark"] .thumb--denom svg's selector (0,0,2,2)
-     is genuinely more specific than a plain .follow-heart-card svg rule
-     (0,0,1,1) regardless of where it's defined in the stylesheet --
-     confirmed via computed-style inspection in a local preview (fill
-     was silently coming out as the denomination hue, not grey/white)
-     before reaching for !important here rather than guessing.
-     Light mode (default) vs. dark mode are deliberately styled
-     differently, not just recolored: light mode's empty heart is a
-     grey outline whose FILL matches the card's own background color
-     (var(--thumb-hue), same formula .thumb--denom itself uses) so it
-     blends into whatever pastel placeholder is behind it rather than
-     sitting on top as a solid shape -- no drop-shadow needed there
-     since it's not competing with a photo for contrast. Dark mode
-     keeps the earlier solid-silhouette-plus-drop-shadow treatment,
-     since dark thumbnails (photos especially) don't have one single
-     "card color" a stroke-only heart could reliably blend into. */
+  /* Follow heart on a card (churches and events alike). It sat in the
+     thumbnail's corner until it was moved, requested directly with
+     screenshots of both the Directory and the Events page, so that it
+     no longer sits on top of the graphic -- it's now in .card-body,
+     pinned to the right of the tag row and vertically level with the
+     first tag, as drawn on those screenshots.
+     A flex row rather than position:absolute or a float, both of which
+     were tried first. Absolute would eventually be overlapped: an event
+     card carries up to three tags that wrap. A float avoided that but
+     put the heart on its own line whenever the tags were too wide to
+     fit beside it -- "Christian / General" is 154px in a 181px column,
+     so on the Directory the heart floated to a line of its own above
+     the tag instead of level with it. Flex gives the tags their own
+     column to wrap inside, so the heart is always in the same place and
+     nothing can ever collide with it. */
+  .card-tag-row{display:flex;align-items:flex-start;gap:8px;}
+  .card-tag-row .card-tags{flex:1;min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:6px;}
   .follow-heart-card{
-    position:absolute;top:8px;right:8px;width:28px;height:28px;
+    flex-shrink:0;width:28px;height:28px;
     background:none;border:none;display:flex;align-items:center;justify-content:center;
     cursor:pointer;padding:0;
     /* Real, reported bug, still visible on mobile after the :focus-
@@ -2504,12 +2496,18 @@
      navigation, which still needs a visible indicator (this site has a
      dedicated Accessibility page committing to exactly that). */
   .follow-heart-card:focus:not(:focus-visible){outline:none;}
-  .follow-heart-card svg{
-    width:18px;height:18px;
-    stroke:#8A8A8A !important;stroke-width:1.5 !important;
-    fill:hsl(var(--thumb-hue,220) 34% 88%) !important;
-    opacity:1 !important;
-  }
+  /* Recolored when the heart moved off the thumbnail. The old fill was
+     hsl(var(--thumb-hue)) -- deliberately the denomination hue, so an
+     empty heart blended into the pastel placeholder behind it. There is
+     no thumb behind it any more, --thumb-hue isn't even set on
+     .card-body, and that fill would have fallen back to a pale blue
+     sitting on the card. The whole !important scaffolding went with it:
+     it existed only to beat html[data-theme="dark"] .thumb--denom svg,
+     which the heart is no longer nested inside.
+     Now the same treatment as .follow-heart-row and
+     .follow-heart-profile -- a flat card surface with no photo to blend
+     into is exactly the case those two already solve. */
+  .follow-heart-card svg{width:18px;height:18px;stroke:#8A8A8A;stroke-width:1.5;fill:none;}
   /* White used to be the followed fill in both themes, but a real
      uploaded logo always sits on a hardcoded white background
      (churchCard()'s background-color:#fff, theme-independent -- see
@@ -2519,27 +2517,19 @@
      already in the palette (--clay's #E2917A/#A8503A read as coral/
      terracotta, not pink; --clay-bg's #F3E4DE is a pale beige, not
      pink either) -- checked before picking a new hex, not guessed. */
-  .follow-heart-card[data-following="true"] svg{fill:#F0A8C4 !important;stroke:#8A8A8A !important;}
-  /* Dark mode: outlined-badge treatment, requested directly -- fill
-     matches var(--card) (the same background every card/panel already
-     uses) with a gold stroke when empty, so it reads as a deliberate
-     chip sitting on the thumbnail rather than trying to blend into it
-     (the earlier solid-grey-silhouette treatment existed specifically
-     because a photo thumb has no one color to blend into -- this sidesteps
-     that by not attempting to blend into the PHOTO at all, just matching
-     the site's own card chrome instead). Followed state drops the gold
-     stroke entirely and fills solid pink -- same specificity trap as
-     .thumb--denom above applies to the [data-following="true"] override
-     too, so it has to stay scoped under html[data-theme="dark"] here,
-     not left unscoped, or the plain dark-mode default just above (more
-     specific) would outrank it and a followed heart would never
-     actually turn pink in dark mode. Verified by computing specificity,
-     not by trial and error. */
-  html[data-theme="dark"] .follow-heart-card svg{
-    stroke:var(--gold) !important;stroke-width:1.5 !important;fill:var(--card) !important;
-    filter:drop-shadow(0 1px 2px rgba(0,0,0,.5));
-  }
-  html[data-theme="dark"] .follow-heart-card[data-following="true"] svg{stroke:none !important;fill:#F0A8C4 !important;}
+  .follow-heart-card[data-following="true"] svg{fill:#F0A8C4;stroke:#F0A8C4;}
+  /* Dark mode: gold outline on a card-colored fill when empty, matching
+     the site's own card chrome. The drop-shadow that used to be here
+     went with the move -- it existed to hold the heart legible against
+     an arbitrary photo thumbnail, and on a flat card it only muddied
+     the outline.
+     The [data-following="true"] override MUST stay scoped under
+     html[data-theme="dark"]: this rule is (0,0,2,2) and an unscoped
+     followed rule is (0,0,2,1), so unscoping it would silently leave a
+     followed heart outlined instead of pink in dark mode. Same trap as
+     .follow-heart-row and .follow-heart-profile -- three for three. */
+  html[data-theme="dark"] .follow-heart-card svg{stroke:var(--gold);fill:var(--card);}
+  html[data-theme="dark"] .follow-heart-card[data-following="true"] svg{stroke:none;fill:#F0A8C4;}
   .follow-heart-row{
     /* Padding (not icon size) is what grows the click target here --
        2px was reported as too easy to miss, landing the click on the
@@ -2586,14 +2576,11 @@
      in this stylesheet), not the broader ~860px tablet/layout one. */
   @media (max-width:600px){
     .follow-heart-card{width:34px;height:34px;}
-    /* !important required here too -- the base .follow-heart-card svg
-       rule above is itself !important (needed to beat
-       .thumb--denom svg's specificity on logoless cards), and a
-       non-!important rule can never override an !important one
-       regardless of media query or specificity. Learned from the same
-       mistake already made and fixed once for color/opacity on this
-       exact selector -- checked this time instead of repeating it. */
-    .follow-heart-card svg{width:22px !important;height:22px !important;}
+    /* The !important that used to be on both of these is gone along
+       with the base rule's -- that whole scaffolding only ever existed
+       to beat .thumb--denom svg, which stopped applying when the heart
+       moved out of the thumbnail. */
+    .follow-heart-card svg{width:22px;height:22px;}
     .follow-heart-row svg{width:21px;height:21px;}
   }
   /* Church profile page's own follow heart, top-right of the banner,
@@ -6620,7 +6607,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v75 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v76 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -7117,12 +7104,17 @@
     var distText = formatChurchDistanceText(c.dist);
     var badge = followHeartCard(c);
     var thumb = c.logoUrl
-      ? '<div class="thumb" style="background-image:url(\'' + c.logoUrl + '\');background-size:contain;background-repeat:no-repeat;background-position:center;background-color:#fff;background-origin:content-box;padding:16px;box-sizing:border-box;">' + badge + '</div>'
-      : '<div class="thumb thumb--denom" style="--thumb-hue:' + denomHue(c.tag) + ';">' + buildingIcon + badge + '</div>';
+      ? '<div class="thumb" style="background-image:url(\'' + c.logoUrl + '\');background-size:contain;background-repeat:no-repeat;background-position:center;background-color:#fff;background-origin:content-box;padding:16px;box-sizing:border-box;"></div>'
+      : '<div class="thumb thumb--denom" style="--thumb-hue:' + denomHue(c.tag) + ';">' + buildingIcon + '</div>';
     var inner = ''
       + thumb
       + '<div class="card-body">'
-      + '<span class="tag sage">' + translateDenomination(c.tag) + '</span>'
+      // Tag and heart share one flex row so the heart lands level with
+      // the tag rather than above it -- see .card-tag-row's comment.
+      + '<div class="card-tag-row">'
+      + '<div class="card-tags"><span class="tag sage">' + translateDenomination(c.tag) + '</span></div>'
+      + badge
+      + '</div>'
       + '<h3>' + displayChurchName(c.name) + '</h3>'
       + '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/></svg>' + distText + '</div>'
       + '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>' + formatChurchNextText(c.next, (c.rawServiceTimes || []).length) + '</div>'
@@ -8012,14 +8004,20 @@
     // looking at.
     var eventHeart = followHeartEvent(e);
     var thumb = e.imageUrl
-      ? '<div class="thumb" style="background-image:url(\'' + e.imageUrl + '\');background-size:cover;background-position:center;">' + eventHeart + '</div>'
-      : '<div class="thumb thumb--event">' + calendarIcon + eventHeart + '</div>';
+      ? '<div class="thumb" style="background-image:url(\'' + e.imageUrl + '\');background-size:cover;background-position:center;"></div>'
+      : '<div class="thumb thumb--event">' + calendarIcon + '</div>';
     var churchLabel = (e.church === 'A FaithDock church') ? window.t('church.genericName') : e.church;
     var distanceText = (e.distanceMiles != null) ? e.distanceMiles.toFixed(1) + ' mi ' + window.t('church.away') : null;
     var inner = ''
       + thumb
       + '<div class="card-body">'
-      + (e.visibilityLabel ? '<span class="tag ' + (e.membersOnly ? 'clay' : 'sage') + '" style="margin-right:6px;">' + translateBadgeLabel(e.visibilityLabel) + '</span>' : '')
+      // Same flex tag row as churchCard. The per-span margin-left/right
+      // these tags used to carry is gone: .card-tags is a flex row with
+      // gap:6px, and keeping both would have doubled the spacing
+      // between them.
+      + '<div class="card-tag-row">'
+      + '<div class="card-tags">'
+      + (e.visibilityLabel ? '<span class="tag ' + (e.membersOnly ? 'clay' : 'sage') + '">' + translateBadgeLabel(e.visibilityLabel) + '</span>' : '')
       + '<span class="tag ' + e.badge + '">' + translateBadgeLabel(e.badgeLabel) + '</span>'
       // data-fill-badge-for / data-capacity-count-for let
       // applyFillBadgeFromCount() find and update these in place after a
@@ -8028,11 +8026,14 @@
       // (hidden when they have nothing to say) rather than conditionally,
       // so there's always an element to update -- otherwise an event
       // going from "not full" to "Full" would have no badge to write to.
-      + '<span class="tag' + (e.fillBadge ? ' ' + e.fillBadge.color : '') + '" data-fill-badge-for="' + e.id + '" style="margin-left:6px;' + (e.fillBadge ? '' : 'display:none;') + '">' + (e.fillBadge ? translateBadgeLabel(e.fillBadge.label) : '') + '</span>'
+      + '<span class="tag' + (e.fillBadge ? ' ' + e.fillBadge.color : '') + '" data-fill-badge-for="' + e.id + '" style="' + (e.fillBadge ? '' : 'display:none;') + '">' + (e.fillBadge ? translateBadgeLabel(e.fillBadge.label) : '') + '</span>'
       // Same registration gate as fillBadge (see mapSearchEventRow):
       // a "no signup needed" event has no signups to count, so "0/1"
       // there is meaningless -- reported directly.
-      + '<span class="tag" data-capacity-count-for="' + e.id + '" style="margin-left:6px;' + ((e.registrationRequired && e.maxParticipants) ? '' : 'display:none;') + '">' + ((e.registrationRequired && e.maxParticipants) ? ((e.confirmedParticipantCount || 0) + '/' + e.maxParticipants) : '') + '</span>'
+      + '<span class="tag" data-capacity-count-for="' + e.id + '" style="' + ((e.registrationRequired && e.maxParticipants) ? '' : 'display:none;') + '">' + ((e.registrationRequired && e.maxParticipants) ? ((e.confirmedParticipantCount || 0) + '/' + e.maxParticipants) : '') + '</span>'
+      + '</div>'
+      + eventHeart
+      + '</div>'
       + '<h3>' + e.title + '</h3>'
       + '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/></svg>' + churchLabel + (distanceText ? ' · ' + distanceText : '') + '</div>'
       + '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>' + e.when + '</div>';
@@ -25179,7 +25180,10 @@
       document.querySelectorAll('[data-fill-badge-for="' + cached.id + '"]').forEach(function(cardBadge){
         if (fillBadge) {
           cardBadge.className = 'tag ' + fillBadge.color;
-          cardBadge.style.marginLeft = '6px';
+          // No marginLeft here any more: these tags live in .card-tags,
+          // a flex row with its own gap, so setting one would have made
+          // a live "Full" update drift 6px further right than the tag
+          // it was rendered beside.
           cardBadge.textContent = translateBadgeLabel(fillBadge.label);
           cardBadge.style.display = 'inline-flex';
         } else {

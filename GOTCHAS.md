@@ -3150,3 +3150,23 @@ The svg is sized in percent now (39%, the ratio the old fixed 33px-in-84px pair 
 "Classes & Studies" is the only category showing its full name in the row -- Support Groups and Sports & Recreation still show short forms. That's deliberate but inconsistent, and worth revisiting as a set rather than one at a time.
 
 Build `2026-09-17-v75`.
+
+---
+
+## The card heart moved off the thumbnail -- and took three layout attempts
+
+Requested with screenshots of both the Directory and the Events page: move the heart on church and event cards out of the thumbnail's corner and into the card body's top right, so it no longer sits on top of the graphic.
+
+Three approaches, in order, and the first two are worth recording because each looked right until it was measured:
+
+1. **position:absolute** in the card body. Fine on a church card with one tag; an event card carries up to three tags that wrap, so sooner or later one would end up underneath the heart.
+2. **float:right** as the first child of `.card-body`. Collision-proof by construction -- a float is a hole in the text flow. But a float only sits beside content that *fits* next to it, and "Christian / General" is a 145-154px tag in a 181px column. On the Directory the heart floated onto a line of its own **above** the tag rather than level with it, which isn't what the screenshots asked for. Caught by measuring `levelWithTag` across six cards with different denominations, not by looking at one.
+3. **A flex tag row**, which is what shipped: `.card-tags` (flex:1, wrapping) beside the heart (flex-shrink:0). The tags get their own column to wrap inside, so the heart is in the same place on every card and nothing can collide with it at any width.
+
+**Recolored, same lesson as the profile heart.** The empty heart's fill was `hsl(var(--thumb-hue))` -- deliberately the denomination hue, so it blended into the pastel placeholder behind it. There is no thumb behind it now and `--thumb-hue` isn't set on `.card-body`, so that fill would have fallen back to a pale blue sitting on the card. It now uses the same treatment as `.follow-heart-row` and `.follow-heart-profile`. The whole `!important` scaffolding went with it: it existed solely to beat `html[data-theme="dark"] .thumb--denom svg`, a selector the heart is no longer nested inside. The dark-mode drop-shadow went too -- it held the heart legible against an arbitrary photo, and on a flat card it only muddied the outline. The `[data-following="true"]` override still has to stay scoped under `html[data-theme="dark"]`; that's the same specificity trap for the third time across three heart variants.
+
+**One easily-missed follow-on**: `applyFillBadgeFromCount()` set `cardBadge.style.marginLeft = '6px'` when writing a live "Full" update, matching the inline margin the tags used to carry. Those margins are gone now that `.card-tags` has its own flex `gap`, so leaving that line would have made a tag drift 6px right of where it rendered the moment capacity changed -- visible only after someone else registered, which is exactly the kind of thing that never shows up in a static check.
+
+Verified by measurement on six Directory cards spanning tag widths from 66px to 145px (heart below the thumb, level with the tag, zero overlap, consistent 18px inset) and on an event card with all three tags showing. `elementFromPoint` at the heart's centre returns the heart on both. The Directory was also confirmed visually; the event card's screenshot wouldn't capture (the preview pane stopped rendering), so that one rests on the measurements plus the fact that both card types now share the same `.card-tag-row` structure.
+
+Build `2026-09-17-v76`.
