@@ -3190,3 +3190,23 @@ Empty array, never null, when nothing is followed. `null` means "no filter" to t
 The checkbox appears only once you follow something, same rule as the two beside it. It re-evaluates when `loadEventFilterFollowState()` runs, so hearting your first event reveals it on the next load rather than instantly -- the alternative is a round trip per heart tap.
 
 Build `2026-09-17-v77`; **migration 039 must be run by hand** for the filter to do anything. Until it is, ticking the box changes nothing rather than breaking anything: the param is omitted, so the search comes back as though the box were unchecked.
+
+---
+
+## get_directory_people didn't know the approval workflow existed
+
+Flagged as a suspicion while building the membership queue, then confirmed by reading the deployed function: `get_directory_people()` predates migrations 035/036 and was never taught that asking to join and being a member are different things.
+
+```
+left join church_memberships cm
+  on cm.user_id = p.id and cm.church_id = target_church_id
+  and cm.is_permanent = true
+```
+
+No `status` anywhere, and `is_member` is `coalesce(cm.is_permanent, false)`. A row created by someone merely *requesting* to join is `is_permanent = true, status = 'pending'`, so two things went wrong at once: the person was reported as a full member, **and** the outer `where cm.id is not null` is what admitted them to the result at all -- someone with no other connection to the church appeared in its Directory purely by having asked. That defeats the point of an approval queue: the church sees them as already in before deciding anything.
+
+One missing predicate causes both, so one line fixes both. It goes in the JOIN condition, not the WHERE: this is a LEFT join, and a `where cm.status = 'approved'` would quietly turn it into an inner join and drop every staff member, owner and event registrant who has no membership row at all.
+
+Migration 040 uses `CREATE OR REPLACE` with no DROP, unlike 039 the same day. That's not inconsistency: 039 *added a parameter*, which REPLACE cannot do (it leaves a second overload and the PGRST203 that 022 caused). Here the argument list and the `RETURNS TABLE` row type are byte-identical and only the body changes, which is precisely the case REPLACE handles. The migration is the live `pg_get_functiondef` output with one line changed, not a reconstruction from memory -- worth insisting on for an untracked function, since anything reconstructed would silently become the new truth.
+
+No build stamp: this is entirely server-side, no index.html change.
