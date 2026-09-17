@@ -465,7 +465,7 @@
       'events.shareOnFacebook': 'Share on Facebook', 'events.shareOnX': 'Share on X', 'events.copyLinkForInstagram': 'Copy link for Instagram', 'events.shareByEmail': 'Share by email', 'events.copyLink': 'Copy link',
       'events.eventContact': 'Event contact', 'events.eventContacts': 'Event contacts', 'events.for': 'For:',
       'events.hostedByMinistry': 'Hosted by',
-      'events.featured': 'Featured', 'events.participant': 'Participant', 'events.volunteerRole': 'Volunteer',
+      'events.participant': 'Participant', 'events.volunteerRole': 'Volunteer',
       'events.hostedBy': 'hosted by', 'events.hostedByLabel': 'Hosted by', 'events.linkCopied': 'Link copied!', 'events.linkCopiedInstagram': 'Link copied — paste it into your Instagram Story or bio.',
       'category.volunteer': 'Volunteer', 'category.celebrations': 'Celebrations', 'category.holidays': 'Holidays',
       'category.community': 'Community', 'category.worship': 'Worship', 'category.classes': 'Classes',
@@ -1265,7 +1265,7 @@
       'events.shareOnFacebook': 'Compartir en Facebook', 'events.shareOnX': 'Compartir en X', 'events.copyLinkForInstagram': 'Copiar enlace para Instagram', 'events.shareByEmail': 'Compartir por correo electrónico', 'events.copyLink': 'Copiar enlace',
       'events.eventContact': 'Contacto del evento', 'events.eventContacts': 'Contactos del evento', 'events.for': 'Para:',
       'events.hostedByMinistry': 'Organizado por',
-      'events.featured': 'Destacado', 'events.participant': 'Participante', 'events.volunteerRole': 'Voluntario',
+      'events.participant': 'Participante', 'events.volunteerRole': 'Voluntario',
       'events.hostedBy': 'organizado por', 'events.hostedByLabel': 'Organizado por', 'events.linkCopied': '¡Enlace copiado!', 'events.linkCopiedInstagram': 'Enlace copiado — pégalo en tu historia o biografía de Instagram.',
       'category.volunteer': 'Voluntariado', 'category.celebrations': 'Celebraciones', 'category.holidays': 'Días festivos',
       'category.community': 'Comunidad', 'category.worship': 'Adoración', 'category.classes': 'Clases',
@@ -6438,7 +6438,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-16-v60 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-16-v61 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -7762,7 +7762,6 @@
     var inner = ''
       + thumb
       + '<div class="card-body">'
-      + (e.featured ? '<span class="tag gold" style="margin-right:6px;"><svg viewBox="0 0 24 24" fill="currentColor" style="width:11px;height:11px;vertical-align:-1px;margin-right:3px;"><path d="M12 2l2.9 6.3L22 9.3l-5 4.9 1.2 7.1L12 17.8l-6.2 3.5L7 14.2 2 9.3l7.1-1L12 2z"/></svg>' + window.t('events.featured') + '</span>' : '')
       + '<span class="tag ' + e.badge + '">' + translateBadgeLabel(e.badgeLabel) + '</span>'
       // data-fill-badge-for / data-capacity-count-for let
       // applyFillBadgeFromCount() find and update these in place after a
@@ -9441,24 +9440,17 @@
     }
   });
 
-  // Large-plan churches' events get shuffled into the top slots on
-  // every render — not a fixed position. Nobody permanently owns
-  // "first," so paying churches get roughly equal exposure across
-  // visitors over time without needing a scheduling system, and
-  // "featured" stays honest as "in the rotation pool" rather than
-  // "always #1."
-  function applyFeaturedRotation(list){
-    var featured = [];
-    var rest = [];
-    for (var i = 0; i < list.length; i++) {
-      (list[i].featured ? featured : rest).push(list[i]);
-    }
-    for (var j = featured.length - 1; j > 0; j--) {
-      var swapIdx = Math.floor(Math.random() * (j + 1));
-      var tmp = featured[j]; featured[j] = featured[swapIdx]; featured[swapIdx] = tmp;
-    }
-    return featured.concat(rest);
-  }
+  // The "Featured" event tag and its top-slot rotation were removed
+  // deliberately, not lost. Both keyed off nothing but the host
+  // church's plan (premium/multi_church), which meant every event a
+  // paid church posted was featured by default -- so a Multi-Church
+  // account running several churches could fill every top slot at once
+  // and crowd everyone else out, which is the opposite of the even
+  // exposure the rotation was meant to provide. Removed until there's
+  // a design with real controls (a per-event opt-in, a cap per church,
+  // a paid placement window -- something bounded). Listings now show
+  // events in whatever order search_events returns them, with no
+  // plan-based reordering at all.
 
   // Maps a search_events() RPC row into the same shape eventCard()
   // and populateEventPage() already expect.
@@ -9491,7 +9483,6 @@
       church: row.church_name || 'A FaithDock church',
       churchId: row.church_id,
       distanceMiles: row.distance_miles,
-      featured: !!(row.church_plan_type === 'premium' || row.church_plan_type === 'multi_church'),
       when: window.formatEventWhen(row.start_at, row.end_at),
       badge: badge, badgeLabel: badgeLabel, fillBadge: fillBadge,
       daysOut: daysOut, real: true,
@@ -9779,11 +9770,12 @@
     rows.forEach(mergeEventIntoCache);
 
     if (!append) {
-      // Cache the already-rotated array, not the raw rows -- re-
-      // calling applyFeaturedRotation() again on a language-toggle
-      // refresh would re-shuffle which featured events show first
-      // every time, an unrelated visual side effect nobody asked for.
-      window.eventsLastRenderedRows = applyFeaturedRotation(rows);
+      // Held onto so a language toggle can re-render the same rows in
+      // the new language without re-running the search (see
+      // refreshEventsCardsText). Plain search_events order now -- the
+      // plan-based featured rotation that used to reorder these was
+      // removed; see the note where it was defined.
+      window.eventsLastRenderedRows = rows;
       if (rows.length === 0) {
         grid.innerHTML = ''; grid.style.display = 'none'; empty.style.display = 'block';
         empty.textContent = window.t('filters.noEventsMatch');
@@ -9792,9 +9784,8 @@
         grid.innerHTML = mapJoin(window.eventsLastRenderedRows, eventCard);
       }
     } else if (rows.length) {
-      var rotatedAppend = applyFeaturedRotation(rows);
-      window.eventsLastRenderedRows = (window.eventsLastRenderedRows || []).concat(rotatedAppend);
-      grid.insertAdjacentHTML('beforeend', mapJoin(rotatedAppend, eventCard));
+      window.eventsLastRenderedRows = (window.eventsLastRenderedRows || []).concat(rows);
+      grid.insertAdjacentHTML('beforeend', mapJoin(rows, eventCard));
     }
 
     window.eventsOffset = offset + rows.length;
@@ -9814,8 +9805,7 @@
     count.textContent = totalCount + ' ' + (totalCount === 1 ? window.t('events.oneFound') : window.t('events.manyFound'));
   };
   // Same reasoning as refreshDirectoryCardsText -- re-render the
-  // already-fetched (and already featured-rotated) rows through
-  // eventCard() again, no network call, no re-rotation.
+  // already-fetched rows through eventCard() again, no network call.
   window.refreshEventsCardsText = function(){
     var grid = document.getElementById('events-grid');
     if (!grid || !window.eventsLastRenderedRows) return;
@@ -10268,8 +10258,7 @@
       // refresh, on both the directory/events pages and their
       // homepage previews. These re-render the already-fetched rows
       // in place (see refreshDirectoryCardsText and friends above) --
-      // no network call, no pagination reset, no featured-rotation
-      // reshuffle.
+      // no network call, no pagination reset.
       if (currentBase === 'directory' && typeof window.refreshDirectoryCardsText === 'function') window.refreshDirectoryCardsText();
       if (currentBase === 'events' && typeof window.refreshEventsCardsText === 'function') window.refreshEventsCardsText();
       if (currentBase === 'home') {

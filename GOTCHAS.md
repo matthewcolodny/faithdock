@@ -2864,3 +2864,24 @@ Form-side, Max participants and the volunteer block both moved back inside `#ce-
 Verified in a local preview: DOM nesting confirmed (max participants, volunteer checkbox, volunteer options, price section and guests all inside the gate; `#ce-repeats-section` not swallowed by a stray tag), the gate toggles `none`/`block` with the checkbox, and on the public side a capped-but-no-registration event shows no capacity count, no fill badge and no card tag, while a capped event that DOES require registration still reads "4 of 10 spots taken".
 
 Build `2026-09-16-v60`. No migration.
+
+---
+
+## "Featured" events removed (deliberately, not lost)
+
+Asked what the Featured tag meant, the honest answer was: nothing about the event. It was computed purely from the host church's plan -- `church_plan_type === 'premium' || 'multi_church'` -- so every event a top-tier church posted was featured automatically, with no per-event control of any kind.
+
+Removed on the follow-up reasoning, which is correct: a Multi-Church account running several churches, each posting plenty of events, could fill every top slot at once and crowd everyone else out. The rotation existed to spread exposure evenly (it reshuffled featured events into the top slots on every render so nobody permanently owned "first"), but shuffling within a pool doesn't help when one account can dominate the pool itself.
+
+Removed cleanly rather than left as dead code or a hidden flag:
+- the gold Featured tag in `eventCard()`
+- `applyFeaturedRotation()` and both of its call sites in `renderEvents()` -- listings now show events in whatever order `search_events` returns, with no plan-based reordering at all
+- the `featured` field in `mapSearchEventRow()` (`church_plan_type` is still returned by the RPC; nothing reads it now, which is harmless)
+- the `events.featured` i18n strings in both languages
+- three stale comments elsewhere that referenced "featured-rotation reshuffle"
+
+A note at the old `applyFeaturedRotation()` site records what was removed and what a replacement would need (per-event opt-in, a cap per church, a bounded paid-placement window -- something with real limits), so this can be rebuilt deliberately rather than rediscovered.
+
+Verified in a local preview: no Featured tag in any rendered card or anywhere in the DOM, event cards still render their title and `2/10` capacity normally, the events grid still populates, and zero remaining references to `applyFeaturedRotation`, `e.featured`, or `events.featured` anywhere in the file.
+
+Build `2026-09-16-v61`. No migration.
