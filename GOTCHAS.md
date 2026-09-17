@@ -3635,3 +3635,23 @@ At nine abilities the permissions modal was a wall of checkboxes, and adding `ca
 Verified: each preset ticks exactly its own flags; unticking one box from Administrator flips the label to Custom and re-ticking snaps it back; selecting Custom changes no flags and re-derives the label; `is_manager` and `receives_contact_messages` survive every preset untouched in both directions; and all seven names translate.
 
 Build `2026-09-17-v91`. No migration -- this is entirely a UI layer over the abilities that already exist.
+
+---
+
+## Phase 1a: Groups and Ministries visibility toggles
+
+A church that doesn't run groups or ministries had no way to hide those tabs, so its public profile showed empty sections -- which reads as "this church is incomplete" rather than "this church doesn't do that".
+
+Migration 046 mirrors 032's `giving_enabled`/`messaging_enabled` exactly: same shape, same default of **true**, same per-column grants. A visibility feature whose migration defaults to hidden would silently change 799 public profiles on the day it runs.
+
+The grants are the part that bites. `churches` uses per-COLUMN grants rather than a table-level one, so a new column is invisible and unwritable until named. The two failure modes look nothing alike and that is the useful tell: a missing SELECT grant surfaces as **42501** (permission denied), while a column that genuinely isn't there gives **42703** -- so 42501 on a column you just added means the ALTER worked and the grant line is what's missing.
+
+**The new columns are fetched in their own query, not folded into an existing select** -- and this is the detail the whole change hinges on. A column that doesn't exist yet doesn't fail soft; it fails the ENTIRE select with 42703. Adding them to the main church query would have broken every church profile page for whatever gap exists between deploying and running the migration by hand. This file already learned that with `PUBLIC_CHURCH_COLUMNS` in migration 032, and the comment there is what prompted checking.
+
+**Verified as evidence rather than assumption**, with the migration deliberately not yet run: `select groups_enabled` returns `42703: column churches.groups_enabled does not exist`, while the main church query still succeeds and a real church profile still renders with both tabs **visible**. Undefined reads as "on" via the same `!== false` convention the existing toggles use, matching the columns' eventual DB default.
+
+The toggles are placed with the thing they govern -- Groups on the Groups dashboard page, Ministries inside the Ministries section -- rather than in a general settings list, which is the same principle driving the rest of the reorganisation. The Ministries one moves with its section when that becomes its own page.
+
+Saving reuses the existing `bindGiveMessageToggleSave()` helper rather than a parallel implementation: it already carries the `.select()`-after-`.update()` row-count check that migration 032 needed, and these columns have the identical grant hazard, so a second implementation would only be a second place to forget it.
+
+Build `2026-09-17-v92`; **migration 046 must be run by hand** -- until then the toggles show as on and change nothing, and the tabs stay visible.

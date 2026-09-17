@@ -766,6 +766,8 @@
       'dashSettings.givingFunds': 'Giving funds',
       'dashSettings.givingFundsHint': 'Designated funds donors can choose from when giving — a building campaign, a mission trip, whatever your church tracks separately. Gifts with no fund selected count toward the General Fund.',
       'dashSettings.givingEnabledToggle': 'Show the "Give" button on your public page',
+      'dashSettings.groupsEnabledToggle': 'Show Groups on your public page',
+      'dashSettings.ministriesEnabledToggle': 'Show Ministries on your public page',
       'dashSettings.toggleSaved': 'Saved', 'dashSettings.toggleSaveError': 'Could not save this setting. Please try again.',
       'dashSettings.messaging': 'Messaging', 'dashSettings.messagingEnabledToggle': 'Show the "Message" button on your public page',
       'dashSettings.messagingHint': 'Whether visitors can message your church from its public page, and who gets a copy when they do. Add more recipients by granting the "Receive contact messages" ability to staff from the Staff page.',
@@ -1598,6 +1600,8 @@
       'dashSettings.givingFunds': 'Fondos de donaciones',
       'dashSettings.givingFundsHint': 'Fondos designados que los donantes pueden elegir al donar — una campaña de construcción, un viaje misionero, lo que tu iglesia rastree por separado. Los regalos sin fondo seleccionado cuentan para el Fondo General.',
       'dashSettings.givingEnabledToggle': 'Mostrar el botón "Donar" en tu página pública',
+      'dashSettings.groupsEnabledToggle': 'Mostrar Grupos en tu página pública',
+      'dashSettings.ministriesEnabledToggle': 'Mostrar Ministerios en tu página pública',
       'dashSettings.toggleSaved': 'Guardado', 'dashSettings.toggleSaveError': 'No se pudo guardar esta opción. Inténtalo de nuevo.',
       'dashSettings.messaging': 'Mensajería', 'dashSettings.messagingEnabledToggle': 'Mostrar el botón "Mensaje" en tu página pública',
       'dashSettings.messagingHint': 'Si los visitantes pueden enviar mensajes a tu iglesia desde su página pública, y quién recibe una copia cuando lo hacen. Agrega más destinatarios otorgando la habilidad "Recibir mensajes de contacto" al personal desde la página de Personal.',
@@ -6203,6 +6207,12 @@ Groups</span>
       </div>
 
       <div class="dash-content" id="dash-groups">
+    <!-- Same visibility control as Ministries, placed on the page that
+         owns groups rather than buried in Settings. -->
+    <label class="filter-check" id="settings-groups-enabled-toggle-wrap" style="display:flex;margin-bottom:14px;">
+      <input type="checkbox" id="settings-groups-enabled-toggle" checked> <span data-i18n="dashSettings.groupsEnabledToggle">Show Groups on your public page</span>
+    </label>
+    <div id="settings-groups-enabled-status" style="display:none;font-size:12px;margin-bottom:10px;"></div>
         <h2 style="font-size:24px;margin-bottom:24px;" data-i18n="dash.groups">Groups</h2>
         <div class="dash-toolbar">
           <div style="font-size:14px;color:var(--ink-mute);" id="groups-count-label">Loading...</div>
@@ -6587,6 +6597,13 @@ Groups</span>
               <div id="room-add-status" style="display:none;font-size:12px;margin-top:8px;"></div>
             </div>
             <div class="side-note" id="settings-ministries-section">
+              <!-- Lives with the thing it governs rather than in a
+                   general settings list. Moves to the Ministries page
+                   along with this whole section. -->
+              <label class="filter-check" id="settings-ministries-enabled-toggle-wrap" style="display:flex;margin-bottom:14px;">
+                <input type="checkbox" id="settings-ministries-enabled-toggle" checked> <span data-i18n="dashSettings.ministriesEnabledToggle">Show Ministries on your public page</span>
+              </label>
+              <div id="settings-ministries-enabled-status" style="display:none;font-size:12px;margin-bottom:10px;"></div>
               <h4 data-i18n="dashSettings.ministries">Ministries</h4>
               <p style="font-size:13.5px;color:var(--ink-mute);margin-bottom:14px;" data-i18n="dashSettings.ministriesHint">The programs your church runs — a food pantry, a youth group, a recovery meeting. These show up on your public profile and can be attached to events.</p>
               <div id="ministries-list" style="margin-bottom:12px;"><p style="color:var(--ink-mute);font-size:13px;" data-i18n="common.loading">Loading...</p></div>
@@ -6756,7 +6773,7 @@ Groups</span>
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v91 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v92 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -7505,6 +7522,17 @@ Groups</span>
     if (messageBtn) messageBtn.style.display = (isClaimed && c.messagingEnabled !== false) ? '' : 'none';
     var giveBtnTop = document.getElementById('church-top-give-btn');
     if (giveBtnTop) giveBtnTop.style.display = (isClaimed && c.givingEnabled !== false) ? '' : 'none';
+    // A church that doesn't run groups or ministries can hide those
+    // tabs rather than showing an empty state, which reads as 'this
+    // church is incomplete' rather than 'this church doesn't do that'.
+    // `!== false` throughout, so an undefined value (migration 046 not
+    // run, or the soft fetch above failing) means visible -- the same
+    // convention givingEnabled/messagingEnabled already use, and it
+    // matches the columns' DB default of true.
+    var groupsTab = document.querySelector('[data-church-tab="groups"]');
+    if (groupsTab) groupsTab.style.display = (c.groupsEnabled !== false) ? '' : 'none';
+    var ministriesTab = document.querySelector('[data-church-tab="ministries"]');
+    if (ministriesTab) ministriesTab.style.display = (c.ministriesEnabled !== false) ? '' : 'none';
 
     if (typeof computeChurchDistance === 'function') computeChurchDistance(c);
     var distText = formatChurchDistanceText(c.dist);
@@ -8626,6 +8654,19 @@ Groups</span>
       if (!toggleError && toggleData && toggleData.length) {
         mapped.givingEnabled = toggleData[0].giving_enabled;
         mapped.messagingEnabled = toggleData[0].messaging_enabled;
+      }
+      // groups_enabled / ministries_enabled (migration 046) are fetched
+      // in their own query rather than added to the one above, for the
+      // same reason that one is separate from PUBLIC_CHURCH_COLUMNS: a
+      // column that doesn't exist yet doesn't fail soft, it fails the
+      // WHOLE select with 42703. Sharing a query would mean every
+      // church profile broke for whatever gap exists between this
+      // deploying and the migration being run by hand. Undefined here
+      // reads as 'on' downstream, matching each column's DB default.
+      var { data: sectionData, error: sectionError } = await window.supabase.from('churches').select('groups_enabled, ministries_enabled').eq('id', row.id).limit(1);
+      if (!sectionError && sectionData && sectionData.length) {
+        mapped.groupsEnabled = sectionData[0].groups_enabled;
+        mapped.ministriesEnabled = sectionData[0].ministries_enabled;
       }
       churchCacheFetchedAt[name] = Date.now();
       if (found) {
@@ -17089,6 +17130,19 @@ Groups</span>
     if (givingToggle) givingToggle.checked = row.giving_enabled !== false;
     if (messagingToggle) messagingToggle.checked = row.messaging_enabled !== false;
     if (ownerReceivesToggle) ownerReceivesToggle.checked = row.owner_receives_messages !== false;
+
+    // Separate, soft query for the migration-046 columns -- folding
+    // them into the select above would break the whole toggle panel
+    // with 42703 until that migration is run. Left at their checked
+    // default when unavailable, which matches the DB default.
+    var { data: sectionRows, error: sectionErr } = await supabase.from('churches')
+      .select('groups_enabled, ministries_enabled').eq('id', myChurch.id).limit(1);
+    if (!sectionErr && sectionRows && sectionRows.length) {
+      var groupsToggle = document.getElementById('settings-groups-enabled-toggle');
+      var ministriesToggle = document.getElementById('settings-ministries-enabled-toggle');
+      if (groupsToggle) groupsToggle.checked = sectionRows[0].groups_enabled !== false;
+      if (ministriesToggle) ministriesToggle.checked = sectionRows[0].ministries_enabled !== false;
+    }
   }
   window.loadGiveMessageToggles = loadGiveMessageToggles;
 
@@ -17160,6 +17214,13 @@ Groups</span>
       }
     });
   }
+  // Reuses the existing helper rather than a parallel one: it already
+  // carries the .select()-after-.update() row-count check that migration
+  // 032 needed, and these columns have the identical per-column-grant
+  // hazard, so a second implementation would only be a second place to
+  // forget it.
+  bindGiveMessageToggleSave('settings-groups-enabled-toggle', 'groups_enabled', 'settings-groups-enabled-status');
+  bindGiveMessageToggleSave('settings-ministries-enabled-toggle', 'ministries_enabled', 'settings-ministries-enabled-status');
   bindGiveMessageToggleSave('settings-giving-enabled-toggle', 'giving_enabled', 'settings-giving-enabled-status');
   bindGiveMessageToggleSave('settings-messaging-enabled-toggle', 'messaging_enabled', 'settings-messaging-enabled-status');
   bindGiveMessageToggleSave('settings-owner-receives-messages-toggle', 'owner_receives_messages', 'settings-owner-receives-messages-status');
