@@ -899,7 +899,7 @@
       'dashDir.sending': 'Sending...', 'dashDir.sentToPerson': 'Sent to {name}!',
       'dashSettings.churchNameMismatch': "That doesn't match the church name exactly.", 'dashSettings.deletingChurch': 'Deleting church...',
       'dashGiving.verificationRequested': "Verification requested — we'll follow up soon.",
-      'dashCheckin.couldNotUpdateStatus': 'Could not update check-in status: {error}', 'dashCheckin.pickEventFirst': 'Select an event first.', 'dashCheckin.removeWordFromName': 'Please remove "{word}" from the name.',
+      'dashCheckin.couldNotUpdateStatus': 'Could not update check-in status: {error}', 'dashCheckin.noPermissionToCheckIn': 'the change was refused — you may not have permission to check people in for this event', 'dashCheckin.pickEventFirst': 'Select an event first.', 'dashCheckin.removeWordFromName': 'Please remove "{word}" from the name.',
       'help.removeWord': 'Please remove "{word}".', 'help.thanksWellGetBack': "Thanks — we'll get back to you soon.",
       'profile.removeWord': 'Please remove "{word}".', 'profile.thanksForFeedback': 'Thanks for the feedback!',
       'profile.stillOwnChurch': 'You still own "{name}" — delete your church first, in Settings.', 'profile.deletingAccount': 'Deleting your account...',
@@ -1727,7 +1727,7 @@
       'dashDir.sending': 'Enviando...', 'dashDir.sentToPerson': '¡Enviado a {name}!',
       'dashSettings.churchNameMismatch': 'Eso no coincide exactamente con el nombre de la iglesia.', 'dashSettings.deletingChurch': 'Eliminando iglesia...',
       'dashGiving.verificationRequested': 'Verificación solicitada — te contactaremos pronto.',
-      'dashCheckin.couldNotUpdateStatus': 'No se pudo actualizar el estado de registro: {error}', 'dashCheckin.pickEventFirst': 'Selecciona un evento primero.', 'dashCheckin.removeWordFromName': 'Por favor elimina "{word}" del nombre.',
+      'dashCheckin.couldNotUpdateStatus': 'No se pudo actualizar el estado de registro: {error}', 'dashCheckin.noPermissionToCheckIn': 'el cambio fue rechazado — es posible que no tengas permiso para registrar asistentes en este evento', 'dashCheckin.pickEventFirst': 'Selecciona un evento primero.', 'dashCheckin.removeWordFromName': 'Por favor elimina "{word}" del nombre.',
       'help.removeWord': 'Por favor elimina "{word}".', 'help.thanksWellGetBack': 'Gracias — te responderemos pronto.',
       'profile.removeWord': 'Por favor elimina "{word}".', 'profile.thanksForFeedback': '¡Gracias por tus comentarios!',
       'profile.stillOwnChurch': 'Aún eres propietario de "{name}" — elimina tu iglesia primero, en Configuración.', 'profile.deletingAccount': 'Eliminando tu cuenta...',
@@ -6747,7 +6747,7 @@ Groups</span>
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v86 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v87 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -21554,12 +21554,37 @@ Groups</span>
       // a round trip, since this needs to feel fast at a busy door.
       record.checked_in_at = newValue;
       renderCheckinTable();
-      var { error } = await supabase.from('event_registrations').update({ checked_in_at: newValue }).eq('id', regId);
-      if (error) {
+      // .select('id') is not decoration -- it is the only way to know
+      // this worked. A PostgREST .update() that matches ZERO rows (an
+      // RLS policy that doesn't cover this row, a missing grant)
+      // returns { error: null } and looks exactly like success. That
+      // pattern has now caused four separate bugs in this project:
+      // the Give/Message toggles, unregistering (migration 033),
+      // removing a member, and this.
+      //
+      // It is at its worst right here. The tick is painted optimistically
+      // before the write -- correct, a door needs to feel instant -- so
+      // without a row count the rollback simply never fires: the
+      // volunteer sees a green tick and nothing whatsoever is recorded.
+      // A check-in desk that silently fails is worse than one that
+      // refuses, because nobody finds out until someone asks who was
+      // actually here.
+      //
+      // Relevant risk, not hypothetical: migration 033's UPDATE policy
+      // on event_registrations is scoped to user_id = auth.uid(), which
+      // on its own would mean a staff member checking in ANYONE ELSE
+      // matches zero rows. Whether another policy also permits staff
+      // isn't visible from this repo -- so this check is what turns
+      // that from a silent failure into a visible one either way.
+      var { data: updatedRows, error } = await supabase.from('event_registrations')
+        .update({ checked_in_at: newValue }).eq('id', regId).select('id');
+      var wroteNothing = !error && (!updatedRows || updatedRows.length === 0);
+      if (error || wroteNothing) {
         // Roll back if the write actually failed.
         record.checked_in_at = newValue ? null : new Date().toISOString();
         renderCheckinTable();
-        alert(window.t('dashCheckin.couldNotUpdateStatus').replace('{error}', error.message));
+        alert(window.t('dashCheckin.couldNotUpdateStatus')
+          .replace('{error}', error ? error.message : window.t('dashCheckin.noPermissionToCheckIn')));
       }
     });
   }

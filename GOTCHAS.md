@@ -3493,3 +3493,38 @@ Worth separating from the performance work that surfaced it: this doesn't make a
 Verified: all six show "Loading..." / "Cargando..." before data, the loaders still overwrite rather than append, and no placeholder is duplicated.
 
 Build `2026-09-17-v86`. No migration.
+
+---
+
+## Check-in could fail silently at the door
+
+Found while planning the check-in redesign, and it changed the order of that work: fix the write before building anything on top of it.
+
+The toggle did an optimistic paint and then:
+
+```
+var { error } = await supabase.from('event_registrations')
+  .update({ checked_in_at: newValue }).eq('id', regId);
+if (error) { /* roll back */ }
+```
+
+No `.select()`. This is the **fourth** appearance of the same pattern in this project -- the Give/Message toggles, unregistering (migration 033), removing a member, and now this -- and it is at its most damaging here. Because the tick is painted before the write (correct: a door needs to feel instant), a refused write never rolls back. The volunteer sees a green tick and nothing is recorded. A check-in desk that fails silently is worse than one that refuses, because nobody discovers it until someone asks who was actually present.
+
+**Confirmed live rather than argued.** The same refused update, run twice against the real database from a signed-out session:
+
+| | error | result |
+|---|---|---|
+| without `.select()` | `null` | `data: null` -- indistinguishable from success |
+| with `.select('id')` | `null` | `rows: 0` -- detectable |
+
+**The risk is not hypothetical.** Migration 033's UPDATE policy on `event_registrations` is scoped to `user_id = auth.uid()`. On its own that means a staff member checking in *anyone else* matches zero rows. Whether another policy also permits staff isn't visible from this repo -- `event_registrations` predates migration tracking. So this check is what turns an unknown into a visible one either way, and the outstanding question is worth settling directly:
+
+```
+select policyname, cmd, qual, with_check from pg_policies where tablename = 'event_registrations';
+```
+
+The optimistic paint stays -- it's right for a busy door. What changed is that the rollback now triggers on "nothing was written", not only on an error object, with a message that says the change was refused rather than interpolating a null.
+
+Checked the other `event_registrations` writes while here: the unregister paths already carry `.select()` from the 033 work, and an INSERT refused by RLS returns 42501 rather than failing silently, so this was the only one.
+
+Build `2026-09-17-v87`. No migration.
