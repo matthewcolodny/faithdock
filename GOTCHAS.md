@@ -4161,3 +4161,30 @@ This is worth remembering as a shape: **an element can report the exact computed
 **Stat cards two-up**, with the stacking fallback at 339px rather than the 380px first written -- 380 would have caught the iPhone SE and mini and undone the change on exactly the narrow screens it was for. Caught by measuring at 375px and finding one column.
 
 Build `2026-09-17-v110`. No migration.
+
+---
+
+## The room schedule, rebuilt: day, week and month
+
+The week-of-one-room grid shipped a day earlier answered "when is the Fellowship Hall busy". Asked for day/week/month and ideally all rooms at once, and that request is right about something the first version got wrong: **the question a person actually arrives with is "what is happening on Sunday"** -- across the whole building, not one room. So Day is the default now and its columns are **rooms**, not hours of one room.
+
+The three views are not three components. One loader, one fetch, one positioned-block renderer; they differ only in what range they ask for and how they arrange the same blocks.
+
+- **Day** -- a column per room, every room at once. The reason the rewrite exists.
+- **Week** -- a column per day, one room. Kept, because planning a recurring booking *is* a question about one room.
+- **Month** -- every room, as chips per day. **Deliberately no time blocks:** at a month's zoom a 30-minute meeting is under two pixels tall, so drawing one is a lie about precision. A month view is for spotting which weeks are heavy, and tapping a day drops into Day view for that date, which is the natural next question.
+
+Details that were decisions rather than defaults:
+
+- **The room picker is hidden outside week view, not disabled.** A control sitting there inert invites the conclusion that the view is filtered when it is showing everything.
+- **Day view's columns have a minimum width and the grid scrolls**, rather than equal fractions. Past about six rooms, `1fr` squeezes each column below the width of a time label, and a grid that scrolls is readable where one that merely fits is not.
+- **The room name travels on the event** (`__roomName`), because day and month show several rooms at once and a block that does not say which room it is in is worse than no block.
+- **The fetch window is the view's own range**, so month does not ask for a year and switching to day does not keep a month of rows in memory.
+
+**On a phone, day and week become agendas and month stays a grid.** That is not inconsistency: a time grid needs width per column and there is none, while a month cell holds a number and dots, which stays legible small. The CSS had to say so precisely -- `#room-schedule-grid:not(.rsched-month) .rsched{display:none}` -- because the blanket rule that hid the grid on mobile would otherwise have hidden month too, leaving an agenda that month deliberately does not render. Month would have shown nothing at all.
+
+Mobile month cells came out 36×52 on the first pass -- the same taller-than-wide stretch the events calendar had, because the side-note's padding makes these cells narrower than the events page's. Measured, then set to 42px: 36×42 with 6px dots.
+
+Verified against fixtures at both widths: day defaults with the picker hidden and a column per room; the overlapping evening pair renders at 50% width each and both flagged while a third event the same day is not; week shows seven day columns for the picked room; month labels the month, hides the picker, carries room names in the chip titles and hides the agenda; tapping the 16th switches to Day view for "Wednesday, September 16" with both room columns. A hostile room name renders as text in every view with zero elements created, and no view overflows the page at 375px.
+
+Build `2026-09-17-v111`. No migration.

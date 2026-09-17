@@ -709,8 +709,10 @@
       'dashInbox.actionFailed': 'That did not work. You may no longer have access to this inbox.',
       'dashInbox.signedInSender': 'Signed in',
       'dashFacility.scheduleTitle': 'Room schedule',
-      'dashFacility.scheduleHint': 'One room, one week. Two blocks on top of each other are the same double-booking the event form warns about.',
-      'dashFacility.thisWeek': 'This week', 'dashFacility.nothingThisWeek': 'Nothing booked this week.',
+      'dashFacility.scheduleHint': 'Day shows every room side by side. Two blocks on top of each other are the same double-booking the event form warns about.',
+      'dashFacility.thisWeek': 'This week', 'dashFacility.nothingThisWeek': 'Nothing booked in this range.',
+      'dashFacility.today': 'Today',
+      'dashFacility.viewDay': 'Day', 'dashFacility.viewWeek': 'Week', 'dashFacility.viewMonth': 'Month',
       'dashFacility.nUpcoming': '{n} upcoming', 'dashFacility.noUpcoming': 'nothing booked',
       'dashSettings.removeRoomStillBooked': 'This room still has {n} upcoming event(s):',
       'ce.roomAlreadyBooked': 'Already booked at this time:',
@@ -1596,8 +1598,10 @@
       'dashInbox.actionFailed': 'No funcionó. Es posible que ya no tengas acceso a esta bandeja.',
       'dashInbox.signedInSender': 'Con sesión',
       'dashFacility.scheduleTitle': 'Horario de salas',
-      'dashFacility.scheduleHint': 'Una sala, una semana. Dos bloques superpuestos son la misma doble reserva que advierte el formulario de eventos.',
-      'dashFacility.thisWeek': 'Esta semana', 'dashFacility.nothingThisWeek': 'Nada reservado esta semana.',
+      'dashFacility.scheduleHint': 'La vista de día muestra todas las salas una al lado de la otra. Dos bloques superpuestos son la misma doble reserva que advierte el formulario de eventos.',
+      'dashFacility.thisWeek': 'Esta semana', 'dashFacility.nothingThisWeek': 'Nada reservado en este rango.',
+      'dashFacility.today': 'Hoy',
+      'dashFacility.viewDay': 'Día', 'dashFacility.viewWeek': 'Semana', 'dashFacility.viewMonth': 'Mes',
       'dashFacility.nUpcoming': '{n} próximos', 'dashFacility.noUpcoming': 'sin reservas',
       'dashSettings.removeRoomStillBooked': 'Esta sala todavía tiene {n} evento(s) próximo(s):',
       'ce.roomAlreadyBooked': 'Ya reservada a esta hora:',
@@ -3361,14 +3365,39 @@
      disagreeing about whether anything is wrong. */
   .rsched-block.clash{background:var(--clay);}
   .rsched-agenda{display:none;}
+  /* Day view can carry more columns than fit -- one per room. Equal
+     fractions past about six rooms squeeze each below the width of a
+     time label, so the track has a floor and the grid scrolls
+     instead. A grid that scrolls is readable; one that does not fit
+     is not. */
+  .rsched-scroll{overflow-x:auto;}
+  .seg-toggle{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;}
+  .seg-toggle button{background:var(--card);color:var(--ink-mute);border:none;padding:8px 14px;font-size:12.5px;cursor:pointer;font-weight:500;}
+  .seg-toggle button + button{border-left:1px solid var(--line);}
+  .seg-toggle button.is-active{background:var(--brand);color:#fff;}
+  html[data-theme="dark"] .seg-toggle button.is-active{background:var(--gold);color:var(--brand);}
+  /* Month view is the shared .cal-grid, which already has its own
+     phone rules in the events calendar -- it must not also be hidden
+     by the week/day agenda swap below, or month would show nothing. */
+  #room-schedule-grid.rsched-month .cal-day{min-height:72px;}
   /* A 7-column time grid is unreadable on a phone, and squeezing it
      smaller does not fix that -- it becomes a picture of a calendar
      rather than something anyone can read a time off. Below this
      width the same data is shown as a day-grouped list, which loses
      the visual gaps but stays usable. */
   @media (max-width: 760px){
-    .rsched{display:none;}
+    /* Day and week become agendas on a phone: a time grid needs
+       width per column and there is none. Month is exempt -- it is
+       a .cal-grid, which stays legible small because its cells hold
+       a number and dots rather than text. */
+    #room-schedule-grid:not(.rsched-month) .rsched{display:none;}
     .rsched-agenda{display:block;}
+    /* Measured at 375px: the cells here are 36px wide because the
+       side-note adds padding, so 52px made them half again taller than
+       wide -- the same stretch the events calendar had. The chips are
+       already dots at this width, so a number and a row of dots is all
+       that has to fit. */
+    #room-schedule-grid.rsched-month .cal-day{min-height:42px;}
   }
   /* Focused check-in: a tablet propped at a door should show the
      roster and nothing else. Without this, every other part of the
@@ -6947,14 +6976,25 @@ Groups</span>
          with no room to put in it is just furniture. -->
     <div class="side-note" id="room-schedule-section" style="display:none;">
       <h4 data-i18n="dashFacility.scheduleTitle">Room schedule</h4>
-      <p style="font-size:13.5px;color:var(--ink-mute);margin-bottom:14px;" data-i18n="dashFacility.scheduleHint">One room, one week. Two blocks on top of each other are the same double-booking the event form warns about.</p>
+      <p style="font-size:13.5px;color:var(--ink-mute);margin-bottom:14px;" data-i18n="dashFacility.scheduleHint">Day shows every room side by side. Two blocks on top of each other are the same double-booking the event form warns about.</p>
       <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px;">
-        <select class="field" id="room-schedule-room" style="flex:1;min-width:160px;font-size:13px;padding:9px 10px;margin:0;"></select>
-        <div style="display:flex;gap:6px;align-items:center;">
-          <button class="qr-btn" id="room-schedule-prev" aria-label="Previous week">&#8249;</button>
-          <span id="room-schedule-label" style="font-size:12.5px;color:var(--ink-mute);min-width:150px;text-align:center;"></span>
-          <button class="qr-btn" id="room-schedule-next" aria-label="Next week">&#8250;</button>
-          <button class="export-btn" id="room-schedule-today" data-i18n="dashFacility.thisWeek">This week</button>
+        <!-- Day first and default: "what is happening on Sunday" is a
+             question about the building, not about one room. -->
+        <div class="seg-toggle">
+          <button id="room-schedule-view-day" class="is-active" data-i18n="dashFacility.viewDay">Day</button>
+          <button id="room-schedule-view-week" data-i18n="dashFacility.viewWeek">Week</button>
+          <button id="room-schedule-view-month" data-i18n="dashFacility.viewMonth">Month</button>
+        </div>
+        <!-- Week only: day and month show every room, and a picker
+             sitting there inert would imply the view is filtered. -->
+        <span id="room-schedule-room-wrap" style="flex:1;min-width:150px;display:none;">
+          <select class="field" id="room-schedule-room" style="width:100%;font-size:13px;padding:9px 10px;margin:0;"></select>
+        </span>
+        <div style="display:flex;gap:6px;align-items:center;margin-left:auto;">
+          <button class="qr-btn" id="room-schedule-prev" aria-label="Previous">&#8249;</button>
+          <span id="room-schedule-label" style="font-size:12.5px;color:var(--ink-mute);min-width:140px;text-align:center;"></span>
+          <button class="qr-btn" id="room-schedule-next" aria-label="Next">&#8250;</button>
+          <button class="export-btn" id="room-schedule-today" data-i18n="dashFacility.today">Today</button>
         </div>
       </div>
       <div id="room-schedule-grid"></div>
@@ -7131,7 +7171,7 @@ Groups</span>
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v110 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v111 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -17884,18 +17924,34 @@ Groups</span>
     return html + '</div>';
   }
 
-  // ---- The week grid ---------------------------------------------
-  var roomScheduleRoomId = null;
-  var roomScheduleWeekStart = null;
+  // ============================================================
+  // Room schedule: day, week and month.
+  //
+  // The week-of-one-room grid this replaces answered "when is the
+  // Fellowship Hall busy", which is the wrong first question. The one
+  // a person actually has is "what is happening on Sunday" -- across
+  // every room at once. So DAY puts the rooms side by side as columns
+  // and is the default; WEEK keeps the original one-room view for
+  // planning a recurring booking; MONTH is for spotting the quiet
+  // weeks, where per-event detail would be noise anyway.
+  //
+  // One loader and one fetch for all three: the views differ in what
+  // range they ask for and how they arrange the same blocks.
+  // ============================================================
+  var roomSchedView = 'day';
+  var roomSchedAnchor = null;   // the day/week/month being shown
+  var roomSchedRoomId = null;   // week view only; day and month are always all rooms
 
   function startOfWeek(d){
     var out = new Date(d.getFullYear(), d.getMonth(), d.getDate());
     out.setDate(out.getDate() - out.getDay());
     return out;
   }
+  function startOfDay(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+  function addDays(d, n){ return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n); }
 
-  // Standard column packing: events that overlap share the width of a
-  // day instead of hiding each other. Two blocks side by side IS the
+  // Standard column packing: events that overlap share the width
+  // instead of hiding each other. Two blocks side by side IS the
   // double-booking, so it has to be visible rather than one covering
   // the other and the room looking free.
   function layoutDayBlocks(events){
@@ -17923,11 +17979,10 @@ Groups</span>
       });
       cluster.__cols = columns.length;
     });
-    // Clash is per EVENT, not per cluster. A cluster is formed by
+    // Clash is per EVENT, not per cluster. A cluster forms by
     // transitive overlap, so it can hold three events where only two
-    // of them actually collide -- flagging the innocent third would
-    // mark a room as double-booked when it is not, and a warning that
-    // is sometimes wrong stops being read.
+    // collide, and flagging the innocent third would mark a room
+    // double-booked when it is not.
     return placed.map(function(item){
       var aStart = new Date(item.event.start_at), aEnd = roomEventEnd(item.event);
       var clash = sorted.some(function(other){
@@ -17938,165 +17993,312 @@ Groups</span>
     });
   }
 
-  function renderRoomSchedule(bookings){
-    var gridEl = document.getElementById('room-schedule-grid');
-    var agendaEl = document.getElementById('room-schedule-agenda');
-    var labelEl = document.getElementById('room-schedule-label');
-    if (!gridEl || !agendaEl) return;
-
-    var weekStart = roomScheduleWeekStart;
-    var weekEnd = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + 7);
-    var weekEvents = (bookings || []).filter(function(e){
-      var st = new Date(e.start_at);
-      return st >= weekStart && st < weekEnd;
-    });
-
-    if (labelEl) {
-      labelEl.textContent = weekStart.toLocaleDateString(window.appLocale(), { month: 'short', day: 'numeric' })
-        + ' – ' + new Date(weekEnd.getTime() - 1).toLocaleDateString(window.appLocale(), { month: 'short', day: 'numeric' });
-    }
-
-    // The visible hours follow the week's actual events rather than a
-    // fixed 9-to-5. A church's calendar is mostly evenings and Sunday
-    // mornings, and a hardcoded window would quietly clip a 6am prayer
-    // meeting off the top -- the event would simply not appear, which
-    // is the worst possible failure for a page about what is booked.
+  // The visible hours follow the events actually in range rather than
+  // a fixed 9-to-5. A church's calendar is mostly evenings and Sunday
+  // mornings, and a hardcoded window would quietly clip a 6am prayer
+  // meeting off the top -- the event would simply not appear, the
+  // worst possible failure for a page about what is booked.
+  function roomSchedHourRange(events){
     var minHour = 8, maxHour = 21;
-    weekEvents.forEach(function(e){
+    events.forEach(function(e){
       var st = new Date(e.start_at), en = roomEventEnd(e);
       minHour = Math.min(minHour, st.getHours());
       maxHour = Math.max(maxHour, en.getHours() + (en.getMinutes() ? 1 : 0));
     });
     minHour = Math.max(0, minHour);
     maxHour = Math.min(24, Math.max(maxHour, minHour + 4));
-    var span = maxHour - minHour;
-    var pxPerHour = 34;
-    var bodyHeight = span * pxPerHour;
+    return { min: minHour, max: maxHour };
+  }
 
-    var today = new Date(); today.setHours(0, 0, 0, 0);
-    var dayNames = [];
-    for (var d = 0; d < 7; d++) {
-      var day = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + d);
-      dayNames.push({ date: day, isToday: day.getTime() === today.getTime(),
-        label: day.toLocaleDateString(window.appLocale(), { weekday: 'short' }) + ' ' + day.getDate() });
-    }
-
-    var head = '<div class="rsched-head"></div>' + dayNames.map(function(d){
-      return '<div class="rsched-head' + (d.isToday ? ' today' : '') + '">' + escapeHtml(d.label) + '</div>';
-    }).join('');
-
-    var gutter = '<div class="rsched-gutter" style="height:' + bodyHeight + 'px;">';
-    for (var h = minHour; h <= maxHour; h++) {
-      var top = (h - minHour) * pxPerHour;
-      gutter += '<div class="rsched-hour" style="top:' + top + 'px;">'
+  function roomSchedTimeGutter(range, pxPerHour){
+    var html = '<div class="rsched-gutter" style="height:' + ((range.max - range.min) * pxPerHour) + 'px;">';
+    for (var h = range.min; h <= range.max; h++) {
+      html += '<div class="rsched-hour" style="top:' + ((h - range.min) * pxPerHour) + 'px;">'
         + escapeHtml(new Date(2000, 0, 1, h).toLocaleTimeString(window.appLocale(), { hour: 'numeric' })) + '</div>';
     }
-    gutter += '</div>';
+    return html + '</div>';
+  }
 
-    var cols = dayNames.map(function(d){
-      var dayStart = d.date;
-      var dayEnd = new Date(dayStart.getFullYear(), dayStart.getMonth(), dayStart.getDate() + 1);
-      var dayEvents = weekEvents.filter(function(e){
-        var st = new Date(e.start_at);
-        return st >= dayStart && st < dayEnd;
-      });
-      var inner = '';
-      for (var hh = minHour + 1; hh < maxHour; hh++) {
-        inner += '<div class="rsched-line" style="top:' + ((hh - minHour) * pxPerHour) + 'px;"></div>';
-      }
-      layoutDayBlocks(dayEvents).forEach(function(item){
-        var e = item.event;
-        var st = new Date(e.start_at), en = roomEventEnd(e);
-        var startH = st.getHours() + st.getMinutes() / 60;
-        var endH = en.getHours() + en.getMinutes() / 60;
-        // An event running past midnight would otherwise compute a
-        // negative height and vanish; clamped to the day's end instead.
-        if (en <= st || en >= dayEnd) endH = maxHour;
-        var top = Math.max(0, (startH - minHour) * pxPerHour);
-        var height = Math.max(16, (Math.min(endH, maxHour) - Math.max(startH, minHour)) * pxPerHour - 2);
-        var widthPct = 100 / item.cols;
-        return inner += '<div class="rsched-block' + (item.clash ? ' clash' : '') + '"'
-          + ' data-room-event="' + escapeHtml(e.id) + '"'
-          + ' title="' + escapeHtml(e.title) + '"'
-          + ' style="top:' + top + 'px;height:' + height + 'px;left:' + (item.col * widthPct) + '%;width:calc(' + widthPct + '% - 2px);">'
-          + escapeHtml(st.toLocaleTimeString(window.appLocale(), { hour: 'numeric', minute: '2-digit' }))
-          + ' ' + escapeHtml(e.title) + '</div>';
-      });
-      return '<div class="rsched-col" style="height:' + bodyHeight + 'px;">' + inner + '</div>';
-    }).join('');
+  // One column of blocks. Shared by day (a column per room) and week
+  // (a column per day) -- the arrangement differs, a positioned block
+  // does not.
+  function roomSchedColumn(events, dayStart, dayEnd, range, pxPerHour, showRoomName){
+    var inner = '';
+    for (var hh = range.min + 1; hh < range.max; hh++) {
+      inner += '<div class="rsched-line" style="top:' + ((hh - range.min) * pxPerHour) + 'px;"></div>';
+    }
+    layoutDayBlocks(events).forEach(function(item){
+      var e = item.event;
+      var st = new Date(e.start_at), en = roomEventEnd(e);
+      var startH = st.getHours() + st.getMinutes() / 60;
+      var endH = en.getHours() + en.getMinutes() / 60;
+      // An event running past midnight would otherwise compute a
+      // negative height and vanish; clamped to the day's end instead.
+      if (en <= st || en >= dayEnd) endH = range.max;
+      var top = Math.max(0, (startH - range.min) * pxPerHour);
+      var height = Math.max(16, (Math.min(endH, range.max) - Math.max(startH, range.min)) * pxPerHour - 2);
+      var widthPct = 100 / item.cols;
+      inner += '<div class="rsched-block' + (item.clash ? ' clash' : '') + '"'
+        + ' data-room-event="' + escapeHtml(e.id) + '"'
+        + ' title="' + escapeHtml(e.title + (showRoomName && e.__roomName ? ' — ' + e.__roomName : '')) + '"'
+        + ' style="top:' + top + 'px;height:' + height + 'px;left:' + (item.col * widthPct) + '%;width:calc(' + widthPct + '% - 2px);">'
+        + escapeHtml(st.toLocaleTimeString(window.appLocale(), { hour: 'numeric', minute: '2-digit' }))
+        + ' ' + escapeHtml(e.title) + '</div>';
+    });
+    return '<div class="rsched-col" style="height:' + ((range.max - range.min) * pxPerHour) + 'px;">' + inner + '</div>';
+  }
 
-    gridEl.innerHTML = '<div class="rsched">' + head + gutter + cols + '</div>';
-
-    // The phone view. Same events, grouped by day, no geometry.
-    var agenda = dayNames.map(function(d){
-      var dayStart = d.date;
-      var dayEnd = new Date(dayStart.getFullYear(), dayStart.getMonth(), dayStart.getDate() + 1);
-      var dayEvents = weekEvents.filter(function(e){
-        var st = new Date(e.start_at);
-        return st >= dayStart && st < dayEnd;
-      });
-      if (!dayEvents.length) return '';
-      // Sorted here rather than trusting the fetch to have done it.
-      // The grid does its own sort because layout requires it, so the
-      // agenda was the only view whose order depended on an upstream
-      // guarantee -- and a list of times out of order reads as a bug
-      // in the data rather than in the sorting.
-      dayEvents.sort(function(a, b){ return new Date(a.start_at) - new Date(b.start_at); });
+  function roomSchedAgenda(groups){
+    // groups: [{ label, events }] -- the phone view for day and week
+    // alike. Same events, no geometry.
+    var html = groups.map(function(g){
+      if (!g.events.length) return '';
+      var sorted = g.events.slice().sort(function(a, b){ return new Date(a.start_at) - new Date(b.start_at); });
       return '<div style="margin-bottom:10px;">'
-        + '<div style="font-size:12px;color:var(--ink-mute);margin-bottom:4px;">' + escapeHtml(d.label) + '</div>'
-        + dayEvents.map(function(e){
+        + '<div style="font-size:12px;color:var(--ink-mute);margin-bottom:4px;">' + escapeHtml(g.label) + '</div>'
+        + sorted.map(function(e){
             var st = new Date(e.start_at);
             return '<div style="font-size:12.5px;margin-bottom:3px;">'
               + escapeHtml(st.toLocaleTimeString(window.appLocale(), { hour: 'numeric', minute: '2-digit' })) + ' — '
               + '<a style="border-bottom:1px solid var(--line);cursor:pointer;" data-room-event="' + escapeHtml(e.id) + '">' + escapeHtml(e.title) + '</a>'
+              + (e.__roomName ? '<span style="color:var(--ink-mute);"> · ' + escapeHtml(e.__roomName) + '</span>' : '')
               + '</div>';
           }).join('')
         + '</div>';
     }).join('');
-    agendaEl.innerHTML = agenda || '<p style="color:var(--ink-mute);font-size:12.5px;">' + window.t('dashFacility.nothingThisWeek') + '</p>';
+    return html || '<p style="color:var(--ink-mute);font-size:12.5px;">' + window.t('dashFacility.nothingThisWeek') + '</p>';
+  }
+
+  // ---- The three renderers ----------------------------------------
+  var RSCHED_PX_PER_HOUR = 34;
+
+  // DAY: one column per room, every room at once. The default, and
+  // the reason this rewrite exists -- "what is happening on Sunday"
+  // is a question about the building, not about one room.
+  function renderRoomSchedDay(rooms, byRoom){
+    var dayStart = roomSchedAnchor;
+    var dayEnd = addDays(dayStart, 1);
+    var perRoom = rooms.map(function(r){
+      return (byRoom[r.id] || []).filter(function(e){
+        var st = new Date(e.start_at);
+        return st >= dayStart && st < dayEnd;
+      });
+    });
+    var all = [];
+    perRoom.forEach(function(list){ list.forEach(function(e){ all.push(e); }); });
+    var range = roomSchedHourRange(all);
+    var bodyH = (range.max - range.min) * RSCHED_PX_PER_HOUR;
+
+    var head = '<div class="rsched-head"></div>' + rooms.map(function(r){
+      return '<div class="rsched-head" title="' + escapeHtml(r.name) + '">' + escapeHtml(r.name) + '</div>';
+    }).join('');
+    var cols = rooms.map(function(r, i){
+      return roomSchedColumn(perRoom[i], dayStart, dayEnd, range, RSCHED_PX_PER_HOUR, false);
+    }).join('');
+
+    // A room count is not a layout the CSS can guess, so the column
+    // track is set here. minmax with a floor rather than 1fr: past
+    // about six rooms equal fractions squeeze each column below the
+    // width of a time, and an unreadable grid is worse than one that
+    // scrolls.
+    var gridStyle = 'grid-template-columns:52px repeat(' + rooms.length + ',minmax(96px,1fr));';
+    return { grid: '<div class="rsched rsched-scroll" style="' + gridStyle + '">' + head
+             + roomSchedTimeGutter(range, RSCHED_PX_PER_HOUR) + cols + '</div>',
+             agenda: roomSchedAgenda(rooms.map(function(r, i){ return { label: r.name, events: perRoom[i] }; })),
+             label: dayStart.toLocaleDateString(window.appLocale(), { weekday: 'long', month: 'long', day: 'numeric' }) };
+  }
+
+  // WEEK: one room across seven days. Kept from the original, because
+  // planning a recurring booking is a question about one room.
+  function renderRoomSchedWeek(rooms, byRoom){
+    var weekStart = startOfWeek(roomSchedAnchor);
+    var weekEnd = addDays(weekStart, 7);
+    var room = rooms.filter(function(r){ return r.id === roomSchedRoomId; })[0] || rooms[0];
+    var events = (room ? (byRoom[room.id] || []) : []).filter(function(e){
+      var st = new Date(e.start_at);
+      return st >= weekStart && st < weekEnd;
+    });
+    var range = roomSchedHourRange(events);
+    var today = startOfDay(new Date()).getTime();
+
+    var days = [];
+    for (var d = 0; d < 7; d++) {
+      var day = addDays(weekStart, d);
+      var dayEnd = addDays(day, 1);
+      days.push({
+        date: day, end: dayEnd, isToday: day.getTime() === today,
+        label: day.toLocaleDateString(window.appLocale(), { weekday: 'short' }) + ' ' + day.getDate(),
+        events: events.filter(function(e){ var st = new Date(e.start_at); return st >= day && st < dayEnd; })
+      });
+    }
+    var head = '<div class="rsched-head"></div>' + days.map(function(d){
+      return '<div class="rsched-head' + (d.isToday ? ' today' : '') + '">' + escapeHtml(d.label) + '</div>';
+    }).join('');
+    var cols = days.map(function(d){
+      return roomSchedColumn(d.events, d.date, d.end, range, RSCHED_PX_PER_HOUR, false);
+    }).join('');
+
+    return { grid: '<div class="rsched" style="grid-template-columns:52px repeat(7,minmax(0,1fr));">' + head
+             + roomSchedTimeGutter(range, RSCHED_PX_PER_HOUR) + cols + '</div>',
+             agenda: roomSchedAgenda(days.map(function(d){ return { label: d.label, events: d.events }; })),
+             label: weekStart.toLocaleDateString(window.appLocale(), { month: 'short', day: 'numeric' })
+                    + ' – ' + addDays(weekStart, 6).toLocaleDateString(window.appLocale(), { month: 'short', day: 'numeric' }) };
+  }
+
+  // MONTH: every room, counted per day. Deliberately no time blocks --
+  // at a month's zoom a 30-minute meeting is under two pixels tall, so
+  // drawing one is a lie about precision. Counts answer the question a
+  // month view is actually for, which is which weeks are heavy.
+  function renderRoomSchedMonth(rooms, byRoom){
+    var first = new Date(roomSchedAnchor.getFullYear(), roomSchedAnchor.getMonth(), 1);
+    var gridStart = startOfWeek(first);
+    var all = [];
+    rooms.forEach(function(r){
+      (byRoom[r.id] || []).forEach(function(e){ all.push(e); });
+    });
+    var byDay = {};
+    all.forEach(function(e){
+      var k = startOfDay(new Date(e.start_at)).getTime();
+      (byDay[k] = byDay[k] || []).push(e);
+    });
+
+    var todayK = startOfDay(new Date()).getTime();
+    var dow = '';
+    for (var i = 0; i < 7; i++) {
+      dow += '<div class="cal-dow">' + escapeHtml(addDays(gridStart, i).toLocaleDateString(window.appLocale(), { weekday: 'short' })) + '</div>';
+    }
+    var cells = '';
+    for (var c = 0; c < 42; c++) {
+      var day = addDays(gridStart, c);
+      var k = day.getTime();
+      var dayEvents = (byDay[k] || []).slice().sort(function(a, b){ return new Date(a.start_at) - new Date(b.start_at); });
+      var other = day.getMonth() !== roomSchedAnchor.getMonth();
+      cells += '<div class="cal-day' + (other ? ' other-month' : '') + (k === todayK ? ' today' : '') + '"'
+        + (dayEvents.length ? ' data-rsched-day="' + k + '"' : '') + '>'
+        + '<div class="cal-day-num">' + day.getDate() + '</div>'
+        + dayEvents.slice(0, 3).map(function(e){
+            return '<span class="cal-event-chip sage" data-room-event="' + escapeHtml(e.id) + '" title="' + escapeHtml(e.title + (e.__roomName ? ' — ' + e.__roomName : '')) + '">'
+              + escapeHtml(e.title) + '</span>';
+          }).join('')
+        + (dayEvents.length > 3 ? '<div class="cal-more-link">+' + (dayEvents.length - 3) + '</div>' : '')
+        + '</div>';
+    }
+    return { grid: '<div class="cal-grid">' + dow + cells + '</div>',
+             agenda: '',
+             label: first.toLocaleDateString(window.appLocale(), { month: 'long', year: 'numeric' }) };
+  }
+
+  // ---- Loader ------------------------------------------------------
+  // The fetch window is the view's own range, so switching from month
+  // to day does not keep a month of rows in memory, and a month view
+  // does not ask for a year.
+  function roomSchedRange(){
+    if (roomSchedView === 'day')  return { from: roomSchedAnchor, to: addDays(roomSchedAnchor, 1) };
+    if (roomSchedView === 'week') { var w = startOfWeek(roomSchedAnchor); return { from: w, to: addDays(w, 7) }; }
+    var first = new Date(roomSchedAnchor.getFullYear(), roomSchedAnchor.getMonth(), 1);
+    var gridStart = startOfWeek(first);
+    return { from: gridStart, to: addDays(gridStart, 42) };
   }
 
   async function loadRoomSchedule(){
     var section = document.getElementById('room-schedule-section');
-    var selectEl = document.getElementById('room-schedule-room');
-    if (!section || !selectEl) return;
+    var gridEl = document.getElementById('room-schedule-grid');
+    var agendaEl = document.getElementById('room-schedule-agenda');
+    if (!section || !gridEl || !agendaEl) return;
     var rooms = window.churchRoomsCache || [];
     if (!rooms.length) { section.style.display = 'none'; return; }
     section.style.display = 'block';
 
-    if (!roomScheduleRoomId || !rooms.filter(function(r){ return r.id === roomScheduleRoomId; }).length) {
-      roomScheduleRoomId = rooms[0].id;
+    if (!roomSchedAnchor) roomSchedAnchor = startOfDay(new Date());
+    if (!roomSchedRoomId || !rooms.filter(function(r){ return r.id === roomSchedRoomId; }).length) {
+      roomSchedRoomId = rooms[0].id;
     }
-    if (!roomScheduleWeekStart) roomScheduleWeekStart = startOfWeek(new Date());
 
-    selectEl.innerHTML = rooms.map(function(r){
-      return '<option value="' + escapeHtml(r.id) + '"' + (r.id === roomScheduleRoomId ? ' selected' : '') + '>' + escapeHtml(r.name) + '</option>';
-    }).join('');
+    // The room picker only means anything in week view, where the grid
+    // is one room. Hiding it elsewhere rather than disabling it: a
+    // control that is present but inert invites the conclusion that
+    // the view is filtered when it is showing everything.
+    var selectWrap = document.getElementById('room-schedule-room-wrap');
+    if (selectWrap) selectWrap.style.display = roomSchedView === 'week' ? '' : 'none';
+    var selectEl = document.getElementById('room-schedule-room');
+    if (selectEl) {
+      selectEl.innerHTML = rooms.map(function(r){
+        return '<option value="' + escapeHtml(r.id) + '"' + (r.id === roomSchedRoomId ? ' selected' : '') + '>' + escapeHtml(r.name) + '</option>';
+      }).join('');
+    }
+    ['day','week','month'].forEach(function(v){
+      var b = document.getElementById('room-schedule-view-' + v);
+      if (b) b.classList.toggle('is-active', roomSchedView === v);
+    });
 
     var myChurch = await getMyChurch();
     if (!myChurch) return;
-    var weekEnd = new Date(roomScheduleWeekStart.getFullYear(), roomScheduleWeekStart.getMonth(), roomScheduleWeekStart.getDate() + 7);
-    var byRoom = await fetchRoomBookings(myChurch.id, roomScheduleWeekStart.toISOString(), weekEnd.toISOString());
-    renderRoomSchedule(byRoom[roomScheduleRoomId] || []);
+    var range = roomSchedRange();
+    var byRoom = await fetchRoomBookings(myChurch.id, range.from.toISOString(), range.to.toISOString());
+
+    // The room name travels with the event, because day and month show
+    // several rooms at once and a block that does not say which room
+    // it is in is worse than no block.
+    var roomNameById = {};
+    rooms.forEach(function(r){ roomNameById[r.id] = r.name; });
+    Object.keys(byRoom).forEach(function(rid){
+      byRoom[rid].forEach(function(e){ e.__roomName = roomNameById[rid] || ''; });
+    });
+
+    var out = roomSchedView === 'day' ? renderRoomSchedDay(rooms, byRoom)
+            : roomSchedView === 'week' ? renderRoomSchedWeek(rooms, byRoom)
+            : renderRoomSchedMonth(rooms, byRoom);
+
+    gridEl.innerHTML = out.grid;
+    agendaEl.innerHTML = out.agenda;
+    // Month is already a grid of small cells; the phone rules in the
+    // events calendar handle it, so it must not also be replaced by an
+    // agenda that would then be the only thing showing.
+    agendaEl.style.display = roomSchedView === 'month' ? 'none' : '';
+    gridEl.classList.toggle('rsched-month', roomSchedView === 'month');
+    var labelEl = document.getElementById('room-schedule-label');
+    if (labelEl) labelEl.textContent = out.label;
   }
   window.loadRoomSchedule = loadRoomSchedule;
 
+  // ---- Controls ----------------------------------------------------
+  ['day','week','month'].forEach(function(v){
+    var b = document.getElementById('room-schedule-view-' + v);
+    if (b) b.addEventListener('click', function(){
+      roomSchedView = v;
+      loadRoomSchedule();
+    });
+  });
   var roomScheduleSelect = document.getElementById('room-schedule-room');
   if (roomScheduleSelect) roomScheduleSelect.addEventListener('change', function(){
-    roomScheduleRoomId = roomScheduleSelect.value;
+    roomSchedRoomId = roomScheduleSelect.value;
     loadRoomSchedule();
   });
-  function shiftRoomScheduleWeek(days){
-    roomScheduleWeekStart = new Date(roomScheduleWeekStart.getFullYear(), roomScheduleWeekStart.getMonth(), roomScheduleWeekStart.getDate() + days);
+  // One step means a different thing per view, which is the whole
+  // reason this is a function rather than a hardcoded seven.
+  function shiftRoomSchedule(dir){
+    if (roomSchedView === 'day') roomSchedAnchor = addDays(roomSchedAnchor, dir);
+    else if (roomSchedView === 'week') roomSchedAnchor = addDays(roomSchedAnchor, dir * 7);
+    else roomSchedAnchor = new Date(roomSchedAnchor.getFullYear(), roomSchedAnchor.getMonth() + dir, 1);
     loadRoomSchedule();
   }
   var rsPrev = document.getElementById('room-schedule-prev');
-  if (rsPrev) rsPrev.addEventListener('click', function(){ shiftRoomScheduleWeek(-7); });
+  if (rsPrev) rsPrev.addEventListener('click', function(){ shiftRoomSchedule(-1); });
   var rsNext = document.getElementById('room-schedule-next');
-  if (rsNext) rsNext.addEventListener('click', function(){ shiftRoomScheduleWeek(7); });
+  if (rsNext) rsNext.addEventListener('click', function(){ shiftRoomSchedule(1); });
   var rsToday = document.getElementById('room-schedule-today');
   if (rsToday) rsToday.addEventListener('click', function(){
-    roomScheduleWeekStart = startOfWeek(new Date());
+    roomSchedAnchor = startOfDay(new Date());
+    loadRoomSchedule();
+  });
+
+  // Tapping a day in month view drops into that day across all rooms,
+  // which is the natural next question after "that week looks busy".
+  document.addEventListener('click', function(ev){
+    var cell = ev.target.closest ? ev.target.closest('[data-rsched-day]') : null;
+    if (!cell || (ev.target.closest && ev.target.closest('[data-room-event]'))) return;
+    roomSchedAnchor = startOfDay(new Date(Number(cell.getAttribute('data-rsched-day'))));
+    roomSchedView = 'day';
     loadRoomSchedule();
   });
 
