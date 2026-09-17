@@ -3981,3 +3981,27 @@ Two things the fixtures caught that reasoning had not:
 Verified against fixtures anchored to the current week: seven day columns, a 6:30am event visible (so the dynamic hour range works), two overlapping evening events rendered at 50% width side by side and both flagged while a third event the same week is not, week navigation narrowing the fetch to exactly the displayed range, room switching, the retire prompt naming the same count the row shows, the mobile fallback with no horizontal overflow, and a hostile room name rendering as text with zero elements created. The live check was exercised with a **real click** on the checkbox, not a dispatched event: one call on tick, warning cleared on untick, re-run on a time change.
 
 Build `2026-09-17-v107`. No migration.
+
+---
+
+## Correction: 049's column grants did nothing
+
+The inbox entry above says staff "may change only the handled state, never rewrite what a visitor actually said", and credits column-level grants for it. **That was wrong**, caught by actually reading `information_schema.column_privileges` rather than trusting the migration to have done what it said.
+
+A GRANT only ever **adds**. This project hands `anon` and `authenticated` privileges on new public tables by default, so `contact_messages` was created already carrying SELECT, INSERT and UPDATE on every column — and 049's `grant insert (church_id, ...)` was a no-op restatement of a subset of what they already had. Naming columns narrows nothing unless something REVOKEs first. The `churches` precedent that inspired this presumably had that revoke somewhere 049 never looked at.
+
+Worth separating what was actually at risk from what only looked it:
+
+- **Never exposed:** an anonymous caller posting a message pre-marked read, which the 049 entry presents as the thing the grant was preventing. The BEFORE INSERT trigger nulls `read_at`, `read_by` and `archived_at` and sets `sender_user_id` from `auth.uid()` whatever the request contains. The defence was real; the entry named the wrong one.
+- **Never exposed:** anon reading, updating or deleting. No anon policy exists for those commands, and RLS refuses them regardless of privilege.
+- **Genuinely exposed:** a staff recipient could rewrite the `body`, `subject` or `sender_email` of a message sent to their own church. Not cross-tenant, but the worst property to lose on this particular table — a contact message can be a complaint or a safeguarding concern, and one that is silently editable by the person it concerns is worth less than no record at all.
+
+050 revokes first and re-grants narrowly, **and** pins the content with a BEFORE UPDATE trigger. Both, not either: the revoke is correct and should stay, but the entire reason this migration exists is that a privilege on this table did not behave the way the person writing it expected, and the same default grant applies to the next table too. 041 settled this argument — a trigger runs regardless of which policy or privilege allowed the statement. It restores the old values silently rather than raising, because the UI never tries to change those columns, so anything reaching that branch is either a bug or someone poking at the API and neither deserves an error explaining which field to try next.
+
+`read_by` is pinned to `auth.uid()` rather than taken from the request for the same reason `sender_user_id` is on insert: it records *who* read the message, so accepting the caller's value would let one person's name be written against another's action.
+
+The general lesson, which is the reason this is written down rather than quietly fixed: **a migration running without error is not evidence that it did what it says.** 049 applied cleanly, every statement succeeded, and the security property it claimed was absent the whole time. Only the catalog knows.
+
+Anon also loses SELECT outright in 050, so "a visitor cannot read the inbox" becomes a privilege rather than the absence of a policy someone could add back by accident.
+
+**Migration 050 must be run by hand.** No client change.
