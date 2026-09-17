@@ -3189,4 +3189,4 @@ Empty array, never null, when nothing is followed. `null` means "no filter" to t
 
 The checkbox appears only once you follow something, same rule as the two beside it. It re-evaluates when `loadEventFilterFollowState()` runs, so hearting your first event reveals it on the next load rather than instantly -- the alternative is a round trip per heart tap.
 
-Build `2026-09-17-v77`; **migration 039 must be run by hand** for the filter to do anything (without it the checkbox appears and silently returns everything -- no, it can't: the param is omitted pre-migration, so an unchecked-equivalent result comes back. Run 039.)
+Build `2026-09-17-v77`; **migration 039 must be run by hand** for the filter to do anything. Until it is, ticking the box changes nothing rather than breaking anything: the param is omitted, so the search comes back as though the box were unchecked.
