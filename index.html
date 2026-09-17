@@ -6747,7 +6747,7 @@ Groups</span>
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v81 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v82 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12746,7 +12746,7 @@ Groups</span>
     var { data: allEvents, error: eventsError } = await supabase.from('events').select('*, profiles(full_name)').eq('church_id', churchId).order('start_at', { ascending: true });
 
     if (eventsError) {
-      tbody.innerHTML = '<tr><td colspan="8" style="color:var(--clay);">Couldn\'t load events: ' + eventsError.message + '</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" style="color:var(--clay);">Couldn\'t load events: ' + escapeHtml(eventsError.message) + '</td></tr>';
       document.getElementById('dash-events-count').textContent = '—';
       document.getElementById('dash-days-to-next').textContent = '—';
       document.getElementById('dash-registrations-count').textContent = '—';
@@ -15732,7 +15732,7 @@ Groups</span>
       .eq('event_id', eventId)
       .order('created_at', { ascending: true });
 
-    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:13px;">' + error.message + '</p>'; return; }
+    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:13px;">' + escapeHtml(error.message) + '</p>'; return; }
     if (!data || !data.length) { listEl.innerHTML = '<p style="color:var(--ink-mute);font-size:13px;">' + window.t('registrants.noneYet') + '</p>'; return; }
 
     lastRegistrantsData = data;
@@ -16677,7 +16677,7 @@ Groups</span>
     if (!myChurch) { listEl.innerHTML = ''; return; }
 
     var { data: rooms, error } = await supabase.from('church_rooms').select('id, name').eq('church_id', myChurch.id).eq('is_active', true).order('name');
-    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:13px;">' + error.message + '</p>'; return; }
+    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:13px;">' + escapeHtml(error.message) + '</p>'; return; }
 
     window.churchRoomsCache = rooms || [];
 
@@ -16709,7 +16709,7 @@ Groups</span>
     if (!myChurch) { listEl.innerHTML = ''; return; }
 
     var { data: ministries, error } = await supabase.from('church_ministries').select('id, name, description').eq('church_id', myChurch.id).eq('is_active', true).order('name');
-    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:13px;">' + error.message + '</p>'; return; }
+    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:13px;">' + escapeHtml(error.message) + '</p>'; return; }
 
     window.churchMinistriesCache = ministries || [];
 
@@ -16739,7 +16739,7 @@ Groups</span>
     if (!myChurch) { listEl.innerHTML = ''; return; }
 
     var { data: funds, error } = await supabase.from('giving_funds').select('id, name').eq('church_id', myChurch.id).eq('is_active', true).order('name');
-    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:13px;">' + error.message + '</p>'; return; }
+    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:13px;">' + escapeHtml(error.message) + '</p>'; return; }
 
     if (!funds || !funds.length) {
       listEl.innerHTML = '<p style="color:var(--ink-mute);font-size:13px;">' + window.t('dashSettings.noFundsYet') + '</p>';
@@ -17005,7 +17005,7 @@ Groups</span>
     if (!myChurch) return;
 
     var { data: reports, error } = await supabase.from('saved_reports').select('id, name, report_type, params, is_archived').eq('church_id', myChurch.id).eq('is_archived', savedReportsShowArchived).order('created_at', { ascending: false });
-    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:13px;">' + error.message + '</p>'; return; }
+    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:13px;">' + escapeHtml(error.message) + '</p>'; return; }
 
     if (!reports || !reports.length) {
       listEl.innerHTML = savedReportsShowArchived
@@ -17216,7 +17216,7 @@ Groups</span>
     outputEl.innerHTML = '<p style="color:var(--ink-mute);font-size:13px;">' + window.t('common.loading') + '</p>';
 
     var { data: members, error } = await supabase.from('group_members').select('role, status, profiles(full_name)').eq('group_id', groupId).order('status', { ascending: true });
-    if (error) { outputEl.innerHTML = '<p style="color:var(--clay);font-size:13px;">' + error.message + '</p>'; return; }
+    if (error) { outputEl.innerHTML = '<p style="color:var(--clay);font-size:13px;">' + escapeHtml(error.message) + '</p>'; return; }
 
     var active = (members || []).filter(function(m){ return m.status !== 'pending'; });
     var pending = (members || []).filter(function(m){ return m.status === 'pending'; });
@@ -17282,7 +17282,7 @@ Groups</span>
       .gte('created_at', fromIso).lte('created_at', toIso)
       .order('created_at');
 
-    if (error) { outputEl.innerHTML = '<p style="color:var(--clay);font-size:13px;">' + error.message + '</p>'; return; }
+    if (error) { outputEl.innerHTML = '<p style="color:var(--clay);font-size:13px;">' + escapeHtml(error.message) + '</p>'; return; }
 
     var titleMap = { distribution: window.t('reports.eventPaymentDistribution'), balance: window.t('reports.paymentBalanceReport'), batch: window.t('reports.onlineBatchReport') };
     var html = '<h2 style="font-family:\'Fraunces\';font-size:20px;margin-bottom:4px;">' + escapeHtml(myChurch.name) + ' — ' + titleMap[reportType] + '</h2>'
@@ -17365,7 +17365,7 @@ Groups</span>
     var html = '<h2 style="font-family:\'Fraunces\';font-size:20px;margin-bottom:4px;">' + escapeHtml(myChurch.name) + window.t('reports.discountCodeReportSuffix') + '</h2>'
       + '<p style="font-size:12px;color:var(--ink-mute);margin-bottom:18px;">' + new Date(fromVal + 'T00:00:00').toLocaleDateString(window.appLocale()) + ' ' + window.t('reports.dateRangeTo') + ' ' + new Date(toVal + 'T00:00:00').toLocaleDateString(window.appLocale()) + '</p>';
 
-    if (error) { outputEl.innerHTML = html + '<p style="color:var(--clay);font-size:13px;">' + error.message + '</p>'; return; }
+    if (error) { outputEl.innerHTML = html + '<p style="color:var(--clay);font-size:13px;">' + escapeHtml(error.message) + '</p>'; return; }
 
     if (!regs || !regs.length) {
       html += '<p style="color:var(--ink-mute);font-size:13px;">' + window.t('reports.noDiscountCodesUsed') + '</p>';
@@ -18076,7 +18076,7 @@ Groups</span>
     var listEl = document.getElementById('ce-discount-codes-list');
     if (!listEl) return;
     var { data: codes, error } = await supabase.from('event_discount_codes').select('id, code, discount_type, discount_value, max_uses, times_used, is_active').eq('event_id', eventId).order('created_at');
-    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:12.5px;">' + error.message + '</p>'; return; }
+    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:12.5px;">' + escapeHtml(error.message) + '</p>'; return; }
     if (!codes || !codes.length) { listEl.innerHTML = '<p style="color:var(--ink-mute);font-size:12.5px;">' + window.t('ce.noDiscountCodesYet') + '</p>'; return; }
 
     listEl.innerHTML = codes.map(function(c){
@@ -18189,7 +18189,7 @@ Groups</span>
         .lte('start_at', toIso)
         .order('start_at');
 
-      if (error) { outputEl.innerHTML = '<p style="color:var(--clay);font-size:13px;">' + error.message + '</p>'; return; }
+      if (error) { outputEl.innerHTML = '<p style="color:var(--clay);font-size:13px;">' + escapeHtml(error.message) + '</p>'; return; }
       if (!events || !events.length) {
         outputEl.innerHTML = '<p style="color:var(--ink-mute);font-size:13px;">' + window.t('reports.noEventsInDateRange') + '</p>';
         document.getElementById('sched-print-btn').style.display = 'none';
@@ -19155,7 +19155,7 @@ Groups</span>
     if (!myChurch) { tbody.innerHTML = '<tr><td colspan="3" style="color:var(--ink-mute);">' + window.t('dashHeader.registerChurchFirst') + '</td></tr>'; return; }
 
     var { data: donations, error } = await supabase.from('donations').select('amount_cents, created_at, donor_id, donor_email, fund_id, net_amount_cents').eq('church_id', myChurch.id).eq('status', 'succeeded').order('created_at', { ascending: false });
-    if (error) { tbody.innerHTML = '<tr><td colspan="4" style="color:var(--clay);">' + error.message + '</td></tr>'; return; }
+    if (error) { tbody.innerHTML = '<tr><td colspan="4" style="color:var(--clay);">' + escapeHtml(error.message) + '</td></tr>'; return; }
 
     var donations2 = donations || [];
     var yearStart = new Date(new Date().getFullYear(), 0, 1);
@@ -19400,7 +19400,7 @@ Groups</span>
     if (!myChurch) { tbody.innerHTML = '<tr><td colspan="6" style="color:var(--ink-mute);">' + window.t('dashHeader.registerChurchFirst') + '</td></tr>'; return; }
 
     var { data, error } = await supabase.rpc('get_directory_people', { target_church_id: myChurch.id });
-    if (error) { tbody.innerHTML = '<tr><td colspan="6" style="color:var(--clay);">' + error.message + '</td></tr>'; return; }
+    if (error) { tbody.innerHTML = '<tr><td colspan="6" style="color:var(--clay);">' + escapeHtml(error.message) + '</td></tr>'; return; }
 
     directoryPeopleRaw = data || [];
     renderDirectoryTable();
@@ -19688,7 +19688,7 @@ Groups</span>
     if (!myChurch) { listEl.innerHTML = ''; return; }
 
     var { data: households, error } = await supabase.from('households').select('id, name, household_members(user_id, relationship, profiles(full_name))').eq('church_id', myChurch.id).order('name');
-    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:13px;">' + error.message + '</p>'; return; }
+    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:13px;">' + escapeHtml(error.message) + '</p>'; return; }
 
     if (!households || !households.length) {
       listEl.innerHTML = '<p style="color:var(--ink-mute);font-size:13px;">' + window.t('households.noneSetUpYet') + '</p>';
@@ -20138,7 +20138,7 @@ Groups</span>
     if (!myChurch) { listEl.innerHTML = ''; return; }
 
     var { data: pending, error } = await supabase.from('scheduled_messages').select('*').eq('church_id', myChurch.id).eq('status', 'pending').order('send_at', { ascending: true });
-    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:13px;">' + error.message + '</p>'; return; }
+    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:13px;">' + escapeHtml(error.message) + '</p>'; return; }
     if (!pending || !pending.length) { listEl.innerHTML = '<p style="color:var(--ink-mute);font-size:13px;">' + window.t('dashMsg.nothingScheduled') + '</p>'; return; }
 
     listEl.innerHTML = pending.map(function(m){
@@ -20170,7 +20170,7 @@ Groups</span>
     if (!myChurch) { listEl.innerHTML = ''; return; }
 
     var { data: batches, error } = await supabase.from('message_batches').select('*').eq('church_id', myChurch.id).order('created_at', { ascending: false }).limit(20);
-    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:13px;">' + error.message + '</p>'; return; }
+    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:13px;">' + escapeHtml(error.message) + '</p>'; return; }
     if (!batches || !batches.length) { listEl.innerHTML = '<p style="color:var(--ink-mute);font-size:13px;">' + window.t('dashMsg.noSentMessages') + '</p>'; return; }
 
     var batchIds = batches.map(function(b){ return b.id; });
@@ -20505,7 +20505,7 @@ Groups</span>
 
     var { data: myGroups, error: groupsError } = await supabase.from('groups').select('*').eq('church_id', myChurch.id).order('created_at', { ascending: true });
     if (groupsError) {
-      tbody.innerHTML = '<tr><td colspan="5" style="color:var(--clay);">' + window.t('dashGroups.couldntLoad') + groupsError.message + '</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="5" style="color:var(--clay);">' + window.t('dashGroups.couldntLoad') + escapeHtml(groupsError.message) + '</td></tr>';
       countLabel.textContent = '—';
       return;
     }
@@ -20561,7 +20561,7 @@ Groups</span>
     listEl.innerHTML = '<p style="color:var(--ink-mute);font-size:14px;">' + window.t('groupPage.loadingGroups') + '</p>';
 
     var { data: groupsData, error } = await supabase.from('groups').select('*').eq('church_id', churchId).order('created_at', { ascending: true });
-    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:14px;">' + error.message + '</p>'; return; }
+    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:14px;">' + escapeHtml(error.message) + '</p>'; return; }
     if (!groupsData || !groupsData.length) { listEl.innerHTML = '<p style="color:var(--ink-mute);font-size:14px;">' + window.t('groupPage.noGroupsPosted') + '</p>'; return; }
 
     var { data: userData } = await supabase.auth.getUser();
@@ -20612,7 +20612,7 @@ Groups</span>
     listEl.innerHTML = '<p style="color:var(--ink-mute);font-size:14px;">' + window.t('church.loadingMinistries') + '</p>';
 
     var { data: ministriesData, error } = await supabase.from('church_ministries').select('id, name, description').eq('church_id', churchId).eq('is_active', true).order('name');
-    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:14px;">' + error.message + '</p>'; return; }
+    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:14px;">' + escapeHtml(error.message) + '</p>'; return; }
     if (!ministriesData || !ministriesData.length) { listEl.innerHTML = '<p style="color:var(--ink-mute);font-size:14px;">' + window.t('church.noMinistriesPosted') + '</p>'; return; }
 
     listEl.innerHTML = ministriesData.map(function(m){
@@ -21268,7 +21268,7 @@ Groups</span>
       .eq('status', 'confirmed');
 
     if (error) {
-      tbody.innerHTML = '<tr><td colspan="3" style="color:var(--clay);">' + error.message + '</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="3" style="color:var(--clay);">' + escapeHtml(error.message) + '</td></tr>';
       return;
     }
 
@@ -21907,7 +21907,7 @@ Groups</span>
     }
 
     var { data: myRows, error } = await supabase.from('group_members').select('role, status, groups(id, name, meeting_schedule, churches(name))').eq('user_id', userData.user.id).order('joined_at', { ascending: false });
-    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:14px;">' + error.message + '</p>'; return; }
+    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:14px;">' + escapeHtml(error.message) + '</p>'; return; }
     if (!myRows || !myRows.length) { listEl.innerHTML = '<p style="color:var(--ink-mute);font-size:14px;">' + window.t('myGroups.noneYet') + '</p>'; return; }
 
     listEl.innerHTML = myRows.map(function(r){
@@ -22042,7 +22042,7 @@ Groups</span>
     if (!window.isPlatformAdmin) return;
 
     var { data: pending, error: pendingError } = await supabase.rpc('get_pending_verifications');
-    if (pendingError) { verifList.innerHTML = '<p style="color:var(--clay);font-size:14px;">' + pendingError.message + '</p>'; }
+    if (pendingError) { verifList.innerHTML = '<p style="color:var(--clay);font-size:14px;">' + escapeHtml(pendingError.message) + '</p>'; }
     else if (!pending || !pending.length) { verifList.innerHTML = '<p style="color:var(--ink-mute);font-size:14px;">' + window.t('admin.noPendingRequests') + '</p>'; }
     else {
       verifList.innerHTML = pending.map(function(r){
@@ -22109,7 +22109,7 @@ Groups</span>
     q = q.order('created_at', { ascending: false }).range(adminSupportOffset, adminSupportOffset + ADMIN_LIST_PAGE_SIZE - 1);
 
     var { data: support, count: totalCount, error: supportError } = await q;
-    if (supportError) { listEl.innerHTML = '<p style="color:var(--clay);font-size:14px;padding:12px;">' + supportError.message + '</p>'; loadMoreBtn.style.display = 'none'; return; }
+    if (supportError) { listEl.innerHTML = '<p style="color:var(--clay);font-size:14px;padding:12px;">' + escapeHtml(supportError.message) + '</p>'; loadMoreBtn.style.display = 'none'; return; }
 
     var rows = support || [];
     var html = rows.map(function(s){
@@ -22147,7 +22147,7 @@ Groups</span>
     q = q.order('created_at', { ascending: false }).range(adminFeedbackOffset, adminFeedbackOffset + ADMIN_LIST_PAGE_SIZE - 1);
 
     var { data: feedback, count: totalCount, error: feedbackError } = await q;
-    if (feedbackError) { listEl.innerHTML = '<p style="color:var(--clay);font-size:14px;padding:12px;">' + feedbackError.message + '</p>'; loadMoreBtn.style.display = 'none'; return; }
+    if (feedbackError) { listEl.innerHTML = '<p style="color:var(--clay);font-size:14px;padding:12px;">' + escapeHtml(feedbackError.message) + '</p>'; loadMoreBtn.style.display = 'none'; return; }
 
     var rows = feedback || [];
     var html = rows.map(function(f){
@@ -22189,7 +22189,7 @@ Groups</span>
     if (!listEl) return;
 
     var { data, error } = await supabase.rpc('get_waitlist_signups');
-    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:14px;padding:12px;">' + error.message + '</p>'; copyBtn.style.display = 'none'; return; }
+    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:14px;padding:12px;">' + escapeHtml(error.message) + '</p>'; copyBtn.style.display = 'none'; return; }
 
     var rows = data || [];
     adminWaitlistEmails = rows.map(function(r){ return r.email; });
@@ -22231,7 +22231,7 @@ Groups</span>
     if (!listEl) return;
 
     var { data, error } = await supabase.rpc('admin_list_import_batches');
-    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:14px;padding:12px;">' + error.message + '</p>'; return; }
+    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:14px;padding:12px;">' + escapeHtml(error.message) + '</p>'; return; }
 
     var batches = data || [];
     if (!batches.length) {
@@ -22273,7 +22273,7 @@ Groups</span>
       p_limit: ADMIN_LIST_PAGE_SIZE, p_offset: adminChurchesOffset
     });
 
-    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:14px;padding:12px;">' + error.message + '</p>'; loadMoreBtn.style.display = 'none'; return; }
+    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:14px;padding:12px;">' + escapeHtml(error.message) + '</p>'; loadMoreBtn.style.display = 'none'; return; }
 
     var rows = data || [];
     var totalCount = rows.length ? rows[0].total_count : 0;
@@ -22340,7 +22340,7 @@ Groups</span>
       p_keyword: keyword || null, p_limit: ADMIN_LIST_PAGE_SIZE, p_offset: adminClaimsOffset
     });
 
-    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:14px;padding:12px;">' + error.message + '</p>'; loadMoreBtn.style.display = 'none'; return; }
+    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:14px;padding:12px;">' + escapeHtml(error.message) + '</p>'; loadMoreBtn.style.display = 'none'; return; }
 
     var rows = data || [];
     var totalCount = rows.length ? rows[0].total_count : 0;
@@ -22388,7 +22388,7 @@ Groups</span>
       p_limit: ADMIN_LIST_PAGE_SIZE, p_offset: adminClaimsHistoryOffset
     });
 
-    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:14px;padding:12px;">' + error.message + '</p>'; loadMoreBtn.style.display = 'none'; return; }
+    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:14px;padding:12px;">' + escapeHtml(error.message) + '</p>'; loadMoreBtn.style.display = 'none'; return; }
 
     var rows = data || [];
     var totalCount = rows.length ? rows[0].total_count : 0;
@@ -22433,7 +22433,7 @@ Groups</span>
       p_limit: ADMIN_LIST_PAGE_SIZE, p_offset: adminUsersOffset
     });
 
-    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:14px;padding:12px;">' + error.message + '</p>'; loadMoreBtn.style.display = 'none'; return; }
+    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:14px;padding:12px;">' + escapeHtml(error.message) + '</p>'; loadMoreBtn.style.display = 'none'; return; }
 
     var rows = data || [];
     var totalCount = rows.length ? rows[0].total_count : 0;
@@ -22473,7 +22473,7 @@ Groups</span>
       p_limit: ADMIN_LIST_PAGE_SIZE, p_offset: adminAddressesOffset
     });
 
-    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:14px;padding:12px;">' + error.message + '</p>'; loadMoreBtn.style.display = 'none'; return; }
+    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:14px;padding:12px;">' + escapeHtml(error.message) + '</p>'; loadMoreBtn.style.display = 'none'; return; }
 
     var rows = data || [];
     var totalCount = rows.length ? rows[0].total_count : 0;
@@ -22509,7 +22509,7 @@ Groups</span>
       p_limit: ADMIN_LIST_PAGE_SIZE, p_offset: adminErrorsOffset
     });
 
-    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:14px;padding:12px;">' + error.message + '</p>'; loadMoreBtn.style.display = 'none'; return; }
+    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:14px;padding:12px;">' + escapeHtml(error.message) + '</p>'; loadMoreBtn.style.display = 'none'; return; }
 
     var rows = data || [];
     var totalCount = rows.length ? rows[0].total_count : 0;
@@ -22806,7 +22806,7 @@ Groups</span>
     var c = (churchRows && churchRows.length) ? churchRows[0] : null;
     if (churchError || !c) {
       nameEl.textContent = window.t('admin.churchNotFound');
-      profileEl.innerHTML = '<p style="color:var(--clay);font-size:14px;">' + (churchError ? churchError.message : window.t('admin.churchCouldNotLoad')) + '</p>';
+      profileEl.innerHTML = '<p style="color:var(--clay);font-size:14px;">' + (churchError ? escapeHtml(churchError.message) : window.t('admin.churchCouldNotLoad')) + '</p>';
       partnerEl.innerHTML = ''; staffEl.innerHTML = ''; eventsEl.innerHTML = ''; groupsEl.innerHTML = '';
       window._adminChurchEditCurrent = null;
       return;
@@ -22848,7 +22848,7 @@ Groups</span>
 
     var { data: staffRows, error: staffError } = await supabase.from('church_staff').select('id, user_id, can_manage_events, can_manage_giving, can_manage_groups, can_manage_messages, is_manager, can_edit_profile, profiles!user_id(full_name)').eq('church_id', churchId);
     if (staffError) {
-      staffEl.innerHTML = '<p style="color:var(--clay);font-size:14px;">' + staffError.message + '</p>';
+      staffEl.innerHTML = '<p style="color:var(--clay);font-size:14px;">' + escapeHtml(staffError.message) + '</p>';
     } else if (!staffRows || !staffRows.length) {
       staffEl.innerHTML = '<p style="color:var(--ink-mute);font-size:14px;">' + window.t('admin.noStaffOnRecord') + '</p>';
     } else {
@@ -22867,7 +22867,7 @@ Groups</span>
 
     var { data: eventRows, error: eventsError } = await supabase.from('events').select('id, title, start_at').eq('church_id', churchId).order('start_at', { ascending: false }).limit(25);
     if (eventsError) {
-      eventsEl.innerHTML = '<p style="color:var(--clay);font-size:14px;">' + eventsError.message + '</p>';
+      eventsEl.innerHTML = '<p style="color:var(--clay);font-size:14px;">' + escapeHtml(eventsError.message) + '</p>';
     } else if (!eventRows || !eventRows.length) {
       eventsEl.innerHTML = '<p style="color:var(--ink-mute);font-size:14px;">' + window.t('admin.noEventsYet') + '</p>';
     } else {
@@ -22880,7 +22880,7 @@ Groups</span>
 
     var { data: groupRows, error: groupsError } = await supabase.from('groups').select('id, name').eq('church_id', churchId).order('name');
     if (groupsError) {
-      groupsEl.innerHTML = '<p style="color:var(--clay);font-size:14px;">' + groupsError.message + '</p>';
+      groupsEl.innerHTML = '<p style="color:var(--clay);font-size:14px;">' + escapeHtml(groupsError.message) + '</p>';
     } else if (!groupRows || !groupRows.length) {
       groupsEl.innerHTML = '<p style="color:var(--ink-mute);font-size:14px;">' + window.t('admin.noGroupsYet') + '</p>';
     } else {
@@ -23282,7 +23282,7 @@ Groups</span>
         .eq('user_id', userData.user.id)
     ]);
     var regRes = results[0], followRes = results[1];
-    if (regRes.error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:14px;">' + regRes.error.message + '</p>'; return; }
+    if (regRes.error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:14px;">' + escapeHtml(regRes.error.message) + '</p>'; return; }
     // A follows failure is logged, not fatal. Registrations are the
     // thing this page exists for and they loaded fine; blanking them out
     // because the newer, secondary query failed would trade a small
@@ -24912,7 +24912,7 @@ Groups</span>
     document.getElementById('group-add-member-status').style.display = 'none';
 
     var { data: members, error: membersError } = await supabase.from('group_members').select('id, role, status, profiles(full_name)').eq('group_id', groupId).order('status', { ascending: true });
-    if (membersError) { listEl.innerHTML = '<p style="color:var(--clay);font-size:13px;">' + membersError.message + '</p>'; return; }
+    if (membersError) { listEl.innerHTML = '<p style="color:var(--clay);font-size:13px;">' + escapeHtml(membersError.message) + '</p>'; return; }
     if (!members || !members.length) { listEl.innerHTML = '<p style="color:var(--ink-mute);font-size:13px;">' + window.t('groupMembers.noMembersYet') + '</p>'; return; }
 
     var pending = members.filter(function(m){ return m.status === 'pending'; });

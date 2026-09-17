@@ -3298,3 +3298,15 @@ That distinction is the point of auditing rather than blanket-escaping: 313 `inn
 `escapeHtml` call sites went from 7 to 49.
 
 Build `2026-09-17-v81`. No migration.
+
+---
+
+## Escaping the error.message sinks
+
+All 38 places that rendered a raw `error.message` into `innerHTML` now go through `escapeHtml`. Postgres quotes the offending input back in its errors -- `Key (name)=(...)` -- so a message is attacker-influenceable even though the reader is usually whoever caused it. Verified with a realistic hostile message (`duplicate key value violates unique constraint "x" Key (name)=(<img src=x onerror=alert(1)>)`), which now renders as text and produces no `<img>`.
+
+Scoped by line, not globally, and that mattered: `.message` also appears in dozens of i18n keys (`'dash.messages'`, `'contactChurch.message'`) and in `console.error` / `queueOrSendError` calls where an HTML-escaped string would be wrong. Only lines containing BOTH `innerHTML` and `.message` were touched -- 38 of them, against ~10 distinct error variables. The alternation puts `regRes.error` before `error` deliberately, since matching the shorter one first would have produced `regRes.escapeHtml(error.message)` -- a method call on the response object rather than an escape.
+
+**What this does not fix, on purpose.** The bigger problem with these sinks isn't injection, it's disclosure: a raw Postgres error hands the reader your table names, column names and constraint names. *"new row violates row-level security policy for table church_memberships"* is a free map of the schema. The right end state is logging the raw error and showing something generic -- but those messages are exactly what has made this month's bugs diagnosable, including `PGRST202`, `42601` and `42P13`. That's a pre-launch change, not a today change, and it should be made deliberately rather than smuggled in under "escaping".
+
+Build `2026-09-17-v82`. No migration.
