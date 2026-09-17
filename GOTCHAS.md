@@ -3310,3 +3310,31 @@ Scoped by line, not globally, and that mattered: `.message` also appears in doze
 **What this does not fix, on purpose.** The bigger problem with these sinks isn't injection, it's disclosure: a raw Postgres error hands the reader your table names, column names and constraint names. *"new row violates row-level security policy for table church_memberships"* is a free map of the schema. The right end state is logging the raw error and showing something generic -- but those messages are exactly what has made this month's bugs diagnosable, including `PGRST202`, `42601` and `42P13`. That's a pre-launch change, not a today change, and it should be made deliberately rather than smuggled in under "escaping".
 
 Build `2026-09-17-v82`. No migration.
+
+---
+
+## Bounding client_error_logs
+
+The Supabase linter flagged `client_error_logs` for an `INSERT ... WITH CHECK (true)` policy. That permissiveness is deliberate and stays: the table exists to catch errors that happen *before* a session exists -- a failure during signup, a script error on the homepage -- so requiring auth would blind it exactly where it matters most.
+
+What was missing is a ceiling. The anon key is printed in the page source by design, so anyone can POST to `/rest/v1/client_error_logs` in a loop with megabyte-sized `stack` values and grow the table without limit. The client de-dupes identical errors for 60 seconds, but that's browser-side politeness, skipped entirely by anyone calling the API directly -- the same "UI hiding it isn't enforcement" reasoning behind the members-only trigger in 037.
+
+Migration 041 adds a `BEFORE INSERT` trigger, not a stricter policy, for the reason established in 035: permissive policies OR together, so a new restrictive policy can't take away what the existing one already grants, and this table's original policy isn't in the repo to edit safely.
+
+Three decisions in it worth keeping:
+
+- **Truncate, don't reject.** A length `CHECK` would throw away an entire error report because its stack trace was long. The first 10k of a stack is where the cause lives; bounding the size is the goal, losing the error is not.
+- **Two separate rate ceilings**, anonymous and per-user. One shared counter would let a flood of anonymous junk silence error reports from signed-in users -- fill the counter with garbage and every real report is refused too.
+- **`user_id` is taken from `auth.uid()`, not the client.** The browser sets it from its own `getUser()` call, so it can be forged to any uuid. Not severe -- it pollutes someone else's log rather than reading anything -- but there's no reason to take the caller's word for it when the database already knows.
+
+A refused insert is silent: `sendErrorLog` already wraps the insert in `.catch()`, because logging an error must never itself throw.
+
+### Also from the same Advisor run
+
+**Storage bucket listing.** Three public buckets carried a broad SELECT policy on `storage.objects`, letting anyone with the anon key enumerate every uploaded logo, event image and profile photo -- including those belonging to churches that aren't publicly listed. Public object URLs don't go through RLS at all, so the policy isn't needed for them. Confirmed safe before recommending removal by grepping the client: all three buckets are only ever used with `upload` and `getPublicUrl`, never `.list()`.
+
+**Leaked password protection is Pro-plan only**, so it's parked rather than done.
+
+**The ~150 "anon/authenticated can execute SECURITY DEFINER function" rows are mostly noise** -- that is how PostgREST works, and every RPC the browser calls must be executable by one of those roles. They each re-check authorization internally. Two are worth real scrutiny rather than dismissal: `get_user_id_by_email` (a potential unauthenticated email-enumeration oracle) and `get_waitlist_signups` (if it doesn't check `is_platform_admin()` internally, the whole waitlist is downloadable). Both pending their definitions.
+
+No build stamp: server-side only.
