@@ -732,6 +732,8 @@
       'checkinLink.privacyNote': 'This page shows names only. It works for this one event and stops working when the link expires.',
       'dashCheckin.emailOptional': 'Email (optional)',
       'dashCheckin.badEmail': 'That email address does not look right.',
+      'profile.tabProfile': 'Profile', 'profile.tabEmail': 'Email',
+      'profile.tabPassword': 'Password', 'profile.tabDelete': 'Delete account',
       'dashMsg.subjectPlaceholder': 'e.g. Sunday service update', 'dashMsg.message': 'Message', 'dashMsg.writeAnnouncement': 'Write your announcement...',
       'dashMsg.scheduleForLater': 'Schedule for later instead of sending now', 'dashMsg.sendAnnouncement': 'Send announcement',
       'dashMsg.scheduledAnnouncements': 'Scheduled announcements',
@@ -1621,6 +1623,8 @@
       'checkinLink.privacyNote': 'Esta página muestra solo nombres. Funciona para este único evento y deja de funcionar cuando el enlace caduca.',
       'dashCheckin.emailOptional': 'Correo (opcional)',
       'dashCheckin.badEmail': 'Ese correo electrónico no parece correcto.',
+      'profile.tabProfile': 'Perfil', 'profile.tabEmail': 'Correo',
+      'profile.tabPassword': 'Contraseña', 'profile.tabDelete': 'Eliminar cuenta',
       'dashMsg.subjectPlaceholder': 'p. ej. Actualización del servicio dominical', 'dashMsg.message': 'Mensaje', 'dashMsg.writeAnnouncement': 'Escribe tu anuncio...',
       'dashMsg.scheduleForLater': 'Programar para más tarde en lugar de enviar ahora', 'dashMsg.sendAnnouncement': 'Enviar anuncio',
       'dashMsg.scheduledAnnouncements': 'Anuncios programados',
@@ -4910,7 +4914,19 @@ Groups</span>
   <div class="wrap" style="padding-top:44px;max-width:520px;">
     <div class="eyebrow" data-i18n="profile.eyebrow">Your account</div>
     <h1 style="font-size:34px;" data-i18n="profile.heading">Profile</h1>
-    <div class="side-note" style="margin-top:32px;">
+
+    <!-- Four sections that were one long scroll. Reuses the event
+         page's tab row rather than inventing a second tab style,
+         so they stay the same control if either is restyled. -->
+    <div class="event-tab-row" id="profile-tab-row" style="margin-top:28px;overflow-x:auto;">
+      <button class="event-tab-btn active" data-profile-tab="profile" data-i18n="profile.tabProfile">Profile</button>
+      <button class="event-tab-btn" data-profile-tab="email" data-i18n="profile.tabEmail">Email</button>
+      <button class="event-tab-btn" data-profile-tab="password" data-i18n="profile.tabPassword">Password</button>
+      <button class="event-tab-btn" data-profile-tab="delete" data-i18n="profile.tabDelete">Delete account</button>
+    </div>
+
+    <div class="prof-panel" id="prof-panel-profile">
+    <div class="side-note" style="margin-top:20px;">
       <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
         <div style="position:relative;flex-shrink:0;">
           <img id="profile-photo-preview" src="" alt="" style="width:64px;height:64px;border-radius:50%;object-fit:cover;background:var(--paper);border:1px solid var(--line);display:none;">
@@ -4978,6 +4994,11 @@ Groups</span>
       </div>
       <div id="profile-name-status" style="display:none;font-size:12px;margin-top:8px;"></div>
 
+    </div>
+    </div>
+
+    <div class="prof-panel" id="prof-panel-email" style="display:none;">
+    <div class="side-note" style="margin-top:20px;">
       <!-- Own <form> each, same reasoning as the signup/login/reset-
            password forms elsewhere on this page -- a password field
            with no <form> boundary at all was what let Chrome's mobile
@@ -4993,6 +5014,11 @@ Groups</span>
         <div id="profile-email-status" style="display:none;font-size:12px;margin-top:8px;"></div>
       </form>
 
+    </div>
+    </div>
+
+    <div class="prof-panel" id="prof-panel-password" style="display:none;">
+    <div class="side-note" style="margin-top:20px;">
       <form id="profile-password-form">
         <label id="profile-password-label" style="margin-top:14px;" data-i18n="profile.changePassword">Change password</label>
         <div style="font-size:12px;color:var(--ink-mute);margin-bottom:6px;" data-i18n="profile.passwordHint">At least 10 characters. Confirm your current password first, to keep this from being used by anyone who gets hold of an active, already-logged-in session but doesn't actually know it.</div>
@@ -5010,6 +5036,11 @@ Groups</span>
       <div style="font-size:12px;color:var(--ink-mute);margin-top:6px;" data-i18n="profile.signOutOtherDevicesHint">Ends every other signed-in session for your account — another phone, browser, or computer — without signing out this one.</div>
       <div id="profile-signout-others-status" style="display:none;font-size:12px;margin-top:8px;"></div>
     </div>
+    </div>
+
+    <!-- Outside the tabs deliberately: signing out is not a setting,
+         and hiding the way out of an account behind a tab nobody
+         thinks to open is a bad trade for tidiness. -->
     <button class="export-btn" id="profile-signout-btn" style="margin-top:20px;" data-i18n="profile.signOut">Sign out</button>
 
     <div class="side-note" style="margin-top:20px;">
@@ -5020,7 +5051,8 @@ Groups</span>
       <div id="profile-feedback-status" style="display:none;font-size:12px;margin-top:8px;"></div>
     </div>
 
-    <div class="side-note" style="margin-top:32px;border-color:var(--clay);">
+    <div class="prof-panel" id="prof-panel-delete" style="display:none;">
+    <div class="side-note" style="margin-top:20px;border-color:var(--clay);">
       <h4 style="color:var(--clay);" data-i18n="profile.deleteAccount">Delete account</h4>
       <p style="font-size:13px;color:var(--ink-mute);" id="profile-delete-warning" data-i18n="profile.deleteWarningDefault">This permanently deletes your account and everything tied to it. This can't be undone.</p>
       <button class="export-btn" id="profile-delete-toggle-btn" style="border-color:var(--clay);color:var(--clay);" data-i18n="profile.deleteMyAccount">Delete my account</button>
@@ -5030,6 +5062,7 @@ Groups</span>
         <button class="export-btn" id="profile-delete-confirm-btn" style="margin-top:10px;background:var(--clay);color:#fff;border-color:var(--clay);" data-i18n="profile.permanentlyDeleteMyAccount">Permanently delete my account</button>
         <div id="profile-delete-status" style="display:none;font-size:12.5px;margin-top:10px;"></div>
       </div>
+    </div>
     </div>
   </div>
 </section>
@@ -7171,7 +7204,7 @@ Groups</span>
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v111 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v112 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -26745,6 +26778,36 @@ Groups</span>
     });
   }
 
+  // ============================================================
+  // Profile tabs.
+  //
+  // The page was one column of five stacked cards, so changing a
+  // password meant scrolling past a photo, a phone number and an age
+  // range -- and Delete account sat permanently in view under the
+  // thing you actually came to do.
+  //
+  // display:none rather than removing panels: every field keeps its
+  // id and its listeners, so nothing that already worked has to know
+  // this happened. It also means the Turnstile widgets in the email
+  // and password forms stay mounted rather than being torn down and
+  // re-rendered on each switch, which is how a captcha ends up
+  // showing an expired token.
+  // ============================================================
+  function showProfileTab(name){
+    ['profile','email','password','delete'].forEach(function(n){
+      var panel = document.getElementById('prof-panel-' + n);
+      if (panel) panel.style.display = (n === name) ? '' : 'none';
+    });
+    document.querySelectorAll('[data-profile-tab]').forEach(function(b){
+      b.classList.toggle('active', b.getAttribute('data-profile-tab') === name);
+    });
+  }
+  window.showProfileTab = showProfileTab;
+  document.addEventListener('click', function(ev){
+    var btn = ev.target.closest ? ev.target.closest('[data-profile-tab]') : null;
+    if (btn) showProfileTab(btn.getAttribute('data-profile-tab'));
+  });
+
   var profilePhotoInput = document.getElementById('profile-photo-input');
   if (profilePhotoInput) {
     profilePhotoInput.addEventListener('change', async function(){
@@ -26761,7 +26824,16 @@ Groups</span>
       statusEl.style.display = 'block';
 
       var filePath = userData.user.id + '/' + Date.now() + '-' + file.name;
-      var { error: uploadError } = await supabase.storage.from('profile-photos').upload(filePath, file, { upsert: true });
+      // No upsert: true. The path above already carries Date.now(),
+      // so it cannot collide with an existing object -- the flag was
+      // never doing anything except making storage-api take an
+      // INSERT ... ON CONFLICT path, which needs an UPDATE policy on
+      // storage.objects that a plain insert does not. Asking for a
+      // permission the operation does not need is how an upload ends
+      // up failing with a row-level security error. The other two
+      // buckets (church-logos, event-images) build the same kind of
+      // path and never passed it.
+      var { error: uploadError } = await supabase.storage.from('profile-photos').upload(filePath, file);
       if (uploadError) {
         statusEl.textContent = uploadError.message;
         statusEl.style.color = 'var(--clay)';

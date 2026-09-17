@@ -4188,3 +4188,30 @@ Mobile month cells came out 36×52 on the first pass -- the same taller-than-wid
 Verified against fixtures at both widths: day defaults with the picker hidden and a column per room; the overlapping evening pair renders at 50% width each and both flagged while a third event the same day is not; week shows seven day columns for the picked room; month labels the month, hides the picker, carries room names in the chip titles and hides the agenda; tapping the 16th switches to Day view for "Wednesday, September 16" with both room columns. A hostile room name renders as text in every view with zero elements created, and no view overflows the page at 375px.
 
 Build `2026-09-17-v111`. No migration.
+
+---
+
+## Profile tabs, and the profile-photo upload failure
+
+**Tabs.** The page was one column of five stacked cards, so changing a password meant scrolling past a photo, a phone number and an age range -- and Delete account sat permanently in view under the thing you actually came to do. Now Profile / Email / Password / Delete account, reusing the event page's tab row rather than inventing a second tab style.
+
+Panels are hidden with `display:none` rather than removed, so every field keeps its id and its listeners and nothing that already worked has to know this happened. That also keeps the Turnstile widgets in the email and password forms mounted, instead of being torn down and re-rendered on every switch, which is how a captcha ends up presenting an expired token.
+
+**Sign out and Send feedback stay outside the tabs, deliberately.** Signing out is not a setting, and putting the way out of an account behind a tab somebody has to guess at is a bad trade for tidiness.
+
+The risk in this change is markup surgery that balances its `<div>`s while putting content in the wrong panel -- which looks fine until someone opens the tab. Verified per field rather than per panel: photo, phone and name resolve to `prof-panel-profile`, the new-email input to `-email`, the new-password input and "sign out of other devices" to `-password`, the confirm input to `-delete`. Plus: four panels, each a direct child of the wrap, none nested, exactly one `.side-note` each.
+
+**The photo upload** (migration 056). The reported error -- "new row violates row-level security policy" -- is an INSERT WITH CHECK failure on `storage.objects`, so the profiles row is never reached and `update_my_avatar()` is not involved.
+
+Checked in the client rather than assumed: all three buckets build their path the same way, `<auth.uid()>/<timestamp>-<filename>`, so one policy covers all three and writing it for only the reported bucket would leave the identical bug waiting in the other two.
+
+The one difference was `upsert: true` on the profile-photo upload alone. With a timestamp already in the path it can never collide, so the flag bought nothing -- while making storage-api take an `INSERT ... ON CONFLICT` path that needs an UPDATE policy a plain insert does not. **Asking for a permission the operation does not need is a way to fail with a row-level security error.** The flag is gone; the UPDATE policy is added anyway, because replacing your own upload is a reasonable thing to want later and that is the correct rule for it.
+
+Two things 056 deliberately does **not** grant:
+
+- **SELECT.** These are public buckets and the public object endpoint bypasses RLS, so a read policy is not needed to serve an image -- it only enables listing, which is what was removed earlier to stop anyone with the anon key enumerating every uploaded logo, event image and profile photo. Re-adding it to "fix uploads" would quietly undo that.
+- **DELETE.** Nothing in the client deletes a stored object: removing a profile photo nulls the avatar URL and leaves the file. That is a real (small) orphan problem, but granting an unused permission is not its fix.
+
+056 was written **without seeing the current policies**, which is stated in the file itself rather than implied: it drops by name and recreates, which is right whether the policy was missing, differently named or differently worded. The catch is that permissive policies OR together, so an equivalent policy under another name becomes a redundant duplicate rather than being replaced. The migration ends with a listing of every `storage.objects` policy for exactly that reason -- two policies for the same command on the same bucket means an older one is still there and should be dropped by its own name.
+
+Build `2026-09-17-v112`; **migration 056 must be run by hand.**
