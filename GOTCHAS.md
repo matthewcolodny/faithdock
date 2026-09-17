@@ -3280,3 +3280,21 @@ One false negative found and fixed while testing: `gracechurch.org:8080/a` was r
 Also added `rel="noopener noreferrer"` to the two social anchors, which had `target="_blank"` without it -- unlike the website link beside them.
 
 Build `2026-09-17-v80`. No migration.
+
+---
+
+## The rest of the unescaped sites -- including the one the first fix missed
+
+Follow-up to the card XSS fix, working through the audit list.
+
+**churchRow() had the identical bug and was missed.** It is the Directory's List view -- the same church data, the same public exposure, a different template sitting forty lines below `churchCard()`. The original probe happened to land on the card builder, the fix followed the probe, and the sibling went untouched. That is the whole argument for grepping the *pattern* (user data concatenated into HTML) rather than fixing the function a test happened to find. Now escaped throughout and verified with the same probe: `injectsLiveElement: false`, and a name of `" onmouseover="..." y="` yields a row with exactly five attributes and no handler.
+
+Also escaped: `myChurch.name` in five report headers, `r.church_name` as link text in two admin panels (the *attribute* beside it was already escaped, the text next to it wasn't -- easy to look at and think it was handled), `c.name` in the admin church link, and the owned-church name in the delete-account warning.
+
+**What was deliberately left alone, and why.** Roughly 17 sites use a hand-rolled `.replace(/"/g, '&quot;')` for a double-quoted attribute. These are **not** vulnerabilities: HTML entity decoding happens *after* the parser has delimited the attribute, so a `&quot;` inside the value is data, not a closing quote, and escaping the real quote character is sufficient there. A `<` inside an attribute value is likewise inert. The same goes for the several `.replace(/</g, '&lt;')` calls in text contexts -- an injected tag needs a `<`, so escaping it is enough to stop one. Changing these would be churn dressed up as security, and would bury the real fixes in the diff.
+
+That distinction is the point of auditing rather than blanket-escaping: 313 `innerHTML` sites, 152 of them static, and the genuine holes were a small, specific set.
+
+`escapeHtml` call sites went from 7 to 49.
+
+Build `2026-09-17-v81`. No migration.

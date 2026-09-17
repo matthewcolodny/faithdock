@@ -6747,7 +6747,7 @@ Groups</span>
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v80 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v81 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -7293,25 +7293,31 @@ Groups</span>
   // hued left accent (same --thumb-hue as the card placeholder) so rows
   // still scan by denomination. Same href/data-* as churchCard's <a> so
   // the existing [data-route="church"] click handler drives it.
+  // Escaped throughout for the same reason churchCard() is -- see its
+  // comment. This is the Directory's List view: the same church data,
+  // the same stored-XSS exposure, just a different template. It was
+  // missed in the first pass at that bug, which is the argument for
+  // grepping for the PATTERN (user data concatenated into HTML) rather
+  // than fixing the one function a probe happened to land on.
   function churchRow(c){
     var bits = [];
     var distText = formatChurchDistanceText(c.dist);
-    if (distText) bits.push('<span>' + distText + '</span>');
+    if (distText) bits.push('<span>' + escapeHtml(distText) + '</span>');
     var nextText = formatChurchNextText(c.next, (c.rawServiceTimes || []).length);
-    if (nextText) bits.push('<span>' + nextText + '</span>');
+    if (nextText) bits.push('<span>' + escapeHtml(nextText) + '</span>');
     var evtText = formatChurchNextEventText(c.nextEvent);
-    if (evtText) bits.push('<span>' + evtText + '</span>');
+    if (evtText) bits.push('<span>' + escapeHtml(evtText) + '</span>');
     var inner = ''
       + '<div class="church-row-main">'
       + '<div class="church-row-head">'
-      + '<span class="church-row-name">' + displayChurchName(c.name) + '</span>'
-      + '<span class="tag sage">' + translateDenomination(c.tag) + '</span>'
+      + '<span class="church-row-name">' + escapeHtml(displayChurchName(c.name)) + '</span>'
+      + '<span class="tag sage">' + escapeHtml(translateDenomination(c.tag)) + '</span>'
       + '</div>'
       + (bits.length ? '<div class="church-row-meta">' + bits.join('<span class="church-row-sep">&middot;</span>') + '</div>' : '')
       + '</div>'
       + followHeartRow(c)
       + '<svg class="church-row-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>';
-    return '<a class="church-row" style="--thumb-hue:' + denomHue(c.tag) + ';" href="#church/' + encodeURIComponent(c.name) + '" data-route="church" data-church-name="' + c.name.replace(/"/g, '&quot;') + '">' + inner + '</a>';
+    return '<a class="church-row" style="--thumb-hue:' + denomHue(c.tag) + ';" href="#church/' + encodeURIComponent(c.name) + '" data-route="church" data-church-name="' + escapeHtml(c.name) + '">' + inner + '</a>';
   }
   window.churchRow = churchRow;
 
@@ -14667,7 +14673,7 @@ Groups</span>
         // either geocodeWarning fallback, since the church saved fine
         // in every one of those cases -- only the wording differs.
         var churchNameHtml = data[0].name.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        var churchNameAttr = data[0].name.replace(/"/g, '&quot;');
+        var churchNameAttr = escapeHtml(data[0].name);
         var viewChurchLinkHtml = ' <a href="#church/' + encodeURIComponent(data[0].name) + '" data-route="church" data-church-name="' + churchNameAttr + '" style="color:inherit;text-decoration:underline;">' + window.t('rc.viewYourChurchPage') + '</a>';
         showRcSuccess((geocodeWarning || ('Saved! "' + churchNameHtml + '" has been updated.')) + viewChurchLinkHtml);
         // Site-wide staleness, reported directly: renamed a church here,
@@ -16969,7 +16975,7 @@ Groups</span>
     var householdMemberCount = 0;
     (households || []).forEach(function(h){ householdMemberCount += (h.household_members || []).length; });
 
-    outputEl.innerHTML = '<h2 style="font-family:\'Fraunces\';font-size:20px;margin-bottom:4px;">' + myChurch.name + '</h2>'
+    outputEl.innerHTML = '<h2 style="font-family:\'Fraunces\';font-size:20px;margin-bottom:4px;">' + escapeHtml(myChurch.name) + '</h2>'
       + '<p style="font-size:12px;color:var(--ink-mute);margin-bottom:20px;">' + window.t('reports.peopleStatisticsGenerated').replace('{date}', new Date().toLocaleDateString(window.appLocale())) + '</p>'
       + '<table class="sched-table" style="margin-bottom:20px;">'
       + '<tr><td>' + window.t('reports.totalPeopleConnected') + '</td><td class="mono">' + peopleIds.length + '</td></tr>'
@@ -17279,7 +17285,7 @@ Groups</span>
     if (error) { outputEl.innerHTML = '<p style="color:var(--clay);font-size:13px;">' + error.message + '</p>'; return; }
 
     var titleMap = { distribution: window.t('reports.eventPaymentDistribution'), balance: window.t('reports.paymentBalanceReport'), batch: window.t('reports.onlineBatchReport') };
-    var html = '<h2 style="font-family:\'Fraunces\';font-size:20px;margin-bottom:4px;">' + myChurch.name + ' — ' + titleMap[reportType] + '</h2>'
+    var html = '<h2 style="font-family:\'Fraunces\';font-size:20px;margin-bottom:4px;">' + escapeHtml(myChurch.name) + ' — ' + titleMap[reportType] + '</h2>'
       + '<p style="font-size:12px;color:var(--ink-mute);margin-bottom:18px;">' + new Date(fromVal + 'T00:00:00').toLocaleDateString(window.appLocale()) + ' ' + window.t('reports.dateRangeTo') + ' ' + new Date(toVal + 'T00:00:00').toLocaleDateString(window.appLocale()) + '</p>';
 
     if (!regs || !regs.length) {
@@ -17356,7 +17362,7 @@ Groups</span>
       .gte('created_at', fromIso).lte('created_at', toIso)
       .order('created_at');
 
-    var html = '<h2 style="font-family:\'Fraunces\';font-size:20px;margin-bottom:4px;">' + myChurch.name + window.t('reports.discountCodeReportSuffix') + '</h2>'
+    var html = '<h2 style="font-family:\'Fraunces\';font-size:20px;margin-bottom:4px;">' + escapeHtml(myChurch.name) + window.t('reports.discountCodeReportSuffix') + '</h2>'
       + '<p style="font-size:12px;color:var(--ink-mute);margin-bottom:18px;">' + new Date(fromVal + 'T00:00:00').toLocaleDateString(window.appLocale()) + ' ' + window.t('reports.dateRangeTo') + ' ' + new Date(toVal + 'T00:00:00').toLocaleDateString(window.appLocale()) + '</p>';
 
     if (error) { outputEl.innerHTML = html + '<p style="color:var(--clay);font-size:13px;">' + error.message + '</p>'; return; }
@@ -17441,7 +17447,7 @@ Groups</span>
       if (r.attended) statsByGroup[r.group_id].present++;
     });
 
-    var html = '<h2 style="font-family:\'Fraunces\';font-size:20px;margin-bottom:4px;">' + myChurch.name + window.t('reports.rosterTotalsSuffix') + '</h2>'
+    var html = '<h2 style="font-family:\'Fraunces\';font-size:20px;margin-bottom:4px;">' + escapeHtml(myChurch.name) + window.t('reports.rosterTotalsSuffix') + '</h2>'
       + '<p style="font-size:12px;color:var(--ink-mute);margin-bottom:18px;">' + window.t('reports.generatedOn').replace('{date}', new Date().toLocaleDateString(window.appLocale())) + '</p>'
       + '<table class="sched-table"><tr><th>' + window.t('dashGroups.group') + '</th><th>' + window.t('reports.meetingsTracked') + '</th><th>' + window.t('reports.attendanceRate') + '</th></tr>';
     groupsList.forEach(function(g){
@@ -18210,7 +18216,7 @@ Groups</span>
         groups[key].push(e);
       });
 
-      var html = '<h2 style="font-family:\'Fraunces\';font-size:20px;margin-bottom:4px;">' + myChurch.name + window.t('reports.scheduleSuffix') + '</h2>'
+      var html = '<h2 style="font-family:\'Fraunces\';font-size:20px;margin-bottom:4px;">' + escapeHtml(myChurch.name) + window.t('reports.scheduleSuffix') + '</h2>'
         + '<p style="font-size:12px;color:var(--ink-mute);margin-bottom:18px;">' + new Date(fromVal + 'T00:00:00').toLocaleDateString(window.appLocale()) + ' ' + window.t('reports.dateRangeTo') + ' ' + new Date(toVal + 'T00:00:00').toLocaleDateString(window.appLocale()) + '</p>';
 
       order.forEach(function(key){
@@ -20522,14 +20528,14 @@ Groups</span>
       rowsHtml += '<tr>'
         + '<td>' + g.name + '</td>'
         + '<td class="mono">' + (g.meeting_schedule || '—') + '</td>'
-        + '<td><button class="qr-btn" data-view-group-members="' + g.id + '" data-view-group-title="' + g.name.replace(/"/g, '&quot;') + '" style="width:auto;padding:6px 10px;" aria-label="' + window.t('dashGroups.viewMembers') + '">' + (count || 0) + ' <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;margin-left:4px;"><circle cx="9" cy="8" r="3"/><path d="M2 20c0-3 3-5 7-5s7 2 7 5"/></svg></button>' + pendingBadge + '</td>'
+        + '<td><button class="qr-btn" data-view-group-members="' + g.id + '" data-view-group-title="' + escapeHtml(g.name) + '" style="width:auto;padding:6px 10px;" aria-label="' + window.t('dashGroups.viewMembers') + '">' + (count || 0) + ' <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;margin-left:4px;"><circle cx="9" cy="8" r="3"/><path d="M2 20c0-3 3-5 7-5s7 2 7 5"/></svg></button>' + pendingBadge + '</td>'
         + '<td><span class="tag ' + (g.leader_can_view_contact_info ? 'sage' : 'clay') + '">' + (g.leader_can_view_contact_info ? window.t('common.on') : window.t('common.off')) + '</span></td>'
         + '<td style="display:flex;gap:6px;">'
-        + '<button class="qr-btn icon-tip" data-tip="' + window.t('dashGroups.takeAttendance') + '" data-take-attendance-id="' + g.id + '" data-take-attendance-name="' + g.name.replace(/"/g, '&quot;') + '" aria-label="' + window.t('dashGroups.takeAttendance') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></button>'
+        + '<button class="qr-btn icon-tip" data-tip="' + window.t('dashGroups.takeAttendance') + '" data-take-attendance-id="' + g.id + '" data-take-attendance-name="' + escapeHtml(g.name) + '" aria-label="' + window.t('dashGroups.takeAttendance') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></button>'
         + '<a class="qr-btn icon-tip" data-tip="' + window.t('dashGroups.viewPublicPage') + '" data-route="group" data-group-id="' + g.id + '" href="#" aria-label="' + window.t('dashGroups.viewPublicPage') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg></a>'
         + '<button class="qr-btn icon-tip" data-tip="' + window.t('dashGroups.editGroupTip') + '" data-edit-group-id="' + g.id + '" aria-label="' + window.t('dashGroups.editGroupTip') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>'
         + '<button class="qr-btn icon-tip" data-tip="' + window.t('dashGroups.duplicateGroup') + '" data-copy-group-id="' + g.id + '" aria-label="' + window.t('dashGroups.duplicateGroup') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>'
-        + '<button class="qr-btn icon-tip" data-tip="' + window.t('dashGroups.deleteGroupTip') + '" data-delete-group-id="' + g.id + '" data-delete-group-title="' + g.name.replace(/"/g, '&quot;') + '" aria-label="' + window.t('dashGroups.deleteGroupTip') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>'
+        + '<button class="qr-btn icon-tip" data-tip="' + window.t('dashGroups.deleteGroupTip') + '" data-delete-group-id="' + g.id + '" data-delete-group-title="' + escapeHtml(g.name) + '" aria-label="' + window.t('dashGroups.deleteGroupTip') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>'
         + '</td></tr>';
     }
     tbody.innerHTML = rowsHtml;
@@ -20576,7 +20582,7 @@ Groups</span>
       } else if (g.join_method === 'invite_only') {
         actionHtml = '<p style="font-size:12.5px;color:var(--ink-mute);margin:0;">' + window.t('groupPage.askLeaderToAdd') + '</p>';
       } else if (g.join_method === 'request') {
-        actionHtml = '<button class="export-btn group-join-btn" data-group-id="' + g.id + '" data-group-name="' + g.name.replace(/"/g, '&quot;') + '" data-joined="false" data-join-method="request">' + window.t('groupPage.requestToJoin') + '</button>';
+        actionHtml = '<button class="export-btn group-join-btn" data-group-id="' + g.id + '" data-group-name="' + escapeHtml(g.name) + '" data-joined="false" data-join-method="request">' + window.t('groupPage.requestToJoin') + '</button>';
       } else {
         actionHtml = '<button class="export-btn group-join-btn" data-group-id="' + g.id + '" data-joined="false" data-join-method="open">' + window.t('groupPage.joinThisGroup') + '</button>';
       }
@@ -21839,7 +21845,7 @@ Groups</span>
     } else if (g.join_method === 'invite_only') {
       actionEl.innerHTML = '<p style="font-size:13px;color:var(--ink-mute);">' + window.t('groupPage.askLeaderToAdd') + '</p>';
     } else if (g.join_method === 'request') {
-      actionEl.innerHTML = '<button class="btn-gold group-join-btn" data-group-id="' + g.id + '" data-group-name="' + g.name.replace(/"/g, '&quot;') + '" data-joined="false" data-join-method="request">' + window.t('groupPage.requestToJoin') + '</button>';
+      actionEl.innerHTML = '<button class="btn-gold group-join-btn" data-group-id="' + g.id + '" data-group-name="' + escapeHtml(g.name) + '" data-joined="false" data-join-method="request">' + window.t('groupPage.requestToJoin') + '</button>';
     } else {
       actionEl.innerHTML = '<button class="btn-gold group-join-btn" data-group-id="' + g.id + '" data-joined="false" data-join-method="open">' + window.t('groupPage.joinThisGroup') + '</button>';
     }
@@ -22012,7 +22018,7 @@ Groups</span>
         ? '<button class="export-btn" data-manage-church-id="' + c.id + '" style="flex-shrink:0;">' + window.t('myChurches.manage') + '</button>'
         : '';
       return '<div class="group-card" style="display:flex;align-items:center;gap:14px;justify-content:space-between;margin-bottom:10px;">'
-        + '<a href="#" data-route="church" data-church-name="' + c.name.replace(/"/g, '&quot;') + '" style="display:flex;align-items:center;gap:14px;text-decoration:none;color:inherit;flex:1;min-width:0;">'
+        + '<a href="#" data-route="church" data-church-name="' + escapeHtml(c.name) + '" style="display:flex;align-items:center;gap:14px;text-decoration:none;color:inherit;flex:1;min-width:0;">'
         + logoHtml
         + '<div style="min-width:0;"><h4 style="margin-bottom:2px;">' + displayChurchName(c.name) + '</h4><div>' + labelsHtml + '</div></div>'
         + '</a>'
@@ -22339,9 +22345,9 @@ Groups</span>
     var rows = data || [];
     var totalCount = rows.length ? rows[0].total_count : 0;
     var html = rows.map(function(r){
-      var churchNameEsc = (r.church_name || '').replace(/"/g, '&quot;');
+      var churchNameEsc = escapeHtml(r.church_name);
       var churchLink = r.church_name
-        ? '<a href="#church/' + encodeURIComponent(r.church_name) + '" data-route="church" data-church-name="' + churchNameEsc + '" style="color:inherit;border-bottom:1px solid var(--line);">' + r.church_name + '</a>'
+        ? '<a href="#church/' + encodeURIComponent(r.church_name) + '" data-route="church" data-church-name="' + churchNameEsc + '" style="color:inherit;border-bottom:1px solid var(--line);">' + churchNameEsc + '</a>'
         : window.t('admin.unknownChurch');
       return '<div class="side-note" style="max-width:560px;">'
         + '<h4>' + churchLink + '</h4>'
@@ -22389,9 +22395,9 @@ Groups</span>
     var html = rows.map(function(r){
       var statusColor = r.status === 'approved' ? 'var(--gold)' : 'var(--clay)';
       var statusLabel = r.status === 'approved' ? window.t('admin.approvedTag') : window.t('admin.rejectedTag');
-      var churchNameEsc = (r.church_name || '').replace(/"/g, '&quot;');
+      var churchNameEsc = escapeHtml(r.church_name);
       var churchLink = r.church_name
-        ? '<a href="#church/' + encodeURIComponent(r.church_name) + '" data-route="church" data-church-name="' + churchNameEsc + '" style="color:inherit;border-bottom:1px solid var(--line);">' + r.church_name + '</a>'
+        ? '<a href="#church/' + encodeURIComponent(r.church_name) + '" data-route="church" data-church-name="' + churchNameEsc + '" style="color:inherit;border-bottom:1px solid var(--line);">' + churchNameEsc + '</a>'
         : window.t('admin.unknownChurch');
       return '<div class="registrant-row"><div>'
         + '<div class="registrant-name">' + churchLink + '</div>'
@@ -22813,7 +22819,7 @@ Groups</span>
 
     nameEl.textContent = displayChurchName(c.name);
     badgeEl.style.display = (c.verification_status === 'verified') ? 'inline-block' : 'none';
-    viewLinkEl.innerHTML = '<a href="#church/' + encodeURIComponent(c.name) + '" data-route="church" data-church-name="' + c.name + '" style="font-size:13px;border-bottom:1px solid var(--gold);">' + window.t('admin.viewPublicChurchPage') + '</a>';
+    viewLinkEl.innerHTML = '<a href="#church/' + encodeURIComponent(c.name) + '" data-route="church" data-church-name="' + escapeHtml(c.name) + '" style="font-size:13px;border-bottom:1px solid var(--gold);">' + window.t('admin.viewPublicChurchPage') + '</a>';
 
     profileEl.innerHTML = ''
       + '<p style="font-size:14px;"><strong>' + window.t('admin.denomination') + ':</strong> ' + (c.denomination || '—') + '</p>'
@@ -23528,7 +23534,7 @@ Groups</span>
     var deleteWarningEl = document.getElementById('profile-delete-warning');
     var deleteToggleBtn = document.getElementById('profile-delete-toggle-btn');
     if (ownedChurchRows && ownedChurchRows.length) {
-      deleteWarningEl.innerHTML = window.t('profile.deleteWarningOwnsPre') + ' "' + ownedChurchRows[0].name + '" ' + window.t('profile.deleteWarningOwnsPost') + ' <a href="#dashboard" onclick="go(\'dashboard\'); if(typeof goDash===\'function\') goDash(\'settings\'); return false;" style="color:var(--clay);border-bottom:1px solid var(--clay);">' + window.t('profile.settingsLinkWord') + '</a> ' + window.t('profile.deleteWarningOwnsPost2');
+      deleteWarningEl.innerHTML = window.t('profile.deleteWarningOwnsPre') + ' "' + escapeHtml(ownedChurchRows[0].name) + '" ' + window.t('profile.deleteWarningOwnsPost') + ' <a href="#dashboard" onclick="go(\'dashboard\'); if(typeof goDash===\'function\') goDash(\'settings\'); return false;" style="color:var(--clay);border-bottom:1px solid var(--clay);">' + window.t('profile.settingsLinkWord') + '</a> ' + window.t('profile.deleteWarningOwnsPost2');
       if (deleteToggleBtn) deleteToggleBtn.style.display = 'none';
     } else {
       deleteWarningEl.textContent = window.t('profile.deleteWarningDefault');
