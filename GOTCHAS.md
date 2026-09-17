@@ -3735,3 +3735,28 @@ Worth naming the class of mistake: a scripted edit that finds *a* plausible anch
 **The summary describes what is TICKED, not what the preset contains.** Those match right after picking one and diverge the moment a box is adjusted -- and at that point the ticked set is the truth while the preset name has already become "Custom". It reuses the short labels the staff-row tags use, so a permission is called the same thing everywhere, and falls back to "View only" when nothing is granted rather than printing an empty "Includes:".
 
 Build `2026-09-17-v96`. No migration.
+
+---
+
+## Revenue: giving actually integrated, not just relocated
+
+Phase 1b moved the giving sections onto the Revenue page, which was the requested move but left them stacked above the page's own `<h2>Revenue</h2>` heading with the real content below. This is the merge.
+
+**The move made a duplicate removable, which is the substance of it.** The Revenue page already had `#giving-tab-connect-section` -- a *proxy* that existed only because the real connect flow lived on a different tab. Its button did nothing but forward a click:
+
+```
+givingTabConnectBtn.addEventListener('click', function(){
+  var realBtn = document.getElementById('giving-connect-btn');
+  if (realBtn) realBtn.click();
+});
+```
+
+And it was duplication with teeth: `loadGivingStatus()` had to mirror every status string into both copies, six lines of "write this, and also write it over there". With both on the same page that indirection is pure overhead, so the proxy is gone and there is one status to write.
+
+**Order follows what the page is for.** The bank-connect block stays near the top, because it is a *prerequisite* rather than a preference -- without a connected bank there is no revenue to read numbers about. Giving funds and the public Give toggle moved to the bottom: things adjusted occasionally, below the totals you opened the page to see.
+
+**One problem only visible once assembled.** With both on the page the reading order ran `H4: Giving` then `H3: Giving` -- two headings, same word, different levels, inches apart. The connect block is about connecting a bank, so it now says "Bank account". That kind of collision cannot be seen in either piece alone, only in the combination, which is an argument for checking the assembled heading outline rather than each section.
+
+Final order: Revenue → Bank account → Giving (stats) → Giving trend → Giving by fund → Ticket sales → Giving funds. Verified in both languages, with exactly one connect section, one funds section and one connect button remaining.
+
+Build `2026-09-17-v97`. No migration.

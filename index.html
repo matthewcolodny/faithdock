@@ -408,6 +408,7 @@
       'staffPerms.editProfile': 'Edit church profile', 'staffPerms.save': 'Save permissions',
       'staffPerms.receiveMessages': 'Receive contact messages sent to this church', 'staffPerms.receiveMessagesTag': 'Receives Messages',
       'staffPerms.manageMembers': 'Approve and manage church members', 'staffPerms.manageMembersTag': 'Members', 'staffPerms.checkIn': 'Check people in at events', 'staffPerms.checkInTag': 'Check-in',
+      'dashGiving.bankAccount': 'Bank account',
       'staffPerms.givingTag': 'Giving',
       'staffPerms.manageRooms': 'Create and manage facility rooms', 'staffPerms.roomsTag': 'Facility',
       'staffPerms.manageMinistries': 'Create and manage ministries', 'staffPerms.ministriesTag': 'Ministries',
@@ -1257,6 +1258,7 @@
       'staffPerms.editProfile': 'Editar perfil de la iglesia', 'staffPerms.save': 'Guardar permisos',
       'staffPerms.receiveMessages': 'Recibir mensajes de contacto enviados a esta iglesia', 'staffPerms.receiveMessagesTag': 'Recibe Mensajes',
       'staffPerms.manageMembers': 'Aprobar y gestionar los miembros de la iglesia', 'staffPerms.manageMembersTag': 'Miembros', 'staffPerms.checkIn': 'Registrar asistentes en los eventos', 'staffPerms.checkInTag': 'Registro',
+      'dashGiving.bankAccount': 'Cuenta bancaria',
       'staffPerms.givingTag': 'Donaciones',
       'staffPerms.manageRooms': 'Crear y gestionar salas', 'staffPerms.roomsTag': 'Instalaciones',
       'staffPerms.manageMinistries': 'Crear y gestionar ministerios', 'staffPerms.ministriesTag': 'Ministerios',
@@ -6371,45 +6373,35 @@ Groups</span>
          Revenue is already giving + ticket sales, so this is where a
          church reasons about money -- splitting the settings for it
          into a different tab meant holding two places in your head. -->
-    <div class="side-note" id="settings-giving-section">
-              <h4 data-i18n="dash.giving">Giving</h4>
+    
+    
+        <h2 style="font-size:24px;margin-bottom:24px;" data-i18n="dash.revenue">Revenue</h2>
+        <!-- The real bank-connect block, moved here from Settings.
+             It replaces a proxy that used to sit in this exact spot:
+             #giving-tab-connect-section existed only because the real
+             one lived on a different tab, and its button did nothing
+             but forward a click to the real button. With both on the
+             same page that indirection is pure duplication -- and it
+             was duplication with teeth, since loadGivingStatus() had
+             to mirror every status string into both copies.
+
+             Kept near the top rather than filed with the settings at
+             the bottom, because it is a PREREQUISITE, not a
+             preference: without a connected bank there is no revenue
+             to read the numbers about. -->
+        <div class="side-note" id="settings-giving-section">
+              <!-- Was "Giving", which sat immediately above the Giving
+                   STATS heading once both landed on this page -- two
+                   headings, same word, different levels. This block is
+                   about connecting a bank, so it says so. -->
+              <h4 data-i18n="dashGiving.bankAccount">Bank account</h4>
               <p style="font-size:13.5px;color:var(--ink-mute);margin-bottom:14px;" data-i18n="dashSettings.givingHint">Connect a bank account so your church can accept donations directly through FaithDock. Donations go straight to your account — FaithDock never holds the funds.</p>
               <div id="giving-status" style="font-size:13px;margin-bottom:12px;"><p style="color:var(--ink-mute);font-size:13px;" data-i18n="common.loading">Loading...</p></div>
               <button class="btn-gold" id="giving-connect-btn" style="display:inline-block;" data-i18n="dashGiving.connectBank">Connect your bank account</button>
               <div id="giving-connect-status" style="display:none;font-size:12px;color:var(--clay);margin-top:10px;"></div>
             </div>
-    <div class="side-note" id="settings-funds-section">
-              <h4 data-i18n="dashSettings.givingFunds">Giving funds</h4>
-              <p style="font-size:13.5px;color:var(--ink-mute);margin-bottom:14px;" data-i18n="dashSettings.givingFundsHint">Designated funds donors can choose from when giving — a building campaign, a mission trip, whatever your church tracks separately. Gifts with no fund selected count toward the General Fund.</p>
-              <!-- Requested directly, alongside removing Message/Give from
-                   unclaimed churches entirely: an on/off switch for
-                   whether the public "Give" button shows at all, placed
-                   by the funds list it affects rather than in the bank-
-                   connect section above (#settings-giving-section), which
-                   is about a DIFFERENT step (getting Stripe connected in
-                   the first place). checked/unchecked reflects
-                   churches.giving_enabled (migration
-                   032_church_give_message_toggles.sql), loaded/saved by
-                   loadGiveMessageToggles()/the settings-giving-enabled-
-                   toggle change handler further down this file. -->
-              <label class="filter-check" id="settings-giving-enabled-toggle-wrap" style="display:flex;margin-bottom:14px;">
-                <input type="checkbox" id="settings-giving-enabled-toggle" checked> <span data-i18n="dashSettings.givingEnabledToggle">Show the "Give" button on your public page</span> <span id="settings-giving-enabled-status" style="display:none;font-size:12px;"></span>
-              </label>
-              <div id="funds-list" style="margin-bottom:12px;"><p style="color:var(--ink-mute);font-size:13px;" data-i18n="common.loading">Loading...</p></div>
-              <div style="display:flex;gap:8px;">
-                <input class="field" type="text" id="fund-add-name" placeholder="e.g. Building Campaign" data-i18n-placeholder="dashSettings.fundNamePlaceholder" style="flex:1;font-size:13px;padding:9px 10px;">
-                <button class="export-btn" id="fund-add-btn" style="flex-shrink:0;" data-i18n="dashSettings.add">Add</button>
-              </div>
-              <div id="fund-add-status" style="display:none;font-size:12px;margin-top:8px;"></div>
-            </div>
-        <h2 style="font-size:24px;margin-bottom:24px;" data-i18n="dash.revenue">Revenue</h2>
 
-        <div id="giving-tab-connect-section" class="side-note" style="max-width:520px;display:none;">
-          <h4 data-i18n="dashGiving.connectBank">Connect your bank account</h4>
-          <p style="font-size:13.5px;color:var(--ink-mute);" data-i18n="dashGiving.connectBankHint">Donations go straight to your account — FaithDock never holds the funds.</p>
-          <div id="giving-tab-connect-status" style="margin:10px 0;"></div>
-          <button class="btn-gold" id="giving-tab-connect-btn" style="display:none;" data-i18n="dashGiving.connectBank">Connect your bank account</button>
-        </div>
+        
 
         <!-- Combines giving + ticket sales, computed by
              loadRevenuePanel() below. "Net after fees" shows — until
@@ -6454,6 +6446,35 @@ Groups</span>
         <p style="font-size:12.5px;color:var(--ink-mute);margin-top:2px;">
           <a href="#" onclick="document.getElementById('payment-reports-open-btn') && document.getElementById('payment-reports-open-btn').click(); if(typeof goDash==='function') goDash('insights'); return false;" style="color:inherit;border-bottom:1px solid var(--gold);" data-i18n="dashRevenue.viewTicketDetail">View per-event ticket detail in Insights →</a>
         </p>
+      
+        <!-- Giving configuration sits AFTER the numbers, not before
+             them. Funds and the public Give button are things you
+             adjust occasionally; the totals are what you open this
+             page to see. -->
+        <div class="side-note" id="settings-funds-section">
+              <h4 data-i18n="dashSettings.givingFunds">Giving funds</h4>
+              <p style="font-size:13.5px;color:var(--ink-mute);margin-bottom:14px;" data-i18n="dashSettings.givingFundsHint">Designated funds donors can choose from when giving — a building campaign, a mission trip, whatever your church tracks separately. Gifts with no fund selected count toward the General Fund.</p>
+              <!-- Requested directly, alongside removing Message/Give from
+                   unclaimed churches entirely: an on/off switch for
+                   whether the public "Give" button shows at all, placed
+                   by the funds list it affects rather than in the bank-
+                   connect section above (#settings-giving-section), which
+                   is about a DIFFERENT step (getting Stripe connected in
+                   the first place). checked/unchecked reflects
+                   churches.giving_enabled (migration
+                   032_church_give_message_toggles.sql), loaded/saved by
+                   loadGiveMessageToggles()/the settings-giving-enabled-
+                   toggle change handler further down this file. -->
+              <label class="filter-check" id="settings-giving-enabled-toggle-wrap" style="display:flex;margin-bottom:14px;">
+                <input type="checkbox" id="settings-giving-enabled-toggle" checked> <span data-i18n="dashSettings.givingEnabledToggle">Show the "Give" button on your public page</span> <span id="settings-giving-enabled-status" style="display:none;font-size:12px;"></span>
+              </label>
+              <div id="funds-list" style="margin-bottom:12px;"><p style="color:var(--ink-mute);font-size:13px;" data-i18n="common.loading">Loading...</p></div>
+              <div style="display:flex;gap:8px;">
+                <input class="field" type="text" id="fund-add-name" placeholder="e.g. Building Campaign" data-i18n-placeholder="dashSettings.fundNamePlaceholder" style="flex:1;font-size:13px;padding:9px 10px;">
+                <button class="export-btn" id="fund-add-btn" style="flex-shrink:0;" data-i18n="dashSettings.add">Add</button>
+              </div>
+              <div id="fund-add-status" style="display:none;font-size:12px;margin-top:8px;"></div>
+            </div>
       </div>
 
       <div class="dash-content" id="dash-insights">
@@ -6822,7 +6843,7 @@ Groups</span>
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v96 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v97 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -19577,11 +19598,12 @@ Groups</span>
     var myChurch = await getMyChurch();
     if (!myChurch) { statusEl.textContent = ''; return; }
 
-    var tabConnectSection = document.getElementById('giving-tab-connect-section');
-    var tabStatusEl = document.getElementById('giving-tab-connect-status');
-    var tabConnectBtn = document.getElementById('giving-tab-connect-btn');
+    // The proxy connect section this used to mirror into is gone --
+    // the real block now lives on this same page, so there is one
+    // status string to write instead of two kept in step by hand.
     var isOwner = myChurch.role !== 'staff';
-    if (tabConnectSection) tabConnectSection.style.display = isOwner ? 'block' : 'none';
+    var realConnectSection = document.getElementById('settings-giving-section');
+    if (realConnectSection) realConnectSection.style.display = isOwner ? 'block' : 'none';
 
     var { data: churchRows } = await supabase.from('churches').select('stripe_account_id, stripe_onboarding_complete, verification_status').eq('id', myChurch.id).limit(1);
     var row = (churchRows && churchRows.length) ? churchRows[0] : null;
@@ -19604,14 +19626,11 @@ Groups</span>
         gateBtnText = window.t('dashGiving.requestVerification');
       }
       statusEl.innerHTML = gateHtml;
-      if (tabStatusEl) tabStatusEl.innerHTML = gateHtml;
       if (gateBtnText) {
         connectBtn.textContent = gateBtnText;
         connectBtn.style.display = 'inline-block';
-        if (tabConnectBtn) { tabConnectBtn.textContent = gateBtnText; tabConnectBtn.style.display = 'inline-block'; }
       } else {
         connectBtn.style.display = 'none';
-        if (tabConnectBtn) tabConnectBtn.style.display = 'none';
       }
       return;
     }
@@ -19637,8 +19656,6 @@ Groups</span>
     statusEl.innerHTML = statusHtml;
     connectBtn.textContent = btnText;
     connectBtn.style.display = 'inline-block';
-    if (tabStatusEl) tabStatusEl.innerHTML = statusHtml;
-    if (tabConnectBtn) { tabConnectBtn.textContent = btnText; tabConnectBtn.style.display = 'inline-block'; }
   }
   window.loadGivingStatus = loadGivingStatus;
   dashPanel(loadGivingStatus);
@@ -19827,13 +19844,6 @@ Groups</span>
   window.loadRevenuePanel = loadRevenuePanel;
   dashPanel(loadRevenuePanel);
 
-  var givingTabConnectBtn = document.getElementById('giving-tab-connect-btn');
-  if (givingTabConnectBtn) {
-    givingTabConnectBtn.addEventListener('click', function(){
-      var realBtn = document.getElementById('giving-connect-btn');
-      if (realBtn) realBtn.click();
-    });
-  }
 
   // ============================================================
   // Directory — every person connected to the church (members,
