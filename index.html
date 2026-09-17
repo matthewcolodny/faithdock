@@ -474,6 +474,10 @@
       'category.sportsRecreation': 'Sports & Recreation', 'category.sportsShort': 'Sports',
       'category.studies': 'Studies',
       'badge.openToAnyone': 'Open to anyone', 'badge.membersOnly': 'Members only', 'badge.noSignupNeeded': 'No signup needed',
+      'badge.publicEvent': 'Public event', 'badge.registrationRequired': 'Registration required',
+      'ce.visibilityMembersListed': 'Members only — anyone can see it, only members can register',
+      'ce.visibilityMembersHidden': 'Members only — hidden from everyone except your members',
+      'events.membersOnlyCantRegister': 'Only members of this church can register for this event. Ask them to approve you as a member first.',
       'badge.full': 'Full', 'badge.almostFull': 'Almost full', 'badge.registrationOpen': 'Registration open',
       'church.nextService': 'Regular service', 'church.nextServicesPlural': 'Regular services', 'church.serviceIsAt': 'is at', 'church.serviceAreAt': 'are at', 'church.contactForTimes': 'Contact church for regular service times', 'church.newListing': 'New listing', 'church.nextEvent': 'Next event:',
       'church.away': 'away', 'church.setLocationDistance': 'Set your location to see distance', 'church.locationNotFound': 'Location not found for this address',
@@ -1285,6 +1289,10 @@
       'category.sportsRecreation': 'Deportes y recreación', 'category.sportsShort': 'Deportes',
       'category.studies': 'Estudios',
       'badge.openToAnyone': 'Abierto a todos', 'badge.membersOnly': 'Solo miembros', 'badge.noSignupNeeded': 'No requiere inscripción',
+      'badge.publicEvent': 'Evento público', 'badge.registrationRequired': 'Requiere inscripción',
+      'ce.visibilityMembersListed': 'Solo miembros — cualquiera puede verlo, solo los miembros pueden inscribirse',
+      'ce.visibilityMembersHidden': 'Solo miembros — oculto para todos excepto tus miembros',
+      'events.membersOnlyCantRegister': 'Solo los miembros de esta iglesia pueden inscribirse en este evento. Pídeles que te aprueben como miembro primero.',
       'badge.full': 'Completo', 'badge.almostFull': 'Casi completo', 'badge.registrationOpen': 'Inscripción abierta',
       'church.nextService': 'Servicio regular', 'church.nextServicesPlural': 'Servicios regulares', 'church.serviceIsAt': 'es', 'church.serviceAreAt': 'son', 'church.contactForTimes': 'Contacta a la iglesia para conocer los horarios de los servicios regulares', 'church.newListing': 'Nuevo registro', 'church.nextEvent': 'Próximo evento:',
       'church.away': 'de distancia', 'church.setLocationDistance': 'Activa tu ubicación para ver la distancia', 'church.locationNotFound': 'No se encontró la ubicación de esta dirección',
@@ -5320,9 +5328,17 @@
       </div>
 
       <label style="margin-top:14px;" data-i18n="ce.whoCanSee">Who can see this event?</label>
+      <!-- One 4-way choice in the UI, two columns in the database (see
+           migration 037). The two members-only modes are a real choice
+           worth making explicit rather than a checkbox hidden under
+           "private": one hides the event, the other advertises it to
+           outsiders precisely so they can see what membership gets
+           them. Mapped to visibility + members_only_registration on
+           save, and mapped back on edit -- see ceVisibilityMode(). -->
       <select class="field" id="ce-visibility">
-        <option value="public" data-i18n="ce.visibilityPublic">Public — anyone browsing FaithDock can find it</option>
-        <option value="private" data-i18n="ce.visibilityPrivate">Members only — hidden from public search</option>
+        <option value="public" data-i18n="ce.visibilityPublic">Public — anyone can find it and register</option>
+        <option value="members_listed" data-i18n="ce.visibilityMembersListed">Members only — anyone can see it, only members can register</option>
+        <option value="members_hidden" data-i18n="ce.visibilityMembersHidden">Members only — hidden from everyone except your members</option>
         <option value="draft" data-i18n="ce.visibilityDraft">Draft — only visible to your church's own staff</option>
       </select>
 
@@ -6489,7 +6505,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-16-v65 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v66 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -7478,6 +7494,7 @@
 
   var badgeI18nKeyMap = {
     'Open to anyone': 'badge.openToAnyone', 'Members only': 'badge.membersOnly', 'No signup needed': 'badge.noSignupNeeded',
+    'Public event': 'badge.publicEvent', 'Registration required': 'badge.registrationRequired',
     'Full': 'badge.full', 'Almost full': 'badge.almostFull', 'Registration open': 'badge.registrationOpen'
   };
   function translateBadgeLabel(label){
@@ -7847,6 +7864,7 @@
     var inner = ''
       + thumb
       + '<div class="card-body">'
+      + (e.visibilityLabel ? '<span class="tag ' + (e.membersOnly ? 'clay' : 'sage') + '" style="margin-right:6px;">' + translateBadgeLabel(e.visibilityLabel) + '</span>' : '')
       + '<span class="tag ' + e.badge + '">' + translateBadgeLabel(e.badgeLabel) + '</span>'
       // data-fill-badge-for / data-capacity-count-for let
       // applyFillBadgeFromCount() find and update these in place after a
@@ -9545,8 +9563,16 @@
   // and populateEventPage() already expect.
   function mapSearchEventRow(row){
     var badge, badgeLabel;
+    // Two separate questions, so two separate tags -- they were
+    // previously collapsed into one, which is why "Open to anyone" and
+    // "No signup needed" read as overlapping when they aren't parallel
+    // at all: one describes WHO MAY COME, the other WHETHER SIGNUP
+    // EXISTS. An event can be members-only and still need no signup.
+    // badgeLabel keeps the registration question (the tag that was
+    // already there); visibilityLabel is the new who-may-come one.
     if (!row.registration_required) { badge = 'gold'; badgeLabel = 'No signup needed'; }
-    else { badge = 'sage'; badgeLabel = 'Open to anyone'; }
+    else { badge = 'sage'; badgeLabel = 'Registration required'; }
+    var membersOnly = !!(row.members_only_registration || row.visibility === 'private');
     var daysOut = Math.ceil((new Date(row.start_at) - new Date()) / 86400000);
     // Only meaningful for events with an actual cap — an uncapped
     // event can never be "full." 90% is the threshold for "almost
@@ -9574,6 +9600,7 @@
       distanceMiles: row.distance_miles,
       when: window.formatEventWhen(row.start_at, row.end_at),
       badge: badge, badgeLabel: badgeLabel, fillBadge: fillBadge,
+      membersOnly: membersOnly, visibilityLabel: membersOnly ? 'Members only' : 'Public event',
       daysOut: daysOut, real: true,
       imageUrl: row.image_url, description: row.description, location: row.location,
       tags: row.tags, category_tags: row.category_tags, audience: row.audience, registrationRequired: row.registration_required,
@@ -15106,7 +15133,15 @@
     var evAudience = ev.audience || [];
     for (var i = 0; i < audienceChecks.length; i++) { audienceChecks[i].checked = evAudience.indexOf(audienceChecks[i].value) !== -1; }
 
-    document.getElementById('ce-visibility').value = ev.visibility || 'public';
+    // Reverse of the save-time mapping (migration 037): two stored
+    // columns back into the one 4-way choice the select offers. A
+    // private event is always members-only regardless of the flag --
+    // nobody outside the church can see it, so it can't be anything
+    // else -- which also means events saved as 'private' before this
+    // feature existed land on the right option rather than a blank.
+    document.getElementById('ce-visibility').value = ev.visibility === 'private'
+      ? 'members_hidden'
+      : (ev.members_only_registration ? 'members_listed' : (ev.visibility || 'public'));
 
     document.getElementById('ce-registration-required').checked = !!ev.registration_required;
     document.getElementById('ce-registration-options').style.display = ev.registration_required ? 'block' : 'none';
@@ -15555,7 +15590,13 @@
       for (var i = 0; i < audienceChecks.length; i++) { if (audienceChecks[i].checked) audience.push(audienceChecks[i].value); }
 
       var registrationRequired = document.getElementById('ce-registration-required').checked;
-      var visibility = document.getElementById('ce-visibility').value;
+      // The select is a 4-way UI choice over two stored columns (see
+      // migration 037 and the select's own comment). Mapped here, in one
+      // place, so nothing downstream has to know about the UI's values.
+      var visibilityMode = document.getElementById('ce-visibility').value;
+      var visibility = visibilityMode === 'members_hidden' ? 'private'
+        : (visibilityMode === 'members_listed' ? 'public' : visibilityMode);
+      var membersOnlyRegistration = (visibilityMode === 'members_listed' || visibilityMode === 'members_hidden');
       var maxParticipantsRaw = document.getElementById('ce-max-participants').value;
       // Gated on registrationRequired for the same reason max
       // volunteers/guests are gated on their own toggles just below: a
@@ -15636,6 +15677,7 @@
           contacts: cleanContacts.length ? cleanContacts : null,
           registration_required: registrationRequired,
           visibility: visibility,
+          members_only_registration: membersOnlyRegistration,
           max_participants: maxParticipants,
           allow_volunteers: allowVolunteers,
           max_volunteers: maxVolunteers,
@@ -15743,6 +15785,7 @@
           contacts: cleanContacts.length ? cleanContacts : null,
           registration_required: registrationRequired,
           visibility: visibility,
+          members_only_registration: membersOnlyRegistration,
           max_participants: maxParticipants,
           allow_volunteers: allowVolunteers,
           max_volunteers: maxVolunteers,
@@ -24994,8 +25037,12 @@
       // the app's normal localized copy instead of a raw database
       // error string.
       var isGuestsFull = error.message === 'EVENT_GUESTS_FULL';
+      // EVENT_MEMBERS_ONLY comes from migration 037's trigger, which is
+      // what actually enforces members-only registration -- the hidden
+      // Register button is a courtesy, this is the control.
       statusEl.textContent = (error.message === 'EVENT_CAPACITY_FULL') ? window.t('events.optionFullTryOther')
         : isGuestsFull ? window.t('events.guestLimitReached')
+        : (error.message === 'EVENT_MEMBERS_ONLY') ? window.t('events.membersOnlyCantRegister')
         : error.message;
       statusEl.style.display = 'block';
       btn.disabled = false;

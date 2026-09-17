@@ -2968,3 +2968,23 @@ The click handler's old `is-home || pending` branch narrowed to `pending` only, 
 Verified in a local preview by driving the real `checkChurchHomeStatus()` with its queries stubbed (so the actual function's branches run, not a reimplementation of them): approved member gives a disabled "✓ This is your Church Home" with the Leave button shown; pending gives an enabled "Request pending — click to cancel" with Leave hidden; no membership and has-other-home both give the normal enabled "Make this my Church Home" with Leave hidden. Then clicked Leave for real and confirmed the modal opens and that cancelling makes **zero** RPC calls.
 
 Build `2026-09-16-v65`. No new migration (036 still required).
+
+---
+
+## Members-only events, in three modes, plus the tag split that made them expressible
+
+The three modes chosen: Public; Members only *listed* (anyone can see it, only members can register -- the incentive case); Members only *hidden*.
+
+**Stored as two columns, not a four-valued enum.** `visibility` already answers "who can SEE this" (public/private/draft); the new `events.members_only_registration` answers "who can SIGN UP". They really are independent questions, and mode 2 is a genuinely public listing -- giving it its own `visibility` value would mean teaching every existing visibility check about a value that, for seeing purposes, behaves exactly like `public`. The UI still presents one 4-way choice, mapped in exactly two places (save and edit-load), so nothing downstream knows about the UI's vocabulary. Defaults to false, so every existing event stays as public as it is today.
+
+**`search_events` was hiding members-only events from members too.** Its filter was a flat `e.visibility = 'public'`, so mode 3 was not merely unimplemented -- it was unusable, since a private event could never be seen by anyone including the church's own congregation. Widened to also return private events to approved members of the owning church. Deliberately left INVOKER rather than SECURITY DEFINER: the membership subquery only reads the caller's OWN rows (`cm.user_id = auth.uid()`), which any sane policy already allows, and a SECURITY DEFINER search function is a far bigger thing to get wrong. Recreated with DROP first since the return table gains a column (42P13), with the parameter list matched exactly -- getting that wrong leaves a second overload behind, which is the bug that broke the homepage and church Events tabs when 022 added `p_keyword`.
+
+**Enforcement is a trigger, not the hidden button.** The client can hide Register from a non-member, but that's a courtesy; a church is being asked to *rely* on this, and anything enforced only in the browser can be skipped by calling the API directly. `enforce_event_members_only()` raises the fixed string `EVENT_MEMBERS_ONLY`, following the existing `EVENT_CAPACITY_FULL` / `EVENT_GUESTS_FULL` convention so the client shows localized copy instead of a raw database error. Cancelled rows skip the check (not someone taking a spot) and service-role callers pass through (a paid-checkout edge function has already done its own checking and has no `auth.uid()`).
+
+**The tag split, which is what made the earlier naming confusion fixable.** "Open to anyone" and "No signup needed" were one tag driven by `registration_required`, and read as overlapping because they aren't parallel: one describes who may come, the other whether signup exists. Now two tags -- `Public event` / `Members only`, and `Registration required` / `No signup needed`. This is why the literal "rename Open to anyone to Public event" would have been wrong on its own: it would have labelled a members-only event "Public event", since that tag was never about visibility.
+
+Verified in a local preview: all four modes round-trip through the real select and both mapping directions (`public`, `members_listed`, `members_hidden`, `draft` each come back as themselves), and legacy rows stored as `private` before this feature existed map to `members_hidden` rather than a blank. Tag rendering checked through `eventCard()` across five combinations, including the one that was previously impossible to express: "Members only" + "No signup needed".
+
+**Deliberately not done**: the Register button is not pre-emptively hidden for non-members on a members-only event -- they get the trigger's clear message on clicking instead. The enforcement is real either way; pre-empting it is a UX nicety worth doing separately rather than half-wiring now.
+
+Build `2026-09-17-v66`; **migration 037 must be run by hand** (035 and 036 first).
