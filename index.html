@@ -2414,6 +2414,17 @@
     position:absolute;top:8px;right:8px;width:28px;height:28px;
     background:none;border:none;display:flex;align-items:center;justify-content:center;
     cursor:pointer;padding:0;
+    /* Real, reported bug, still visible on mobile after the :focus-
+       visible fix below -- that fix only ever addressed the outline
+       property; this is a completely separate mobile-browser mechanism
+       (a native tap-highlight box painted on touch, independent of
+       outline/focus entirely) that -webkit-tap-highlight-color is what
+       actually controls. .church-card/.event-card already carry this
+       same fix, for the exact same nested-heart-inside-a-tappable-<a>
+       shape, but only for the highlight bleeding onto the CARD -- the
+       heart button itself is its own separately-tappable element with
+       its own native highlight, never addressed until now. */
+    -webkit-tap-highlight-color:transparent;
   }
   /* The click handler briefly sets disabled=true while the follow/
      unfollow request is in flight, to block a double-click race --
@@ -2475,6 +2486,8 @@
        row itself (which navigates) instead of the heart. */
     background:none;border:none;cursor:pointer;padding:9px;display:inline-flex;align-items:center;
     flex-shrink:0;margin-left:auto;margin-right:-5px;
+    /* Same tap-highlight fix as .follow-heart-card above. */
+    -webkit-tap-highlight-color:transparent;
   }
   /* Same not-allowed-cursor flash fix as .follow-heart-card above. */
   .follow-heart-row:disabled{cursor:pointer;}
@@ -2563,6 +2576,12 @@
     width:34px;height:34px;
     background:none;border:none;cursor:pointer;padding:0;
     display:flex;align-items:center;justify-content:center;
+    /* Same tap-highlight fix as .follow-heart-card above -- reported
+       directly here specifically ("still see the box when clicking the
+       heart from the profile page"), confirming :focus-visible alone
+       wasn't the whole fix: that only ever touched outline, not this
+       separate native tap-highlight mechanism. */
+    -webkit-tap-highlight-color:transparent;
   }
   .follow-heart-profile:disabled{cursor:pointer;}
   /* Same focus-outline flash fix as .follow-heart-card above, same
@@ -2837,8 +2856,26 @@
   .btn-gold{background:var(--gold);color:var(--brand);border:none;padding:12px 22px;border-radius:9px;font-weight:600;font-size:14.5px;}
   .btn-outline{background:transparent;border:1px solid #566180;color:#fff;padding:11px 20px;border-radius:9px;font-weight:500;font-size:14.5px;margin-right:10px;}
 
-  .tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-top:36px;}
-  .tab{padding:12px 4px;margin-right:26px;font-size:14.5px;font-weight:500;color:var(--ink-mute);border-bottom:2px solid transparent;cursor:pointer;}
+  /* Real, reported bug: on mobile, a church/event page with enough
+     tabs (About/Events/Groups/Ministries/Location -- 5 on a church
+     page) overflowed past the viewport edge, since this row never
+     wrapped or scrolled -- plain flex children don't shrink or clip by
+     default. That overflow didn't just clip invisibly off-screen: with
+     no width constraint anywhere above it either, the browser widened
+     the entire page's layout viewport to fit it, which is what actually
+     broke the whole page's layout (the hero section above, sized
+     correctly to the real screen width, then sat inside a page that
+     had been stretched wider than the screen -- the "cut off" look
+     reported was the page's own background showing through the extra
+     width nothing else was using). overflow-x:auto (horizontal scroll,
+     same convention as a mobile app's own tab bar) fixes it at the
+     source rather than shrinking tabs to fit or wrapping them to a
+     second line, either of which would be worse for a nav-style row
+     like this. flex-shrink:0 on .tab keeps each tab at its natural
+     width while scrolling instead of letting flex's own default
+     shrink-to-fit squeeze text awkwardly first.  */
+  .tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-top:36px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .tab{padding:12px 4px;margin-right:26px;font-size:14.5px;font-weight:500;color:var(--ink-mute);border-bottom:2px solid transparent;cursor:pointer;flex-shrink:0;white-space:nowrap;}
   .tab.active{color:var(--ink);border-bottom:2px solid var(--gold);}
 
   .content-block{margin-top:28px;max-width:680px;}
@@ -6377,7 +6414,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-16-v54 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-16-v55 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12622,6 +12659,24 @@
       var loginPasswordElReset = document.getElementById('login-password');
       if (loginEmailElReset) loginEmailElReset.value = '';
       if (loginPasswordElReset) loginPasswordElReset.value = '';
+      // Real, reported bug: sign out while an event card or the event
+      // detail page is showing "✓ Registered — click to unregister" --
+      // it stayed showing that, for a now-signed-out visitor who can't
+      // possibly be registered for anything, until a full refresh. Sign
+      // out only ever navigated away (go('home')) without resetting any
+      // currently-rendered page's own state, and this page's button
+      // state is set once by checkEventRegistrationStatus() and never
+      // touched again except by this same user's own register/
+      // unregister click -- nothing previously reset it on a sign-out
+      // that leaves the same page sitting there (or reachable again via
+      // Back). Every real .register-real-btn currently in the DOM (any
+      // event card, plus the detail page's own button) gets reset here,
+      // regardless of which one is actually visible right now.
+      if (typeof setEventRegisteredUI === 'function') {
+        document.querySelectorAll('.register-real-btn').forEach(function(regBtn){
+          setEventRegisteredUI(regBtn, false, null);
+        });
+      }
     }
 
     // Confirmed by an actual test (fake recovery token, real console

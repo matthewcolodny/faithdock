@@ -2698,3 +2698,45 @@ Root-caused the actual gap and fixed it two ways rather than one:
 Verified live in a local preview: seeded a fake cached event at 10/10 ("Full"), called `refreshEventCapacityBadge('id', -1)`, and confirmed the badge read "Almost full" (9/10) **synchronously**, before the (deliberately fake-id, guaranteed-to-fail) reconciliation fetch had any chance to resolve -- and confirmed the failed reconciliation's `console.error` fired without reverting that already-correct optimistic result, proving the error path is non-destructive. No console errors beyond that expected one and the pre-existing Turnstile noise. **Not tested**: the real end-to-end sequence (unregister a full event as a real signed-in user, confirm the badge and re-registration both behave correctly) -- no authenticated session available in this sandbox to drive that with; this is exactly the gap that let the previous fix's own verification miss the real bug, flagged here explicitly rather than repeated.
 
 Build `2026-09-16-v54`.
+
+---
+
+## The Full-badge/registration bug's actual root cause: a server-side RPC disagreeing with itself
+
+After v54 still failed the exact repro, went back to direct database evidence instead of another client-side theory. Compared two ways of counting the same event's registrations, at the same moment: a raw filtered query (`event_registrations` where `status='confirmed'` and `role='participant'`) returned **0**; the `get_event_registration_counts` RPC -- what every fix this session (v53, v54) has been calling to refresh the badge -- returned **1**. Same event, same instant, two different answers.
+
+This means every client-side fix made across v53/v54 (awaiting the refresh, the optimistic update, the shared `applyFillBadgeFromCount()` helper) was correctly reacting to what that RPC reported -- the badge logic itself was verified working via direct simulation against the real event id and real cached data, and it faithfully rendered "Full" because the RPC it trusted said the event was still full. The actual bug is server-side, in a function whose source was never in this repo (predates migration tracking, same gap as a couple of other functions found earlier this session). Not fixable from here without seeing it -- flagged directly rather than continuing to guess at more client-side causes, which is what cost real time on this one already.
+
+Confirmed live in a second browser session, signed out, on the real event page: it showed "✓ Registered — click to unregister" and "FULL" for an anonymous visitor who couldn't possibly be registered for anything, until a refresh -- consistent with `checkEventRegistrationStatus()` never running for a signed-out user (it bails immediately with `if (!userData.user) return;`) combined with sign-out never resetting any already-rendered event button's state (see the next entry). Not the RPC bug specifically, but adjacent evidence that pointed toward checking auth-state handling next.
+
+**Needed from the user**: the actual SQL body of `get_event_registration_counts` (Supabase dashboard → Database → Functions → find it → view/edit), pasted directly, so this can be diagnosed and fixed with an actual migration instead of guessed at again.
+
+---
+
+## Sign-out left every event button showing "Registered" for a now-anonymous visitor
+
+Found while investigating the report above. Signing out (either entry point -- the Profile page's own button, or the nav dropdown's) only ever called `supabase.auth.signOut()` then `go('home')` -- navigating away, but never resetting any *other* already-rendered page's own state. An event card or the event detail page's button, if it had shown "✓ Registered — click to unregister" before sign-out, kept showing exactly that afterward -- reachable again via Back, or simply because sign-out happened from a nav menu overlay sitting on top of the same page the whole time -- for a visitor who, now signed out, cannot possibly be registered for anything.
+
+Fixed in the one place that already reacts to every sign-out regardless of which button triggered it: the `onAuthStateChange` listener's existing `if (event === 'SIGNED_OUT')` block (already resetting the signup/login forms for an unrelated, previously-fixed bug). Added a reset of every `.register-real-btn` currently in the DOM -- both event cards and the detail page's own button -- via the same `setEventRegisteredUI()` function every other register/unregister path already uses, so there's no second, hand-rolled way of clearing this state to drift from the real one.
+
+Build `2026-09-16-v55` (continued below with two more fixes from the same session).
+
+---
+
+## Church/event tab row overflowed on mobile, stretching the entire page's layout viewport
+
+Reported with a screenshot: the church profile page's hero section showed a hard-edged cutoff partway across the screen, with the page's own background bleeding through the remaining strip, and the tab row (About/Events/Groups/Ministries/Location) looked cut off. Traced directly by measuring the real DOM in a mobile-width preview: `window.innerWidth` reported **461** despite the viewport being set to 375 -- the actual overflowing element was a single `.tab` div (Location, the 5th tab) sitting at `left:378, right:442`, past the true screen edge.
+
+Root cause: `.tabs{display:flex}` never wrapped or scrolled, and plain flex children don't shrink or clip by default -- with 5 tabs on a church page, the row didn't fit in a phone-width screen and just overflowed. That overflow didn't stay invisibly off-screen: with nothing constraining it, the browser widened the whole page's *layout viewport* to accommodate it, which is what actually broke everything else -- the hero section, sized correctly against the real screen width, ended up sitting inside a page stretched wider than the screen, and the "cut off" look was that extra width's own background showing through.
+
+Fixed with `overflow-x:auto` (plus `-webkit-overflow-scrolling:touch`) on `.tabs`, `flex-shrink:0` and `white-space:nowrap` on `.tab` -- horizontal scroll for the tab row (the same pattern a native app's own tab bar uses) rather than shrinking tab text to fit or wrapping to a second line, either of which reads worse for a nav-style row. Verified in a local mobile-width (375px) preview: `window.innerWidth` correctly reads 375 (was 461), `document.body.scrollWidth` matches it exactly (was 442, i.e. overflowing), and `.tabs` computes `overflow-x: auto`.
+
+---
+
+## Heart buttons still flashed a box on mobile tap, after the desktop :focus-visible fix
+
+Reported directly, specifically on the church profile page's own heart (`.follow-heart-profile`), after the earlier `:focus:not(:focus-visible){outline:none;}` fix (verified working on desktop with a real mouse click) apparently didn't fully hold. Root cause: a *different* browser mechanism entirely -- `outline` and `:focus-visible` govern the CSS focus ring; mobile WebKit/Blink browsers separately paint a native tap-highlight box on any tapped element, controlled by `-webkit-tap-highlight-color`, unaffected by outline or focus-visible in any way. This exact codebase had already hit and fixed this once before, for `.church-card`/`.event-card` -- their own comment even calls out "tapping the follow-heart button nested inside this `<a>` triggers it on the ENTIRE CARD" -- but that fix only addressed the highlight bleeding onto the CARD; the heart BUTTON itself is its own independently-tappable element with its own separate native highlight, never addressed until now.
+
+Fixed by adding `-webkit-tap-highlight-color:transparent;` directly to all three heart classes (`.follow-heart-card`, `.follow-heart-row`, `.follow-heart-profile`), matching the exact fix already established in this same file for the card/event-card case. **Not tested** on a real mobile device/browser -- no such device available in this sandbox; this is the standard, well-established fix for this exact symptom, but flagged as unverified live, unlike the tabs/viewport fix above which was measured directly.
+
+Build `2026-09-16-v55`.
