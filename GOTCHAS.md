@@ -3058,3 +3058,21 @@ One defensive choice: a failed `event_follows` query is logged and skipped, not 
 Verified against stubbed queries driving the real loader: a followed-only event appears with a Following tag and an Unfollow button, a registered-and-followed event appears **once** with both tags, unfollowing the followed-only row removes it, unfollowing the dual row keeps it and drops only the tag, and a 42P01 on `event_follows` still renders the registrations.
 
 Build `2026-09-17-v70`; **migration 038 must be run by hand** for any of this to persist.
+
+---
+
+## Both follow hearts moved into the detail card
+
+Reported with screenshots of both pages: the heart was "in a weird place". It was -- on the event page it hung above the content wrap with nothing around it, and on the church page it was pinned to the banner, so once the page scrolled it appeared to hover near the Details card without belonging to it. Both now sit in the top-right corner of the card itself (Details on the church page, Event details on the event page).
+
+The non-obvious part is the color. The comment on `.follow-heart-profile` correctly explained that this heart needed no dark-mode variant, because `.banner`'s background is `var(--brand)`, which is never redefined under `[data-theme="dark"]` -- always the same navy. That reasoning was sound and it is exactly what stopped being true the moment the heart landed on a card: `var(--card)` **does** flip with the theme, so one fixed color can no longer be right in both. `#8FA0C4` was chosen to match `#church-eyebrow` against that navy and would have been a muddy blue-grey on a white card. Now recolored to follow `.follow-heart-row`'s treatment -- the closest analogue, a flat card surface with no photo to blend into.
+
+Which dragged in the specificity trap this file has now hit three times: `html[data-theme="dark"] .follow-heart-profile svg` is (0,0,2,2) and an unscoped `[data-following="true"]` rule is only (0,0,2,1), so the followed override has to be re-scoped under the dark selector or a followed heart stays a gold outline forever in dark mode. Verified by reading computed `fill`/`stroke` in both themes rather than assuming the pattern carried over.
+
+`position:relative` went on the church card's inner padded div and inline on the event card, **not** on the `.side-note` class. `.side-note` is shared by several unrelated panels, and turning every one of them into a containing block to position one heart is the kind of change that resurfaces as a mystery layout bug somewhere else weeks later.
+
+`#event-page-content`'s own `position:relative` (added in v70 for the old slot position) is now vestigial for the heart. Left in place, with the comment corrected to say so -- quietly changing what any absolutely-positioned descendant of a broad `.wrap` resolves against is a bigger change than one harmless declaration.
+
+Verified in a local preview on both pages: the slot's `offsetParent` is the card, 15px in from its top and right edges, `elementFromPoint` at the heart's centre returns the heart, and -- since an `h4` is full-width, making a bounding-box overlap test meaningless -- a `Range` around the actual heading glyphs confirms 132px of clear space, with a worst-case long church name ("San Antonio North Foursquare Church") and a denomination tag also clearing it.
+
+Build `2026-09-17-v71`.

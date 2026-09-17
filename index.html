@@ -2623,7 +2623,17 @@
      instead of lining up with where Message/Give's own right edge
      already sits, 28px in from that same edge as every other normal-
      flow child of .wrap. */
-  #church-follow-heart-slot{position:absolute;top:0;right:28px;}
+  /* Moved (requested directly, with screenshots of both pages): the
+     heart now sits in the top-right corner of the Details card on the
+     church page and the Event details card on the event page, instead
+     of floating above the page content where it read as "a weird
+     place" -- it was pinned to the banner/content wrap, so on a
+     scrolled page it appeared to hover near the card without belonging
+     to it. Offsets are 14px rather than the old right:28px because the
+     containing block is now the card itself, whose own padding is 22px
+     -- 14px tucks the 34px button into the corner without crowding the
+     denomination tag / heading that start at the padding edge. */
+  #church-follow-heart-slot, #event-follow-heart-slot{position:absolute;top:14px;right:14px;}
   .follow-heart-profile{
     width:34px;height:34px;
     background:none;border:none;cursor:pointer;padding:0;
@@ -2640,8 +2650,27 @@
      :not(:focus-visible) scoping so keyboard Tab focus still gets a
      visible outline here too. */
   .follow-heart-profile:focus:not(:focus-visible){outline:none;}
-  .follow-heart-profile svg{width:24px;height:24px;stroke:#8FA0C4;stroke-width:1.5;fill:none;}
+  /* Recolored when this heart moved off the banner and into the Details
+     card. The old #8FA0C4 was chosen to match #church-eyebrow against
+     .banner's var(--brand) navy, which the comment above correctly
+     noted is never redefined in dark mode -- which is exactly why that
+     choice stopped working the moment the heart landed on a card
+     surface instead: var(--card) DOES flip with the theme, so a single
+     fixed color can no longer be right in both. Now follows
+     .follow-heart-row's treatment (the closest analogue -- a flat card
+     surface with no photo to blend into): hollow grey outline in light
+     mode, gold-stroked card-colored cutout in dark, solid pink when
+     followed either way. */
+  .follow-heart-profile svg{width:24px;height:24px;stroke:#8A8A8A;stroke-width:1.5;fill:none;}
   .follow-heart-profile[data-following="true"] svg{fill:#F0A8C4;stroke:#F0A8C4;}
+  /* Re-scoped under html[data-theme="dark"] rather than left unscoped,
+     the same specificity trap already hit twice on .follow-heart-card
+     and .follow-heart-row: the dark default just above is (0,0,2,2) and
+     an unscoped [data-following="true"] rule is only (0,0,2,1), so
+     without this the followed heart would silently stay a gold outline
+     in dark mode instead of turning pink. */
+  html[data-theme="dark"] .follow-heart-profile svg{stroke:var(--gold);fill:var(--card);}
+  html[data-theme="dark"] .follow-heart-profile[data-following="true"] svg{fill:#F0A8C4;stroke:none;}
   /* Brief "Undo" toast after unfollowing a church on My Churches --
      requested directly, in case the click was an accident. Created
      and appended to <body> once, on first use (see showUnfollowToast),
@@ -3842,14 +3871,6 @@
 <section class="page" id="page-church">
   <div class="banner">
     <div class="wrap" style="position:relative;">
-      <!-- Rendered by populateChurchPage()/checkChurchFollowStatus(),
-           same as the directory card/list hearts (followHeartCard()/
-           followHeartRow()) -- empty until then so there's nothing to
-           mis-click before a real church id is known. Positioned via
-           .follow-heart-profile itself (position:absolute, top-right of
-           this now position:relative .wrap), independent of where this
-           div sits in the DOM/flex order. -->
-      <div id="church-follow-heart-slot"></div>
       <div>
         <div class="eyebrow" style="color:#8FA0C4;" id="church-eyebrow"></div>
         <h1 id="church-name"></h1>
@@ -3946,7 +3967,17 @@
       <div>
         <div class="side-note" style="padding:0;overflow:hidden;">
           <div id="church-logo-img" style="display:none;aspect-ratio:16/9;background-color:#fff;background-size:contain;background-repeat:no-repeat;background-position:center;background-origin:content-box;padding:16px;box-sizing:border-box;"></div>
-          <div style="padding:22px;">
+          <div style="padding:22px;position:relative;">
+          <!-- Rendered by populateChurchPage()/checkChurchFollowStatus(),
+               same as the directory card/list hearts (followHeartCard()/
+               followHeartRow()) -- empty until then so there's nothing to
+               mis-click before a real church id is known.
+               position:relative on the padded div, not on the .side-note
+               itself: .side-note is a shared class used by several other
+               panels, and making every one of them a containing block to
+               position one heart is the kind of change that surfaces as
+               an unrelated layout bug somewhere else weeks later. -->
+          <div id="church-follow-heart-slot"></div>
           <span id="church-details-denom-tag" class="tag sage" style="display:none;margin-bottom:12px;"></span>
           <h3 id="church-details-name" style="font-size:18px;margin:0 0 16px;"></h3>
           <h4 data-i18n="church.details">Details</h4>
@@ -4019,19 +4050,20 @@
        single quiet line until there's real data, then swap. -->
   <div id="event-page-loading" class="wrap" style="padding-top:44px;color:var(--ink-mute);font-size:14px;" data-i18n="common.loading">Loading...</div>
   <!-- position:relative is load-bearing, not decoration: it's the
-       containing block the follow-heart slot below positions against.
-       Without it the slot resolved against the viewport instead and
-       landed up behind the site header, which read as "there's no
-       heart on the event page at all". The church page's own .wrap
-       carries the same inline position:relative for the same reason. -->
+       containing block the follow-heart slot used to position against,
+       back when the heart lived up here -- without it that slot
+       resolved against the viewport and landed behind the site header,
+       which read as "there's no heart on the event page at all". The
+       heart has since moved into the Event details card, which is now
+       its own containing block, so this is no longer load-bearing for
+       the heart specifically. Left in place rather than removed
+       because a .wrap is a broad container and quietly changing what
+       any absolutely-positioned descendant resolves against is a
+       bigger, harder-to-spot change than keeping one harmless
+       declaration. -->
   <div class="wrap" id="event-page-content" style="padding-top:44px;position:relative;display:none;">
     <div id="event-image-block" style="display:none;aspect-ratio:16/9;border-radius:var(--radius);background-size:cover;background-position:center;margin-bottom:24px;max-width:680px;"></div>
     <span class="tag sage" id="event-badge" data-i18n="badge.registrationOpen">Registration open</span>
-    <!-- Absolute-positioned on the SLOT, not on the button inside it,
-         because a wrapper left in normal flow still counts as a flex
-         item to its parent and shifts everything else along -- the
-         exact bug the church page's own heart slot hit. -->
-    <div id="event-follow-heart-slot" style="position:absolute;top:0;right:28px;"></div>
     <h1 style="font-size:32px;margin-top:16px;" id="event-title"></h1>
     <p style="color:var(--ink-mute);margin-top:6px;"><span data-i18n="events.hostedByLabel">Hosted by</span> <a href="#church" data-route="church" id="event-host-link" style="color:inherit;border-bottom:1px solid var(--gold);"></a></p>
 
@@ -4073,7 +4105,16 @@
         <a href="#events" data-route="events" class="back-link" id="event-back-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg> <span data-i18n="events.backToEvents">Back to events</span></a>
       </div>
       <div>
-        <div class="side-note">
+        <div class="side-note" style="position:relative;">
+          <!-- Absolute-positioned on the SLOT, not on the button inside
+               it, because a wrapper left in normal flow still counts as
+               a flex item to its parent and shifts everything else
+               along -- the exact bug the church page's own heart slot
+               hit. Inline position:relative here rather than on the
+               .side-note class, for the same reason as the church
+               page's Details card: .side-note is shared by several
+               panels that have nothing to do with this. -->
+          <div id="event-follow-heart-slot"></div>
           <h4 data-i18n="events.eventDetails">Event details</h4>
           <div class="info-row" id="event-when"></div>
           <div class="info-row" id="event-location"></div>
@@ -6533,7 +6574,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v70 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v71 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
