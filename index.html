@@ -708,6 +708,12 @@
       'dashInbox.delete': 'Delete message', 'dashInbox.confirmDelete': 'Delete this message? This cannot be undone.',
       'dashInbox.actionFailed': 'That did not work. You may no longer have access to this inbox.',
       'dashInbox.signedInSender': 'Signed in',
+      'dashFacility.scheduleTitle': 'Room schedule',
+      'dashFacility.scheduleHint': 'One room, one week. Two blocks on top of each other are the same double-booking the event form warns about.',
+      'dashFacility.thisWeek': 'This week', 'dashFacility.nothingThisWeek': 'Nothing booked this week.',
+      'dashFacility.nUpcoming': '{n} upcoming', 'dashFacility.noUpcoming': 'nothing booked',
+      'dashSettings.removeRoomStillBooked': 'This room still has {n} upcoming event(s):',
+      'ce.roomAlreadyBooked': 'Already booked at this time:',
       'dashMsg.subjectPlaceholder': 'e.g. Sunday service update', 'dashMsg.message': 'Message', 'dashMsg.writeAnnouncement': 'Write your announcement...',
       'dashMsg.scheduleForLater': 'Schedule for later instead of sending now', 'dashMsg.sendAnnouncement': 'Send announcement',
       'dashMsg.scheduledAnnouncements': 'Scheduled announcements',
@@ -1573,6 +1579,12 @@
       'dashInbox.delete': 'Eliminar mensaje', 'dashInbox.confirmDelete': '¿Eliminar este mensaje? No se puede deshacer.',
       'dashInbox.actionFailed': 'No funcionó. Es posible que ya no tengas acceso a esta bandeja.',
       'dashInbox.signedInSender': 'Con sesión',
+      'dashFacility.scheduleTitle': 'Horario de salas',
+      'dashFacility.scheduleHint': 'Una sala, una semana. Dos bloques superpuestos son la misma doble reserva que advierte el formulario de eventos.',
+      'dashFacility.thisWeek': 'Esta semana', 'dashFacility.nothingThisWeek': 'Nada reservado esta semana.',
+      'dashFacility.nUpcoming': '{n} próximos', 'dashFacility.noUpcoming': 'sin reservas',
+      'dashSettings.removeRoomStillBooked': 'Esta sala todavía tiene {n} evento(s) próximo(s):',
+      'ce.roomAlreadyBooked': 'Ya reservada a esta hora:',
       'dashMsg.subjectPlaceholder': 'p. ej. Actualización del servicio dominical', 'dashMsg.message': 'Mensaje', 'dashMsg.writeAnnouncement': 'Escribe tu anuncio...',
       'dashMsg.scheduleForLater': 'Programar para más tarde en lugar de enviar ahora', 'dashMsg.sendAnnouncement': 'Enviar anuncio',
       'dashMsg.scheduledAnnouncements': 'Anuncios programados',
@@ -3298,6 +3310,34 @@
 
   /* ---- dashboard ---- */
   .dash{display:grid;grid-template-columns:220px 1fr;min-height:70vh;}
+  /* Room schedule: a week of one room, so back-to-back blocks and
+     the gaps between them are visible at a glance rather than
+     inferred from a list of times. */
+  .rsched{display:grid;grid-template-columns:52px repeat(7,minmax(0,1fr));gap:0;border:1px solid var(--line);border-radius:10px;overflow:hidden;}
+  .rsched-head{font-size:11px;color:var(--ink-mute);text-align:center;padding:6px 2px;border-bottom:1px solid var(--line);background:var(--paper);}
+  .rsched-head.today{color:var(--ink);font-weight:600;}
+  .rsched-gutter{position:relative;border-right:1px solid var(--line);}
+  .rsched-hour{position:absolute;left:0;right:4px;text-align:right;font-size:10px;color:var(--ink-mute);transform:translateY(-50%);}
+  .rsched-col{position:relative;border-right:1px solid var(--line);}
+  .rsched-col:last-child{border-right:0;}
+  .rsched-line{position:absolute;left:0;right:0;border-top:1px solid var(--line);opacity:.5;}
+  .rsched-block{position:absolute;overflow:hidden;border-radius:5px;padding:3px 4px;font-size:10.5px;line-height:1.25;
+    background:var(--sage);color:#fff;cursor:pointer;border:1px solid rgba(0,0,0,.08);}
+  /* An overlap inside ONE room is the double-booking the event form
+     warns about at save time. Colouring it here means the Facility
+     page shows the same fact the warning does, instead of the two
+     disagreeing about whether anything is wrong. */
+  .rsched-block.clash{background:var(--clay);}
+  .rsched-agenda{display:none;}
+  /* A 7-column time grid is unreadable on a phone, and squeezing it
+     smaller does not fix that -- it becomes a picture of a calendar
+     rather than something anyone can read a time off. Below this
+     width the same data is shown as a day-grouped list, which loses
+     the visual gaps but stays usable. */
+  @media (max-width: 760px){
+    .rsched{display:none;}
+    .rsched-agenda{display:block;}
+  }
   /* Focused check-in: a tablet propped at a door should show the
      roster and nothing else. Without this, every other part of the
      church -- Directory with names and emails, Revenue, Messages --
@@ -5610,6 +5650,10 @@ Groups</span>
       <label style="margin-top:14px;" data-i18n="ce.roomsUsed">Rooms used</label>
       <div style="font-size:12px;color:var(--ink-mute);margin-bottom:8px;" data-i18n="ce.roomsHint">Select every room this event uses — mark one as primary if it uses more than one. Managed in Settings → Facility rooms.</div>
       <div id="ce-rooms-checklist"><p style="color:var(--ink-mute);font-size:12.5px;" data-i18n="common.loading">Loading...</p></div>
+      <!-- Sits with the rooms, not at the top of the form: the
+           clash is about this choice, and a banner somewhere else
+           makes the person hunt for what it refers to. -->
+      <div id="ce-room-conflict-warning" style="display:none;margin-top:8px;padding:9px 11px;border:1px solid var(--clay);border-radius:8px;background:var(--paper);color:var(--clay);font-size:12.5px;line-height:1.4;"></div>
 
       <label style="margin-top:14px;" data-i18n="ce.ministriesHosting">Ministries hosting</label>
       <div style="font-size:12px;color:var(--ink-mute);margin-bottom:8px;" data-i18n="ce.ministriesHint">Attach any of your church's ministries hosting this event — mark one as primary if more than one. Managed in Settings → Ministries.</div>
@@ -6782,6 +6826,24 @@ Groups</span>
               </div>
               <div id="room-add-status" style="display:none;font-size:12px;margin-top:8px;"></div>
             </div>
+
+    <!-- Hidden until there is at least one room; an empty week grid
+         with no room to put in it is just furniture. -->
+    <div class="side-note" id="room-schedule-section" style="display:none;">
+      <h4 data-i18n="dashFacility.scheduleTitle">Room schedule</h4>
+      <p style="font-size:13.5px;color:var(--ink-mute);margin-bottom:14px;" data-i18n="dashFacility.scheduleHint">One room, one week. Two blocks on top of each other are the same double-booking the event form warns about.</p>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px;">
+        <select class="field" id="room-schedule-room" style="flex:1;min-width:160px;font-size:13px;padding:9px 10px;margin:0;"></select>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <button class="qr-btn" id="room-schedule-prev" aria-label="Previous week">&#8249;</button>
+          <span id="room-schedule-label" style="font-size:12.5px;color:var(--ink-mute);min-width:150px;text-align:center;"></span>
+          <button class="qr-btn" id="room-schedule-next" aria-label="Next week">&#8250;</button>
+          <button class="export-btn" id="room-schedule-today" data-i18n="dashFacility.thisWeek">This week</button>
+        </div>
+      </div>
+      <div id="room-schedule-grid"></div>
+      <div id="room-schedule-agenda" class="rsched-agenda"></div>
+    </div>
   </div>
 
   <div class="dash-content" id="dash-ministries">
@@ -6953,7 +7015,7 @@ Groups</span>
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v106 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v107 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -16411,6 +16473,10 @@ Groups</span>
     var selectedRoomIds = (linkedRooms || []).map(function(r){ return r.room_id; });
     var primaryRoomRow = (linkedRooms || []).filter(function(r){ return r.is_primary; })[0];
     loadEventRoomChecklist(selectedRoomIds, primaryRoomRow ? primaryRoomRow.room_id : null, ev.church_id);
+    // Awaited indirectly: the checklist populates asynchronously, and
+    // the conflict check reads what is CHECKED, so running it in the
+    // same tick would always see an empty selection.
+    setTimeout(function(){ if (window.refreshCeRoomConflicts) window.refreshCeRoomConflicts(); }, 0);
     var { data: linkedMinistries } = await supabase.from('event_ministries').select('ministry_id, is_primary').eq('event_id', eventId);
     var selectedMinistryIds = (linkedMinistries || []).map(function(m){ return m.ministry_id; });
     var primaryMinistryRow = (linkedMinistries || []).filter(function(m){ return m.is_primary; })[0];
@@ -17492,14 +17558,348 @@ Groups</span>
       listEl.innerHTML = '<p style="color:var(--ink-mute);font-size:13px;">' + window.t('dashSettings.noRoomsYet') + '</p>';
       return;
     }
+    // Bookings from now forward, so "3 upcoming" means what it says.
+    // A room's PAST events are still in the database and still
+    // reachable from the event itself; they are just not what
+    // somebody deciding whether they can retire a room is asking
+    // about.
+    var bookingsByRoom = {};
+    try {
+      bookingsByRoom = await fetchRoomBookings(myChurch.id, new Date().toISOString(), null);
+      // Kept so the remove-room confirm can name the same events the
+      // row's count came from, without a second query that could
+      // disagree with what is on screen.
+      window.churchRoomBookingsCache = bookingsByRoom;
+    } catch (e) {
+      // The room list is the point of this panel; usage counts are an
+      // addition to it. A failure to load them must not leave the
+      // page unable to show which rooms exist or to add a new one.
+      console.error('Room usage unavailable:', e);
+    }
+
     listEl.innerHTML = rooms.map(function(r){
-      return '<div class="info-row" style="justify-content:space-between;">'
-        + '<span>' + r.name.replace(/</g, '&lt;') + '</span>'
-        + '<button class="qr-btn" data-remove-room-id="' + r.id + '" aria-label="' + window.t('dashSettings.removeRoom') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'
-        + '</div>';
+      return roomUsageRowsHtml(r, bookingsByRoom[r.id] || []);
     }).join('');
+
+    if (typeof window.loadRoomSchedule === 'function') window.loadRoomSchedule();
   }
   window.loadRoomsPanel = loadRoomsPanel;
+
+  // ============================================================
+  // Room usage — what each room is actually booked for.
+  //
+  // The Facility page listed a name and a delete button, which answers
+  // "what rooms exist" and nothing else. Double-booking was already
+  // detected at save time (checkRoomConflicts), but only there: you
+  // could retire a room holding eleven upcoming events and hear
+  // nothing, and there was nowhere to look at a room's week.
+  // ============================================================
+
+  // Two plain queries rather than one filtered join. PostgREST can
+  // filter on an embedded table with !inner, but getting that syntax
+  // wrong fails the entire select, and these panels have no partial
+  // state to fall back to. Fetching events first and their room links
+  // second cannot be subtly wrong.
+  async function fetchRoomBookings(churchId, fromIso, toIso){
+    var eventsQuery = supabase.from('events')
+      .select('id, title, start_at, end_at')
+      .eq('church_id', churchId)
+      .order('start_at');
+    if (fromIso) eventsQuery = eventsQuery.gte('start_at', fromIso);
+    if (toIso) eventsQuery = eventsQuery.lt('start_at', toIso);
+    var { data: events, error: eventsError } = await eventsQuery;
+    if (eventsError || !events || !events.length) return {};
+
+    var { data: links, error: linksError } = await supabase.from('event_rooms')
+      .select('event_id, room_id')
+      .in('event_id', events.map(function(e){ return e.id; }));
+    if (linksError || !links) return {};
+
+    var eventById = {};
+    events.forEach(function(e){ eventById[e.id] = e; });
+    var byRoom = {};
+    links.forEach(function(l){
+      var e = eventById[l.event_id];
+      if (!e) return;
+      (byRoom[l.room_id] = byRoom[l.room_id] || []).push(e);
+    });
+    Object.keys(byRoom).forEach(function(rid){
+      byRoom[rid].sort(function(a, b){ return new Date(a.start_at) - new Date(b.start_at); });
+    });
+    return byRoom;
+  }
+  window.fetchRoomBookings = fetchRoomBookings;
+
+  // An event with no end_at is treated as an hour long, matching what
+  // checkRoomConflicts() already assumes -- the two must agree or the
+  // grid would show a clash the save-time warning does not, or worse,
+  // the other way round.
+  function roomEventEnd(e){
+    var start = new Date(e.start_at);
+    return e.end_at ? new Date(e.end_at) : new Date(start.getTime() + 60 * 60 * 1000);
+  }
+
+  // ---- Per-room upcoming list on the Facility page ----------------
+  var roomUsageExpanded = {};
+
+  function roomUsageRowsHtml(room, bookings){
+    var count = bookings.length;
+    var open = !!roomUsageExpanded[room.id];
+    var html = '<div class="info-row" style="display:block;" data-room-row="' + escapeHtml(room.id) + '">'
+      + '<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;">'
+        + '<span style="min-width:0;cursor:pointer;" data-room-toggle="' + escapeHtml(room.id) + '">'
+          + escapeHtml(room.name)
+          + ' <span style="color:var(--ink-mute);font-size:12px;">'
+          + (count ? window.t('dashFacility.nUpcoming').replace('{n}', count) : window.t('dashFacility.noUpcoming'))
+          + '</span>'
+        + '</span>'
+        + '<button class="qr-btn" data-remove-room-id="' + escapeHtml(room.id) + '" aria-label="' + window.t('dashSettings.removeRoom') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'
+      + '</div>';
+    if (open && count) {
+      html += '<div style="margin-top:8px;padding-left:2px;">' + bookings.slice(0, 10).map(function(e){
+        var when = new Date(e.start_at).toLocaleString(window.appLocale(), { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+        return '<div style="font-size:12.5px;margin-bottom:4px;">'
+          + '<a style="border-bottom:1px solid var(--line);cursor:pointer;" data-room-event="' + escapeHtml(e.id) + '">' + escapeHtml(e.title) + '</a>'
+          + '<span style="color:var(--ink-mute);"> — ' + escapeHtml(when) + '</span></div>';
+      }).join('')
+      + (count > 10 ? '<div style="font-size:12px;color:var(--ink-mute);">' + window.t('ce.andNMore').replace('{n}', count - 10) + '</div>' : '')
+      + '</div>';
+    }
+    return html + '</div>';
+  }
+
+  // ---- The week grid ---------------------------------------------
+  var roomScheduleRoomId = null;
+  var roomScheduleWeekStart = null;
+
+  function startOfWeek(d){
+    var out = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    out.setDate(out.getDate() - out.getDay());
+    return out;
+  }
+
+  // Standard column packing: events that overlap share the width of a
+  // day instead of hiding each other. Two blocks side by side IS the
+  // double-booking, so it has to be visible rather than one covering
+  // the other and the room looking free.
+  function layoutDayBlocks(events){
+    var sorted = events.slice().sort(function(a, b){ return new Date(a.start_at) - new Date(b.start_at); });
+    var clusters = [], current = [], clusterEnd = null;
+    sorted.forEach(function(e){
+      var start = new Date(e.start_at), end = roomEventEnd(e);
+      if (current.length && clusterEnd !== null && start >= clusterEnd) {
+        clusters.push(current); current = []; clusterEnd = null;
+      }
+      current.push(e);
+      clusterEnd = clusterEnd === null ? end : new Date(Math.max(clusterEnd.getTime(), end.getTime()));
+    });
+    if (current.length) clusters.push(current);
+
+    var placed = [];
+    clusters.forEach(function(cluster){
+      var columns = [];
+      cluster.forEach(function(e){
+        var start = new Date(e.start_at);
+        var col = 0;
+        while (col < columns.length && columns[col] > start) col++;
+        columns[col] = roomEventEnd(e);
+        placed.push({ event: e, col: col, clusterRef: cluster });
+      });
+      cluster.__cols = columns.length;
+    });
+    // Clash is per EVENT, not per cluster. A cluster is formed by
+    // transitive overlap, so it can hold three events where only two
+    // of them actually collide -- flagging the innocent third would
+    // mark a room as double-booked when it is not, and a warning that
+    // is sometimes wrong stops being read.
+    return placed.map(function(item){
+      var aStart = new Date(item.event.start_at), aEnd = roomEventEnd(item.event);
+      var clash = sorted.some(function(other){
+        if (other === item.event) return false;
+        return aStart < roomEventEnd(other) && new Date(other.start_at) < aEnd;
+      });
+      return { event: item.event, col: item.col, cols: item.clusterRef.__cols || 1, clash: clash };
+    });
+  }
+
+  function renderRoomSchedule(bookings){
+    var gridEl = document.getElementById('room-schedule-grid');
+    var agendaEl = document.getElementById('room-schedule-agenda');
+    var labelEl = document.getElementById('room-schedule-label');
+    if (!gridEl || !agendaEl) return;
+
+    var weekStart = roomScheduleWeekStart;
+    var weekEnd = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + 7);
+    var weekEvents = (bookings || []).filter(function(e){
+      var st = new Date(e.start_at);
+      return st >= weekStart && st < weekEnd;
+    });
+
+    if (labelEl) {
+      labelEl.textContent = weekStart.toLocaleDateString(window.appLocale(), { month: 'short', day: 'numeric' })
+        + ' – ' + new Date(weekEnd.getTime() - 1).toLocaleDateString(window.appLocale(), { month: 'short', day: 'numeric' });
+    }
+
+    // The visible hours follow the week's actual events rather than a
+    // fixed 9-to-5. A church's calendar is mostly evenings and Sunday
+    // mornings, and a hardcoded window would quietly clip a 6am prayer
+    // meeting off the top -- the event would simply not appear, which
+    // is the worst possible failure for a page about what is booked.
+    var minHour = 8, maxHour = 21;
+    weekEvents.forEach(function(e){
+      var st = new Date(e.start_at), en = roomEventEnd(e);
+      minHour = Math.min(minHour, st.getHours());
+      maxHour = Math.max(maxHour, en.getHours() + (en.getMinutes() ? 1 : 0));
+    });
+    minHour = Math.max(0, minHour);
+    maxHour = Math.min(24, Math.max(maxHour, minHour + 4));
+    var span = maxHour - minHour;
+    var pxPerHour = 34;
+    var bodyHeight = span * pxPerHour;
+
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+    var dayNames = [];
+    for (var d = 0; d < 7; d++) {
+      var day = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + d);
+      dayNames.push({ date: day, isToday: day.getTime() === today.getTime(),
+        label: day.toLocaleDateString(window.appLocale(), { weekday: 'short' }) + ' ' + day.getDate() });
+    }
+
+    var head = '<div class="rsched-head"></div>' + dayNames.map(function(d){
+      return '<div class="rsched-head' + (d.isToday ? ' today' : '') + '">' + escapeHtml(d.label) + '</div>';
+    }).join('');
+
+    var gutter = '<div class="rsched-gutter" style="height:' + bodyHeight + 'px;">';
+    for (var h = minHour; h <= maxHour; h++) {
+      var top = (h - minHour) * pxPerHour;
+      gutter += '<div class="rsched-hour" style="top:' + top + 'px;">'
+        + escapeHtml(new Date(2000, 0, 1, h).toLocaleTimeString(window.appLocale(), { hour: 'numeric' })) + '</div>';
+    }
+    gutter += '</div>';
+
+    var cols = dayNames.map(function(d){
+      var dayStart = d.date;
+      var dayEnd = new Date(dayStart.getFullYear(), dayStart.getMonth(), dayStart.getDate() + 1);
+      var dayEvents = weekEvents.filter(function(e){
+        var st = new Date(e.start_at);
+        return st >= dayStart && st < dayEnd;
+      });
+      var inner = '';
+      for (var hh = minHour + 1; hh < maxHour; hh++) {
+        inner += '<div class="rsched-line" style="top:' + ((hh - minHour) * pxPerHour) + 'px;"></div>';
+      }
+      layoutDayBlocks(dayEvents).forEach(function(item){
+        var e = item.event;
+        var st = new Date(e.start_at), en = roomEventEnd(e);
+        var startH = st.getHours() + st.getMinutes() / 60;
+        var endH = en.getHours() + en.getMinutes() / 60;
+        // An event running past midnight would otherwise compute a
+        // negative height and vanish; clamped to the day's end instead.
+        if (en <= st || en >= dayEnd) endH = maxHour;
+        var top = Math.max(0, (startH - minHour) * pxPerHour);
+        var height = Math.max(16, (Math.min(endH, maxHour) - Math.max(startH, minHour)) * pxPerHour - 2);
+        var widthPct = 100 / item.cols;
+        return inner += '<div class="rsched-block' + (item.clash ? ' clash' : '') + '"'
+          + ' data-room-event="' + escapeHtml(e.id) + '"'
+          + ' title="' + escapeHtml(e.title) + '"'
+          + ' style="top:' + top + 'px;height:' + height + 'px;left:' + (item.col * widthPct) + '%;width:calc(' + widthPct + '% - 2px);">'
+          + escapeHtml(st.toLocaleTimeString(window.appLocale(), { hour: 'numeric', minute: '2-digit' }))
+          + ' ' + escapeHtml(e.title) + '</div>';
+      });
+      return '<div class="rsched-col" style="height:' + bodyHeight + 'px;">' + inner + '</div>';
+    }).join('');
+
+    gridEl.innerHTML = '<div class="rsched">' + head + gutter + cols + '</div>';
+
+    // The phone view. Same events, grouped by day, no geometry.
+    var agenda = dayNames.map(function(d){
+      var dayStart = d.date;
+      var dayEnd = new Date(dayStart.getFullYear(), dayStart.getMonth(), dayStart.getDate() + 1);
+      var dayEvents = weekEvents.filter(function(e){
+        var st = new Date(e.start_at);
+        return st >= dayStart && st < dayEnd;
+      });
+      if (!dayEvents.length) return '';
+      // Sorted here rather than trusting the fetch to have done it.
+      // The grid does its own sort because layout requires it, so the
+      // agenda was the only view whose order depended on an upstream
+      // guarantee -- and a list of times out of order reads as a bug
+      // in the data rather than in the sorting.
+      dayEvents.sort(function(a, b){ return new Date(a.start_at) - new Date(b.start_at); });
+      return '<div style="margin-bottom:10px;">'
+        + '<div style="font-size:12px;color:var(--ink-mute);margin-bottom:4px;">' + escapeHtml(d.label) + '</div>'
+        + dayEvents.map(function(e){
+            var st = new Date(e.start_at);
+            return '<div style="font-size:12.5px;margin-bottom:3px;">'
+              + escapeHtml(st.toLocaleTimeString(window.appLocale(), { hour: 'numeric', minute: '2-digit' })) + ' — '
+              + '<a style="border-bottom:1px solid var(--line);cursor:pointer;" data-room-event="' + escapeHtml(e.id) + '">' + escapeHtml(e.title) + '</a>'
+              + '</div>';
+          }).join('')
+        + '</div>';
+    }).join('');
+    agendaEl.innerHTML = agenda || '<p style="color:var(--ink-mute);font-size:12.5px;">' + window.t('dashFacility.nothingThisWeek') + '</p>';
+  }
+
+  async function loadRoomSchedule(){
+    var section = document.getElementById('room-schedule-section');
+    var selectEl = document.getElementById('room-schedule-room');
+    if (!section || !selectEl) return;
+    var rooms = window.churchRoomsCache || [];
+    if (!rooms.length) { section.style.display = 'none'; return; }
+    section.style.display = 'block';
+
+    if (!roomScheduleRoomId || !rooms.filter(function(r){ return r.id === roomScheduleRoomId; }).length) {
+      roomScheduleRoomId = rooms[0].id;
+    }
+    if (!roomScheduleWeekStart) roomScheduleWeekStart = startOfWeek(new Date());
+
+    selectEl.innerHTML = rooms.map(function(r){
+      return '<option value="' + escapeHtml(r.id) + '"' + (r.id === roomScheduleRoomId ? ' selected' : '') + '>' + escapeHtml(r.name) + '</option>';
+    }).join('');
+
+    var myChurch = await getMyChurch();
+    if (!myChurch) return;
+    var weekEnd = new Date(roomScheduleWeekStart.getFullYear(), roomScheduleWeekStart.getMonth(), roomScheduleWeekStart.getDate() + 7);
+    var byRoom = await fetchRoomBookings(myChurch.id, roomScheduleWeekStart.toISOString(), weekEnd.toISOString());
+    renderRoomSchedule(byRoom[roomScheduleRoomId] || []);
+  }
+  window.loadRoomSchedule = loadRoomSchedule;
+
+  var roomScheduleSelect = document.getElementById('room-schedule-room');
+  if (roomScheduleSelect) roomScheduleSelect.addEventListener('change', function(){
+    roomScheduleRoomId = roomScheduleSelect.value;
+    loadRoomSchedule();
+  });
+  function shiftRoomScheduleWeek(days){
+    roomScheduleWeekStart = new Date(roomScheduleWeekStart.getFullYear(), roomScheduleWeekStart.getMonth(), roomScheduleWeekStart.getDate() + days);
+    loadRoomSchedule();
+  }
+  var rsPrev = document.getElementById('room-schedule-prev');
+  if (rsPrev) rsPrev.addEventListener('click', function(){ shiftRoomScheduleWeek(-7); });
+  var rsNext = document.getElementById('room-schedule-next');
+  if (rsNext) rsNext.addEventListener('click', function(){ shiftRoomScheduleWeek(7); });
+  var rsToday = document.getElementById('room-schedule-today');
+  if (rsToday) rsToday.addEventListener('click', function(){
+    roomScheduleWeekStart = startOfWeek(new Date());
+    loadRoomSchedule();
+  });
+
+  // Delegated: both the Facility list and the grid are rebuilt often.
+  document.addEventListener('click', function(ev){
+    if (!ev.target.closest) return;
+    var toggle = ev.target.closest('[data-room-toggle]');
+    if (toggle) {
+      var rid = toggle.getAttribute('data-room-toggle');
+      roomUsageExpanded[rid] = !roomUsageExpanded[rid];
+      if (typeof window.loadRoomsPanel === 'function') window.loadRoomsPanel();
+      return;
+    }
+    var eventLink = ev.target.closest('[data-room-event]');
+    if (eventLink && typeof window.editEvent === 'function') {
+      window.editEvent(eventLink.getAttribute('data-room-event'));
+    }
+  });
+
 
   // ============================================================
   // Ministries — the programs a church runs as part of itself (food
@@ -18760,6 +19160,65 @@ Groups</span>
     return conflicts;
   }
 
+
+  // ============================================================
+  // Live room-conflict feedback on the event form.
+  //
+  // checkRoomConflicts() already existed but only ran on Save, so a
+  // clash surfaced as a confirm dialog after the whole form had been
+  // filled in -- at the moment it is most annoying to act on, and
+  // easiest to click through. Running it as rooms and times change
+  // puts the answer next to the decision.
+  //
+  // The save-time confirm STAYS. This is advisory: it can be stale by
+  // seconds if somebody else is editing, and it is skipped entirely
+  // when the form has no date yet. The dialog is the backstop.
+  // ============================================================
+  var ceConflictRunId = 0;
+  async function refreshCeRoomConflicts(){
+    var warnEl = document.getElementById('ce-room-conflict-warning');
+    if (!warnEl) return;
+    var roomIds = getSelectedCeRoomIds();
+    var startAt = combineDateTime(document.getElementById('ce-start-date').value, document.getElementById('ce-start-time').value);
+    var endAt = combineDateTime(document.getElementById('ce-end-date').value, document.getElementById('ce-end-time').value);
+    if (!roomIds.length || !startAt) { warnEl.style.display = 'none'; warnEl.innerHTML = ''; return; }
+
+    // Each run claims an id and only paints if it is still the latest.
+    // Ticking three rooms quickly fires three overlapping queries, and
+    // without this the SECOND one landing last would overwrite the
+    // third's answer -- showing a warning for a selection that is no
+    // longer on screen.
+    var runId = ++ceConflictRunId;
+    var conflicts = [];
+    try {
+      conflicts = await checkRoomConflicts(roomIds, startAt, endAt, ceEditingEventId);
+    } catch (e) { return; }
+    if (runId !== ceConflictRunId) return;
+
+    if (!conflicts.length) { warnEl.style.display = 'none'; warnEl.innerHTML = ''; return; }
+    warnEl.style.display = 'block';
+    warnEl.innerHTML = '<strong>' + escapeHtml(window.t('ce.roomAlreadyBooked')) + '</strong>'
+      + conflicts.slice(0, 5).map(function(c){
+          return '<div style="margin-top:3px;">• ' + escapeHtml(c.eventTitle) + ' — ' + escapeHtml(c.roomName) + ', ' + escapeHtml(c.eventTime) + '</div>';
+        }).join('')
+      + (conflicts.length > 5 ? '<div style="margin-top:3px;">' + escapeHtml(window.t('ce.andNMore').replace('{n}', conflicts.length - 5)) + '</div>' : '');
+  }
+  window.refreshCeRoomConflicts = refreshCeRoomConflicts;
+
+  // Delegated on the page, because the room checklist is rebuilt every
+  // time the form opens and re-binding per render is how a listener
+  // ends up attached three times.
+  (function bindCeConflictWatch(){
+    var page = document.getElementById('page-create-event');
+    if (!page) return;
+    page.addEventListener('change', function(ev){
+      var t = ev.target;
+      if (!t) return;
+      if (t.classList && t.classList.contains('ce-room-check')) { refreshCeRoomConflicts(); return; }
+      if (['ce-start-date', 'ce-start-time', 'ce-end-date', 'ce-end-time'].indexOf(t.id) !== -1) refreshCeRoomConflicts();
+    });
+  })();
+
   function getSelectedCeRoomIds(){
     return Array.prototype.map.call(document.querySelectorAll('.ce-room-check:checked'), function(cb){ return cb.value; });
   }
@@ -19104,10 +19563,31 @@ Groups</span>
   document.addEventListener('click', async function(ev){
     var removeBtn = ev.target.closest ? ev.target.closest('[data-remove-room-id]') : null;
     if (!removeBtn) return;
-    if (!confirm(window.t('dashSettings.removeRoomConfirm'))) return;
+    // Names what would be left pointing at a retired room, rather
+    // than asking a yes/no question about consequences the person
+    // cannot see. The soft delete does not break those events -- they
+    // keep their room -- but the room stops being offered, so nobody
+    // can fix a clash in it afterwards without reinstating it.
+    var removeRoomId = removeBtn.getAttribute('data-remove-room-id');
+    var removeConfirmMsg = window.t('dashSettings.removeRoomConfirm');
+    // Read from what the panel already loaded rather than querying
+    // again. A second fetch would be a second answer, and the prompt
+    // contradicting the count shown on the row it came from is worse
+    // than either number alone. It also removes a dependency on
+    // getMyChurch() resolving inside a click handler.
+    var stillBooked = (window.churchRoomBookingsCache || {})[removeRoomId] || [];
+    if (stillBooked.length) {
+      removeConfirmMsg = window.t('dashSettings.removeRoomStillBooked').replace('{n}', stillBooked.length) + '\n'
+        + stillBooked.slice(0, 5).map(function(e){
+            return '• ' + e.title + ' (' + new Date(e.start_at).toLocaleString(window.appLocale(), { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) + ')';
+          }).join('\n')
+        + (stillBooked.length > 5 ? '\n' + window.t('ce.andNMore').replace('{n}', stillBooked.length - 5) : '')
+        + '\n\n' + removeConfirmMsg;
+    }
+    if (!confirm(removeConfirmMsg)) return;
     // Soft-delete: hides it from future use without erasing which
     // room past events were actually held in.
-    var { error } = await supabase.from('church_rooms').update({ is_active: false }).eq('id', removeBtn.getAttribute('data-remove-room-id'));
+    var { error } = await supabase.from('church_rooms').update({ is_active: false }).eq('id', removeRoomId);
     if (error) { alert(window.t('dashSettings.removeRoomFailed') + ' ' + error.message); return; }
     loadRoomsPanel();
   });

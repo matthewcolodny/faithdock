@@ -3948,3 +3948,36 @@ Two smaller ones: the mark-read request is skipped when the row shows no unread 
 Verified against an instrumented copy with the PostgREST builder stubbed: hostile subject, sender name and body all render as text with zero elements created and none of the three payloads firing; unread count; open keeps the detail open, removes the dot and clears the badge; three opens issue one update; archive, unarchive and delete; declining the delete confirm changes nothing; both languages; and the visibility gate exercised for real — owner and staff-with-ability see it, staff without it get no section **and no query is issued**.
 
 Build `2026-09-17-v106`; **migration 049 must be run by hand.**
+
+---
+
+## Room usage on the Facility page, and conflicts while you decide
+
+Asked as a question — does overlapping rooms report a conflict, and why doesn't Facility show what rooms are used for?
+
+The first half already worked. `checkRoomConflicts()` does a real interval overlap (`newStart < eEnd && eStart < newEnd`, so an event ending exactly when another starts is not a clash), covers drafts as well as published events, checks the first 20 occurrences of a recurring series, and names the conflicting **event, room and time** rather than just saying "conflict". It is a confirm, not a block, deliberately — real scheduling has legitimate overlaps.
+
+Three gaps around it, all now closed:
+
+**It only ran on Save.** A clash surfaced as a dialog after the whole form was filled in — the moment it is most annoying to act on and easiest to click through. It now runs as rooms and times change, next to the room checklist rather than as a banner elsewhere, so the warning sits with the decision it is about. The save-time confirm stays: the live check can be seconds stale if someone else is editing, and is skipped entirely before a date is chosen, so the dialog is still the backstop.
+
+Each live run claims an id and only paints if it is still the newest. Ticking three rooms quickly fires three overlapping queries, and without that the second one landing last would overwrite the third's answer — a warning about a selection no longer on screen.
+
+**The Facility page was a list, not a schedule.** Each room now carries its upcoming count, expands to its bookings, and there is a per-room week grid.
+
+The grid's visible hours follow the week's actual events rather than a fixed 9-to-5. A hardcoded window would quietly clip a 6am prayer meeting off the top — the event would simply not appear, which is the worst possible failure for a page whose entire job is showing what is booked.
+
+Overlapping blocks share the width of a day rather than covering each other, because two blocks side by side **is** the double-booking; one hiding the other would make a clashing room look free. The clash flag is computed per event, not per cluster: clusters form by transitive overlap, so one can hold three events where only two collide, and flagging the innocent third would mark a room double-booked when it is not.
+
+Below 760px the grid is replaced by a day-grouped list. A seven-column time grid is unreadable on a phone and shrinking it does not fix that — it becomes a picture of a calendar rather than something anyone can read a time off.
+
+**Retiring a room said nothing about what was in it.** The confirm now names the upcoming events first. It reads them from what the panel already loaded rather than querying again — a second fetch is a second answer, and a prompt contradicting the count on the row it came from is worse than either number alone.
+
+Two things the fixtures caught that reasoning had not:
+
+- The mobile agenda relied on `fetchRoomBookings` having sorted, while the grid sorts for itself because layout demands it. That left the agenda's order depending on an upstream guarantee, and a list of times out of order reads as broken data rather than missing sorting. It sorts its own day now.
+- An event with no `end_at` is treated as an hour long in the grid, matching what `checkRoomConflicts()` already assumed. The two must agree, or the Facility page would show a clash the save-time warning does not — or worse, the other way round.
+
+Verified against fixtures anchored to the current week: seven day columns, a 6:30am event visible (so the dynamic hour range works), two overlapping evening events rendered at 50% width side by side and both flagged while a third event the same week is not, week navigation narrowing the fetch to exactly the displayed range, room switching, the retire prompt naming the same count the row shows, the mobile fallback with no horizontal overflow, and a hostile room name rendering as text with zero elements created. The live check was exercised with a **real click** on the checkbox, not a dispatched event: one call on tick, warning cleared on untick, re-run on a time change.
+
+Build `2026-09-17-v107`. No migration.
