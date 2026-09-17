@@ -2988,3 +2988,19 @@ Verified in a local preview: all four modes round-trip through the real select a
 **Deliberately not done**: the Register button is not pre-emptively hidden for non-members on a members-only event -- they get the trigger's clear message on clicking instead. The enforcement is real either way; pre-empting it is a UX nicety worth doing separately rather than half-wiring now.
 
 Build `2026-09-17-v66`; **migration 037 must be run by hand** (035 and 036 first).
+
+---
+
+## Member decisions didn't refresh the Directory table above them
+
+Reported with a screenshot: removing someone from the Members panel left them sitting in the Directory table above, with their old role, until a full refresh.
+
+Same "one fact, several views" shape that keeps recurring here (the follow hearts, the register buttons, the church switcher). The Members panel's handler refreshed itself and Recently Joined but not `loadDirectoryPeople()`, which owns that table. Notably the OLDER Recently-Joined remove handler already refreshed the directory correctly -- the new panel was the outlier, which is its own small lesson about adding a second path to do something that already had one.
+
+Fixed for all three decisions, not just the reported one: approve and reject need it as much as remove, since approving is precisely the moment someone becomes a Member in that table.
+
+Also switched the Recently-Joined handler's direct `.delete()` on `church_memberships` to the `remove_church_member` RPC added in 035. It was the last direct membership delete in the file, and it depended on an RLS policy this repo can't see while reporting success either way -- the same silent zero-row shape as migration 033. There are now no direct membership deletes left in the client.
+
+Verified in a local preview by clicking the real buttons with `getMyChurch`'s cache seeded (`window._myChurchCache`) so the actual handler ran rather than a stand-in: approve fires `set_church_membership_status(approved)`, reject fires it with `rejected`, remove fires `remove_church_member`, and all three reload the Members panel and the Directory table.
+
+Build `2026-09-17-v67`. No new migration (035/036/037 still required).

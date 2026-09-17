@@ -6505,7 +6505,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v66 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v67 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -19065,8 +19065,15 @@
       return;
     }
     if (statusEl) statusEl.style.display = 'none';
+    // Every view of this same fact gets refreshed, not just the panel
+    // the click happened in. Reported directly: removing someone here
+    // left them sitting in the Directory table above with their old
+    // role until a full refresh. Approving matters just as much --
+    // that's the moment someone BECOMES a Member in that table -- so
+    // all three refresh on any decision rather than only on removal.
     loadMembersPanel();
     if (typeof loadRecentlyJoinedPanel === 'function') loadRecentlyJoinedPanel();
+    if (typeof window.loadDirectoryPeople === 'function') window.loadDirectoryPeople();
   });
 
   // ============================================================
@@ -19130,8 +19137,16 @@
       if (!confirm('Remove this person from your church? Their FaithDock account itself isn\'t affected — this only removes them from your membership list.')) return;
       var myChurch2 = await getMyChurch();
       if (!myChurch2) return;
-      await supabase.from('church_memberships').delete().eq('church_id', myChurch2.id).eq('user_id', removeMembershipBtn.getAttribute('data-remove-membership-id'));
+      // Switched from a direct .delete() to the RPC added in migration
+      // 035: the direct call depended on an RLS policy this repo can't
+      // see and would have reported success either way, which is the
+      // silent zero-row shape that hid the unregister bug for weeks.
+      await supabase.rpc('remove_church_member', {
+        target_church_id: myChurch2.id,
+        target_user_id: removeMembershipBtn.getAttribute('data-remove-membership-id')
+      });
       loadRecentlyJoinedPanel();
+      if (typeof window.loadMembersPanel === 'function') window.loadMembersPanel();
       if (typeof window.loadDirectoryPeople === 'function') window.loadDirectoryPeople();
     }
   });
