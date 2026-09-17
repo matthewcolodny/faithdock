@@ -3076,3 +3076,21 @@ Which dragged in the specificity trap this file has now hit three times: `html[d
 Verified in a local preview on both pages: the slot's `offsetParent` is the card, 15px in from its top and right edges, `elementFromPoint` at the heart's centre returns the heart, and -- since an `h4` is full-width, making a bounding-box overlap test meaningless -- a `Range` around the actual heading glyphs confirms 132px of clear space, with a worst-case long church name ("San Antonio North Foursquare Church") and a denomination tag also clearing it.
 
 Build `2026-09-17-v71`.
+
+---
+
+## Register button flashed on every filter toggle
+
+Reported directly: checking or unchecking a type/category filter made each card you're registered for flash "Register" for a moment before settling back to "✓ Registered — click to unregister".
+
+Nothing was going wrong. That was the truth arriving late, and it was guaranteed to happen every time. `eventCard()` unconditionally emitted a plain "Register" button; `refreshAllCardRegistrationStates()` then corrected it -- but only after a network round trip. Since every filter change re-renders the whole grid, the wrong state was painted first, always, and the "flash" was simply how long the query took.
+
+Fixed the same way the follow heart's version of this was: `refreshAllCardRegistrationStates()` now keeps what it learned in `window.myRegisteredEventRoles`, and `eventCard()` renders from it, so the first paint is already correct. The async refresh still runs and is still the authority -- it just has nothing left to correct in the common case. `applyEventRegisteredState()` updates the cache alongside the buttons, which matters more than it sounds: without it, registering and then touching a filter would re-render straight back to "Register", trading a brief flash for a permanent wrong answer.
+
+The card markup deliberately duplicates `setEventRegisteredUI()`'s output down to its hardcoded English, because the two agreeing is the whole point -- **if they ever disagree, the async refresh becomes its own flicker**. That equality is what the verification actually checks: render a warm card, snapshot computed button text / `data-registered` / `btn-registered` / role-radio and role-label display, run `setEventRegisteredUI()` over it, snapshot again, and require the two to be identical. They are.
+
+**Known remaining case**: the very first render after a cold page load still flashes, because the cache is empty until the first query answers and there is no honest way to know the answer before asking. Every re-render after that is instant. Fixing that properly means persisting the list client-side, which is a real decision about staleness (a registration cancelled on another device would show as current until corrected), not a tweak -- deliberately not done here.
+
+**Noted, not fixed**: `setEventRegisteredUI()` hardcodes "✓ Registered — click to unregister", "Registered as a volunteer" and "Registered as a participant" in English, with no `window.t()` keys, so they stay English under ES. Pre-existing, and out of scope for a rendering fix.
+
+Build `2026-09-17-v72`.

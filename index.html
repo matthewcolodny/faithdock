@@ -6574,7 +6574,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v71 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v72 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -7987,16 +7987,44 @@
         // role radios, just say so, same as the event detail page.
         inner += '<div class="card-role-choice" style="margin-top:12px;">' + window.t('events.registrationNotRequired') + '</div>';
       } else {
+        // Reported directly: toggling a type/category filter made every
+        // card you're registered for flash "Register" for a moment
+        // before settling back to "✓ Registered — click to unregister".
+        // Nothing was going wrong -- that was just the truth arriving
+        // late. Every filter change re-renders these cards, this markup
+        // always said "Register", and refreshAllCardRegistrationStates()
+        // corrected it only after a network round trip, so the wrong
+        // state was genuinely painted first every single time.
+        //
+        // Fixed the same way the follow heart's equivalent flash was:
+        // render the answer NOW from an in-memory cache of what this
+        // user is registered for, so the first paint is already right.
+        // The async refresh still runs and is still authoritative -- it
+        // just no longer has anything to correct in the common case.
+        var cardRegRoles = window.myRegisteredEventRoles || {};
+        var cardIsRegistered = Object.prototype.hasOwnProperty.call(cardRegRoles, e.id);
+        var cardRole = cardRegRoles[e.id];
         var cardRoleHtml = '';
         if(e.allowVolunteers){
-          cardRoleHtml = '<div class="card-role-choice" onclick="event.stopPropagation()">'
+          // Hidden while registered for the same reason the detail page
+          // hides its radios: picking a role is meaningless until you
+          // unregister. Matches what setEventRegisteredUI() would do.
+          cardRoleHtml = '<div class="card-role-choice" onclick="event.stopPropagation()" style="' + (cardIsRegistered ? 'display:none;' : '') + '">'
             + '<label><input type="radio" name="card-role-' + e.id + '" value="participant" checked> ' + window.t('events.participant') + '</label>'
             + '<label><input type="radio" name="card-role-' + e.id + '" value="volunteer"> ' + window.t('events.volunteerRole') + '</label>'
             + '</div>'
-            + '<div class="role-registered-label" style="display:none;margin-top:10px;font-size:12px;color:var(--sage);font-weight:500;"></div>';
+            + '<div class="role-registered-label" style="' + (cardIsRegistered ? '' : 'display:none;') + 'margin-top:10px;font-size:12px;color:var(--sage);font-weight:500;">'
+            + (cardIsRegistered ? (cardRole === 'volunteer' ? 'Registered as a volunteer' : 'Registered as a participant') : '')
+            + '</div>';
         }
+        // Text and classes deliberately mirror setEventRegisteredUI()
+        // exactly, including its hardcoded English -- if these two ever
+        // disagree, the async refresh would itself become a visible
+        // flicker, which is the bug this is fixing.
         inner += cardRoleHtml
-          + '<button class="export-btn register-real-btn" data-event-id="' + e.id + '" style="width:100%;justify-content:center;margin-top:12px;">' + window.t('events.register') + '</button>'
+          + '<button class="export-btn register-real-btn' + (cardIsRegistered ? ' btn-registered' : '') + '" data-event-id="' + e.id + '" data-registered="' + (cardIsRegistered ? 'true' : 'false') + '" style="width:100%;justify-content:center;margin-top:12px;">'
+          + (cardIsRegistered ? '✓ Registered — click to unregister' : (e.priceCents ? window.t('events.register') + ' — $' + (e.priceCents / 100).toFixed(2) : window.t('events.register')))
+          + '</button>'
           + '<div class="register-status mono" style="font-size:11px;color:var(--ink-mute);margin-top:6px;display:none;"></div>';
       }
     }
@@ -16066,11 +16094,18 @@
   // that event's card happens to appear.
   async function refreshAllCardRegistrationStates(){
     var { data: userData } = await supabase.auth.getUser();
-    if (!userData.user) return;
+    if (!userData.user) { window.myRegisteredEventRoles = {}; return; }
     var { data } = await supabase.from('event_registrations').select('event_id, role').eq('user_id', userData.user.id).eq('status', 'confirmed');
     if (!data) return;
     var myRegs = {};
     data.forEach(function(r){ myRegs[r.event_id] = r.role; });
+    // Cached so eventCard() can render the right button on the FIRST
+    // paint instead of every re-render starting wrong and being fixed
+    // here a round trip later -- the filter-toggle flash. Assigned from
+    // `data`, which is this user's complete confirmed-registration list,
+    // so the cache is a replacement rather than a merge: an id that has
+    // disappeared must disappear here too.
+    window.myRegisteredEventRoles = myRegs;
 
     var buttons = document.querySelectorAll('.register-real-btn[data-event-id]');
     buttons.forEach(function(btn){
@@ -24911,6 +24946,13 @@
     document.querySelectorAll('.register-real-btn[data-event-id="' + eventId + '"]').forEach(function(btn){
       setEventRegisteredUI(btn, isRegistered, role);
     });
+    // Keep the render-time cache honest too, not just the buttons
+    // already on screen. Without this, registering and then changing a
+    // filter would re-render the card straight back to "Register" --
+    // trading the old flash for a worse, permanent version of it.
+    if (!window.myRegisteredEventRoles) window.myRegisteredEventRoles = {};
+    if (isRegistered) window.myRegisteredEventRoles[eventId] = role || 'participant';
+    else delete window.myRegisteredEventRoles[eventId];
   }
   window.applyEventRegisteredState = applyEventRegisteredState;
 
