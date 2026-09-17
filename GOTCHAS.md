@@ -2844,3 +2844,23 @@ Verified in a local preview by driving the real functions: a no-volunteer event 
 **Also surfaced during verification: migration 034 has not been run yet.** The new error logging added in v57 printed `renderHomeEvents search_events: PGRST203` in the console, which is the duplicate-overload error -- so the homepage preview and church Events tabs are still broken until that migration is applied.
 
 Build `2026-09-16-v59`. No new migration, but 034 is still outstanding.
+
+**Migration 034 verified** after being run: all three call sites resolve with no `PGRST203` -- homepage preview 2 rows (and 2 real cards rendered, empty state gone), church Events tab 2 rows for a visible church, Events listing 2 rows. Note for anyone re-checking this: "Catholic Church of San Antonio" is `is_hidden = true`, so its two events are correctly excluded from all three views (migration 019's whole purpose) -- that's why 4 events exist but only 2 appear, and it is not a bug.
+
+---
+
+## Capacity only makes sense where there are signups to count
+
+Reported directly, and it reverses an earlier request in this same session -- worth recording honestly because the second reasoning is the correct one. Max participants was originally moved OUT from behind "Require registration" on the request that a headcount cap is useful even without formal registration ("show up, first 50 get in"). The follow-up realisation: with no registration there is no signup to count, so a cap can be neither enforced nor displayed. That is also exactly what produced a meaningless **"0/1"** on a no-signup event's card -- real data, since `max_participants` was already set on events whose `registration_required` is false.
+
+Fixed as one rule rather than three copies of it:
+- `mapSearchEventRow()` -- `fillBadge` now requires `registration_required` alongside a cap and a known count. This is the single place fillBadge is computed, so both the detail page and every card inherit it.
+- `eventCard()` -- the `2/10` tag gates on `registrationRequired && maxParticipants` (it reads `maxParticipants` directly, so it needed the gate explicitly).
+- `refreshEventCapacityBadge()` -- treats a no-registration event as uncapped, which makes the badge, the "x of y spots taken" line, and every card count hide themselves through paths they already had.
+- The submit handler now saves `max_participants` as null unless registration is required -- a hidden input keeps whatever was typed in it, so without this an organiser who set a cap and then switched registration off would silently persist a cap nothing can count. That's how the existing rows got theirs.
+
+Form-side, Max participants and the volunteer block both moved back inside `#ce-registration-options`, restoring a single coherent rule: everything about signups (cap, volunteers, guests, ticket price, fees, discount codes) lives under "Require registration". The volunteer block came back for the same reason -- a volunteer signs up exactly like a participant -- which also made its "this only shows when registration is on" hint redundant, so that hint and its two i18n strings were removed rather than left dangling.
+
+Verified in a local preview: DOM nesting confirmed (max participants, volunteer checkbox, volunteer options, price section and guests all inside the gate; `#ce-repeats-section` not swallowed by a stray tag), the gate toggles `none`/`block` with the checkbox, and on the public side a capped-but-no-registration event shows no capacity count, no fill badge and no card tag, while a capped event that DOES require registration still reads "4 of 10 spots taken".
+
+Build `2026-09-16-v60`. No migration.

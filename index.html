@@ -904,7 +904,6 @@
       'ce.noDiscountCodesYet': 'No discount codes yet.', 'ce.usesOfMax': '{used} / {max} used', 'ce.usesCount': '{used} used', 'ce.off': 'Off', 'ce.turnOff': 'Turn off', 'ce.turnOn': 'Turn on', 'ce.enterCodeAndAmount': 'Enter a code and an amount.',
       'ce.paidEventsLocked': 'Paid events (ticket pricing, discount codes) are available on Starter plans and above.',
       'ce.alsoAcceptVolunteers': 'Are volunteers needed for this event?', 'ce.maxVolunteers': 'Max volunteers',
-      'ce.volunteerNeedsRegistrationHint': 'Volunteers sign up the same way participants do, so this only shows on your event’s page when "Require registration" is on.',
       'ce.allowGuests': 'Are guests allowed?', 'ce.allowGuestsHint': "Whoever registers will be asked how many guests they're bringing — tracked separately from the participant/volunteer count above.", 'ce.maxGuests': 'Max total guests',
       'ce.suggestedDonation': 'Suggested donation', 'ce.suggestedDonationHint': 'For a free event only — shown to registrants as an optional amount to give toward this event, through the same Giving your church already has set up. Ignored if a ticket price is set above.', 'ce.none': 'None',
       'ce.repeats': 'Repeats', 'ce.doesntRepeat': "Doesn't repeat", 'ce.daily': 'Daily', 'ce.weekly': 'Weekly', 'ce.every2Weeks': 'Every 2 weeks', 'ce.monthly': 'Monthly',
@@ -1705,7 +1704,6 @@
       'ce.noDiscountCodesYet': 'Aún no hay códigos de descuento.', 'ce.usesOfMax': '{used} / {max} usados', 'ce.usesCount': '{used} usados', 'ce.off': 'Desactivado', 'ce.turnOff': 'Desactivar', 'ce.turnOn': 'Activar', 'ce.enterCodeAndAmount': 'Ingresa un código y una cantidad.',
       'ce.paidEventsLocked': 'Los eventos de pago (precio de entrada, códigos de descuento) están disponibles en los planes Inicial y superiores.',
       'ce.alsoAcceptVolunteers': '¿Se necesitan voluntarios para este evento?', 'ce.maxVolunteers': 'Máximo de voluntarios',
-      'ce.volunteerNeedsRegistrationHint': 'Los voluntarios se inscriben igual que los participantes, así que esto solo aparece en la página de tu evento cuando "Requerir inscripción" está activado.',
       'ce.allowGuests': '¿Se permiten invitados?', 'ce.allowGuestsHint': 'A quien se inscriba se le preguntará cuántos invitados trae — se cuenta por separado del conteo de participantes/voluntarios de arriba.', 'ce.maxGuests': 'Máximo total de invitados',
       'ce.suggestedDonation': 'Donación sugerida', 'ce.suggestedDonationHint': 'Solo para un evento gratuito — se muestra a quienes se inscriben como un monto opcional para dar hacia este evento, a través del mismo sistema de Donaciones que tu iglesia ya tiene configurado. Se ignora si arriba se fijó un precio de boleto.', 'ce.none': 'Ninguna',
       'ce.repeats': 'Se repite', 'ce.doesntRepeat': 'No se repite', 'ce.daily': 'Diariamente', 'ce.weekly': 'Semanalmente', 'ce.every2Weeks': 'Cada 2 semanas', 'ce.monthly': 'Mensualmente',
@@ -5300,44 +5298,34 @@
           </div>
         </div>
 
-        <!-- Deliberately OUTSIDE #ce-registration-options (below), not
-             gated by it -- reported directly: a capacity/headcount cap
-             is a useful thing to set even for an event that doesn't
-             require formal registration (e.g. "show up, first 50 get
-             in"), so it shouldn't be tied to the same toggle that also
-             controls ticket pricing/fees/discount codes, which
-             genuinely DO need registration to process. The submit
-             handler already reads this field's value unconditionally
-             (unlike max volunteers/guests, which are explicitly gated
-             by their own separate toggles) -- only the visibility was
-             ever tied to Require Registration, not the actual save
-             logic, so moving it here needed no submit-handler change. -->
-        <div style="margin-top:16px;">
+        <!-- Everything below is inside #ce-registration-options, i.e.
+             only shown when "Require registration" is on, and that's the
+             whole rule: if nobody signs up, there are no signups to cap,
+             count, charge, or assign a role to.
+             Max participants briefly lived outside this gate (it was
+             moved out on request, on the reasoning that a headcount cap
+             was useful even without formal registration) and was moved
+             back after the follow-up realisation that without
+             registration there's no way to count attendance, so a cap
+             can't be enforced OR displayed -- which is also what put a
+             meaningless "0/1" on a no-signup event's card. The volunteer
+             block came back with it for the same reason: a volunteer
+             signs up the same way a participant does. -->
+        <div id="ce-registration-options" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--line);">
           <label data-i18n="ce.maxParticipants">Max participants</label>
           <input class="field" type="number" id="ce-max-participants" min="1" placeholder="No limit" data-i18n-placeholder="ce.noLimit">
-        </div>
 
-        <!-- Moved out of #ce-registration-options (below), requested
-             directly: this was buried behind "Require registration", so
-             an organiser who left that off never saw it and had no way
-             to say whether their event wants volunteers at all. Same
-             reasoning as Max participants just above. The hint spells
-             out the one real dependency that remains -- a volunteer
-             still has to sign up, so volunteer signups only actually
-             appear on the public page when registration is required. -->
-        <label class="filter-check" style="margin-top:16px;"><input type="checkbox" id="ce-allow-volunteers"> <span data-i18n="ce.alsoAcceptVolunteers">Are volunteers needed for this event?</span></label>
-        <div id="ce-volunteer-options" style="display:none;margin-top:10px;">
-          <div style="font-size:12px;color:var(--ink-mute);margin-bottom:8px;" data-i18n="ce.volunteerNeedsRegistrationHint">Volunteers sign up the same way participants do, so this only shows on your event's page when "Require registration" is on.</div>
-          <label data-i18n="ce.maxVolunteers">Max volunteers</label>
-          <input class="field" type="number" id="ce-max-volunteers" min="1" placeholder="No limit" data-i18n-placeholder="ce.noLimit">
+          <label class="filter-check" style="margin-top:16px;"><input type="checkbox" id="ce-allow-volunteers"> <span data-i18n="ce.alsoAcceptVolunteers">Are volunteers needed for this event?</span></label>
+          <div id="ce-volunteer-options" style="display:none;margin-top:10px;">
+            <label data-i18n="ce.maxVolunteers">Max volunteers</label>
+            <input class="field" type="number" id="ce-max-volunteers" min="1" placeholder="No limit" data-i18n-placeholder="ce.noLimit">
 
-          <label style="margin-top:14px;" data-i18n="ce.volunteerQuestions">Questions for volunteers</label>
-          <div style="font-size:12px;color:var(--ink-mute);margin-bottom:8px;" data-i18n="ce.volunteerQuestionsHint">Shown only to people registering as a volunteer — the questions above are shown only to participants.</div>
-          <div id="ce-volunteer-questions-list"></div>
-          <button type="button" class="export-btn" id="ce-add-volunteer-question-btn" style="margin-top:4px;padding:7px 14px;font-size:12.5px;" data-i18n="ce.addAQuestion">+ Add a question</button>
-        </div>
+            <label style="margin-top:14px;" data-i18n="ce.volunteerQuestions">Questions for volunteers</label>
+            <div style="font-size:12px;color:var(--ink-mute);margin-bottom:8px;" data-i18n="ce.volunteerQuestionsHint">Shown only to people registering as a volunteer — the questions above are shown only to participants.</div>
+            <div id="ce-volunteer-questions-list"></div>
+            <button type="button" class="export-btn" id="ce-add-volunteer-question-btn" style="margin-top:4px;padding:7px 14px;font-size:12.5px;" data-i18n="ce.addAQuestion">+ Add a question</button>
+          </div>
 
-        <div id="ce-registration-options" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--line);">
           <div id="ce-price-section">
             <label style="margin-top:14px;" data-i18n="ce.ticketPrice">Ticket price</label>
             <div style="font-size:12px;color:var(--ink-mute);margin-bottom:6px;" data-i18n="ce.ticketPriceHint">Leave blank for a free event. Charged through your church's own connected Stripe account, same as Giving. Only participants pay — volunteers register free.</div>
@@ -6450,7 +6438,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-16-v59 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-16-v60 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -7784,7 +7772,10 @@
       // so there's always an element to update -- otherwise an event
       // going from "not full" to "Full" would have no badge to write to.
       + '<span class="tag' + (e.fillBadge ? ' ' + e.fillBadge.color : '') + '" data-fill-badge-for="' + e.id + '" style="margin-left:6px;' + (e.fillBadge ? '' : 'display:none;') + '">' + (e.fillBadge ? translateBadgeLabel(e.fillBadge.label) : '') + '</span>'
-      + '<span class="tag" data-capacity-count-for="' + e.id + '" style="margin-left:6px;' + (e.maxParticipants ? '' : 'display:none;') + '">' + (e.maxParticipants ? ((e.confirmedParticipantCount || 0) + '/' + e.maxParticipants) : '') + '</span>'
+      // Same registration gate as fillBadge (see mapSearchEventRow):
+      // a "no signup needed" event has no signups to count, so "0/1"
+      // there is meaningless -- reported directly.
+      + '<span class="tag" data-capacity-count-for="' + e.id + '" style="margin-left:6px;' + ((e.registrationRequired && e.maxParticipants) ? '' : 'display:none;') + '">' + ((e.registrationRequired && e.maxParticipants) ? ((e.confirmedParticipantCount || 0) + '/' + e.maxParticipants) : '') + '</span>'
       + '<h3>' + e.title + '</h3>'
       + '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/></svg>' + churchLabel + (distanceText ? ' · ' + distanceText : '') + '</div>'
       + '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>' + e.when + '</div>';
@@ -9481,8 +9472,16 @@
     // full" rather than exactly 100%, since a handful of spots left
     // is the moment this is actually useful to know, not after
     // they're already gone.
+    //
+    // registration_required is part of the gate for a reason beyond
+    // tidiness: with no registration there are no signups to count, so
+    // a count can't be measured and a cap can't be enforced. Some
+    // existing events do carry a max_participants from before this rule
+    // existed, which is exactly how "0/1" ended up showing on an event
+    // nobody could sign up for. One gate here, at the single place
+    // fillBadge is computed, rather than repeated at each display.
     var fillBadge = null;
-    if (row.max_participants && row.confirmed_participant_count != null) {
+    if (row.registration_required && row.max_participants && row.confirmed_participant_count != null) {
       var fillRatio = row.confirmed_participant_count / row.max_participants;
       if (fillRatio >= 1) { fillBadge = { label: 'Full', color: 'clay' }; }
       else if (fillRatio >= 0.9) { fillBadge = { label: 'Almost full', color: 'gold' }; }
@@ -15480,7 +15479,14 @@
       var registrationRequired = document.getElementById('ce-registration-required').checked;
       var visibility = document.getElementById('ce-visibility').value;
       var maxParticipantsRaw = document.getElementById('ce-max-participants').value;
-      var maxParticipants = maxParticipantsRaw ? parseInt(maxParticipantsRaw, 10) : null;
+      // Gated on registrationRequired for the same reason max
+      // volunteers/guests are gated on their own toggles just below: a
+      // hidden input keeps whatever was typed into it, so without this
+      // an organiser who set a cap and then turned registration off
+      // would silently save a cap that can't be counted or enforced --
+      // which is how existing events ended up with a max_participants
+      // they never meant to keep.
+      var maxParticipants = (registrationRequired && maxParticipantsRaw) ? parseInt(maxParticipantsRaw, 10) : null;
       var allowVolunteers = document.getElementById('ce-allow-volunteers').checked;
       var maxVolunteersRaw = document.getElementById('ce-max-volunteers').value;
       var maxVolunteers = (allowVolunteers && maxVolunteersRaw) ? parseInt(maxVolunteersRaw, 10) : null;
@@ -24376,7 +24382,13 @@
   // count to begin with).
   async function refreshEventCapacityBadge(eventId, optimisticDelta){
     var cached = (window.events || []).filter(function(x){ return String(x.id) === String(eventId); })[0];
-    var maxParticipants = cached ? cached.maxParticipants : null;
+    // Same registration gate as mapSearchEventRow's fillBadge: no
+    // registration means no signups to count, so there's no capacity to
+    // report. Treating it as uncapped here makes every downstream
+    // display (badge, "x of y spots taken", card count) hide itself
+    // through the paths they already have, rather than each needing its
+    // own copy of this rule.
+    var maxParticipants = (cached && cached.registrationRequired) ? cached.maxParticipants : null;
     var fillBadgeEl = document.getElementById('event-fill-badge');
     if (!maxParticipants) {
       // Uncapped events can never be "full" -- same gate
