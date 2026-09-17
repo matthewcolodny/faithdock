@@ -3210,3 +3210,19 @@ One missing predicate causes both, so one line fixes both. It goes in the JOIN c
 Migration 040 uses `CREATE OR REPLACE` with no DROP, unlike 039 the same day. That's not inconsistency: 039 *added a parameter*, which REPLACE cannot do (it leaves a second overload and the PGRST203 that 022 caused). Here the argument list and the `RETURNS TABLE` row type are byte-identical and only the body changes, which is precisely the case REPLACE handles. The migration is the live `pg_get_functiondef` output with one line changed, not a reconstruction from memory -- worth insisting on for an untracked function, since anything reconstructed would silently become the new truth.
 
 No build stamp: this is entirely server-side, no index.html change.
+
+---
+
+## Full category names in the icon row, breaking where they're meant to
+
+The icon row showed "Support" and "Sports" while the merged category showed the full "Classes & Studies" -- inconsistent, and fixed by going full everywhere, with the second half of each name dropped to its own line.
+
+The mechanism is worth knowing because the obvious one doesn't work here. `applyTranslations()` assigns `el.textContent`, so a `<br>` in the label would be shown literally as the characters `<br>` the moment anyone switched language. Instead the break lives in the dictionary value as a real `\n`, and only `.event-category-btn span` sets `white-space:pre-line` to honour it.
+
+The nice part is that the *same* keys are reused by the create-event checkboxes, the sidebar filter checklist and card tags, where `white-space` is the default `normal` -- which collapses a newline to an ordinary space. So one dictionary entry reads "Support / Groups" under a circle and "Support Groups" everywhere else, with no second string to keep in sync and no per-context logic.
+
+Spanish gets its own break points rather than the English ones transliterated: "Clases / y estudios" divides after the noun, not before the conjunction the way "Classes / & Studies" does.
+
+Verified by measuring rather than reading, since `textContent` always reports the raw `\n` and says nothing about how it paints: the icon-row label computes `white-space: pre-line` and two line-boxes in both languages, while the sidebar filter label and a card tag compute `normal` and one. (The create-event label measured zero height because that page is hidden at the time -- it computes `normal` too, so it collapses the same way, but that one is inferred rather than measured.)
+
+Build `2026-09-17-v78`.
