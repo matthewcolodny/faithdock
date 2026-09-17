@@ -4087,3 +4087,28 @@ Everything else in the function is byte-for-byte what 045 left, so the diff is o
 **Deliberately not changed:** the SELECT policy from 044 is *wider* than this rule -- any staff member can read registrations, not only those who can check people in. That asymmetry is correct. Attendance Insights, the involvement panel and the member reports all read those rows, and narrowing the read would blank those panels for, say, a treasurer with `can_manage_giving` and nothing else. Reading your own church's registrations and marking someone present are different permissions, and only the second one is this rule.
 
 **Migration 053 must be run by hand.** No client change.
+
+---
+
+## Correction: every function revoke was half a revoke
+
+Found while probing 053. `checkin_link_event_id` -- an internal helper that 052 granted to **nobody** and explicitly revoked -- answered an anonymous call with `200 null`.
+
+**There are two independent grants of EXECUTE on a function here.** Postgres grants it to `PUBLIC` on every new function, by default and unasked. This project separately grants it to `anon` and `authenticated`, the same default-privileges behaviour behind 049's dead column grants. Revoking from `PUBLIC` leaves the second. Revoking from `anon` leaves the first, which `anon` inherits by being a role. Both have to go, and no migration here did both:
+
+| migration | revoked from | left behind |
+|---|---|---|
+| 044 | `anon` | the PUBLIC grant |
+| 049, 052, 053 | `public` | the anon grant |
+
+Confirmed by calling them with nothing but the public publishable key, not by reading the catalog: `checkin_link_event_id` returned null, `can_run_event_checkin` and `can_read_contact_messages` returned false, and `set_registration_checked_in` executed far enough to raise its own `Not authenticated.`
+
+**Nothing was actually exposed, and that is the uncomfortable part.** Every one of these guards itself -- the caller-scoped predicates report on whoever is asking, so for anon they return false and cannot be used as an oracle about anybody else; the two staff actions raise before touching anything; the helper resolves a token the caller already holds, which `checkin_link_open` would hand them anyway. 054 changes no behaviour whatsoever.
+
+It is worth doing because the defence everywhere was the function's own first line while four migrations claimed it was the grant. **A defence believed to be in two places but really in one is how the second one gets deleted as redundant.** That is now the third distinct form of the same underlying error: a GRANT that adds instead of narrowing (049), a REVOKE aimed at PUBLIC when the grant is on the role (052/053), and a REVOKE aimed at the role when the grant is on PUBLIC (044).
+
+The verification block asserts **both directions** -- five functions closed to `anon`, and three (`checkin_link_open`, `checkin_link_mark`, `church_accepts_contact_messages`) still open, because those three are load-bearing for anonymous callers. Without that second half the check would pass just as happily if the revokes had gone too far and silently broken account-less check-in and every visitor message at once. `church_accepts_contact_messages` is the subtle one: it is evaluated inside the anonymous INSERT policy on `contact_messages`, and an RLS predicate runs as the **calling** role, so closing it to anon would stop visitor messages being stored at all.
+
+The general rule, earned three times now: **for a privilege, `has_function_privilege` / `information_schema` is the evidence. A migration running clean is not.**
+
+**Migration 054 must be run by hand.** No client change.
