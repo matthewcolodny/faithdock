@@ -6747,7 +6747,7 @@ Groups</span>
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v83 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v84 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -8442,6 +8442,16 @@ Groups</span>
     }
     window.scrollTo(0,0);
     if(baseRoute === 'pricing' && typeof window.populatePricingPage === 'function'){ window.populatePricingPage(); }
+    // The dashboard's 24 panel loaders are queued until this point
+    // rather than running on every page load -- see dashPanel() in the
+    // module script. Idempotent, so firing it on every visit to the
+    // dashboard (including sub-tab navigation, which routes through
+    // here too) loads them exactly once. The typeof guard matters: this
+    // classic script runs BEFORE the deferred module script that
+    // defines it, so on a direct load of another page this is simply
+    // absent -- and dashPanel() covers the direct-#dashboard case
+    // itself for the same reason.
+    if(baseRoute === 'dashboard' && typeof window.runDashboardPanels === 'function'){ window.runDashboardPanels(); }
     if(skipPush){
       safeHistoryUpdate(true, '#'+route);
     } else {
@@ -11204,6 +11214,77 @@ Groups</span>
   // deliberately changes who is signed in.
   window.invalidateGetUserCache = function(){ _getUserCache = null; };
 
+  // ============================================================
+  // Dashboard panels load when the dashboard is opened, not on every
+  // page load.
+  //
+  // 24 panel loaders -- team, rooms, ministries, funds, giving,
+  // attendance, groups, directory, households, involvement, scheduled
+  // messages, message history and the rest -- used to run at module
+  // top level, which meant they ran on EVERY page load: the homepage, a
+  // church profile, the public Events page, for signed-out visitors who
+  // have no dashboard at all. A measured dashboard reload made 128
+  // Supabase requests; most of that is this.
+  //
+  // Deferred to route rather than to tab, deliberately. Lazy-loading
+  // each panel when its own tab is clicked would cut more, but several
+  // of these feed counts and badges that are supposed to be visible on
+  // tabs you haven't opened yet -- the pending-requests count, the
+  // duplicates warning. Deferring to "the dashboard is open" keeps
+  // every one of those behaviours exactly as it is today while removing
+  // the cost from every other page on the site.
+  //
+  // Every target element was confirmed to live inside #page-dashboard
+  // before its loader was moved here; loadRealChurches/loadRealEvents
+  // stayed put precisely because they don't.
+  // ============================================================
+  // A permanent registry, not a drained queue: the auth-refresh path
+  // below needs to re-run these after an account switch, so the list
+  // has to survive its first flush.
+  var _dashPanelRegistry = [];
+  var _dashPanelsFlushed = false;
+  function dashboardIsCurrentRoute(){
+    return (location.hash || '').replace(/^#/, '').split('/')[0] === 'dashboard';
+  }
+  // Exposed for the auth-refresh path further down, which lives in this
+  // same module but reads better asking a named question than repeating
+  // the hash parsing.
+  window.dashboardIsCurrentRoute = dashboardIsCurrentRoute;
+  function dashPanel(fn){
+    _dashPanelRegistry.push(fn);
+    // Landing directly on #dashboard: this module runs after routing
+    // has already settled on it, so there is nothing to wait for and
+    // queuing would just delay the panel by a tick.
+    if (_dashPanelsFlushed || dashboardIsCurrentRoute()) {
+      _dashPanelsFlushed = true;
+      try { fn(); } catch (e) { console.error('Dashboard panel failed to load:', e); }
+    }
+  }
+  // Called from showRouteFromHash when the dashboard becomes the active
+  // route. One panel throwing must not stop the other 23 from loading,
+  // hence the per-panel try/catch -- previously each was its own
+  // top-level statement and had that isolation for free.
+  window.runDashboardPanels = function(){
+    if (_dashPanelsFlushed) return;
+    _dashPanelsFlushed = true;
+    _dashPanelRegistry.forEach(function(fn){
+      try { fn(); } catch (e) { console.error('Dashboard panel failed to load:', e); }
+    });
+  };
+  // Marks every panel stale WITHOUT loading anything, so they reload
+  // the next time the dashboard is actually opened.
+  //
+  // This exists for the auth-refresh path, which used to call nine of
+  // these loaders unconditionally on every auth settle, on whatever
+  // page you happened to be on. Its reasoning was sound and is worth
+  // keeping: after switching accounts, the dashboard must not still be
+  // showing the previous account's data. But "load it now, everywhere,
+  // just in case they go there next" pays the cost on every page for a
+  // page they may never open. Marking it stale achieves the same
+  // guarantee -- nobody ever sees another account's data -- and defers
+  // the work to the moment it's actually needed.
+  window.resetDashboardPanels = function(){ _dashPanelsFlushed = false; };
+
   // Supabase's email-change confirmation links redirect back here with
   // ?code=... (the final confirmation) or ?message=... (the first of
   // two, if "Secure email change" is enabled and both the old and new
@@ -12464,7 +12545,7 @@ Groups</span>
     // two-state sidebar wins.
     if (typeof window.updateDashSidebarMode === 'function') window.updateDashSidebarMode(window._dashCurKey || 'events');
   }
-  loadDashboardHeader();
+  dashPanel(loadDashboardHeader);
   window.loadDashboardHeader = loadDashboardHeader;
 
   var dashChurchSwitcherEl = document.getElementById('dash-church-switcher');
@@ -12921,7 +13002,7 @@ Groups</span>
     // was in the cache before this fetch.
     if (window.calViewActive && typeof window.renderEventsCalendar === 'function') { window.renderEventsCalendar(); }
   }
-  loadDashboardEvents();
+  dashPanel(loadDashboardEvents);
   window.loadDashboardEvents = loadDashboardEvents;
 
   // Registration counts otherwise only ever reflected whatever was
@@ -13740,15 +13821,33 @@ Groups</span>
       // person lands on next already has fresh data for whoever is
       // actually signed in now, rather than showing whatever the
       // previous account last loaded.
-      if (typeof window.loadDashboardHeader === 'function') window.loadDashboardHeader(uid, thisGeneration);
-      if (typeof window.loadDashboardEvents === 'function') window.loadDashboardEvents();
-      if (typeof window.loadDashboardGroups === 'function') window.loadDashboardGroups();
-      if (typeof window.loadTeamPanel === 'function') window.loadTeamPanel();
-      if (typeof window.loadDirectoryPeople === 'function') window.loadDirectoryPeople();
-      if (typeof window.loadGivingStatus === 'function') window.loadGivingStatus();
-      if (typeof window.loadBillingPanel === 'function') window.loadBillingPanel();
-      if (typeof window.loadCheckinEventPicker === 'function') window.loadCheckinEventPicker();
-      if (typeof window.loadRevenuePanel === 'function') window.loadRevenuePanel();
+      // Split by whether the dashboard is actually on screen.
+      //
+      // If it is, these have to reload right now -- someone watching
+      // the dashboard while their account changes underneath them must
+      // not be left looking at the previous account's data, which is
+      // the bug the original unconditional version was written to
+      // prevent.
+      //
+      // If it isn't, marking the panels stale gets the same guarantee
+      // for free: nothing is on screen to be wrong, and they'll load
+      // fresh the moment the dashboard is opened. The old code loaded
+      // all nine here on every auth settle no matter what page you were
+      // on -- so browsing the public Events page signed in paid for a
+      // dashboard you weren't looking at.
+      if (typeof window.dashboardIsCurrentRoute === 'function' && !window.dashboardIsCurrentRoute()) {
+        if (typeof window.resetDashboardPanels === 'function') window.resetDashboardPanels();
+      } else {
+        if (typeof window.loadDashboardHeader === 'function') window.loadDashboardHeader(uid, thisGeneration);
+        if (typeof window.loadDashboardEvents === 'function') window.loadDashboardEvents();
+        if (typeof window.loadDashboardGroups === 'function') window.loadDashboardGroups();
+        if (typeof window.loadTeamPanel === 'function') window.loadTeamPanel();
+        if (typeof window.loadDirectoryPeople === 'function') window.loadDirectoryPeople();
+        if (typeof window.loadGivingStatus === 'function') window.loadGivingStatus();
+        if (typeof window.loadBillingPanel === 'function') window.loadBillingPanel();
+        if (typeof window.loadCheckinEventPicker === 'function') window.loadCheckinEventPicker();
+        if (typeof window.loadRevenuePanel === 'function') window.loadRevenuePanel();
+      }
       // Only relevant on the register-church page itself — this
       // function resets and re-populates that page's own form
       // fields, which are meaningless to touch (and previously WERE
@@ -17092,7 +17191,7 @@ Groups</span>
     }).join('');
   }
   window.loadSavedReportsList = loadSavedReportsList;
-  loadSavedReportsList();
+  dashPanel(loadSavedReportsList);
 
   var savedReportsTabActive = document.getElementById('saved-reports-tab-active');
   var savedReportsTabArchived = document.getElementById('saved-reports-tab-archived');
@@ -17722,7 +17821,7 @@ Groups</span>
     selectEl.innerHTML = optionsHtml;
   }
   window.loadAbsenceSourceOptions = loadAbsenceSourceOptions;
-  loadAbsenceSourceOptions();
+  dashPanel(loadAbsenceSourceOptions);
 
   // Shared by both branches below — the "who's flagged" logic is
   // identical once you have a per-person map of date-to-attended;
@@ -19053,14 +19152,14 @@ Groups</span>
       modal.classList.remove('open');
     });
   }
-  loadTeamPanel();
-  loadRoomsPanel();
-  loadMinistriesPanel();
-  loadFundsPanel();
-  loadGiveMessageToggles();
-  loadGivingInsights();
-  loadAttendanceInsights();
-  loadGroupsInsights();
+  dashPanel(loadTeamPanel);
+  dashPanel(loadRoomsPanel);
+  dashPanel(loadMinistriesPanel);
+  dashPanel(loadFundsPanel);
+  dashPanel(loadGiveMessageToggles);
+  dashPanel(loadGivingInsights);
+  dashPanel(loadAttendanceInsights);
+  dashPanel(loadGroupsInsights);
 
   var currentPermissionsStaffId = null;
   document.addEventListener('click', function(ev){
@@ -19211,7 +19310,7 @@ Groups</span>
     if (tabConnectBtn) { tabConnectBtn.textContent = btnText; tabConnectBtn.style.display = 'inline-block'; }
   }
   window.loadGivingStatus = loadGivingStatus;
-  loadGivingStatus();
+  dashPanel(loadGivingStatus);
 
   async function loadGivingHistoryPanel(){
     var tbody = document.getElementById('giving-history-tbody');
@@ -19395,7 +19494,7 @@ Groups</span>
     }
   }
   window.loadRevenuePanel = loadRevenuePanel;
-  loadRevenuePanel();
+  dashPanel(loadRevenuePanel);
 
   var givingTabConnectBtn = document.getElementById('giving-tab-connect-btn');
   if (givingTabConnectBtn) {
@@ -19472,7 +19571,7 @@ Groups</span>
     renderDirectoryTable();
   }
   window.loadDirectoryPeople = loadDirectoryPeople;
-  loadDirectoryPeople();
+  dashPanel(loadDirectoryPeople);
 
   // ============================================================
   // Directory housekeeping — pending invites and possible
@@ -19501,7 +19600,7 @@ Groups</span>
     }).join('');
   }
   window.loadPendingInvitesPanel = loadPendingInvitesPanel;
-  loadPendingInvitesPanel();
+  dashPanel(loadPendingInvitesPanel);
 
   document.addEventListener('click', async function(ev){
     var resendBtn = ev.target.closest ? ev.target.closest('[data-resend-invite-email]') : null;
@@ -19546,7 +19645,7 @@ Groups</span>
     }).join('');
   }
   window.loadDuplicatesPanel = loadDuplicatesPanel;
-  loadDuplicatesPanel();
+  dashPanel(loadDuplicatesPanel);
 
   // ============================================================
   // Membership review — the decision queue behind migration 035.
@@ -19615,7 +19714,7 @@ Groups</span>
       : '<p style="color:var(--ink-mute);font-size:12.5px;">' + window.t('members.noMembers') + '</p>';
   }
   window.loadMembersPanel = loadMembersPanel;
-  loadMembersPanel();
+  dashPanel(loadMembersPanel);
 
   document.addEventListener('click', async function(ev){
     if (!ev.target.closest) return;
@@ -19706,7 +19805,7 @@ Groups</span>
     }).join('');
   }
   window.loadRecentlyJoinedPanel = loadRecentlyJoinedPanel;
-  loadRecentlyJoinedPanel();
+  dashPanel(loadRecentlyJoinedPanel);
 
   document.addEventListener('click', async function(ev){
     var flagBtn = ev.target.closest ? ev.target.closest('[data-toggle-flag-membership]') : null;
@@ -19780,7 +19879,7 @@ Groups</span>
     }).join('');
   }
   window.loadHouseholdsPanel = loadHouseholdsPanel;
-  loadHouseholdsPanel();
+  dashPanel(loadHouseholdsPanel);
 
   // ============================================================
   // Involvement scoring — reads whatever snapshots already exist
@@ -19875,7 +19974,7 @@ Groups</span>
     }
   }
   window.loadInvolvementPanel = loadInvolvementPanel;
-  loadInvolvementPanel();
+  dashPanel(loadInvolvementPanel);
 
   var involvementComputeBtn = document.getElementById('involvement-compute-btn');
   if (involvementComputeBtn) {
@@ -20214,7 +20313,7 @@ Groups</span>
     }).join('');
   }
   window.loadScheduledMessages = loadScheduledMessages;
-  loadScheduledMessages();
+  dashPanel(loadScheduledMessages);
 
   document.addEventListener('click', async function(ev){
     var cancelBtn = ev.target.closest ? ev.target.closest('[data-cancel-scheduled-id]') : null;
@@ -20264,7 +20363,7 @@ Groups</span>
     }).join('');
   }
   window.loadMessageHistory = loadMessageHistory;
-  loadMessageHistory();
+  dashPanel(loadMessageHistory);
 
   // The native 'toggle' event on <details> doesn't bubble, so this has to
   // listen in the capture phase to catch it via delegation.
@@ -20613,7 +20712,7 @@ Groups</span>
     }
   }
   window.loadDashboardGroups = loadDashboardGroups;
-  loadDashboardGroups();
+  dashPanel(loadDashboardGroups);
 
   // Public church-profile Groups tab — anyone signed in can join or
   // leave a group directly from here.

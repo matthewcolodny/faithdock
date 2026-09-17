@@ -3429,3 +3429,27 @@ Design notes:
 The signed-in saving (~17 fewer round trips at ~900ms each) can only be measured with a real session, so it is claimed as verified-in-mechanism, not verified-in-effect.
 
 Build `2026-09-17-v83`. No migration.
+
+---
+
+## Dashboard panels load when the dashboard opens, not on every page
+
+Second of the three causes behind the 128-request dashboard load (the first was `getUser()`).
+
+24 panel loaders -- team, rooms, ministries, funds, giving, attendance, groups, directory, households, involvement, scheduled messages, message history and the rest -- ran at module top level, so they ran on **every** page load: the homepage, a church profile, the public Events page. They now register with `dashPanel()` and flush when the dashboard actually becomes the active route.
+
+**Deferred to route, not to tab.** Lazy-loading each panel on its own tab click would cut more, but several of these feed counts and badges that are meant to be visible on tabs you haven't opened -- the pending-requests count, the duplicates warning. Deferring to "the dashboard is open" keeps every one of those behaviours identical while removing the cost from the rest of the site.
+
+Every target element was confirmed to sit inside `#page-dashboard` before its loader was moved, by resolving each loader's first `getElementById` and asking the live DOM which `.page` it belonged to. `loadRealChurches`/`loadRealEvents` stayed exactly where they were, because they don't.
+
+**The half that actually mattered.** Deferring the module-level calls alone would have achieved almost nothing for signed-in users, because a separate auth-refresh path called nine of these loaders **unconditionally on every auth settle, on whatever page you were on**. Its comment explains why, and the reasoning is sound: after switching accounts the dashboard must not still show the previous account's data.
+
+That intent is kept, at a fraction of the cost. If the dashboard is on screen, the nine still reload immediately -- someone watching it while their account changes underneath them is exactly the case that rule exists for. If it isn't, the panels are marked stale instead, which gets the same guarantee for free: nothing is on screen to be wrong, and they load fresh the moment the dashboard opens. That required the registry to be permanent rather than a drained queue, so it can be re-run after an account switch.
+
+This one was only found because the first verification looked wrong: after deferring the module-level calls, `directory-tbody` on the homepage still read "Register a church first" -- text only that loader writes. Chasing that string is what surfaced the second call path. Had the check been "did requests drop", it would have passed (signed out, every panel bails cheaply before querying) and the real problem would have shipped untouched.
+
+**Verified:** the homepage now leaves `directory-tbody` as its untouched static placeholder; the first flush runs the panels; a second flush is a no-op; `resetDashboardPanels()` marks stale without loading anything; and a flush after a reset runs them again.
+
+**Not verified:** the actual request reduction, which needs a signed-in session. Expect roughly 128 down toward 40 on a dashboard load, and a much larger drop on every non-dashboard page while signed in.
+
+Build `2026-09-17-v84`. No migration.
