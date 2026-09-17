@@ -108,9 +108,62 @@
   // rich-text editor — escapes the raw text first so someone can't
   // type actual HTML/script tags into a plain text box and have them
   // execute in the recipient's email client.
+  // Now also escapes both quote characters, which it didn't before.
+  // &, < and > are enough for text BETWEEN tags, but every card
+  // template in this file also interpolates values INTO attributes
+  // (class="...", data-church-name="...", style="..."), and there a
+  // bare " ends the attribute and starts a new one -- which is how you
+  // add an onerror= to someone else's element without ever writing a
+  // < character. Escaping quotes is harmless in text context (they
+  // render as " and ') so one function can serve both.
   function escapeHtml(text){
-    return String(text || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return String(text || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
+
+  // For a user-supplied URL that gets dropped into CSS url(...) inside
+  // a style attribute -- a church logo, an event image.
+  //
+  // escapeHtml alone is NOT enough here, and that's the whole reason
+  // this exists: the HTML parser decodes entities in an attribute value
+  // BEFORE the CSS parser ever sees it, so an escaped &#39; turns back
+  // into a real ' and closes the url() early. The quotes have to be
+  // percent-encoded instead, which survives both parsers.
+  //
+  // The scheme test is the separate half. HTML-escaping does nothing at
+  // all to javascript: -- it contains no special characters -- so a
+  // field like this is the standard way an XSS survives an otherwise
+  // careful escaping pass. Allowing only http(s) and data:image is the
+  // check that actually stops it. Protocol-relative //evil.com/x.png is
+  // refused too: it inherits the page's scheme and is a real way to
+  // point an <img> at somewhere unintended.
+  //
+  // Returns '' for anything it doesn't trust, so the caller falls back
+  // to its placeholder rather than rendering a broken or hostile value.
+  // The escape map is explicit rather than encodeURIComponent, and that
+  // is not fussiness -- the first version of this function used
+  // encodeURIComponent and was still exploitable, caught by testing it
+  // with an actual breakout string. encodeURIComponent leaves the
+  // "unreserved marks" ! ' ( ) * ~ completely alone, and ' and ) are
+  // precisely the two characters needed to escape a url('...') and
+  // append another CSS declaration. A function whose name says "encode"
+  // silently not encoding the characters that matter is a good reason
+  // to spell out the table.
+  var CSS_URL_ESCAPES = {
+    '"': '%22', "'": '%27', '\\': '%5C', '(': '%28', ')': '%29',
+    ' ': '%20', '\t': '%09', '\n': '%0A', '\r': '%0D'
+  };
+  function safeImageUrl(url){
+    var raw = String(url == null ? '' : url).trim();
+    if (!raw) return '';
+    if (!/^(https:\/\/|http:\/\/|data:image\/)/i.test(raw)) return '';
+    return raw.replace(/["'\\()\s]/g, function(ch){ return CSS_URL_ESCAPES[ch] || ''; });
+  }
+  window.safeImageUrl = safeImageUrl;
 
   // For contexts that can't render HTML at all (calendar exports,
   // .ics files) — sanitizes first for defense in depth, then strips
@@ -6631,7 +6684,7 @@ Groups</span>
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v78 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v79 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -7124,11 +7177,24 @@ Groups</span>
   }
   window.churchDenomHue = denomHue;
 
+  // Everything a church supplies -- its name, denomination, service
+  // times, logo URL -- is escaped HERE, at the point it becomes HTML,
+  // rather than inside the formatter helpers above. Those helpers
+  // (displayChurchName, formatChurchNextText, formatChurchNextEventText)
+  // return plain strings and are also used in textContent contexts,
+  // where pre-escaped entities would show up literally as &amp;. The
+  // escape belongs where the HTML context is, which is this template.
+  //
+  // This was a confirmed stored-XSS hole, not a hypothetical one: a
+  // church name of <b class="xss-probe">INJECTED</b> came back from
+  // this function as a live DOM element, and an onerror= would have
+  // run in every visitor's browser with their session.
   function churchCard(c, clickable){
     var distText = formatChurchDistanceText(c.dist);
     var badge = followHeartCard(c);
-    var thumb = c.logoUrl
-      ? '<div class="thumb" style="background-image:url(\'' + c.logoUrl + '\');background-size:contain;background-repeat:no-repeat;background-position:center;background-color:#fff;background-origin:content-box;padding:16px;box-sizing:border-box;"></div>'
+    var safeLogo = safeImageUrl(c.logoUrl);
+    var thumb = safeLogo
+      ? '<div class="thumb" style="background-image:url(\'' + escapeHtml(safeLogo) + '\');background-size:contain;background-repeat:no-repeat;background-position:center;background-color:#fff;background-origin:content-box;padding:16px;box-sizing:border-box;"></div>'
       : '<div class="thumb thumb--denom" style="--thumb-hue:' + denomHue(c.tag) + ';">' + buildingIcon + '</div>';
     var inner = ''
       + thumb
@@ -7136,16 +7202,24 @@ Groups</span>
       // Tag and heart share one flex row so the heart lands level with
       // the tag rather than above it -- see .card-tag-row's comment.
       + '<div class="card-tag-row">'
-      + '<div class="card-tags"><span class="tag sage">' + translateDenomination(c.tag) + '</span></div>'
+      + '<div class="card-tags"><span class="tag sage">' + escapeHtml(translateDenomination(c.tag)) + '</span></div>'
       + badge
       + '</div>'
-      + '<h3>' + displayChurchName(c.name) + '</h3>'
-      + '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/></svg>' + distText + '</div>'
-      + '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>' + formatChurchNextText(c.next, (c.rawServiceTimes || []).length) + '</div>'
-      + (c.nextEvent ? '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>' + formatChurchNextEventText(c.nextEvent) + '</div>' : '')
+      + '<h3>' + escapeHtml(displayChurchName(c.name)) + '</h3>'
+      + '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/></svg>' + escapeHtml(distText) + '</div>'
+      + '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>' + escapeHtml(formatChurchNextText(c.next, (c.rawServiceTimes || []).length)) + '</div>'
+      // nextEvent.title is another church's EVENT title arriving on a
+      // church card -- second-hand user data, and easy to miss when
+      // thinking only about "this church's own fields".
+      + (c.nextEvent ? '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>' + escapeHtml(formatChurchNextEventText(c.nextEvent)) + '</div>' : '')
       + '</div>';
     if(clickable){
-      return '<a class="church-card" href="#church/' + encodeURIComponent(c.name) + '" data-route="church" data-church-name="' + c.name.replace(/"/g, '&quot;') + '">' + inner + '</a>';
+      // The href is encodeURIComponent'd (already safe), but
+      // data-church-name only stripped double quotes -- which left &
+      // unescaped and, more to the point, relied on remembering that
+      // this one attribute needed hand-rolled treatment. escapeHtml
+      // now covers both quote characters, so it handles this too.
+      return '<a class="church-card" href="#church/' + encodeURIComponent(c.name) + '" data-route="church" data-church-name="' + escapeHtml(c.name) + '">' + inner + '</a>';
     }
     return '<div class="church-card">' + inner + '</div>';
   }
@@ -8027,8 +8101,12 @@ Groups</span>
     // gesture sits in the same place whichever kind of card you're
     // looking at.
     var eventHeart = followHeartEvent(e);
-    var thumb = e.imageUrl
-      ? '<div class="thumb" style="background-image:url(\'' + e.imageUrl + '\');background-size:cover;background-position:center;"></div>'
+    // Same escape-at-the-template rule as churchCard -- see its comment.
+    // Confirmed stored XSS: an event title of
+    // <b class="xss-probe">INJECTED</b> rendered as a live element.
+    var safeImage = safeImageUrl(e.imageUrl);
+    var thumb = safeImage
+      ? '<div class="thumb" style="background-image:url(\'' + escapeHtml(safeImage) + '\');background-size:cover;background-position:center;"></div>'
       : '<div class="thumb thumb--event">' + calendarIcon + '</div>';
     var churchLabel = (e.church === 'A FaithDock church') ? window.t('church.genericName') : e.church;
     var distanceText = (e.distanceMiles != null) ? e.distanceMiles.toFixed(1) + ' mi ' + window.t('church.away') : null;
@@ -8041,8 +8119,12 @@ Groups</span>
       // between them.
       + '<div class="card-tag-row">'
       + '<div class="card-tags">'
-      + (e.visibilityLabel ? '<span class="tag ' + (e.membersOnly ? 'clay' : 'sage') + '">' + translateBadgeLabel(e.visibilityLabel) + '</span>' : '')
-      + '<span class="tag ' + e.badge + '">' + translateBadgeLabel(e.badgeLabel) + '</span>'
+      + (e.visibilityLabel ? '<span class="tag ' + (e.membersOnly ? 'clay' : 'sage') + '">' + escapeHtml(translateBadgeLabel(e.visibilityLabel)) + '</span>' : '')
+      // e.badge lands in a class attribute. mapSearchEventRow only ever
+      // sets 'gold'/'sage', but demo rows carry whatever they were
+      // given, and an unescaped value in a class="" is an attribute
+      // break waiting to happen -- escaped rather than trusted.
+      + '<span class="tag ' + escapeHtml(e.badge) + '">' + escapeHtml(translateBadgeLabel(e.badgeLabel)) + '</span>'
       // data-fill-badge-for / data-capacity-count-for let
       // applyFillBadgeFromCount() find and update these in place after a
       // registration changes, instead of them keeping whatever was baked
@@ -8050,17 +8132,17 @@ Groups</span>
       // (hidden when they have nothing to say) rather than conditionally,
       // so there's always an element to update -- otherwise an event
       // going from "not full" to "Full" would have no badge to write to.
-      + '<span class="tag' + (e.fillBadge ? ' ' + e.fillBadge.color : '') + '" data-fill-badge-for="' + e.id + '" style="' + (e.fillBadge ? '' : 'display:none;') + '">' + (e.fillBadge ? translateBadgeLabel(e.fillBadge.label) : '') + '</span>'
+      + '<span class="tag' + (e.fillBadge ? ' ' + escapeHtml(e.fillBadge.color) : '') + '" data-fill-badge-for="' + escapeHtml(e.id) + '" style="' + (e.fillBadge ? '' : 'display:none;') + '">' + (e.fillBadge ? escapeHtml(translateBadgeLabel(e.fillBadge.label)) : '') + '</span>'
       // Same registration gate as fillBadge (see mapSearchEventRow):
       // a "no signup needed" event has no signups to count, so "0/1"
       // there is meaningless -- reported directly.
-      + '<span class="tag" data-capacity-count-for="' + e.id + '" style="' + ((e.registrationRequired && e.maxParticipants) ? '' : 'display:none;') + '">' + ((e.registrationRequired && e.maxParticipants) ? ((e.confirmedParticipantCount || 0) + '/' + e.maxParticipants) : '') + '</span>'
+      + '<span class="tag" data-capacity-count-for="' + escapeHtml(e.id) + '" style="' + ((e.registrationRequired && e.maxParticipants) ? '' : 'display:none;') + '">' + ((e.registrationRequired && e.maxParticipants) ? escapeHtml((e.confirmedParticipantCount || 0) + '/' + e.maxParticipants) : '') + '</span>'
       + '</div>'
       + eventHeart
       + '</div>'
-      + '<h3>' + e.title + '</h3>'
-      + '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/></svg>' + churchLabel + (distanceText ? ' · ' + distanceText : '') + '</div>'
-      + '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>' + e.when + '</div>';
+      + '<h3>' + escapeHtml(e.title) + '</h3>'
+      + '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/></svg>' + escapeHtml(churchLabel) + (distanceText ? ' · ' + escapeHtml(distanceText) : '') + '</div>'
+      + '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>' + escapeHtml(e.when) + '</div>';
     if(e.real){
       if(!e.registrationRequired){
         // No signup needed — a card shouldn't offer a Register button or
@@ -8096,8 +8178,8 @@ Groups</span>
           // hides its radios: picking a role is meaningless until you
           // unregister. Matches what setEventRegisteredUI() would do.
           cardRoleHtml = '<div class="card-role-choice" onclick="event.stopPropagation()" style="' + (cardIsRegistered ? 'display:none;' : '') + '">'
-            + '<label><input type="radio" name="card-role-' + e.id + '" value="participant" checked> ' + window.t('events.participant') + '</label>'
-            + '<label><input type="radio" name="card-role-' + e.id + '" value="volunteer"> ' + window.t('events.volunteerRole') + '</label>'
+            + '<label><input type="radio" name="card-role-' + escapeHtml(e.id) + '" value="participant" checked> ' + window.t('events.participant') + '</label>'
+            + '<label><input type="radio" name="card-role-' + escapeHtml(e.id) + '" value="volunteer"> ' + window.t('events.volunteerRole') + '</label>'
             + '</div>'
             + '<div class="role-registered-label"' + (cardIsRegistered ? ' data-i18n="' + cardRoleKey + '"' : '') + ' style="' + (cardIsRegistered ? '' : 'display:none;') + 'margin-top:10px;font-size:12px;color:var(--sage);font-weight:500;">'
             + (cardIsRegistered ? window.t(cardRoleKey) : '')
@@ -8108,7 +8190,7 @@ Groups</span>
         // these two ever disagree, the async refresh would itself become
         // a visible flicker, which is the bug this is fixing.
         inner += cardRoleHtml
-          + '<button class="export-btn register-real-btn' + (cardIsRegistered ? ' btn-registered' : '') + '" data-event-id="' + e.id + '" data-registered="' + (cardIsRegistered ? 'true' : 'false') + '"' + (cardBtnKey ? ' data-i18n="' + cardBtnKey + '"' : '') + ' style="width:100%;justify-content:center;margin-top:12px;">'
+          + '<button class="export-btn register-real-btn' + (cardIsRegistered ? ' btn-registered' : '') + '" data-event-id="' + escapeHtml(e.id) + '" data-registered="' + (cardIsRegistered ? 'true' : 'false') + '"' + (cardBtnKey ? ' data-i18n="' + cardBtnKey + '"' : '') + ' style="width:100%;justify-content:center;margin-top:12px;">'
           + (cardIsRegistered ? window.t('events.registeredClickToUnregister') : (e.priceCents ? window.t('events.register') + ' — $' + (e.priceCents / 100).toFixed(2) : window.t('events.register')))
           + '</button>'
           + '<div class="register-status mono" style="font-size:11px;color:var(--ink-mute);margin-top:6px;display:none;"></div>';

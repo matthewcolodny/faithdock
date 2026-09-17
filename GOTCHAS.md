@@ -3226,3 +3226,37 @@ Spanish gets its own break points rather than the English ones transliterated: "
 Verified by measuring rather than reading, since `textContent` always reports the raw `\n` and says nothing about how it paints: the icon-row label computes `white-space: pre-line` and two line-boxes in both languages, while the sidebar filter label and a card tag compute `normal` and one. (The create-event label measured zero height because that page is hidden at the time -- it computes `normal` too, so it collapses the same way, but that one is inferred rather than measured.)
 
 Build `2026-09-17-v78`.
+
+---
+
+## Stored XSS in the card templates (confirmed, then fixed)
+
+`eventCard()` and `churchCard()` built their markup by string concatenation and interpolated stored fields -- event title, church name, denomination, service times, a nested event title -- with no escaping at all. Confirmed by probe rather than by reading: an event titled `<b class="xss-probe">INJECTED</b>` came back from `eventCard()` as a live `<b>` element. An `onerror=` would have run in every visitor's browser with their session.
+
+Severity comes from who can reach it. An event title is written by a church account, and churches can be claimed -- so there is no compromise step. Sign up, claim a church, name an event, and the payload executes for everyone browsing Events, the Directory or the homepage.
+
+**Escaping goes in the template, not the helper.** `displayChurchName`, `formatChurchNextText`, `formatChurchNextEventText` and `translateBadgeLabel` all return plain strings and are also used in `textContent` contexts, where a pre-escaped `&amp;` would show up literally. The escape belongs where the HTML context is.
+
+`escapeHtml` also now escapes both quote characters. `&`, `<`, `>` are enough between tags, but these templates interpolate into `class="..."`, `data-church-name="..."` and `style="..."`, and there a bare `"` ends the attribute and starts a new one -- which is how you attach an `onerror=` without ever writing a `<`. Verified: a church named `" onmouseover="..." x="` produces an anchor with exactly four attributes and no `onmouseover`.
+
+**The URL half needed its own function, and my first version of it was still exploitable.** HTML-escaping does nothing to `javascript:` -- it contains no special characters -- so a URL field is the classic way an XSS survives a careful escaping pass. `safeImageUrl()` allows only `http(s):` and `data:image/`, rejecting `javascript:`, `data:text/html` and protocol-relative `//evil.com` (which inherits the page scheme).
+
+The quotes then have to be **percent-encoded, not HTML-escaped**: the HTML parser decodes entities in an attribute value before the CSS parser sees it, so an escaped `&#39;` turns back into a real `'` and closes the `url()`. The first implementation used `encodeURIComponent` for that and **was still vulnerable** -- caught only by testing with a real breakout string, `https://x/a.png');background-image:url('javascript:alert(1)`, which came back unchanged. `encodeURIComponent` leaves the unreserved marks `! ' ( ) * ~` alone, and `'` and `)` are exactly the two characters needed to escape a `url(...)`. Replaced with an explicit escape table. Now the browser parses one `background-image`, not two.
+
+Worth keeping as a general lesson: a function named "encode" that silently declines to encode the characters that matter is a good argument for spelling out the table, and for testing an escaper with the attack it is meant to stop rather than with a benign `<b>`.
+
+Build `2026-09-17-v79`. No migration.
+
+### Audit of the remaining innerHTML sites
+
+313 `innerHTML` assignments in total, of which **152 are static or clearing** (`= ''`, fixed markup) and carry no risk. Of the 161 that interpolate:
+
+- **38 render `error.message` directly.** A Postgres error can quote the offending input back (`Key (name)=(...)`), so this is attacker-influenceable, but the reader is normally the same person who caused it. A real category worth fixing as a class, not an emergency.
+- **A handful carry genuinely user-controlled data and are still unescaped**, notably `myChurch.name` into a dashboard `<h2>` (16893), `c.name` into `data-church-name` with no escaping at all on the admin church page (22734), an owned church name in the delete-account warning (23442), and a group name quote-stripped by hand rather than escaped (21763) -- the same partial pattern `churchCard` used before this fix.
+- **The large remainder is legitimate internal markup**: element ids, counts, i18n strings, colour class names. Blanket-escaping those would be noise and would break the markup they intentionally build.
+
+### Separately: `javascript:` in social links
+
+The audit's URL half turned up a live one. `populateChurchPage()` does `fbLink.href = c.facebookUrl` and the same for Instagram, with **no scheme check** -- verified on the real element, which reports `protocol === 'javascript:'` after assignment. A church setting its Facebook URL to a `javascript:` URI gets a link that runs script when a visitor clicks it. Those two anchors also lack `rel="noopener"` despite `target="_blank"`, unlike the website link beside them.
+
+The website link is safe, but by accident rather than design: `/^https?:\/\//.test(c.website) ? c.website : 'https://' + c.website` turns `javascript:alert(1)` into the harmless, broken `https://javascript:alert(1)`. Worth making deliberate rather than leaving as a happy side effect.
