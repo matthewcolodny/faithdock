@@ -2754,3 +2754,21 @@ Fixed by adding `.select('id')` to both mutations and checking the returned arra
 **Next step if this still fails**: the new error message will now actually appear instead of silence. If it does, that's confirmation this is a genuine server-side permission gap (RLS or a grant on `event_registrations`), the same category of issue the toggle bug turned out to be -- and the fix from here is the same kind of targeted SQL snippet, once the actual policy/grant state is checked directly in the Supabase dashboard.
 
 Build `2026-09-16-v56`.
+
+---
+
+## Confirmed: unregistering was blocked by a missing RLS DELETE policy on event_registrations
+
+v56's `.select()` row-count check did its job on the very first test -- the new "Couldn't unregister you" message appeared instead of the old silent fake-success. That single observation was enough to pin the cause exactly, by elimination rather than by another guess:
+
+1. `checkEventRegistrationStatus()` selects from `event_registrations` with `event_id = X and user_id = <me>` and **finds** the row -- that is the only reason the button ever reads "Registered". So SELECT can see it.
+2. The unregister deletes with the **identical** where clause and affects **zero** rows.
+3. Postgres returned **no error**. A missing table-level DELETE grant raises `42501` instead; the client fell through to its own generic fallback string, which only happens when `error` is null.
+
+Same row, same filters, visible to SELECT, silently not deletable, no error raised -- RLS is the only mechanism in Postgres that behaves that way (it filters rows out of a statement's scope instead of failing loudly). So the table has RLS on with working SELECT/INSERT policies and no matching DELETE policy. By the same reasoning the paid-cancel path (`update status = 'cancelled'`) had no UPDATE policy either.
+
+Fixed in `033_event_registrations_self_service_rls.sql`: adds a DELETE policy and an UPDATE policy, both scoped to `user_id = auth.uid()` (the UPDATE one with `with check` as well as `using`, so a registration can't be reassigned to someone else's user id on the way through), plus explicit `grant delete, update ... to authenticated` so nothing depends on the grant inference being right. This table's original policies aren't in this repo (predates migration tracking, same gap as `churches`), but permissive policies OR together in Postgres, so these can only add the intended access, never narrow what's already there -- same additive reasoning migration 029 established for `church_staff`.
+
+**Worth noting plainly**: this almost certainly never worked -- not a regression, a feature that was wired up client-side but never had the database permission to actually do anything. Every client-side fix earlier in this thread (badge timing, the optimistic update, the bfcache handler, the RPC count investigation) was chasing symptoms of a write that silently did nothing. The thing that finally cracked it was adding the row-count check that made the failure *visible*, which should have been the first move rather than the fifth -- this exact silent-write hole had already been found and fixed on another feature (the Give/Message toggles) earlier in the same session.
+
+Build `2026-09-16-v56` (client-side); migration 033 is the actual fix and has to be run by hand.
