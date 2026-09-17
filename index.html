@@ -6747,7 +6747,7 @@ Groups</span>
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v82 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v83 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -11146,6 +11146,64 @@ Groups</span>
   // window.supabase, not a bare `supabase` reference.
   window.supabase = supabase;
 
+  // ============================================================
+  // getUser() coalescing + short-lived cache.
+  //
+  // supabase.auth.getUser() is not a local read -- it round-trips to
+  // /auth/v1/user to re-validate the token, every single time. This
+  // file calls it from 62 places, and a measured dashboard load fired
+  // ~18 of them, several taking 790-900ms each: individually the
+  // slowest requests in the whole trace.
+  //
+  // Wrapped here rather than by editing 62 call sites. Every caller
+  // benefits with no diff at the call, and -- more to the point -- the
+  // semantics don't change: this still performs a real getUser() and
+  // still returns whatever the server says. It just stops asking the
+  // same question eighteen times in one second.
+  //
+  // The in-flight share is the part that does the heavy lifting. Those
+  // ~18 calls mostly start within a millisecond of each other, so
+  // handing every concurrent caller the SAME promise collapses them to
+  // one request without any staleness window at all.
+  //
+  // Cached results are invalidated on every auth state change (see the
+  // onAuthStateChange handler below), so the TTL is a backstop rather
+  // than the real correctness mechanism -- including for a cross-tab
+  // sign-in, which Supabase surfaces through that same event.
+  // ============================================================
+  var _getUserCache = null;
+  var realGetUser = supabase.auth.getUser.bind(supabase.auth);
+  supabase.auth.getUser = function(jwt){
+    // A call with an explicit JWT is asking about a DIFFERENT token
+    // than the current session -- never answer that from a cache keyed
+    // on "the current user".
+    if (jwt !== undefined) return realGetUser(jwt);
+
+    if (_getUserCache && _getUserCache.expires > Date.now()) {
+      return _getUserCache.promise;
+    }
+
+    var entry = { expires: Date.now() + 30000, promise: null };
+    entry.promise = realGetUser().then(function(res){
+      // An error is cached only briefly. It's the normal answer for an
+      // anonymous visitor (this file's getMyChurch comment documents
+      // that at length), so a short cache still collapses the load-time
+      // burst -- but a TRANSIENT network failure must not be able to
+      // convince a signed-in person they're signed out for half a
+      // minute. Success is the only thing worth holding onto.
+      if (res && res.error) entry.expires = Date.now() + 2000;
+      return res;
+    }, function(err){
+      _getUserCache = null; // never cache a rejection
+      throw err;
+    });
+    _getUserCache = entry;
+    return entry.promise;
+  };
+  // Called by the auth listener; also safe to call after anything that
+  // deliberately changes who is signed in.
+  window.invalidateGetUserCache = function(){ _getUserCache = null; };
+
   // Supabase's email-change confirmation links redirect back here with
   // ?code=... (the final confirmation) or ?message=... (the first of
   // two, if "Secure email change" is enabled and both the old and new
@@ -13380,6 +13438,14 @@ Groups</span>
   }
 
   supabase.auth.onAuthStateChange(async function(event, session){
+    // FIRST, before anything else in this handler runs: who is signed
+    // in has just changed, so any cached getUser() answer is now a lie.
+    // This is what makes the cache above safe -- it covers sign-in,
+    // sign-out, token refresh, user updates, and cross-tab session
+    // sync, which all arrive here. Clearing it before updateAuthUI()
+    // and the routing below matters, since those call getUser()
+    // themselves and must see the new state, not the old one.
+    window.invalidateGetUserCache();
     // Temporary diagnostic logging — remove once the intermittent
     // admin-page redirect is actually caught in the act. Static code
     // review has now checked out clean twice; this is what actually

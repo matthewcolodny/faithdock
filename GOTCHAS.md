@@ -3399,3 +3399,33 @@ The Advisor's `public_bucket_allows_listing` flagged all three public buckets (`
 **Perspective on the run as a whole.** Of roughly 200 Advisor warnings: one was a genuine vulnerability (`get_user_id_by_email`), a handful were real hardening (`search_path` pinning, the `client_error_logs` ceiling), this one was real and already fixed, and ~150 are noise inherent to how PostgREST exposes RPCs. A linter finding is a hypothesis; so is a behavioural probe.
 
 No migration, no build stamp -- the change itself was three `drop policy` statements, run by hand.
+
+---
+
+## getUser() is a network call, and this file made 62 of them
+
+Reported as "refreshing the member directory took over 10 seconds". The investigation is worth recording as much as the fix, because the first two hypotheses were both wrong.
+
+**Wrong hypothesis 1: the RPC.** `get_directory_people` drives off `profiles` and filters with an `OR` across four outer joins, which can't use an index -- textbook slow. Then the table counts came back: **5 profiles, 5 users, 1 event registration, 4 events**. At that size the query is microseconds. Asking for row counts before writing the rewrite is the only reason a pointless optimisation didn't get shipped.
+
+**Wrong hypothesis 2: the payload.** index.html is 1.7MB with ~1.3MB of inline JS, which looks like an obvious culprit. Measured: it parses and executes in **77ms**. Not it either.
+
+**What it actually is.** A real dashboard reload fires **128 Supabase requests**, 40 seconds of cumulative request time, finishing at 3.2s wall clock. Three separate causes, of which this fixes one:
+
+1. `auth.getUser()` called from **62 call sites** (against 2 for `getSession()`), ~18 firing per load. It is not a local read -- it round-trips to `/auth/v1/user` to re-validate the token every time, and in the trace those were the slowest requests present: 792, 878, 897, 902, 839 ms.
+2. All **27 dashboard panel loaders run at module level**, so opening the Directory loads groups, donations, rooms, ministries, households, saved reports and the rest too.
+3. An N+1 tail: the last six requests are sequential `event_registrations` calls ~90ms apart.
+
+**The fix wraps `supabase.auth.getUser` at the client**, not the 62 call sites. Semantics are unchanged -- it still performs a real getUser and still returns whatever the server says -- it just stops asking the same question eighteen times per second. Editing 62 sites to use `getSession()` was the tempting alternative and would have been riskier: this file already documents a live bug where `getUser` vs `getSession` mattered during a signup race, so changing what is being asked is a different and more dangerous change than changing how often.
+
+Design notes:
+- **Sharing the in-flight promise does the real work.** Those ~18 calls start within a millisecond of each other, so handing every concurrent caller the same promise collapses them with no staleness window at all. The TTL is a backstop for sequential callers, not the main mechanism.
+- **Errors are cached for 2s, successes for 30s.** An error is the *normal* answer for an anonymous visitor, so a short cache still collapses the load-time burst -- but a transient network failure must not be able to convince a signed-in person they're signed out for half a minute.
+- **Invalidated first thing in `onAuthStateChange`**, before `updateAuthUI()` and routing run, since those call `getUser()` themselves and must see the new state. That event covers sign-in, sign-out, token refresh, user updates and cross-tab session sync.
+- An explicit JWT argument bypasses the cache -- it asks about a different token than the current session.
+
+**Verification, and a measurement trap worth remembering.** The obvious check -- count `/auth/v1/user` requests before and after a burst -- returned **zero for everything, including after a deliberate invalidation**. Signed out, supabase-js short-circuits `getUser()` locally and never touches the network, so request counts couldn't distinguish "coalesced" from "nothing happened". Same shape of error as the storage-bucket probe earlier: behaviour that looks identical for two opposite reasons. Verified instead by promise identity, which holds regardless: 18 concurrent callers receive the same promise object, a later call within the TTL reuses it, invalidation produces a fresh one, an explicit JWT bypasses, and every caller gets a consistent result.
+
+The signed-in saving (~17 fewer round trips at ~900ms each) can only be measured with a real session, so it is claimed as verified-in-mechanism, not verified-in-effect.
+
+Build `2026-09-17-v83`. No migration.
