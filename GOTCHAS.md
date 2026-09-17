@@ -3338,3 +3338,23 @@ A refused insert is silent: `sendErrorLog` already wraps the insert in `.catch()
 **The ~150 "anon/authenticated can execute SECURITY DEFINER function" rows are mostly noise** -- that is how PostgREST works, and every RPC the browser calls must be executable by one of those roles. They each re-check authorization internally. Two are worth real scrutiny rather than dismissal: `get_user_id_by_email` (a potential unauthenticated email-enumeration oracle) and `get_waitlist_signups` (if it doesn't check `is_platform_admin()` internally, the whole waitlist is downloadable). Both pending their definitions.
 
 No build stamp: server-side only.
+
+---
+
+## get_user_id_by_email was an open email-enumeration oracle
+
+The most serious thing the Advisor sweep turned up, and it was hiding in a list of ~150 near-identical warnings that are mostly noise.
+
+Its entire body was `select id from auth.users where email = lookup_email limit 1;` -- `SECURITY DEFINER`, no authorization check of any kind, `EXECUTE` granted to `anon`. Confirmed live from a signed-out session: an address with no account returns null, a real one returns a uuid. Anyone holding the public anon key (printed in the page source by design) could test whether any email address has a FaithDock account, and harvest the uuid when it does.
+
+Two harms, and the second is the one that's easy to miss. The obvious one is membership disclosure -- "does this person have an account on a church platform" is not a neutral fact about someone. The less obvious one is that the returned uuid is the id this app keys everything on: `event_registrations.user_id`, `church_memberships.user_id`, `profiles.id`. Handing a real one to an unauthenticated caller supplies the exact value any further probing needs.
+
+**The fix is not deletion** -- both callers are real (add a group member by email, invite a staff member by email), both already behind a signed-in dashboard. Migration 042 restricts it to church owners, staff and group leaders.
+
+Requiring merely `auth.uid() is not null` was the tempting one-liner and would have been a weak fix: it converts an open oracle into a free one, since anyone can sign up and keep probing. Scoping to the population that actually reaches either call site costs nothing extra and is a genuinely smaller, accountable set. Signature and return type are unchanged, so no client code moves and `CREATE OR REPLACE` is safe -- contrast 039, which added a parameter and therefore could not use REPLACE.
+
+The group-leader test goes through the existing `is_group_leader()` helper rather than reading a role column directly, so it keeps agreeing with however leadership is defined elsewhere instead of becoming a second, drifting definition of the same idea.
+
+**`get_waitlist_signups`, flagged in the same category, is fine** -- it raises unless `is_platform_admin()`. Checked rather than assumed, and reported as clean rather than padded into a finding.
+
+No build stamp: server-side only.
