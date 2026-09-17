@@ -789,6 +789,7 @@
       'events.paidCancelConfirm': "You paid ${amount} for this. Cancelling here does not automatically refund you — you'll need to contact the church directly about a refund. Cancel anyway?",
       'events.cancelledNoAutoRefund': "Cancelled — remember, this doesn't issue a refund automatically. Contact the church about that directly.",
       'events.unregisteredPickRoleAgain': "You've been unregistered — pick a role to register again.",
+      'events.unregisterFailedNoRowsAffected': "Couldn't unregister you — please try again, and if this keeps happening, contact support@faithdock.com.",
       'events.checkoutStartFailed': 'Something went wrong starting checkout.', 'events.discountAppliedFreeRegistration': "Discount code applied — you're registered, free of charge!",
       'events.optionFullTryOther': 'That option is full — try the other one if available.',
       'events.guestLimitReached': "This event has reached its total guest limit — try registering with fewer guests.", 'events.howManyGuests': 'How many guests are you bringing?',
@@ -1587,6 +1588,7 @@
       'events.paidCancelConfirm': 'Pagaste ${amount} por esto. Cancelar aquí no te reembolsa automáticamente — deberás contactar a la iglesia directamente sobre un reembolso. ¿Cancelar de todos modos?',
       'events.cancelledNoAutoRefund': 'Cancelado — recuerda que esto no emite un reembolso automáticamente. Contacta a la iglesia directamente sobre eso.',
       'events.unregisteredPickRoleAgain': 'Se canceló tu inscripción — elige un rol para inscribirte de nuevo.',
+      'events.unregisterFailedNoRowsAffected': 'No pudimos cancelar tu inscripción — inténtalo de nuevo, y si esto sigue ocurriendo, contacta a support@faithdock.com.',
       'events.checkoutStartFailed': 'Algo salió mal al iniciar el pago.', 'events.discountAppliedFreeRegistration': '¡Código de descuento aplicado — estás inscrito, sin costo!',
       'events.optionFullTryOther': 'Esa opción está llena — intenta con la otra si está disponible.',
       'events.guestLimitReached': 'Este evento alcanzó su límite total de invitados — intenta inscribirte con menos invitados.', 'events.howManyGuests': '¿Cuántos invitados traes?',
@@ -6414,7 +6416,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-16-v55 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-16-v56 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -24235,9 +24237,25 @@
           btn.disabled = false;
           return;
         }
-        var { error: cancelError } = await supabase.from('event_registrations').update({ status: 'cancelled' }).eq('id', existingReg[0].id);
-        if (cancelError) {
-          statusEl.textContent = cancelError.message;
+        // .select() is deliberate, not decorative -- the exact same
+        // silent-failure hole found and fixed for the Give/Message
+        // toggles earlier this session: .update()/.delete() with no
+        // .select() reports success (error: null) even when RLS (or a
+        // missing grant) matches zero rows, and the old code here had
+        // no way to tell that apart from a real cancel. This is almost
+        // certainly the actual, real bug behind every one of the
+        // repeated "unregistered, but the Full tag stayed, refresh
+        // shows still registered" reports: the DELETE/UPDATE below was
+        // very likely never actually affecting a row at all, silently,
+        // every single time -- the button and badge only ever looked
+        // right because of client-side optimistic updates that had
+        // nothing real underneath them to confirm against. Missed here
+        // despite already having learned this exact lesson on a
+        // different feature in this same session -- flagged plainly
+        // rather than glossed over.
+        var { data: cancelData, error: cancelError } = await supabase.from('event_registrations').update({ status: 'cancelled' }).eq('id', existingReg[0].id).select('id');
+        if (cancelError || !cancelData || !cancelData.length) {
+          statusEl.textContent = (cancelError && cancelError.message) || window.t('events.unregisterFailedNoRowsAffected');
           statusEl.style.display = 'block';
           btn.disabled = false;
           return;
@@ -24250,9 +24268,14 @@
         return;
       }
 
-      var { error: deleteError } = await supabase.from('event_registrations').delete().eq('event_id', eventId).eq('user_id', userData.user.id);
-      if (deleteError) {
-        statusEl.textContent = deleteError.message;
+      // Same .select()-to-detect-a-silent-zero-row-write fix as the
+      // paid-cancel branch above, and same reasoning: this is almost
+      // certainly the actual bug behind the repeated "still shows
+      // registered after unregistering" reports, not a display/caching
+      // issue at all.
+      var { data: deleteData, error: deleteError } = await supabase.from('event_registrations').delete().eq('event_id', eventId).eq('user_id', userData.user.id).select('id');
+      if (deleteError || !deleteData || !deleteData.length) {
+        statusEl.textContent = (deleteError && deleteError.message) || window.t('events.unregisterFailedNoRowsAffected');
         statusEl.style.display = 'block';
         btn.disabled = false;
         return;

@@ -2740,3 +2740,17 @@ Reported directly, specifically on the church profile page's own heart (`.follow
 Fixed by adding `-webkit-tap-highlight-color:transparent;` directly to all three heart classes (`.follow-heart-card`, `.follow-heart-row`, `.follow-heart-profile`), matching the exact fix already established in this same file for the card/event-card case. **Not tested** on a real mobile device/browser -- no such device available in this sandbox; this is the standard, well-established fix for this exact symptom, but flagged as unverified live, unlike the tabs/viewport fix above which was measured directly.
 
 Build `2026-09-16-v55`.
+
+---
+
+## The actual root cause, at last: unregister's DELETE/UPDATE had no way to detect a silent zero-row write
+
+Reported again after v55, with the exact same symptom repeated across many attempts: unregister, Full tag stays, refresh shows still-registered, no way to unregister at all. The RPC-discrepancy theory from the previous entry was a real, confirmed observation, but not the actual root cause -- this one is.
+
+Both unregister paths -- the free `.delete()` and the paid-registration `.update({status:'cancelled'})` -- called their mutation with no `.select()` afterward. This is the **exact same silent-failure hole found and fixed for the Give/Message toggles earlier this session**, missed here despite already having learned the lesson once: Supabase's `.update()`/`.delete()` report `{ error: null }` even when RLS (or a missing grant) matches **zero rows** -- there is no way to tell that apart from a real success without checking what, if anything, came back. Every fix made across v53/v54/v55 (the badge timing, the optimistic update, the RPC investigation) was reacting to symptoms of this: the code genuinely believed the unregister had succeeded every time, because nothing ever told it otherwise, and called `setEventRegisteredUI(btn, false, null)` unconditionally right after. The database row, if RLS or a grant is actually blocking the delete, was very likely never touched at all, on any of the many attempts -- which is exactly why a refresh always "re-registered" the user: they were never actually unregistered in the first place, just shown a UI that confidently said otherwise.
+
+Fixed by adding `.select('id')` to both mutations and checking the returned array's length, same pattern as the toggle fix: an empty result is now treated exactly like an error -- the button reverts, and a real, visible message shows ("Couldn't unregister you — please try again...") instead of silently reporting success. This doesn't yet prove *why* the row isn't being affected (RLS policy, a missing grant, something else) -- `event_registrations`' policies aren't tracked in this repo's migrations (same gap as `churches`), so that part still needs verifying live. But it stops the app from lying about what happened, which is what turned one real bug into what looked like several different ones across this whole back-and-forth.
+
+**Next step if this still fails**: the new error message will now actually appear instead of silence. If it does, that's confirmation this is a genuine server-side permission gap (RLS or a grant on `event_registrations`), the same category of issue the toggle bug turned out to be -- and the fix from here is the same kind of targeted SQL snippet, once the actual policy/grant state is checked directly in the Supabase dashboard.
+
+Build `2026-09-16-v56`.
