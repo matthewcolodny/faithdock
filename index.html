@@ -6818,7 +6818,7 @@ Groups</span>
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v94 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v95 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -17026,6 +17026,13 @@ Groups</span>
         ownerControls.innerHTML = '<p style="font-size:13px;color:var(--ink-mute);margin-bottom:10px;">' + window.t('dashSettings.staffFreeLocked') + '</p>'
           + '<a href="#pricing" data-route="pricing" class="export-btn" style="width:100%;justify-content:center;display:flex;">' + window.t('dashSettings.upgradeToAddTeam') + '</a>'
           + '<div id="team-invite-status" style="display:none;font-size:12px;margin-top:8px;"></div>';
+        // The invite form is rebuilt from scratch here, so its preset
+        // selector and checkboxes are brand-new elements with no
+        // listeners. Re-binding after every render is the whole reason
+        // bindPresetSelector() is a function rather than a one-off at
+        // startup -- binding it once would have worked exactly until
+        // this panel reloaded.
+        if (typeof window.bindPresetSelector === 'function') window.bindPresetSelector('invite-perm-preset', 'invite-perm-');
       } else {
         // Mirrors the static #team-owner-controls markup on the
         // Staff page (same labels/placeholder, same i18n keys) —
@@ -17059,6 +17066,19 @@ Groups</span>
         // them set the same ones up front is no new privilege).
         var abilitiesChecklistHtml = '<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line);">'
           + '<label style="font-size:12.5px;display:block;margin-bottom:8px;">' + window.t('staffPerms.eyebrow') + '</label>'
+          // Same presets as the permissions modal, on the form where
+          // they matter most -- you are least likely to know which of
+          // twelve boxes to tick when adding somebody new.
+          + '<label style="font-size:12.5px;display:block;margin-bottom:5px;color:var(--ink-mute);">' + window.t('staffPerms.presetLabel') + '</label>'
+          + '<select class="field" id="invite-perm-preset" style="margin-bottom:14px;">'
+            + '<option value="administrator">' + window.t('staffPerms.presetAdministrator') + '</option>'
+            + '<option value="office">' + window.t('staffPerms.presetOffice') + '</option>'
+            + '<option value="events">' + window.t('staffPerms.presetEvents') + '</option>'
+            + '<option value="finance">' + window.t('staffPerms.presetFinance') + '</option>'
+            + '<option value="groups">' + window.t('staffPerms.presetGroups') + '</option>'
+            + '<option value="checkin">' + window.t('staffPerms.presetCheckIn') + '</option>'
+            + '<option value="custom">' + window.t('staffPerms.presetCustom') + '</option>'
+          + '</select>'
           + '<label class="filter-check"><input type="checkbox" id="invite-perm-events"> ' + window.t('staffPerms.manageEvents') + '</label>'
           + '<label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-giving"> ' + window.t('staffPerms.manageGiving') + '</label>'
           + '<label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-groups"> ' + window.t('staffPerms.manageGroups') + '</label>'
@@ -19470,7 +19490,7 @@ Groups</span>
     document.getElementById('perm-view-revenue').checked = permBtn.getAttribute('data-view-revenue') === 'true';
     // Opened with this person's real flags, so show whichever preset
     // they match -- or Custom if their combination is their own.
-    if (typeof window.refreshPresetSelector === 'function') window.refreshPresetSelector();
+    if (typeof window.refreshPresetSelector === 'function') window.refreshPresetSelector('perm-', 'perm-preset');
     document.getElementById('perm-profile').checked = permBtn.getAttribute('data-profile') === 'true';
     // Manager checkbox: only the actual owner can see/change it --
     // matches update_staff_abilities()'s server-side rule that only
@@ -21779,58 +21799,77 @@ Groups</span>
     groups:        { events: false, giving: false, profile: false, groups: true,  messages: false, members: true,  checkIn: false, rooms: false, ministries: true,  viewRevenue: false },
     checkin:       { events: false, giving: false, profile: false, groups: false, messages: false, members: false, checkIn: true,  rooms: false, ministries: false, viewRevenue: false }
   };
-  var PRESET_CHECKBOX_IDS = {
-    events: 'perm-events', giving: 'perm-giving', profile: 'perm-profile',
-    groups: 'perm-groups', messages: 'perm-messages', members: 'perm-manage-members',
-    checkIn: 'perm-check-in', rooms: 'perm-rooms', ministries: 'perm-ministries',
-    viewRevenue: 'perm-view-revenue'
+  // Suffixes rather than whole ids, because the same set of
+  // permissions appears in two places with parallel naming: the
+  // permissions modal uses perm-*, the invite form uses invite-perm-*.
+  // One table keyed by suffix lets both share every function below --
+  // the alternative, a second copy of the preset logic for invites, is
+  // how the two would quietly drift apart the next time a permission
+  // is added.
+  var PRESET_CHECKBOX_SUFFIXES = {
+    events: 'events', giving: 'giving', profile: 'profile',
+    groups: 'groups', messages: 'messages', members: 'manage-members',
+    checkIn: 'check-in', rooms: 'rooms', ministries: 'ministries',
+    viewRevenue: 'view-revenue'
   };
+  function presetCheckbox(prefix, key){
+    return document.getElementById(prefix + PRESET_CHECKBOX_SUFFIXES[key]);
+  }
 
-  function readPermissionFlags(){
+  function readPermissionFlags(prefix){
     var out = {};
-    Object.keys(PRESET_CHECKBOX_IDS).forEach(function(k){
-      var el = document.getElementById(PRESET_CHECKBOX_IDS[k]);
+    Object.keys(PRESET_CHECKBOX_SUFFIXES).forEach(function(k){
+      var el = presetCheckbox(prefix, k);
       out[k] = !!(el && el.checked);
     });
     return out;
   }
 
   // Derived, never stored -- this is what keeps the label honest.
-  function derivePresetName(){
-    var current = readPermissionFlags();
+  function derivePresetName(prefix){
+    var current = readPermissionFlags(prefix);
     var match = Object.keys(PERMISSION_PRESETS).filter(function(name){
       var preset = PERMISSION_PRESETS[name];
       return Object.keys(preset).every(function(k){ return preset[k] === current[k]; });
     })[0];
     return match || 'custom';
   }
-  function refreshPresetSelector(){
-    var sel = document.getElementById('perm-preset');
-    if (sel) sel.value = derivePresetName();
+  function refreshPresetSelector(prefix, selectId){
+    prefix = prefix || 'perm-';
+    var sel = document.getElementById(selectId || 'perm-preset');
+    if (sel) sel.value = derivePresetName(prefix);
   }
   window.refreshPresetSelector = refreshPresetSelector;
 
-  var permPresetSelect = document.getElementById('perm-preset');
-  if (permPresetSelect) {
-    permPresetSelect.addEventListener('change', function(){
-      var preset = PERMISSION_PRESETS[permPresetSelect.value];
+  // Binds a preset <select> to a set of checkboxes sharing an id
+  // prefix. Used for both the permissions modal and the invite form;
+  // the invite form is rebuilt by loadTeamPanel() on every render, so
+  // this is called again after each one rather than only at startup.
+  function bindPresetSelector(selectId, prefix){
+    var sel = document.getElementById(selectId);
+    if (!sel) return;
+    sel.addEventListener('change', function(){
+      var preset = PERMISSION_PRESETS[sel.value];
       // "Custom" is an outcome, not a thing you can pick INTO -- there
       // is no set of boxes it means. Selecting it leaves everything
       // alone rather than clearing the person's permissions, which is
       // what a naive lookup-and-apply would do.
-      if (!preset) { refreshPresetSelector(); return; }
+      if (!preset) { refreshPresetSelector(prefix, selectId); return; }
       Object.keys(preset).forEach(function(k){
-        var el = document.getElementById(PRESET_CHECKBOX_IDS[k]);
+        var el = presetCheckbox(prefix, k);
         if (el) el.checked = preset[k];
       });
     });
     // Any manual tick re-derives the label, so it always describes
     // what is actually about to be saved.
-    Object.keys(PRESET_CHECKBOX_IDS).forEach(function(k){
-      var el = document.getElementById(PRESET_CHECKBOX_IDS[k]);
-      if (el) el.addEventListener('change', refreshPresetSelector);
+    Object.keys(PRESET_CHECKBOX_SUFFIXES).forEach(function(k){
+      var el = presetCheckbox(prefix, k);
+      if (el) el.addEventListener('change', function(){ refreshPresetSelector(prefix, selectId); });
     });
+    refreshPresetSelector(prefix, selectId);
   }
+  window.bindPresetSelector = bindPresetSelector;
+  bindPresetSelector('perm-preset', 'perm-');
 
   var checkinEventSelect = document.getElementById('checkin-event-select');
   if (checkinEventSelect) {

@@ -3701,3 +3701,19 @@ Build `2026-09-17-v93`. No migration.
 Seventeen edit sites for three abilities -- roughly the nine per ability predicted when `can_check_in` went in. The presets are what keep that from reaching the person configuring staff.
 
 Build `2026-09-17-v94`; **migration 047 must be run by hand**, and before deploying: `update_staff_abilities` gains three parameters, so saving permissions fails with PGRST202 in any gap.
+
+---
+
+## The preset selector was missing where it mattered most
+
+Reported with a screenshot: the invite form on Team & Permissions shows twelve permission checkboxes and no preset selector. The presets shipped only on the permissions modal -- the gear on an existing staff row -- which is the *less* useful of the two places. You are least likely to know which of twelve boxes to tick when adding somebody new.
+
+**Why it wasn't just a missing `<select>`.** There are two invite forms: static markup in `#team-owner-controls`, and a JS-built one that `loadTeamPanel()` writes over it with `ownerControls.innerHTML = ...`. The screenshot was the dynamic one, so the static checkboxes added in Phase 2 are dead markup that never renders. Anything added to the static form alone would have been invisible for the same reason.
+
+That also means the selector's elements are **destroyed and recreated on every render**, so a one-time `addEventListener` at startup works exactly until the panel reloads. `bindPresetSelector()` exists as a function for that reason and is called again after each render.
+
+**The logic is now shared rather than copied.** The two forms use parallel ids -- `perm-*` and `invite-perm-*` -- so the checkbox table is keyed by *suffix* and every function takes a prefix. A second copy of the preset logic for invites is precisely how the two would drift the next time a permission is added, which given the last few days is a near certainty.
+
+Verified: the modal still applies presets and derives Custom after the refactor; the invite form, **after being torn down and rebuilt**, applies presets to its own checkboxes and derives Custom independently; and the two selectors do not affect each other.
+
+Build `2026-09-17-v95`. No migration.
