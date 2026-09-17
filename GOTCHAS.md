@@ -3914,3 +3914,37 @@ While in there, `g.name` and `e.title` were interpolated raw into `innerHTML` --
 The load-timing fix was verified by counting runs rather than by looking at the page: zero while the dashboard is closed, one on opening it, two after `resetDashboardPanels()` + `runDashboardPanels()` -- and still two groups rather than four, so the re-run replaces rather than appends.
 
 Build `2026-09-17-v104`. No migration.
+
+---
+
+## The received-messages inbox
+
+Until now, a message a visitor sent from a church's public page was emailed to the owner and any staff holding `receives_contact_messages`, and **stored nowhere**. One spam filter, one deleted email, one staff member who left, and it was gone with nobody aware it had existed. Migration 049 gives the church an inbox.
+
+**The client writes the row, not the edge function.** The edge function is the tidier home — it already holds a service-role client and already re-checks `messaging_enabled`. Two things argued against doing it there first: it is deployed by hand through the dashboard, which this repo cannot do and whose own header warns never to guess the current source of; and **the trust level is identical either way**, because the function is invoked by the same anonymous browser holding the same public anon key. Nothing about who can write here changes if the insert moves server-side later.
+
+So the database enforces what the form cannot, since anyone can skip the form and POST straight to the REST endpoint:
+
+- `messaging_enabled`, checked through a SECURITY DEFINER helper. An inline subquery would put the *reading* role's RLS and column grants in the way — and `churches` uses per-column grants, so an anonymous visitor evaluating that column directly would hit 42501 and every message would be refused. This is the 42703-vs-42501 lesson arriving from a new direction.
+- A ceiling: 30 per church per hour and 5 per sender per hour. Two limits rather than one, because a per-church limit alone lets a single sender exhaust it and silence everyone else, while a per-sender limit alone lets a thousand forged addresses bury the inbox.
+- `sender_user_id`, filled from `auth.uid()` and absent from the insert grant entirely, so a caller cannot set it at all.
+
+**Column-level grants, not just RLS.** RLS decides which *rows* a statement may touch; it cannot say which *columns*. Without the column grant, the anonymous insert policy would let someone post a message pre-marked read and archived — delivered straight past the inbox, never seen. Staff get `update (read_at, read_by, archived_at)` only, so nobody can rewrite what a visitor actually said.
+
+**The body is plain text, never HTML.** The sender is an anonymous stranger and the text is rendered in staff browsers; storing their markup would hand the open internet a path into the dashboard's DOM. `escapeHtml` plus `white-space: pre-wrap` keeps their line breaks with no sanitiser to get wrong.
+
+While in there: the outbound **email** built `'<p>' + line + '</p>'` from unescaped visitor input, so markup a stranger typed arrived as markup in the owner's mail client. Escaped.
+
+**Read state is per church, not per person** — a message one person answered is handled, and showing it as unread to the other three invites four replies to the same visitor.
+
+**Stored after a confirmed send, not before.** Two writes, no transaction, so an order had to be chosen. Inserting first means a failed send leaves a row, the visitor (who saw an error) sends again, and the church reads the same message twice with no way to tell which. This order risks a delivered email with no inbox copy — which is exactly today's behaviour for every message, so the worst case is no worse than the status quo while the duplicate would be a new problem. A failed insert is logged and never shown: the message *has* been delivered by then, so saying otherwise would be false and would invite a resend.
+
+**Opening a message updates the row in place rather than reloading the list.** The first version called the loader, which re-rendered — so the message snapped shut the instant it was marked read, which is the first open of every unread message, i.e. every time. Caught by asserting on `detail.style.display` after the click rather than by looking at a screenshot. Reloading is still right for archive and delete, where the row genuinely leaves.
+
+Two smaller ones: the mark-read request is skipped when the row shows no unread dot (the database filters on `read_at IS NULL` anyway, so it was harmless, just a wasted round trip on every reopen); and `mailto:` needs its own address check, because `safeLinkUrl` rejects that scheme by design — a sender whose address is `javascript:alert(1)` gets no reply button at all.
+
+**Retention is deliberately not automated.** These rows hold a member of the public's name, email and free text. How long a church keeps them is the church's decision, not a default this migration should quietly make for them.
+
+Verified against an instrumented copy with the PostgREST builder stubbed: hostile subject, sender name and body all render as text with zero elements created and none of the three payloads firing; unread count; open keeps the detail open, removes the dot and clears the badge; three opens issue one update; archive, unarchive and delete; declining the delete confirm changes nothing; both languages; and the visibility gate exercised for real — owner and staff-with-ability see it, staff without it get no section **and no query is issued**.
+
+Build `2026-09-17-v106`; **migration 049 must be run by hand.**

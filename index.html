@@ -700,6 +700,14 @@
       'dashMsg.sendTo': 'Send to', 'dashMsg.allMembers': 'All congregation members', 'dashMsg.allStaff': 'All staff',
       'dashMsg.loadingGroups': 'Loading groups...', 'dashMsg.loadingEvents': 'Loading events...',
       'dashMsg.noGroupsYet': 'No groups yet.', 'dashMsg.noEventsYet': 'No events yet.',
+      'dashInbox.title': 'Inbox',
+      'dashInbox.hint': 'Messages people sent from your public page. Everyone who receives contact messages sees the same inbox.',
+      'dashInbox.empty': 'No messages yet.', 'dashInbox.noArchived': 'Nothing archived.',
+      'dashInbox.showArchived': 'Show archived', 'dashInbox.hideArchived': 'Hide archived',
+      'dashInbox.reply': 'Reply by email', 'dashInbox.archive': 'Archive', 'dashInbox.unarchive': 'Move back to inbox',
+      'dashInbox.delete': 'Delete message', 'dashInbox.confirmDelete': 'Delete this message? This cannot be undone.',
+      'dashInbox.actionFailed': 'That did not work. You may no longer have access to this inbox.',
+      'dashInbox.signedInSender': 'Signed in',
       'dashMsg.subjectPlaceholder': 'e.g. Sunday service update', 'dashMsg.message': 'Message', 'dashMsg.writeAnnouncement': 'Write your announcement...',
       'dashMsg.scheduleForLater': 'Schedule for later instead of sending now', 'dashMsg.sendAnnouncement': 'Send announcement',
       'dashMsg.scheduledAnnouncements': 'Scheduled announcements',
@@ -1557,6 +1565,14 @@
       'dashMsg.sendTo': 'Enviar a', 'dashMsg.allMembers': 'Todos los miembros de la congregación', 'dashMsg.allStaff': 'Todo el personal',
       'dashMsg.loadingGroups': 'Cargando grupos...', 'dashMsg.loadingEvents': 'Cargando eventos...',
       'dashMsg.noGroupsYet': 'Aún no hay grupos.', 'dashMsg.noEventsYet': 'Aún no hay eventos.',
+      'dashInbox.title': 'Bandeja de entrada',
+      'dashInbox.hint': 'Mensajes que la gente envió desde tu página pública. Todos los que reciben mensajes de contacto ven la misma bandeja.',
+      'dashInbox.empty': 'Aún no hay mensajes.', 'dashInbox.noArchived': 'No hay nada archivado.',
+      'dashInbox.showArchived': 'Ver archivados', 'dashInbox.hideArchived': 'Ocultar archivados',
+      'dashInbox.reply': 'Responder por correo', 'dashInbox.archive': 'Archivar', 'dashInbox.unarchive': 'Devolver a la bandeja',
+      'dashInbox.delete': 'Eliminar mensaje', 'dashInbox.confirmDelete': '¿Eliminar este mensaje? No se puede deshacer.',
+      'dashInbox.actionFailed': 'No funcionó. Es posible que ya no tengas acceso a esta bandeja.',
+      'dashInbox.signedInSender': 'Con sesión',
       'dashMsg.subjectPlaceholder': 'p. ej. Actualización del servicio dominical', 'dashMsg.message': 'Mensaje', 'dashMsg.writeAnnouncement': 'Escribe tu anuncio...',
       'dashMsg.scheduleForLater': 'Programar para más tarde en lugar de enviar ahora', 'dashMsg.sendAnnouncement': 'Enviar anuncio',
       'dashMsg.scheduledAnnouncements': 'Anuncios programados',
@@ -6243,6 +6259,22 @@ Groups</span>
               </label>
             </div>
         <h2 style="font-size:24px;margin-bottom:24px;" data-i18n="dash.messages">Messages</h2>
+
+        <!-- Hidden until the loader confirms this person is a
+             recipient. The real gate is RLS (migration 049); this
+             only avoids showing an empty box to staff it was never
+             meant for. -->
+        <div class="side-note" id="msg-inbox-section" style="max-width:560px;display:none;">
+          <h4 style="display:flex;align-items:center;gap:8px;">
+            <span data-i18n="dashInbox.title">Inbox</span>
+            <span id="msg-inbox-unread" class="tag sage" style="display:none;font-size:10px;"></span>
+          </h4>
+          <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:10px;" data-i18n="dashInbox.hint">Messages people sent from your public page. Everyone who receives contact messages sees the same inbox.</p>
+          <div style="display:flex;gap:8px;margin-bottom:12px;">
+            <button class="export-btn" id="msg-inbox-archived-btn" data-i18n="dashInbox.showArchived">Show archived</button>
+          </div>
+          <div id="msg-inbox-list"><p style="color:var(--ink-mute);font-size:13px;" data-i18n="common.loading">Loading...</p></div>
+        </div>
         <div id="dash-messages-locked" style="display:none;margin-top:10px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--paper);font-size:12.5px;color:var(--ink-mute);max-width:560px;">
           <svg viewBox="0 0 24 24" fill="currentColor" style="width:13px;height:13px;vertical-align:-2px;margin-right:4px;"><path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2z"/></svg>
           <span data-i18n="dashMessages.locked">Mass email to members, groups, and events is available on Medium, Large, and Multi-Church plans.</span>
@@ -6921,7 +6953,7 @@ Groups</span>
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v105 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v106 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -20883,6 +20915,207 @@ Groups</span>
   window.loadMessageDrafts = loadMessageDrafts;
   dashPanel(loadMessageDrafts);
 
+  // ============================================================
+  // Received messages — the church's shared inbox.
+  //
+  // Until now contact_church emailed the owner and any staff holding
+  // receives_contact_messages and stored nothing at all. One spam
+  // filter, one deleted email, one staff member who left, and a
+  // visitor's message was gone with nobody aware it had existed.
+  //
+  // Read state is per CHURCH rather than per person (see migration
+  // 049): a message one person has answered is handled, and showing
+  // it as unread to the other three invites four replies to the same
+  // visitor.
+  // ============================================================
+  var msgInboxShowArchived = false;
+
+  // A visitor's message is stored and rendered as PLAIN TEXT. It is
+  // written by an unauthenticated stranger and displayed inside the
+  // dashboard, so treating it as markup would be handing the open
+  // internet a path into staff browsers. escapeHtml plus pre-wrap
+  // keeps their line breaks without ever parsing their input as HTML.
+  function inboxBodyHtml(text){
+    return '<div style="white-space:pre-wrap;word-break:break-word;font-size:13px;line-height:1.55;margin-top:8px;">'
+      + escapeHtml(text || '') + '</div>';
+  }
+
+  // mailto: is a scheme safeLinkUrl deliberately rejects, so it needs
+  // its own check rather than a loosened shared one. Anything that
+  // does not look like a plain address gets no reply button at all --
+  // a missing button is a smaller problem than a crafted URI.
+  function inboxReplyHref(email, subject){
+    var addr = String(email || '').trim();
+    if (!/^[^\s@<>"']+@[^\s@<>"']+\.[^\s@<>"']+$/.test(addr)) return '';
+    var re = String(subject || '').indexOf('Re:') === 0 ? subject : ('Re: ' + (subject || ''));
+    return 'mailto:' + encodeURIComponent(addr).replace(/%40/g, '@') + '?subject=' + encodeURIComponent(re);
+  }
+
+  async function loadContactInbox(){
+    var section = document.getElementById('msg-inbox-section');
+    var listEl = document.getElementById('msg-inbox-list');
+    if (!section || !listEl) return;
+    var myChurch = await getMyChurch();
+    // The owner always, plus staff granted the same ability that
+    // decides who is emailed a copy -- one switch, one meaning.
+    var isRecipient = !!(myChurch && (myChurch.role === 'owner' || myChurch.receivesContactMessages));
+    if (!isRecipient) { section.style.display = 'none'; return; }
+
+    var query = supabase.from('contact_messages')
+      .select('id, sender_name, sender_email, sender_user_id, subject, body, read_at, archived_at, created_at')
+      .eq('church_id', myChurch.id)
+      .order('created_at', { ascending: false })
+      .limit(100);
+    if (!msgInboxShowArchived) query = query.is('archived_at', null);
+    var { data, error } = await query;
+
+    // Soft failure, the same isolation used for drafts: if migration
+    // 049 has not been run the section simply does not appear, rather
+    // than taking the composer down with it.
+    if (error) { section.style.display = 'none'; console.error('Inbox unavailable:', error); return; }
+    section.style.display = 'block';
+
+    var unread = (data || []).filter(function(m){ return !m.read_at && !m.archived_at; }).length;
+    var badge = document.getElementById('msg-inbox-unread');
+    if (badge) {
+      badge.textContent = unread ? String(unread) : '';
+      badge.style.display = unread ? 'inline-block' : 'none';
+    }
+    var archivedBtn = document.getElementById('msg-inbox-archived-btn');
+    if (archivedBtn) archivedBtn.textContent = window.t(msgInboxShowArchived ? 'dashInbox.hideArchived' : 'dashInbox.showArchived');
+
+    if (!data || !data.length) {
+      listEl.innerHTML = '<p style="color:var(--ink-mute);font-size:12.5px;">'
+        + window.t(msgInboxShowArchived ? 'dashInbox.noArchived' : 'dashInbox.empty') + '</p>';
+      return;
+    }
+
+    listEl.innerHTML = data.map(function(m){
+      var when = new Date(m.created_at).toLocaleString(window.appLocale(), { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+      var who = m.sender_name || m.sender_email;
+      var reply = inboxReplyHref(m.sender_email, m.subject);
+      var isUnread = !m.read_at;
+      return '<div class="info-row" style="display:block;" data-inbox-row="' + escapeHtml(m.id) + '">'
+        + '<div style="display:flex;justify-content:space-between;gap:10px;align-items:baseline;cursor:pointer;" data-inbox-toggle="' + escapeHtml(m.id) + '">'
+          + '<span style="min-width:0;">'
+            + (isUnread ? '<span data-inbox-dot aria-hidden="true" style="color:var(--gold);margin-right:5px;">&bull;</span>' : '')
+            + '<strong data-inbox-subject style="' + (isUnread ? '' : 'font-weight:500;') + '">' + escapeHtml(m.subject) + '</strong>'
+            + '<span style="color:var(--ink-mute);font-size:12px;"> — ' + escapeHtml(who) + '</span>'
+          + '</span>'
+          + '<span style="color:var(--ink-mute);font-size:12px;flex-shrink:0;">' + escapeHtml(when) + '</span>'
+        + '</div>'
+        + '<div id="inbox-detail-' + escapeHtml(m.id) + '" style="display:none;">'
+          + '<div style="font-size:12px;color:var(--ink-mute);margin-top:6px;">' + escapeHtml(m.sender_email)
+            + (m.sender_user_id ? ' <span class="tag sage" style="font-size:10px;">' + window.t('dashInbox.signedInSender') + '</span>' : '')
+          + '</div>'
+          + inboxBodyHtml(m.body)
+          + '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;">'
+            + (reply ? '<a class="export-btn" href="' + escapeHtml(reply) + '">' + window.t('dashInbox.reply') + '</a>' : '')
+            + '<button class="export-btn" data-inbox-archive="' + escapeHtml(m.id) + '" data-archived="' + (m.archived_at ? '1' : '0') + '">'
+              + window.t(m.archived_at ? 'dashInbox.unarchive' : 'dashInbox.archive') + '</button>'
+            + '<button class="qr-btn" data-inbox-delete="' + escapeHtml(m.id) + '" aria-label="' + window.t('dashInbox.delete') + '">×</button>'
+          + '</div>'
+        + '</div>'
+      + '</div>';
+    }).join('');
+  }
+  window.loadContactInbox = loadContactInbox;
+  dashPanel(loadContactInbox);
+
+  var msgInboxArchivedBtn = document.getElementById('msg-inbox-archived-btn');
+  if (msgInboxArchivedBtn) msgInboxArchivedBtn.addEventListener('click', function(){
+    msgInboxShowArchived = !msgInboxShowArchived;
+    loadContactInbox();
+  });
+
+  // Delegated, because the list is rebuilt on every change.
+  document.addEventListener('click', async function(ev){
+    if (!ev.target.closest) return;
+
+    var toggle = ev.target.closest('[data-inbox-toggle]');
+    if (toggle) {
+      var id = toggle.getAttribute('data-inbox-toggle');
+      var detail = document.getElementById('inbox-detail-' + id);
+      if (!detail) return;
+      var opening = detail.style.display === 'none';
+      detail.style.display = opening ? 'block' : 'none';
+      if (!opening) return;
+      // Opening a message marks it read -- that is what reading is.
+      //
+      // Skipped when the row no longer shows an unread dot. The
+      // database filters on read_at IS NULL anyway, so re-firing was
+      // harmless, but it spent a round trip every time somebody
+      // collapsed and reopened a message they had already read.
+      var openedRow = toggle.closest('[data-inbox-row]');
+      if (openedRow && !openedRow.querySelector('[data-inbox-dot]')) return;
+      var { data: userData } = await supabase.auth.getUser();
+      var res = await supabase.from('contact_messages')
+        .update({ read_at: new Date().toISOString(), read_by: userData.user ? userData.user.id : null })
+        .eq('id', id).is('read_at', null).select('id');
+      // Zero rows here is the ordinary case (already read), NOT a
+      // failure -- unlike the drafts save, where zero rows meant the
+      // page would have lied. Refreshing only when something actually
+      // changed also keeps the list from collapsing under the reader
+      // every time they open an already-read message.
+      if (res.error || !res.data || !res.data.length) return;
+
+      // Updated in place rather than by calling loadContactInbox().
+      // Re-rendering replaces the row that was just expanded, so the
+      // message snapped shut the instant it was marked read -- and
+      // since marking read only happens on the FIRST open, that was
+      // every unread message, every time. Reloading the list is the
+      // right move for archive and delete, where the row genuinely
+      // leaves; it is the wrong one for a state change the reader is
+      // currently looking at.
+      //
+      // Scoped to the row element rather than built into a selector
+      // string, so no id is ever interpolated into a query.
+      var row = toggle.closest('[data-inbox-row]');
+      if (row) {
+        var dot = row.querySelector('[data-inbox-dot]');
+        if (dot) dot.remove();
+        var subj = row.querySelector('[data-inbox-subject]');
+        if (subj) subj.style.fontWeight = '500';
+      }
+      // Counted from what is on screen rather than decremented, so
+      // the badge cannot drift out of step with the list.
+      var badgeEl = document.getElementById('msg-inbox-unread');
+      if (badgeEl) {
+        var remaining = document.querySelectorAll('#msg-inbox-list [data-inbox-dot]').length;
+        badgeEl.textContent = remaining ? String(remaining) : '';
+        badgeEl.style.display = remaining ? 'inline-block' : 'none';
+      }
+      return;
+    }
+
+    var archiveBtn = ev.target.closest('[data-inbox-archive]');
+    if (archiveBtn) {
+      var aid = archiveBtn.getAttribute('data-inbox-archive');
+      var wasArchived = archiveBtn.getAttribute('data-archived') === '1';
+      var ares = await supabase.from('contact_messages')
+        .update({ archived_at: wasArchived ? null : new Date().toISOString() })
+        .eq('id', aid).select('id');
+      if (ares.error || !ares.data || !ares.data.length) {
+        alert(ares.error ? ares.error.message : window.t('dashInbox.actionFailed'));
+        return;
+      }
+      loadContactInbox();
+      return;
+    }
+
+    var deleteBtn = ev.target.closest('[data-inbox-delete]');
+    if (deleteBtn) {
+      if (!confirm(window.t('dashInbox.confirmDelete'))) return;
+      var did = deleteBtn.getAttribute('data-inbox-delete');
+      var dres = await supabase.from('contact_messages').delete().eq('id', did).select('id');
+      if (dres.error || !dres.data || !dres.data.length) {
+        alert(dres.error ? dres.error.message : window.t('dashInbox.actionFailed'));
+        return;
+      }
+      loadContactInbox();
+    }
+  });
+
   var msgSaveDraftBtn = document.getElementById('msg-save-draft-btn');
   if (msgSaveDraftBtn) {
     msgSaveDraftBtn.addEventListener('click', async function(){
@@ -21882,7 +22115,11 @@ Groups</span>
       statusEl.style.color = 'var(--ink-mute)';
       statusEl.style.display = 'block';
 
-      var messageHtml = messageBody.split('\n').map(function(line){ return '<p>' + line + '</p>'; }).join('');
+      // escapeHtml per line, NOT just the join: this is a stranger's
+      // text on its way into an HTML email opened by the owner and
+      // every staff member who receives contact messages. Before
+      // this, markup they typed arrived as markup.
+      var messageHtml = messageBody.split('\n').map(function(line){ return '<p>' + escapeHtml(line) + '</p>'; }).join('');
       var { data, error } = await supabase.functions.invoke('smooth-action', {
         body: { type: 'contact_church', churchId: window.currentPageChurchId, senderName: senderName, senderEmail: senderEmail, subject: subject, messageBody: messageHtml }
       });
@@ -21897,6 +22134,33 @@ Groups</span>
         statusEl.style.color = 'var(--clay)';
         return;
       }
+
+      // Stored AFTER a confirmed send, not before.
+      //
+      // Two writes with no transaction between them, so one order has
+      // to be chosen. Inserting first would mean a failed send leaves
+      // a row behind, and the visitor -- who saw an error -- sends
+      // again, so the church reads the same message twice and cannot
+      // tell which. This order risks the opposite: a delivered email
+      // with no inbox copy. That is exactly today's behaviour for
+      // every message, so the worst case here is no worse than the
+      // status quo, while the duplicate is a new problem.
+      //
+      // Sent as PLAIN TEXT (messageBody), never messageHtml. The
+      // inbox escapes it on the way out, so nothing anyone types
+      // here is ever parsed as markup in a staff browser.
+      var { error: inboxError } = await supabase.from('contact_messages').insert({
+        church_id: window.currentPageChurchId,
+        sender_name: senderName,
+        sender_email: senderEmail,
+        subject: subject,
+        body: messageBody
+      });
+      // Deliberately not surfaced. The message HAS been delivered by
+      // the time this runs; telling the visitor something failed
+      // would be false, and would invite them to send it again.
+      // Covers migration 049 not being run yet, and the rate ceiling.
+      if (inboxError) console.warn('Contact message not stored:', inboxError);
 
       statusEl.textContent = window.t('contactChurch.messageSent');
       statusEl.style.color = 'var(--sage)';
