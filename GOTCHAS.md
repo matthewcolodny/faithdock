@@ -2895,3 +2895,33 @@ An event card with no image fell back to `buildingIcon` -- the exact same church
 Verified in a local preview by rendering an imageless event card beside a logoless church card: both icons compute to 54x54, and the event card's SVG is the calendar (5+ rects) not the building.
 
 Build `2026-09-16-v62`. No migration.
+
+---
+
+## Church-home membership becomes approve/reject instead of self-granted
+
+Requested as "the prime way that churches can secure their membership and control registration so it's constrained to approved members." Before this, clicking "Make this my Church Home" upserted a `church_memberships` row instantly and that person was a member; a church could only see and remove them afterwards.
+
+**Reused rather than rebuilt**: `church_memberships` (unique on `user_id, church_id`, `is_permanent = true` meaning church home) and `church_member_invites` plus its whole email-invite flow both already existed. Neither table's original definition is in this repo, so migration 035 is entirely additive and assumes nothing about their existing policies.
+
+**Enforcement is a trigger, not an RLS policy, and that choice is the point.** This table's existing policies aren't visible here, and permissive policies OR together -- so if any existing policy already lets someone update their own membership row, adding a stricter policy would not take that away and anyone could set their own status to `approved`. A `BEFORE INSERT OR UPDATE` trigger runs regardless of which policy allowed the statement, so it can actually hold the line. RLS decides which rows you may touch; the trigger decides what you may turn them into.
+
+Trigger behaviour:
+- **Insert by an authorized actor** (owner or staff with the new ability): value taken at face value -- a church adding someone is itself the approval.
+- **Insert by anyone else**: forced to `pending`, *except* when a matching `church_member_invites` row exists for their email, which auto-approves. An invited person has already been vouched for; making them wait for a second approval would be nonsense.
+- **Update**: status changes are reserved to authorized actors, with one deliberate exception -- `rejected -> pending`, so someone turned down can ask again. Without that the re-request arrives as an UPDATE, silently touches nothing, and the button does nothing forever with no error: precisely the silent-no-op class that made unregistering look like it worked for weeks (migration 033). Nothing in that exception can move a row toward `approved`.
+- **Service-role callers** (no `auth.uid()`) pass through untouched, so edge functions aren't forced into `pending`.
+
+**Grandfathering**, as chosen: the column is added with default `pending`, then every row is immediately updated to `approved`. At the moment the migration runs every existing row is by definition pre-existing, so a blanket update is exactly "leave current members alone" -- written as two explicit steps rather than a clever default.
+
+**New ability `can_manage_members`**, deliberately its own rather than reusing `is_manager`: deciding who counts as part of the congregation is a different kind of trust than managing staff, and a church may well want a membership secretary who isn't a manager. Wired through all eleven of the usual touch points (both invite modals -- static and the JS-rebuilt duplicate -- the permissions modal and its open/save handlers, `loadTeamPanel`'s tag and data attribute, `inviteStaffToOneChurch`, the invite submit payload, `getMyChurchUncached`'s owner and staff branches, and the profile ability tags), mirroring `receives_contact_messages` exactly.
+
+Also carried the two signature hazards this repo has now hit four times: `get_church_staff_detail` gains a column so it is DROPped before recreation (return-type change, 42P13), and `update_staff_abilities` gains a parameter so the previous 9-argument overload is dropped -- the same thing that, when missed in migration 022, silently broke the homepage and church Events tabs.
+
+Client side: the church-home button now reads every membership row rather than `.limit(1)` (someone can have an approved home at one church and a pending request at another -- one arbitrary row can't answer both questions), shows a distinct disabled "Request sent — awaiting approval" state, and reports what actually happened after a request rather than assuming, since an invited person is auto-approved and telling them they're awaiting approval would be wrong. A Members panel sits above Recently Joined (the queue with something to decide should be the one you see first), driven entirely by the new RPCs so authorization is explicit and a zero-row result is reported rather than read as success. The Recently Joined hint, which said "Membership stays instant for everyone… not a gate anyone has to wait on", was corrected -- it is now exactly false.
+
+**Still open, flagged rather than assumed**: anything that treats "has a membership row" as "is a member" without checking `status = 'approved'` will now count pending people. The directory-people RPC that computes `is_member` is one of the untracked functions, so it can't be checked or fixed from here -- worth reviewing in the dashboard before relying on member counts.
+
+Verified pre-migration in a local preview: all six new elements present, `loadMembersPanel` exposed, no console errors (it hides itself when `getMyChurch()` returns null rather than erroring), and both new RPCs correctly report `PGRST202 not found` -- the expected state until 035 is run.
+
+Build `2026-09-16-v63`; **migration 035 must be run by hand.**

@@ -289,6 +289,7 @@
       'staffPerms.isManager': 'Manager — can also invite/remove staff and assign their abilities',
       'staffPerms.editProfile': 'Edit church profile', 'staffPerms.save': 'Save permissions',
       'staffPerms.receiveMessages': 'Receive contact messages sent to this church', 'staffPerms.receiveMessagesTag': 'Receives Messages',
+      'staffPerms.manageMembers': 'Approve and manage church members', 'staffPerms.manageMembersTag': 'Members',
       'memberInvite.title': "You've been invited!", 'memberInvite.thisChurch': 'This church',
       'memberInvite.body': 'invited you to join them on FaithDock. Want to set them as your Church Home? You can always change this later in your profile.',
       'memberInvite.accept': 'Yes, set as my Church Home', 'memberInvite.decline': 'Not now',
@@ -597,7 +598,7 @@
       'households.namePlaceholder': 'e.g. The Smith Family', 'households.members': 'Members',
       'households.createHousehold': 'Create household',
       'households.recentlyJoined': 'Recently joined',
-      'households.recentlyJoinedHint': "People who joined in the last 30 days. Membership stays instant for everyone — this is just a quick glance after the fact, not a gate anyone has to wait on. Flag someone to keep an eye on them without removing them; Remove takes them off your membership list entirely (their FaithDock account itself is unaffected).",
+      'households.recentlyJoinedHint': "People approved in the last 30 days. Flag someone to keep an eye on them without removing them; Remove takes them off your membership list entirely (their FaithDock account itself is unaffected).",
       'households.invitedOn': 'invited', 'households.resend': 'Resend', 'households.sending': 'Sending...',
       'households.yourChurch': 'Your church', 'households.sentBang': 'Sent!', 'households.unnamed': 'Unnamed',
       'households.flagged': 'Flagged', 'households.joinedOn': 'joined', 'households.unflag': 'Unflag', 'households.flag': 'Flag',
@@ -771,6 +772,12 @@
       'pricing.registerChurchFirstThenUpgrade': 'Register your church first, then come back to upgrade.',
       'churchHome.makeThisMyChurchHome': 'Make this my Church Home', 'churchHome.thisIsYourChurchHome': 'This is your Church Home',
       'churchHome.couldNotIdentifyChurch': 'Could not identify this church.', 'churchHome.noLongerYourChurchHome': 'No longer your Church Home.',
+      'churchHome.requestPending': 'Request sent — awaiting approval', 'churchHome.requestSent': "Your request was sent to the church. You'll be a member once they approve it.",
+      'members.title': 'Members', 'members.pendingRequests': 'Pending requests', 'members.noPending': 'No requests waiting for a decision.',
+      'members.approve': 'Approve', 'members.reject': 'Reject', 'members.remove': 'Remove',
+      'members.approved': 'Member', 'members.pending': 'Pending', 'members.rejected': 'Rejected',
+      'members.confirmRemove': 'Remove this person from your church? They can request to join again later.',
+      'members.noMembers': 'No members yet.', 'members.membersHint': 'People who chose your church as their Church Home. Approving someone makes them a member; members are who your members-only features apply to.',
       'dashGroups.editGroup': 'Edit group', 'dashGroups.nameRequired': 'Group name is required.',
       'dashGroups.removeWordFromName': 'Please remove "{word}" from the group name.', 'dashGroups.removeWordFromDescription': 'Please remove "{word}" from the description.',
       'dashGroups.planLimitPerChurch': 'Your plan includes up to {limit} groups per church. Contact us about Multi-Church for more room.',
@@ -1089,6 +1096,7 @@
       'staffPerms.isManager': 'Gerente — también puede invitar/quitar personal y asignar sus habilidades',
       'staffPerms.editProfile': 'Editar perfil de la iglesia', 'staffPerms.save': 'Guardar permisos',
       'staffPerms.receiveMessages': 'Recibir mensajes de contacto enviados a esta iglesia', 'staffPerms.receiveMessagesTag': 'Recibe Mensajes',
+      'staffPerms.manageMembers': 'Aprobar y gestionar los miembros de la iglesia', 'staffPerms.manageMembersTag': 'Miembros',
       'memberInvite.title': '¡Has sido invitado!', 'memberInvite.thisChurch': 'Esta iglesia',
       'memberInvite.body': 'te invitó a unirte a ellos en FaithDock. ¿Quieres establecerla como tu Iglesia Principal? Siempre puedes cambiar esto después en tu perfil.',
       'memberInvite.accept': 'Sí, establecer como mi Iglesia Principal', 'memberInvite.decline': 'Ahora no',
@@ -1397,7 +1405,7 @@
       'households.namePlaceholder': 'p. ej. La Familia Pérez', 'households.members': 'Miembros',
       'households.createHousehold': 'Crear hogar',
       'households.recentlyJoined': 'Se unieron recientemente',
-      'households.recentlyJoinedHint': 'Personas que se unieron en los últimos 30 días. La membresía es instantánea para todos — esto es solo un vistazo rápido posterior, no una barrera que nadie tenga que esperar. Marca a alguien para vigilarlo sin eliminarlo; Eliminar lo quita por completo de tu lista de membresía (su cuenta de FaithDock no se ve afectada).',
+      'households.recentlyJoinedHint': 'Personas aprobadas en los últimos 30 días. Marca a alguien para vigilarlo sin eliminarlo; Eliminar lo quita por completo de tu lista de membresía (su cuenta de FaithDock no se ve afectada).',
       'households.invitedOn': 'invitado el', 'households.resend': 'Reenviar', 'households.sending': 'Enviando...',
       'households.yourChurch': 'Tu iglesia', 'households.sentBang': '¡Enviado!', 'households.unnamed': 'Sin nombre',
       'households.flagged': 'Marcado', 'households.joinedOn': 'se unió el', 'households.unflag': 'Desmarcar', 'households.flag': 'Marcar',
@@ -1571,6 +1579,12 @@
       'pricing.registerChurchFirstThenUpgrade': 'Registra tu iglesia primero y luego vuelve para mejorar tu plan.',
       'churchHome.makeThisMyChurchHome': 'Marcar como mi Iglesia de Origen', 'churchHome.thisIsYourChurchHome': 'Esta es tu Iglesia de Origen',
       'churchHome.couldNotIdentifyChurch': 'No se pudo identificar esta iglesia.', 'churchHome.noLongerYourChurchHome': 'Ya no es tu Iglesia de Origen.',
+      'churchHome.requestPending': 'Solicitud enviada — esperando aprobación', 'churchHome.requestSent': 'Tu solicitud se envió a la iglesia. Serás miembro cuando la aprueben.',
+      'members.title': 'Miembros', 'members.pendingRequests': 'Solicitudes pendientes', 'members.noPending': 'No hay solicitudes esperando decisión.',
+      'members.approve': 'Aprobar', 'members.reject': 'Rechazar', 'members.remove': 'Quitar',
+      'members.approved': 'Miembro', 'members.pending': 'Pendiente', 'members.rejected': 'Rechazado',
+      'members.confirmRemove': '¿Quitar a esta persona de tu iglesia? Podrá solicitar unirse de nuevo más adelante.',
+      'members.noMembers': 'Aún no hay miembros.', 'members.membersHint': 'Personas que eligieron tu iglesia como su Iglesia de Origen. Aprobar a alguien lo convierte en miembro; los miembros son a quienes se aplican tus funciones exclusivas para miembros.',
       'dashGroups.editGroup': 'Editar grupo', 'dashGroups.nameRequired': 'El nombre del grupo es obligatorio.',
       'dashGroups.removeWordFromName': 'Por favor elimina "{word}" del nombre del grupo.', 'dashGroups.removeWordFromDescription': 'Por favor elimina "{word}" de la descripción.',
       'dashGroups.planLimitPerChurch': 'Tu plan incluye hasta {limit} grupos por iglesia. Contáctanos sobre Multi-Iglesia para más espacio.',
@@ -5700,9 +5714,22 @@
           </tbody>
         </table>
 
+        <!-- Membership review (migration 035). Sits above Recently
+             joined deliberately: this is the panel with something to
+             DECIDE, and a queue nobody notices is the same as no queue.
+             Only rendered for an owner or staff with can_manage_members;
+             loadMembersPanel() hides the whole thing otherwise. -->
+        <div class="side-note" id="dir-members-wrap" style="display:none;max-width:640px;">
+          <h4 data-i18n="members.title">Members</h4>
+          <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:12px;" data-i18n="members.membersHint">People who chose your church as their Church Home. Approving someone makes them a member; members are who your members-only features apply to.</p>
+          <div id="dir-members-pending" style="margin-bottom:14px;"></div>
+          <div id="dir-members-list"></div>
+          <div id="dir-members-status" style="display:none;font-size:12px;margin-top:10px;"></div>
+        </div>
+
         <div class="side-note" id="dir-recently-joined-wrap" style="display:none;max-width:640px;">
           <h4 data-i18n="households.recentlyJoined">Recently joined</h4>
-          <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:12px;" data-i18n="households.recentlyJoinedHint">People who joined in the last 30 days. Membership stays instant for everyone — this is just a quick glance after the fact, not a gate anyone has to wait on. Flag someone to keep an eye on them without removing them; Remove takes them off your membership list entirely (their FaithDock account itself is unaffected).</p>
+          <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:12px;" data-i18n="households.recentlyJoinedHint">People approved in the last 30 days. Flag someone to keep an eye on them without removing them; Remove takes them off your membership list entirely (their FaithDock account itself is unaffected).</p>
           <div id="dir-recently-joined-list"></div>
         </div>
 
@@ -6202,6 +6229,7 @@
                    visitors send from the church's public page (see
                    migration 032_church_give_message_toggles.sql). -->
               <label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-receive-messages"> <span data-i18n="staffPerms.receiveMessages">Receive contact messages sent to this church</span></label>
+              <label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-manage-members"> <span data-i18n="staffPerms.manageMembers">Approve and manage church members</span></label>
               <label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-profile"> <span data-i18n="staffPerms.editProfile">Edit church profile</span></label>
             </div>
             <button class="export-btn" id="team-invite-btn" style="width:100%;justify-content:center;margin-top:14px;" data-i18n="dashSettings.addToTeam">Send invite</button>
@@ -6446,7 +6474,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-16-v62 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-16-v63 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -6477,6 +6505,7 @@
     <label class="filter-check" style="margin-top:10px;"><input type="checkbox" id="perm-groups"> <span data-i18n="staffPerms.manageGroups">Create and manage groups</span></label>
     <label class="filter-check" style="margin-top:10px;"><input type="checkbox" id="perm-messages"> <span data-i18n="staffPerms.manageMessages">Send messages and view delivery data</span></label>
     <label class="filter-check" style="margin-top:10px;"><input type="checkbox" id="perm-receive-messages"> <span data-i18n="staffPerms.receiveMessages">Receive contact messages sent to this church</span></label>
+    <label class="filter-check" style="margin-top:10px;"><input type="checkbox" id="perm-manage-members"> <span data-i18n="staffPerms.manageMembers">Approve and manage church members</span></label>
     <label class="filter-check" style="margin-top:10px;"><input type="checkbox" id="perm-profile"> <span data-i18n="staffPerms.editProfile">Edit church profile</span></label>
     <!-- Owner-only, tier-gated -- shown/hidden by loadTeamPanel's click
          handler (data-manager / data-viewer-is-owner on the gear button),
@@ -11665,7 +11694,7 @@
       var activeChurchIdForOwned = getActiveChurchId();
       var chosenChurch = (activeChurchIdForOwned && owned.filter(function(c){ return c.id === activeChurchIdForOwned; })[0]) || owned[0];
       if (chosenChurch.id !== activeChurchIdForOwned) setActiveChurchId(chosenChurch.id);
-      return { id: chosenChurch.id, name: chosenChurch.name, denomination: chosenChurch.denomination, planType: chosenChurch.plan_type, role: 'owner', canManageEvents: true, canManageGiving: true, canManageBilling: true, canEditProfile: true, canManageGroups: true, canManageMessages: true, isManager: true, ownedChurches: owned };
+      return { id: chosenChurch.id, name: chosenChurch.name, denomination: chosenChurch.denomination, planType: chosenChurch.plan_type, role: 'owner', canManageEvents: true, canManageGiving: true, canManageBilling: true, canEditProfile: true, canManageGroups: true, canManageMessages: true, canManageMembers: true, isManager: true, ownedChurches: owned };
     }
 
     // No .limit(1) here either, as of this change -- church_staff's
@@ -11684,17 +11713,17 @@
     // longer exists as a column (migration 029: billing is owner-only
     // with no exceptions, the ability was removed entirely, not just
     // defaulted off).
-    var { data: staffRows, error: staffError } = await supabase.from('church_staff').select('church_id, can_manage_events, can_manage_giving, can_edit_profile, can_manage_groups, can_manage_messages, is_manager, receives_contact_messages, churches(id, name, denomination, plan_type)').eq('user_id', userId);
+    var { data: staffRows, error: staffError } = await supabase.from('church_staff').select('church_id, can_manage_events, can_manage_giving, can_edit_profile, can_manage_groups, can_manage_messages, is_manager, receives_contact_messages, can_manage_members, churches(id, name, denomination, plan_type)').eq('user_id', userId);
     if (staffError) { console.error('getMyChurch (staff lookup):', staffError); }
     var staffedChurches = (staffRows || []).filter(function(sr){ return sr.churches; }).map(function(sr){
       var c = sr.churches;
-      return { id: c.id, name: c.name, denomination: c.denomination, plan_type: c.plan_type, can_manage_events: !!sr.can_manage_events, can_manage_giving: !!sr.can_manage_giving, can_edit_profile: !!sr.can_edit_profile, can_manage_groups: !!sr.can_manage_groups, can_manage_messages: !!sr.can_manage_messages, is_manager: !!sr.is_manager, receives_contact_messages: !!sr.receives_contact_messages };
+      return { id: c.id, name: c.name, denomination: c.denomination, plan_type: c.plan_type, can_manage_events: !!sr.can_manage_events, can_manage_giving: !!sr.can_manage_giving, can_edit_profile: !!sr.can_edit_profile, can_manage_groups: !!sr.can_manage_groups, can_manage_messages: !!sr.can_manage_messages, is_manager: !!sr.is_manager, receives_contact_messages: !!sr.receives_contact_messages, can_manage_members: !!sr.can_manage_members };
     });
     if (staffedChurches.length) {
       var activeChurchIdForStaffed = getActiveChurchId();
       var chosenStaffed = (activeChurchIdForStaffed && staffedChurches.filter(function(sc){ return sc.id === activeChurchIdForStaffed; })[0]) || staffedChurches[0];
       if (chosenStaffed.id !== activeChurchIdForStaffed) setActiveChurchId(chosenStaffed.id);
-      return { id: chosenStaffed.id, name: chosenStaffed.name, denomination: chosenStaffed.denomination, planType: chosenStaffed.plan_type, role: 'staff', canManageEvents: chosenStaffed.can_manage_events, canManageGiving: chosenStaffed.can_manage_giving, canEditProfile: chosenStaffed.can_edit_profile, canManageGroups: chosenStaffed.can_manage_groups, canManageMessages: chosenStaffed.can_manage_messages, isManager: chosenStaffed.is_manager, receivesContactMessages: chosenStaffed.receives_contact_messages, staffedChurches: staffedChurches };
+      return { id: chosenStaffed.id, name: chosenStaffed.name, denomination: chosenStaffed.denomination, planType: chosenStaffed.plan_type, role: 'staff', canManageEvents: chosenStaffed.can_manage_events, canManageGiving: chosenStaffed.can_manage_giving, canEditProfile: chosenStaffed.can_edit_profile, canManageGroups: chosenStaffed.can_manage_groups, canManageMessages: chosenStaffed.can_manage_messages, canManageMembers: chosenStaffed.can_manage_members, isManager: chosenStaffed.is_manager, receivesContactMessages: chosenStaffed.receives_contact_messages, staffedChurches: staffedChurches };
     }
 
     // church_staff has RLS that depends on the server independently
@@ -15916,6 +15945,7 @@
       if (s.can_manage_groups) rowAbilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('dash.groups') + '</span>');
       if (s.can_manage_messages) rowAbilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('dash.messages') + '</span>');
       if (s.receives_contact_messages) rowAbilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('staffPerms.receiveMessagesTag') + '</span>');
+      if (s.can_manage_members) rowAbilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('staffPerms.manageMembersTag') + '</span>');
       if (s.can_edit_profile) rowAbilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('dashOverview.permProfile') + '</span>');
       var rowAbilityTagsHtml = '<div style="margin-top:5px;display:flex;flex-wrap:wrap;gap:4px;">'
         + (rowAbilityTags.length ? rowAbilityTags.join('') : '<span style="font-size:11.5px;color:var(--ink-mute);">' + window.t('dashOverview.permViewOnly') + '</span>')
@@ -15932,7 +15962,7 @@
         // which loadDirectoryPeople() already populates unconditionally
         // at dashboard load -- no separate fetch needed here.
         + (s.user_id ? '<button class="qr-btn icon-tip" data-tip="' + window.t('dashDir.viewProfile') + '" data-view-person-id="' + s.user_id + '" aria-label="' + window.t('dashDir.viewProfile') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg></button>' : '')
-        + (canActOnThisRow ? '<button class="qr-btn icon-tip" data-tip="' + window.t('dashSettings.permissions') + '" data-manage-permissions-id="' + s.staff_id + '" data-manage-permissions-name="' + name.replace(/"/g, '&quot;') + '" data-events="' + s.can_manage_events + '" data-giving="' + s.can_manage_giving + '" data-groups="' + s.can_manage_groups + '" data-messages="' + s.can_manage_messages + '" data-receive-messages="' + s.receives_contact_messages + '" data-manager="' + s.is_manager + '" data-profile="' + s.can_edit_profile + '" data-viewer-is-owner="' + isOwner + '" aria-label="' + window.t('dashSettings.permissions') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg></button>' : '')
+        + (canActOnThisRow ? '<button class="qr-btn icon-tip" data-tip="' + window.t('dashSettings.permissions') + '" data-manage-permissions-id="' + s.staff_id + '" data-manage-permissions-name="' + name.replace(/"/g, '&quot;') + '" data-events="' + s.can_manage_events + '" data-giving="' + s.can_manage_giving + '" data-groups="' + s.can_manage_groups + '" data-messages="' + s.can_manage_messages + '" data-receive-messages="' + s.receives_contact_messages + '" data-manage-members="' + s.can_manage_members + '" data-manager="' + s.is_manager + '" data-profile="' + s.can_edit_profile + '" data-viewer-is-owner="' + isOwner + '" aria-label="' + window.t('dashSettings.permissions') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg></button>' : '')
         + (canActOnThisRow ? '<button class="qr-btn" data-remove-staff-id="' + s.staff_id + '" aria-label="' + window.t('dashSettings.removeFromTeam') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>' : '')
         + '</span></div>';
     });
@@ -16000,6 +16030,7 @@
           + '<label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-groups"> ' + window.t('staffPerms.manageGroups') + '</label>'
           + '<label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-messages"> ' + window.t('staffPerms.manageMessages') + '</label>'
           + '<label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-receive-messages"> ' + window.t('staffPerms.receiveMessages') + '</label>'
+          + '<label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-manage-members"> ' + window.t('staffPerms.manageMembers') + '</label>'
           + '<label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-profile"> ' + window.t('staffPerms.editProfile') + '</label>'
           + '</div>';
         // Owner-only, and only on tiers whose plan_tiers.can_assign_manager
@@ -18374,6 +18405,7 @@
     document.getElementById('perm-groups').checked = permBtn.getAttribute('data-groups') === 'true';
     document.getElementById('perm-messages').checked = permBtn.getAttribute('data-messages') === 'true';
     document.getElementById('perm-receive-messages').checked = permBtn.getAttribute('data-receive-messages') === 'true';
+    document.getElementById('perm-manage-members').checked = permBtn.getAttribute('data-manage-members') === 'true';
     document.getElementById('perm-profile').checked = permBtn.getAttribute('data-profile') === 'true';
     // Manager checkbox: only the actual owner can see/change it --
     // matches update_staff_abilities()'s server-side rule that only
@@ -18414,7 +18446,8 @@
         p_can_manage_groups: document.getElementById('perm-groups').checked,
         p_can_manage_messages: document.getElementById('perm-messages').checked,
         p_is_manager: document.getElementById('perm-manager').checked,
-        p_receives_contact_messages: document.getElementById('perm-receive-messages').checked
+        p_receives_contact_messages: document.getElementById('perm-receive-messages').checked,
+        p_can_manage_members: document.getElementById('perm-manage-members').checked
       });
       staffPermissionsSaveBtn.disabled = false;
 
@@ -18848,8 +18881,120 @@
   loadDuplicatesPanel();
 
   // ============================================================
-  // Recently joined — after-the-fact review instead of gating
-  // sign-up itself. Deliberately self-contained (name + date only,
+  // Membership review — the decision queue behind migration 035.
+  // Everything here goes through RPCs rather than table reads/writes,
+  // for two reasons: the RPCs carry the authorization check
+  // (can_manage_church_members) so a staffer without the ability gets a
+  // real error instead of a silently empty list, and a direct .delete()
+  // from the client would depend on an RLS policy this repo can't see --
+  // the exact shape of silent zero-row failure that made unregistering
+  // appear to work for weeks (migration 033).
+  // ============================================================
+  function membersStatusTag(status){
+    if (status === 'approved') return '<span class="tag sage" style="font-size:10px;">' + window.t('members.approved') + '</span>';
+    if (status === 'rejected') return '<span class="tag clay" style="font-size:10px;">' + window.t('members.rejected') + '</span>';
+    return '<span class="tag gold" style="font-size:10px;">' + window.t('members.pending') + '</span>';
+  }
+
+  function membersRowHtml(m, includeApprove){
+    var name = (m.full_name || '').trim() || window.t('households.unnamed');
+    var email = m.email ? '<span style="color:var(--ink-mute);font-size:12px;"> ' + String(m.email).replace(/</g, '&lt;') + '</span>' : '';
+    var actions = '';
+    if (includeApprove) {
+      actions += '<button class="export-btn" data-approve-member="' + m.user_id + '" style="padding:5px 10px;font-size:11.5px;">' + window.t('members.approve') + '</button>'
+        + '<button class="export-btn" data-reject-member="' + m.user_id + '" style="padding:5px 10px;font-size:11.5px;">' + window.t('members.reject') + '</button>';
+    }
+    actions += '<button class="qr-btn" data-remove-member="' + m.user_id + '" aria-label="' + window.t('members.remove') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>';
+    return '<div class="info-row" style="justify-content:space-between;gap:10px;flex-wrap:wrap;">'
+      + '<span>' + name.replace(/</g, '&lt;') + email + ' ' + membersStatusTag(m.status) + '</span>'
+      + '<span style="display:flex;gap:6px;">' + actions + '</span>'
+      + '</div>';
+  }
+
+  async function loadMembersPanel(){
+    var wrap = document.getElementById('dir-members-wrap');
+    var pendingEl = document.getElementById('dir-members-pending');
+    var listEl = document.getElementById('dir-members-list');
+    if (!wrap || !pendingEl || !listEl) return;
+    var myChurch = await getMyChurch();
+    // canManageMembers is false for a staffer without the ability and
+    // for every non-staff visitor, so this hides rather than showing an
+    // empty panel that looks broken.
+    if (!myChurch || !myChurch.canManageMembers) { wrap.style.display = 'none'; return; }
+
+    var { data, error } = await supabase.rpc('get_church_membership_requests', { target_church_id: myChurch.id });
+    if (error) {
+      // Surfaced, not swallowed -- an unreadable queue and an empty
+      // queue mean very different things to a church.
+      console.error('loadMembersPanel:', error);
+      wrap.style.display = 'none';
+      return;
+    }
+
+    wrap.style.display = 'block';
+    var rows = data || [];
+    var pending = rows.filter(function(m){ return m.status === 'pending'; });
+    var decided = rows.filter(function(m){ return m.status !== 'pending'; });
+
+    pendingEl.innerHTML = '<div style="font-weight:600;font-size:13px;margin-bottom:6px;">' + window.t('members.pendingRequests')
+      + (pending.length ? ' (' + pending.length + ')' : '') + '</div>'
+      + (pending.length
+        ? pending.map(function(m){ return membersRowHtml(m, true); }).join('')
+        : '<p style="color:var(--ink-mute);font-size:12.5px;">' + window.t('members.noPending') + '</p>');
+
+    listEl.innerHTML = decided.length
+      ? decided.map(function(m){ return membersRowHtml(m, m.status === 'rejected'); }).join('')
+      : '<p style="color:var(--ink-mute);font-size:12.5px;">' + window.t('members.noMembers') + '</p>';
+  }
+  window.loadMembersPanel = loadMembersPanel;
+  loadMembersPanel();
+
+  document.addEventListener('click', async function(ev){
+    if (!ev.target.closest) return;
+    var approveBtn = ev.target.closest('[data-approve-member]');
+    var rejectBtn = ev.target.closest('[data-reject-member]');
+    var removeBtn = ev.target.closest('[data-remove-member]');
+    if (!approveBtn && !rejectBtn && !removeBtn) return;
+
+    var statusEl = document.getElementById('dir-members-status');
+    var myChurch = await getMyChurch();
+    if (!myChurch) return;
+
+    var result;
+    if (removeBtn) {
+      if (!confirm(window.t('members.confirmRemove'))) return;
+      result = await supabase.rpc('remove_church_member', {
+        target_church_id: myChurch.id, target_user_id: removeBtn.getAttribute('data-remove-member')
+      });
+    } else {
+      var targetBtn = approveBtn || rejectBtn;
+      result = await supabase.rpc('set_church_membership_status', {
+        target_church_id: myChurch.id,
+        target_user_id: targetBtn.getAttribute(approveBtn ? 'data-approve-member' : 'data-reject-member'),
+        new_status: approveBtn ? 'approved' : 'rejected'
+      });
+    }
+
+    // Both RPCs return `found` -- false means the row wasn't there to
+    // act on, which is a real outcome worth reporting rather than
+    // treating as success (same lesson as migration 033's silent
+    // zero-row delete).
+    if (result.error || result.data === false) {
+      if (statusEl) {
+        statusEl.textContent = (result.error && result.error.message) || window.t('members.noMembers');
+        statusEl.style.color = 'var(--clay)';
+        statusEl.style.display = 'block';
+      }
+      return;
+    }
+    if (statusEl) statusEl.style.display = 'none';
+    loadMembersPanel();
+    if (typeof loadRecentlyJoinedPanel === 'function') loadRecentlyJoinedPanel();
+  });
+
+  // ============================================================
+  // Recently joined — after-the-fact review of already-approved
+  // members. Deliberately self-contained (name + date only,
   // no email cross-reference against directoryPeopleRaw) since that
   // array loads asynchronously and might not be populated yet by the
   // time this panel self-loads at the same point in the page's init.
@@ -22622,6 +22767,7 @@
       if (myChurchForStaffRow.canManageGroups) profileAbilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('dash.groups') + '</span>');
       if (myChurchForStaffRow.canManageMessages) profileAbilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('dash.messages') + '</span>');
       if (myChurchForStaffRow.receivesContactMessages) profileAbilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('staffPerms.receiveMessagesTag') + '</span>');
+      if (myChurchForStaffRow.canManageMembers) profileAbilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('staffPerms.manageMembersTag') + '</span>');
       if (myChurchForStaffRow.canEditProfile) profileAbilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('dashOverview.permProfile') + '</span>');
       document.getElementById('profile-staff-abilities-tags').innerHTML = profileAbilityTags.length ? profileAbilityTags.join('') : '<span style="font-size:11.5px;color:var(--ink-mute);">' + window.t('dashOverview.permViewOnly') + '</span>';
       staffRow.style.display = 'flex';
@@ -23268,8 +23414,28 @@
       return;
     }
 
-    var { data: homeRows } = await supabase.from('church_memberships').select('church_id').eq('user_id', userData.user.id).eq('is_permanent', true).limit(1);
-    var currentHomeChurchId = (homeRows && homeRows.length) ? homeRows[0].church_id : null;
+    // Reads every church-home row rather than .limit(1), because the two
+    // questions this has to answer are now different questions: "what is
+    // this person's approved church home" and "have they got a request
+    // in with THIS church". A single arbitrary row can't answer both --
+    // someone can have an approved home at one church and a pending
+    // request at another, and picking whichever row came back first
+    // would show the wrong state for one of them.
+    var { data: homeRows } = await supabase.from('church_memberships').select('church_id, status').eq('user_id', userData.user.id).eq('is_permanent', true);
+    var thisChurchRow = (homeRows || []).filter(function(r){ return r.church_id === churchId; })[0];
+    var approvedHome = (homeRows || []).filter(function(r){ return r.status === 'approved'; })[0];
+    var currentHomeChurchId = approvedHome ? approvedHome.church_id : null;
+
+    // Pending is its own state, not a quieter version of "you're in" --
+    // membership now means the church actually said yes (migration 035).
+    if (thisChurchRow && thisChurchRow.status === 'pending') {
+      btn.textContent = window.t('churchHome.requestPending');
+      btn.classList.remove('btn-registered');
+      btn.disabled = true;
+      btn.setAttribute('data-state', 'pending');
+      return;
+    }
+    btn.disabled = false;
 
     if (currentHomeChurchId === churchId) {
       btn.textContent = '✓ ' + window.t('churchHome.thisIsYourChurchHome');
@@ -23359,8 +23525,16 @@
       }
 
       churchHomeBtn.disabled = true;
+      // status is sent explicitly, and it matters for one case: someone
+      // previously rejected who is asking again. Their row already
+      // exists, so this upsert is an UPDATE -- omitting status would
+      // leave 'rejected' sitting there untouched and the click would do
+      // nothing at all, with no error (see migration 035's trigger,
+      // which allows exactly rejected -> pending and nothing else). For
+      // a brand-new row the trigger decides the value regardless, so
+      // sending 'pending' here can never be a way to self-approve.
       var { error } = await supabase.from('church_memberships').upsert({
-        user_id: userData.user.id, church_id: matched.id, is_permanent: true
+        user_id: userData.user.id, church_id: matched.id, is_permanent: true, status: 'pending'
       }, { onConflict: 'user_id,church_id' });
       // Church Home is meant to be at least as significant as
       // following a church — previously setting one didn't touch
@@ -23381,8 +23555,17 @@
         statusEl.style.display = 'block';
         return;
       }
-      checkChurchHomeStatus(matched.id);
-      statusEl.textContent = window.t('church.setAsChurchHome');
+      // Awaited so the message can report what actually happened rather
+      // than assume. Most requests now land as pending, but an
+      // already-invited person is auto-approved by the trigger, and
+      // telling them their request is "awaiting approval" when they're
+      // already in would be wrong.
+      await checkChurchHomeStatus(matched.id);
+      var resultingState = churchHomeBtn.getAttribute('data-state');
+      statusEl.textContent = resultingState === 'pending'
+        ? window.t('churchHome.requestSent')
+        : window.t('church.setAsChurchHome');
+      statusEl.style.color = 'var(--sage)';
       statusEl.style.display = 'block';
     });
   }
@@ -24007,6 +24190,7 @@
       can_edit_profile: abilities.can_edit_profile,
       is_manager: abilities.is_manager,
       receives_contact_messages: abilities.receives_contact_messages,
+      can_manage_members: abilities.can_manage_members,
       status: 'pending',
       responded_at: null
     }, { onConflict: 'church_id,email' });
@@ -24068,7 +24252,8 @@
         can_manage_messages: !!(document.getElementById('invite-perm-messages') && document.getElementById('invite-perm-messages').checked),
         can_edit_profile: !!(document.getElementById('invite-perm-profile') && document.getElementById('invite-perm-profile').checked),
         is_manager: !!(isManagerCheckbox && isManagerCheckbox.checked),
-        receives_contact_messages: !!(document.getElementById('invite-perm-receive-messages') && document.getElementById('invite-perm-receive-messages').checked)
+        receives_contact_messages: !!(document.getElementById('invite-perm-receive-messages') && document.getElementById('invite-perm-receive-messages').checked),
+        can_manage_members: !!(document.getElementById('invite-perm-manage-members') && document.getElementById('invite-perm-manage-members').checked)
       };
 
       // Multi-church: whatever's checked in the church list (only
