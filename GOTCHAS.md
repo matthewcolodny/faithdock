@@ -3780,3 +3780,27 @@ Requested: Send to, Groups and Events should be dropdowns while still allowing s
 Verified: all three render as dropdowns; the panel opens, stays open across multiple ticks and closes on an outside click; the label reads "None selected" / "1 selected" / "All selected" and "None available" for an empty list; a rebuilt list still counts; and the label follows a language switch in both directions ("1 seleccionadas", "Ninguna seleccionada").
 
 Build `2026-09-17-v98`. No migration.
+
+---
+
+## "Back to my church" went to the wrong dashboard, and threw away edits
+
+Reported: editing an event from the dashboard and clicking "Back to my church" lands on the multi-church overview rather than the dashboard you came from -- and any edits are gone.
+
+**The cause.** `loadDashboardHeader()` sends a multi-church owner to the churches overview whenever the dashboard route has no sub-view:
+
+```
+if (window._dashMultiOwner && curRoute.base === 'dashboard' && !curDashKey) curDashKey = 'churches';
+```
+
+Sensible for landing on the dashboard generally; wrong for "back" from an event, which is reached from the Events tab and should return there. Fixed by targeting `#dashboard/events`.
+
+**Both attributes had to change.** The `[data-route]` click handler navigates by the `data-route` value and ignores the `href` entirely, so changing only the href would have looked right in the markup and behaved identically to before. Verified both now read `dashboard/events`.
+
+**The unsaved-changes guard snapshots every field, not a named list.** This form has grown church scope, rooms, ministries, tags, price, capacity, recurrence, visibility and registration questions -- an enumerated list of fields to watch is a list somebody forgets to extend, and it fails *silently*, reporting "no changes" on precisely the field just edited. Serialising everything in `#page-create-event` cannot drift. Explicitly verified that a checkbox toggle registers as dirty, since that is the shape an enumerated list most often misses.
+
+The baseline is captured **after** the form is populated, not before -- otherwise every edit session would look dirty the instant it opened, because the baseline would be an empty form. A fresh create form is its own baseline, so typing into it counts too.
+
+The click interception runs in the **capture phase**, ahead of the generic `[data-route]` handler, so navigation is stopped before it starts rather than undone afterwards. Confirming leaves and clears the baseline, so a later navigation from another page cannot re-trigger the prompt. A `beforeunload` handler covers refresh and tab-close, which no click handler can see.
+
+Build `2026-09-17-v99`. No migration.

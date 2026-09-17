@@ -1039,6 +1039,7 @@
       'rte.bold': 'Bold', 'rte.italic': 'Italic', 'rte.numberedList': 'Numbered list', 'rte.bulletedList': 'Bulleted list', 'rte.addLink': 'Add link', 'rte.removeLink': 'Remove link',
       'rte.linkUrlPrompt': 'Link URL (include https://)', 'rte.linksMustStartWith': 'Links must start with https:// or mailto:',
       'audience.preschool': 'Preschool', 'audience.children': 'Children', 'audience.teens': 'Teens', 'audience.adults': 'Adults', 'audience.seniors': 'Seniors', 'audience.parents': 'Parents',
+      'ce.unsavedChangesConfirm': 'You have unsaved changes to this event. Leave without saving?',
       'ce.backToDashboard': '← Back to my church', 'ce.newEvent': 'New event', 'ce.createAnEvent': 'Create an event', 'ce.editEvent': 'Edit event', 'ce.postsUnderChurchName': 'Posts under {church}.', 'ce.postingAs': 'Posting as',
       'ce.advancedOptions': 'Advanced options', 'ce.advancedOptionsSub': 'registration, tickets, recurrence, and more',
       'ce.eventTitle': 'Event title', 'ce.eventTitlePlaceholder': 'Fall Community Picnic', 'ce.description': 'Description', 'ce.descriptionPlaceholder': "What's happening, who it's for",
@@ -1883,6 +1884,7 @@
       'rte.bold': 'Negrita', 'rte.italic': 'Cursiva', 'rte.numberedList': 'Lista numerada', 'rte.bulletedList': 'Lista con viñetas', 'rte.addLink': 'Agregar enlace', 'rte.removeLink': 'Quitar enlace',
       'rte.linkUrlPrompt': 'URL del enlace (incluye https://)', 'rte.linksMustStartWith': 'Los enlaces deben comenzar con https:// o mailto:',
       'audience.preschool': 'Preescolar', 'audience.children': 'Niños', 'audience.teens': 'Adolescentes', 'audience.adults': 'Adultos', 'audience.seniors': 'Adultos mayores', 'audience.parents': 'Padres',
+      'ce.unsavedChangesConfirm': 'Tienes cambios sin guardar en este evento. ¿Salir sin guardar?',
       'ce.backToDashboard': '← Volver a mi iglesia', 'ce.newEvent': 'Nuevo evento', 'ce.createAnEvent': 'Crear un evento', 'ce.editEvent': 'Editar evento', 'ce.postsUnderChurchName': 'Se publica bajo {church}.', 'ce.postingAs': 'Publicando como',
       'ce.advancedOptions': 'Opciones avanzadas', 'ce.advancedOptionsSub': 'inscripción, entradas, repetición y más',
       'ce.eventTitle': 'Título del evento', 'ce.eventTitlePlaceholder': 'Picnic comunitario de otoño', 'ce.description': 'Descripción', 'ce.descriptionPlaceholder': 'Qué va a pasar, para quién es',
@@ -5440,7 +5442,7 @@ Groups</span>
 <section class="page" id="page-create-event">
   <div class="auth-wrap" style="max-width:560px;">
     <div class="auth-card">
-      <a href="#dashboard" data-route="dashboard" style="display:inline-block;font-size:12.5px;color:var(--ink-mute);border-bottom:1px solid var(--line);margin-bottom:14px;" data-i18n="ce.backToDashboard">← Back to my church</a>
+      <a href="#dashboard/events" data-route="dashboard/events" style="display:inline-block;font-size:12.5px;color:var(--ink-mute);border-bottom:1px solid var(--line);margin-bottom:14px;" data-i18n="ce.backToDashboard">← Back to my church</a>
       <div class="eyebrow" data-i18n="ce.newEvent">New event</div>
       <h2 style="font-family:'Fraunces';font-size:22px;margin-bottom:6px;" id="ce-heading" data-i18n="ce.createAnEvent">Create an event</h2>
       <div id="ce-church-picker-wrap" style="display:none;margin-bottom:8px;">
@@ -5734,7 +5736,7 @@ Groups</span>
         <button class="export-btn" id="ce-save-draft-btn" style="flex:1;justify-content:center;padding:13px;font-size:14.5px;margin-top:0;box-sizing:border-box;" data-i18n="ce.saveAsDraft">Save as draft</button>
         <button class="auth-submit" id="ce-submit-btn" style="flex:1;margin-top:0;box-sizing:border-box;" data-i18n="ce.publish">Publish</button>
       </div>
-      <div class="auth-note"><a href="#dashboard" data-route="dashboard" style="border-bottom:1px solid var(--gold);" data-i18n="ce.backToDashboard">← Back to my church</a></div>
+      <div class="auth-note"><a href="#dashboard/events" data-route="dashboard/events" style="border-bottom:1px solid var(--gold);" data-i18n="ce.backToDashboard">← Back to my church</a></div>
     </div>
   </div>
 </section>
@@ -6851,7 +6853,7 @@ Groups</span>
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v98 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v99 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -16034,6 +16036,9 @@ Groups</span>
   }
 
   function resetCreateEventForm(){
+    // A fresh form is its own baseline, so starting to type counts as
+    // a change and backing out warns -- the same as editing.
+    setTimeout(function(){ if (window.captureCreateEventSnapshot) window.captureCreateEventSnapshot(); }, 0);
     ceEditingEventId = null;
     ceOriginalPriceCents = null;
     window.ceIsEditing = false;
@@ -16099,6 +16104,73 @@ Groups</span>
   }
   window.resetCreateEventForm = resetCreateEventForm;
 
+  // ============================================================
+  // Unsaved-changes guard for the create/edit event form.
+  //
+  // Requested after the back link was found going to the wrong place:
+  // backing out of a half-edited event threw the edits away silently.
+  //
+  // The snapshot is a serialisation of every field rather than a list
+  // of named ones, deliberately. This form has grown a lot -- church
+  // scope, rooms, ministries, tags, price, capacity, recurrence,
+  // visibility, registration questions -- and an enumerated list is a
+  // list somebody forgets to extend, which fails SILENTLY as 'no
+  // changes' on exactly the field they just edited.
+  // ============================================================
+  var ceFormSnapshot = null;
+  function serializeCreateEventForm(){
+    var page = document.getElementById('page-create-event');
+    if (!page) return null;
+    var parts = [];
+    page.querySelectorAll('input, select, textarea, [contenteditable="true"]').forEach(function(el){
+      var key = el.id || el.name || el.className;
+      if (el.type === 'checkbox' || el.type === 'radio') parts.push(key + '=' + (el.checked ? '1' : '0'));
+      else if (el.isContentEditable) parts.push(key + '=' + el.innerHTML);
+      else parts.push(key + '=' + el.value);
+    });
+    return parts.join('\u0001');
+  }
+  // Called once the form has finished being populated, so the
+  // baseline is what the person was SHOWN -- not an empty form, which
+  // would make every edit session look dirty the moment it opened.
+  window.captureCreateEventSnapshot = function(){
+    ceFormSnapshot = serializeCreateEventForm();
+  };
+  window.createEventFormIsDirty = function(){
+    if (ceFormSnapshot === null) return false;
+    return serializeCreateEventForm() !== ceFormSnapshot;
+  };
+
+  // Intercepts in the capture phase, ahead of the generic
+  // [data-route] handler, so the navigation can be stopped before it
+  // starts rather than undone afterwards.
+  document.addEventListener('click', function(ev){
+    var link = ev.target.closest ? ev.target.closest('[data-route]') : null;
+    if (!link) return;
+    var page = document.getElementById('page-create-event');
+    if (!page || !page.classList.contains('active')) return;
+    if (page.contains(link) === false && !link.closest('nav')) return;
+    if (!window.createEventFormIsDirty()) return;
+    if (!window.confirm(window.t('ce.unsavedChangesConfirm'))) {
+      ev.preventDefault();
+      ev.stopPropagation();
+    } else {
+      // Leaving on purpose -- drop the baseline so a later navigation
+      // from a different page cannot re-trigger this.
+      ceFormSnapshot = null;
+    }
+  }, true);
+
+  // Covers refresh and tab-close, which no click handler can see. The
+  // browser shows its own wording here; returnValue is what opts in.
+  window.addEventListener('beforeunload', function(ev){
+    var page = document.getElementById('page-create-event');
+    if (!page || !page.classList.contains('active')) return;
+    if (!window.createEventFormIsDirty()) return;
+    ev.preventDefault();
+    ev.returnValue = '';
+  });
+
   async function editEvent(eventId){
     var { data, error } = await supabase.from('events').select('*').eq('id', eventId).limit(1);
     if (error || !data || !data.length) return;
@@ -16113,6 +16185,9 @@ Groups</span>
     // since this event was created.
     refreshCeChurchScope(ev.church_id);
     document.getElementById('ce-heading').textContent = window.t('ce.editEvent');
+    // Baseline captured after this function finishes filling the
+    // form, not before -- see captureCreateEventSnapshot().
+    setTimeout(function(){ if (window.captureCreateEventSnapshot) window.captureCreateEventSnapshot(); }, 0);
     document.getElementById('ce-repeats-section').style.display = 'none';
     updateWritingAssistantAccess();
     updatePaidEventsAccess(!!ev.price_cents);
