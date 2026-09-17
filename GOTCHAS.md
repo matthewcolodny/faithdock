@@ -3804,3 +3804,23 @@ The baseline is captured **after** the form is populated, not before -- otherwis
 The click interception runs in the **capture phase**, ahead of the generic `[data-route]` handler, so navigation is stopped before it starts rather than undone afterwards. Confirming leaves and clears the baseline, so a later navigation from another page cannot re-trigger the prompt. A `beforeunload` handler covers refresh and tab-close, which no click handler can see.
 
 Build `2026-09-17-v99`. No migration.
+
+---
+
+## Focused check-in mode
+
+A tablet propped at a door ran the whole dashboard. Directory names, emails and phone numbers, Revenue, Messages -- all one tap away on an unattended shared device. Focus mode hides the dashboard shell so the device shows the roster and nothing else.
+
+**It is not a security boundary and must not be mistaken for one.** The data is still reachable by anyone who edits the URL, because it is the same session. What this closes is the *casual* path, which is the realistic risk for a device sitting on a table in a foyer. The real boundary is `can_check_in` (migration 045) and, eventually, account-less per-event links -- this sits alongside those, not instead of them.
+
+**The grid collapses to one column rather than just hiding the sidebar.** `.dash` is `grid-template-columns: 220px 1fr`, so hiding `.dash-side` alone would leave the 220px track reserved and a dead margin down the side. Verified: `220px 789px` becomes a single `1024px`.
+
+Header and footer go too, since they carry navigation out of the dashboard entirely -- which is the thing being prevented. Hiding the sidebar while leaving a site header with full navigation in it would have looked done and achieved nothing.
+
+**Persisted in localStorage**, so a tablet that reloads or is rebooted mid-morning comes back focused instead of quietly re-exposing the dashboard. Every access is wrapped in try/catch: storage throws in private windows and with site data blocked, and a check-in desk must not fail to open because of that. Restoring also routes to the check-in tab -- otherwise a reload would land on whatever tab was last open with the shell hidden, which looks like a broken page rather than a mode.
+
+**The exit control is deliberately conspicuous**, a full banner rather than a small link. A volunteer who cannot find the way out hands the tablet back instead of working around it, and an exit nobody can find is how a "temporary" mode becomes permanent.
+
+Verified: sidebar, header and footer hide and restore; the grid collapses and returns; the enter button and exit banner swap; entering routes to check-in; the flag persists and is cleared on exit; and a reload with the flag set comes back focused, on the check-in tab, with the banner translated.
+
+Build `2026-09-17-v100`. No migration.

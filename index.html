@@ -410,6 +410,9 @@
       'staffPerms.manageMembers': 'Approve and manage church members', 'staffPerms.manageMembersTag': 'Members', 'staffPerms.checkIn': 'Check people in at events', 'staffPerms.checkInTag': 'Check-in',
       'dashGiving.bankAccount': 'Bank account',
       'dashMsg.noneAvailable': 'None available',
+      'dashCheckin.enterFocus': 'Focus mode for this device',
+      'dashCheckin.exitFocus': 'Exit focus mode',
+      'dashCheckin.focusActive': 'Focus mode — only check-in is available on this device.',
       'staffPerms.givingTag': 'Giving',
       'staffPerms.manageRooms': 'Create and manage facility rooms', 'staffPerms.roomsTag': 'Facility',
       'staffPerms.manageMinistries': 'Create and manage ministries', 'staffPerms.ministriesTag': 'Ministries',
@@ -1262,6 +1265,9 @@
       'staffPerms.manageMembers': 'Aprobar y gestionar los miembros de la iglesia', 'staffPerms.manageMembersTag': 'Miembros', 'staffPerms.checkIn': 'Registrar asistentes en los eventos', 'staffPerms.checkInTag': 'Registro',
       'dashGiving.bankAccount': 'Cuenta bancaria',
       'dashMsg.noneAvailable': 'Ninguno disponible',
+      'dashCheckin.enterFocus': 'Modo concentrado para este dispositivo',
+      'dashCheckin.exitFocus': 'Salir del modo concentrado',
+      'dashCheckin.focusActive': 'Modo concentrado — en este dispositivo solo está disponible el registro.',
       'staffPerms.givingTag': 'Donaciones',
       'staffPerms.manageRooms': 'Crear y gestionar salas', 'staffPerms.roomsTag': 'Instalaciones',
       'staffPerms.manageMinistries': 'Crear y gestionar ministerios', 'staffPerms.ministriesTag': 'Ministerios',
@@ -3258,6 +3264,25 @@
 
   /* ---- dashboard ---- */
   .dash{display:grid;grid-template-columns:220px 1fr;min-height:70vh;}
+  /* Focused check-in: a tablet propped at a door should show the
+     roster and nothing else. Without this, every other part of the
+     church -- Directory with names and emails, Revenue, Messages --
+     is one tap away on an unattended shared device. That is a data
+     exposure wearing a layout costume, and it costs almost nothing
+     to close.
+     The grid collapses to a single column rather than merely hiding
+     the sidebar, or the 220px track would stay reserved and leave a
+     dead margin down the side. */
+  body.checkin-focus .dash{grid-template-columns:1fr;}
+  body.checkin-focus .dash-side{display:none;}
+  /* The site header and footer go too -- they carry navigation out of
+     the dashboard entirely, which is the thing being prevented. */
+  body.checkin-focus header,
+  body.checkin-focus footer,
+  body.checkin-focus .promo-bar{display:none;}
+  #checkin-focus-exit{display:none;}
+  body.checkin-focus #checkin-focus-exit{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--brand);color:#fff;padding:10px 16px;border-radius:10px;margin-bottom:18px;font-size:13.5px;}
+  body.checkin-focus #checkin-focus-enter{display:none;}
   @media (max-width:860px){.dash{grid-template-columns:1fr;}}
   /* Grid items default to min-width:auto, i.e. their content's own
      natural min-content width -- not 0 -- so a 1fr track doesn't
@@ -5980,6 +6005,16 @@ Groups</span>
 
       <div class="dash-content" id="dash-checkin">
         <h2 style="font-size:24px;margin-bottom:24px;" data-i18n="dash.checkin">Check-In</h2>
+
+        <!-- Shown only while focused. Deliberately conspicuous: a
+             volunteer who cannot find the way out will hand the tablet
+             back rather than work around it, and an exit nobody can
+             find is how a "temporary" mode becomes permanent. -->
+        <div id="checkin-focus-exit">
+          <span data-i18n="dashCheckin.focusActive">Focus mode — only check-in is available on this device.</span>
+          <button class="export-btn" id="checkin-focus-exit-btn" style="flex-shrink:0;" data-i18n="dashCheckin.exitFocus">Exit focus mode</button>
+        </div>
+        <button class="export-btn" id="checkin-focus-enter" style="margin-bottom:18px;" data-i18n="dashCheckin.enterFocus">Focus mode for this device</button>
         <div class="dash-toolbar" style="align-items:center;">
           <select class="field" id="checkin-event-select" style="max-width:280px;">
             <option value="" data-i18n="dashCheckin.selectEvent">Select an event...</option>
@@ -6853,7 +6888,7 @@ Groups</span>
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v99 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v100 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -22097,6 +22132,51 @@ Groups</span>
   }
   window.bindPresetSelector = bindPresetSelector;
   bindPresetSelector('perm-preset', 'perm-');
+
+  // ============================================================
+  // Focused check-in mode.
+  //
+  // Hides the dashboard shell so a shared device at a door shows the
+  // roster and nothing else. This is a real exposure fix rather than a
+  // layout preference: today an unattended tablet is one tap from the
+  // Directory's names, emails and phone numbers.
+  //
+  // NOT a security boundary, and it must not be mistaken for one --
+  // the data is still reachable by anyone who edits the URL, because
+  // the session is the same session. It closes the CASUAL path, which
+  // is the realistic risk for a device sitting on a table in a foyer.
+  // The real boundary is can_check_in (migration 045) and, eventually,
+  // account-less per-event links.
+  //
+  // Persisted in localStorage so a tablet that reloads or is rebooted
+  // mid-morning comes back focused instead of quietly exposing the
+  // dashboard again. Wrapped in try/catch: storage throws in private
+  // windows and with site data blocked, and a check-in desk must not
+  // fail to open because of that.
+  // ============================================================
+  var CHECKIN_FOCUS_KEY = 'faithdock_checkin_focus';
+  function setCheckinFocus(on){
+    document.body.classList.toggle('checkin-focus', !!on);
+    try {
+      if (on) localStorage.setItem(CHECKIN_FOCUS_KEY, '1');
+      else localStorage.removeItem(CHECKIN_FOCUS_KEY);
+    } catch (e) { /* storage unavailable -- mode still works for this page view */ }
+    if (on && typeof goDash === 'function') goDash('checkin');
+  }
+  window.setCheckinFocus = setCheckinFocus;
+
+  var checkinFocusEnterBtn = document.getElementById('checkin-focus-enter');
+  if (checkinFocusEnterBtn) checkinFocusEnterBtn.addEventListener('click', function(){ setCheckinFocus(true); });
+  var checkinFocusExitBtn = document.getElementById('checkin-focus-exit-btn');
+  if (checkinFocusExitBtn) checkinFocusExitBtn.addEventListener('click', function(){ setCheckinFocus(false); });
+
+  // Restore on load. Routing to check-in happens inside
+  // setCheckinFocus, so a reload lands on the roster rather than on
+  // whatever tab was last open with the shell hidden -- which would
+  // look like a broken page.
+  try {
+    if (localStorage.getItem(CHECKIN_FOCUS_KEY) === '1') setCheckinFocus(true);
+  } catch (e) { /* see above */ }
 
   var checkinEventSelect = document.getElementById('checkin-event-select');
   if (checkinEventSelect) {
