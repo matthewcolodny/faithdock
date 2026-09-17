@@ -3683,3 +3683,21 @@ Verified: every nav entry has a matching panel and there are no orphans; each mo
 One pre-existing oddity noted, not touched: `dash-churches` has no nav link with a `data-dash` attribute -- it is reached by the "Overview" link through a different mechanism. Unrelated to this change.
 
 Build `2026-09-17-v93`. No migration.
+
+---
+
+## Phase 2: abilities for the pages Phase 1b created
+
+`can_manage_rooms`, `can_manage_ministries`, `can_view_revenue`. Until this, the two new pages were visible to any staff member regardless of ability -- the reorganisation was tidier without being correct. This is the part that makes it correct.
+
+**`can_view_revenue` is a different KIND of flag** and worth flagging as such. Every other ability grants the power to CHANGE something; this grants the power to SEE money. It sits in the same list because that is where a permissions UI has to put it, but `can_manage_giving` **implies** it in `getMyChurch()`: someone who can process giving but cannot see totals is an incoherent state, and nobody configuring a treasurer would think to tick both. The implication lives in the client rather than being copied in the database, so the two stay independently revocable.
+
+**A deliberate backfill, unlike 045.** Rooms and ministries used to live inside Settings, where the only thing between a staff member and them was reaching the tab -- anyone who could manage events was already editing them in practice, since events are what rooms and ministries are *for*. Defaulting those people to false would have taken away access they already had and used. So existing staff with `can_manage_events` are backfilled to true; new staff still start false. A one-off preservation of the status quo, not a rule. Contrast 045, which needed no backfill because its OR clause already covered everyone.
+
+**The soft-fetch pattern earned its keep again.** The new columns are fetched in a separate query rather than added to `getMyChurch()`'s select, because that function underpins the entire dashboard and a column that does not exist yet fails the WHOLE select with 42703. Verified with the migration deliberately unrun: `select can_manage_rooms` returns 42703 while `getMyChurch`'s own query still succeeds. Absent reads as "not granted", which is the safe direction for a permission -- the opposite of the visibility toggles, where absent correctly reads as "visible".
+
+**Presets absorbed the new flags into groupings they always belonged to**: an Events Coordinator books rooms and tags ministries because that is what events attach to; an Office Manager books rooms at a front desk; Groups & Discipleship owns ministries as programmes. Verified that all three presets produce the intended ten-flag shapes and that the selector still derives Custom when one is unticked.
+
+Seventeen edit sites for three abilities -- roughly the nine per ability predicted when `can_check_in` went in. The presets are what keep that from reaching the person configuring staff.
+
+Build `2026-09-17-v94`; **migration 047 must be run by hand**, and before deploying: `update_staff_abilities` gains three parameters, so saving permissions fails with PGRST202 in any gap.

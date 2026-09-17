@@ -408,6 +408,9 @@
       'staffPerms.editProfile': 'Edit church profile', 'staffPerms.save': 'Save permissions',
       'staffPerms.receiveMessages': 'Receive contact messages sent to this church', 'staffPerms.receiveMessagesTag': 'Receives Messages',
       'staffPerms.manageMembers': 'Approve and manage church members', 'staffPerms.manageMembersTag': 'Members', 'staffPerms.checkIn': 'Check people in at events', 'staffPerms.checkInTag': 'Check-in',
+      'staffPerms.manageRooms': 'Create and manage facility rooms', 'staffPerms.roomsTag': 'Facility',
+      'staffPerms.manageMinistries': 'Create and manage ministries', 'staffPerms.ministriesTag': 'Ministries',
+      'staffPerms.viewRevenue': 'View revenue and giving totals', 'staffPerms.revenueTag': 'Revenue',
       'staffPerms.presetLabel': 'Role preset', 'staffPerms.presetCustom': 'Custom',
       'staffPerms.presetAdministrator': 'Administrator', 'staffPerms.presetOffice': 'Office Manager',
       'staffPerms.presetEvents': 'Events Coordinator', 'staffPerms.presetFinance': 'Finance',
@@ -1252,6 +1255,9 @@
       'staffPerms.editProfile': 'Editar perfil de la iglesia', 'staffPerms.save': 'Guardar permisos',
       'staffPerms.receiveMessages': 'Recibir mensajes de contacto enviados a esta iglesia', 'staffPerms.receiveMessagesTag': 'Recibe Mensajes',
       'staffPerms.manageMembers': 'Aprobar y gestionar los miembros de la iglesia', 'staffPerms.manageMembersTag': 'Miembros', 'staffPerms.checkIn': 'Registrar asistentes en los eventos', 'staffPerms.checkInTag': 'Registro',
+      'staffPerms.manageRooms': 'Crear y gestionar salas', 'staffPerms.roomsTag': 'Instalaciones',
+      'staffPerms.manageMinistries': 'Crear y gestionar ministerios', 'staffPerms.ministriesTag': 'Ministerios',
+      'staffPerms.viewRevenue': 'Ver ingresos y totales de donaciones', 'staffPerms.revenueTag': 'Ingresos',
       'staffPerms.presetLabel': 'Rol predefinido', 'staffPerms.presetCustom': 'Personalizado',
       'staffPerms.presetAdministrator': 'Administrador', 'staffPerms.presetOffice': 'Encargado de oficina',
       'staffPerms.presetEvents': 'Coordinador de eventos', 'staffPerms.presetFinance': 'Finanzas',
@@ -6578,6 +6584,9 @@ Groups</span>
               <label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-receive-messages"> <span data-i18n="staffPerms.receiveMessages">Receive contact messages sent to this church</span></label>
               <label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-manage-members"> <span data-i18n="staffPerms.manageMembers">Approve and manage church members</span></label>
               <label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-check-in"> <span data-i18n="staffPerms.checkIn">Check people in at events</span></label>
+              <label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-rooms"> <span data-i18n="staffPerms.manageRooms">Create and manage facility rooms</span></label>
+              <label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-ministries"> <span data-i18n="staffPerms.manageMinistries">Create and manage ministries</span></label>
+              <label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-view-revenue"> <span data-i18n="staffPerms.viewRevenue">View revenue and giving totals</span></label>
               <label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-profile"> <span data-i18n="staffPerms.editProfile">Edit church profile</span></label>
             </div>
             <button class="export-btn" id="team-invite-btn" style="width:100%;justify-content:center;margin-top:14px;" data-i18n="dashSettings.addToTeam">Send invite</button>
@@ -6809,7 +6818,7 @@ Groups</span>
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v93 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v94 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -6876,6 +6885,12 @@ Groups</span>
          so this box is only needed for someone who does check-in and
          nothing else. -->
     <label class="filter-check" style="margin-top:10px;"><input type="checkbox" id="perm-check-in"> <span data-i18n="staffPerms.checkIn">Check people in at events</span></label>
+    <label class="filter-check" style="margin-top:10px;"><input type="checkbox" id="perm-rooms"> <span data-i18n="staffPerms.manageRooms">Create and manage facility rooms</span></label>
+    <label class="filter-check" style="margin-top:10px;"><input type="checkbox" id="perm-ministries"> <span data-i18n="staffPerms.manageMinistries">Create and manage ministries</span></label>
+    <!-- A view permission among manage permissions. Granting giving
+         implies this in getMyChurch(), so this box is for someone who
+         should see the numbers without touching them. -->
+    <label class="filter-check" style="margin-top:10px;"><input type="checkbox" id="perm-view-revenue"> <span data-i18n="staffPerms.viewRevenue">View revenue and giving totals</span></label>
     <label class="filter-check" style="margin-top:10px;"><input type="checkbox" id="perm-profile"> <span data-i18n="staffPerms.editProfile">Edit church profile</span></label>
     <!-- Owner-only, tier-gated -- shown/hidden by loadTeamPanel's click
          handler (data-manager / data-viewer-is-owner on the gear button),
@@ -12541,7 +12556,7 @@ Groups</span>
       var activeChurchIdForOwned = getActiveChurchId();
       var chosenChurch = (activeChurchIdForOwned && owned.filter(function(c){ return c.id === activeChurchIdForOwned; })[0]) || owned[0];
       if (chosenChurch.id !== activeChurchIdForOwned) setActiveChurchId(chosenChurch.id);
-      return { id: chosenChurch.id, name: chosenChurch.name, denomination: chosenChurch.denomination, planType: chosenChurch.plan_type, role: 'owner', canManageEvents: true, canManageGiving: true, canManageBilling: true, canEditProfile: true, canManageGroups: true, canManageMessages: true, canManageMembers: true, isManager: true, ownedChurches: owned };
+      return { id: chosenChurch.id, name: chosenChurch.name, denomination: chosenChurch.denomination, planType: chosenChurch.plan_type, role: 'owner', canManageEvents: true, canManageGiving: true, canManageBilling: true, canEditProfile: true, canManageGroups: true, canManageMessages: true, canManageMembers: true, canManageRooms: true, canManageMinistries: true, canViewRevenue: true, isManager: true, ownedChurches: owned };
     }
 
     // No .limit(1) here either, as of this change -- church_staff's
@@ -12561,6 +12576,18 @@ Groups</span>
     // with no exceptions, the ability was removed entirely, not just
     // defaulted off).
     var { data: staffRows, error: staffError } = await supabase.from('church_staff').select('church_id, can_manage_events, can_manage_giving, can_edit_profile, can_manage_groups, can_manage_messages, is_manager, receives_contact_messages, can_manage_members, churches(id, name, denomination, plan_type)').eq('user_id', userId);
+    // Migration 047's abilities are fetched separately and softly,
+    // deliberately: folding them into the select above would fail the
+    // whole query with 42703 until that migration runs, and this
+    // function underpins the entire dashboard. Absent here means the
+    // abilities stay undefined, which the nav gating below treats as
+    // 'not granted' -- the safe direction for a permission.
+    var newAbilityByChurch = {};
+    var { data: newAbilityRows, error: newAbilityError } = await supabase.from('church_staff')
+      .select('church_id, can_manage_rooms, can_manage_ministries, can_view_revenue').eq('user_id', userId);
+    if (!newAbilityError && newAbilityRows) {
+      newAbilityRows.forEach(function(r){ newAbilityByChurch[r.church_id] = r; });
+    }
     if (staffError) { console.error('getMyChurch (staff lookup):', staffError); }
     var staffedChurches = (staffRows || []).filter(function(sr){ return sr.churches; }).map(function(sr){
       var c = sr.churches;
@@ -12570,7 +12597,15 @@ Groups</span>
       var activeChurchIdForStaffed = getActiveChurchId();
       var chosenStaffed = (activeChurchIdForStaffed && staffedChurches.filter(function(sc){ return sc.id === activeChurchIdForStaffed; })[0]) || staffedChurches[0];
       if (chosenStaffed.id !== activeChurchIdForStaffed) setActiveChurchId(chosenStaffed.id);
-      return { id: chosenStaffed.id, name: chosenStaffed.name, denomination: chosenStaffed.denomination, planType: chosenStaffed.plan_type, role: 'staff', canManageEvents: chosenStaffed.can_manage_events, canManageGiving: chosenStaffed.can_manage_giving, canEditProfile: chosenStaffed.can_edit_profile, canManageGroups: chosenStaffed.can_manage_groups, canManageMessages: chosenStaffed.can_manage_messages, canManageMembers: chosenStaffed.can_manage_members, isManager: chosenStaffed.is_manager, receivesContactMessages: chosenStaffed.receives_contact_messages, staffedChurches: staffedChurches };
+      return { id: chosenStaffed.id, name: chosenStaffed.name, denomination: chosenStaffed.denomination, planType: chosenStaffed.plan_type, role: 'staff', canManageEvents: chosenStaffed.can_manage_events, canManageGiving: chosenStaffed.can_manage_giving, canEditProfile: chosenStaffed.can_edit_profile, canManageGroups: chosenStaffed.can_manage_groups, canManageMessages: chosenStaffed.can_manage_messages, canManageMembers: chosenStaffed.can_manage_members,
+        canManageRooms: !!(newAbilityByChurch[chosenStaffed.id] && newAbilityByChurch[chosenStaffed.id].can_manage_rooms),
+        canManageMinistries: !!(newAbilityByChurch[chosenStaffed.id] && newAbilityByChurch[chosenStaffed.id].can_manage_ministries),
+        // can_manage_giving IMPLIES viewing revenue. Someone who can
+        // process giving but cannot see the totals is an incoherent
+        // state, and nobody configuring a treasurer would think to tick
+        // both. The implication lives here rather than in the database
+        // so the two stay independently revocable.
+        canViewRevenue: !!(chosenStaffed.can_manage_giving || (newAbilityByChurch[chosenStaffed.id] && newAbilityByChurch[chosenStaffed.id].can_view_revenue)), isManager: chosenStaffed.is_manager, receivesContactMessages: chosenStaffed.receives_contact_messages, staffedChurches: staffedChurches };
     }
 
     // church_staff has RLS that depends on the server independently
@@ -12707,6 +12742,16 @@ Groups</span>
     if (createEventBtn) createEventBtn.style.display = myChurch.canManageEvents ? 'inline-flex' : 'none';
     var dashBillingNavLink = document.querySelector('[data-dash="billing"]');
     if (dashBillingNavLink) dashBillingNavLink.style.display = myChurch.canManageBilling ? '' : 'none';
+    // The Facility and Ministries pages (Phase 1b) and Revenue are
+    // gated the same way Billing and Messages already are. Until this,
+    // the two new pages were visible to any staff member regardless of
+    // ability -- tidier, but not correct.
+    var dashFacilityNavLink = document.querySelector('[data-dash="facility"]');
+    if (dashFacilityNavLink) dashFacilityNavLink.style.display = myChurch.canManageRooms ? '' : 'none';
+    var dashMinistriesNavLink = document.querySelector('[data-dash="ministries"]');
+    if (dashMinistriesNavLink) dashMinistriesNavLink.style.display = myChurch.canManageMinistries ? '' : 'none';
+    var dashRevenueNavLink = document.querySelector('[data-dash="giving"]');
+    if (dashRevenueNavLink) dashRevenueNavLink.style.display = myChurch.canViewRevenue ? '' : 'none';
     var dashMessagesNavLink = document.querySelector('[data-dash="messages"]');
     if (dashMessagesNavLink) dashMessagesNavLink.style.display = myChurch.canManageMessages ? '' : 'none';
     // New Messaging settings section (on/off switch + "send me a copy") --
@@ -16932,6 +16977,9 @@ Groups</span>
       if (s.receives_contact_messages) rowAbilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('staffPerms.receiveMessagesTag') + '</span>');
       if (s.can_manage_members) rowAbilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('staffPerms.manageMembersTag') + '</span>');
       if (s.can_check_in) rowAbilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('staffPerms.checkInTag') + '</span>');
+      if (s.can_manage_rooms) rowAbilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('staffPerms.roomsTag') + '</span>');
+      if (s.can_manage_ministries) rowAbilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('staffPerms.ministriesTag') + '</span>');
+      if (s.can_view_revenue) rowAbilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('staffPerms.revenueTag') + '</span>');
       if (s.can_edit_profile) rowAbilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('dashOverview.permProfile') + '</span>');
       var rowAbilityTagsHtml = '<div style="margin-top:5px;display:flex;flex-wrap:wrap;gap:4px;">'
         + (rowAbilityTags.length ? rowAbilityTags.join('') : '<span style="font-size:11.5px;color:var(--ink-mute);">' + window.t('dashOverview.permViewOnly') + '</span>')
@@ -16948,7 +16996,7 @@ Groups</span>
         // which loadDirectoryPeople() already populates unconditionally
         // at dashboard load -- no separate fetch needed here.
         + (s.user_id ? '<button class="qr-btn icon-tip" data-tip="' + window.t('dashDir.viewProfile') + '" data-view-person-id="' + s.user_id + '" aria-label="' + window.t('dashDir.viewProfile') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg></button>' : '')
-        + (canActOnThisRow ? '<button class="qr-btn icon-tip" data-tip="' + window.t('dashSettings.permissions') + '" data-manage-permissions-id="' + s.staff_id + '" data-manage-permissions-name="' + name.replace(/"/g, '&quot;') + '" data-events="' + s.can_manage_events + '" data-giving="' + s.can_manage_giving + '" data-groups="' + s.can_manage_groups + '" data-messages="' + s.can_manage_messages + '" data-receive-messages="' + s.receives_contact_messages + '" data-manage-members="' + s.can_manage_members + '" data-check-in="' + !!s.can_check_in + '" data-manager="' + s.is_manager + '" data-profile="' + s.can_edit_profile + '" data-viewer-is-owner="' + isOwner + '" aria-label="' + window.t('dashSettings.permissions') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg></button>' : '')
+        + (canActOnThisRow ? '<button class="qr-btn icon-tip" data-tip="' + window.t('dashSettings.permissions') + '" data-manage-permissions-id="' + s.staff_id + '" data-manage-permissions-name="' + name.replace(/"/g, '&quot;') + '" data-events="' + s.can_manage_events + '" data-giving="' + s.can_manage_giving + '" data-groups="' + s.can_manage_groups + '" data-messages="' + s.can_manage_messages + '" data-receive-messages="' + s.receives_contact_messages + '" data-manage-members="' + s.can_manage_members + '" data-check-in="' + !!s.can_check_in + '" data-rooms="' + !!s.can_manage_rooms + '" data-ministries="' + !!s.can_manage_ministries + '" data-view-revenue="' + !!s.can_view_revenue + '" data-manager="' + s.is_manager + '" data-profile="' + s.can_edit_profile + '" data-viewer-is-owner="' + isOwner + '" aria-label="' + window.t('dashSettings.permissions') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg></button>' : '')
         + (canActOnThisRow ? '<button class="qr-btn" data-remove-staff-id="' + s.staff_id + '" aria-label="' + window.t('dashSettings.removeFromTeam') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>' : '')
         + '</span></div>';
     });
@@ -17018,6 +17066,9 @@ Groups</span>
           + '<label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-receive-messages"> ' + window.t('staffPerms.receiveMessages') + '</label>'
           + '<label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-manage-members"> ' + window.t('staffPerms.manageMembers') + '</label>'
           + '<label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-check-in"> ' + window.t('staffPerms.checkIn') + '</label>'
+          + '<label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-rooms"> ' + window.t('staffPerms.manageRooms') + '</label>'
+          + '<label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-ministries"> ' + window.t('staffPerms.manageMinistries') + '</label>'
+          + '<label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-view-revenue"> ' + window.t('staffPerms.viewRevenue') + '</label>'
           + '<label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-profile"> ' + window.t('staffPerms.editProfile') + '</label>'
           + '</div>';
         // Owner-only, and only on tiers whose plan_tiers.can_assign_manager
@@ -19414,6 +19465,9 @@ Groups</span>
     document.getElementById('perm-receive-messages').checked = permBtn.getAttribute('data-receive-messages') === 'true';
     document.getElementById('perm-manage-members').checked = permBtn.getAttribute('data-manage-members') === 'true';
     document.getElementById('perm-check-in').checked = permBtn.getAttribute('data-check-in') === 'true';
+    document.getElementById('perm-rooms').checked = permBtn.getAttribute('data-rooms') === 'true';
+    document.getElementById('perm-ministries').checked = permBtn.getAttribute('data-ministries') === 'true';
+    document.getElementById('perm-view-revenue').checked = permBtn.getAttribute('data-view-revenue') === 'true';
     // Opened with this person's real flags, so show whichever preset
     // they match -- or Custom if their combination is their own.
     if (typeof window.refreshPresetSelector === 'function') window.refreshPresetSelector();
@@ -19459,7 +19513,10 @@ Groups</span>
         p_is_manager: document.getElementById('perm-manager').checked,
         p_receives_contact_messages: document.getElementById('perm-receive-messages').checked,
         p_can_manage_members: document.getElementById('perm-manage-members').checked,
-        p_can_check_in: document.getElementById('perm-check-in').checked
+        p_can_check_in: document.getElementById('perm-check-in').checked,
+        p_can_manage_rooms: document.getElementById('perm-rooms').checked,
+        p_can_manage_ministries: document.getElementById('perm-ministries').checked,
+        p_can_view_revenue: document.getElementById('perm-view-revenue').checked
       });
       staffPermissionsSaveBtn.disabled = false;
 
@@ -21710,18 +21767,23 @@ Groups</span>
   // implicitly server-side (set_registration_checked_in) and ticking
   // a redundant box would imply it could be turned off independently.
   // ============================================================
+  // Rooms and ministries join the groupings they always belonged to:
+  // an Events Coordinator books rooms and tags ministries because that
+  // is what events attach to, an Office Manager books rooms at a front
+  // desk, and Groups & Discipleship owns ministries as programmes.
   var PERMISSION_PRESETS = {
-    administrator: { events: true,  giving: true,  profile: true,  groups: true,  messages: true,  members: true,  checkIn: true  },
-    office:        { events: false, giving: false, profile: true,  groups: false, messages: true,  members: false, checkIn: false },
-    events:        { events: true,  giving: false, profile: false, groups: false, messages: false, members: false, checkIn: false },
-    finance:       { events: false, giving: true,  profile: false, groups: false, messages: false, members: false, checkIn: false },
-    groups:        { events: false, giving: false, profile: false, groups: true,  messages: false, members: true,  checkIn: false },
-    checkin:       { events: false, giving: false, profile: false, groups: false, messages: false, members: false, checkIn: true  }
+    administrator: { events: true,  giving: true,  profile: true,  groups: true,  messages: true,  members: true,  checkIn: true,  rooms: true,  ministries: true,  viewRevenue: true  },
+    office:        { events: false, giving: false, profile: true,  groups: false, messages: true,  members: false, checkIn: false, rooms: true,  ministries: false, viewRevenue: false },
+    events:        { events: true,  giving: false, profile: false, groups: false, messages: false, members: false, checkIn: false, rooms: true,  ministries: true,  viewRevenue: false },
+    finance:       { events: false, giving: true,  profile: false, groups: false, messages: false, members: false, checkIn: false, rooms: false, ministries: false, viewRevenue: true  },
+    groups:        { events: false, giving: false, profile: false, groups: true,  messages: false, members: true,  checkIn: false, rooms: false, ministries: true,  viewRevenue: false },
+    checkin:       { events: false, giving: false, profile: false, groups: false, messages: false, members: false, checkIn: true,  rooms: false, ministries: false, viewRevenue: false }
   };
   var PRESET_CHECKBOX_IDS = {
     events: 'perm-events', giving: 'perm-giving', profile: 'perm-profile',
     groups: 'perm-groups', messages: 'perm-messages', members: 'perm-manage-members',
-    checkIn: 'perm-check-in'
+    checkIn: 'perm-check-in', rooms: 'perm-rooms', ministries: 'perm-ministries',
+    viewRevenue: 'perm-view-revenue'
   };
 
   function readPermissionFlags(){
@@ -25678,7 +25740,10 @@ Groups</span>
         is_manager: !!(isManagerCheckbox && isManagerCheckbox.checked),
         receives_contact_messages: !!(document.getElementById('invite-perm-receive-messages') && document.getElementById('invite-perm-receive-messages').checked),
         can_manage_members: !!(document.getElementById('invite-perm-manage-members') && document.getElementById('invite-perm-manage-members').checked),
-        can_check_in: !!(document.getElementById('invite-perm-check-in') && document.getElementById('invite-perm-check-in').checked)
+        can_check_in: !!(document.getElementById('invite-perm-check-in') && document.getElementById('invite-perm-check-in').checked),
+        can_manage_rooms: !!(document.getElementById('invite-perm-rooms') && document.getElementById('invite-perm-rooms').checked),
+        can_manage_ministries: !!(document.getElementById('invite-perm-ministries') && document.getElementById('invite-perm-ministries').checked),
+        can_view_revenue: !!(document.getElementById('invite-perm-view-revenue') && document.getElementById('invite-perm-view-revenue').checked)
       };
 
       // Multi-church: whatever's checked in the church list (only
