@@ -4215,3 +4215,35 @@ Two things 056 deliberately does **not** grant:
 056 was written **without seeing the current policies**, which is stated in the file itself rather than implied: it drops by name and recreates, which is right whether the policy was missing, differently named or differently worded. The catch is that permissive policies OR together, so an equivalent policy under another name becomes a redundant duplicate rather than being replaced. The migration ends with a listing of every `storage.objects` policy for exactly that reason -- two policies for the same command on the same bucket means an older one is still there and should be dropped by its own name.
 
 Build `2026-09-17-v112`; **migration 056 must be run by hand.**
+
+---
+
+## Correction: the profile-photo diagnosis was wrong, and 056 tightened nothing
+
+Two things to record, because both were confidently stated and both were wrong.
+
+**The cause was not a missing INSERT policy.** 056 was written on the theory that `storage.objects` had no INSERT policy covering `profile-photos`, or one whose condition did not match. The catalog listing, once available, showed one had existed all along:
+
+```
+users can upload their own profile photo  INSERT  {public}
+  WITH CHECK (bucket_id = 'profile-photos' AND auth.uid() IS NOT NULL)
+```
+
+Any signed-in user, any path. An insert under that policy succeeds. So 056's policies applied cleanly and fixed nothing by existing, and the only material change in that pass was the client dropping `upsert: true` -- which remains a reasoned guess rather than a proven cause. The flag bought nothing against a timestamped path while forcing an `INSERT ... ON CONFLICT` path that touches more of the table than a plain insert, on buckets whose SELECT policies were removed earlier to stop enumeration. **Not confirmed by this environment; only an actual upload settles it.**
+
+**056 read as a tightening and was not one.** Four older, looser policies survived beside the two it added, and none of them constrained the path:
+
+| policy | what it actually permitted |
+|---|---|
+| `users can upload their own profile photo` | any signed-in user, **any path** |
+| `Authenticated users can upload church logos` | any authenticated, any path |
+| `Authenticated users can upload event images` | any authenticated, any path |
+| `users can update their own profile photo` | any signed-in user, any path |
+
+Permissive policies OR together, so while those existed `(storage.foldername(name))[1] = auth.uid()` was enforced for nobody -- any signed-in person could still write into a folder named after someone else's user id. **This is the 049 lesson in policy form rather than grant form: a stricter rule beside a looser one narrows nothing.** Third occurrence, second disguise -- and 056's own comments warned about redundant duplicates, so the warning was written and the cleanup still was not planned.
+
+Worth noting what that policy was *called*. "users can upload their own profile photo" is an accurate description of intent and an inaccurate description of `auth.uid() IS NOT NULL`, which means "anyone signed in, anywhere". **A policy name is documentation, and documentation drifts from the predicate underneath it.** Reading the name is not reading the policy.
+
+057 drops all five. After it, `storage.objects` carries exactly one INSERT and one UPDATE policy, both path-scoped -- confirmed from the catalog, not from the drops succeeding.
+
+**The ordering caveat that came with 057 still matters, in reverse now.** It said to confirm uploads worked *before* dropping the permissive policies, because if an upload was still failing the cause was not the policies, and removing the fallback would turn one broken upload into three. That fallback is now gone, so all three buckets -- profile photo, church logo, event image -- need an actual upload test, and any failure is no longer isolated to the reported one.
