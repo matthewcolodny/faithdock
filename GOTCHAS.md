@@ -2925,3 +2925,26 @@ Client side: the church-home button now reads every membership row rather than `
 Verified pre-migration in a local preview: all six new elements present, `loadMembersPanel` exposed, no console errors (it hides itself when `getMyChurch()` returns null rather than erroring), and both new RPCs correctly report `PGRST202 not found` -- the expected state until 035 is run.
 
 Build `2026-09-16-v63`; **migration 035 must be run by hand.**
+
+---
+
+## 035 follow-up: leaving a church never actually left, which broke two other things
+
+Three symptoms reported right after 035 went live, all one root cause: "leaving" only flipped `is_permanent` to false and left the row behind with `status = 'approved'`.
+
+1. **No way to cancel a pending request** -- the pending button was rendered disabled, a dead end with no way out.
+2. **Re-joining failed** with "Only the church can change a membership's approval status." The leftover row made the re-join an UPDATE going `approved -> pending`, and 035's trigger only carved out `rejected -> pending`.
+3. **The church's directory still listed the person as a member the whole time**, because the approved row never went anywhere.
+
+Fixed by making leaving mean the row is deleted, so coming back is a plain INSERT with nothing to reconcile:
+
+- **`leave_church(target_church_id)` RPC** (migration 036) covering both verbs -- cancelling a pending request and leaving an approved membership are the same operation on the data, and splitting them would only invite the two copies to drift. An RPC rather than a client-side delete plus a policy, for the reason this repo keeps relearning: `church_memberships`' existing policies aren't visible here, so a `.delete()` would depend on an unseen policy and could silently affect zero rows (migration 033). The function's WHERE clause is `auth.uid()` and doesn't take that from the caller, so it deletes your own row and nobody else's.
+- **The trigger's exception widened** from `rejected -> pending` to the actual invariant worth protecting: nobody unauthorized may move a row TO `approved` or `rejected`, but moving *your own* row to `pending` is a request, not an escalation -- it strictly reduces what you have -- so it's allowed from any prior state. Guarded by `new.user_id = auth.uid()`, which the trigger can't assume RLS already enforces, for the same reason 035 used a trigger at all. The narrow rule would have kept biting: a row left at `is_permanent = false` by the switch-church-home path hit the same wall.
+- **Switching church homes now deletes the old row too**, rather than leaving it at `is_permanent = false` -- previously that kept you listed as the old church's member forever after you'd moved on.
+- **The pending button is now clickable** ("Request pending — click to cancel") instead of disabled.
+
+**Seven membership reads gained `status = 'approved'`**, which is the other half of symptom 3 and would have been a live bug on its own: every place that treated "has a row" as "is a member" now counts pending people. Covered the user's own church-home reads (event filter, My Churches, profile home-church name), the church-side counts (overview per-church member counts, reporting member list, `getChurchPeopleIds`), and Recently Joined. Deliberately left unfiltered: the switch-home lookup, which should clear *every* prior home row including a pending one at another church.
+
+Still outstanding and unfixable from here: the untracked directory-people RPC that computes `is_member` server-side. If it counts any membership row, pending people will show as members in that table regardless of the client-side filters above.
+
+Build `2026-09-16-v64`; **migration 036 must be run by hand** (035 first).

@@ -773,6 +773,7 @@
       'churchHome.makeThisMyChurchHome': 'Make this my Church Home', 'churchHome.thisIsYourChurchHome': 'This is your Church Home',
       'churchHome.couldNotIdentifyChurch': 'Could not identify this church.', 'churchHome.noLongerYourChurchHome': 'No longer your Church Home.',
       'churchHome.requestPending': 'Request sent — awaiting approval', 'churchHome.requestSent': "Your request was sent to the church. You'll be a member once they approve it.",
+      'churchHome.cancelRequest': 'Request pending — click to cancel', 'churchHome.requestCancelled': 'Your request was cancelled.',
       'members.title': 'Members', 'members.pendingRequests': 'Pending requests', 'members.noPending': 'No requests waiting for a decision.',
       'members.approve': 'Approve', 'members.reject': 'Reject', 'members.remove': 'Remove',
       'members.approved': 'Member', 'members.pending': 'Pending', 'members.rejected': 'Rejected',
@@ -1580,6 +1581,7 @@
       'churchHome.makeThisMyChurchHome': 'Marcar como mi Iglesia de Origen', 'churchHome.thisIsYourChurchHome': 'Esta es tu Iglesia de Origen',
       'churchHome.couldNotIdentifyChurch': 'No se pudo identificar esta iglesia.', 'churchHome.noLongerYourChurchHome': 'Ya no es tu Iglesia de Origen.',
       'churchHome.requestPending': 'Solicitud enviada — esperando aprobación', 'churchHome.requestSent': 'Tu solicitud se envió a la iglesia. Serás miembro cuando la aprueben.',
+      'churchHome.cancelRequest': 'Solicitud pendiente — haz clic para cancelar', 'churchHome.requestCancelled': 'Tu solicitud fue cancelada.',
       'members.title': 'Miembros', 'members.pendingRequests': 'Solicitudes pendientes', 'members.noPending': 'No hay solicitudes esperando decisión.',
       'members.approve': 'Aprobar', 'members.reject': 'Rechazar', 'members.remove': 'Quitar',
       'members.approved': 'Miembro', 'members.pending': 'Pendiente', 'members.rejected': 'Rechazado',
@@ -6474,7 +6476,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-16-v63 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-16-v64 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -9365,7 +9367,11 @@
       if (typeof window.renderDirectory === 'function') window.renderDirectory();
       if (typeof window.renderHomeChurches === 'function') window.renderHomeChurches();
     });
-    var homePromise = window.supabase.from('church_memberships').select('church_id').eq('user_id', userData.user.id).eq('is_permanent', true).limit(1).then(function(res){
+    // status = 'approved' on every "is this person a member" read, since
+    // migration 035: a pending request is not membership yet, and
+    // without this filter every one of these would quietly count people
+    // the church hasn't said yes to.
+    var homePromise = window.supabase.from('church_memberships').select('church_id').eq('user_id', userData.user.id).eq('is_permanent', true).eq('status', 'approved').limit(1).then(function(res){
       window.myChurchHomeId = (res.data && res.data.length) ? res.data[0].church_id : null;
       homeWrap.style.display = window.myChurchHomeId ? 'flex' : 'none';
     });
@@ -12010,7 +12016,7 @@
 
     Promise.all([
       window.supabase.from('events').select('id, church_id, start_at').in('church_id', ids),
-      window.supabase.from('church_memberships').select('church_id').in('church_id', ids),
+      window.supabase.from('church_memberships').select('church_id').in('church_id', ids).eq('status', 'approved'),
       window.supabase.from('donations').select('church_id, amount_cents, created_at').in('church_id', ids).eq('status', 'succeeded'),
       window.supabase.from('church_staff').select('church_id, user_id, can_manage_events, can_manage_giving, can_manage_groups, can_manage_messages, is_manager, can_edit_profile, profiles!user_id(full_name)').in('church_id', ids)
     ]).then(function(res){
@@ -16351,7 +16357,7 @@
     outputEl.innerHTML = '<p style="color:var(--ink-mute);font-size:13px;">' + window.t('common.loading') + '</p>';
 
     var peopleIds = await getChurchPeopleIds(myChurch.id);
-    var { data: memberships } = await supabase.from('church_memberships').select('user_id').eq('church_id', myChurch.id);
+    var { data: memberships } = await supabase.from('church_memberships').select('user_id').eq('church_id', myChurch.id).eq('status', 'approved');
     var { data: staffRows } = await supabase.from('church_staff').select('user_id').eq('church_id', myChurch.id);
     var { data: groups } = await supabase.from('groups').select('id').eq('church_id', myChurch.id);
     var { data: households } = await supabase.from('households').select('id, household_members(user_id)').eq('church_id', myChurch.id);
@@ -17152,7 +17158,7 @@
   // RPC just for this one number.
   async function getChurchPeopleIds(churchId){
     var peopleSet = {};
-    var { data: memberships } = await supabase.from('church_memberships').select('user_id').eq('church_id', churchId);
+    var { data: memberships } = await supabase.from('church_memberships').select('user_id').eq('church_id', churchId).eq('status', 'approved');
     (memberships || []).forEach(function(m){ peopleSet[m.user_id] = true; });
     var { data: staffRows } = await supabase.from('church_staff').select('user_id').eq('church_id', churchId);
     (staffRows || []).forEach(function(s){ peopleSet[s.user_id] = true; });
@@ -19010,6 +19016,7 @@
     var { data: recent, error } = await supabase.from('church_memberships')
       .select('user_id, joined_at, flagged_at, profiles(full_name)')
       .eq('church_id', myChurch.id)
+      .eq('status', 'approved')
       .gte('joined_at', thirtyDaysAgo)
       .order('joined_at', { ascending: false })
       .limit(50);
@@ -21285,7 +21292,7 @@
     var results = await Promise.all([
       supabase.from('churches').select(churchFields).eq('owner_id', uid),
       supabase.from('church_staff').select('church_id, churches(' + churchFields + ')').eq('user_id', uid),
-      supabase.from('church_memberships').select('church_id, churches(' + churchFields + ')').eq('user_id', uid).eq('is_permanent', true),
+      supabase.from('church_memberships').select('church_id, churches(' + churchFields + ')').eq('user_id', uid).eq('is_permanent', true).eq('status', 'approved'),
       supabase.from('church_follows').select('church_id, churches(' + churchFields + ')').eq('user_id', uid)
     ]);
     var ownedRes = results[0], staffRes = results[1], homeRes = results[2], followedRes = results[3];
@@ -22742,7 +22749,7 @@
 
     var homeRow = document.getElementById('profile-church-home-row');
     if (profile && profile.account_type !== 'church') {
-      var { data: homeRows } = await supabase.from('church_memberships').select('churches(name)').eq('user_id', userData.user.id).eq('is_permanent', true).limit(1);
+      var { data: homeRows } = await supabase.from('church_memberships').select('churches(name)').eq('user_id', userData.user.id).eq('is_permanent', true).eq('status', 'approved').limit(1);
       if (homeRows && homeRows.length && homeRows[0].churches) {
         var homeChurchName = homeRows[0].churches.name;
         var homeLink = document.getElementById('profile-church-home-link');
@@ -23429,9 +23436,11 @@
     // Pending is its own state, not a quieter version of "you're in" --
     // membership now means the church actually said yes (migration 035).
     if (thisChurchRow && thisChurchRow.status === 'pending') {
-      btn.textContent = window.t('churchHome.requestPending');
+      // Clickable, not disabled: a request you can't withdraw is a trap,
+      // and "waiting" was previously a dead end with no way out of it.
+      btn.textContent = window.t('churchHome.cancelRequest');
       btn.classList.remove('btn-registered');
-      btn.disabled = true;
+      btn.disabled = false;
       btn.setAttribute('data-state', 'pending');
       return;
     }
@@ -23499,19 +23508,36 @@
       var matched = (window.churches || []).filter(function(c){ return c.real && c.name === churchName; })[0];
       if (!matched) { statusEl.textContent = window.t('churchHome.couldNotIdentifyChurch'); statusEl.style.display = 'block'; return; }
 
-      if (state === 'is-home') {
-        // Unsetting, matching how the follow button toggles off —
-        // previously this just showed a dead-end "already your
-        // Church Home" message with no way back.
+      // Leaving an approved membership and cancelling a pending request
+      // are the same operation on the data -- the row goes away -- so
+      // they share a branch. Reported as three separate bugs that were
+      // all this one thing: leaving used to only flip is_permanent to
+      // false and leave an approved row behind, which (a) kept the
+      // person in the church's directory as a member the whole time
+      // they thought they'd left, and (b) made coming back fail with
+      // "Only the church can change a membership's approval status,"
+      // since the leftover row turned the re-join into an
+      // approved -> pending UPDATE. Deleting means coming back is a
+      // plain INSERT with nothing to reconcile.
+      if (state === 'is-home' || state === 'pending') {
         churchHomeBtn.disabled = true;
-        var { error: unsetError } = await supabase.from('church_memberships').update({ is_permanent: false }).eq('user_id', userData.user.id).eq('church_id', matched.id);
+        // RPC, not a client-side delete: church_memberships' policies
+        // aren't visible in this repo, so a .delete() here would depend
+        // on an unseen policy and could silently affect zero rows --
+        // the exact failure that made unregistering look like it worked
+        // for weeks (migration 033). leave_church() carries its own
+        // authorization and returns whether a row actually went.
+        var leaveResult = await supabase.rpc('leave_church', { target_church_id: matched.id });
         churchHomeBtn.disabled = false;
-        if (unsetError) {
-          statusEl.textContent = unsetError.message;
+        if (leaveResult.error) {
+          statusEl.textContent = leaveResult.error.message;
+          statusEl.style.color = 'var(--clay)';
           statusEl.style.display = 'block';
           return;
         }
-        statusEl.textContent = window.t('churchHome.noLongerYourChurchHome');
+        statusEl.textContent = state === 'pending'
+          ? window.t('churchHome.requestCancelled')
+          : window.t('churchHome.noLongerYourChurchHome');
         statusEl.style.color = 'var(--sage)';
         statusEl.style.display = 'block';
         checkChurchHomeStatus(matched.id);
@@ -23521,18 +23547,30 @@
       if (state === 'has-other-home') {
         var confirmSwitch = await confirmSwitchChurchHome();
         if (!confirmSwitch) return;
-        await supabase.from('church_memberships').update({ is_permanent: false }).eq('user_id', userData.user.id).eq('is_permanent', true);
+        // Same reasoning as leaving above: the old church's row is
+        // deleted rather than left behind at is_permanent = false,
+        // which previously kept you listed as their member forever
+        // after you'd moved on. Read the ids first, since leave_church
+        // works one church at a time.
+        var { data: priorHomes } = await supabase.from('church_memberships')
+          .select('church_id').eq('user_id', userData.user.id).eq('is_permanent', true);
+        for (var ph = 0; ph < (priorHomes || []).length; ph++) {
+          if (priorHomes[ph].church_id === matched.id) continue;
+          await supabase.rpc('leave_church', { target_church_id: priorHomes[ph].church_id });
+        }
       }
 
       churchHomeBtn.disabled = true;
-      // status is sent explicitly, and it matters for one case: someone
-      // previously rejected who is asking again. Their row already
-      // exists, so this upsert is an UPDATE -- omitting status would
-      // leave 'rejected' sitting there untouched and the click would do
-      // nothing at all, with no error (see migration 035's trigger,
-      // which allows exactly rejected -> pending and nothing else). For
-      // a brand-new row the trigger decides the value regardless, so
-      // sending 'pending' here can never be a way to self-approve.
+      // status is sent explicitly for the case where a row already
+      // exists (previously rejected, or left behind at is_permanent =
+      // false by an older switch): the upsert is then an UPDATE, and
+      // omitting status would leave the old value untouched so the
+      // click would do nothing at all, with no error. Migration 036's
+      // trigger allows moving your OWN row to 'pending' from any state
+      // -- a request, never an escalation -- while still refusing any
+      // unauthorized move toward 'approved', so sending 'pending' here
+      // can't be a way to self-approve. On a brand-new row the trigger
+      // decides the value regardless of what's sent.
       var { error } = await supabase.from('church_memberships').upsert({
         user_id: userData.user.id, church_id: matched.id, is_permanent: true, status: 'pending'
       }, { onConflict: 'user_id,church_id' });
