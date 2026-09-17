@@ -3384,21 +3384,18 @@ No build stamp: server-side only.
 
 ---
 
-## The storage-bucket listing warning was a false positive
+## The storage-bucket listing warning -- and a wrong conclusion about it
 
-The Advisor's `public_bucket_allows_listing` flagged all three public buckets (`church-logos`, `event-images`, `profile-photos`) as letting any client enumerate every file. Tested before acting, and the exposure does not exist:
+The Advisor's `public_bucket_allows_listing` flagged all three public buckets (`church-logos`, `event-images`, `profile-photos`) as letting any client enumerate every uploaded file. The warning was **real**, the fix was applied, and it worked -- but the conclusion recorded here first was that it had been a false positive. That was wrong, and how it went wrong is the useful part.
 
-- The database shows 2 churches with a `logo_url`, so `church-logos` is demonstrably not empty.
-- `list('')` at the bucket root returns `[]`.
-- `list('<folder>')` using the exact uuid folder taken from a real logo URL **also** returns `[]`.
-- A `HEAD` on the public object URL returns 200, so the objects themselves serve fine.
+**What the fix was.** Public buckets serve objects through the public object endpoint, which bypasses RLS entirely, so a broad SELECT policy on `storage.objects` isn't needed for image URLs to work -- it only enables listing. Dropping the three read policies removes enumeration while leaving everything the app does intact. Confirmed safe beforehand by grepping the client: all three buckets are used only with `upload` and `getPublicUrl`, never `.list()`.
 
-Files exist, public URLs work, and listing returns nothing even when the folder name is already known. Whatever that SELECT policy says, it is not granting enumeration. The lint is a heuristic -- it sees a broad-looking SELECT policy on `storage.objects` and infers listing works.
+**Confirmed working afterwards:** `list('')` returns `[]`, `list('<known folder uuid>')` returns `[]` even though that folder demonstrably holds a real logo, and a `HEAD` on the public object URL returns 200. Uploads are unaffected -- the INSERT policies are untouched (their `null` qual in `pg_policies` is normal; INSERT policies carry `with_check`, not `qual`).
 
-**Recommendation recorded so nobody re-opens it: leave those policies alone.** Dropping them buys no security and risks breaking a path that isn't visible from here.
+**The mistake.** Asked to "do the buckets", the behaviour was probed first -- listing enumerated nothing, so it was recorded as a lint false positive with a recommendation to leave the policies alone. But the drop had *already been run*. The post-fix state was being measured and mistaken for the original one. The evidence that settled it was `pg_policies`, which showed the three SELECT policies the Advisor had named by name were simply gone -- and the Advisor reads names from the catalog, so they had certainly existed when it ran.
 
-The trap this avoided is worth naming. An earlier probe of the same thing was *inconclusive* -- `list()` returned `[]` with no error, and Supabase returns `[]` both for "empty" and for "denied", so it looked like it might be empty. The resolving move was to establish independently (from the `churches` table) that files definitely exist, which turns an empty listing from ambiguous into proof. Reporting "no files listed" as either safety or exposure without that step would have been a guess in a security review.
+**The lesson, which generalises past this one warning:** behaviour alone cannot tell you whether a control was never needed or is already in place. Both look identical from outside. Establishing that files existed turned an ambiguous empty listing into evidence about enumeration -- but it said nothing about *why* enumeration was blocked, and that was the question actually being answered. Reading the policy would have settled it in one query; inferring from behaviour produced a confident, wrong, and nearly-published recommendation to undo a working fix.
 
-Also a reminder that a linter finding is a hypothesis, not a result. Of this run's ~200 warnings, one was a genuine vulnerability (`get_user_id_by_email`), a handful were real hardening, ~150 were noise inherent to how PostgREST works, and this one was simply wrong about the system.
+**Perspective on the run as a whole.** Of roughly 200 Advisor warnings: one was a genuine vulnerability (`get_user_id_by_email`), a handful were real hardening (`search_path` pinning, the `client_error_logs` ceiling), this one was real and already fixed, and ~150 are noise inherent to how PostgREST exposes RPCs. A linter finding is a hypothesis; so is a behavioural probe.
 
-No migration, no build stamp -- deliberately no change.
+No migration, no build stamp -- the change itself was three `drop policy` statements, run by hand.
