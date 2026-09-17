@@ -6747,7 +6747,7 @@ Groups</span>
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v84 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v85 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -11142,9 +11142,93 @@ Groups</span>
   // Real FaithDock Supabase project — this key is the publishable/anon
   // key, safe to use client-side by design. RLS policies (from
   // faithdock_mvp_schema.sql) are what actually keep data safe.
+  // ============================================================
+  // In-flight request coalescing.
+  //
+  // A measured dashboard load made 113 requests, among them
+  // search_events 13 times, churches 17 times, event_registrations 17
+  // times and search_churches 6 times -- the SAME query, issued
+  // simultaneously by components that have no idea the others exist.
+  // And the cost isn't merely additive: with that many in flight at
+  // once they contend for the connection, so individual requests that
+  // take ~900ms in isolation were measured at 4-6 SECONDS. Removing
+  // duplicates makes what remains faster too.
+  //
+  // The safety argument is narrow and deliberate: this only ever merges
+  // requests that are ALREADY IN FLIGHT together, and the entry is
+  // dropped the moment one settles. It is not a cache. Two identical
+  // requests overlapping in time would have returned the same bytes
+  // anyway, so sharing one response cannot serve anything staler than
+  // what the caller would otherwise have got. A TTL cache here WOULD be
+  // able to -- register for an event, re-query the count, get the old
+  // number -- which is exactly why there isn't one.
+  //
+  // Installed as the client's fetch rather than by wrapping
+  // supabase.rpc(), because the worst offenders (churches,
+  // event_registrations) are ordinary .from() selects that never go
+  // through rpc() at all. One wrapper covers every path.
+  // ============================================================
+  const _inflightRequests = new Map();
+  // GET is coalesced unconditionally -- it is by definition safe to
+  // read twice. POST is NOT, because that is also how every write and
+  // every side-effecting RPC travels, so it is allowlisted to
+  // functions known to only read. A new read-only RPC gets no benefit
+  // until it is added here, which is the right way round: forgetting to
+  // add one costs a duplicate request, while wrongly adding a writer
+  // would silently drop somebody's write.
+  const COALESCEABLE_RPCS = new Set([
+    'search_events', 'search_churches', 'get_directory_people',
+    'get_event_registration_counts', 'get_church_staff_detail',
+    'get_church_membership_requests', 'find_possible_duplicate_members',
+    'is_platform_admin', 'get_my_account_type', 'get_my_plan_and_usage',
+    'get_my_private_profile', 'is_church_staff_member', 'is_church_manager',
+    'can_edit_church_profile', 'can_manage_church_events',
+    'can_manage_church_giving', 'can_manage_church_members',
+    'can_manage_church_messages', 'can_manage_church_billing'
+  ]);
+  function coalescingFetch(input, init){
+    const url = typeof input === 'string' ? input : (input && input.url) || '';
+    const method = String((init && init.method) || (input && input.method) || 'GET').toUpperCase();
+
+    let key = null;
+    if (method === 'GET') {
+      key = 'GET ' + url;
+    } else if (method === 'POST') {
+      const rpc = url.match(/\/rest\/v1\/rpc\/([^?]+)/);
+      if (rpc && COALESCEABLE_RPCS.has(rpc[1])) {
+        // The body carries the arguments, so it has to be part of the
+        // key -- search_events for one church must never be answered
+        // with another church's results.
+        key = 'RPC ' + url + ' ' + ((init && typeof init.body === 'string') ? init.body : '');
+      }
+    }
+    if (key) {
+      // Two concurrent requests to the same URL under DIFFERENT
+      // credentials are not the same request, and RLS means they can
+      // legitimately return different rows.
+      const auth = (init && init.headers && (init.headers.Authorization || init.headers.authorization)) || '';
+      key += ' | ' + auth;
+    }
+
+    if (!key) return fetch(input, init);
+
+    const existing = _inflightRequests.get(key);
+    // A Response body can only be read once, so every consumer --
+    // including the first -- gets a clone and the stored master is
+    // never consumed.
+    if (existing) return existing.then(r => r.clone());
+
+    const pending = fetch(input, init);
+    _inflightRequests.set(key, pending);
+    const forget = () => { _inflightRequests.delete(key); };
+    pending.then(forget, forget);
+    return pending.then(r => r.clone());
+  }
+
   const supabase = createClient(
     'https://doerahlrdknedoknawex.supabase.co',
-    'sb_publishable_zdoYSKnhvJyEdhhbCV_CAw_owRZ3f-V'
+    'sb_publishable_zdoYSKnhvJyEdhhbCV_CAw_owRZ3f-V',
+    { global: { fetch: coalescingFetch } }
   );
   // Exposed globally because a separate, earlier, non-module <script>
   // block (the one with the original sample data and several

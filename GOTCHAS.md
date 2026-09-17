@@ -3453,3 +3453,25 @@ This one was only found because the first verification looked wrong: after defer
 **Not verified:** the actual request reduction, which needs a signed-in session. Expect roughly 128 down toward 40 on a dashboard load, and a much larger drop on every non-dashboard page while signed in.
 
 Build `2026-09-17-v84`. No migration.
+
+---
+
+## In-flight request coalescing
+
+Third and largest of the causes behind the slow dashboard. A measured load made 113 requests including `search_events` **13 times**, `churches` **17 times**, `event_registrations` **17 times** and `search_churches` **6 times** -- the same query, issued simultaneously by components with no knowledge of each other.
+
+**The cost is not additive, which is the part worth understanding.** With that many requests in flight at once they contend for the connection: queries measured at ~900ms in an earlier, lighter trace showed up at **4-6 seconds** in the busy one. Removing duplicates therefore speeds up everything that remains, rather than just subtracting its own time. That also explains why the page felt like ten seconds while `get_directory_people` itself returned in 400ms.
+
+**Why this is safe, stated precisely:** it merges only requests **already in flight together**, and the entry is dropped the instant one settles. It is not a cache. Two identical requests overlapping in time would have returned the same bytes anyway, so sharing one response cannot serve anything staler than the caller would otherwise have received. A TTL cache *would* be able to -- register for an event, re-query the count, see the old number -- which is exactly why there isn't one, and why two *sequential* identical reads still make two requests.
+
+Installed as the client's `fetch` rather than by wrapping `supabase.rpc()`, because the worst offenders (`churches`, `event_registrations`) are ordinary `.from()` selects that never pass through `rpc()`. One wrapper covers every path.
+
+**GET is coalesced unconditionally; POST is allowlisted.** POST is also how every write and every side-effecting RPC travels, so merging it blindly could silently turn two people's submissions into one. The allowlist names read-only functions only. Forgetting to add a new read-only RPC costs a duplicate request; wrongly adding a writer would lose data -- so the failure modes are deliberately lopsided.
+
+Two details that would bite anyone reimplementing this: a `Response` body can only be read once, so **every** consumer including the first gets a `.clone()` and the stored master is never consumed; and the key includes the `Authorization` header, because two concurrent requests to the same URL under different credentials are not the same request -- RLS can legitimately return different rows.
+
+**Verified:** 10 concurrent identical selects produce 1 network request and 10 correct results; a different query is fetched separately with its own correct row count; two sequential identical reads produce two requests; **three concurrent identical writes produce three requests** (RLS-rejected, nothing written); and a non-allowlisted RPC passes through as two. Rendering is unaffected -- Events still reports "1 event found", Directory still "799 churches found" with 24 cards.
+
+**Effect:** the homepage went from 27 requests to 9. Events plus Directory together now cost 13, less than the homepage alone did before.
+
+Build `2026-09-17-v85`. No migration.
