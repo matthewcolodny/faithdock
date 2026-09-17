@@ -487,6 +487,8 @@
       'dash.yourChurches': 'Your churches', 'dash.overviewSubtitle': 'Pick a church to manage it, or add another.',
       'dashOverview.churches': 'CHURCHES', 'dashOverview.upcomingEvents': 'UPCOMING EVENTS', 'dashOverview.members': 'MEMBERS', 'dashOverview.givingThisMonth': 'GIVING THIS MONTH',
       'dashOverview.staffByChurch': 'Staff by church', 'dashOverview.noStaff': 'No staff added yet — you\'re the only one with access.',
+      'dashOverview.eventsByChurch': 'Events by church', 'dashOverview.noUpcomingEvents': 'Nothing scheduled yet.',
+      'dashOverview.registeredCount': '{n} registered', 'dashOverview.andNMoreEvents': '+{n} more',
       'dashOverview.owner': 'Owner', 'dashOverview.nextLabel': 'Next', 'dashOverview.noneScheduled': 'No upcoming events', 'dashOverview.memberCount': '{n} members', 'dashOverview.thisMonth': '{amount} this month',
       'dashOverview.permViewOnly': 'View only', 'dashOverview.permProfile': 'Profile',
       'dashEvents.totalEvents': 'TOTAL EVENTS', 'dashEvents.daysToNext': 'DAYS TO NEXT EVENT', 'dashEvents.totalRegistrations': 'TOTAL REGISTRATIONS',
@@ -1302,6 +1304,8 @@
       'dash.yourChurches': 'Tus iglesias', 'dash.overviewSubtitle': 'Elige una iglesia para gestionarla, o agrega otra.',
       'dashOverview.churches': 'IGLESIAS', 'dashOverview.upcomingEvents': 'EVENTOS PRÓXIMOS', 'dashOverview.members': 'MIEMBROS', 'dashOverview.givingThisMonth': 'DONACIONES ESTE MES',
       'dashOverview.staffByChurch': 'Personal por iglesia', 'dashOverview.noStaff': 'Aún no hay personal — eres el único con acceso.',
+      'dashOverview.eventsByChurch': 'Eventos por iglesia', 'dashOverview.noUpcomingEvents': 'Nada programado todavía.',
+      'dashOverview.registeredCount': '{n} inscritos', 'dashOverview.andNMoreEvents': '+{n} más',
       'dashOverview.owner': 'Propietario', 'dashOverview.nextLabel': 'Próximo', 'dashOverview.noneScheduled': 'Sin eventos próximos', 'dashOverview.memberCount': '{n} miembros', 'dashOverview.thisMonth': '{amount} este mes',
       'dashOverview.permViewOnly': 'Solo lectura', 'dashOverview.permProfile': 'Perfil',
       'dashEvents.totalEvents': 'EVENTOS TOTALES', 'dashEvents.daysToNext': 'DÍAS PARA EL PRÓXIMO EVENTO', 'dashEvents.totalRegistrations': 'INSCRIPCIONES TOTALES',
@@ -5512,6 +5516,13 @@
         <p style="color:var(--ink-mute);font-size:14px;margin-bottom:24px;" data-i18n="dash.overviewSubtitle">Pick a church to manage it, or add another.</p>
         <div class="stat-row" id="dash-churches-summary" style="display:none;"></div>
         <div id="dash-churches-grid" class="church-tile-grid"></div>
+        <!-- Requested: a way to see event data per church from the
+             all-churches overview. Deliberately mirrors the staff-by-
+             church section below (same card/row classes) rather than
+             inventing a second layout for the same "one card per
+             church, rows inside" idea. -->
+        <h3 id="dash-churches-events-heading" style="font-size:16px;margin:40px 0 14px;display:none;" data-i18n="dashOverview.eventsByChurch">Events by church</h3>
+        <div id="dash-churches-events"></div>
         <h3 id="dash-churches-staff-heading" style="font-size:16px;margin:40px 0 14px;display:none;" data-i18n="dashOverview.staffByChurch">Staff by church</h3>
         <div id="dash-churches-staff"></div>
       </div>
@@ -6505,7 +6516,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v67 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v68 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12070,7 +12081,11 @@
     var nowIso = new Date().toISOString();
 
     Promise.all([
-      window.supabase.from('events').select('id, church_id, start_at').in('church_id', ids),
+      // More than id/church_id/start_at now, because this same fetch
+      // also feeds the per-church events breakdown below -- one query
+      // for both rather than a second round trip for fields the first
+      // one could just as easily have asked for.
+      window.supabase.from('events').select('id, church_id, start_at, title, registration_required, max_participants, visibility, members_only_registration').in('church_id', ids),
       window.supabase.from('church_memberships').select('church_id').in('church_id', ids).eq('status', 'approved'),
       window.supabase.from('donations').select('church_id, amount_cents, created_at').in('church_id', ids).eq('status', 'succeeded'),
       window.supabase.from('church_staff').select('church_id, user_id, can_manage_events, can_manage_giving, can_manage_groups, can_manage_messages, is_manager, can_edit_profile, profiles!user_id(full_name)').in('church_id', ids)
@@ -12082,14 +12097,21 @@
       var staff = (res[3] && res[3].data) || [];
 
       var per = {};
-      ids.forEach(function(id){ per[id] = { events: 0, nextEventAt: null, members: 0, givingMonthCents: 0, staff: [] }; });
+      ids.forEach(function(id){ per[id] = { events: 0, nextEventAt: null, members: 0, givingMonthCents: 0, staff: [], upcoming: [] }; });
 
       events.forEach(function(e){
         var p = per[e.church_id]; if (!p) return;
         if (e.start_at >= nowIso) {
           p.events++;
           if (!p.nextEventAt || e.start_at < p.nextEventAt) p.nextEventAt = e.start_at;
+          p.upcoming.push(e);
         }
+      });
+      // Soonest first within each church -- an overview is for "what's
+      // coming", so the next thing to happen should be the first thing
+      // read.
+      ids.forEach(function(id){
+        per[id].upcoming.sort(function(a, b){ return a.start_at < b.start_at ? -1 : (a.start_at > b.start_at ? 1 : 0); });
       });
       memberships.forEach(function(m){ if (per[m.church_id]) per[m.church_id].members++; });
       donations.forEach(function(d){
@@ -12125,6 +12147,71 @@
           + '</div>';
         return tileHtml(c, statsHtml);
       }).join('') + addTile;
+
+      // --- events by church ---
+      // Registration counts come from one batched query across every
+      // upcoming event rather than a call per event: a Multi-Church
+      // account with five churches could easily have dozens of events,
+      // and that many round trips to render one panel is how a page
+      // starts feeling broken. Fired after the grid is already on
+      // screen, so a slow count never delays anything else.
+      var eventsHost = document.getElementById('dash-churches-events');
+      var eventsHeading = document.getElementById('dash-churches-events-heading');
+      if (eventsHost) {
+        var upcomingIds = [];
+        ids.forEach(function(id){
+          (per[id].upcoming || []).forEach(function(e){ if (e.registration_required) upcomingIds.push(e.id); });
+        });
+        var countsPromise = upcomingIds.length
+          ? window.supabase.from('event_registrations').select('event_id, role').in('event_id', upcomingIds).eq('status', 'confirmed')
+          : Promise.resolve({ data: [] });
+
+        countsPromise.then(function(regRes){
+          if (window._dashChurchesGen !== myGen) return; // superseded
+          var regsByEvent = {};
+          ((regRes && regRes.data) || []).forEach(function(r){
+            if (!regsByEvent[r.event_id]) regsByEvent[r.event_id] = 0;
+            if (r.role === 'participant') regsByEvent[r.event_id]++;
+          });
+
+          eventsHost.innerHTML = list.map(function(c){
+            var rows = (per[c.id] && per[c.id].upcoming) || [];
+            var body;
+            if (!rows.length) {
+              body = '<div class="overview-staff-row" style="color:var(--ink-mute);">' + window.t('dashOverview.noUpcomingEvents') + '</div>';
+            } else {
+              // Capped at five: this is an overview, and the per-church
+              // dashboard is one click away for the full list.
+              body = rows.slice(0, 5).map(function(e){
+                var when = new Date(e.start_at).toLocaleDateString(window.appLocale ? window.appLocale() : undefined, dateFmt);
+                var regTxt;
+                if (!e.registration_required) {
+                  regTxt = window.t('badge.noSignupNeeded');
+                } else {
+                  var taken = regsByEvent[e.id] || 0;
+                  regTxt = e.max_participants
+                    ? taken + '/' + e.max_participants
+                    : window.t('dashOverview.registeredCount').replace('{n}', taken);
+                }
+                var membersOnly = (e.members_only_registration || e.visibility === 'private')
+                  ? '<span class="overview-staff-perm">' + window.t('badge.membersOnly') + '</span>' : '';
+                return '<div class="overview-staff-row">'
+                  + '<span>' + String(e.title || '').replace(/</g, '&lt;') + '</span>'
+                  + '<span class="overview-staff-perm">' + when + '</span>'
+                  + membersOnly
+                  + '<span class="overview-staff-perm">' + regTxt + '</span>'
+                  + '</div>';
+              }).join('');
+              if (rows.length > 5) {
+                body += '<div class="overview-staff-row" style="color:var(--ink-mute);">'
+                  + window.t('dashOverview.andNMoreEvents').replace('{n}', rows.length - 5) + '</div>';
+              }
+            }
+            return '<div class="overview-staff-card"><h4>' + displayChurchName(c.name) + '</h4>' + body + '</div>';
+          }).join('');
+          if (eventsHeading) eventsHeading.style.display = '';
+        }).catch(function(){ /* same reasoning as the outer catch: a failed count shouldn't blank the overview */ });
+      }
 
       // --- staff by church ---
       var staffHost = document.getElementById('dash-churches-staff');
