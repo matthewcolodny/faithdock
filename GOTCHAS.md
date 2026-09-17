@@ -4005,3 +4005,36 @@ The general lesson, which is the reason this is written down rather than quietly
 Anon also loses SELECT outright in 050, so "a visitor cannot read the inbox" becomes a privilege rather than the absence of a policy someone could add back by accident.
 
 **Migration 050 must be run by hand.** No client change.
+
+---
+
+## Auditing 046 and 047 after the 049 mistake
+
+Having got column grants wrong once, the same assumption was checked everywhere it had been made. Results split three ways.
+
+**046 was right, and for a reason worth recording.** `churches` genuinely is on a per-column model **for SELECT** — probed live, not assumed: `stripe_customer_id` returns 42501 to anon while `name` returns a row. So `grant select (groups_enabled) on churches to anon` was necessary and is load-bearing; without it the public page could not read the flag. That is grants doing the one thing grants can do, which is **add**. 049 tried to use the same syntax to take something away.
+
+**047 was right too** — it added no grants at all and needed none.
+
+**`church_staff` needed nothing.** The suspicion was that a Manager could PATCH their own row to `is_manager = true`, bypassing the owner-only check inside `update_staff_abilities()`. The policy already prevents it:
+
+```
+USING      is_church_manager(church_id) AND is_manager = false
+WITH CHECK is_church_manager(church_id) AND is_manager = false
+```
+
+USING tests the OLD row, WITH CHECK the NEW one — so a Manager can only touch rows that are not already managers, and can never produce one. Their own row fails USING. Whoever wrote that got both halves right.
+
+**`churches` did not.** "owner and permitted staff can update their church" is `USING can_edit_church_profile(id)` with the identical WITH CHECK, and `authenticated` holds **table-wide** UPDATE, so no column privilege narrows it. Nothing pins `owner_id` — a staff member with "Edit church profile" could PATCH it to themselves and still satisfy the check, because they remain a permitted editor of the row, now as its owner. `plan_type` and the Stripe columns were open the same way.
+
+The earlier revoke on `churches` had been **SELECT-only**. Reading "churches uses per-column grants" and carrying that across to writes is the mistake, and it is the same one 049 made in a different form.
+
+051 pins those columns with a BEFORE UPDATE trigger, because RLS chooses rows and not columns, and a WITH CHECK can see the new row but not the old one — so "owner_id must not change" is not expressible as a policy at all. `prevent_self_verification()` already guards `verification_status` on this same table the same way, so the pattern was here before this migration was.
+
+**The pin is scoped to non-owner callers, deliberately.** `stripe-subscription` writes `plan_type` and its source is not in this repo, and the repo's own rule is not to guess at those functions. So a caller with no `auth.uid()` (service role, webhooks), the row's own owner, and a church whose `owner_id` is still null (so `review_church_claim()` from 007 can assign one) all pass through untouched. Only a permitted staff editor is pinned — which is precisely the case that was exposed. An unclaimed church has no owner and therefore no staff, so nothing can reach that exemption to abuse it.
+
+`is_hidden` is left editable, and that is a decision rather than an oversight: hiding a church is disruptive but reversible and immediately visible to its owner, unlike a silent change of ownership or billing tier.
+
+Stated plainly because it matters more than the fix: **this was found structurally, not by exploiting it.** Taking over a real church to prove the point was not on the table, so what is confirmed is that the policy permits the write and no privilege or trigger prevents it — not that somebody has done it.
+
+**Migration 051 must be run by hand.** No client change.
