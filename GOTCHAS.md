@@ -3870,3 +3870,29 @@ Billing and Plans sit outside the `dashPanel()` registry and do hold per-church 
 **Not verified**: the request-count saving, which needs a signed-in session. Signed out, every panel bails at `getMyChurch()` returning null, so the in-place switch measured zero requests -- true and meaningless, the same empty measurement that has come up repeatedly. The reload cost is measured and real (1,813,358 bytes re-parsed per switch); the panel-refresh cost that replaces it is not.
 
 Build `2026-09-17-v102`. No migration.
+
+---
+
+## Message drafts
+
+Save an unfinished announcement, come back to it later.
+
+**A new table, reversing my own earlier advice.** I had said a `status` column on `scheduled_messages` would beat a new table, and that was wrong once the constraint was visible: its `send_at` is almost certainly NOT NULL, and a draft has no send time -- so reusing it means dropping a constraint on a table a working feature depends on, while unable to see that table's definition from this repo. That is the exact situation that has caused trouble here repeatedly.
+
+The lifecycles also differ more than the columns suggest. A scheduled message is a commitment with a delivery time and a worker acting on it; a draft is unfinished work that may never be sent. Sharing a table means every query about scheduled sends grows a `status <> 'draft'` filter, and the first one that forgets ships somebody's half-written message.
+
+**Explicit save, not autosave** -- decided rather than defaulted. A composer that saves as you type fills the list with abandoned fragments nobody deletes, and makes "is this saved?" a question the person keeps having to ask. One button, one row, one moment.
+
+**Author-only visibility.** A draft is unfinished work, and there is no way to tell from a row whether it was meant to be shared, so making every staff member's half-written messages visible to the others invites somebody sending a colleague's unfinished thought. Widening a permission later is easy; narrowing one after people rely on it is not.
+
+Four details worth keeping:
+
+- **The audience is stored in exactly the shape `gatherSelectedAudience()` produces**, so restoring is assignment rather than translation -- a second format would be free to drift from what the sender actually reads. Verified by round-tripping a real selection through store-clear-restore and comparing exactly.
+- **Restoring calls `refreshRecipientDropdowns()`**, because setting `.checked` in code fires no change event and the new dropdown labels would otherwise keep showing the previous counts. Same trap as the permission presets, two days running.
+- **Saving updates the open draft rather than inserting each time**, or editing one draft three times leaves three near-identical rows with no way to tell which is current.
+- **The save checks `.select()` row count, not just the error.** An update matching zero rows reports success, which here would mean telling somebody their message was saved when it was not -- the fifth appearance of that pattern in this project.
+- A draft's body is **re-sanitised on the way back in**. It is user content that has round-tripped through the database, which is precisely the shape stored XSS takes.
+
+Verified with migration 048 deliberately unrun: the table returns PGRST205, the Messages composer still renders completely, and `scheduled_messages` is still readable -- so the drafts feature degrades to absent rather than taking the page with it.
+
+Build `2026-09-17-v103`; **migration 048 must be run by hand.**

@@ -410,6 +410,14 @@
       'staffPerms.manageMembers': 'Approve and manage church members', 'staffPerms.manageMembersTag': 'Members', 'staffPerms.checkIn': 'Check people in at events', 'staffPerms.checkInTag': 'Check-in',
       'dashGiving.bankAccount': 'Bank account',
       'dashMsg.noneAvailable': 'None available',
+      'dashMsg.saveDraft': 'Save draft', 'dashMsg.drafts': 'Drafts',
+      'dashMsg.draftsHint': 'Saved but not sent. Only you can see your own drafts.',
+      'dashMsg.noDrafts': 'No drafts yet.', 'dashMsg.untitledDraft': 'Untitled draft',
+      'dashMsg.openDraft': 'Open', 'dashMsg.deleteDraft': 'Delete draft',
+      'dashMsg.draftSaved': 'Draft saved.', 'dashMsg.draftLoaded': 'Draft loaded.',
+      'dashMsg.draftEmpty': 'Add a subject or a message first.',
+      'dashMsg.draftSaveFailed': 'Draft could not be saved.',
+      'dashMsg.confirmDeleteDraft': 'Delete this draft?',
       'dashCheckin.enterFocus': 'Focus mode for this device',
       'dashCheckin.exitFocus': 'Exit focus mode',
       'dashCheckin.focusActive': 'Focus mode — only check-in is available on this device.',
@@ -1265,6 +1273,14 @@
       'staffPerms.manageMembers': 'Aprobar y gestionar los miembros de la iglesia', 'staffPerms.manageMembersTag': 'Miembros', 'staffPerms.checkIn': 'Registrar asistentes en los eventos', 'staffPerms.checkInTag': 'Registro',
       'dashGiving.bankAccount': 'Cuenta bancaria',
       'dashMsg.noneAvailable': 'Ninguno disponible',
+      'dashMsg.saveDraft': 'Guardar borrador', 'dashMsg.drafts': 'Borradores',
+      'dashMsg.draftsHint': 'Guardados pero no enviados. Solo tú ves tus borradores.',
+      'dashMsg.noDrafts': 'Aún no hay borradores.', 'dashMsg.untitledDraft': 'Borrador sin título',
+      'dashMsg.openDraft': 'Abrir', 'dashMsg.deleteDraft': 'Eliminar borrador',
+      'dashMsg.draftSaved': 'Borrador guardado.', 'dashMsg.draftLoaded': 'Borrador cargado.',
+      'dashMsg.draftEmpty': 'Añade un asunto o un mensaje primero.',
+      'dashMsg.draftSaveFailed': 'No se pudo guardar el borrador.',
+      'dashMsg.confirmDeleteDraft': '¿Eliminar este borrador?',
       'dashCheckin.enterFocus': 'Modo concentrado para este dispositivo',
       'dashCheckin.exitFocus': 'Salir del modo concentrado',
       'dashCheckin.focusActive': 'Modo concentrado — en este dispositivo solo está disponible el registro.',
@@ -6268,13 +6284,28 @@ Groups</span>
             <input class="field" type="datetime-local" id="msg-schedule-datetime">
           </div>
 
-          <button class="btn-gold" id="msg-send-btn" style="margin-top:14px;" data-i18n="dashMsg.sendAnnouncement">Send announcement</button>
+          <div style="display:flex;gap:8px;align-items:center;margin-top:14px;flex-wrap:wrap;">
+            <button class="btn-gold" id="msg-send-btn" data-i18n="dashMsg.sendAnnouncement">Send announcement</button>
+            <!-- Explicit rather than autosaving. A composer that saves
+                 continuously produces a drawer full of half-sentences
+                 nobody deletes, and leaves people unsure whether the
+                 thing they are looking at is saved. One button, one
+                 moment, one row. -->
+            <button class="export-btn" id="msg-save-draft-btn" data-i18n="dashMsg.saveDraft">Save draft</button>
+            <span id="msg-draft-status" style="display:none;font-size:12.5px;"></span>
+          </div>
           <div id="msg-send-status" style="display:none;font-size:12.5px;margin-top:10px;"></div>
         </div>
 
         <div class="side-note" style="max-width:560px;">
           <h4 data-i18n="dashMsg.scheduledAnnouncements">Scheduled announcements</h4>
           <div id="msg-scheduled-list"><p style="color:var(--ink-mute);font-size:13px;" data-i18n="common.loading">Loading...</p></div>
+        </div>
+
+        <div class="side-note" style="max-width:560px;">
+          <h4 data-i18n="dashMsg.drafts">Drafts</h4>
+          <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:10px;" data-i18n="dashMsg.draftsHint">Saved but not sent. Only you can see your own drafts.</p>
+          <div id="msg-drafts-list"><p style="color:var(--ink-mute);font-size:13px;" data-i18n="common.loading">Loading...</p></div>
         </div>
 
         <div class="side-note" style="max-width:560px;">
@@ -6888,7 +6919,7 @@ Groups</span>
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v102 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v103 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -20766,6 +20797,144 @@ Groups</span>
       document.getElementById('msg-send-btn').textContent = msgScheduleToggle.checked ? window.t('dashMessages.scheduleAnnouncement') : window.t('dashMessages.sendAnnouncement');
     });
   }
+
+  // ============================================================
+  // Message drafts.
+  //
+  // Explicit save rather than autosave, decided rather than defaulted:
+  // a composer that saves as you type fills the list with abandoned
+  // fragments and makes 'is this saved?' a question the person has to
+  // keep asking. One button, one row, one moment.
+  //
+  // A draft stores the audience in exactly the shape
+  // gatherSelectedAudience() produces, so restoring is assignment
+  // rather than translation -- a second format would be free to drift
+  // from what the sender actually reads.
+  // ============================================================
+  var msgEditingDraftId = null;
+
+  function setDraftStatus(text, colorVar){
+    var el = document.getElementById('msg-draft-status');
+    if (!el) return;
+    el.textContent = text;
+    el.style.color = 'var(' + (colorVar || '--ink-mute') + ')';
+    el.style.display = text ? 'inline' : 'none';
+  }
+
+  function applyAudienceToForm(audience){
+    var a = audience || {};
+    var types = a.types || [], groupIds = a.groupIds || [], eventIds = a.eventIds || [];
+    document.querySelectorAll('.msg-audience-check').forEach(function(el){ el.checked = types.indexOf(el.value) !== -1; });
+    document.querySelectorAll('.msg-group-check').forEach(function(el){ el.checked = groupIds.indexOf(el.value) !== -1; });
+    document.querySelectorAll('.msg-event-check').forEach(function(el){ el.checked = eventIds.indexOf(el.value) !== -1; });
+    // Setting .checked in code fires no change event, so the dropdown
+    // labels would keep showing the previous counts -- the same trap
+    // the preset selector hit.
+    if (typeof window.refreshRecipientDropdowns === 'function') window.refreshRecipientDropdowns();
+  }
+
+  async function loadMessageDrafts(){
+    var listEl = document.getElementById('msg-drafts-list');
+    if (!listEl) return;
+    var myChurch = await getMyChurch();
+    if (!myChurch) { listEl.innerHTML = ''; return; }
+    var { data, error } = await supabase.from('message_drafts')
+      .select('id, subject, updated_at')
+      .eq('church_id', myChurch.id)
+      .order('updated_at', { ascending: false });
+    // Soft failure: drafts are an addition to this page, not the reason
+    // it exists, so a missing table (migration 048 not run) must not
+    // take the composer down with it.
+    if (error) { listEl.innerHTML = ''; console.error('Drafts unavailable:', error); return; }
+    if (!data || !data.length) {
+      listEl.innerHTML = '<p style="color:var(--ink-mute);font-size:12.5px;">' + window.t('dashMsg.noDrafts') + '</p>';
+      return;
+    }
+    listEl.innerHTML = data.map(function(d){
+      var when = new Date(d.updated_at).toLocaleString(window.appLocale(), { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+      return '<div class="info-row" style="justify-content:space-between;gap:10px;">'
+        + '<span style="min-width:0;"><strong>' + escapeHtml(d.subject || window.t('dashMsg.untitledDraft')) + '</strong>'
+        + '<span style="color:var(--ink-mute);font-size:12px;"> — ' + escapeHtml(when) + '</span></span>'
+        + '<span style="display:flex;gap:6px;flex-shrink:0;">'
+        + '<button class="export-btn" data-load-draft-id="' + escapeHtml(d.id) + '">' + window.t('dashMsg.openDraft') + '</button>'
+        + '<button class="qr-btn" data-delete-draft-id="' + escapeHtml(d.id) + '" aria-label="' + window.t('dashMsg.deleteDraft') + '">×</button>'
+        + '</span></div>';
+    }).join('');
+  }
+  window.loadMessageDrafts = loadMessageDrafts;
+  dashPanel(loadMessageDrafts);
+
+  var msgSaveDraftBtn = document.getElementById('msg-save-draft-btn');
+  if (msgSaveDraftBtn) {
+    msgSaveDraftBtn.addEventListener('click', async function(){
+      var myChurch = await getMyChurch();
+      if (!myChurch) return;
+      var subject = document.getElementById('msg-subject').value.trim();
+      var bodyHtml = document.getElementById('msg-body').innerHTML;
+      var bodyText = document.getElementById('msg-body').textContent.trim();
+      if (!subject && !bodyText) { setDraftStatus(window.t('dashMsg.draftEmpty'), '--clay'); return; }
+
+      msgSaveDraftBtn.disabled = true;
+      var { data: userData } = await supabase.auth.getUser();
+      var payload = {
+        church_id: myChurch.id,
+        created_by: userData.user ? userData.user.id : null,
+        subject: subject,
+        body_html: bodyHtml,
+        audience_json: gatherSelectedAudience(),
+        updated_at: new Date().toISOString()
+      };
+      // Updating the draft that is open, rather than spawning a new row
+      // per save -- otherwise editing one draft three times leaves three
+      // near-identical rows and no way to tell which is current.
+      var res = msgEditingDraftId
+        ? await supabase.from('message_drafts').update(payload).eq('id', msgEditingDraftId).select('id')
+        : await supabase.from('message_drafts').insert(payload).select('id');
+      msgSaveDraftBtn.disabled = false;
+
+      // .select() and a row count, not just the error: an update that
+      // matches zero rows reports success, which here would mean
+      // cheerfully telling somebody their message was saved when it
+      // was not.
+      if (res.error || !res.data || !res.data.length) {
+        setDraftStatus(res.error ? res.error.message : window.t('dashMsg.draftSaveFailed'), '--clay');
+        return;
+      }
+      msgEditingDraftId = res.data[0].id;
+      setDraftStatus(window.t('dashMsg.draftSaved'), '--sage');
+      loadMessageDrafts();
+    });
+  }
+
+  document.addEventListener('click', async function(ev){
+    var openBtn = ev.target.closest ? ev.target.closest('[data-load-draft-id]') : null;
+    if (openBtn) {
+      var { data, error } = await supabase.from('message_drafts')
+        .select('id, subject, body_html, audience_json')
+        .eq('id', openBtn.getAttribute('data-load-draft-id')).limit(1);
+      if (error || !data || !data.length) return;
+      var d = data[0];
+      msgEditingDraftId = d.id;
+      document.getElementById('msg-subject').value = d.subject || '';
+      // The body is stored as the composer's own sanitised HTML and is
+      // re-sanitised on the way back in -- a draft row is user content
+      // that has been round-tripped through the database, which is
+      // exactly the shape stored XSS takes.
+      document.getElementById('msg-body').innerHTML = sanitizeRichText(d.body_html || '');
+      applyAudienceToForm(d.audience_json);
+      setDraftStatus(window.t('dashMsg.draftLoaded'), '--ink-mute');
+      document.getElementById('msg-subject').scrollIntoView({ block: 'center' });
+      return;
+    }
+    var delBtn = ev.target.closest ? ev.target.closest('[data-delete-draft-id]') : null;
+    if (!delBtn) return;
+    if (!window.confirm(window.t('dashMsg.confirmDeleteDraft'))) return;
+    var draftId = delBtn.getAttribute('data-delete-draft-id');
+    var del = await supabase.from('message_drafts').delete().eq('id', draftId).select('id');
+    if (del.error || !del.data || !del.data.length) return;
+    if (msgEditingDraftId === draftId) msgEditingDraftId = null;
+    loadMessageDrafts();
+  });
 
   var msgSendBtn = document.getElementById('msg-send-btn');
   if (msgSendBtn) {
