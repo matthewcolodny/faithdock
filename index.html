@@ -789,6 +789,7 @@
       'events.paidCancelConfirm': "You paid ${amount} for this. Cancelling here does not automatically refund you — you'll need to contact the church directly about a refund. Cancel anyway?",
       'events.cancelledNoAutoRefund': "Cancelled — remember, this doesn't issue a refund automatically. Contact the church about that directly.",
       'events.unregisteredPickRoleAgain': "You've been unregistered — pick a role to register again.",
+      'events.spotsTaken': '{taken} of {total} spots taken',
       'events.unregisterFailedNoRowsAffected': "Couldn't unregister you — please try again, and if this keeps happening, contact support@faithdock.com.",
       'events.checkoutStartFailed': 'Something went wrong starting checkout.', 'events.discountAppliedFreeRegistration': "Discount code applied — you're registered, free of charge!",
       'events.optionFullTryOther': 'That option is full — try the other one if available.',
@@ -902,7 +903,8 @@
       'ce.percentOff': '% off', 'ce.amountOff': '$ off', 'ce.percentOffSuffix': '% off', 'ce.amountOffSuffix': ' off', 'ce.amount': 'Amount', 'ce.maxUses': 'Max uses',
       'ce.noDiscountCodesYet': 'No discount codes yet.', 'ce.usesOfMax': '{used} / {max} used', 'ce.usesCount': '{used} used', 'ce.off': 'Off', 'ce.turnOff': 'Turn off', 'ce.turnOn': 'Turn on', 'ce.enterCodeAndAmount': 'Enter a code and an amount.',
       'ce.paidEventsLocked': 'Paid events (ticket pricing, discount codes) are available on Starter plans and above.',
-      'ce.alsoAcceptVolunteers': 'Also accept volunteer signups', 'ce.maxVolunteers': 'Max volunteers',
+      'ce.alsoAcceptVolunteers': 'Are volunteers needed for this event?', 'ce.maxVolunteers': 'Max volunteers',
+      'ce.volunteerNeedsRegistrationHint': 'Volunteers sign up the same way participants do, so this only shows on your event’s page when "Require registration" is on.',
       'ce.allowGuests': 'Are guests allowed?', 'ce.allowGuestsHint': "Whoever registers will be asked how many guests they're bringing — tracked separately from the participant/volunteer count above.", 'ce.maxGuests': 'Max total guests',
       'ce.suggestedDonation': 'Suggested donation', 'ce.suggestedDonationHint': 'For a free event only — shown to registrants as an optional amount to give toward this event, through the same Giving your church already has set up. Ignored if a ticket price is set above.', 'ce.none': 'None',
       'ce.repeats': 'Repeats', 'ce.doesntRepeat': "Doesn't repeat", 'ce.daily': 'Daily', 'ce.weekly': 'Weekly', 'ce.every2Weeks': 'Every 2 weeks', 'ce.monthly': 'Monthly',
@@ -1588,6 +1590,7 @@
       'events.paidCancelConfirm': 'Pagaste ${amount} por esto. Cancelar aquí no te reembolsa automáticamente — deberás contactar a la iglesia directamente sobre un reembolso. ¿Cancelar de todos modos?',
       'events.cancelledNoAutoRefund': 'Cancelado — recuerda que esto no emite un reembolso automáticamente. Contacta a la iglesia directamente sobre eso.',
       'events.unregisteredPickRoleAgain': 'Se canceló tu inscripción — elige un rol para inscribirte de nuevo.',
+      'events.spotsTaken': '{taken} de {total} lugares ocupados',
       'events.unregisterFailedNoRowsAffected': 'No pudimos cancelar tu inscripción — inténtalo de nuevo, y si esto sigue ocurriendo, contacta a support@faithdock.com.',
       'events.checkoutStartFailed': 'Algo salió mal al iniciar el pago.', 'events.discountAppliedFreeRegistration': '¡Código de descuento aplicado — estás inscrito, sin costo!',
       'events.optionFullTryOther': 'Esa opción está llena — intenta con la otra si está disponible.',
@@ -1701,7 +1704,8 @@
       'ce.percentOff': '% de descuento', 'ce.amountOff': '$ de descuento', 'ce.percentOffSuffix': '% de descuento', 'ce.amountOffSuffix': ' de descuento', 'ce.amount': 'Cantidad', 'ce.maxUses': 'Usos máximos',
       'ce.noDiscountCodesYet': 'Aún no hay códigos de descuento.', 'ce.usesOfMax': '{used} / {max} usados', 'ce.usesCount': '{used} usados', 'ce.off': 'Desactivado', 'ce.turnOff': 'Desactivar', 'ce.turnOn': 'Activar', 'ce.enterCodeAndAmount': 'Ingresa un código y una cantidad.',
       'ce.paidEventsLocked': 'Los eventos de pago (precio de entrada, códigos de descuento) están disponibles en los planes Inicial y superiores.',
-      'ce.alsoAcceptVolunteers': 'También aceptar inscripciones de voluntarios', 'ce.maxVolunteers': 'Máximo de voluntarios',
+      'ce.alsoAcceptVolunteers': '¿Se necesitan voluntarios para este evento?', 'ce.maxVolunteers': 'Máximo de voluntarios',
+      'ce.volunteerNeedsRegistrationHint': 'Los voluntarios se inscriben igual que los participantes, así que esto solo aparece en la página de tu evento cuando "Requerir inscripción" está activado.',
       'ce.allowGuests': '¿Se permiten invitados?', 'ce.allowGuestsHint': 'A quien se inscriba se le preguntará cuántos invitados trae — se cuenta por separado del conteo de participantes/voluntarios de arriba.', 'ce.maxGuests': 'Máximo total de invitados',
       'ce.suggestedDonation': 'Donación sugerida', 'ce.suggestedDonationHint': 'Solo para un evento gratuito — se muestra a quienes se inscriben como un monto opcional para dar hacia este evento, a través del mismo sistema de Donaciones que tu iglesia ya tiene configurado. Se ignora si arriba se fijó un precio de boleto.', 'ce.none': 'Ninguna',
       'ce.repeats': 'Se repite', 'ce.doesntRepeat': 'No se repite', 'ce.daily': 'Diariamente', 'ce.weekly': 'Semanalmente', 'ce.every2Weeks': 'Cada 2 semanas', 'ce.monthly': 'Mensualmente',
@@ -3948,7 +3952,20 @@
 
 <!-- ================= EVENT DETAIL ================= -->
 <section class="page" id="page-event">
-  <div class="wrap" style="padding-top:44px;">
+  <!-- Reported directly: refreshing an event page "sputters" -- briefly
+       showing "Hosted by (blank)", no title, no details, and the role
+       radios, before everything settles. Cause: populateEventPage() runs
+       several times per load (the classic script's first route pass,
+       again once the module script is ready, again when auth resolves)
+       and the very first pass can happen before the event's data has
+       been fetched at all, so it paints an empty shell first. Removing
+       the old hardcoded sample text (which is what used to fill that
+       gap, with someone else's event details) made the emptiness
+       visible rather than merely wrong.
+       Same loading-then-content shape #page-group already uses: show a
+       single quiet line until there's real data, then swap. -->
+  <div id="event-page-loading" class="wrap" style="padding-top:44px;color:var(--ink-mute);font-size:14px;" data-i18n="common.loading">Loading...</div>
+  <div class="wrap" id="event-page-content" style="padding-top:44px;display:none;">
     <div id="event-image-block" style="display:none;aspect-ratio:16/9;border-radius:var(--radius);background-size:cover;background-position:center;margin-bottom:24px;max-width:680px;"></div>
     <span class="tag sage" id="event-badge" data-i18n="badge.registrationOpen">Registration open</span>
     <h1 style="font-size:32px;margin-top:16px;" id="event-title"></h1>
@@ -3971,6 +3988,14 @@
              far more useful (and far more likely to actually be seen)
              sitting right where the decision to register gets made. -->
         <span class="tag" id="event-fill-badge" style="display:none;margin-bottom:8px;"></span>
+        <!-- Requested directly: "events with limits should show how full
+             they are (ex. 2/10)". Separate from the Full/Almost-full
+             badge above rather than folded into it, because this should
+             show for ANY capped event, not only one at 90%+ -- knowing
+             it's 2/10 is useful long before it's nearly full. Hidden
+             entirely for uncapped events, where there's no denominator
+             to show. Filled in by refreshEventCapacityBadge(). -->
+        <div id="event-capacity-count" style="display:none;font-size:12.5px;color:var(--ink-mute);margin-bottom:8px;"></div>
         <button class="btn-gold register-real-btn" id="event-register-btn" style="margin-top:8px;" data-i18n="events.registerForEvent">Register for this event</button>
         <div class="register-status mono" id="event-register-status" style="font-size:12px;color:var(--ink-mute);margin-top:8px;display:none;"></div>
         <div id="event-suggested-donation" style="display:none;margin-top:14px;padding:14px 16px;border:1px solid var(--line);border-radius:10px;background:var(--card);">
@@ -5292,6 +5317,26 @@
           <input class="field" type="number" id="ce-max-participants" min="1" placeholder="No limit" data-i18n-placeholder="ce.noLimit">
         </div>
 
+        <!-- Moved out of #ce-registration-options (below), requested
+             directly: this was buried behind "Require registration", so
+             an organiser who left that off never saw it and had no way
+             to say whether their event wants volunteers at all. Same
+             reasoning as Max participants just above. The hint spells
+             out the one real dependency that remains -- a volunteer
+             still has to sign up, so volunteer signups only actually
+             appear on the public page when registration is required. -->
+        <label class="filter-check" style="margin-top:16px;"><input type="checkbox" id="ce-allow-volunteers"> <span data-i18n="ce.alsoAcceptVolunteers">Are volunteers needed for this event?</span></label>
+        <div id="ce-volunteer-options" style="display:none;margin-top:10px;">
+          <div style="font-size:12px;color:var(--ink-mute);margin-bottom:8px;" data-i18n="ce.volunteerNeedsRegistrationHint">Volunteers sign up the same way participants do, so this only shows on your event's page when "Require registration" is on.</div>
+          <label data-i18n="ce.maxVolunteers">Max volunteers</label>
+          <input class="field" type="number" id="ce-max-volunteers" min="1" placeholder="No limit" data-i18n-placeholder="ce.noLimit">
+
+          <label style="margin-top:14px;" data-i18n="ce.volunteerQuestions">Questions for volunteers</label>
+          <div style="font-size:12px;color:var(--ink-mute);margin-bottom:8px;" data-i18n="ce.volunteerQuestionsHint">Shown only to people registering as a volunteer — the questions above are shown only to participants.</div>
+          <div id="ce-volunteer-questions-list"></div>
+          <button type="button" class="export-btn" id="ce-add-volunteer-question-btn" style="margin-top:4px;padding:7px 14px;font-size:12.5px;" data-i18n="ce.addAQuestion">+ Add a question</button>
+        </div>
+
         <div id="ce-registration-options" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--line);">
           <div id="ce-price-section">
             <label style="margin-top:14px;" data-i18n="ce.ticketPrice">Ticket price</label>
@@ -5332,17 +5377,6 @@
               </div>
               <div id="ce-discount-code-status" style="display:none;font-size:12px;margin-top:8px;"></div>
             </div>
-          </div>
-
-          <label class="filter-check" style="margin-top:14px;"><input type="checkbox" id="ce-allow-volunteers"> <span data-i18n="ce.alsoAcceptVolunteers">Also accept volunteer signups</span></label>
-          <div id="ce-volunteer-options" style="display:none;margin-top:10px;">
-            <label data-i18n="ce.maxVolunteers">Max volunteers</label>
-            <input class="field" type="number" id="ce-max-volunteers" min="1" placeholder="No limit" data-i18n-placeholder="ce.noLimit">
-
-            <label style="margin-top:14px;" data-i18n="ce.volunteerQuestions">Questions for volunteers</label>
-            <div style="font-size:12px;color:var(--ink-mute);margin-bottom:8px;" data-i18n="ce.volunteerQuestionsHint">Shown only to people registering as a volunteer — the questions above are shown only to participants.</div>
-            <div id="ce-volunteer-questions-list"></div>
-            <button type="button" class="export-btn" id="ce-add-volunteer-question-btn" style="margin-top:4px;padding:7px 14px;font-size:12.5px;" data-i18n="ce.addAQuestion">+ Add a question</button>
           </div>
 
           <label class="filter-check" style="margin-top:14px;"><input type="checkbox" id="ce-allow-guests"> <span data-i18n="ce.allowGuests">Are guests allowed?</span></label>
@@ -6416,7 +6450,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-16-v58 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-16-v59 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -7378,7 +7412,21 @@
   }
   window.translateBadgeLabel = translateBadgeLabel;
 
+  // Swaps the event page between its loading line and its real content.
+  // Kept as one function so the two elements can't get out of step
+  // (both visible, or neither) from separate call sites.
+  function setEventPageLoading(isLoading){
+    var loadingEl = document.getElementById('event-page-loading');
+    var contentEl = document.getElementById('event-page-content');
+    if (loadingEl) loadingEl.style.display = isLoading ? 'block' : 'none';
+    if (contentEl) contentEl.style.display = isLoading ? 'none' : 'block';
+  }
+  window.setEventPageLoading = setEventPageLoading;
+
   function populateEventPage(e){
+    // Real data has arrived -- reveal the page. Called first so an early
+    // return further down can't leave it stuck on "Loading...".
+    setEventPageLoading(false);
     document.getElementById('event-badge').className = 'tag ' + e.badge;
     document.getElementById('event-badge').textContent = translateBadgeLabel(e.badgeLabel);
     // Positioned right above the Register button (see its own HTML
@@ -7494,6 +7542,10 @@
     if (noRegNote) noRegNote.style.display = regNotRequired ? 'block' : 'none';
 
     var roleChoice = document.getElementById('event-role-choice');
+    // Stamped so setEventRegisteredUI() can tell whether this event
+    // offers a role choice at all -- see its own comment. Without this
+    // it re-showed these radios for every event, volunteers or not.
+    roleChoice.setAttribute('data-role-choice-available', (e.real && e.allowVolunteers && !regNotRequired) ? 'true' : 'false');
     if (e.real && e.allowVolunteers && !regNotRequired) {
       // Hidden, not shown, while already registered -- picking a role is
       // meaningless until you unregister, and setEventRegisteredUI()
@@ -7724,7 +7776,15 @@
       + '<div class="card-body">'
       + (e.featured ? '<span class="tag gold" style="margin-right:6px;"><svg viewBox="0 0 24 24" fill="currentColor" style="width:11px;height:11px;vertical-align:-1px;margin-right:3px;"><path d="M12 2l2.9 6.3L22 9.3l-5 4.9 1.2 7.1L12 17.8l-6.2 3.5L7 14.2 2 9.3l7.1-1L12 2z"/></svg>' + window.t('events.featured') + '</span>' : '')
       + '<span class="tag ' + e.badge + '">' + translateBadgeLabel(e.badgeLabel) + '</span>'
-      + (e.fillBadge ? '<span class="tag ' + e.fillBadge.color + '" style="margin-left:6px;">' + translateBadgeLabel(e.fillBadge.label) + '</span>' : '')
+      // data-fill-badge-for / data-capacity-count-for let
+      // applyFillBadgeFromCount() find and update these in place after a
+      // registration changes, instead of them keeping whatever was baked
+      // in at render time until a full refresh. Both are always emitted
+      // (hidden when they have nothing to say) rather than conditionally,
+      // so there's always an element to update -- otherwise an event
+      // going from "not full" to "Full" would have no badge to write to.
+      + '<span class="tag' + (e.fillBadge ? ' ' + e.fillBadge.color : '') + '" data-fill-badge-for="' + e.id + '" style="margin-left:6px;' + (e.fillBadge ? '' : 'display:none;') + '">' + (e.fillBadge ? translateBadgeLabel(e.fillBadge.label) : '') + '</span>'
+      + '<span class="tag" data-capacity-count-for="' + e.id + '" style="margin-left:6px;' + (e.maxParticipants ? '' : 'display:none;') + '">' + (e.maxParticipants ? ((e.confirmedParticipantCount || 0) + '/' + e.maxParticipants) : '') + '</span>'
       + '<h3>' + e.title + '</h3>'
       + '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/></svg>' + churchLabel + (distanceText ? ' · ' + distanceText : '') + '</div>'
       + '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>' + e.when + '</div>';
@@ -8128,10 +8188,23 @@
     if(resolved.base === 'event' && !resolved.key){ go('events', skipPush); return; }
     if(resolved.base === 'event' && resolved.key){
       var matchedEvent = events.filter(function(x){ return String(x.real ? x.id : x.title) === resolved.key; })[0];
+      // Only fall back to the loading line when there's genuinely
+      // nothing to show yet -- going from one event straight to another
+      // would otherwise flash "Loading..." over content that's about to
+      // be replaced anyway, trading one flicker for a different one.
+      if (!matchedEvent && typeof setEventPageLoading === 'function') setEventPageLoading(true);
       if (!matchedEvent) { matchedEvent = await findOrFetchEventById(resolved.key); }
       if(matchedEvent){
         populateEventPage(matchedEvent);
         if(matchedEvent.real && typeof window.checkEventRegistrationStatus === 'function'){ window.checkEventRegistrationStatus(matchedEvent.id); }
+        // Reported directly: the Full tag only became accurate after a
+        // refresh. populateEventPage() renders whatever fillBadge the
+        // cached event object happens to carry, which can be up to the
+        // cache TTL out of date -- and stale the moment anyone else
+        // registers. Re-checking the real count on arrival (delta 0 --
+        // reconcile only, nothing optimistic to apply) makes landing on
+        // the page as accurate as refreshing it was.
+        if(matchedEvent.real && typeof window.refreshEventCapacityBadge === 'function'){ window.refreshEventCapacityBadge(matchedEvent.id, 0); }
         if(matchedEvent.real && matchedEvent.allowVolunteers && typeof window.checkEventCapacity === 'function'){ window.checkEventCapacity(matchedEvent.id, matchedEvent.maxParticipants, matchedEvent.maxVolunteers); }
         if(matchedEvent.real && typeof window.loadEventMinistriesDisplay === 'function'){ window.loadEventMinistriesDisplay(matchedEvent.id); }
       } else if (window.supabase) {
@@ -8210,6 +8283,11 @@
     }
     if(resolved.base === 'profile' && typeof window.loadProfilePage === 'function'){
       window.loadProfilePage();
+    }
+    // Back/Forward into Events or Home -- same reasoning as the click
+    // handler's own copy of this (see its comment there).
+    if((resolved.base === 'events' || resolved.base === 'home') && typeof window.refreshAllCardRegistrationStates === 'function'){
+      window.refreshAllCardRegistrationStates();
     }
     go(resolved.full, skipPush);
     if(resolved.base === 'dashboard' && resolved.key){
@@ -8377,6 +8455,11 @@
           if(matchedEvent.real && typeof window.checkEventRegistrationStatus === 'function'){
             window.checkEventRegistrationStatus(matchedEvent.id);
           }
+          // Same live-capacity re-check as the showRouteFromHash branch
+          // above -- this is the click-through path into an event.
+          if(matchedEvent.real && typeof window.refreshEventCapacityBadge === 'function'){
+            window.refreshEventCapacityBadge(matchedEvent.id, 0);
+          }
           if(matchedEvent.real && matchedEvent.allowVolunteers && typeof window.checkEventCapacity === 'function'){
             window.checkEventCapacity(matchedEvent.id, matchedEvent.maxParticipants, matchedEvent.maxVolunteers);
           }
@@ -8440,6 +8523,19 @@
       // is a fresh entry -> page 1, not wherever pagination was left.
       if(route === 'directory' && typeof window.renderDirectory === 'function'){
         window.renderDirectory(1);
+      }
+      // 'events' and 'home' were the last two card-rendering routes with
+      // no refresh-on-visit hook at all, so their already-rendered cards
+      // kept whatever registration state they were built with until a
+      // full page refresh -- the same class of staleness fixed for
+      // my-churches/dashboard above. Deliberately NOT renderEvents()
+      // here: that re-runs the search and would reset "Load more"
+      // pagination back to the first page just for visiting the tab.
+      // refreshAllCardRegistrationStates() is one query that only
+      // updates the buttons in place, and (since its missing else branch
+      // was fixed) can now clear a stale "Registered" as well as set one.
+      if((route === 'events' || route === 'home') && typeof window.refreshAllCardRegistrationStates === 'function'){
+        window.refreshAllCardRegistrationStates();
       }
       go(fullRoute);
       // eslint-disable-next-line no-use-before-define -- navLinksEl is declared later in this block; this is inside a click handler callback that only runs on an actual click, long after the whole script (including that declaration) has finished executing. Verified by hand.
@@ -24055,7 +24151,20 @@
       btn.classList.remove('btn-registered');
       btn.setAttribute('data-registered', 'false');
       if (labelEl) labelEl.style.display = 'none';
-      if (choiceEl) choiceEl.style.display = 'block';
+      // Real, reported bug: "currently every event has the volunteer
+      // registration." This line used to show the participant/volunteer
+      // role radios unconditionally whenever someone wasn't registered,
+      // never checking whether the event actually accepts volunteers --
+      // and since checkEventRegistrationStatus() calls this for every
+      // not-registered visitor, that meant every event. (Confirmed
+      // against live data first: allow_volunteers is false on all of
+      // them, so this was purely a rendering bug, not bad data.)
+      // populateEventPage() stamps the real answer onto the element as
+      // data-role-choice-available. A card's .card-role-choice carries
+      // no such attribute and needs none -- eventCard() only emits that
+      // markup at all when the event allows volunteers, so its mere
+      // presence already means "yes".
+      if (choiceEl && choiceEl.getAttribute('data-role-choice-available') !== 'false') choiceEl.style.display = 'block';
       if (pRadio && vRadio) {
         pRadio.checked = true;
         vRadio.checked = false;
@@ -24201,6 +24310,44 @@
       } else {
         fillBadgeEl.style.display = 'none';
       }
+    }
+    // "2 of 10 spots taken" -- shown for ANY capped event, not just a
+    // nearly-full one (see the element's own HTML comment).
+    var capacityCountEl = document.getElementById('event-capacity-count');
+    if (capacityCountEl) {
+      if (maxParticipants) {
+        capacityCountEl.textContent = window.t('events.spotsTaken')
+          .replace('{taken}', participantCount).replace('{total}', maxParticipants);
+        capacityCountEl.style.display = 'block';
+      } else {
+        capacityCountEl.style.display = 'none';
+      }
+    }
+    // Every card for this same event that's currently rendered gets the
+    // same treatment -- same "update every copy, not just the one in
+    // front of you" reasoning as applyEventRegisteredState(). Without
+    // this, a listing card kept its baked-in badge from whenever it was
+    // rendered, so the Full tag there only ever corrected itself on a
+    // full refresh.
+    if (cached && cached.id) {
+      document.querySelectorAll('[data-fill-badge-for="' + cached.id + '"]').forEach(function(cardBadge){
+        if (fillBadge) {
+          cardBadge.className = 'tag ' + fillBadge.color;
+          cardBadge.style.marginLeft = '6px';
+          cardBadge.textContent = translateBadgeLabel(fillBadge.label);
+          cardBadge.style.display = 'inline-flex';
+        } else {
+          cardBadge.style.display = 'none';
+        }
+      });
+      document.querySelectorAll('[data-capacity-count-for="' + cached.id + '"]').forEach(function(cardCount){
+        if (maxParticipants) {
+          cardCount.textContent = participantCount + '/' + maxParticipants;
+          cardCount.style.display = 'inline-flex';
+        } else {
+          cardCount.style.display = 'none';
+        }
+      });
     }
     if (cached) { cached.confirmedParticipantCount = participantCount; cached.fillBadge = fillBadge; }
   }
