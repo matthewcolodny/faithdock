@@ -774,6 +774,9 @@
       'churchHome.couldNotIdentifyChurch': 'Could not identify this church.', 'churchHome.noLongerYourChurchHome': 'No longer your Church Home.',
       'churchHome.requestPending': 'Request sent — awaiting approval', 'churchHome.requestSent': "Your request was sent to the church. You'll be a member once they approve it.",
       'churchHome.cancelRequest': 'Request pending — click to cancel', 'churchHome.requestCancelled': 'Your request was cancelled.',
+      'leaveChurch.button': 'Leave church', 'leaveChurch.title': 'Leave this church?',
+      'leaveChurch.body': "You'll be taken off this church's member list. If you want to come back later, you'll need to request to join again and wait for them to approve it.",
+      'leaveChurch.confirm': 'Yes, leave this church', 'leaveChurch.cancel': 'Never mind',
       'members.title': 'Members', 'members.pendingRequests': 'Pending requests', 'members.noPending': 'No requests waiting for a decision.',
       'members.approve': 'Approve', 'members.reject': 'Reject', 'members.remove': 'Remove',
       'members.approved': 'Member', 'members.pending': 'Pending', 'members.rejected': 'Rejected',
@@ -1582,6 +1585,9 @@
       'churchHome.couldNotIdentifyChurch': 'No se pudo identificar esta iglesia.', 'churchHome.noLongerYourChurchHome': 'Ya no es tu Iglesia de Origen.',
       'churchHome.requestPending': 'Solicitud enviada — esperando aprobación', 'churchHome.requestSent': 'Tu solicitud se envió a la iglesia. Serás miembro cuando la aprueben.',
       'churchHome.cancelRequest': 'Solicitud pendiente — haz clic para cancelar', 'churchHome.requestCancelled': 'Tu solicitud fue cancelada.',
+      'leaveChurch.button': 'Salir de la iglesia', 'leaveChurch.title': '¿Salir de esta iglesia?',
+      'leaveChurch.body': 'Se te quitará de la lista de miembros de esta iglesia. Si quieres volver más adelante, tendrás que solicitar unirte de nuevo y esperar a que lo aprueben.',
+      'leaveChurch.confirm': 'Sí, salir de esta iglesia', 'leaveChurch.cancel': 'Mejor no',
       'members.title': 'Miembros', 'members.pendingRequests': 'Solicitudes pendientes', 'members.noPending': 'No hay solicitudes esperando decisión.',
       'members.approve': 'Aprobar', 'members.reject': 'Rechazar', 'members.remove': 'Quitar',
       'members.approved': 'Miembro', 'members.pending': 'Pendiente', 'members.rejected': 'Rechazado',
@@ -3935,6 +3941,13 @@
             <a id="church-instagram-link" href="#" target="_blank" style="display:none;color:var(--ink-mute);"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg></a>
           </div>
           <button class="export-btn" id="church-home-btn" style="width:100%;justify-content:center;margin-top:14px;" data-i18n="churchHome.makeThisMyChurchHome">Make this my Church Home</button>
+          <!-- Leaving gets its own button rather than being a second
+               meaning for clicking the status button. Once you're a
+               member that button is a statement of fact, not a toggle --
+               clicking your own membership badge to destroy it is the
+               kind of thing people do by accident. Shown only in the
+               is-home state; checkChurchHomeStatus() owns that. -->
+          <button class="export-btn" id="church-leave-btn" style="display:none;width:100%;justify-content:center;margin-top:8px;color:var(--clay);" data-i18n="leaveChurch.button">Leave church</button>
           <div id="church-home-status" style="display:none;font-size:12px;color:var(--ink-mute);margin-top:6px;"></div>
           </div>
         </div>
@@ -6476,7 +6489,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-16-v64 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-16-v65 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -6601,6 +6614,21 @@
       <span data-i18n="churchClaim.wrongFlowQuestion">Did you mean to add a church instead of claiming one?</span>
       <a href="#register-church" data-route="register-church" data-add-church="true" id="church-claim-add-instead-link" onclick="document.getElementById('church-claim-modal').classList.remove('open'); if (typeof window.clearPendingClaim === 'function') window.clearPendingClaim();" style="color:inherit;border-bottom:1px solid var(--gold);" data-i18n="churchClaim.wrongFlowLink">Add a church</a>
     </p>
+  </div>
+</div>
+
+<!-- Leaving is irreversible in the one way that matters -- coming back
+     means asking again and waiting on a decision that isn't yours -- so
+     it gets a confirm step, and a styled one rather than a native
+     confirm() for the same reason the switch modal below does: a
+     "faithdock.com says..." popup reads as a stray system alert rather
+     than part of the product. -->
+<div class="modal-overlay" id="leave-church-modal">
+  <div class="modal-card">
+    <h3 style="font-family:'Fraunces';font-size:20px;margin-bottom:10px;" data-i18n="leaveChurch.title">Leave this church?</h3>
+    <p style="font-size:14px;color:var(--ink-mute);margin-bottom:20px;" data-i18n="leaveChurch.body">You'll be taken off this church's member list. If you want to come back later, you'll need to request to join again and wait for them to approve it.</p>
+    <button class="btn-gold" id="leave-church-confirm-btn" style="width:100%;justify-content:center;" data-i18n="leaveChurch.confirm">Yes, leave this church</button>
+    <button class="export-btn" id="leave-church-cancel-btn" style="width:100%;justify-content:center;margin-top:8px;" data-i18n="leaveChurch.cancel">Never mind</button>
   </div>
 </div>
 
@@ -23433,23 +23461,35 @@
     var approvedHome = (homeRows || []).filter(function(r){ return r.status === 'approved'; })[0];
     var currentHomeChurchId = approvedHome ? approvedHome.church_id : null;
 
+    var leaveBtn = document.getElementById('church-leave-btn');
+
     // Pending is its own state, not a quieter version of "you're in" --
     // membership now means the church actually said yes (migration 035).
     if (thisChurchRow && thisChurchRow.status === 'pending') {
       // Clickable, not disabled: a request you can't withdraw is a trap,
       // and "waiting" was previously a dead end with no way out of it.
+      // Cancelling a request you made yourself needs no confirm step --
+      // nothing has been granted yet, so there's nothing to lose by it.
       btn.textContent = window.t('churchHome.cancelRequest');
       btn.classList.remove('btn-registered');
       btn.disabled = false;
       btn.setAttribute('data-state', 'pending');
+      if (leaveBtn) leaveBtn.style.display = 'none';
       return;
     }
     btn.disabled = false;
+    if (leaveBtn) leaveBtn.style.display = 'none';
 
     if (currentHomeChurchId === churchId) {
       btn.textContent = '✓ ' + window.t('churchHome.thisIsYourChurchHome');
       btn.classList.add('btn-registered');
       btn.setAttribute('data-state', 'is-home');
+      // Deliberately inert once you're a member: this reads as a badge
+      // saying "you're in", and a badge that destroys what it describes
+      // when clicked is an accident waiting to happen. Leaving is the
+      // separate button below, behind a confirm.
+      btn.disabled = true;
+      if (leaveBtn) leaveBtn.style.display = 'inline-flex';
     } else if (currentHomeChurchId) {
       btn.textContent = window.t('churchHome.makeThisMyChurchHome');
       btn.classList.remove('btn-registered');
@@ -23485,6 +23525,64 @@
     });
   }
 
+  // Same shape as confirmSwitchChurchHome above. Kept as its own
+  // function rather than generalising the two into one parameterised
+  // helper: there are exactly two of these, and the indirection would
+  // cost more to read than the handful of duplicated lines saves.
+  function confirmLeaveChurch(){
+    return new Promise(function(resolve){
+      var modal = document.getElementById('leave-church-modal');
+      if (!modal) { resolve(false); return; }
+      modal.classList.add('open');
+      var confirmBtn = document.getElementById('leave-church-confirm-btn');
+      var cancelBtn = document.getElementById('leave-church-cancel-btn');
+      function cleanup(result){
+        modal.classList.remove('open');
+        confirmBtn.removeEventListener('click', onConfirm);
+        cancelBtn.removeEventListener('click', onCancel);
+        resolve(result);
+      }
+      function onConfirm(){ cleanup(true); }
+      function onCancel(){ cleanup(false); }
+      confirmBtn.addEventListener('click', onConfirm);
+      cancelBtn.addEventListener('click', onCancel);
+    });
+  }
+
+  var churchLeaveBtn = document.getElementById('church-leave-btn');
+  if (churchLeaveBtn) {
+    churchLeaveBtn.addEventListener('click', async function(){
+      var statusEl = document.getElementById('church-home-status');
+      var churchName = document.getElementById('church-name') ? document.getElementById('church-name').textContent : null;
+      var matched = (window.churches || []).filter(function(c){ return c.real && c.name === churchName; })[0];
+      if (!matched) {
+        statusEl.textContent = window.t('churchHome.couldNotIdentifyChurch');
+        statusEl.style.color = 'var(--clay)';
+        statusEl.style.display = 'block';
+        return;
+      }
+
+      if (!(await confirmLeaveChurch())) return;
+
+      churchLeaveBtn.disabled = true;
+      // Same RPC the cancel path uses -- leaving and cancelling are one
+      // operation on the data (see migration 036).
+      var leaveResult = await supabase.rpc('leave_church', { target_church_id: matched.id });
+      churchLeaveBtn.disabled = false;
+
+      if (leaveResult.error) {
+        statusEl.textContent = leaveResult.error.message;
+        statusEl.style.color = 'var(--clay)';
+        statusEl.style.display = 'block';
+        return;
+      }
+      statusEl.textContent = window.t('churchHome.noLongerYourChurchHome');
+      statusEl.style.color = 'var(--sage)';
+      statusEl.style.display = 'block';
+      checkChurchHomeStatus(matched.id);
+    });
+  }
+
   var churchHomeBtn = document.getElementById('church-home-btn');
   if (churchHomeBtn) {
     churchHomeBtn.addEventListener('click', async function(){
@@ -23508,18 +23606,13 @@
       var matched = (window.churches || []).filter(function(c){ return c.real && c.name === churchName; })[0];
       if (!matched) { statusEl.textContent = window.t('churchHome.couldNotIdentifyChurch'); statusEl.style.display = 'block'; return; }
 
-      // Leaving an approved membership and cancelling a pending request
-      // are the same operation on the data -- the row goes away -- so
-      // they share a branch. Reported as three separate bugs that were
-      // all this one thing: leaving used to only flip is_permanent to
-      // false and leave an approved row behind, which (a) kept the
-      // person in the church's directory as a member the whole time
-      // they thought they'd left, and (b) made coming back fail with
-      // "Only the church can change a membership's approval status,"
-      // since the leftover row turned the re-join into an
-      // approved -> pending UPDATE. Deleting means coming back is a
-      // plain INSERT with nothing to reconcile.
-      if (state === 'is-home' || state === 'pending') {
+      // Cancelling a pending request. Leaving an approved membership is
+      // the same operation on the data (the row goes away, so coming
+      // back is a plain INSERT with nothing to reconcile) but it is NOT
+      // handled here any more: this button is inert once you're a
+      // member, and leaving lives on its own button behind a confirm,
+      // so that clicking your own "you're in" badge can't destroy it.
+      if (state === 'pending') {
         churchHomeBtn.disabled = true;
         // RPC, not a client-side delete: church_memberships' policies
         // aren't visible in this repo, so a .delete() here would depend
@@ -23535,9 +23628,7 @@
           statusEl.style.display = 'block';
           return;
         }
-        statusEl.textContent = state === 'pending'
-          ? window.t('churchHome.requestCancelled')
-          : window.t('churchHome.noLongerYourChurchHome');
+        statusEl.textContent = window.t('churchHome.requestCancelled');
         statusEl.style.color = 'var(--sage)';
         statusEl.style.display = 'block';
         checkChurchHomeStatus(matched.id);

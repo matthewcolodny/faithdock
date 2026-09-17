@@ -2948,3 +2948,23 @@ Fixed by making leaving mean the row is deleted, so coming back is a plain INSER
 Still outstanding and unfixable from here: the untracked directory-people RPC that computes `is_member` server-side. If it counts any membership row, pending people will show as members in that table regardless of the client-side filters above.
 
 Build `2026-09-16-v64`; **migration 036 must be run by hand** (035 first).
+
+---
+
+## Leaving gets its own button, and the membership badge stops being a toggle
+
+Requested directly after 036: a dedicated "Leave church" button, a confirm step warning that rejoining needs approval again, and the "This is your Church Home" button made non-clickable once you're in.
+
+The underlying point is worth writing down, because the old behaviour was a real hazard rather than just an odd affordance: once you're a member, that button is a **statement of fact**, not a toggle. A badge that says "you're in" and destroys what it describes when clicked is the kind of thing people hit by accident -- and under the approval model the cost of that accident is no longer symmetric, since getting back in means asking again and waiting on a decision that isn't yours to make. So the `is-home` state now sets `disabled = true`, and leaving moved to its own button that only appears in that state.
+
+Confirm copy, recommended and used: **"Leave this church?" / "You'll be taken off this church's member list. If you want to come back later, you'll need to request to join again and wait for them to approve it." / "Yes, leave this church" / "Never mind."** The middle sentence is the part that matters -- it names the actual consequence (a second approval you don't control) rather than a generic "are you sure", which is what makes a confirm worth showing at all.
+
+Deliberately NOT behind a confirm: cancelling a pending request. Nothing has been granted yet, so there's nothing to lose by cancelling, and a confirm there would be friction with no hazard behind it.
+
+Uses the same styled-modal shape as `confirmSwitchChurchHome()` rather than a native `confirm()`, for the reason that function's own comment already gives: a "faithdock.com says..." popup reads as a stray system alert rather than part of the product. Kept as a second small function instead of generalising the two into one parameterised helper -- there are exactly two, and the indirection would cost more to read than the duplicated lines save.
+
+The click handler's old `is-home || pending` branch narrowed to `pending` only, since `is-home` is now unreachable through that button.
+
+Verified in a local preview by driving the real `checkChurchHomeStatus()` with its queries stubbed (so the actual function's branches run, not a reimplementation of them): approved member gives a disabled "✓ This is your Church Home" with the Leave button shown; pending gives an enabled "Request pending — click to cancel" with Leave hidden; no membership and has-other-home both give the normal enabled "Make this my Church Home" with Leave hidden. Then clicked Leave for real and confirmed the modal opens and that cancelling makes **zero** RPC calls.
+
+Build `2026-09-16-v65`. No new migration (036 still required).
