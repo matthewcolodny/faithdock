@@ -3717,3 +3717,21 @@ That also means the selector's elements are **destroyed and recreated on every r
 Verified: the modal still applies presets and derives Custom after the refactor; the invite form, **after being torn down and rebuilt**, applies presets to its own checkboxes and derives Custom independently; and the two selectors do not affect each other.
 
 Build `2026-09-17-v95`. No migration.
+
+---
+
+## Presets: bound to the wrong branch, and two self-inflicted bugs
+
+Reported: the preset selector appears on the invite form but selecting one ticks nothing, and the Manager checkbox sits in a different font from the permissions above it.
+
+**The re-bind was attached to the wrong branch.** `loadTeamPanel()` has two: one for `staffLimit === 0`, which renders a pricing upsell and no invite form at all, and the real one. The automated insertion had searched for "the first line ending in a semicolon" after the `ownerControls.innerHTML` assignment and landed in the upsell branch -- so the listener bound to nothing and picking a preset silently did nothing, exactly as reported. It now sits beside the existing `bindTeamInviteBtn` re-bind, which is the established place for "this form was just replaced, re-attach its handlers".
+
+Worth naming the class of mistake: a scripted edit that finds *a* plausible anchor rather than *the* anchor, and reports success either way. The verification that passed did so against a synthetic DOM built by the test, never against the real render path -- so it confirmed the binder worked while saying nothing about whether it was ever called.
+
+**The Manager checkbox carried `font-size:12.5px`** while every other permission row uses `.filter-check`'s own 13.5px. Now a plain `.filter-check` inside a bordered block, mirroring the permissions modal, so the two agree.
+
+**Then a bug introduced while adding the summary line.** Selecting a preset left the summary describing the PREVIOUS state -- Administrator read "View only". Cause: setting `.checked` in code does not fire a `change` event, so the per-checkbox listeners that refresh the summary never ran. Only a manual tick updated it. The apply path now renders the summary explicitly. This is the same trap as the check-in select: assigning a property in code is invisible to listeners waiting on user input.
+
+**The summary describes what is TICKED, not what the preset contains.** Those match right after picking one and diverge the moment a box is adjusted -- and at that point the ticked set is the truth while the preset name has already become "Custom". It reuses the short labels the staff-row tags use, so a permission is called the same thing everywhere, and falls back to "View only" when nothing is granted rather than printing an empty "Includes:".
+
+Build `2026-09-17-v96`. No migration.

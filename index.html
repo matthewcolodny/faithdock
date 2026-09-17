@@ -408,10 +408,12 @@
       'staffPerms.editProfile': 'Edit church profile', 'staffPerms.save': 'Save permissions',
       'staffPerms.receiveMessages': 'Receive contact messages sent to this church', 'staffPerms.receiveMessagesTag': 'Receives Messages',
       'staffPerms.manageMembers': 'Approve and manage church members', 'staffPerms.manageMembersTag': 'Members', 'staffPerms.checkIn': 'Check people in at events', 'staffPerms.checkInTag': 'Check-in',
+      'staffPerms.givingTag': 'Giving',
       'staffPerms.manageRooms': 'Create and manage facility rooms', 'staffPerms.roomsTag': 'Facility',
       'staffPerms.manageMinistries': 'Create and manage ministries', 'staffPerms.ministriesTag': 'Ministries',
       'staffPerms.viewRevenue': 'View revenue and giving totals', 'staffPerms.revenueTag': 'Revenue',
       'staffPerms.presetLabel': 'Role preset', 'staffPerms.presetCustom': 'Custom',
+      'staffPerms.presetIncludes': 'Includes:',
       'staffPerms.presetAdministrator': 'Administrator', 'staffPerms.presetOffice': 'Office Manager',
       'staffPerms.presetEvents': 'Events Coordinator', 'staffPerms.presetFinance': 'Finance',
       'staffPerms.presetGroups': 'Groups & Discipleship', 'staffPerms.presetCheckIn': 'Check-In Volunteer',
@@ -1255,10 +1257,12 @@
       'staffPerms.editProfile': 'Editar perfil de la iglesia', 'staffPerms.save': 'Guardar permisos',
       'staffPerms.receiveMessages': 'Recibir mensajes de contacto enviados a esta iglesia', 'staffPerms.receiveMessagesTag': 'Recibe Mensajes',
       'staffPerms.manageMembers': 'Aprobar y gestionar los miembros de la iglesia', 'staffPerms.manageMembersTag': 'Miembros', 'staffPerms.checkIn': 'Registrar asistentes en los eventos', 'staffPerms.checkInTag': 'Registro',
+      'staffPerms.givingTag': 'Donaciones',
       'staffPerms.manageRooms': 'Crear y gestionar salas', 'staffPerms.roomsTag': 'Instalaciones',
       'staffPerms.manageMinistries': 'Crear y gestionar ministerios', 'staffPerms.ministriesTag': 'Ministerios',
       'staffPerms.viewRevenue': 'Ver ingresos y totales de donaciones', 'staffPerms.revenueTag': 'Ingresos',
       'staffPerms.presetLabel': 'Rol predefinido', 'staffPerms.presetCustom': 'Personalizado',
+      'staffPerms.presetIncludes': 'Incluye:',
       'staffPerms.presetAdministrator': 'Administrador', 'staffPerms.presetOffice': 'Encargado de oficina',
       'staffPerms.presetEvents': 'Coordinador de eventos', 'staffPerms.presetFinance': 'Finanzas',
       'staffPerms.presetGroups': 'Grupos y discipulado', 'staffPerms.presetCheckIn': 'Voluntario de registro',
@@ -6818,7 +6822,7 @@ Groups</span>
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v95 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v96 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -6871,6 +6875,7 @@ Groups</span>
       <option value="checkin" data-i18n="staffPerms.presetCheckIn">Check-In Volunteer</option>
       <option value="custom" data-i18n="staffPerms.presetCustom">Custom</option>
     </select>
+    <div id="perm-preset-summary" style="font-size:11.5px;color:var(--ink-mute);margin:-10px 0 16px;line-height:1.45;"></div>
 
     <label class="filter-check"><input type="checkbox" id="perm-events"> <span data-i18n="staffPerms.manageEvents">Create and manage events</span></label>
     <label class="filter-check" style="margin-top:10px;"><input type="checkbox" id="perm-giving"> <span data-i18n="staffPerms.manageGiving">Manage giving settings (connect bank account)</span></label>
@@ -17026,13 +17031,6 @@ Groups</span>
         ownerControls.innerHTML = '<p style="font-size:13px;color:var(--ink-mute);margin-bottom:10px;">' + window.t('dashSettings.staffFreeLocked') + '</p>'
           + '<a href="#pricing" data-route="pricing" class="export-btn" style="width:100%;justify-content:center;display:flex;">' + window.t('dashSettings.upgradeToAddTeam') + '</a>'
           + '<div id="team-invite-status" style="display:none;font-size:12px;margin-top:8px;"></div>';
-        // The invite form is rebuilt from scratch here, so its preset
-        // selector and checkboxes are brand-new elements with no
-        // listeners. Re-binding after every render is the whole reason
-        // bindPresetSelector() is a function rather than a one-off at
-        // startup -- binding it once would have worked exactly until
-        // this panel reloaded.
-        if (typeof window.bindPresetSelector === 'function') window.bindPresetSelector('invite-perm-preset', 'invite-perm-');
       } else {
         // Mirrors the static #team-owner-controls markup on the
         // Staff page (same labels/placeholder, same i18n keys) —
@@ -17079,6 +17077,7 @@ Groups</span>
             + '<option value="checkin">' + window.t('staffPerms.presetCheckIn') + '</option>'
             + '<option value="custom">' + window.t('staffPerms.presetCustom') + '</option>'
           + '</select>'
+          + '<div id="invite-perm-preset-summary" style="font-size:11.5px;color:var(--ink-mute);margin:-10px 0 14px;line-height:1.45;"></div>'
           + '<label class="filter-check"><input type="checkbox" id="invite-perm-events"> ' + window.t('staffPerms.manageEvents') + '</label>'
           + '<label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-giving"> ' + window.t('staffPerms.manageGiving') + '</label>'
           + '<label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="invite-perm-groups"> ' + window.t('staffPerms.manageGroups') + '</label>'
@@ -17099,7 +17098,9 @@ Groups</span>
         // control from appearing somewhere it could never actually work).
         var managerCheckHtml = '';
         if (isOwner && window.tierAllowsManager && window.tierAllowsManager[myChurch.planType || 'free']) {
-          managerCheckHtml = '<label class="filter-check" style="display:block;margin:14px 0 0;font-size:12.5px;"><input type="checkbox" id="team-invite-is-manager"> ' + window.t('dashSettings.assignAsManager') + '</label>';
+          managerCheckHtml = '<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line);">'
+            + '<label class="filter-check"><input type="checkbox" id="team-invite-is-manager"> ' + window.t('dashSettings.assignAsManager') + '</label>'
+            + '</div>';
         }
         ownerControls.innerHTML = '<label style="font-size:12.5px;">' + window.t('dashSettings.addStaffByEmail') + '</label>'
           + '<div style="font-size:11.5px;color:var(--ink-mute);margin-bottom:6px;">' + window.t('dashSettings.addStaffHint') + '</div>'
@@ -17116,6 +17117,14 @@ Groups</span>
         // it has to be rebound here every time this branch runs.
         var freshInviteBtn = document.getElementById('team-invite-btn');
         if (freshInviteBtn && typeof window.bindTeamInviteBtn === 'function') window.bindTeamInviteBtn(freshInviteBtn);
+        // Same reason the invite button is re-bound here: this whole
+        // form was just replaced, so the preset selector and its
+        // checkboxes are brand-new elements carrying no listeners.
+        // The first attempt at this landed in the staffLimit === 0
+        // branch above, which renders a pricing upsell and no form at
+        // all -- so it bound to nothing and picking a preset silently
+        // did nothing, which is exactly how it was reported.
+        if (typeof window.bindPresetSelector === 'function') window.bindPresetSelector('invite-perm-preset', 'invite-perm-');
       }
     }
   }
@@ -21834,10 +21843,38 @@ Groups</span>
     })[0];
     return match || 'custom';
   }
+  // Short label per ability, reusing the ones the staff-row tags
+  // already use so a permission is called the same thing everywhere.
+  var PRESET_SUMMARY_LABELS = {
+    events: 'dash.events', giving: 'staffPerms.givingTag',
+    profile: 'dashOverview.permProfile', groups: 'dash.groups',
+    messages: 'dash.messages', members: 'staffPerms.manageMembersTag',
+    checkIn: 'staffPerms.checkInTag', rooms: 'staffPerms.roomsTag',
+    ministries: 'staffPerms.ministriesTag', viewRevenue: 'staffPerms.revenueTag'
+  };
+  // Describes what is actually TICKED, not what the chosen preset
+  // contains. Those are the same thing right after picking one and
+  // diverge the moment somebody adjusts a box -- and at that point the
+  // ticked set is the truth, while the preset name is just a label
+  // that has already become 'Custom'.
+  function renderPresetSummary(prefix, selectId){
+    var el = document.getElementById(selectId + '-summary');
+    if (!el) return;
+    var current = readPermissionFlags(prefix);
+    var granted = Object.keys(PRESET_SUMMARY_LABELS)
+      .filter(function(k){ return current[k]; })
+      .map(function(k){ return window.t(PRESET_SUMMARY_LABELS[k]); });
+    el.textContent = granted.length
+      ? window.t('staffPerms.presetIncludes') + ' ' + granted.join(' · ')
+      : window.t('dashOverview.permViewOnly');
+  }
+
   function refreshPresetSelector(prefix, selectId){
     prefix = prefix || 'perm-';
-    var sel = document.getElementById(selectId || 'perm-preset');
+    selectId = selectId || 'perm-preset';
+    var sel = document.getElementById(selectId);
     if (sel) sel.value = derivePresetName(prefix);
+    renderPresetSummary(prefix, selectId);
   }
   window.refreshPresetSelector = refreshPresetSelector;
 
@@ -21859,6 +21896,11 @@ Groups</span>
         var el = presetCheckbox(prefix, k);
         if (el) el.checked = preset[k];
       });
+      // Setting .checked in code does NOT fire a change event, so the
+      // per-checkbox listeners that normally refresh the summary never
+      // run here. Without this the summary described the PREVIOUS
+      // state -- picking Administrator left it reading "View only".
+      renderPresetSummary(prefix, selectId);
     });
     // Any manual tick re-derives the label, so it always describes
     // what is actually about to be saved.
