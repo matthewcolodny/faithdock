@@ -3358,3 +3358,26 @@ The group-leader test goes through the existing `is_group_leader()` helper rathe
 **`get_waitlist_signups`, flagged in the same category, is fine** -- it raises unless `is_platform_admin()`. Checked rather than assumed, and reported as clean rather than padded into a finding.
 
 No build stamp: server-side only.
+
+---
+
+## Pinning search_path, and why only half the warnings get cleared
+
+Migration 043 answers the Advisor's ~35 "Function Search Path Mutable" warnings -- and deliberately clears only some of them.
+
+The risk is specific to `SECURITY DEFINER`. Such a function runs with its owner's privileges, and if its `search_path` isn't pinned it resolves unqualified names against whatever schemas the *caller* has set. Anyone who can create an object in a schema that lands earlier in that path can shadow a table the function trusts and have their version run with the owner's rights. Pinning removes the caller's influence.
+
+Written as a catalog-driven loop rather than ~35 hand-written `ALTER FUNCTION` statements, because ALTER needs exact argument types and some of these signatures are long -- `update_staff_abilities` takes ten parameters. Transcribing those by hand is one typo away from silently altering nothing and looking like it worked.
+
+`pg_temp` goes **last** in the pinned path, which is the part that's easy to get backwards: left implicit it is searched *first*, and a temp table shadowing a real one is itself the attack.
+
+Extension-owned functions are excluded via `pg_depend ... deptype = 'e'`. This matters here specifically because the same Advisor run flagged `pg_net` and `pg_trgm` as installed in `public` -- their functions are not ours to alter, and a sweep that didn't exclude them would either fail on ownership or succeed and change how the extension resolves its own internals.
+
+**SECURITY INVOKER functions are left alone on purpose**, including `search_events` and `search_churches`, which the linter also flags:
+
+1. The escalation argument doesn't apply -- an INVOKER function already runs as the caller, so hijacking its `search_path` gains an attacker nothing they couldn't get by writing the query themselves. There it's hygiene, not a vulnerability.
+2. **Adding a `SET` clause to a `LANGUAGE sql` function blocks inlining.** The planner can't inline a SQL function carrying a `SET`, so `search_events` -- a multi-join query with a LIMIT, run on every Events page load -- would stop being folded into the calling query and could get materially slower.
+
+Trading real query performance for a warning that carries no privilege risk is a bad trade. Worth recording because the obvious move is to clear every warning the linter raises, and "the linter is satisfied" is not the same as "the system is better". The migration says how to sweep them too, for anyone who decides the clean dashboard is worth benchmarking for.
+
+No build stamp: server-side only.
