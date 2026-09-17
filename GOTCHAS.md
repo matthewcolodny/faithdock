@@ -2885,3 +2885,13 @@ A note at the old `applyFeaturedRotation()` site records what was removed and wh
 Verified in a local preview: no Featured tag in any rendered card or anywhere in the DOM, event cards still render their title and `2/10` capacity normally, the events grid still populates, and zero remaining references to `applyFeaturedRotation`, `e.featured`, or `events.featured` anywhere in the file.
 
 Build `2026-09-16-v61`. No migration.
+
+---
+
+## Imageless event cards used the church icon
+
+An event card with no image fell back to `buildingIcon` -- the exact same church silhouette a logoless church card uses -- so in a mixed grid the two placeholders were indistinguishable. Added a `calendarIcon` (solid fill, no strokes, same 24-unit grid and flat-silhouette treatment as `buildingIcon`, so they sit together consistently) and a `.thumb--event` rule sizing it to 54px, matching `.thumb--denom` rather than the generic 34px `.thumb svg`, so an event placeholder carries the same visual weight as a church one instead of looking like a shrunken afterthought. No `--thumb-hue` for events: that variable is keyed to denomination, which an event doesn't have, so it gets a neutral ink tint with its own dark-mode value.
+
+Verified in a local preview by rendering an imageless event card beside a logoless church card: both icons compute to 54x54, and the event card's SVG is the calendar (5+ rects) not the building.
+
+Build `2026-09-16-v62`. No migration.

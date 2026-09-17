@@ -2385,6 +2385,14 @@
      tinted via `fill` only -- sized up separately from the generic
      .thumb svg rule above since a solid shape reads best a bit larger
      than a thin-line outline would. */
+  /* Imageless event card: same 54px sizing as .thumb--denom so an event
+     placeholder and a church placeholder read at the same visual weight
+     side by side in a mixed grid, rather than the event's icon looking
+     like a shrunken afterthought at the generic 34px. No hue variable
+     here -- that one is keyed to denomination, which an event doesn't
+     have; a neutral ink tint keeps it clearly a placeholder. */
+  .thumb--event svg{width:54px;height:54px;fill:#16233F;opacity:.45;}
+  html[data-theme="dark"] .thumb--event svg{fill:#C7CCD8;opacity:.5;}
   .thumb--denom{background:hsl(var(--thumb-hue,220) 34% 88%);}
   .thumb--denom svg{width:54px;height:54px;fill:hsl(var(--thumb-hue,220) 30% 46%);opacity:.7;}
   html[data-theme="dark"] .thumb--denom{background:hsl(var(--thumb-hue,220) 22% 17%);}
@@ -6438,7 +6446,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-16-v61 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-16-v62 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -6704,6 +6712,24 @@
     + '<rect x="9" y="0.3" width="6" height="2.4" />'
     + '<path d="M2 13L12 5L22 13Z" />'
     + '<path fill-rule="evenodd" d="M6 13H18V21H6ZM9.5 21V16.5A2.5 2.5 0 0 1 14.5 16.5V21Z" />'
+    + '</svg>';
+
+  // An imageless EVENT card used to fall back to buildingIcon -- the
+  // same church silhouette a logoless CHURCH card uses -- so the two
+  // were visually indistinguishable in a mixed grid. A calendar reads
+  // as "event" immediately and needs no legend. Solid fill, no strokes,
+  // matching buildingIcon's flat-silhouette treatment so the two sit
+  // together consistently; drawn on the same 24-unit grid, with the
+  // binding rings above the body rather than a stroked outline.
+  var calendarIcon = '<svg viewBox="0 -3 24 27" fill="#16233F">'
+    + '<rect x="6.6" y="-2.6" width="2.2" height="5.2" rx="1.1" />'
+    + '<rect x="15.2" y="-2.6" width="2.2" height="5.2" rx="1.1" />'
+    + '<path fill-rule="evenodd" d="M2.5 1.2H21.5A1.5 1.5 0 0 1 23 2.7V20.5A1.5 1.5 0 0 1 21.5 22H2.5A1.5 1.5 0 0 1 1 20.5V2.7A1.5 1.5 0 0 1 2.5 1.2ZM3.4 8.2H20.6V19.6A0.5 0.5 0 0 1 20.1 20.1H3.9A0.5 0.5 0 0 1 3.4 19.6Z" />'
+    + '<rect x="5.8" y="10.6" width="3.4" height="3.1" rx="0.5" />'
+    + '<rect x="10.3" y="10.6" width="3.4" height="3.1" rx="0.5" />'
+    + '<rect x="14.8" y="10.6" width="3.4" height="3.1" rx="0.5" />'
+    + '<rect x="5.8" y="15.2" width="3.4" height="3.1" rx="0.5" />'
+    + '<rect x="10.3" y="15.2" width="3.4" height="3.1" rx="0.5" />'
     + '</svg>';
 
   // ============================================================
@@ -7756,7 +7782,7 @@
   function eventCard(e){
     var thumb = e.imageUrl
       ? '<div class="thumb" style="background-image:url(\'' + e.imageUrl + '\');background-size:cover;background-position:center;">' + '</div>'
-      : '<div class="thumb">' + buildingIcon + '</div>';
+      : '<div class="thumb thumb--event">' + calendarIcon + '</div>';
     var churchLabel = (e.church === 'A FaithDock church') ? window.t('church.genericName') : e.church;
     var distanceText = (e.distanceMiles != null) ? e.distanceMiles.toFixed(1) + ' mi ' + window.t('church.away') : null;
     var inner = ''
