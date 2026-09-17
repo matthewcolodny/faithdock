@@ -461,6 +461,7 @@
       'events.keywordPlaceholder': 'Search events by name or keyword...',
       'events.orPickDates': "Or pick specific dates — handy if you're traveling and want to see what's happening while you're there.",
       'events.to': 'to', 'events.churchesIFollow': 'Followed Churches', 'events.myChurchHome': 'My Church Home',
+      'events.eventsIFollow': 'Followed Events',
       'events.tabAll': 'All', 'events.tabForYou': 'For you', 'events.tabToday': 'Today', 'events.tabWeekend': 'This weekend',
       'events.oneFound': 'event found', 'events.manyFound': 'events found', 'events.dateRangeInvalid': '"From" date is after "To" date — no events can match.',
       'events.loadError': 'Something went wrong loading events:', 'events.eventDetails': 'Event details',
@@ -1285,6 +1286,7 @@
       'events.keywordPlaceholder': 'Busca eventos por nombre o palabra clave...',
       'events.orPickDates': 'O elige fechas específicas — útil si estás de viaje y quieres ver qué sucede mientras estás allí.',
       'events.to': 'a', 'events.churchesIFollow': 'Iglesias seguidas', 'events.myChurchHome': 'Mi iglesia de origen',
+      'events.eventsIFollow': 'Eventos seguidos',
       'events.tabAll': 'Todos', 'events.tabForYou': 'Para ti', 'events.tabToday': 'Hoy', 'events.tabWeekend': 'Este fin de semana',
       'events.oneFound': 'evento encontrado', 'events.manyFound': 'eventos encontrados', 'events.dateRangeInvalid': 'La fecha "desde" es posterior a la fecha "hasta" — ningún evento puede coincidir.',
       'events.loadError': 'Ocurrió un error al cargar los eventos:', 'events.eventDetails': 'Detalles del evento',
@@ -3876,6 +3878,7 @@
           <label class="filter-check"><input type="checkbox" class="type-filter" value="gold" checked> <span data-i18n="filters.noSignupNeeded">No signup needed</span></label>
           <label class="filter-check" id="filter-followed-wrap" style="display:none;"><input type="checkbox" id="filter-followed-churches"> <span data-i18n="events.churchesIFollow">Churches I follow</span></label>
           <label class="filter-check" id="filter-home-wrap" style="display:none;"><input type="checkbox" id="filter-church-home"> <span data-i18n="events.myChurchHome">My Church Home</span></label>
+          <label class="filter-check" id="filter-followed-events-wrap" style="display:none;"><input type="checkbox" id="filter-followed-events"> <span data-i18n="events.eventsIFollow">Followed Events</span></label>
         </div>
         <div class="filter-group">
           <h4 data-i18n="filters.category">Category</h4>
@@ -6607,7 +6610,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v76 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v77 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -9581,6 +9584,7 @@
     // above, so it's safe to update here too regardless of which page
     // is currently showing.
     var dirFollowedWrap = document.getElementById('dir-filter-followed-wrap');
+    var followedEventsWrap = document.getElementById('filter-followed-events-wrap');
     if (!followedWrap || !homeWrap) return;
 
     var { data: userData } = await window.supabase.auth.getUser();
@@ -9591,6 +9595,7 @@
       followedWrap.style.display = 'none';
       homeWrap.style.display = 'none';
       if (dirFollowedWrap) dirFollowedWrap.style.display = 'none';
+      if (followedEventsWrap) followedEventsWrap.style.display = 'none';
       return;
     }
 
@@ -9630,6 +9635,14 @@
     // exactly as the church half does for church grids.
     var eventFollowPromise = window.supabase.from('event_follows').select('event_id').eq('user_id', userData.user.id).then(function(res){
       window.myFollowedEventIds = (res.data || []).map(function(r){ return r.event_id; });
+      // Hidden until there's something to filter TO, same rule the
+      // followed-churches and church-home checkboxes follow: a filter
+      // that can only ever return nothing is worse than no filter.
+      // Note this only re-evaluates when this function runs, so
+      // hearting your first event reveals the checkbox on the next
+      // load rather than instantly -- acceptable, and the alternative
+      // (re-querying on every heart click) costs a round trip per tap.
+      if (followedEventsWrap) followedEventsWrap.style.display = window.myFollowedEventIds.length ? 'flex' : 'none';
       if (typeof window.refreshEventsCardsText === 'function') window.refreshEventsCardsText();
       if (typeof window.refreshHomeEventsText === 'function') window.refreshHomeEventsText();
     });
@@ -9754,7 +9767,7 @@
   });
 
   document.addEventListener('change', function(ev){
-    if (ev.target.id === 'filter-followed-churches' || ev.target.id === 'filter-church-home') {
+    if (ev.target.id === 'filter-followed-churches' || ev.target.id === 'filter-church-home' || ev.target.id === 'filter-followed-events') {
       if (typeof window.renderEvents === 'function') window.renderEvents();
     }
   });
@@ -10046,6 +10059,21 @@
       }
     }
 
+    // Followed events. Unlike the followed/home/For-You church set
+    // above -- which is a UNION, three ways of adding churches in --
+    // this is its own restrictive filter on a different column, so it
+    // rides alongside rather than merging into churchIdsParam. Checking
+    // it and a denomination together means followed events AT those
+    // denominations, which is what a person ticking both would expect.
+    // Empty array rather than null when nothing is followed: '{}' means
+    // "no events match", and null would silently mean "no filter" --
+    // i.e. quietly showing every event to someone who asked for their
+    // followed ones. The checkbox is hidden in that state anyway.
+    var followedEventsChecked = document.getElementById('filter-followed-events');
+    var eventIdsParam = (followedEventsChecked && followedEventsChecked.checked)
+      ? (window.myFollowedEventIds || [])
+      : null;
+
     var eventsDistEl = document.getElementById('events-filter-distance');
     var eventsMaxDist = eventsDistEl ? parseFloat(eventsDistEl.value) || 0 : 0;
 
@@ -10066,7 +10094,7 @@
       return;
     }
 
-    var { data, error } = await window.supabase.rpc('search_events', {
+    var searchEventsParams = {
       p_from_date: effectiveFrom ? effectiveFrom.toISOString() : null,
       p_to_date: effectiveTo ? effectiveTo.toISOString() : null,
       p_registration_required: registrationRequiredValues,
@@ -10082,7 +10110,19 @@
       // icons always had, just against the new dedicated field now.
       p_category_tags: (window.activeCategoryTags && window.activeCategoryTags.length) ? window.activeCategoryTags : categoryTagsParam,
       p_keyword: eventsKeyword || null
-    });
+    };
+    // p_event_ids is added only when the filter is actually on, not
+    // passed as null the rest of the time. PostgREST resolves an RPC by
+    // the exact set of argument NAMES sent, so sending p_event_ids to a
+    // database where migration 039 hasn't run yet is PGRST202 ("no
+    // function matches") -- and that would break every events search on
+    // the page, not just this filter. Omitted, the call still matches
+    // the 12-argument function, so the page keeps working before the
+    // migration and gains the filter after it. Same defensive shape as
+    // My Events tolerating a missing event_follows table.
+    if (eventIdsParam) searchEventsParams.p_event_ids = eventIdsParam;
+
+    var { data, error } = await window.supabase.rpc('search_events', searchEventsParams);
 
     if (error) {
       grid.style.display = 'none';
@@ -10313,6 +10353,8 @@
       if (followedCheck) followedCheck.checked = false;
       var homeCheck = document.getElementById('filter-church-home');
       if (homeCheck) homeCheck.checked = false;
+      var followedEventsCheck = document.getElementById('filter-followed-events');
+      if (followedEventsCheck) followedEventsCheck.checked = false;
       document.getElementById('filter-when').value = '0';
       document.getElementById('filter-date-from').value = '';
       document.getElementById('filter-date-to').value = '';

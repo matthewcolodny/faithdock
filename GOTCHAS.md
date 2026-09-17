@@ -3170,3 +3170,23 @@ Three approaches, in order, and the first two are worth recording because each l
 Verified by measurement on six Directory cards spanning tag widths from 66px to 145px (heart below the thumb, level with the tag, zero overlap, consistent 18px inset) and on an event card with all three tags showing. `elementFromPoint` at the heart's centre returns the heart on both. The Directory was also confirmed visually; the event card's screenshot wouldn't capture (the preview pane stopped rendering), so that one rests on the measurements plus the fact that both card types now share the same `.card-tag-row` structure.
 
 Build `2026-09-17-v76`.
+
+---
+
+## A Followed Events filter, and shipping a client ahead of its migration
+
+Following an event now leads somewhere on the Events page itself, not only My Events: a "Followed Events" checkbox beside "Followed Churches" and "My Church Home".
+
+**Why this needed a migration rather than a client-side filter.** `search_events` paginates and returns `total_count`, so discarding rows after the fact would give a wrong count, a Load-more button that lies, and pages that come back part-empty. The filter has to happen where the `LIMIT` does. Migration 039 adds `p_event_ids`, which is exactly what 031 did for `search_churches` when "Churches I follow" was built -- the precedent was already in the file, in a comment next to the checkbox this one sits beside.
+
+It drops the function before recreating it. `CREATE OR REPLACE` cannot add a parameter: it leaves the 12-argument version in place and creates a *second* 13-argument one beside it, after which PostgREST can't tell which a call means and raises PGRST203. That is precisely what migration 022 did to this same function by adding `p_keyword`, silently breaking the homepage preview and the church Events tabs until 034 cleaned it up.
+
+**The part worth keeping.** Migrations here are run by hand, so there is always a window where the deployed client is ahead of the database. PostgREST resolves an RPC by the exact set of argument *names* sent, so unconditionally passing `p_event_ids: null` would be PGRST202 against a pre-039 database -- and that breaks **every** events search, not just this filter. So the parameter is added to the call object only when the filter is actually on. Omitted, the call still matches the 12-argument function.
+
+That isn't a theoretical precaution: verified against the live database, which returned `PGRST202: Could not find the function public.search_events(p_event_ids, p_limit)` while the Events page beside it carried on reporting "1 event found". The failure mode is real and the guard is what stops it.
+
+Empty array, never null, when nothing is followed. `null` means "no filter" to this RPC, so a checked box with no follows would silently show *every* event to someone who asked for their followed ones -- the opposite of what they clicked. `'{}'` matches nothing, which is the honest answer. The checkbox is hidden in that state anyway, but the call shouldn't depend on the UI remembering that.
+
+The checkbox appears only once you follow something, same rule as the two beside it. It re-evaluates when `loadEventFilterFollowState()` runs, so hearting your first event reveals it on the next load rather than instantly -- the alternative is a round trip per heart tap.
+
+Build `2026-09-17-v77`; **migration 039 must be run by hand** for the filter to do anything (without it the checkbox appears and silently returns everything -- no, it can't: the param is omitted pre-migration, so an unchecked-equivalent result comes back. Run 039.)
