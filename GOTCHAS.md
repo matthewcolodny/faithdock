@@ -3260,3 +3260,23 @@ Build `2026-09-17-v79`. No migration.
 The audit's URL half turned up a live one. `populateChurchPage()` does `fbLink.href = c.facebookUrl` and the same for Instagram, with **no scheme check** -- verified on the real element, which reports `protocol === 'javascript:'` after assignment. A church setting its Facebook URL to a `javascript:` URI gets a link that runs script when a visitor clicks it. Those two anchors also lack `rel="noopener"` despite `target="_blank"`, unlike the website link beside them.
 
 The website link is safe, but by accident rather than design: `/^https?:\/\//.test(c.website) ? c.website : 'https://' + c.website` turns `javascript:alert(1)` into the harmless, broken `https://javascript:alert(1)`. Worth making deliberate rather than leaving as a happy side effect.
+
+---
+
+## javascript: in church-supplied links
+
+Found while auditing the rest of the `innerHTML` sites after the card XSS fix, and the more interesting half of that audit: escaping was never going to catch this one.
+
+`populateChurchPage()` assigned a church's Facebook and Instagram URLs straight to `href` with no scheme check at all. Confirmed on the real element rather than by reading -- after assignment it reported `protocol === 'javascript:'`. A church setting its Facebook URL to a `javascript:` URI got a link that ran script in any visitor's session when clicked. HTML-escaping is no defence: `javascript:alert(1)` contains not one character an escaper touches. This is the standard way an XSS survives an otherwise careful escaping pass.
+
+**The admin screens had it worse.** The platform-admin church panel and the verification queue interpolated `c.website`, `c.facebook_url` and `c.instagram_url` raw into `href="..."` inside `innerHTML` -- both the scheme hole *and* an attribute breakout, aimed at the one session that can approve church claims. A church supplies the string; the admin reviewing it clicks. `adminSafeLinkHtml()` now handles those, and the two protections are deliberately separate because neither substitutes for the other: `safeLinkUrl` vets the scheme, `escapeHtml` stops a `"` closing the href and opening an `onclick=`.
+
+**Why `safeLinkUrl` parses instead of pattern-matching.** The browser is what will ultimately interpret the URL, and it doesn't read one the way a regex does -- it strips tabs and newlines before working out the scheme, so `java\tscript:alert(1)` genuinely is `javascript:` and a hand-rolled `/^javascript:/` walks straight past it. Parsing with `new URL()` and then asking what protocol came out is the check that can't be smuggled past. Verified against tab- and newline-smuggled variants, mixed case, leading whitespace, `vbscript:`, `data:text/html` and `file:`.
+
+The church page's website link was already safe, but **by accident**: the old `/^https?:\/\//.test(c.website) ? c.website : 'https://' + c.website` turned `javascript:alert(1)` into the broken-but-harmless `https://javascript:alert(1)`. A fallback that happens to neutralise an attack isn't a defence, it's a coincidence the next edit could remove without anyone noticing. Now deliberate.
+
+One false negative found and fixed while testing: `gracechurch.org:8080/a` was rejected, because the colon made `gracechurch.org:` look like a scheme -- silently hiding a legitimate website. The host:port carve-out is safe precisely because everything matching it is forced through `'https://' + raw`, and a forced `https://` can never come back out as a dangerous scheme; `javascript:80/x` just becomes the harmless `https://javascript:80/x`, which the test suite checks explicitly.
+
+Also added `rel="noopener noreferrer"` to the two social anchors, which had `target="_blank"` without it -- unlike the website link beside them.
+
+Build `2026-09-17-v80`. No migration.
