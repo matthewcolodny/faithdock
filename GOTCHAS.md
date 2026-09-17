@@ -3824,3 +3824,29 @@ Header and footer go too, since they carry navigation out of the dashboard entir
 Verified: sidebar, header and footer hide and restore; the grid collapses and returns; the enter button and exit banner swap; entering routes to check-in; the flag persists and is cleared on exit; and a reload with the flag set comes back focused, on the check-in tab, with the banner translated.
 
 Build `2026-09-17-v100`. No migration.
+
+---
+
+## The unsaved-changes guard warned when nothing had changed
+
+Reported immediately: backing out of the event editor prompted about unsaved changes without anything being edited. My bug, and the cause is worth recording because the fix is a different technique rather than a tweak.
+
+The guard captured a baseline snapshot and diffed the form against it. But `editEvent()` takes that snapshot and then **keeps populating fields**, through several `await`s -- so by the time anyone looked, the form legitimately differed from its own baseline. The page was warning about unsaved changes for the crime of finishing loading.
+
+Moving the snapshot later only narrows the race. Rooms, ministries and registration questions load asynchronously and land whenever they land, so there is no single safe moment to measure from.
+
+**`event.isTrusted` removes the timing question entirely.** It is true only for events the browser generated from real user input and false for anything dispatched from code -- so programmatic population cannot mark the form dirty no matter when it happens, while a keystroke always does. No baseline, nothing to race.
+
+Verified properly this time, with a real keystroke driven through the browser rather than a synthetic event: filling the title in code and dispatching `input` and `change` leaves it clean; one genuine keypress marks it dirty. A synthetic-event test would have passed against the old broken code too, which is exactly why it had to be a real one.
+
+### And the events table lost its alignment
+
+Reported with a screenshot in the same breath: the action buttons no longer lined up between rows, with a broken-looking row border.
+
+`<td style="display:flex">` was the cause. A `<td>` set to flex stops being a table cell for sizing purposes, so the column no longer negotiates a shared width -- it had been getting away with it while every row held the same two buttons, and adding the check-in button to registration-required events made the mismatch visible. Wrapping the buttons in a flex `<div>` inside a plain `<td>` keeps the cell a cell and the buttons a row.
+
+Applied to both tables built this way (events and groups), not just the reported one, since the second had the same latent fault.
+
+Verified by measurement with the table actually on screen: identical left edges (856), right edges (973) and widths (116) across rows holding two and three buttons. A first attempt measured while the page was hidden and "matched" at 0 and 0 -- true, meaningless, and the same shape of empty assertion that has come up repeatedly today.
+
+Build `2026-09-17-v101`. No migration.
