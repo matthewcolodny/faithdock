@@ -3561,3 +3561,28 @@ Also noted, not touched: two identical UPDATE policies (`user_id = auth.uid()` t
 **Ordering matters on deploy:** the client now calls an RPC that doesn't exist until 044 runs. Run the migration first, or check-in shows a "function not found" error -- which is still an improvement on silently discarding the data, but not the intended state.
 
 Build `2026-09-17-v88`; **migration 044 must be run by hand.**
+
+---
+
+## Check-in from the event row
+
+Requested directly: a check-in button on each event row, rather than opening Check-In and re-finding in a dropdown the event you were just looking at. Rebuilding context you already had is pure friction, and this is a time-critical action at a door.
+
+A **direct button** beside Edit, not a row-menu item, for the same reason -- an extra click to open a menu is the wrong trade for something done while people are queueing.
+
+Shown only for events that take registrations. Without them there is no roster to check anyone in against, so the button would lead to an empty screen. Past events deliberately keep it: correcting attendance afterwards is a real thing churches do, and the earlier decision to hide capacity on no-signup events is the same principle applied to a different field.
+
+**Two ways this could have silently done nothing**, both handled:
+
+- The picker is filled by `loadCheckinEventPicker()`, which may never have run if Check-In hasn't been opened this session. Assigning `.value` on an empty `<select>` is a no-op, so the tab would have opened on "Select an event" looking like the click was ignored. The handler loads the picker first if it's empty.
+- The picker caps at 100 events, so a click from an older event can reference one that isn't listed -- and again, assigning a `.value` with no matching option does nothing at all. The handler adds the option (labelled from `data-checkin-event-title`) rather than failing quietly.
+
+Both are the same shape as the bug class this project keeps hitting: an operation that reports nothing and changes nothing. Worth stating that the browser does this too, not just PostgREST.
+
+`loadCheckinList()` is called directly rather than dispatching a synthetic `change`, since assigning `.value` in code doesn't fire one.
+
+Verified by driving the real handler with the exact button the row template emits: the dashboard tab moves from `dash-events` to `dash-checkin`, the select takes the event id, and an event outside the picker's cap gets an option added carrying its real title.
+
+**Noted while in here, not fixed:** `loadDashboardEvents()` queries `event_registrations` once per event inside its render loop -- the N+1 tail visible in the performance traces. It is now ~90-110ms per event and was explicitly measured as not worth chasing, but this is where it lives if that changes.
+
+Build `2026-09-17-v89`. No migration.

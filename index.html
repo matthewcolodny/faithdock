@@ -954,7 +954,7 @@
       'dashSettings.ownerFallback': 'Owner', 'dashSettings.teamMemberFallback': 'Team member', 'dashSettings.ownerRoleLabel': 'Owner', 'dashSettings.permissions': 'Permissions',
       'dashSettings.managerRoleLabel': 'Manager', 'dashSettings.assignAsManager': 'Assign as Manager (can invite/remove staff and assign their abilities)',
       'dashSettings.removeFromTeam': 'Remove from team', 'dashSettings.cancelInvite': 'Cancel invite',
-      'dashEvents.editEventTip': 'Edit event',
+      'dashEvents.checkInTip': 'Check in attendees', 'dashEvents.editEventTip': 'Edit event',
       'admin.eyebrow': 'Platform admin', 'admin.heading': 'Admin', 'admin.myChurchDashboard': 'Manage my church →',
       'admin.pendingVerifications': 'Pending church verifications', 'admin.allChurches': 'All churches', 'admin.importChurches': 'Import churches',
       'admin.searchByName': 'Search by name...', 'admin.allStatuses': 'All statuses', 'admin.verified': 'Verified', 'admin.pending': 'Pending', 'admin.rejected': 'Rejected', 'admin.unclaimed': 'Unclaimed',
@@ -1782,7 +1782,7 @@
       'dashSettings.ownerFallback': 'Propietario', 'dashSettings.teamMemberFallback': 'Miembro del equipo', 'dashSettings.ownerRoleLabel': 'Propietario', 'dashSettings.permissions': 'Permisos',
       'dashSettings.managerRoleLabel': 'Gerente', 'dashSettings.assignAsManager': 'Asignar como Gerente (puede invitar/quitar personal y asignar sus habilidades)',
       'dashSettings.removeFromTeam': 'Quitar del equipo', 'dashSettings.cancelInvite': 'Cancelar invitación',
-      'dashEvents.editEventTip': 'Editar evento',
+      'dashEvents.checkInTip': 'Registrar asistentes', 'dashEvents.editEventTip': 'Editar evento',
       'admin.eyebrow': 'Administración de la plataforma', 'admin.heading': 'Administración', 'admin.myChurchDashboard': 'Administrar mi iglesia →',
       'admin.pendingVerifications': 'Verificaciones de iglesias pendientes', 'admin.allChurches': 'Todas las iglesias', 'admin.importChurches': 'Importar iglesias',
       'admin.searchByName': 'Buscar por nombre...', 'admin.allStatuses': 'Todos los estados', 'admin.verified': 'Verificada', 'admin.pending': 'Pendiente', 'admin.rejected': 'Rechazada', 'admin.unclaimed': 'Sin reclamar',
@@ -6747,7 +6747,7 @@ Groups</span>
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v88 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v89 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13061,6 +13061,19 @@ Groups</span>
         + '<td>' + regCell + '</td>'
         + '<td><span class="tag ' + badge + '">' + badgeLabel + '</span></td>'
         + '<td style="display:flex;gap:6px;">'
+        // Check-in straight from the row the person is already looking
+        // at, instead of opening Check-In and re-finding the event in a
+        // dropdown -- rebuilding context you just had is pure friction,
+        // and this is a time-critical action at a door. A direct button
+        // rather than a row-menu item for the same reason.
+        //
+        // Only for events that take registrations: without them there is
+        // no roster to check anyone in against, so the button would lead
+        // to an empty screen. Past events keep it deliberately --
+        // correcting attendance afterwards is a real thing churches do.
+        + (ev.registration_required
+            ? '<button class="qr-btn icon-tip" data-tip="' + window.t('dashEvents.checkInTip') + '" data-checkin-event-id="' + ev.id + '" data-checkin-event-title="' + escapedTitle + '" aria-label="' + window.t('dashEvents.checkInTip') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></button>'
+            : '')
         + '<button class="qr-btn icon-tip" data-tip="' + window.t('dashEvents.editEventTip') + '" data-edit-event-id="' + ev.id + '" aria-label="' + window.t('dashEvents.editEventTip') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>'
         + '<div class="row-menu">'
         + '<button class="row-menu-btn icon-tip" data-tip="' + window.t('common.moreActions') + '" data-toggle-row-menu="event-' + ev.id + '" aria-label="' + window.t('common.moreActions') + '"><svg viewBox="0 0 24 24" fill="currentColor" style="width:15px;height:15px;"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></button>'
@@ -21536,6 +21549,46 @@ Groups</span>
   if (checkinEventSelect) {
     checkinEventSelect.addEventListener('change', function(){ loadCheckinList(checkinEventSelect.value); });
   }
+
+  // "Check in" on an event row: jump to Check-In with that event already
+  // chosen, rather than landing on the picker and making someone find
+  // again what they were just looking at.
+  document.addEventListener('click', async function(ev){
+    var btn = ev.target.closest ? ev.target.closest('[data-checkin-event-id]') : null;
+    if (!btn) return;
+    var eventId = btn.getAttribute('data-checkin-event-id');
+    if (!eventId) return;
+
+    if (typeof goDash === 'function') goDash('checkin');
+    var select = document.getElementById('checkin-event-select');
+    if (!select) return;
+
+    // The picker is populated by loadCheckinEventPicker(), which may
+    // not have run yet if Check-In has never been opened this session.
+    // Without this the select is empty and setting .value silently does
+    // nothing -- the tab would open on "Select an event" having
+    // apparently ignored the click.
+    if (select.options.length <= 1) {
+      try { await loadCheckinEventPicker(); } catch (e) { console.error('Check-in picker failed to load:', e); }
+    }
+
+    // The picker caps at 100 events, so a click from an older event can
+    // reference one that isn't in the list. Assigning .value for a
+    // missing option is a no-op, which would again look like the click
+    // did nothing -- so add it rather than fail quietly.
+    var known = Array.prototype.some.call(select.options, function(o){ return o.value === eventId; });
+    if (!known) {
+      var opt = document.createElement('option');
+      opt.value = eventId;
+      opt.textContent = btn.getAttribute('data-checkin-event-title') || eventId;
+      select.appendChild(opt);
+    }
+
+    select.value = eventId;
+    // Called directly rather than dispatching a synthetic 'change',
+    // since assigning .value in code does not fire one.
+    loadCheckinList(eventId);
+  });
   var checkinSearchInput = document.getElementById('checkin-search');
   if (checkinSearchInput) {
     checkinSearchInput.addEventListener('input', renderCheckinTable);
