@@ -474,11 +474,12 @@
       'events.hostedByMinistry': 'Hosted by',
       'events.participant': 'Participant', 'events.volunteerRole': 'Volunteer',
       'events.hostedBy': 'hosted by', 'events.hostedByLabel': 'Hosted by', 'events.linkCopied': 'Link copied!', 'events.linkCopiedInstagram': 'Link copied — paste it into your Instagram Story or bio.',
-      'category.volunteer': 'Volunteer', 'category.celebrations': 'Celebrations', 'category.holidays': 'Holidays',
-      'category.community': 'Community', 'category.worship': 'Worship', 'category.classes': 'Classes',
+      'category.volunteer': 'Volunteer', 'category.celebrations': 'Celebrations',
+      'category.fellowship': 'Fellowship', 'category.worship': 'Worship',
+      'category.classesStudies': 'Classes & Studies', 'category.classesShort': 'Classes',
       'category.supportGroups': 'Support Groups', 'category.supportShort': 'Support',
       'category.sportsRecreation': 'Sports & Recreation', 'category.sportsShort': 'Sports',
-      'category.studies': 'Studies', 'category.trips': 'Trips',
+      'category.trips': 'Trips',
       'badge.openToAnyone': 'Open to anyone', 'badge.membersOnly': 'Members only', 'badge.noSignupNeeded': 'No signup needed',
       'badge.publicEvent': 'Public event', 'badge.registrationRequired': 'Registration required',
       'ce.visibilityMembersListed': 'Members only — anyone can see it, only members can register',
@@ -1297,11 +1298,12 @@
       'events.hostedByMinistry': 'Organizado por',
       'events.participant': 'Participante', 'events.volunteerRole': 'Voluntario',
       'events.hostedBy': 'organizado por', 'events.hostedByLabel': 'Organizado por', 'events.linkCopied': '¡Enlace copiado!', 'events.linkCopiedInstagram': 'Enlace copiado — pégalo en tu historia o biografía de Instagram.',
-      'category.volunteer': 'Voluntariado', 'category.celebrations': 'Celebraciones', 'category.holidays': 'Días festivos',
-      'category.community': 'Comunidad', 'category.worship': 'Adoración', 'category.classes': 'Clases',
+      'category.volunteer': 'Voluntariado', 'category.celebrations': 'Celebraciones',
+      'category.fellowship': 'Compañerismo', 'category.worship': 'Adoración',
+      'category.classesStudies': 'Clases y estudios', 'category.classesShort': 'Clases',
       'category.supportGroups': 'Grupos de apoyo', 'category.supportShort': 'Apoyo',
       'category.sportsRecreation': 'Deportes y recreación', 'category.sportsShort': 'Deportes',
-      'category.studies': 'Estudios', 'category.trips': 'Viajes',
+      'category.trips': 'Viajes',
       'badge.openToAnyone': 'Abierto a todos', 'badge.membersOnly': 'Solo miembros', 'badge.noSignupNeeded': 'No requiere inscripción',
       'badge.publicEvent': 'Evento público', 'badge.registrationRequired': 'Requiere inscripción',
       'ce.visibilityMembersListed': 'Solo miembros — cualquiera puede verlo, solo los miembros pueden inscribirse',
@@ -3718,21 +3720,25 @@
         <div class="event-category-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5.8 11.3L2 22l10.7-3.8"/><path d="M4 3h.01M22 4h.01M14.5 2.5l1 1M18 6l1 1M17.5 10.5l1 1"/><path d="M6 12l6-6 6 6-6 6z"/></svg></div>
         <span data-i18n="category.celebrations">Celebrations</span>
       </button>
-      <button class="event-category-btn" data-category-tag="Holidays">
-        <div class="event-category-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg></div>
-        <span data-i18n="category.holidays">Holidays</span>
-      </button>
-      <button class="event-category-btn" data-category-tag="Community">
+      <button class="event-category-btn" data-category-tag="Fellowship">
         <div class="event-category-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-        <span data-i18n="category.community">Community</span>
+        <span data-i18n="category.fellowship">Fellowship</span>
       </button>
       <button class="event-category-btn" data-category-tag="Worship">
         <div class="event-category-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M8 6l4-4 4 4M6 12h12"/></svg></div>
         <span data-i18n="category.worship">Worship</span>
       </button>
-      <button class="event-category-btn" data-category-tag="Classes">
-        <div class="event-category-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
-        <span data-i18n="category.classes">Classes</span>
+      <!-- One category, two icons' worth of history: Classes (a closed
+           book) and Studies (an open one) were separate and are now
+           merged. The open book won because it's the one that reads as
+           "studying" rather than "a book", and because the row already
+           has a closed-rectangle glyph in Holidays' old slot's
+           neighbours. Short label in the row, full name everywhere a
+           full name fits -- same split Support Groups and Sports &
+           Recreation already use. -->
+      <button class="event-category-btn" data-category-tag="Classes & Studies">
+        <div class="event-category-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
+        <span data-i18n="category.classesShort">Classes</span>
       </button>
       <button class="event-category-btn" data-category-tag="Support Groups">
         <div class="event-category-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.6z"/></svg></div>
@@ -3741,10 +3747,6 @@
       <button class="event-category-btn" data-category-tag="Sports & Recreation">
         <div class="event-category-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a15 15 0 0 0 0 20M2 12h20"/></svg></div>
         <span data-i18n="category.sportsShort">Sports</span>
-      </button>
-      <button class="event-category-btn" data-category-tag="Studies">
-        <div class="event-category-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
-        <span data-i18n="category.studies">Studies</span>
       </button>
       <!-- A suitcase rather than a plane or a bus: "Trips" here covers
            mission trips, retreats and youth trips alike, and a plane
@@ -5377,13 +5379,11 @@
       <div class="checkbox-grid">
         <label class="filter-check"><input type="checkbox" class="ce-category" value="Volunteer"> <span data-i18n="category.volunteer">Volunteer</span></label>
         <label class="filter-check"><input type="checkbox" class="ce-category" value="Celebrations"> <span data-i18n="category.celebrations">Celebrations</span></label>
-        <label class="filter-check"><input type="checkbox" class="ce-category" value="Holidays"> <span data-i18n="category.holidays">Holidays</span></label>
-        <label class="filter-check"><input type="checkbox" class="ce-category" value="Community"> <span data-i18n="category.community">Community</span></label>
+        <label class="filter-check"><input type="checkbox" class="ce-category" value="Fellowship"> <span data-i18n="category.fellowship">Fellowship</span></label>
         <label class="filter-check"><input type="checkbox" class="ce-category" value="Worship"> <span data-i18n="category.worship">Worship</span></label>
-        <label class="filter-check"><input type="checkbox" class="ce-category" value="Classes"> <span data-i18n="category.classes">Classes</span></label>
+        <label class="filter-check"><input type="checkbox" class="ce-category" value="Classes & Studies"> <span data-i18n="category.classesStudies">Classes &amp; Studies</span></label>
         <label class="filter-check"><input type="checkbox" class="ce-category" value="Support Groups"> <span data-i18n="category.supportGroups">Support Groups</span></label>
         <label class="filter-check"><input type="checkbox" class="ce-category" value="Sports & Recreation"> <span data-i18n="category.sportsRecreation">Sports & Recreation</span></label>
-        <label class="filter-check"><input type="checkbox" class="ce-category" value="Studies"> <span data-i18n="category.studies">Studies</span></label>
         <label class="filter-check"><input type="checkbox" class="ce-category" value="Trips"> <span data-i18n="category.trips">Trips</span></label>
       </div>
 
@@ -6592,7 +6592,7 @@
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v73 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v74 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -7405,10 +7405,11 @@
   });
 
   var categoryI18nKeyMap = {
-    'Volunteer': 'category.volunteer', 'Celebrations': 'category.celebrations', 'Holidays': 'category.holidays',
-    'Community': 'category.community', 'Worship': 'category.worship', 'Classes': 'category.classes',
+    'Volunteer': 'category.volunteer', 'Celebrations': 'category.celebrations',
+    'Fellowship': 'category.fellowship', 'Worship': 'category.worship',
+    'Classes & Studies': 'category.classesStudies',
     'Support Groups': 'category.supportGroups', 'Sports & Recreation': 'category.sportsRecreation',
-    'Studies': 'category.studies', 'Trips': 'category.trips'
+    'Trips': 'category.trips'
   };
   function translateCategoryTag(tag){
     return categoryI18nKeyMap[tag] ? window.t(categoryI18nKeyMap[tag]) : tag;
@@ -9527,12 +9528,13 @@
     // organizers have happened to word their own tags. (This comment
     // used to say "set of eight" while the list held nine; a count in
     // a comment is wrong the first time anyone adds one, so it's gone.)
-    var categories = ['Volunteer', 'Celebrations', 'Holidays', 'Community', 'Worship', 'Classes', 'Support Groups', 'Sports & Recreation', 'Studies', 'Trips'].sort();
+    var categories = ['Volunteer', 'Celebrations', 'Fellowship', 'Worship', 'Classes & Studies', 'Support Groups', 'Sports & Recreation', 'Trips'].sort();
     var categoryI18nKey = {
-      'Volunteer': 'category.volunteer', 'Celebrations': 'category.celebrations', 'Holidays': 'category.holidays',
-      'Community': 'category.community', 'Worship': 'category.worship', 'Classes': 'category.classes',
+      'Volunteer': 'category.volunteer', 'Celebrations': 'category.celebrations',
+      'Fellowship': 'category.fellowship', 'Worship': 'category.worship',
+      'Classes & Studies': 'category.classesStudies',
       'Support Groups': 'category.supportGroups', 'Sports & Recreation': 'category.sportsRecreation',
-      'Studies': 'category.studies', 'Trips': 'category.trips'
+      'Trips': 'category.trips'
     };
     container.innerHTML = categories.map(function(t){
       var displayLabel = categoryI18nKey[t] ? window.t(categoryI18nKey[t]) : t;

@@ -3114,3 +3114,21 @@ The priced case gets the opposite treatment: "Register — $12.00" is a composed
 Verified in both languages: the painted card and the post-refresh card remain byte-identical (the v72 equality that keeps the async refresh from becoming its own flicker -- translating these strings is exactly the kind of change that could have broken it); a registered button survives an EN->ES->EN round trip still registered and correctly translated; and a priced button keeps its price across a switch.
 
 Build `2026-09-17-v73`. No migration.
+
+---
+
+## Reworking the category set: Fellowship, no Holidays, Classes & Studies merged
+
+Community became Fellowship, Holidays was removed, and Classes and Studies merged into one "Classes & Studies". Ten categories down to eight -- which as a side effect means the icon row no longer needs the horizontal scrollbar it had, so every category is visible at once on a desktop width instead of two hiding off the right edge.
+
+The merged category keeps Studies' open book rather than Classes' closed one: it's the glyph that reads as *studying* rather than as *a book*. It uses the short-label-in-the-row, full-name-everywhere-else split that Support Groups and Sports & Recreation already established, so the row says "Classes" while a card tag says "Classes & Studies".
+
+**The part that isn't just find-and-replace.** These names aren't only labels -- they're the literal strings stored in `events.category_tags`, so renaming one in the client orphans any event already carrying it: still tagged, no longer matching any filter, and no error anywhere to notice. `event_categories_remap.sql` (untracked, repo root) handles the stored side: it rebuilds each affected array rather than running four `array_replace` passes, because two old values collapse into one new one and an event tagged both Classes *and* Studies must end up with a single 'Classes & Studies' rather than a duplicate. An event whose only tag was Holidays ends up `'{}'` rather than null, matching how an untagged event is already stored so `search_events`' `array_length(...) is null` check keeps treating it identically.
+
+Holidays is dropped rather than folded into Celebrations. Folding would have been a guess about what those events actually are; the script says so and leaves the alternative one edit away.
+
+As anon I could see exactly one event and zero category tags in use, so the remap may well be a no-op -- but "may well be" isn't "is", and private events, members-only events and events at hidden churches are all invisible from here.
+
+A category lives in six places in this file and all six have to agree, or a filter click sends a value nothing else recognises. Verified by reading all three sets out of the live DOM -- icon row, create-event checkboxes, sidebar filter checklist -- and asserting they're the same set, that no retired value survives anywhere, and that every tag resolves through `translateCategoryTag()`. That last check was initially wrong and worth recording: run in English, a correctly-mapped tag translates to a string equal to itself, so everything looked unmapped. Re-run in Spanish, where a real mapping always changes the string, all eight resolve.
+
+Build `2026-09-17-v74`. No migration; one untracked data script to run if any event turns out to carry a retired tag.
