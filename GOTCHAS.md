@@ -3528,3 +3528,36 @@ The optimistic paint stays -- it's right for a busy door. What changed is that t
 Checked the other `event_registrations` writes while here: the unregister paths already carry `.select()` from the 033 work, and an INSERT refused by RLS returns 42501 rather than failing silently, so this was the only one.
 
 Build `2026-09-17-v87`. No migration.
+
+---
+
+## Check-in never worked, and the policy dump proved it
+
+Follow-up to the silent-write fix, and the answer was worse than "fragile". The policies on `event_registrations`:
+
+```
+Users can delete their own event registrations   DELETE  user_id = auth.uid()
+Users can update their own event registrations   UPDATE  user_id = auth.uid()
+users can update their own registration          UPDATE  user_id = auth.uid()
+church owner can view registrations for their events  SELECT  (owner check)
+users can register for events                    INSERT  auth.uid() = user_id
+users manage their own registrations             SELECT  auth.uid() = user_id
+```
+
+**No UPDATE policy covers a church owner or staff.** A church owner *can* select registrations for their own events, so the roster loaded and showed real names -- and then every tick matched zero rows. With the optimistic paint in the client, the volunteer saw a green tick and nothing was recorded. The only person who could ever successfully check someone in was that person themselves.
+
+The v87 fix made that visible rather than silent. This one repairs it.
+
+**An RPC, not another policy**, for two reasons. The first is the one migration 036 already established: a client-side write depends on policies that aren't in this repo and can't be reviewed here, which is exactly how this survived. The second is specific and decides it -- RLS is *row*-level, so a policy permitting staff to UPDATE these rows permits updating **any column on them**: `status`, `role`, the registration itself. All that's wanted is a tick. `set_registration_checked_in()` writes one column and nothing else is reachable through it.
+
+It returns the stored timestamp rather than a boolean, which does two jobs: "nothing happened" can't be mistaken for success at the call site, and the client reconciles its optimistic paint to the server's clock -- at a door, the check-in time is a record people later rely on, not decoration.
+
+**Deliberately not gated on a new `can_check_in` column.** That flag is the right end state (a door volunteer shouldn't be able to delete the event), but adding it here defaulting to false would lock every existing staff member *out* of check-in the moment the migration ran -- a worse failure than the one being fixed. Owner-or-`can_manage_events` for now; when `can_check_in` lands, one condition in the function widens.
+
+**A second bug found in the same dump:** the only SELECT policy for other people's registrations is the church *owner*. Non-owner staff got an empty roster before a tick was ever attempted. Fixed here too, because a write permission with no matching read isn't a feature.
+
+Also noted, not touched: two identical UPDATE policies (`user_id = auth.uid()` twice). Left alone deliberately -- dropping a policy this repo didn't create deserves its own decision, not a side effect of an unrelated migration. The drop statement is in 044, commented out.
+
+**Ordering matters on deploy:** the client now calls an RPC that doesn't exist until 044 runs. Run the migration first, or check-in shows a "function not found" error -- which is still an improvement on silently discarding the data, but not the intended state.
+
+Build `2026-09-17-v88`; **migration 044 must be run by hand.**

@@ -6747,7 +6747,7 @@ Groups</span>
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v87 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v88 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -21576,15 +21576,38 @@ Groups</span>
       // matches zero rows. Whether another policy also permits staff
       // isn't visible from this repo -- so this check is what turns
       // that from a silent failure into a visible one either way.
-      var { data: updatedRows, error } = await supabase.from('event_registrations')
-        .update({ checked_in_at: newValue }).eq('id', regId).select('id');
-      var wroteNothing = !error && (!updatedRows || updatedRows.length === 0);
+      // Goes through set_registration_checked_in() (migration 044)
+      // rather than writing the column directly. The direct write could
+      // never have worked for anyone but the attendee: every UPDATE
+      // policy on event_registrations is scoped to
+      // user_id = auth.uid(), with nothing covering an owner or staff.
+      // The RPC carries its own authorization, and writes exactly one
+      // column -- a policy permitting staff to UPDATE these rows would
+      // have permitted changing status or role too, when all that is
+      // wanted is a tick.
+      var { data: storedValue, error } = await supabase.rpc('set_registration_checked_in', {
+        p_registration_id: regId,
+        p_checked_in: !!newValue
+      });
+      // The RPC returns the timestamp it actually stored, so an
+      // unchanged row cannot be mistaken for a successful one. Kept
+      // alongside the error check rather than replacing it: the whole
+      // lesson of this bug is that one signal is not enough.
+      var wroteNothing = !error && !!newValue && !storedValue;
       if (error || wroteNothing) {
         // Roll back if the write actually failed.
         record.checked_in_at = newValue ? null : new Date().toISOString();
         renderCheckinTable();
         alert(window.t('dashCheckin.couldNotUpdateStatus')
           .replace('{error}', error ? error.message : window.t('dashCheckin.noPermissionToCheckIn')));
+      } else if (record.checked_in_at !== storedValue) {
+        // Reconcile to what the database actually stored. The
+        // optimistic paint used a timestamp generated on this device,
+        // which can be seconds out from the server's -- and at a door
+        // the check-in time is a record people later rely on, not just
+        // decoration.
+        record.checked_in_at = storedValue;
+        renderCheckinTable();
       }
     });
   }
