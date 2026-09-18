@@ -5094,3 +5094,27 @@ Fixing it properly means `get_directory_people` consulting `directory_visibility
 - Three helpers the captured functions call -- `is_church_staff_member`, `is_group_leader`, `compute_involvement_snapshot_internal` -- are still uncaptured, as are the table definitions for anything created before migrations were tracked.
 
 **Migration 062 must be run by hand.** Until it is, the directory modal keeps reporting that nobody is in any group.
+
+---
+
+## Making the directory setting real
+
+The setting shipped in v133 was stored and never read. 063 makes the database enforce it, and the church page gets a People tab so there is somewhere for a member to look -- without which "Staff and approved members" still could not do anything.
+
+**The server decides everything.** `get_directory_people` now returns nothing unless the church set `directory_visibility` to `'members'` and the caller is an approved permanent member, and it returns `email` and `phone` as **NULL** unless the church also turned on `members_see_contact_details`. Staff and owners are unaffected on both counts.
+
+**The masking is server-side on purpose.** Returning contact details and asking the page not to draw them would leave them in the response body, one devtools panel away, for a church that explicitly said no. The row that arrives has to be the row the caller is allowed to have.
+
+**The client never checks those columns.** The tab is hidden until the RPC returns rows; a non-empty response *is* the permission. So the page cannot assert a permission it has no way to enforce, and there is one place that decides rather than two that must agree.
+
+`coalesce(v_visibility, 'staff')` -- a null column must not open a directory. And the default stays `'staff'`, so running 063 opens nobody's directory by itself; the verify block reports how many churches had already chosen otherwise rather than assuming none had.
+
+### Three process failures worth keeping
+
+**The same script-block trap, again.** The loader went in beside `switchChurchTab`, which is a different `<script>` block from the one holding `const supabase` -- it would have thrown `ReferenceError` on first use. This is the second time in two days; the file has enough separate script blocks that "put it near the related function" is not a safe instinct. The check is one command and it is now in the test.
+
+**Then I reported it wrong.** My verifier looked up `window.loadChurchPagePeople` with `indexOf`, which found the **call site** in block 7 rather than the definition in block 8, and declared the move had failed when it had worked. Acting on that, I "repaired" the file with a bad slice that duplicated the `switchChurchTab` header. A probe that matches the first occurrence of an ambiguous string is not a measurement.
+
+**The first round of browser tests was entirely vacuous.** Every negative case passed -- tab hidden on empty, hidden on error, hidden after switching church -- and every positive case failed. The cause was not the feature: the probe has no session, so the loader returned at its `getUser()` guard before reaching anything under test. The negatives "passed" for a reason that had nothing to do with the assertions. **A result where all the negatives pass and all the positives fail is a signal that nothing ran**, not a partial success. Rerun with `window.supabase.auth.getUser` patched -- plus an explicit `patchReachedLoader` assertion, because a stub that misses its target is this file's most repeated false negative.
+
+Build `2026-09-18-v142`; **migration 063 must be run by hand** (until then the tab only ever appears for staff, who already have the dashboard).

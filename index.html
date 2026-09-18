@@ -301,6 +301,9 @@
       'dash.events': 'Events', 'dash.checkin': 'Check-In', 'dash.directory': 'Directory', 'dash.messages': 'Messages',
       'dash.groups': 'Groups', 'dash.giving': 'Giving', 'dash.billing': 'Billing', 'dash.settings': 'Settings', 'dash.signout': 'Sign out', 'dash.staff': 'Team & Permissions',
       'church.about': 'About', 'church.events': 'Events', 'church.groups': 'Groups', 'church.ministries': 'Ministries', 'church.location': 'Location',
+      'church.people': 'People',
+      'church.peopleHint': 'People connected to this church. Shared with you because you are a member here.',
+      'church.peopleUnnamed': 'A member', 'church.peopleOwner': 'Owner', 'church.peopleStaff': 'Staff',
       'church.message': 'Message', 'church.give': 'Give', 'church.follow': 'Follow church',
       'events.followEvent': 'Follow event',
       'filters.keywordPlaceholder': 'Search by church name or keyword...', 'filters.denomination': 'Denomination',
@@ -1262,6 +1265,9 @@
       'dash.events': 'Eventos', 'dash.checkin': 'Registro', 'dash.directory': 'Directorio', 'dash.messages': 'Mensajes',
       'dash.groups': 'Grupos', 'dash.giving': 'Donaciones', 'dash.billing': 'Facturación', 'dash.settings': 'Configuración', 'dash.signout': 'Cerrar sesión', 'dash.staff': 'Equipo y permisos',
       'church.about': 'Acerca de', 'church.events': 'Eventos', 'church.groups': 'Grupos', 'church.ministries': 'Ministerios', 'church.location': 'Ubicación',
+      'church.people': 'Personas',
+      'church.peopleHint': 'Personas vinculadas a esta iglesia. Se comparte contigo porque eres miembro aquí.',
+      'church.peopleUnnamed': 'Un miembro', 'church.peopleOwner': 'Propietario', 'church.peopleStaff': 'Personal',
       'church.message': 'Mensaje', 'church.give': 'Donar', 'church.follow': 'Seguir iglesia',
       'events.followEvent': 'Seguir evento',
       'filters.keywordPlaceholder': 'Buscar por nombre de iglesia o palabra clave...', 'filters.denomination': 'Denominación',
@@ -4690,6 +4696,11 @@ Groups</span>
       <div class="tab" data-church-tab="events" data-i18n="church.events">Events</div>
       <div class="tab" data-church-tab="groups" data-i18n="church.groups">Groups</div>
       <div class="tab" data-church-tab="ministries" data-i18n="church.ministries">Ministries</div>
+      <!-- Shown only when get_directory_people actually returns rows.
+           That call is the permission check: the church has to have
+           set its directory to "Staff and approved members" AND the
+           viewer has to be one. The client never decides this. -->
+      <div class="tab" id="church-tab-btn-people" data-church-tab="people" style="display:none;" data-i18n="church.people">People</div>
       <div class="tab" data-church-tab="location" data-i18n="church.location">Location</div>
     </div>
     <div class="two-col">
@@ -4737,6 +4748,10 @@ Groups</span>
           <label class="filter-check" id="give-cover-fee-wrap" style="display:none;margin-top:12px;"><input type="checkbox" id="give-cover-fee-checkbox" checked> <span data-i18n="give.coverFee">Add 1% so the church receives your full gift, covering FaithDock's fee on this plan</span></label>
           <button class="btn-gold" id="give-submit-btn" style="width:100%;justify-content:center;margin-top:16px;" data-i18n="give.giveNow">Give now</button>
           <div id="give-status" style="display:none;font-size:12.5px;color:var(--clay);margin-top:10px;"></div>
+        </div>
+        <div id="church-tab-people" class="church-tab-panel" style="display:none;">
+          <p style="font-size:13px;color:var(--ink-mute);margin-bottom:14px;" data-i18n="church.peopleHint">People connected to this church. Shared with you because you are a member here.</p>
+          <div id="church-people-list"></div>
         </div>
         <div id="church-tab-location" class="church-tab-panel" style="display:none;">
           <div id="church-map-embed" style="position:relative;width:100%;aspect-ratio:16/9;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);margin-bottom:16px;display:none;"></div>
@@ -7898,7 +7913,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v141 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v142 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -8765,6 +8780,7 @@ Groups</span>
     window.currentPageChurchName = displayChurchName(c.name);
     if (typeof window.checkChurchGivingEnabled === 'function') window.checkChurchGivingEnabled(c.id);
     if (typeof window.checkChurchHomeStatus === 'function') window.checkChurchHomeStatus(c.id);
+    if (typeof window.loadChurchPagePeople === 'function') window.loadChurchPagePeople(c.id);
     // Rendered fresh (not just updated in place) on every page
     // populate -- the slot has to actually contain THIS church's
     // [data-follow-church-id] before the shared delegated click
@@ -23590,6 +23606,56 @@ Groups</span>
         + '</tr>';
     }).join('');
   }
+
+  // ============================================================
+  // The People tab on a church's public page.
+  //
+  // Every decision here is the server's. get_directory_people
+  // (migration 063) returns nothing unless the church set its
+  // directory to 'members' and the caller is an approved permanent
+  // member -- and it NULLs email and phone unless the church also
+  // turned on members_see_contact_details. So this renders whatever
+  // arrives and hides the tab when nothing does.
+  //
+  // Deliberately not a client-side check of those columns. The page
+  // would then be asserting a permission it cannot enforce, and the
+  // withheld details would still be sitting in the response body.
+  // ============================================================
+  window.loadChurchPagePeople = async function(churchId){
+    var tabBtn = document.getElementById('church-tab-btn-people');
+    var listEl = document.getElementById('church-people-list');
+    if (!tabBtn || !listEl) return;
+    // Hidden first, every time. This runs on each church page, and a
+    // tab left over from the previous church would show one church's
+    // members under another church's name.
+    tabBtn.style.display = 'none';
+    listEl.innerHTML = '';
+
+    var { data: userData } = await supabase.auth.getUser();
+    if (!userData || !userData.user) return;
+
+    var { data: people, error } = await supabase.rpc('get_directory_people', { target_church_id: churchId });
+    // A failure must not open the tab. An empty tab would read as
+    // 'this church has nobody', which is a different claim.
+    if (error || !people || !people.length) return;
+
+    tabBtn.style.display = '';
+    listEl.innerHTML = people.map(function(person){
+      var name = person.full_name || window.t('church.peopleUnnamed');
+      var tags = '';
+      if (person.is_owner) tags += '<span class="tag gold" style="font-size:10px;">' + escapeHtml(window.t('church.peopleOwner')) + '</span>';
+      else if (person.is_staff) tags += '<span class="tag sage" style="font-size:10px;">' + escapeHtml(window.t('church.peopleStaff')) + '</span>';
+      // Present only when the church allows it -- 063 sends null
+      // otherwise, so there is nothing here to accidentally reveal.
+      var contact = '';
+      if (person.email) contact += '<div style="font-size:12.5px;color:var(--ink-mute);">' + escapeHtml(person.email) + '</div>';
+      if (person.phone) contact += '<div style="font-size:12.5px;color:var(--ink-mute);">' + escapeHtml(person.phone) + '</div>';
+      return '<div class="registrant-row" style="align-items:flex-start;">'
+        + '<div class="registrant-name">' + escapeHtml(name) + contact + '</div>'
+        + tags
+        + '</div>';
+    }).join('');
+  };
 
   async function loadDirectoryPeople(){
     var tbody = document.getElementById('directory-tbody');
