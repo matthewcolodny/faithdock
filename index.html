@@ -741,6 +741,10 @@
       'myEvents.browseEvents': 'Browse events',
       'nav.about': 'About FaithDock',
       'staffPerms.addedBy': 'Added by {name}',
+      'dashSub.mainMenu': 'Main menu', 'dashSub.reports': 'Reports', 'dashSub.settings': 'Settings',
+      'dashSub.eventsReports': 'Event reports', 'dashSub.eventsSettings': 'Event settings',
+      'dashSub.directoryReports': 'Directory reports', 'dashSub.directorySettings': 'Directory settings',
+      'dashSub.placeholder': 'This page is being built. Nothing has moved yet — everything still works where it did before.',
       'about.eyebrow': 'About', 'about.title': 'About FaithDock',
       'about.missionTitle': 'Our mission', 'about.missionBody': 'Coming soon.',
       'about.goalsTitle': 'What we are building toward', 'about.goalsBody': 'Coming soon.',
@@ -1645,6 +1649,10 @@
       'myEvents.browseEvents': 'Explorar eventos',
       'nav.about': 'Acerca de FaithDock',
       'staffPerms.addedBy': 'Añadido por {name}',
+      'dashSub.mainMenu': 'Menú principal', 'dashSub.reports': 'Informes', 'dashSub.settings': 'Ajustes',
+      'dashSub.eventsReports': 'Informes de eventos', 'dashSub.eventsSettings': 'Ajustes de eventos',
+      'dashSub.directoryReports': 'Informes del directorio', 'dashSub.directorySettings': 'Ajustes del directorio',
+      'dashSub.placeholder': 'Esta página está en construcción. Nada se ha movido todavía — todo sigue funcionando donde estaba.',
       'about.eyebrow': 'Acerca de', 'about.title': 'Acerca de FaithDock',
       'about.missionTitle': 'Nuestra misión', 'about.missionBody': 'Próximamente.',
       'about.goalsTitle': 'Hacia dónde vamos', 'about.goalsBody': 'Próximamente.',
@@ -2180,6 +2188,27 @@
     // them to a wrong value -- it never touches them, leaving the old
     // language sitting there after a switch.
     if (typeof window.refreshRecipientDropdowns === 'function') window.refreshRecipientDropdowns();
+    // applyTranslations sets textContent on every [data-i18n], which
+    // removes child elements -- including the chevrons marking which
+    // sections open a sub-menu. They have to be put back, or the
+    // markers vanish the first time somebody switches language and do
+    // not return until a reload.
+    if (typeof window.markDashSectionsWithSubMenus === 'function') window.markDashSectionsWithSubMenus();
+    // The sub-menu is built from window.t() at render time, so it
+    // would otherwise stay in the old language -- the same class of
+    // bug as the recipient dropdowns on the line above.
+    var openSubNav = document.getElementById('dash-nav-sub');
+    if (openSubNav && openSubNav.style.display !== 'none' && typeof window.renderDashSubNav === 'function' && window.DASH_SECTIONS) {
+      var activeSubLink = document.querySelector('#dash-nav-sub a.active');
+      var activeSubView = activeSubLink ? activeSubLink.getAttribute('data-dash') : null;
+      var subSectionKey = null;
+      if (activeSubView) {
+        Object.keys(window.DASH_SECTIONS).forEach(function(k){
+          window.DASH_SECTIONS[k].views.forEach(function(e){ if (e.v === activeSubView) subSectionKey = k; });
+        });
+      }
+      if (subSectionKey) window.renderDashSubNav(subSectionKey, activeSubView);
+    }
   }
   window.applyTranslations = applyTranslations;
   window.t = function(key){
@@ -3592,6 +3621,18 @@
   .dash-tag{font-size:12px;color:var(--gold);font-family:'IBM Plex Mono';margin-bottom:28px;cursor:default;user-select:none;}
   .dash-nav a{display:block;padding:10px 12px;border-radius:8px;font-size:14px;margin-bottom:4px;color:#CBD2DE;cursor:pointer;}
   .dash-nav a.active{background:#223252;color:#fff;}
+  /* The marker on sections that open a sub-menu. An arrow rather than
+     a colour or a bolder weight, because it has to say 'there is more
+     behind this' and not 'this one is important'. */
+  .dash-nav a .dash-chev{float:right;opacity:.55;}
+  .dash-back{
+    display:block;font-size:12.5px;color:#CBD2DE;opacity:.85;cursor:pointer;
+    padding:8px 12px 12px;margin-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.12);
+  }
+  .dash-back:hover{opacity:1;color:#fff;}
+  .dash-sub-heading{
+    font-family:'Fraunces';color:#fff;font-size:15px;padding:0 12px 10px;
+  }
   .dash-main{padding:36px;}
   .dash-content{display:none;}
   .dash-content.active{display:block;}
@@ -6257,6 +6298,11 @@ Groups</span>
         <a data-dash="plans" data-i18n="dash.plans">Plans</a>
         <a data-dash="settings" data-i18n="dash.settings">Settings</a>
       </div>
+      <!-- Second level. Rendered from DASH_SECTIONS rather than
+           written out per section, so a section's pages are declared
+           once and the sidebar, the routing and the back link all
+           read from the same place. -->
+      <div class="dash-nav" id="dash-nav-sub" style="display:none;"></div>
       <!-- Multi-church owner only: account-level nav shown on the Overview -->
       <div class="dash-nav" id="dash-nav-overview" style="display:none;">
         <a id="dash-ov-overview" data-i18n="dash.overview">Overview</a>
@@ -6489,6 +6535,22 @@ Groups</span>
         </div>
       </div>
 
+      <div class="dash-content" id="dash-events-reports">
+        <h2 style="font-size:24px;margin-bottom:8px;" data-i18n="dashSub.eventsReports">Event reports</h2>
+        <p style="color:var(--ink-mute);font-size:13.5px;max-width:560px;" data-i18n="dashSub.placeholder">This page is being built. Nothing has moved yet — everything still works where it did before.</p>
+      </div>
+      <div class="dash-content" id="dash-events-settings">
+        <h2 style="font-size:24px;margin-bottom:8px;" data-i18n="dashSub.eventsSettings">Event settings</h2>
+        <p style="color:var(--ink-mute);font-size:13.5px;max-width:560px;" data-i18n="dashSub.placeholder">This page is being built. Nothing has moved yet — everything still works where it did before.</p>
+      </div>
+      <div class="dash-content" id="dash-directory-reports">
+        <h2 style="font-size:24px;margin-bottom:8px;" data-i18n="dashSub.directoryReports">Directory reports</h2>
+        <p style="color:var(--ink-mute);font-size:13.5px;max-width:560px;" data-i18n="dashSub.placeholder">This page is being built. Nothing has moved yet — everything still works where it did before.</p>
+      </div>
+      <div class="dash-content" id="dash-directory-settings">
+        <h2 style="font-size:24px;margin-bottom:8px;" data-i18n="dashSub.directorySettings">Directory settings</h2>
+        <p style="color:var(--ink-mute);font-size:13.5px;max-width:560px;" data-i18n="dashSub.placeholder">This page is being built. Nothing has moved yet — everything still works where it did before.</p>
+      </div>
       <div class="dash-content" id="dash-checkin">
         <h2 style="font-size:24px;margin-bottom:24px;" data-i18n="dash.checkin">Check-In</h2>
 
@@ -7492,7 +7554,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v120 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v121 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -10001,6 +10063,116 @@ Groups</span>
     }
   });
 
+  // ============================================================
+  // Second-level dashboard navigation.
+  //
+  // A section with sub-pages replaces the main list rather than
+  // expanding inside it. An accordion would mean the sidebar grows
+  // to twelve sections plus whichever is open, which on the phone
+  // drawer is a scroll every time; replacing keeps the list the
+  // length of one section and makes 'where am I' a question with one
+  // answer.
+  //
+  // A sub-view is an ordinary panel with the id dash-<section>-<sub>,
+  // and each section's DEFAULT sub-view keeps the id it already had.
+  // That is what lets this ship without moving a single working
+  // panel, and without touching the router: #dashboard/events-reports
+  // already parses as a view name.
+  // ============================================================
+  var DASH_SECTIONS = {
+    events: {
+      label: 'dash.events',
+      views: [
+        { v: 'events',           l: 'dash.events' },
+        { v: 'events-reports',   l: 'dashSub.reports' },
+        { v: 'events-settings',  l: 'dashSub.settings' }
+      ]
+    },
+    directory: {
+      label: 'dash.directory',
+      views: [
+        { v: 'directory',          l: 'dash.directory' },
+        { v: 'directory-reports',  l: 'dashSub.reports' },
+        { v: 'directory-settings', l: 'dashSub.settings' }
+      ]
+    }
+  };
+  window.DASH_SECTIONS = DASH_SECTIONS;
+
+  // Which section a view belongs to, derived rather than stored, so a
+  // view cannot end up listed under one section and mapped to another.
+  function dashSectionForView(view){
+    var found = null;
+    Object.keys(DASH_SECTIONS).forEach(function(key){
+      DASH_SECTIONS[key].views.forEach(function(entry){
+        if (entry.v === view) found = key;
+      });
+    });
+    return found;
+  }
+
+  function renderDashSubNav(section, activeView){
+    var el = document.getElementById('dash-nav-sub');
+    var main = document.getElementById('dash-nav-church');
+    if (!el || !main) return;
+    var def = DASH_SECTIONS[section];
+    if (!def) {
+      el.style.display = 'none';
+      // Only un-hide the main list if something else has not hidden
+      // it -- the multi-church Overview swaps navs too.
+      if (!document.getElementById('dash-nav-overview') ||
+          document.getElementById('dash-nav-overview').style.display === 'none') {
+        main.style.display = '';
+      }
+      return;
+    }
+    el.innerHTML = '<a class="dash-back" data-dash-back="1">&lsaquo; ' + escapeHtml(window.t('dashSub.mainMenu')) + '</a>'
+      + '<div class="dash-sub-heading">' + escapeHtml(window.t(def.label)) + '</div>'
+      + def.views.map(function(entry){
+          return '<a data-dash="' + escapeHtml(entry.v) + '"' + (entry.v === activeView ? ' class="active"' : '') + '>'
+            + escapeHtml(window.t(entry.l)) + '</a>';
+        }).join('');
+    main.style.display = 'none';
+    el.style.display = '';
+  }
+  window.renderDashSubNav = renderDashSubNav;
+
+  // The chevrons are added from the same map, so a section cannot
+  // advertise a sub-menu it does not have, or hide one it does.
+  // Run once at start-up so the markers are there before anyone opens
+  // the dashboard, and again after each language switch.
+  setTimeout(function(){
+    if (typeof window.markDashSectionsWithSubMenus === 'function') window.markDashSectionsWithSubMenus();
+  }, 0);
+  window.markDashSectionsWithSubMenus = function(){
+    document.querySelectorAll('#dash-nav-church a[data-dash]').forEach(function(a){
+      var has = !!DASH_SECTIONS[a.getAttribute('data-dash')];
+      var existing = a.querySelector('.dash-chev');
+      if (has && !existing) {
+        var chev = document.createElement('span');
+        chev.className = 'dash-chev';
+        chev.setAttribute('aria-hidden', 'true');
+        chev.textContent = '\u203A';
+        a.appendChild(chev);
+      } else if (!has && existing) {
+        existing.remove();
+      }
+    });
+  };
+
+  document.addEventListener('click', function(ev){
+    if (!ev.target.closest) return;
+    if (ev.target.closest('[data-dash-back]')) {
+      // Back to the main list without changing which page is shown --
+      // the content you were reading stays put. Going back to Events
+      // as well would throw away where you were for no reason.
+      var sub = document.getElementById('dash-nav-sub');
+      var main = document.getElementById('dash-nav-church');
+      if (sub) sub.style.display = 'none';
+      if (main) main.style.display = '';
+    }
+  });
+
   function goDash(view, skipPush){
     var panels = document.querySelectorAll('.dash-content');
     for(var i=0;i<panels.length;i++){ panels[i].classList.remove('active'); }
@@ -10048,7 +10220,15 @@ Groups</span>
       insights:   ['loadGivingInsights', 'loadAttendanceInsights', 'loadGroupsInsights', 'loadInvolvementPanel'],
       staff:      ['loadTeamPanel'],
       billing:    ['loadBillingPanel'],
-      settings:   ['loadGiveMessageToggles']
+      settings:   ['loadGiveMessageToggles'],
+      // The four shelled sub-pages have no data yet. Named with an
+      // empty list on purpose rather than omitted: this map is meant
+      // to be read as the complete set of views, and a view missing
+      // from it is what caused the Billing bug.
+      'events-reports':    [],
+      'events-settings':   [],
+      'directory-reports': [],
+      'directory-settings': []
     };
     // Arriving at a tab closes the drawer and names it in the bar.
     // Both here rather than only in the click handler, so deep links
@@ -10094,6 +10274,17 @@ Groups</span>
     // view, and (re)render the Overview grid when it's the one showing.
     window._dashCurKey = view;
     if(typeof window.updateDashSidebarMode === 'function'){ window.updateDashSidebarMode(view); }
+    // AFTER updateDashSidebarMode, deliberately. That function also
+    // decides which nav is visible (it swaps in the multi-church
+    // Overview list), and it unconditionally re-shows the per-church
+    // list -- so running this first meant the sub-menu rendered
+    // correctly and was then covered by the main list reappearing
+    // underneath nothing. Two functions owning one piece of state, in
+    // the order they happen to be called.
+    //
+    // Driven by the view rather than by which link was clicked, so a
+    // deep link and Back land where a tap does.
+    renderDashSubNav(dashSectionForView(view), view);
     if(view === 'churches' && typeof window.loadDashboardChurchesPanel === 'function'){ window.loadDashboardChurchesPanel(); }
   }
   window.goDash = goDash;

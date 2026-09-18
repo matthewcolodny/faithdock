@@ -4431,3 +4431,26 @@ Worth keeping as a habit rather than a fact about this header: **a number that a
 (rAF is throttled in a hidden browser pane, so the tracker was driven directly for the test -- same hidden-pane caveat as the transitions in v119.)
 
 Build `2026-09-18-v120`. No migration.
+
+---
+
+## Second-level dashboard navigation: the shell
+
+First stage of the sidebar rework, built against **Events and Directory only** so the interaction can be judged before eight sections' worth of panels get moved. Everything else is untouched and still works exactly where it did.
+
+**A section replaces the main list rather than expanding inside it.** An accordion would leave the sidebar at twelve sections plus whichever is open, which in the phone drawer is a scroll every time. Replacing keeps the list the length of one section, and makes "where am I" a question with one answer.
+
+**A sub-view is an ordinary panel** with the id `dash-<section>-<sub>`, and each section's **default** sub-view keeps the id it already had (`dash-events`). That is what lets this ship without moving a single working panel -- and without touching the router, since `#dashboard/events-reports` already parses as a view name. No new routing concept was needed at all.
+
+**The sub-menu is rendered from a `DASH_SECTIONS` map, not written out per section.** The sidebar, the chevrons, the loader entries and the back link all read from that one declaration, so a section cannot advertise a sub-menu it does not have or list a page it cannot show. Which section a view belongs to is *derived* from the map rather than stored beside it.
+
+**"Main menu" goes back without changing the page.** The content you were reading stays put -- returning to Events as well would throw away where you were for no reason. In the phone drawer it also leaves the drawer open, because you are still choosing; picking an actual page is what closes it.
+
+Two things this stage caught:
+
+- **Two functions owned one piece of state.** `renderDashSubNav` was called early in `goDash`, and `updateDashSidebarMode` -- which swaps in the multi-church Overview list -- runs later and unconditionally re-shows the per-church nav. The sub-menu rendered correctly and was then covered by the main list reappearing on top of it. Fixed by ordering, and worth noticing as a shape: two writers to one visibility flag, correct individually, wrong in sequence.
+- **`applyTranslations` sets `textContent` on every `[data-i18n]`, which removes child elements** -- including the chevrons. They vanish on the first language switch and never return until a reload. The sub-menu itself is built from `window.t()` at render time and would stay in the old language, the same class of bug as the recipient dropdowns. Both are re-run from the translation pass now.
+
+Verified: chevrons on exactly the two sections that have sub-menus; opening a section hides the main list and shows three items with the right one active; a sub-page switches panels and stays in the sub-menu; Main menu restores the list and leaves the panel alone; a section without a sub-menu returns to the main list; the language toggle preserves both chevrons and re-renders the sub-menu in Spanish with the active item intact; and in the drawer, a sub-page closes it and lands at the top while Main menu does not.
+
+Build `2026-09-18-v121`. No migration.
