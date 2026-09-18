@@ -5118,3 +5118,27 @@ The setting shipped in v133 was stored and never read. 063 makes the database en
 **The first round of browser tests was entirely vacuous.** Every negative case passed -- tab hidden on empty, hidden on error, hidden after switching church -- and every positive case failed. The cause was not the feature: the probe has no session, so the loader returned at its `getUser()` guard before reaching anything under test. The negatives "passed" for a reason that had nothing to do with the assertions. **A result where all the negatives pass and all the positives fail is a signal that nothing ran**, not a partial success. Rerun with `window.supabase.auth.getUser` patched -- plus an explicit `patchReachedLoader` assertion, because a stub that misses its target is this file's most repeated false negative.
 
 Build `2026-09-18-v142`; **migration 063 must be run by hand** (until then the tab only ever appears for staff, who already have the dashboard).
+
+---
+
+## Emailing "Members" reached people the church had rejected
+
+Found by capturing the untracked RPCs and reading `get_mass_email_recipients` next to `get_directory_people`. Migration 040 had already established the rule; it was applied to one function and not the other.
+
+040's finding, verbatim from its header: **a row created by someone merely requesting to join is `is_permanent = true` with `status = 'pending'`.** So this branch --
+
+```
+where cm.church_id = target_church_id and cm.is_permanent = true
+```
+
+-- treated everyone who had ever asked to join as a member. Sending to "Members" reached people whose request was still pending, and people whose request had been **rejected**. A church's internal announcements going to someone it explicitly declined is worse than a missing feature, and nothing on screen hinted at it: the audience said "Members", the count looked plausible, and the extra recipients were invisible to whoever pressed send.
+
+People who *left* were already excluded -- 036 flips `is_permanent` to false rather than deleting the row -- so `status = 'approved'` was the only predicate missing. 064 adds it and changes nothing else; the other three audiences were already correct and are reproduced verbatim.
+
+**This is the shape to watch for.** 040 did not fix a function, it established a rule -- asking to join and being a member are different things -- and a rule only holds where somebody remembered to apply it. The two functions disagreed for months with no symptom visible from either one alone. Reading them side by side is what surfaced it, which is an argument for the capture folder existing at all.
+
+The verify block greps the deployed body for the predicate rather than checking the function exists, because "it exists" would pass whether or not the fix landed. 064 also ends with a read-only count of how many people this was reaching per church, grouped by the status they actually have.
+
+### One that is not a bug
+
+`get_user_id_by_email`'s permission check is "owns any church, or is staff of any church, or leads any group" -- not scoped to a church, which looked wrong. It is used to resolve an email when **adding a group member or inviting staff**, both of which are for people who are not in the church yet. Scoping it per church would break exactly the thing it exists for. The residual risk is that any staff member can learn whether an address has an account, which most signup forms leak anyway. Left alone deliberately, and recorded so it is not "fixed" into a broken invite flow later.

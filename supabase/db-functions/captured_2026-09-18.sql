@@ -18,10 +18,11 @@
 --    "Staff and approved members" does nothing and neither does the
 --    contact-details switch. See GOTCHAS.md.
 --
--- 3. get_mass_email_recipients' 'members' branch filters
---    is_permanent = true but NOT status = 'approved',
---    while get_directory_people filters on both. The two disagree
---    about who a member is.
+-- 3. get_mass_email_recipients' 'members' branch filtered
+--    is_permanent = true but NOT status = 'approved', so emailing
+--    "Members" reached everyone who had ever ASKED to join, including
+--    people whose request was rejected. Same bug 040 fixed in
+--    get_directory_people. FIXED by migration 064.
 --
 -- 4. get_user_id_by_email's permission check is "owns ANY church, or is
 --    staff of ANY church, or leads any group" -- not scoped to a
@@ -341,8 +342,9 @@ AS $function$
   limit p_limit offset p_offset
 $function$;
 
--- NOTE: the 'members' branch filters is_permanent but NOT
--- status = 'approved', unlike get_directory_people. See finding 3.
+-- SUPERSEDED by migration 064: the 'members' branch below is the
+-- pre-fix body, kept as the captured record. 064 adds
+-- status = 'approved' to it.
 CREATE OR REPLACE FUNCTION public.get_mass_email_recipients(target_church_id uuid, audience_type text, audience_ref_id uuid DEFAULT NULL::uuid)
  RETURNS text[]
  LANGUAGE plpgsql
