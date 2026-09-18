@@ -746,6 +746,16 @@
       'dashSub.insightsDashboard': 'Dashboard', 'dashSub.runReports': 'Reports', 'dashSub.savedReports': 'Saved reports',
       'dash.allChurchesTitle': 'Your churches',
       'dashSub.accountSettings': 'Account settings',
+      'sectionSettings.visibility': 'Public page', 'sectionSettings.showEvents': 'Show Events on your public page',
+      'sectionSettings.eventTags': 'Event tags',
+      'sectionSettings.eventTagsHint': 'Your church\'s own tags, offered when creating an event. Keeping the list short is what makes tags useful — "Youth" and "Youth Group" as separate tags help nobody.',
+      'sectionSettings.eventTagPlaceholder': 'e.g. Outreach', 'sectionSettings.noTags': 'No tags yet.', 'sectionSettings.tagExists': 'That tag is already on the list.',
+      'sectionSettings.whoCanSee': 'Who can see the directory',
+      'sectionSettings.dirStaffOnly': 'Staff only', 'sectionSettings.dirMembers': 'Staff and approved members',
+      'sectionSettings.membersSeeContact': 'Members can see each other\'s phone and email',
+      'sectionSettings.receiptFooter': 'Receipt footer',
+      'sectionSettings.receiptFooterHint': 'Added to the bottom of every giving receipt. Most churches put their tax-exempt statement here.',
+      'sectionSettings.saved': 'Saved.', 'common.remove': 'Remove',
       'dashSub.accountSettingsHint': 'Settings that apply across every church on this account, rather than to one of them. Nothing here yet — the per-church settings live under each church.',
       'dashSub.ministryList': 'Ministry list', 'dashSub.groupList': 'Group list',
       'dashSub.eventsReports': 'Event reports', 'dashSub.eventsSettings': 'Event settings',
@@ -1668,6 +1678,16 @@
       'dashSub.insightsDashboard': 'Panel', 'dashSub.runReports': 'Informes', 'dashSub.savedReports': 'Informes guardados',
       'dash.allChurchesTitle': 'Tus iglesias',
       'dashSub.accountSettings': 'Ajustes de la cuenta',
+      'sectionSettings.visibility': 'Página pública', 'sectionSettings.showEvents': 'Mostrar Eventos en tu página pública',
+      'sectionSettings.eventTags': 'Etiquetas de eventos',
+      'sectionSettings.eventTagsHint': 'Las etiquetas propias de tu iglesia, ofrecidas al crear un evento. Mantener la lista corta es lo que hace útiles las etiquetas.',
+      'sectionSettings.eventTagPlaceholder': 'p. ej. Alcance', 'sectionSettings.noTags': 'Aún no hay etiquetas.', 'sectionSettings.tagExists': 'Esa etiqueta ya está en la lista.',
+      'sectionSettings.whoCanSee': 'Quién puede ver el directorio',
+      'sectionSettings.dirStaffOnly': 'Solo el personal', 'sectionSettings.dirMembers': 'Personal y miembros aprobados',
+      'sectionSettings.membersSeeContact': 'Los miembros pueden ver el teléfono y el correo de los demás',
+      'sectionSettings.receiptFooter': 'Pie de recibo',
+      'sectionSettings.receiptFooterHint': 'Se añade al final de cada recibo de donación. La mayoría de las iglesias ponen aquí su declaración de exención fiscal.',
+      'sectionSettings.saved': 'Guardado.', 'common.remove': 'Quitar',
       'dashSub.accountSettingsHint': 'Ajustes que se aplican a todas las iglesias de esta cuenta, no a una sola. Todavía no hay nada aquí — los ajustes de cada iglesia están dentro de ella.',
       'dashSub.ministryList': 'Lista de ministerios', 'dashSub.groupList': 'Lista de grupos',
       'dashSub.eventsReports': 'Informes de eventos', 'dashSub.eventsSettings': 'Ajustes de eventos',
@@ -6694,8 +6714,14 @@ Groups</span>
         <p style="color:var(--ink-mute);font-size:13.5px;max-width:560px;" data-i18n="dashSub.placeholder">This page is being built. Nothing has moved yet — everything still works where it did before.</p>
       </div>
       <div class="dash-content" id="dash-giving-settings">
-        <h2 style="font-size:24px;margin-bottom:8px;" data-i18n="dashSub.givingSettings"></h2>
-        <p style="color:var(--ink-mute);font-size:13.5px;max-width:560px;" data-i18n="dashSub.placeholder">This page is being built. Nothing has moved yet — everything still works where it did before.</p>
+        <h2 style="font-size:24px;margin-bottom:18px;" data-i18n="dashSub.givingSettings"></h2>
+        <div class="side-note" style="max-width:560px;">
+          <h4 data-i18n="sectionSettings.receiptFooter">Receipt footer</h4>
+          <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:10px;" data-i18n="sectionSettings.receiptFooterHint">Added to the bottom of every giving receipt. Most churches put their tax-exempt statement here.</p>
+          <textarea class="field" id="settings-receipt-footer" rows="3" maxlength="500" style="font-size:13px;"></textarea>
+          <button class="export-btn" id="settings-receipt-footer-save" style="margin-top:8px;" data-i18n="profile.save">Save</button>
+          <div id="settings-receipt-footer-status" style="display:none;font-size:12px;margin-top:8px;"></div>
+        </div>
       </div>
       <div class="dash-content" id="dash-settings-account">
         <h2 style="font-size:24px;margin-bottom:8px;" data-i18n="dashSub.settingsAccount"></h2>
@@ -6706,8 +6732,24 @@ Groups</span>
         <p style="color:var(--ink-mute);font-size:13.5px;max-width:560px;" data-i18n="dashSub.placeholder">This page is being built. Nothing has moved yet — everything still works where it did before.</p>
       </div>
       <div class="dash-content" id="dash-events-settings">
-        <h2 style="font-size:24px;margin-bottom:8px;" data-i18n="dashSub.eventsSettings">Event settings</h2>
-        <p style="color:var(--ink-mute);font-size:13.5px;max-width:560px;" data-i18n="dashSub.placeholder">This page is being built. Nothing has moved yet — everything still works where it did before.</p>
+        <h2 style="font-size:24px;margin-bottom:18px;" data-i18n="dashSub.eventsSettings">Event settings</h2>
+        <div class="side-note" style="max-width:560px;">
+          <h4 data-i18n="sectionSettings.visibility">Public page</h4>
+          <label class="filter-check" style="display:flex;margin-top:10px;">
+            <input type="checkbox" id="settings-events-enabled-toggle" checked> <span data-i18n="sectionSettings.showEvents">Show Events on your public page</span>
+          </label>
+          <div id="settings-events-enabled-status" style="display:none;font-size:12px;margin-top:8px;"></div>
+        </div>
+        <div class="side-note" style="max-width:560px;">
+          <h4 data-i18n="sectionSettings.eventTags">Event tags</h4>
+          <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:10px;" data-i18n="sectionSettings.eventTagsHint">Your church's own tags, offered when creating an event. Keeping the list short is what makes tags useful — "Youth" and "Youth Group" as separate tags help nobody.</p>
+          <div style="display:flex;gap:8px;">
+            <input class="field" type="text" id="settings-event-tag-input" maxlength="30" placeholder="e.g. Outreach" data-i18n-placeholder="sectionSettings.eventTagPlaceholder" style="flex:1;font-size:13px;padding:9px 10px;margin:0;">
+            <button class="export-btn" id="settings-event-tag-add" style="flex-shrink:0;" data-i18n="common.add">Add</button>
+          </div>
+          <div id="settings-event-tags-list" class="chip-list" style="margin-top:10px;"></div>
+          <div id="settings-event-tags-status" style="display:none;font-size:12px;margin-top:8px;"></div>
+        </div>
       </div>
       <div class="dash-content" id="dash-directory-reports">
         <h2 style="font-size:24px;margin-bottom:8px;" data-i18n="dashSub.directoryReports">Directory reports</h2>
@@ -6728,7 +6770,21 @@ Groups</span>
         </div>
       </div>
       <div class="dash-content" id="dash-directory-settings">
-        <h2 style="font-size:24px;margin-bottom:8px;" data-i18n="dashSub.directorySettings">Directory settings</h2>
+        <h2 style="font-size:24px;margin-bottom:18px;" data-i18n="dashSub.directorySettings">Directory settings</h2>
+        <div class="side-note" style="max-width:560px;">
+          <h4 data-i18n="sectionSettings.whoCanSee">Who can see the directory</h4>
+          <select class="field" id="settings-directory-visibility" style="margin-top:8px;font-size:13px;padding:9px 10px;">
+            <option value="staff" data-i18n="sectionSettings.dirStaffOnly">Staff only</option>
+            <option value="members" data-i18n="sectionSettings.dirMembers">Staff and approved members</option>
+          </select>
+          <!-- Two decisions, not one: a church may well want members
+               to see who else is there without handing out everyone's
+               phone number. -->
+          <label class="filter-check" style="display:flex;margin-top:14px;">
+            <input type="checkbox" id="settings-members-see-contact"> <span data-i18n="sectionSettings.membersSeeContact">Members can see each other's phone and email</span>
+          </label>
+          <div id="settings-directory-visibility-status" style="display:none;font-size:12px;margin-top:8px;"></div>
+        </div>
         <p style="color:var(--ink-mute);font-size:13.5px;max-width:560px;" data-i18n="dashSub.placeholder">This page is being built. Nothing has moved yet — everything still works where it did before.</p>
       </div>
       <div class="dash-content" id="dash-checkin">
@@ -7680,7 +7736,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v132 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v133 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -10692,9 +10748,9 @@ Groups</span>
       // to be read as the complete set of views, and a view missing
       // from it is what caused the Billing bug.
       'events-reports':     [],
-      'events-settings':    [],
+      'events-settings':    ['loadSectionSettings'],
       'directory-reports':  ['loadRecentlyJoinedPanel', 'loadPendingInvitesPanel', 'loadDuplicatesPanel'],
-      'directory-settings': [],
+      'directory-settings': ['loadSectionSettings'],
       'messages-inbox':     ['loadContactInbox'],
       // The messaging toggles moved here from the composer page, and
       // loadGiveMessageToggles is what fills them in -- it reads all
@@ -10712,7 +10768,7 @@ Groups</span>
       'groups-settings':    ['loadGiveMessageToggles'],
       'giving-tickets':     [],
       'giving-reports':     [],
-      'giving-settings':    [],
+      'giving-settings':    ['loadSectionSettings'],
       'settings-account':   [],
       'insights-reports':   [],
       'insights-saved':     ['loadSavedReportsList'],
@@ -19694,6 +19750,165 @@ Groups</span>
   }
   window.loadGiveMessageToggles = loadGiveMessageToggles;
 
+  // ============================================================
+  // Per-section settings.
+  //
+  // bindGiveMessageToggleSave below handles checkboxes. These handle
+  // the shapes it cannot: a select, a textarea with its own Save
+  // button, and a list of tags. All of them write one column and
+  // report what happened, because a setting that saves silently is
+  // indistinguishable from one that did not save.
+  // ============================================================
+  function setSettingStatus(statusElId, msg, colorVar){
+    var el = document.getElementById(statusElId);
+    if (!el) return;
+    if (el._hideTimer) clearTimeout(el._hideTimer);
+    el.textContent = msg;
+    el.style.color = 'var(' + (colorVar || '--sage') + ')';
+    el.style.display = 'block';
+    if (colorVar !== '--clay') {
+      el._hideTimer = setTimeout(function(){ el.style.display = 'none'; }, 2600);
+    }
+  }
+
+  // One writer for every one of these, so the row-count check that
+  // catches a silently-zero-row update exists once rather than five
+  // times with four of them eventually forgotten.
+  async function saveChurchSetting(column, value, statusElId){
+    var myChurch = await getMyChurch();
+    if (!myChurch) return false;
+    var payload = {};
+    payload[column] = value;
+    var res = await supabase.from('churches').update(payload).eq('id', myChurch.id).select('id');
+    // An update matching zero rows reports success. On a privacy
+    // switch that would mean telling somebody their directory is
+    // hidden when it is not.
+    if (res.error || !res.data || !res.data.length) {
+      setSettingStatus(statusElId, res.error ? res.error.message : window.t('common.somethingWrong'), '--clay');
+      return false;
+    }
+    setSettingStatus(statusElId, window.t('sectionSettings.saved'));
+    return true;
+  }
+  window.saveChurchSetting = saveChurchSetting;
+
+  // ---- Loading the section settings ------------------------------
+  // One fetch for all of them, in its own query away from the older
+  // toggles. Every column here is new in migration 059, and a select
+  // naming a column that does not exist fails the WHOLE select with
+  // 42703 -- so putting them alongside the existing settings would
+  // take those down too on any deploy that lands first.
+  var churchEventTags = [];
+  async function loadSectionSettings(){
+    if (!document.getElementById('settings-directory-visibility')
+        && !document.getElementById('settings-events-enabled-toggle')
+        && !document.getElementById('settings-receipt-footer')) return;
+    var myChurch = await getMyChurch();
+    if (!myChurch) return;
+    var { data: rows, error } = await supabase.from('churches')
+      .select('events_enabled, event_tags, directory_visibility, members_see_contact_details, receipt_footer_text')
+      .eq('id', myChurch.id).limit(1);
+    // Absent until 059 runs: the pages render with their defaults
+    // rather than erroring, which is the same soft-fetch isolation
+    // used for every other new column in this app.
+    if (error || !rows || !rows.length) {
+      if (error) console.error('Section settings unavailable:', error);
+      return;
+    }
+    var row = rows[0];
+    var eventsToggle = document.getElementById('settings-events-enabled-toggle');
+    // !== false, not a truthy read: the column defaults to true in
+    // the database, and treating a null as 'off' would tell a church
+    // its events are hidden when they are not.
+    if (eventsToggle) eventsToggle.checked = row.events_enabled !== false;
+    var visSelect = document.getElementById('settings-directory-visibility');
+    if (visSelect) visSelect.value = row.directory_visibility || 'staff';
+    var contactToggle = document.getElementById('settings-members-see-contact');
+    if (contactToggle) contactToggle.checked = row.members_see_contact_details === true;
+    var footer = document.getElementById('settings-receipt-footer');
+    if (footer) footer.value = row.receipt_footer_text || '';
+    churchEventTags = Array.isArray(row.event_tags) ? row.event_tags.slice() : [];
+    renderEventTagChips();
+  }
+  window.loadSectionSettings = loadSectionSettings;
+
+  function renderEventTagChips(){
+    var el = document.getElementById('settings-event-tags-list');
+    if (!el) return;
+    if (!churchEventTags.length) {
+      el.innerHTML = '<span style="font-size:12.5px;color:var(--ink-mute);">' + escapeHtml(window.t('sectionSettings.noTags')) + '</span>';
+      return;
+    }
+    el.innerHTML = churchEventTags.map(function(tag){
+      return '<span class="chip">' + escapeHtml(tag)
+        + '<button type="button" data-remove-event-tag="' + escapeHtml(tag) + '" aria-label="' + escapeHtml(window.t('common.remove')) + '">&times;</button></span>';
+    }).join('');
+  }
+
+  async function saveEventTags(){
+    return saveChurchSetting('event_tags', churchEventTags, 'settings-event-tags-status');
+  }
+
+  var eventTagAddBtn = document.getElementById('settings-event-tag-add');
+  if (eventTagAddBtn) eventTagAddBtn.addEventListener('click', async function(){
+    var input = document.getElementById('settings-event-tag-input');
+    var tag = (input.value || '').trim();
+    if (!tag) return;
+    // Case-insensitive duplicate check. The whole point of a church's
+    // own tag list is that it stays short, and 'Youth' beside 'youth'
+    // defeats it before anyone has typed a third one.
+    var exists = churchEventTags.some(function(t){ return t.toLowerCase() === tag.toLowerCase(); });
+    if (exists) {
+      setSettingStatus('settings-event-tags-status', window.t('sectionSettings.tagExists'), '--clay');
+      return;
+    }
+    var bad = typeof findInappropriateWord === 'function' ? findInappropriateWord(tag) : null;
+    if (bad) {
+      setSettingStatus('settings-event-tags-status', window.t('dashCheckin.removeWordFromName').replace('{word}', bad), '--clay');
+      return;
+    }
+    churchEventTags.push(tag);
+    renderEventTagChips();
+    input.value = '';
+    // Rolled back if the write fails, so the list on screen never
+    // shows a tag the database does not have.
+    if (!(await saveEventTags())) {
+      churchEventTags.pop();
+      renderEventTagChips();
+    }
+  });
+
+  document.addEventListener('click', async function(ev){
+    var btn = ev.target.closest ? ev.target.closest('[data-remove-event-tag]') : null;
+    if (!btn) return;
+    var tag = btn.getAttribute('data-remove-event-tag');
+    var idx = churchEventTags.indexOf(tag);
+    if (idx === -1) return;
+    churchEventTags.splice(idx, 1);
+    renderEventTagChips();
+    if (!(await saveEventTags())) {
+      churchEventTags.splice(idx, 0, tag);
+      renderEventTagChips();
+    }
+  });
+
+  var dirVisSelect = document.getElementById('settings-directory-visibility');
+  if (dirVisSelect) dirVisSelect.addEventListener('change', function(){
+    saveChurchSetting('directory_visibility', dirVisSelect.value, 'settings-directory-visibility-status');
+  });
+  var membersContactToggle = document.getElementById('settings-members-see-contact');
+  if (membersContactToggle) membersContactToggle.addEventListener('change', function(){
+    saveChurchSetting('members_see_contact_details', membersContactToggle.checked, 'settings-directory-visibility-status');
+  });
+  // A textarea saves on a button, not on every keystroke -- one write
+  // per character would be absurd, and blur-to-save leaves people
+  // unsure whether it took.
+  var receiptSaveBtn = document.getElementById('settings-receipt-footer-save');
+  if (receiptSaveBtn) receiptSaveBtn.addEventListener('click', function(){
+    var el = document.getElementById('settings-receipt-footer');
+    saveChurchSetting('receipt_footer_text', el.value.trim() || null, 'settings-receipt-footer-status');
+  });
+
   function bindGiveMessageToggleSave(elId, column, statusElId){
     var el = document.getElementById(elId);
     if (!el) return;
@@ -19769,6 +19984,8 @@ Groups</span>
   // forget it.
   bindGiveMessageToggleSave('settings-groups-enabled-toggle', 'groups_enabled', 'settings-groups-enabled-status');
   bindGiveMessageToggleSave('settings-ministries-enabled-toggle', 'ministries_enabled', 'settings-ministries-enabled-status');
+  // Same shape as groups and ministries, so the same binder.
+  bindGiveMessageToggleSave('settings-events-enabled-toggle', 'events_enabled', 'settings-events-enabled-status');
   bindGiveMessageToggleSave('settings-giving-enabled-toggle', 'giving_enabled', 'settings-giving-enabled-status');
   bindGiveMessageToggleSave('settings-messaging-enabled-toggle', 'messaging_enabled', 'settings-messaging-enabled-status');
   bindGiveMessageToggleSave('settings-owner-receives-messages-toggle', 'owner_receives_messages', 'settings-owner-receives-messages-status');

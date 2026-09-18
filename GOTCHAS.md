@@ -4725,3 +4725,34 @@ Both worth recording because each looked like a real failure:
 - A console `"Script error."` turned out to be Cloudflare Turnstile error **110200** -- the captcha site key is not registered for `localhost`. An artifact of the probe environment, not of the change, and absent on the real domain. Opaque cross-origin errors are worth resolving to their source before treating them as evidence of anything.
 
 Build `2026-09-18-v132`. No migration.
+
+---
+
+## The per-section Settings pages get real controls
+
+Migration 059 plus the UI for Events, Directory and Revenue settings.
+
+**Every default is chosen so that running the migration changes nothing.** The two new visibility switches default to the more private option and events stay shown, because they are shown now. A migration that silently alters what the public sees would be a bad trade for a tidier default.
+
+Choices worth recording:
+
+- **`event_tags` is an array on `churches`, not a table.** They are a handful of short strings with no attributes of their own, nothing references them by id, and the event form already stores tags as text on the event. A table would add a join to every read for nothing.
+- **`directory_visibility` is text, not boolean.** "Staff only" and "all approved members" are unlikely to stay the only two answers -- group leaders are the obvious third -- and widening a boolean later means a migration plus every read site.
+- **Two separate directory switches**, because "members can see the list" and "members can see how to contact each other" are different decisions and a church may well want the first without the second.
+- **`giving_funds.is_public` is separate from `is_active`**, which already exists and means something different -- retired versus hidden from the public. Conflating them would make "stop offering this publicly" also mean "stop recording it".
+
+**Grants only where they do something.** `churches` is per-column for SELECT (verified live: anon gets 42501 on `stripe_customer_id` but reads `name` fine), so a new column is genuinely unreadable until granted -- `events_enabled` is granted to anon because the public page needs it, the rest to authenticated only, since granting them to anon would publish how a church has configured its own privacy. **No** update grants and none at all on `giving_funds`: both tables carry table-wide privileges already, so those statements would add nothing while reading as though they narrowed something. That is 049's mistake, and not writing them is the fix.
+
+**The settings are fetched in their own query**, away from the older toggles. Every column is new, and a select naming a column that does not exist fails the *whole* select with 42703 -- so sharing a query would take the existing settings down on any deploy that lands before the migration. Verified: with 42703 forced, the pages render at their defaults and nothing crashes.
+
+**One writer for all of them.** The `.select()` row-count check that catches a silently-zero-row update exists once rather than five times with four eventually forgotten -- and on a privacy switch, a silent failure means telling somebody their directory is hidden when it is not.
+
+**Tag edits roll back if the write fails**, so the list on screen never shows a tag the database does not have. Duplicates are rejected case-insensitively: the point of a church's own tag list is that it stays short, and "Youth" beside "youth" defeats that before a third one is typed.
+
+### The closure-scoped stub trap, third time
+
+The first run of these tests reported every value at its default and zero writes. `getMyChurch` is closure-scoped, so assigning `window.getMyChurch` never reached it, the loader returned early, and **every assertion read the untouched defaults as though they were results**. It looks exactly like a feature that does nothing.
+
+Same shape as the `getEventsForDateKey` stub and the `loadBillingPanel` one before it. The tell each time is the same: *everything* comes back inert, rather than one thing being wrong. A stub that misses its target produces a clean, uniform, entirely false negative.
+
+Build `2026-09-18-v133`; **migration 059 must be run by hand** (the pages show defaults until it does).
