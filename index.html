@@ -747,6 +747,18 @@
       'dashSub.mainMenu': 'Back', 'dashSub.reports': 'Reports', 'dashSub.settings': 'Settings',
       'dashSub.eventList': 'Event list', 'dashSub.profiles': 'Profiles',
       'dashSub.insightsDashboard': 'Dashboard', 'dashSub.runReports': 'Reports', 'dashSub.savedReports': 'Saved reports',
+      'insights.reportsMoved': 'Printable reports are on the Reports page \u2192',
+      'reportsPage.intro': 'Each of these opens ready to print, or to save as a PDF from the print dialog. Nothing is emailed or stored anywhere by running one.',
+      'reportsPage.peopleTitle': 'People statistics',
+      'reportsPage.peopleHint': 'Age ranges, households, membership, and how many people are connected through groups and events.',
+      'reportsPage.paymentsTitle': 'Payments',
+      'reportsPage.paymentsHint': 'Giving and event ticket sales together, including per-event ticket detail.',
+      'reportsPage.attendanceTitle': 'Group attendance',
+      'reportsPage.attendanceHint': 'Attendance per group and per meeting, for the groups that are tracking it.',
+      'reportsPage.elsewhereTitle': 'Reports that live elsewhere',
+      'reportsPage.roomSchedule': 'Room schedule export', 'reportsPage.roomScheduleWhere': ' \u2014 on the Facility page, beside the rooms it covers.',
+      'reportsPage.personProfile': 'A single person\'s profile', 'reportsPage.personProfileWhere': ' \u2014 open anyone in Profiles and print from their record.',
+      'reportsPage.savedWhere': ' \u2014 report settings you kept, ready to run again.',
       'dash.allChurchesTitle': 'Your churches',
       'dashSub.accountSettings': 'Account settings',
       'sectionSettings.visibility': 'Public page', 'sectionSettings.showEvents': 'Show Events on your public page',
@@ -1712,6 +1724,18 @@
       'dashSub.mainMenu': 'Atrás', 'dashSub.reports': 'Informes', 'dashSub.settings': 'Ajustes',
       'dashSub.eventList': 'Lista de eventos', 'dashSub.profiles': 'Perfiles',
       'dashSub.insightsDashboard': 'Panel', 'dashSub.runReports': 'Informes', 'dashSub.savedReports': 'Informes guardados',
+      'insights.reportsMoved': 'Los informes imprimibles están en la página Informes \u2192',
+      'reportsPage.intro': 'Cada uno se abre listo para imprimir, o para guardarlo como PDF desde el diálogo de impresión. Ejecutar uno no envía ni guarda nada.',
+      'reportsPage.peopleTitle': 'Estadísticas de personas',
+      'reportsPage.peopleHint': 'Rangos de edad, hogares, membresía y cuántas personas están conectadas a través de grupos y eventos.',
+      'reportsPage.paymentsTitle': 'Pagos',
+      'reportsPage.paymentsHint': 'Donaciones y venta de entradas juntas, incluido el detalle por evento.',
+      'reportsPage.attendanceTitle': 'Asistencia a grupos',
+      'reportsPage.attendanceHint': 'Asistencia por grupo y por reunión, para los grupos que la registran.',
+      'reportsPage.elsewhereTitle': 'Informes que están en otro lugar',
+      'reportsPage.roomSchedule': 'Exportar el horario de salas', 'reportsPage.roomScheduleWhere': ' \u2014 en la página Instalaciones, junto a las salas que cubre.',
+      'reportsPage.personProfile': 'El perfil de una persona', 'reportsPage.personProfileWhere': ' \u2014 abre a cualquiera en Perfiles e imprime desde su ficha.',
+      'reportsPage.savedWhere': ' \u2014 ajustes de informes que guardaste, listos para ejecutar de nuevo.',
       'dash.allChurchesTitle': 'Tus iglesias',
       'dashSub.accountSettings': 'Ajustes de la cuenta',
       'sectionSettings.visibility': 'Página pública', 'sectionSettings.showEvents': 'Mostrar Eventos en tu página pública',
@@ -6799,7 +6823,51 @@ Groups</span>
       </div>
       <div class="dash-content" id="dash-insights-reports">
         <h2 style="font-size:24px;margin-bottom:8px;" data-i18n="dashSub.runReports">Reports</h2>
-        <p style="color:var(--ink-mute);font-size:13.5px;max-width:560px;" data-i18n="dashSub.placeholder">This page is being built. Nothing has moved yet — everything still works where it did before.</p>
+        <p style="color:var(--ink-mute);font-size:13.5px;max-width:560px;margin-bottom:18px;" data-i18n="reportsPage.intro">Each of these opens ready to print, or to save as a PDF from the print dialog. Nothing is emailed or stored anywhere by running one.</p>
+
+        <!-- Each card carries the SAME button, with the same id, that
+             used to sit on the Insights dashboard -- the existing
+             handlers bind by id and were not touched. A second set of
+             buttons calling the same modals would have been two ways
+             to open one report and two things to keep in step. -->
+        <div class="side-note" style="max-width:560px;margin-top:0;">
+          <h4 data-i18n="reportsPage.peopleTitle">People statistics</h4>
+          <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:12px;" data-i18n="reportsPage.peopleHint">Age ranges, households, membership, and how many people are connected through groups and events.</p>
+          <button class="export-btn" id="people-stats-open-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> <span data-i18n="insights.printPeopleStatsReport">Print people statistics report</span></button>
+        </div>
+
+        <div class="side-note" style="max-width:560px;">
+          <h4 data-i18n="reportsPage.paymentsTitle">Payments</h4>
+          <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:12px;" data-i18n="reportsPage.paymentsHint">Giving and event ticket sales together, including per-event ticket detail.</p>
+          <button class="export-btn" id="payment-reports-open-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> <span data-i18n="insights.printPaymentReports">Print payment reports</span></button>
+        </div>
+
+        <div class="side-note" style="max-width:560px;">
+          <h4 data-i18n="reportsPage.attendanceTitle">Group attendance</h4>
+          <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:12px;" data-i18n="reportsPage.attendanceHint">Attendance per group and per meeting, for the groups that are tracking it.</p>
+          <button class="export-btn" id="attendance-reports-open-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> <span data-i18n="insights.printAttendanceReports">Print group attendance reports</span></button>
+        </div>
+
+        <!-- Named rather than left for someone to find. The room
+             schedule export is a report by any reasonable reading,
+             but it belongs beside the rooms it is about, and an
+             honest pointer beats either duplicating it here or
+             pretending this page is the complete list. -->
+        <div class="side-note" style="max-width:560px;">
+          <h4 data-i18n="reportsPage.elsewhereTitle">Reports that live elsewhere</h4>
+          <p style="font-size:12.5px;color:var(--ink-mute);">
+            <a data-dash="facility" style="color:inherit;border-bottom:1px solid var(--gold);cursor:pointer;" data-i18n="reportsPage.roomSchedule">Room schedule export</a>
+            <span data-i18n="reportsPage.roomScheduleWhere"> — on the Facility page, beside the rooms it covers.</span>
+          </p>
+          <p style="font-size:12.5px;color:var(--ink-mute);margin-top:6px;">
+            <a data-dash="directory" style="color:inherit;border-bottom:1px solid var(--gold);cursor:pointer;" data-i18n="reportsPage.personProfile">A single person's profile</a>
+            <span data-i18n="reportsPage.personProfileWhere"> — open anyone in Profiles and print from their record.</span>
+          </p>
+          <p style="font-size:12.5px;color:var(--ink-mute);margin-top:6px;">
+            <a data-dash="insights-saved" style="color:inherit;border-bottom:1px solid var(--gold);cursor:pointer;" data-i18n="dashSub.savedReports">Saved reports</a>
+            <span data-i18n="reportsPage.savedWhere"> — report settings you kept, ready to run again.</span>
+          </p>
+        </div>
       </div>
       <div class="dash-content" id="dash-insights-saved">
         <h2 style="font-size:24px;margin-bottom:8px;" data-i18n="dashSub.savedReports">Saved reports</h2>
@@ -7476,7 +7544,7 @@ Groups</span>
           <div class="stat"><div class="num" id="ticket-stat-average">—</div><div class="lbl" data-i18n="dashRevenue.averageTicket">AVERAGE TICKET</div></div>
         </div>
         <p style="font-size:12.5px;color:var(--ink-mute);margin-top:2px;">
-          <a href="#" onclick="document.getElementById('payment-reports-open-btn') && document.getElementById('payment-reports-open-btn').click(); if(typeof goDash==='function') goDash('insights'); return false;" style="color:inherit;border-bottom:1px solid var(--gold);" data-i18n="dashRevenue.viewTicketDetail">View per-event ticket detail in Insights →</a>
+          <a href="#" onclick="if(typeof goDash==='function') goDash('insights-reports'); document.getElementById('payment-reports-open-btn') && document.getElementById('payment-reports-open-btn').click(); return false;" style="color:inherit;border-bottom:1px solid var(--gold);" data-i18n="dashRevenue.viewTicketDetail">View per-event ticket detail in Insights →</a>
         </p>
       
       </div>
@@ -7485,9 +7553,13 @@ Groups</span>
         <h2 style="font-size:24px;margin-bottom:24px;" data-i18n="insights.title">Insights</h2>
 
 
-        <button class="export-btn" id="people-stats-open-btn" style="margin-top:20px;margin-bottom:20px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> <span data-i18n="insights.printPeopleStatsReport">Print people statistics report</span></button>
-        <button class="export-btn" id="payment-reports-open-btn" style="margin-bottom:20px;margin-left:8px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> <span data-i18n="insights.printPaymentReports">Print payment reports</span></button>
-        <button class="export-btn" id="attendance-reports-open-btn" style="margin-bottom:20px;margin-left:8px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> <span data-i18n="insights.printAttendanceReports">Print group attendance reports</span></button>
+        <!-- The three report launchers moved to Insights -> Reports.
+             This page is the figures; Reports is where you go to
+             produce one. Same reasoning as the funds move: the thing
+             you read and the thing you run are different jobs. -->
+        <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:20px;">
+          <a data-dash="insights-reports" style="color:inherit;border-bottom:1px solid var(--gold);cursor:pointer;" data-i18n="insights.reportsMoved">Printable reports are on the Reports page →</a>
+        </p>
 
         <div class="side-note" style="margin-top:0;max-width:640px;">
           <h4 data-i18n="insights.giving">Giving</h4>
@@ -7955,7 +8027,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v144 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v145 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">

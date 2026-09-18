@@ -5218,3 +5218,25 @@ The first browser check reported `invokeReached: false` and an empty list. Not t
 **Both Edge Functions must be pasted into the Supabase dashboard** — `stripe-subscription` and `stripe-subscription-webhook`. Until then: the portal still leaks across a transfer, and the invoices panel stays hidden because `list_invoices` is an unknown action.
 
 Build `2026-09-18-v144`; no migration.
+
+---
+
+## Insights → Reports stops being a placeholder
+
+The section's three pages now mean three different things: **Dashboard** is the figures, **Reports** is where you produce one, **Saved reports** is the settings you kept. Same split as Revenue and its settings -- the thing you read and the thing you run are different jobs.
+
+**The three launchers moved; they were not rebuilt.** The same buttons, with the same ids, now sit on the Reports page in cards that say what each report actually contains. Every existing handler binds by id and was not touched. Building new buttons that opened the same modals would have been two ways to open one report and two things to keep in step -- which is the failure this file keeps recording.
+
+**Checked before moving, not after:** the three report modals are siblings of the panels under `#page-dashboard`, not children of `#dash-insights`. Had they been nested, moving the buttons to a different sub-page would have produced the cropper's bug exactly -- a modal rendering into a `display:none` parent, invisible and unclickable. One query settled it, and the browser test then confirmed all three open **and are laid out** from the new page rather than merely getting the `open` class.
+
+**Reports that live elsewhere are named rather than hidden.** The room schedule export belongs beside the rooms it covers and the profile report belongs on a person's record; neither was going to move. A page claiming to be "Reports" that silently omits two of them teaches people it is the complete list when it is not, so it links to them and says where they are.
+
+### An `href="#"` that would have raced the router
+
+The in-page links used `<a href="#" data-dash="...">`. The `[data-dash]` handler is document-wide and calls `goDash()`, but it never calls `preventDefault()` -- so the browser would follow `#` at the same time. The app's own sidebar links carry **no href at all**, which is how it has always avoided this; mine did not, and the test bore it out: clicking landed on the right panel but the hash ended up somewhere unrelated.
+
+Matched to the existing pattern instead, with `cursor:pointer` so they still read as clickable. The tell was comparing my markup against the app's own for the same job -- `sidebarLinkHref: null` -- rather than deciding my version looked reasonable.
+
+Also verified the printer icons survive a language switch: `applyTranslations` sets `textContent` on every `[data-i18n]`, which removes child elements, and each button's label is a `<span data-i18n>` **beside** the icon rather than wrapping it. One `<svg>` per button, before and after.
+
+Build `2026-09-18-v145`; no migration.
