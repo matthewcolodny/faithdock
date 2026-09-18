@@ -8122,7 +8122,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v153 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v154 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -17412,8 +17412,14 @@ Groups</span>
     var accountType = routeResults[0] ? routeResults[0].data : null;
     var isPlatformAdmin = !!(routeResults[1] && routeResults[1].data);
 
-    var { data: ownedChurch } = await supabase.from('churches').select('id').eq('owner_id', user.id).limit(1);
+    var { data: ownedChurch } = await supabase.from('churches').select('id').eq('owner_id', user.id).limit(2);
     var isOwner = ownedChurch && ownedChurch.length;
+    // Deliberately the same test _dashMultiOwner uses -- owner of MORE
+    // THAN ONE church -- rather than a plan tier. A Multi-Church
+    // account with a single church has no account level to show, and
+    // "Your churches" listing one card would be a stop on the way to
+    // the only place they could be going.
+    var ownsMultipleChurches = !!(ownedChurch && ownedChurch.length > 1);
     var isStaffSomewhere = false;
     if (!isOwner) {
       var { data: staffRow } = await supabase.from('church_staff').select('id').eq('user_id', user.id).limit(1);
@@ -17450,9 +17456,26 @@ Groups</span>
     // gives them one chance to check that before moving on. Doesn't
     // override hasChurch, since owning/staffing a church is a
     // stronger signal of where someone actually wants to land.
-    var landingRoute = window.consumePostLoginRoute() || (isPlatformAdmin ? 'admin' : (hasChurch ? 'my-lists' : (isNewOAuthSignup ? 'profile' : 'home')));
+    // Somebody who owns several churches is asked which one before
+    // anything else, because every other dashboard page is about ONE
+    // church and the app would otherwise have to pick for them.
+    var landingRoute = window.consumePostLoginRoute()
+      || (isPlatformAdmin ? 'admin'
+        : ownsMultipleChurches ? 'dashboard/churches'
+        : hasChurch ? 'my-lists'
+        : isNewOAuthSignup ? 'profile' : 'home');
     console.log('[FaithDock auth] routeAfterLogin: routing to', landingRoute);
     window.go(landingRoute);
+    // go() reads only the part before the slash. showRouteFromHash is
+    // what normally applies a dashboard sub-key, and a post-login
+    // redirect does not go through it -- so 'dashboard/churches' would
+    // otherwise land on the dashboard's default panel. Covers any
+    // dashboard sub-route, including one restored by
+    // consumePostLoginRoute, not just the churches case that needed it.
+    var landingParts = String(landingRoute).split('/');
+    if (landingParts[0] === 'dashboard' && landingParts[1] && typeof window.goDash === 'function') {
+      window.goDash(landingParts[1], true);
+    }
     // A pending church claim (see the "Claim this church" handler)
     // reopens automatically here, over whatever page normal routing
     // just landed on -- the modal is a page-independent overlay, so

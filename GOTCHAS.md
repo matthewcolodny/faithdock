@@ -5493,3 +5493,23 @@ Verified the round trip, because `overflow-x:hidden` could plausibly have reset 
 `table.roster` only becomes a scroll container at `max-width:860px`, the same breakpoint the drawer exists at, which is why the two only ever collide on mobile. `.rsched-scroll` is covered too — it is the only other horizontal scroller in the dashboard, currently on a panel that happens not to be open at the same time, and leaving it out would be relying on that staying true. The rule sits inside the existing mobile media block, checked by brace-counting rather than by where it looks like it is.
 
 Build `2026-09-18-v153`; no migration.
+
+---
+
+## Multi-church owners land on "Your churches"
+
+Signing in with more than one church now lands on the churches overview rather than a list. Every other dashboard page is about **one** church, so without this the app has to pick one for somebody who owns several.
+
+**The test is "owns more than one church", not a plan tier.** Deliberately the same signal `_dashMultiOwner` uses everywhere else. A Multi-Church account with a single church has no account level to show, and "Your churches" listing one card would be a stop on the way to the only place they could be going.
+
+`.limit(1)` became `.limit(2)` on a query that was already being made — one extra row is what separates "owns a church" from "owns several", and asking for a count would have been a second round trip on the login path.
+
+### The part that would have silently half-worked
+
+`go()` reads only the part **before** the slash. The dashboard sub-key is applied by `showRouteFromHash`, and a post-login redirect does not go through it — so `go('dashboard/churches')` would have landed on the dashboard showing whatever panel was default, with the URL claiming otherwise.
+
+That is the two-dispatcher asymmetry this file has been bitten by repeatedly, and it is invisible from the calling side: the route string looks right, the page is right, only the panel is wrong. The fix applies any dashboard sub-key after `go()`, which also covers one restored by `consumePostLoginRoute` — that path had the same gap and nobody had hit it yet.
+
+Ordering is unchanged otherwise: a saved intent still wins over everything, and a platform admin still goes to Admin.
+
+Build `2026-09-18-v154`; no migration.
