@@ -5385,3 +5385,15 @@ Reported from a screenshot of the tier 4/5 account drawer: the level's heading s
 Checked that the chevron survived (it marks an entry that opens a level rather than a page), that clicking still opens the churches list with both churches in it, and that Spanish renders "Iglesias" rather than falling through to the key.
 
 Build `2026-09-18-v148`; no migration.
+
+---
+
+## Churches in the list need the chevron too
+
+The churches level listed "Test 2 / Test 3 / Test 7" with no marker, while the entry that opened that level carried one. Picking a church **moves you into that church's own level** — the same kind of step as "Churches ›" one level up — so it gets the same marker. The chevron is what distinguishes going somewhere from opening a page, and it was missing on half the steps that go somewhere.
+
+One line: `dashChurchEntries()` returns `chevron: true` like `dashAccountEntries()` already did. The renderer needed no change, which is the point of both levels going through one.
+
+Checked the negative as well as the positive: Billing, Plans and Settings did **not** gain a chevron, and neither did the Back link. A change that adds a marker everywhere is indistinguishable from one that adds it where it belongs, unless you look at where it should be absent.
+
+Build `2026-09-18-v149`; no migration.
