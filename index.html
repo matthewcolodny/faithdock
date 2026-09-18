@@ -742,6 +742,8 @@
       'nav.about': 'About FaithDock',
       'staffPerms.addedBy': 'Added by {name}',
       'dashSub.mainMenu': 'Main menu', 'dashSub.reports': 'Reports', 'dashSub.settings': 'Settings',
+      'dashSub.eventList': 'Event list', 'dashSub.profiles': 'Profiles',
+      'dashSub.ministryList': 'Ministry list', 'dashSub.groupList': 'Group list',
       'dashSub.eventsReports': 'Event reports', 'dashSub.eventsSettings': 'Event settings',
       'dashSub.directoryReports': 'Directory reports', 'dashSub.directorySettings': 'Directory settings',
       'dashSub.sendMessage': 'Send message', 'dashSub.churchInbox': 'Church inbox',
@@ -1658,6 +1660,8 @@
       'nav.about': 'Acerca de FaithDock',
       'staffPerms.addedBy': 'Añadido por {name}',
       'dashSub.mainMenu': 'Menú principal', 'dashSub.reports': 'Informes', 'dashSub.settings': 'Ajustes',
+      'dashSub.eventList': 'Lista de eventos', 'dashSub.profiles': 'Perfiles',
+      'dashSub.ministryList': 'Lista de ministerios', 'dashSub.groupList': 'Lista de grupos',
       'dashSub.eventsReports': 'Informes de eventos', 'dashSub.eventsSettings': 'Ajustes de eventos',
       'dashSub.directoryReports': 'Informes del directorio', 'dashSub.directorySettings': 'Ajustes del directorio',
       'dashSub.sendMessage': 'Enviar mensaje', 'dashSub.churchInbox': 'Bandeja de la iglesia',
@@ -3637,6 +3641,13 @@
   .dash-tag{font-size:12px;color:var(--gold);font-family:'IBM Plex Mono';margin-bottom:28px;cursor:default;user-select:none;}
   .dash-nav a{display:block;padding:10px 12px;border-radius:8px;font-size:14px;margin-bottom:4px;color:#CBD2DE;cursor:pointer;}
   .dash-nav a.active{background:#223252;color:#fff;}
+  #dash-signout-btn{
+    display:block;width:100%;text-align:left;background:none;border:none;cursor:pointer;
+    font-family:inherit;font-size:14px;color:#8791A5;padding:10px 12px;border-radius:8px;
+    margin-top:14px;padding-top:18px;border-top:1px solid rgba(255,255,255,0.12);
+  }
+  #dash-signout-btn:hover{color:#fff;}
+  @media (max-width:860px){ #dash-signout-btn{font-size:15px;padding:12px;padding-top:18px;} }
   /* The marker on sections that open a sub-menu. An arrow rather than
      a colour or a bolder weight, because it has to say 'there is more
      behind this' and not 'this one is important'. */
@@ -6295,9 +6306,7 @@ Groups</span>
       </div>
       <div id="dash-church-context">
         <div class="dash-church" id="dash-church-name">Loading...</div>
-        <div class="dash-tag" id="dash-church-tag"></div>
         <select id="dash-church-switcher" style="display:none;width:100%;margin-top:8px;margin-bottom:8px;background:#1a2740;color:#fff;border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:6px 8px;font-size:12.5px;"></select>
-        <a href="#register-church" data-route="register-church" id="dash-edit-profile-sidebar-link" style="display:block;font-size:12px;color:#CBD2DE;margin-top:-20px;margin-bottom:24px;border-bottom:1px solid rgba(255,255,255,0.2);width:fit-content;padding-bottom:1px;" data-i18n="dash.editChurchProfile">Edit church profile →</a>
       </div>
       <div class="dash-nav" id="dash-nav-church">
         <a data-dash="events" class="active" data-i18n="dash.events">Events</a>
@@ -6325,7 +6334,11 @@ Groups</span>
         <a id="dash-ov-billing" data-i18n="dash.billing">Billing</a>
         <a id="dash-ov-plans" data-i18n="dash.plans">Plans</a>
       </div>
-      <button id="dash-signout-btn" style="background:none;border:none;color:#8791A5;font-size:12.5px;margin-top:24px;padding:0;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.15);width:fit-content;padding-bottom:1px;" data-i18n="dash.signout">Sign out</button>
+      <!-- Aligned with the nav items rather than floated below them:
+           same padding, same font size, same left edge, so the column
+           reads as one list that ends in Sign out. The divider above
+           is what keeps it from looking like another destination. -->
+      <button id="dash-signout-btn" data-i18n="dash.signout">Sign out</button>
     </div>
     <div class="dash-main">
 
@@ -7606,7 +7619,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v123 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v124 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -10176,7 +10189,7 @@ Groups</span>
     events: {
       label: 'dash.events',
       views: [
-        { v: 'events',           l: 'dash.events' },
+        { v: 'events',           l: 'dashSub.eventList' },
         { v: 'events-reports',   l: 'dashSub.reports' },
         { v: 'events-settings',  l: 'dashSub.settings' }
       ]
@@ -10184,7 +10197,7 @@ Groups</span>
     directory: {
       label: 'dash.directory',
       views: [
-        { v: 'directory',          l: 'dash.directory' },
+        { v: 'directory',          l: 'dashSub.profiles' },
         { v: 'directory-reports',  l: 'dashSub.reports' },
         { v: 'directory-settings', l: 'dashSub.settings' }
       ]
@@ -10211,14 +10224,14 @@ Groups</span>
     ministries: {
       label: 'dash.ministries',
       views: [
-        { v: 'ministries',          l: 'dash.ministries' },
+        { v: 'ministries',          l: 'dashSub.ministryList' },
         { v: 'ministries-settings', l: 'dashSub.settings' }
       ]
     },
     groups: {
       label: 'dash.groups',
       views: [
-        { v: 'groups',          l: 'dash.groups' },
+        { v: 'groups',          l: 'dashSub.groupList' },
         { v: 'groups-settings', l: 'dashSub.settings' }
       ]
     },
@@ -13997,20 +14010,20 @@ Groups</span>
     var myGeneration = externalGeneration !== undefined ? externalGeneration : ++window.dashboardRefreshGeneration;
     var myChurch = await getMyChurch(knownUserId);
     if (myGeneration !== window.dashboardRefreshGeneration) return;
-    var sidebarEditLink = document.getElementById('dash-edit-profile-sidebar-link');
+    // The sidebar Edit-church-profile link is gone -- it is reached
+    // through Settings now. The Settings-page one stays.
     var settingsEditLink = document.getElementById('dash-edit-profile-settings-link');
     if (!myChurch) {
       document.getElementById('dash-church-name').textContent = window.t('dashHeader.noChurchFound');
-      document.getElementById('dash-church-tag').textContent = '';
       return;
     }
     document.getElementById('dash-church-name').textContent = myChurch.name;
-    var roleLabel = myChurch.role === 'staff' ? ' · ' + window.t('dashHeader.staff') : ' · ' + window.t('dashHeader.owner');
-    // "FAITHDOCK PARTNER" only for a church actually on a paid plan;
-    // a claimed church on the free tier is "MANAGED CHURCH".
-    var isPaidChurch = myChurch.planType && myChurch.planType !== 'free';
-    var churchStatusWord = isPaidChurch ? window.t('dashHeader.faithdockPartner') : window.t('dashHeader.managedChurch');
-    document.getElementById('dash-church-tag').textContent = churchStatusWord + (myChurch.denomination ? ' · ' + myChurch.denomination.toUpperCase() : '') + roleLabel;
+    // The FAITHDOCK PARTNER / MANAGED CHURCH tag is gone from the
+    // sidebar: it labelled the account rather than helping anyone
+    // navigate, and took two lines directly above the menu in the
+    // phone drawer. Which plan a church is on is what actually
+    // changes, and Billing reports that. The roleLabel that fed it
+    // went with it -- nothing else in this function read it.
 
     // Multi-church: shown for an owner of more than one church
     // (Large's "up to 5" / Multi-Church) OR a staff member granted
@@ -14026,11 +14039,11 @@ Groups</span>
           return '<option value="' + c.id + '"' + (c.id === myChurch.id ? ' selected' : '') + '>' + displayChurchName(c.name) + '</option>';
         }).join('');
         churchSwitcher.style.display = 'block';
-        if (sidebarEditLink) sidebarEditLink.style.marginTop = '0';
+
       } else {
         churchSwitcher.style.display = 'none';
         churchSwitcher.innerHTML = '';
-        if (sidebarEditLink) sidebarEditLink.style.marginTop = '-20px';
+
       }
     }
 
@@ -14082,7 +14095,7 @@ Groups</span>
 
     // Editing the church profile — visible only to the owner or
     // staff specifically granted that permission, not staff broadly.
-    if (sidebarEditLink) sidebarEditLink.style.display = myChurch.canEditProfile ? 'block' : 'none';
+    // The sidebar link it used to gate is gone; Settings itself is
     if (settingsEditLink) settingsEditLink.style.display = myChurch.canEditProfile ? 'inline-block' : 'none';
     var settingsGivingSection = document.getElementById('settings-giving-section');
     if (settingsGivingSection) settingsGivingSection.style.display = myChurch.canManageGiving ? 'block' : 'none';

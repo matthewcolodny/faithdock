@@ -4506,3 +4506,27 @@ Moving a panel moves what has to load with it, and the map does not update itsel
 That last one is the interesting shape -- a loader whose visible output moved away but whose *side effect* is still load-bearing where it was. Verified per view by counting calls: each page now loads exactly what it shows and nothing it does not.
 
 Build `2026-09-18-v123`. No migration.
+
+---
+
+## Sidebar tidy: names, two removals, and alignment
+
+**A section's first page stops repeating the section name.** The sub-menu already carries the section as its heading, so an item called the same thing immediately underneath reads as a mistake rather than as the default page. Events → **Event list**, Directory → **Profiles**, Ministries → **Ministry list**, Groups → **Group list**.
+
+**"Edit church profile →" leaves the sidebar.** It is a destination inside Settings now, so a permanent link above the nav was a second route to the same place, competing with the one in the menu.
+
+**The FAITHDOCK PARTNER / MANAGED CHURCH tag leaves too.** It labelled the account rather than helping anyone navigate, and took two lines directly above the menu in the phone drawer. Which plan a church is on is the part that changes, and Billing reports it.
+
+**Sign out lines up with the nav** -- same left edge, font size, padding and full width as the items above it, with a divider that keeps it from reading as another destination. It was a small underlined link floating below the list at a different size and indent. Measured rather than eyeballed: left 20 vs 20, 14px vs 14px, 12px padding both.
+
+### Removing markup breaks the JavaScript that fed it
+
+Both removals left four unguarded reads behind -- `document.getElementById('dash-church-tag').textContent = ...` and three `sidebarEditLink` writes. Every one would have thrown on `null` and **stopped `loadDashboardHeader` part-way through**, taking the church name, the church switcher and the permission-driven nav with it. The page would have looked half-loaded for reasons nothing on screen explained.
+
+Nothing about deleting an element warns you about this; the element and its code are hundreds of lines apart. Grepping the removed ids afterwards is what caught it, and is the step worth keeping: **delete markup, then grep its id.**
+
+One of those removals orphaned a variable too. The first pass left `roleLabel` in place with a comment explaining why it was staying -- which is an apology for dead code rather than a reason. It fed only the tag that was removed, so it went with it.
+
+Verified with `loadDashboardHeader()` called directly and asserted not to throw, zero console errors, both elements confirmed absent, and the four sub-menus showing their new first-item names.
+
+Build `2026-09-18-v124`. No migration.
