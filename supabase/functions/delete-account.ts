@@ -10,35 +10,31 @@
 // Deploy. No new secrets needed — uses the built-in service role key.
 //
 // ============================================================
-// BACKED UP 2026-09-18, unchanged. Read before changing anything here.
+// Backed up 2026-09-18 and CHANGED the same day -- the deployed copy
+// must be replaced with this one. Read before changing anything here.
 //
-// KNOWN GAP, not fixed in this backup: this function does NOT check
-// whether the caller still owns a church. index.html checks twice --
-// loadProfilePage hides the button, and the confirm handler re-queries
-// `churches` before calling -- but both checks are in the browser, and
-// this endpoint is reachable with nothing but a valid session.
+// FIXED 2026-09-18: this function now refuses to delete an account
+// that still owns a church. It previously did not, and index.html's
+// two checks -- loadProfilePage hiding the button, and the confirm
+// handler re-querying `churches` -- are both in the browser, while this
+// endpoint is reachable with nothing but a valid session.
 //
-// What that costs depends on the ON DELETE rule of churches.owner_id,
-// which predates this repo's migrations and is not recorded anywhere:
-//   * CASCADE  -- deleting the user destroys their churches and
-//                 everything under them, and any live Stripe
-//                 subscription keeps billing with nothing left pointing
-//                 at it (the same failure the church-delete path was
-//                 just fixed for; see GOTCHAS.md)
-//   * SET NULL -- the churches survive with no owner
-//   * RESTRICT -- the delete fails with a foreign key error, which is
-//                 the safe outcome and would make this a non-issue
+// The answer turned out to be the one nobody expects: there is NO
+// foreign key on churches.owner_id at all. Not CASCADE, not SET NULL,
+// not RESTRICT -- nothing. So deleting a user left the church row in
+// place holding the id of somebody who no longer exists:
 //
-// Confirm which, before deciding whether this needs a server-side
-// guard:
+//   * nobody can sign in to manage it, because its owner is gone
+//   * it is not claimable either -- review_church_claim only assigns
+//     churches whose owner_id is NULL, and a dead id is not null
+//   * it stays in the public directory, run by no one
+//   * and if it was on a paid plan, Stripe keeps charging a card that
+//     nobody can now reach the portal to stop
 //
-//   select conname, confdeltype
-//     from pg_constraint
-//    where conrelid = 'churches'::regclass
-//      and confrelid = 'auth.users'::regclass;
-//
-//   -- confdeltype: a = NO ACTION, r = RESTRICT, c = CASCADE,
-//   --              n = SET NULL, d = SET DEFAULT
+// A database-level constraint would be the deeper fix and is not this
+// function's to make. Refusing here is the cheap, correct one, and it
+// would still be worth doing under RESTRICT -- the alternative there
+// is a raw foreign key error shown to somebody closing their account.
 // ============================================================
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -72,6 +68,36 @@ serve(async (req) => {
     }
 
     const supabaseAdmin = createClient(supabaseUrl, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'));
+
+    // Refuse while they still own a church. The browser checks this
+    // too; that is not a reason to skip it here, because the browser is
+    // not what enforces anything.
+    //
+    // Read with the ADMIN client, not the caller's. RLS decides what
+    // the caller can see, and a church they can somehow no longer read
+    // is still a church that would be left ownerless -- a guard that
+    // can be made to return nothing is not a guard.
+    const { data: ownedChurches, error: ownedError } = await supabaseAdmin
+      .from('churches').select('id, name').eq('owner_id', userData.user.id).limit(5);
+    if (ownedError) {
+      // Fail closed. If we cannot establish that they own nothing, we
+      // do not delete -- the damage is one-directional.
+      return new Response(JSON.stringify({ error: 'Could not check your churches, so nothing was deleted. Please try again.' }), {
+        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+    if (ownedChurches && ownedChurches.length) {
+      const names = ownedChurches.map((c) => c.name).join(', ');
+      return new Response(JSON.stringify({
+        error: 'You still own ' + (ownedChurches.length === 1 ? 'a church' : ownedChurches.length + ' churches')
+             + ' (' + names + '). Transfer or delete '
+             + (ownedChurches.length === 1 ? 'it' : 'them')
+             + ' first — an account cannot be closed while a church would be left with nobody to run it.'
+      }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
     const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userData.user.id);
     if (deleteError) {
       return new Response(JSON.stringify({ error: deleteError.message }), {

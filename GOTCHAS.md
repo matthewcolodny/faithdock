@@ -5304,3 +5304,28 @@ What that actually costs depends on the `ON DELETE` rule of `churches.owner_id`,
 I cannot read it from here, so it is a question rather than a finding, and the query is in that file's header. **Guessing which one it is would be the wrong move** — the fix for CASCADE is a server-side guard, and the fix for RESTRICT is nothing at all.
 
 The same gap applies to table definitions generally: foreign keys, defaults and constraints for anything created before migrations were tracked exist only in the database.
+
+---
+
+## `churches.owner_id` has no foreign key at all
+
+The query came back **"Success. No rows returned"** — and that is the finding. Not CASCADE, not SET NULL, not RESTRICT. There is no foreign key on `churches.owner_id` to `auth.users` whatsoever.
+
+I had listed three possible answers and what each would cost. The real answer was a fourth I had not written down, and it is worse than two of the three:
+
+- nobody can sign in to manage the church, because its owner is gone
+- it is **not claimable either** — `review_church_claim` only assigns churches whose `owner_id` is NULL, and a dead id is not null
+- it stays in the public directory, run by no one
+- and if it was on a paid plan, Stripe keeps charging a card that nobody can now reach the portal to stop
+
+That last one is the church-delete bug from v146 reached through a different door: destroy the link and the billing carries on with nothing pointing at it.
+
+**Worth saying plainly: enumerating the possibilities and then assuming one of them was true would have missed this.** Running the query is what turned "probably CASCADE" into a fact, and the fact was none of my three.
+
+`delete-account` now refuses while the caller still owns a church. index.html already checked twice, but both checks are in the browser and the endpoint is reachable with any valid session. The check reads with the **admin** client rather than the caller's: RLS decides what the caller can see, and a church they can somehow no longer read is still a church that would be left ownerless — a guard that can be made to return nothing is not a guard. It fails **closed**: if the check itself errors, nothing is deleted, because the damage only runs one way.
+
+It would still have been worth adding under RESTRICT, where the alternative is a raw foreign key error shown to somebody closing their account.
+
+**A database constraint is the deeper fix and is deliberately not attempted here.** Adding one means deciding what should happen to an existing church whose owner is already gone, and `supabase/db-functions/DIAGNOSTICS.sql` asks that question first: which foreign keys point at `auth.users` at all, whether any zombie churches exist already, and how many rows in the other user-keyed tables are holding dead ids. Writing the constraint before reading those answers would be the same mistake as assuming the `ON DELETE` rule.
+
+**`delete-account` must be redeployed.**
