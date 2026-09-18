@@ -58,3 +58,42 @@ select 'donations',          count(*) from donations d           left join auth.
 union all
 select 'profiles',           count(*) from profiles p            left join auth.users u on u.id = p.id        where u.id is null
  order by orphaned_rows desc;
+
+-- === 4. Which user-reference columns have NO constraint? ===
+-- Added 2026-09-18 after query 1 showed churches was not the only table
+-- without one.
+--
+-- Every uuid column in public that looks like a reference to a person,
+-- with whether it is actually constrained and whether it can hold NULL.
+-- Both facts are needed before adding anything: SET NULL is impossible
+-- on a NOT NULL column, and CASCADE on a record that should outlive the
+-- account (a donation, an attendance) destroys a church's history.
+--
+-- A foreign key to `profiles` counts as constrained: profiles.id
+-- cascades from auth.users, so the cleanup is equivalent.
+--
+-- Unconstrained columns sort first.
+select c.table_name,
+       c.column_name,
+       c.is_nullable,
+       (fk.conname is not null) as has_fk,
+       coalesce(fk.target, '-')  as references_table
+  from information_schema.columns c
+  left join lateral (
+    select con.conname, con.confrelid::regclass::text as target
+      from pg_constraint con
+      join unnest(con.conkey) with ordinality as k(attnum, ord) on true
+      join pg_attribute att on att.attrelid = con.conrelid and att.attnum = k.attnum
+     where con.contype = 'f'
+       and con.confrelid in ('auth.users'::regclass, 'public.profiles'::regclass)
+       and con.conrelid = format('%I.%I', c.table_schema, c.table_name)::regclass
+       and att.attname = c.column_name
+     limit 1
+  ) fk on true
+ where c.table_schema = 'public'
+   and c.data_type = 'uuid'
+   and (c.column_name in ('user_id','owner_id','donor_id','created_by',
+                          'sender_user_id','from_user_id','to_user_id','added_by',
+                          'invited_by','responded_by','reviewed_by')
+        or c.column_name like '%\_by')
+ order by has_fk, c.table_name, c.column_name;
