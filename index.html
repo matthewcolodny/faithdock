@@ -248,6 +248,9 @@
   // ============================================================
   var translations = {
     en: {
+      'nav.myLists': 'My Lists',
+      'myLists.eyebrow': 'Yours', 'myLists.title': 'My Lists',
+      'myLists.subtitle': 'Everything you are connected to \u2014 the churches, events and groups you have joined or followed.',
       'nav.churches': 'Churches', 'nav.events': 'Events', 'nav.forChurches': 'For churches', 'nav.pricing': 'Pricing', 'nav.admin': 'Admin',
       'nav.dashboard': 'Manage my church', 'nav.dashboardPlural': 'Manage my churches',
       'nav.profile': 'Account profile', 'nav.myChurches': 'My Churches', 'nav.myEvents': 'My Events', 'nav.myGroups': 'My Groups',
@@ -1242,6 +1245,9 @@
       'insights.byAgeGroupCheckInsBasedOn': "By age group — based on the {shared} of {total} check-ins from people who've shared an age range"
     },
     es: {
+      'nav.myLists': 'Mis listas',
+      'myLists.eyebrow': 'Tuyo', 'myLists.title': 'Mis listas',
+      'myLists.subtitle': 'Todo a lo que estás conectado \u2014 las iglesias, eventos y grupos a los que te has unido o que sigues.',
       'nav.churches': 'Iglesias', 'nav.events': 'Eventos', 'nav.forChurches': 'Para iglesias', 'nav.pricing': 'Precios', 'nav.admin': 'Administración',
       'nav.dashboard': 'Administrar mi iglesia', 'nav.dashboardPlural': 'Administrar mis iglesias',
       'nav.profile': 'Perfil de la cuenta', 'nav.myChurches': 'Mis iglesias', 'nav.myEvents': 'Mis eventos', 'nav.myGroups': 'Mis grupos',
@@ -4228,9 +4234,7 @@
         <div id="nav-user-dropdown">
           <a href="#dashboard" id="nav-dashboard-link" data-route="dashboard" style="display:none;" data-i18n="nav.dashboard">Manage my church</a>
           <a href="#profile" data-route="profile" data-i18n="nav.profile">Account profile</a>
-          <a href="#my-churches" data-route="my-churches" data-i18n="nav.myChurches">My Churches</a>
-          <a href="#my-events" data-route="my-events" data-i18n="nav.myEvents">My Events</a>
-          <a href="#my-groups" data-route="my-groups" data-i18n="nav.myGroups">My Groups</a>
+          <a href="#my-lists" data-route="my-lists" data-i18n="nav.myLists">My Lists</a>
           <a href="#" id="nav-settings-link" data-i18n="nav.settings">Settings</a>
           <a href="#help" data-route="help" data-i18n="nav.help">Help</a>
           <a href="#" id="nav-logout-link" data-i18n="nav.logout">Log out</a>
@@ -5024,70 +5028,83 @@ Groups</span>
   </div>
 </section>
 
-<!-- ================= MY GROUPS ================= -->
-<section class="page" id="page-my-events">
+<!-- ================= MY LISTS =================
+     Churches, Events and Groups were three separate top-level pages
+     and three separate nav entries, which is three places to look for
+     "the things I am connected to". One page, three tabs.
+
+     Reuses the profile page's tab row -- which itself reuses the
+     event page's -- rather than inventing a third tab style, so all
+     three stay the same control if any of them is restyled.
+
+     The old #my-churches / #my-events / #my-groups routes still work.
+     They select the matching tab and normalise to #my-lists; see the
+     alias map in go(). -->
+<section class="page" id="page-my-lists">
   <div class="wrap" style="padding-top:44px;">
-    <div class="eyebrow" data-i18n="myEvents.eyebrow">Your events</div>
-    <h1 style="font-size:34px;" data-i18n="myEvents.title">My Events</h1>
-    <p style="color:var(--ink-mute);margin-top:8px;" data-i18n="myEvents.subtitle">Every event you've registered for or followed, across every church, in order.</p>
-    <div style="margin-top:20px;">
-      <a href="#events" data-route="events" class="export-btn" style="display:inline-flex;" data-i18n="myEvents.browseEvents">Browse events</a>
+    <div class="eyebrow" data-i18n="myLists.eyebrow">Yours</div>
+    <h1 style="font-size:34px;" data-i18n="myLists.title">My Lists</h1>
+    <p style="color:var(--ink-mute);margin-top:8px;" data-i18n="myLists.subtitle">Everything you are connected to — the churches, events and groups you have joined or followed.</p>
+
+    <div class="event-tab-row" id="lists-tab-row" style="margin-top:28px;overflow-x:auto;">
+      <button class="event-tab-btn active" data-lists-tab="churches" data-i18n="nav.myChurches">My Churches</button>
+      <button class="event-tab-btn" data-lists-tab="events" data-i18n="nav.myEvents">My Events</button>
+      <button class="event-tab-btn" data-lists-tab="groups" data-i18n="nav.myGroups">My Groups</button>
     </div>
 
-    <div style="display:flex;gap:12px;margin-top:24px;flex-wrap:wrap;">
-      <select class="field" id="my-events-time-filter" style="width:auto;min-width:160px;">
-        <option value="upcoming" data-i18n="myEvents.upcoming">Upcoming</option>
-        <option value="past" data-i18n="myEvents.past">Past</option>
-        <option value="all" data-i18n="myEvents.all">All</option>
-      </select>
-      <select class="field" id="my-events-church-filter" style="width:auto;min-width:200px;">
-        <option value="all" data-i18n="myEvents.allChurches">All churches</option>
-      </select>
+    <div class="lists-panel" id="lists-panel-churches">
+      <p style="color:var(--ink-mute);margin-top:20px;font-size:14px;" data-i18n="myChurches.subtitle">Every church you're connected to — home, owned, staffed, or followed — in one place.</p>
+      <!-- Browse rather than "Add a church": this list is for people
+           finding a church home, and the overwhelmingly likely next
+           step from an empty list is looking for one, not registering
+           an organisation. Adding a church still has its own route
+           from the footer and the homepage. -->
+      <div style="margin-top:16px;">
+        <a href="#directory" data-route="directory" class="export-btn" style="display:inline-flex;" data-i18n="myChurches.browseChurches">Browse churches</a>
+      </div>
+      <div id="my-churches-list" style="margin-top:24px;max-width:640px;">
+        <p style="color:var(--ink-mute);font-size:14px;" data-i18n="common.loading">Loading...</p>
+      </div>
     </div>
 
-    <div id="my-events-list" style="margin-top:24px;max-width:680px;">
-      <p style="color:var(--ink-mute);font-size:14px;" data-i18n="common.loading">Loading...</p>
+    <div class="lists-panel" id="lists-panel-events" style="display:none;">
+      <p style="color:var(--ink-mute);margin-top:20px;font-size:14px;" data-i18n="myEvents.subtitle">Every event you've registered for or followed, across every church, in order.</p>
+      <div style="margin-top:16px;">
+        <a href="#events" data-route="events" class="export-btn" style="display:inline-flex;" data-i18n="myEvents.browseEvents">Browse events</a>
+      </div>
+      <div style="display:flex;gap:12px;margin-top:24px;flex-wrap:wrap;">
+        <select class="field" id="my-events-time-filter" style="width:auto;min-width:160px;">
+          <option value="upcoming" data-i18n="myEvents.upcoming">Upcoming</option>
+          <option value="past" data-i18n="myEvents.past">Past</option>
+          <option value="all" data-i18n="myEvents.all">All</option>
+        </select>
+        <select class="field" id="my-events-church-filter" style="width:auto;min-width:200px;">
+          <option value="all" data-i18n="myEvents.allChurches">All churches</option>
+        </select>
+      </div>
+      <div id="my-events-list" style="margin-top:24px;max-width:680px;">
+        <p style="color:var(--ink-mute);font-size:14px;" data-i18n="common.loading">Loading...</p>
+      </div>
+    </div>
+
+    <div class="lists-panel" id="lists-panel-groups" style="display:none;">
+      <p style="color:var(--ink-mute);margin-top:20px;font-size:14px;" data-i18n="myGroups.subtitle">Every group you've joined, across every church.</p>
+      <!-- Groups are not browsable platform-wide the way churches and
+           events are -- they live on a church profile. So this goes to
+           the directory, which is where you find the church whose
+           groups you can then see, rather than to a listing that does
+           not exist. -->
+      <div style="margin-top:16px;">
+        <a href="#directory" data-route="directory" class="export-btn" style="display:inline-flex;" data-i18n="myGroups.browseGroups">Find groups at a church</a>
+      </div>
+      <div id="my-groups-list" style="margin-top:24px;max-width:640px;">
+        <p style="color:var(--ink-mute);font-size:14px;" data-i18n="common.loading">Loading...</p>
+      </div>
     </div>
   </div>
 </section>
 
-<section class="page" id="page-my-churches">
-  <div class="wrap" style="padding-top:44px;">
-    <div class="eyebrow" data-i18n="myChurches.eyebrow">Your churches</div>
-    <h1 style="font-size:34px;" data-i18n="myChurches.title">My Churches</h1>
-    <p style="color:var(--ink-mute);margin-top:8px;" data-i18n="myChurches.subtitle">Every church you're connected to — home, owned, staffed, or followed — in one place.</p>
-    <!-- Browse rather than "Add a church": this page is for people
-         finding a church home, and the overwhelmingly likely next
-         step from an empty list is looking for one, not registering
-         an organisation. Adding a church still has its own route
-         from the footer and the homepage. -->
-    <div style="margin-top:20px;">
-      <a href="#directory" data-route="directory" class="export-btn" style="display:inline-flex;" data-i18n="myChurches.browseChurches">Browse churches</a>
-    </div>
-    <div id="my-churches-list" style="margin-top:24px;max-width:640px;">
-      <p style="color:var(--ink-mute);font-size:14px;" data-i18n="common.loading">Loading...</p>
-    </div>
-  </div>
-</section>
 
-<section class="page" id="page-my-groups">
-  <div class="wrap" style="padding-top:44px;">
-    <div class="eyebrow" data-i18n="myGroups.eyebrow">Your groups</div>
-    <h1 style="font-size:34px;" data-i18n="myGroups.title">My Groups</h1>
-    <p style="color:var(--ink-mute);margin-top:8px;" data-i18n="myGroups.subtitle">Every group you've joined, across every church.</p>
-    <!-- Groups are not browsable platform-wide the way churches and
-         events are -- they live on a church profile. So this goes to
-         the directory, which is where you find the church whose
-         groups you can then see, rather than to a listing that does
-         not exist. -->
-    <div style="margin-top:20px;">
-      <a href="#directory" data-route="directory" class="export-btn" style="display:inline-flex;" data-i18n="myGroups.browseGroups">Find groups at a church</a>
-    </div>
-    <div id="my-groups-list" style="margin-top:24px;max-width:640px;">
-      <p style="color:var(--ink-mute);font-size:14px;" data-i18n="common.loading">Loading...</p>
-    </div>
-  </div>
-</section>
 
 <section class="page" id="page-help">
   <div class="wrap" style="padding-top:44px;max-width:680px;">
@@ -8046,9 +8063,7 @@ Groups</span>
     </div>
     <div>
       <h5 data-i18n="footer.smYourAccount">Your account</h5>
-      <a href="#my-churches" data-route="my-churches" data-i18n="nav.myChurches">My Churches</a>
-      <a href="#my-events" data-route="my-events" data-i18n="nav.myEvents">My Events</a>
-      <a href="#my-groups" data-route="my-groups" data-i18n="nav.myGroups">My Groups</a>
+      <a href="#my-lists" data-route="my-lists" data-i18n="nav.myLists">My Lists</a>
       <a href="#profile" data-route="profile" data-i18n="nav.profile">Account profile</a>
     </div>
     <div>
@@ -8059,7 +8074,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v149 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v150 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -8949,6 +8964,41 @@ Groups</span>
   }
   window.populateChurchPage = populateChurchPage;
 
+  // One function owns which tab is showing AND what it needs loaded.
+  // Splitting those would be two lists that must agree about three
+  // tabs, which is how this file keeps producing "needs a refresh"
+  // bugs.
+  //
+  // Only the visible tab is loaded. Loading all three on arrival
+  // would triple the queries for somebody who came to look at one.
+  var LISTS_TAB_LOADERS = { churches: 'loadMyChurches', events: 'loadMyEvents', groups: 'loadMyGroups' };
+
+  // Route entry point: honours a tab chosen by an old route alias,
+  // otherwise keeps whichever tab was last open.
+  window.enterMyLists = function(){
+    var want = window.pendingListsTab || window.currentListsTab || 'churches';
+    window.pendingListsTab = null;
+    window.showListsTab(want);
+  };
+
+  window.showListsTab = function(name){
+    if (!LISTS_TAB_LOADERS[name]) name = 'churches';
+    window.currentListsTab = name;
+    document.querySelectorAll('.lists-panel').forEach(function(panel){
+      panel.style.display = (panel.id === 'lists-panel-' + name) ? '' : 'none';
+    });
+    document.querySelectorAll('[data-lists-tab]').forEach(function(btn){
+      btn.classList.toggle('active', btn.getAttribute('data-lists-tab') === name);
+    });
+    var loader = window[LISTS_TAB_LOADERS[name]];
+    if (typeof loader === 'function') loader();
+  };
+
+  document.addEventListener('click', function(ev){
+    var btn = ev.target.closest ? ev.target.closest('[data-lists-tab]') : null;
+    if (btn) window.showListsTab(btn.getAttribute('data-lists-tab'));
+  });
+
   function switchChurchTab(tabName){
     var tabs = document.querySelectorAll('.tab[data-church-tab]');
     for (var i = 0; i < tabs.length; i++) {
@@ -9737,6 +9787,10 @@ Groups</span>
     if(root && homePage && root.parentElement !== homePage){ homePage.appendChild(root); }
   }
 
+  // Which tab an old route maps to. Also the set of routes that get
+  // normalised to #my-lists, so the two cannot disagree.
+  var LISTS_TAB_FOR_ROUTE = { 'my-churches': 'churches', 'my-events': 'events', 'my-groups': 'groups' };
+
   function go(route, skipPush){
     // Real, reported bug: unfollowing a church from My Churches, then
     // navigating away (even just clicking the church's own name to view
@@ -9795,6 +9849,19 @@ Groups</span>
       route = 'signup';
     }
     var baseRoute = route.split('/')[0];
+    // Three pages became one with tabs. The old routes still resolve
+    // -- bookmarks, the post-login landing, and anything already
+    // linked -- by selecting their tab and normalising to #my-lists.
+    //
+    // Done HERE rather than in the caller because every navigation
+    // goes through this function; showRouteFromHash delegates to it.
+    // Putting it anywhere else would be the two-dispatcher split this
+    // file has already paid for more than once.
+    if (LISTS_TAB_FOR_ROUTE[baseRoute]) {
+      window.pendingListsTab = LISTS_TAB_FOR_ROUTE[baseRoute];
+      baseRoute = 'my-lists';
+      route = 'my-lists';
+    }
     // Only when actually leaving the dashboard entirely — staying on
     // 'dashboard' (any sub-tab) must never yank the pricing content
     // out from under an already-active Plans tab; goDash() below
@@ -9878,9 +9945,10 @@ Groups</span>
   // updating one and not the other produces a page that is correct
   // by one route and stale by another. One list now, called by both.
   var ROUTE_ENTRY_LOADERS = {
-    'my-events':   'loadMyEvents',
-    'my-groups':   'loadMyGroups',
-    'my-churches': 'loadMyChurches',
+    // my-lists loads only its active tab, through showListsTab, which
+    // is also what a tab click calls. The three old route names are
+    // normalised to my-lists before this map is consulted.
+    'my-lists':    'enterMyLists',
     'profile':     'loadProfilePage'
   };
   // Sitemap links that point at a section of the About page. The
@@ -13261,7 +13329,7 @@ Groups</span>
     // 'checkin-link' takes the token as its key segment. Tokens are
   // hex (see migration 052), so they survive being a path segment
   // without encoding and cannot contain the '/' the router splits on.
-  var validRoutes = ['home','directory','events','church','event','group','my-groups','my-events','my-churches','profile','pricing','compare','signup','reset-password','register-church','create-event','dashboard','admin','admin-church','help','privacy','terms','ada','waitlist','checkin-link','about'];
+  var validRoutes = ['home','directory','events','church','event','group','my-lists','my-groups','my-events','my-churches','profile','pricing','compare','signup','reset-password','register-church','create-event','dashboard','admin','admin-church','help','privacy','terms','ada','waitlist','checkin-link','about'];
   showRouteFromHash(true);
   applyTranslations(savedLang);
 
@@ -13346,9 +13414,11 @@ Groups</span>
       // already added would otherwise stay in the old language until
       // the next add/remove, same class of bug as the count text above.
       if (currentBase === 'register-church' && typeof window.renderRcServiceTimesChips === 'function') window.renderRcServiceTimesChips();
-      if (currentBase === 'my-churches' && typeof window.loadMyChurches === 'function') window.loadMyChurches();
-      if (currentBase === 'my-events' && typeof window.loadMyEvents === 'function') window.loadMyEvents();
-      if (currentBase === 'my-groups' && typeof window.loadMyGroups === 'function') window.loadMyGroups();
+      // Re-runs whichever tab is actually showing, rather than three
+      // separate route checks for pages that no longer exist.
+      if (currentBase === 'my-lists' && typeof window.showListsTab === 'function') {
+        window.showListsTab(window.currentListsTab || 'churches');
+      }
       if (currentBase === 'profile' && typeof window.loadProfilePage === 'function') window.loadProfilePage();
       if (currentBase === 'pricing' && typeof window.populatePricingPage === 'function') window.populatePricingPage();
       // The dashboard's Plans tab shares the same pricing content/logic
@@ -17332,7 +17402,7 @@ Groups</span>
     // gives them one chance to check that before moving on. Doesn't
     // override hasChurch, since owning/staffing a church is a
     // stronger signal of where someone actually wants to land.
-    var landingRoute = window.consumePostLoginRoute() || (isPlatformAdmin ? 'admin' : (hasChurch ? 'my-churches' : (isNewOAuthSignup ? 'profile' : 'home')));
+    var landingRoute = window.consumePostLoginRoute() || (isPlatformAdmin ? 'admin' : (hasChurch ? 'my-lists' : (isNewOAuthSignup ? 'profile' : 'home')));
     console.log('[FaithDock auth] routeAfterLogin: routing to', landingRoute);
     window.go(landingRoute);
     // A pending church claim (see the "Claim this church" handler)

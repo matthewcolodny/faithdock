@@ -5397,3 +5397,25 @@ One line: `dashChurchEntries()` returns `chevron: true` like `dashAccountEntries
 Checked the negative as well as the positive: Billing, Plans and Settings did **not** gain a chevron, and neither did the Back link. A change that adds a marker everywhere is indistinguishable from one that adds it where it belongs, unless you look at where it should be absent.
 
 Build `2026-09-18-v149`; no migration.
+
+---
+
+## My Churches / My Events / My Groups become My Lists
+
+Three top-level nav entries and three separate pages for "the things I am connected to" — one page with three tabs now, and one nav entry.
+
+**It reuses the profile page's tab row**, which itself reuses the event page's, rather than inventing a third tab style. All three stay the same control if any of them is restyled.
+
+**The old routes still work.** `#my-churches`, `#my-events` and `#my-groups` select the matching tab and normalise the URL to `#my-lists`. Bookmarks, the post-login landing (which sent church owners to `my-churches`) and anything already linked keep working rather than falling through to `#home`. Verified for all three: each lands on the page with the right panel showing and the hash rewritten.
+
+**The alias is applied inside `go()`, and nowhere else.** Every navigation goes through that one function — `showRouteFromHash` delegates to it — so putting the mapping anywhere else would have recreated the two-dispatcher split this file has already paid for more than once.
+
+**One function owns which tab is showing and what it needs loaded.** `showListsTab` sets the panel, marks the button, and calls that tab's loader. A tab click and a route arrival both go through it. Splitting "which tab" from "what to load" would be two lists that must agree about three tabs, which is exactly how the refresh bugs in this file keep getting made.
+
+**Only the visible tab loads.** Loading all three on arrival would triple the queries for somebody who came to look at one. Verified by stubbing the three loaders and checking the call list: selecting Churches calls `loadMyChurches` and nothing else, and the same for each tab — including when the tab is reached by clicking rather than by route.
+
+An unknown tab name falls back to Churches rather than hiding every panel, so a bad value shows something instead of an empty page.
+
+Checked afterwards that the three old `page-*` sections are gone rather than lingering unreachable, that each list container (`my-churches-list`, `my-events-list`, `my-groups-list`, and the two event filters) exists exactly once, and that the `<section>` tag balance is unchanged from HEAD — it was off by one before this change too, inside a comment, and that is worth knowing so the next person does not go hunting for a bug I introduced.
+
+Build `2026-09-18-v150`; no migration.
