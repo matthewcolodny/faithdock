@@ -19,6 +19,10 @@
 `stripe-create-checkout.ts` and `stripe-event-checkout.ts` were checked
 against what is deployed on the same date and still match.
 
+- **`delete-account.ts`** — added 2026-09-18. Deletes the calling
+  user via the admin API. Its header records a gap it does NOT fix:
+  the owns-a-church check exists only in the browser.
+
 ## NOT backed up (source not available)
 
 These functions exist and are referenced in GOTCHAS.md and the

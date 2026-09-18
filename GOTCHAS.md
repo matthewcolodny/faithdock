@@ -5276,3 +5276,31 @@ Counting five fixes would have looked better in a commit message than counting o
 **`stripe-subscription` needs pasting again** — `cancel_subscription_now` is new, and until it is deployed, deleting a paid church fails with "Unknown action" rather than silently leaving the subscription running. That is the right way round.
 
 Build `2026-09-18-v146`; no migration.
+
+---
+
+## Everything is captured now, and the last file raised one question
+
+The three remaining helpers are filed. As of today every RPC the client invokes, and every helper those RPCs call, has its source in this repo rather than only in Postgres.
+
+Two things worth carrying forward from reading them:
+
+**`is_church_staff_member` is membership of `church_staff`, full stop.** It does not look at abilities. Every function gated on it treats "on the team" as sufficient, which is right for the directory functions where it is used — but it is not a permission check and should not be reached for as if it were one.
+
+**`compute_involvement_snapshot_internal` counts pending join requests as people.** Its `church_people` set reads `church_memberships` with no status filter, so somebody who merely asked to join is scored, lands at 0, and is filed under "disengaged". Same shape as the bug 040 fixed in `get_directory_people` and 064 fixed in `get_mass_email_recipients` — **third instance of that rule not being applied**. Left alone deliberately this time: those two decided who receives something, and this one decides what a number means. Whether a pending request is somebody worth tracking is a judgement, not an obvious defect, and quietly changing a church's analytics is not mine to do. Recorded rather than changed.
+
+### delete-account, and a foreign key nobody has looked at
+
+`delete-account` is backed up now too. It deletes the caller and only the caller, which is the important part, and it is right about that.
+
+**It does not check whether the caller still owns a church.** index.html checks twice — `loadProfilePage` hides the button, and the confirm handler re-queries `churches` before calling — but both checks are in the browser, and the endpoint is reachable with nothing more than a valid session.
+
+What that actually costs depends on the `ON DELETE` rule of `churches.owner_id`, which predates this repo's migrations and is recorded nowhere:
+
+- **CASCADE** — deleting the user destroys their churches and everything under them, and any live Stripe subscription keeps billing with nothing left pointing at it. That is precisely the failure the church-delete path was fixed for one build ago, reachable by a different door.
+- **SET NULL** — the churches survive with no owner.
+- **RESTRICT / NO ACTION** — the delete fails with a foreign key error, which is the safe outcome and makes this a non-issue.
+
+I cannot read it from here, so it is a question rather than a finding, and the query is in that file's header. **Guessing which one it is would be the wrong move** — the fix for CASCADE is a server-side guard, and the fix for RESTRICT is nothing at all.
+
+The same gap applies to table definitions generally: foreign keys, defaults and constraints for anything created before migrations were tracked exist only in the database.

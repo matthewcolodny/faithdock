@@ -23,27 +23,18 @@ pointing at it.
   findings from reading them; two became migrations (062) or GOTCHAS
   entries.
 
-## Still not captured
+## Nothing is uncaptured
 
-Referenced by the functions above but defined nowhere in this repo:
+As of 2026-09-18, every RPC the client invokes and every helper those
+RPCs call has its source in this repo -- `captured_2026-09-18.sql`,
+`helpers_captured_2026-09-18.sql`, `church_ownership_handoff.sql`, or
+a numbered migration.
 
-`is_church_staff_member`, `is_group_leader`,
-`compute_involvement_snapshot_internal`
-
-Same rule as the Edge Functions README: **do not guess at their
-bodies.** Capture first:
-
-```sql
-select pg_get_functiondef(p.oid)
-  from pg_proc p join pg_namespace n on n.oid = p.pronamespace
- where n.nspname = 'public'
-   and p.proname in ('is_church_staff_member','is_group_leader',
-                     'compute_involvement_snapshot_internal');
-```
-
-Table definitions are also untracked for anything created before
-migrations started — `church_ownership_handoffs` and `plan_tiers`
-among them.
+Table definitions are still untracked for anything created before
+migrations started -- `church_ownership_handoffs`, `plan_tiers`,
+`involvement_snapshots` and others. Foreign key rules in particular
+are not recorded anywhere, and at least one of them matters: see the
+header of `../functions/delete-account.ts`.
 
 ## How the gap was found
 
