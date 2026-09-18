@@ -758,7 +758,16 @@
       'dashSettings.fundPublicHint': 'Untick a fund to stop offering it to visitors. It keeps its name and every past gift \u2014 it just stops appearing on your public Give form.',
       'sectionSettings.receiptFooterHint': 'Added to the bottom of every giving receipt. Most churches put their tax-exempt statement here.',
       'sectionSettings.saved': 'Saved.', 'common.remove': 'Remove',
-      'dashSub.accountSettingsHint': 'Settings that apply across every church on this account, rather than to one of them. Nothing here yet — the per-church settings live under each church.',
+      'dashSub.accountSettingsHint': 'Settings that apply across every church on this account, rather than to one of them. Each church keeps its own settings under its own menu.',
+      'accountSettings.billingContact': 'Billing contact',
+      'accountSettings.billingContactHint': 'Who we contact about this account\'s plan and payments. Stripe sends the plan\'s invoices to the email on your card, which you change under Billing \u2192 Manage billing.',
+      'accountSettings.contactName': 'Name', 'accountSettings.contactEmail': 'Email',
+      'accountSettings.badEmail': 'That does not look like an email address.',
+      'accountSettings.newChurchDefaults': 'Defaults for new churches',
+      'accountSettings.newChurchDefaultsHint': 'Applied when you add a church to this account. Existing churches are never changed \u2014 each one keeps whatever it has. Leave anything on \u201cNo preference\u201d and the usual default is used.',
+      'accountSettings.noPreference': 'No preference', 'common.yes': 'Yes', 'common.no': 'No',
+      'accountSettings.ownershipTitle': 'Ownership and closing',
+      'accountSettings.ownershipHint': 'Transferring this account to someone else, and closing it, are being built. Both need the person receiving or losing access to confirm, so neither can happen by a single click \u2014 until they land, email support and we will do it with you.',
       'dashSub.ministryList': 'Ministry list', 'dashSub.groupList': 'Group list',
       'dashSub.eventsReports': 'Event reports', 'dashSub.eventsSettings': 'Event settings',
       'dashSub.directoryReports': 'Directory reports', 'dashSub.directorySettings': 'Directory settings',
@@ -1692,7 +1701,16 @@
       'dashSettings.fundPublicHint': 'Desmarca un fondo para dejar de ofrecerlo a los visitantes. Conserva su nombre y todas las donaciones anteriores \u2014 solo deja de aparecer en tu formulario público de donación.',
       'sectionSettings.receiptFooterHint': 'Se añade al final de cada recibo de donación. La mayoría de las iglesias ponen aquí su declaración de exención fiscal.',
       'sectionSettings.saved': 'Guardado.', 'common.remove': 'Quitar',
-      'dashSub.accountSettingsHint': 'Ajustes que se aplican a todas las iglesias de esta cuenta, no a una sola. Todavía no hay nada aquí — los ajustes de cada iglesia están dentro de ella.',
+      'dashSub.accountSettingsHint': 'Ajustes que se aplican a todas las iglesias de esta cuenta, no a una sola. Cada iglesia conserva sus propios ajustes en su propio menú.',
+      'accountSettings.billingContact': 'Contacto de facturación',
+      'accountSettings.billingContactHint': 'A quién contactamos sobre el plan y los pagos de esta cuenta. Stripe envía las facturas del plan al correo de tu tarjeta, que se cambia en Facturación \u2192 Gestionar facturación.',
+      'accountSettings.contactName': 'Nombre', 'accountSettings.contactEmail': 'Correo',
+      'accountSettings.badEmail': 'Eso no parece una dirección de correo.',
+      'accountSettings.newChurchDefaults': 'Valores predeterminados para iglesias nuevas',
+      'accountSettings.newChurchDefaultsHint': 'Se aplican cuando añades una iglesia a esta cuenta. Las iglesias existentes nunca cambian \u2014 cada una conserva lo que tiene. Deja cualquier opción en \u201cSin preferencia\u201d y se usa el valor habitual.',
+      'accountSettings.noPreference': 'Sin preferencia', 'common.yes': 'Sí', 'common.no': 'No',
+      'accountSettings.ownershipTitle': 'Propiedad y cierre',
+      'accountSettings.ownershipHint': 'Transferir esta cuenta a otra persona, y cerrarla, están en construcción. Ambas requieren que quien recibe o pierde el acceso lo confirme, así que ninguna puede ocurrir con un solo clic \u2014 hasta que lleguen, escribe a soporte y lo haremos contigo.',
       'dashSub.ministryList': 'Lista de ministerios', 'dashSub.groupList': 'Lista de grupos',
       'dashSub.eventsReports': 'Informes de eventos', 'dashSub.eventsSettings': 'Ajustes de eventos',
       'dashSub.directoryReports': 'Informes del directorio', 'dashSub.directorySettings': 'Ajustes del directorio',
@@ -6638,7 +6656,53 @@ Groups</span>
 
       <div class="dash-content" id="dash-account-settings">
         <h2 style="font-size:24px;margin-bottom:8px;" data-i18n="dashSub.accountSettings">Account settings</h2>
-        <p style="color:var(--ink-mute);font-size:13.5px;max-width:560px;" data-i18n="dashSub.accountSettingsHint">Settings that apply across every church on this account, rather than to one of them. Nothing here yet — the per-church settings live under each church.</p>
+        <p style="color:var(--ink-mute);font-size:13.5px;max-width:560px;margin-bottom:18px;" data-i18n="dashSub.accountSettingsHint">Settings that apply across every church on this account, rather than to one of them. Each church keeps its own settings under its own menu.</p>
+
+        <div class="side-note" style="max-width:560px;">
+          <h4 data-i18n="accountSettings.billingContact">Billing contact</h4>
+          <!-- Says what it does and nothing more. Stripe emails the
+               customer record IT holds, which is changed in the Stripe
+               portal behind "Manage billing" -- so calling this the
+               invoice address would be a claim the code cannot keep. -->
+          <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:12px;" data-i18n="accountSettings.billingContactHint">Who we contact about this account's plan and payments. Stripe sends the plan's invoices to the email on your card, which you change under Billing → Manage billing.</p>
+          <label style="display:block;font-size:12.5px;margin-bottom:4px;margin-top:10px;" data-i18n="accountSettings.contactName">Name</label>
+          <input class="field" type="text" id="account-billing-name" maxlength="120" style="font-size:13px;padding:9px 10px;">
+          <label style="display:block;font-size:12.5px;margin-bottom:4px;margin-top:10px;" data-i18n="accountSettings.contactEmail">Email</label>
+          <input class="field" type="email" id="account-billing-email" maxlength="200" style="font-size:13px;padding:9px 10px;">
+          <button class="export-btn" id="account-billing-save" style="margin-top:10px;" data-i18n="profile.save">Save</button>
+          <div id="account-billing-status" style="display:none;font-size:12px;margin-top:8px;"></div>
+        </div>
+
+        <div class="side-note" style="max-width:560px;">
+          <h4 data-i18n="accountSettings.newChurchDefaults">Defaults for new churches</h4>
+          <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:12px;" data-i18n="accountSettings.newChurchDefaultsHint">Applied when you add a church to this account. Existing churches are never changed — each one keeps whatever it has. Leave anything on “No preference” and the usual default is used.</p>
+          <label style="display:block;font-size:12.5px;margin-bottom:4px;margin-top:10px;" data-i18n="sectionSettings.whoCanSee">Who can see the directory</label>
+          <select class="field" id="account-default-directory" style="font-size:13px;padding:9px 10px;">
+            <option value="" data-i18n="accountSettings.noPreference">No preference</option>
+            <option value="staff" data-i18n="sectionSettings.dirStaffOnly">Staff only</option>
+            <option value="members" data-i18n="sectionSettings.dirMembers">Staff and approved members</option>
+          </select>
+          <label style="display:block;font-size:12.5px;margin-bottom:4px;margin-top:10px;" data-i18n="sectionSettings.membersSeeContact">Members can see each other's phone and email</label>
+          <select class="field" id="account-default-contact" style="font-size:13px;padding:9px 10px;">
+            <option value="" data-i18n="accountSettings.noPreference">No preference</option>
+            <option value="yes" data-i18n="common.yes">Yes</option>
+            <option value="no" data-i18n="common.no">No</option>
+          </select>
+          <label style="display:block;font-size:12.5px;margin-bottom:4px;margin-top:10px;" data-i18n="sectionSettings.receiptFooter">Receipt footer</label>
+          <textarea class="field" id="account-default-receipt" rows="3" maxlength="500" style="font-size:13px;"></textarea>
+          <button class="export-btn" id="account-defaults-save" style="margin-top:10px;" data-i18n="profile.save">Save</button>
+          <div id="account-defaults-status" style="display:none;font-size:12px;margin-top:8px;"></div>
+        </div>
+
+        <!-- Transfer and Close are named here on purpose rather than
+             left off the page. Both are being built; an account page
+             that silently omits them reads as though FaithDock has no
+             way to do either, which is the question somebody comes to
+             this page to answer. -->
+        <div class="side-note" style="max-width:560px;">
+          <h4 data-i18n="accountSettings.ownershipTitle">Ownership and closing</h4>
+          <p style="font-size:12.5px;color:var(--ink-mute);" data-i18n="accountSettings.ownershipHint">Transferring this account to someone else, and closing it, are being built. Both need the person receiving or losing access to confirm, so neither can happen by a single click — until they land, email support and we will do it with you.</p>
+        </div>
       </div>
       <div class="dash-content" id="dash-insights-reports">
         <h2 style="font-size:24px;margin-bottom:8px;" data-i18n="dashSub.runReports">Reports</h2>
@@ -6753,7 +6817,7 @@ Groups</span>
         </div>
       </div>
       <div class="dash-content" id="dash-settings-account">
-        <h2 style="font-size:24px;margin-bottom:8px;" data-i18n="dashSub.settingsAccount"></h2>
+        <h2 style="font-size:24px;margin-bottom:8px;" data-i18n="dashSub.settingsAccount">Church account</h2>
         <p style="color:var(--ink-mute);font-size:13.5px;max-width:560px;" data-i18n="dashSub.placeholder">This page is being built. Nothing has moved yet — everything still works where it did before.</p>
       </div>
       <div class="dash-content" id="dash-events-reports">
@@ -7738,7 +7802,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v135 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v136 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -10832,7 +10896,7 @@ Groups</span>
       'settings-account':   [],
       'insights-reports':   [],
       'insights-saved':     ['loadSavedReportsList'],
-      'account-settings':   []
+      'account-settings':   ['loadAccountSettings']
     };
     // Arriving at a tab closes the drawer and names it in the bar.
     // Both here rather than only in the click handler, so deep links
@@ -17042,6 +17106,26 @@ Groups</span>
         if (myChurchForPlanInherit && myChurchForPlanInherit.role === 'owner' && myChurchForPlanInherit.planType) {
           payload.plan_type = myChurchForPlanInherit.planType;
         }
+        // Account-level defaults (migration 060). Only columns the
+        // account actually set are added, so an unset preference
+        // leaves the churches table's own default in charge rather
+        // than this quietly becoming the policy for every new church.
+        //
+        // Failure is deliberately silent: somebody creating a church
+        // should not be stopped by a settings row, and the worst case
+        // is a church created with the ordinary defaults.
+        try {
+          var { data: acct } = await supabase.from('account_settings')
+            .select('default_directory_visibility, default_members_see_contact, default_receipt_footer_text')
+            .eq('owner_id', userData.user.id).maybeSingle();
+          if (acct) {
+            if (acct.default_directory_visibility) payload.directory_visibility = acct.default_directory_visibility;
+            if (acct.default_members_see_contact !== null && acct.default_members_see_contact !== undefined) {
+              payload.members_see_contact_details = acct.default_members_see_contact;
+            }
+            if (acct.default_receipt_footer_text) payload.receipt_footer_text = acct.default_receipt_footer_text;
+          }
+        } catch (e) { /* defaults are a convenience, never a blocker */ }
         // eslint-disable-next-line no-redeclare -- see the matching comment in the if-branch above; this is the other half of that same mutually-exclusive pair.
         // Explicit column list, not a bare .select() -- that compiles to
         // RETURNING *, which fails with "permission denied for table
@@ -19921,6 +20005,82 @@ Groups</span>
     renderEventTagChips();
   }
   window.loadSectionSettings = loadSectionSettings;
+
+  // ---- The account's own settings --------------------------------
+  // Keyed on the signed-in user, not on a church: an "account" here
+  // is the owner plus the churches they own, and there is no accounts
+  // table to hang this off.
+  //
+  // maybeSingle(), because the row is created on first save -- an
+  // account that has never opened this page has no row, and that is
+  // not an error.
+  async function loadAccountSettings(){
+    if (!document.getElementById('account-billing-email')) return;
+    var { data: userData } = await supabase.auth.getUser();
+    if (!userData || !userData.user) return;
+    var { data: row, error } = await supabase.from('account_settings')
+      .select('billing_contact_name, billing_email, default_directory_visibility, default_members_see_contact, default_receipt_footer_text')
+      .eq('owner_id', userData.user.id).maybeSingle();
+    if (error) { console.error('Account settings unavailable:', error); return; }
+    if (!row) return;
+    var set = function(id, v){ var el = document.getElementById(id); if (el) el.value = v == null ? '' : v; };
+    set('account-billing-name', row.billing_contact_name);
+    set('account-billing-email', row.billing_email);
+    set('account-default-directory', row.default_directory_visibility);
+    // Three states, not two: yes, no, and no opinion. A checkbox
+    // cannot say the third, which is why this is a select.
+    set('account-default-contact', row.default_members_see_contact === true ? 'yes'
+      : row.default_members_see_contact === false ? 'no' : '');
+    set('account-default-receipt', row.default_receipt_footer_text);
+  }
+  window.loadAccountSettings = loadAccountSettings;
+
+  // One writer, like saveChurchSetting. upsert on the primary key, so
+  // the first save creates the row and every later one updates it
+  // without the page having to know which it is.
+  async function saveAccountSettings(patch, statusElId){
+    var { data: userData } = await supabase.auth.getUser();
+    if (!userData || !userData.user) return false;
+    patch.owner_id = userData.user.id;
+    var res = await supabase.from('account_settings')
+      .upsert(patch, { onConflict: 'owner_id' }).select('owner_id');
+    // Row count, not just error === null: an upsert blocked by RLS
+    // reports success and writes nothing.
+    if (res.error || !res.data || !res.data.length) {
+      setSettingStatus(statusElId, res.error ? res.error.message : window.t('common.somethingWrong'), '--clay');
+      return false;
+    }
+    setSettingStatus(statusElId, window.t('sectionSettings.saved'));
+    return true;
+  }
+
+  var accountBillingSave = document.getElementById('account-billing-save');
+  if (accountBillingSave) accountBillingSave.addEventListener('click', function(){
+    var email = (document.getElementById('account-billing-email').value || '').trim();
+    // Checked here because the column has no constraint and a typo
+    // means nobody hears from us about the account's own billing.
+    if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      setSettingStatus('account-billing-status', window.t('accountSettings.badEmail'), '--clay');
+      return;
+    }
+    saveAccountSettings({
+      billing_contact_name: (document.getElementById('account-billing-name').value || '').trim() || null,
+      billing_email: email || null
+    }, 'account-billing-status');
+  });
+
+  var accountDefaultsSave = document.getElementById('account-defaults-save');
+  if (accountDefaultsSave) accountDefaultsSave.addEventListener('click', function(){
+    var contact = document.getElementById('account-default-contact').value;
+    saveAccountSettings({
+      // '' means no opinion, and must be stored as null rather than as
+      // an empty string -- the check constraint would reject '' and,
+      // worse, an empty string would read as a set preference later.
+      default_directory_visibility: document.getElementById('account-default-directory').value || null,
+      default_members_see_contact: contact === 'yes' ? true : contact === 'no' ? false : null,
+      default_receipt_footer_text: (document.getElementById('account-default-receipt').value || '').trim() || null
+    }, 'account-defaults-status');
+  });
 
   function renderEventTagChips(){
     var el = document.getElementById('settings-event-tags-list');

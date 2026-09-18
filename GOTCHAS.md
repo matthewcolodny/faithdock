@@ -4820,3 +4820,35 @@ The level is also remembered rather than recomputed. It used to be derived from 
 **The fix was proved against the old behaviour, not just against itself.** Replaying the two removed lines in the live page reproduced the bug on demand (menu jumps to CHURCH MENU), and `refreshDashNavLevel()` put it back without being told where to go. Eight-step tier 4/5 walk and a seven-step tier 1-3 walk both pass, including the cases that must still MOVE: Directory drops to the church menu, Billing stays at the account level with Billing marked active.
 
 Build `2026-09-18-v135`; no migration (059 already run).
+
+---
+
+## Account settings: billing contact, and defaults for new churches
+
+Migration 060 plus the first two of the four things this page is meant to hold.
+
+**There is no `accounts` table.** An account here is the owner user plus the churches they own, so `account_settings` is keyed on the owner's auth user id, one row each, created on first save. Nothing needs a row to exist, and back-filling one for every user who will never open this page is storage for nothing -- hence `maybeSingle()` on read and `upsert` on write.
+
+**Every `default_*` column is nullable, and null means "no opinion"** -- not "off", and not "the same as the column default". The church-creation path only puts a column in its INSERT when the account actually set one, so the `churches` table's own defaults stay in charge otherwise. A NOT NULL default here would quietly become a policy every new church inherits, which is the opposite of what an unset setting should do.
+
+That makes "members can see each other's contact details" a **three-state** setting: yes, no, and no opinion. A checkbox cannot say the third, so it is a select. Tested in both directions by extracting the two expressions from index.html and running them: `null` must not collapse to `no` on read, `''` must not collapse to `false` on write, and `''` must reach the database as null -- an empty string would fail 060's check constraint on the directory column and would read as a set preference later. The church-creation side checks `!== null && !== undefined` rather than truthiness, so a default of **false** is still applied.
+
+**Defaults never block creating a church.** The lookup is wrapped and failure is silent: the worst case is a church created with the ordinary defaults, which is a far better outcome than a settings row stopping somebody from adding a church.
+
+### The billing email says what it actually does
+
+It would have been easy to label this "invoice email". It is not. Stripe emails the customer record **it** holds, which is changed in the Stripe billing portal behind "Manage billing" -- nothing in this app can change where an invoice is sent without a change to the `stripe-subscription` edge function, which is deployed by hand and must never be guessed at. So the field is "Billing contact", the hint says where invoices actually come from, and the column comment in 060 says the same thing to whoever reads it next. A setting that appears to control something it does not is worse than no setting.
+
+### Grants, done the right way round this time
+
+`revoke all ... from anon` and `from authenticated` **first**, then grant. This project's default privileges hand both roles every privilege on every new table in `public`, so the column-level grants would have added nothing and narrowed nothing on their own -- 049's exact mistake. anon gets nothing at all; there is no public view of an account. `owner_id` is deliberately absent from the UPDATE grant, so a row cannot be walked over to another user even by someone hitting the REST endpoint directly, and a BEFORE UPDATE trigger pins it as well. The verify block checks **both** directions: that anon cannot read billing contacts, and that authenticated still can.
+
+### Two empty headings
+
+`#dash-giving-settings` and `#dash-settings-account` both had `data-i18n="..."></h2>` -- no text between the tags. They render blank until `applyTranslations` runs, which is a real flash on a slow load and a permanently empty heading if it ever fails. Both now carry their English text like every other heading in the file.
+
+### Still to come on this page
+
+Transfer account ownership and close account are named on the page rather than left off it -- an account page that silently omits them reads as though FaithDock has no way to do either, which is precisely the question somebody opens it to answer. Both need the person receiving or losing access to confirm, so neither can be a single click, and closing an account also has to cancel a Stripe subscription, which needs the edge function source.
+
+Build `2026-09-18-v136`; **migration 060 must be run by hand** (the page renders but cannot load or save until it is).
