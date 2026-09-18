@@ -4598,3 +4598,27 @@ Re-triggering a CSS animation needs the class removed, the element reflowed (`vo
 Build `2026-09-18-v127`. No migration.
 
 **Insights is still in the sidebar**, deliberately and not yet done: it holds seven blocks -- saved reports, giving, event attendance, consecutive absences, groups, households, involvement -- destined for four different Reports pages. Removing the tab before they land would take working features offline, so it is its own change rather than a line in this one.
+
+---
+
+## Insights stays, as the reports hub
+
+Reversing the earlier plan to disperse it, on the user's call, and the reasoning holds up better than mine did: giving, attendance and directory figures get **read together**. "How did the year go" is one question, not three, and splitting it across three sections would have meant three visits to answer it.
+
+Its sub-menu is **Dashboard** (the overview that exists today), **Reports** (run and export) and **Saved reports** -- which also settles where saved reports live, the one destination I could not place while planning to disperse. That is the argument for the hub: a cross-cutting feature has an obvious home in it and no home at all without it.
+
+## Entering a church lands on its whole menu
+
+Clicking a church card from the multi-church Overview put you on Events -- which, now that Events is a section, opened Events' *sub-menu*. The first thing you see inside a church should be the whole church, not one section of it with the rest a step away.
+
+Handled with a one-shot flag rather than a parameter, because the render is triggered indirectly: `loadDashboardHeader` → `updateDashSidebarMode` → `goDash` → `renderDashSubNav`. Threading an argument through three functions to reach the fourth is worse than a value set once and cleared on read.
+
+## The back link worked; it was in the wrong place
+
+"I don't see back to churches overview on the side dash." Before changing anything, the mechanism was driven directly with `_dashMultiOwner` forced true: **visible on Events, hidden on the Overview, hidden for a single-church owner.** It worked.
+
+What it was not, was findable. It sat at **index 0 of the sidebar** -- above the church name, above the switcher, at the very top of the panel where nothing else asks to be read. It now sits directly above the nav, in the same position the sub-menu's own "Main menu" takes, so the two controls that mean "leave this level" occupy one place.
+
+Worth separating those two findings: the visibility logic needed no fix, and "fixing" it would have been changing working code to chase a layout problem. Note also that it is gated on being an **owner** of more than one church, while the church *switcher* appears for multi-church staff too -- so a staff member with two churches sees a switcher and no back link. That is correct, because the Overview itself is owner-only, but it is a plausible reading of the report and worth confirming against the real account.
+
+Build `2026-09-18-v128`. No migration.

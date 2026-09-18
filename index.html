@@ -743,6 +743,7 @@
       'staffPerms.addedBy': 'Added by {name}',
       'dashSub.mainMenu': 'Main menu', 'dashSub.reports': 'Reports', 'dashSub.settings': 'Settings',
       'dashSub.eventList': 'Event list', 'dashSub.profiles': 'Profiles',
+      'dashSub.insightsDashboard': 'Dashboard', 'dashSub.runReports': 'Reports', 'dashSub.savedReports': 'Saved reports',
       'dashSub.ministryList': 'Ministry list', 'dashSub.groupList': 'Group list',
       'dashSub.eventsReports': 'Event reports', 'dashSub.eventsSettings': 'Event settings',
       'dashSub.directoryReports': 'Directory reports', 'dashSub.directorySettings': 'Directory settings',
@@ -1661,6 +1662,7 @@
       'staffPerms.addedBy': 'Añadido por {name}',
       'dashSub.mainMenu': 'Menú principal', 'dashSub.reports': 'Informes', 'dashSub.settings': 'Ajustes',
       'dashSub.eventList': 'Lista de eventos', 'dashSub.profiles': 'Perfiles',
+      'dashSub.insightsDashboard': 'Panel', 'dashSub.runReports': 'Informes', 'dashSub.savedReports': 'Informes guardados',
       'dashSub.ministryList': 'Lista de ministerios', 'dashSub.groupList': 'Lista de grupos',
       'dashSub.eventsReports': 'Informes de eventos', 'dashSub.eventsSettings': 'Ajustes de eventos',
       'dashSub.directoryReports': 'Informes del directorio', 'dashSub.directorySettings': 'Ajustes del directorio',
@@ -6339,7 +6341,6 @@ Groups</span>
     <div class="dash-scrim" id="dash-scrim"></div>
     <div class="dash-side">
       <!-- Multi-church owner only: jump back to the Overview grid from a church view -->
-      <a id="dash-all-churches-link" class="dash-back" role="button" style="display:none;" data-i18n="dash.allChurches">‹ All churches</a>
       <!-- Multi-church owner only: sidebar heading while on the account-level Overview -->
       <div id="dash-overview-header" style="display:none;">
         <div class="dash-church" data-i18n="dash.overview">Overview</div>
@@ -6349,6 +6350,11 @@ Groups</span>
         <div class="dash-church" id="dash-church-name">Loading...</div>
         <select id="dash-church-switcher" style="display:none;width:100%;margin-top:8px;margin-bottom:8px;background:#1a2740;color:#fff;border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:6px 8px;font-size:12.5px;"></select>
       </div>
+      <!-- Directly above the nav, in the same position the sub-menu's
+           own back link takes. Both mean "leave this level", so they
+           belong in one place rather than one of them sitting at the
+           very top of the panel above the church name. -->
+      <a id="dash-all-churches-link" class="dash-back" role="button" style="display:none;" data-i18n="dash.allChurches">‹ All churches</a>
       <div class="dash-nav" id="dash-nav-church">
         <a data-dash="events" class="active" data-i18n="dash.events">Events</a>
         <a data-dash="checkin" data-i18n="dash.checkin">Check-In</a>
@@ -6605,6 +6611,14 @@ Groups</span>
         </div>
       </div>
 
+      <div class="dash-content" id="dash-insights-reports">
+        <h2 style="font-size:24px;margin-bottom:8px;" data-i18n="dashSub.runReports">Reports</h2>
+        <p style="color:var(--ink-mute);font-size:13.5px;max-width:560px;" data-i18n="dashSub.placeholder">This page is being built. Nothing has moved yet — everything still works where it did before.</p>
+      </div>
+      <div class="dash-content" id="dash-insights-saved">
+        <h2 style="font-size:24px;margin-bottom:8px;" data-i18n="dashSub.savedReports">Saved reports</h2>
+        <p style="color:var(--ink-mute);font-size:13.5px;max-width:560px;" data-i18n="dashSub.placeholder">This page is being built. Nothing has moved yet — everything still works where it did before.</p>
+      </div>
       <div class="dash-content" id="dash-messages-inbox">
         <h2 style="font-size:24px;margin-bottom:8px;" data-i18n="dashSub.messagesInbox"></h2>
         <div class="side-note" id="msg-inbox-section" style="max-width:560px;display:none;">
@@ -7662,7 +7676,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v127 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v128 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -10336,6 +10350,14 @@ Groups</span>
         { v: 'giving-settings', l: 'dashSub.settings' }
       ]
     },
+    insights: {
+      label: 'insights.title',
+      views: [
+        { v: 'insights',        l: 'dashSub.insightsDashboard' },
+        { v: 'insights-reports', l: 'dashSub.runReports' },
+        { v: 'insights-saved',  l: 'dashSub.savedReports' }
+      ]
+    },
     settings: {
       label: 'dash.settings',
       views: [
@@ -10358,10 +10380,25 @@ Groups</span>
     return found;
   }
 
+  // Set when arriving at a church from the Overview, and consumed by
+  // the next render. A one-shot flag rather than a parameter because
+  // the render is triggered indirectly -- loadDashboardHeader ->
+  // updateDashSidebarMode -> goDash -- and threading an argument
+  // through three functions to reach one of them is worse than a
+  // value that is read once and cleared.
+  var dashForceMainMenu = false;
+  window.dashEnterChurchAtTopLevel = function(){ dashForceMainMenu = true; };
+
   function renderDashSubNav(section, activeView){
     var el = document.getElementById('dash-nav-sub');
     var main = document.getElementById('dash-nav-church');
     if (!el || !main) return;
+    if (dashForceMainMenu) {
+      dashForceMainMenu = false;
+      el.style.display = 'none';
+      main.style.display = '';
+      return;
+    }
     var def = DASH_SECTIONS[section];
     if (!def) {
       el.style.display = 'none';
@@ -10516,7 +10553,9 @@ Groups</span>
       'giving-tickets':     [],
       'giving-reports':     [],
       'giving-settings':    [],
-      'settings-account':   []
+      'settings-account':   [],
+      'insights-reports':   [],
+      'insights-saved':     ['loadSavedReportsList']
     };
     // Arriving at a tab closes the drawer and names it in the bar.
     // Both here rather than only in the click handler, so deep links
@@ -13631,6 +13670,11 @@ Groups</span>
     if (typeof window.loadBillingPanel === 'function') window.loadBillingPanel();
     window.resetDashboardPanels();
     window.runDashboardPanels();
+    // Arriving inside a church shows that church's whole menu. Set
+    // after the loaders above because loadDashboardHeader triggers
+    // the render that consumes it.
+    if (typeof window.dashEnterChurchAtTopLevel === 'function') window.dashEnterChurchAtTopLevel();
+    if (typeof window.renderDashSubNav === 'function') window.renderDashSubNav(null, null);
   }
   window.setActiveChurchAndReload = setActiveChurchAndReload;
 
