@@ -5329,3 +5329,23 @@ It would still have been worth adding under RESTRICT, where the alternative is a
 **A database constraint is the deeper fix and is deliberately not attempted here.** Adding one means deciding what should happen to an existing church whose owner is already gone, and `supabase/db-functions/DIAGNOSTICS.sql` asks that question first: which foreign keys point at `auth.users` at all, whether any zombie churches exist already, and how many rows in the other user-keyed tables are holding dead ids. Writing the constraint before reading those answers would be the same mistake as assuming the `ON DELETE` rule.
 
 **`delete-account` must be redeployed.**
+
+---
+
+## The constraint, and why RESTRICT
+
+Orphan counts came back zero across `church_staff`, `church_memberships`, `group_members`, `event_registrations`, `donations` and `profiles` — nothing anywhere is holding a dead user id. So 065 adds the foreign key `churches.owner_id` never had.
+
+**RESTRICT, and the alternatives are worth naming because two of them are defensible.**
+
+*CASCADE* would delete the church and everything under it — events, groups, giving history, staff — because one person closed their account. It would also destroy the row holding `stripe_subscription_id` while the subscription carried on billing, which is the same failure v146 fixed on the church-delete path. Irreversible and silent is the worst pair.
+
+*SET NULL* is genuinely arguable: the church becomes unclaimed and somebody could claim it back. Rejected because it makes closing an account a quiet way to hand a live church — its members, its giving history — to whoever claims it next. That should be a decision, and FaithDock already has one for it: transfer.
+
+*RESTRICT* makes the database enforce what the application now says. `delete-account` refuses while the caller owns a church; this is the same rule one layer down, where it cannot be bypassed by calling the endpoint directly. **A blocked delete is recoverable; a cascade is not.**
+
+**It refuses to run rather than papering over damage.** The pre-check names any church owned by a missing user and stops. Adding the constraint would have failed on such a row anyway, but with a generic message — and each one is a live church nobody can reach, which is a decision for a person rather than for an `ALTER TABLE`.
+
+**The verify block checks which rule the constraint carries, not that it exists.** A cascade here would be worse than no constraint at all, so "a foreign key is present" is not the thing worth asserting.
+
+One consequence to expect rather than discover: after this, deleting a user from the Supabase dashboard **fails** while they still own a church. That is the constraint working.
