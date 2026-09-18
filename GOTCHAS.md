@@ -5585,3 +5585,42 @@ code spans goes through a quoted heredoc to a script file
 It also argues for reading back what was written rather than trusting
 the exit status. Both edits reported success; the damage was only
 visible in the file.
+
+---
+
+## Public group search
+
+Groups get a search page of their own beside Churches and Events, with a mobile icon to the right of Events.
+
+**The requirement implied a distinction that did not exist.** "Public groups, plus groups available based on church membership" needs a per-group visibility setting, and there was none — `groups` predates this repo's migrations, 046 only added the church-level `groups_enabled` switch, and the church profile page does `from('groups').select('*')`, so **every group a church has ever created is already visible to every anonymous visitor**. Migration 067 adds `visibility`, defaulting to `'public'`, which is exactly what every group already is: running it changes nothing about who sees what.
+
+### One rule, in one place
+
+`search_groups` decides which groups exist for a given viewer, and **both** surfaces go through it — the new search page and the church profile page's Groups tab. The church page used to read the table directly; had it kept doing so, a group marked members-only would still have been listed to anonymous visitors. That is precisely the `directory_visibility` bug: a column that exists and nothing consults.
+
+It is shaped like `search_events`, including `SECURITY INVOKER`, and its visibility test mirrors that function's public/private test almost line for line — the same question about a different table.
+
+**Two exclusions that were easy to miss**, and neither is about the group itself:
+
+- a **hidden church** is hidden everywhere, not only in the church directory
+- a church that switched **Groups off** (046) must not have its groups surface in a platform-wide search — its own page stops showing the tab, and a search that ignored that would put them back in front of people by another door
+
+### Two live XSS holes found on the way
+
+`loadPublicChurchGroups` and `loadMyGroups` both rendered `g.name`, `g.description`, `g.meeting_schedule` and a church name straight into `innerHTML`. Those are typed by church staff and shown to any visitor to a public church page — stored XSS, same class as the nine unescaped church-name sites already recorded here.
+
+Found because the new search page's own render was written with `escapeHtml` and tested with `Elders <img src=x onerror=alert(1)>`, which made the absence in the neighbouring function obvious. Verified after fixing: a group named `Hostile <script>alert(1)</script>` with an `<img onerror>` description creates **no** `script`, `img` or `b` element on either surface and renders as text.
+
+### The control, because a setting nobody can set is not a feature
+
+`visibility` gets a field in the group form, above "How can people join?" — who can see it, then how they get in, which is the same conversation in the right order. Without it the column would be readable, enforced, and permanently `'public'`, which is the same failure as shipping `directory_visibility` with nothing to consult it, one step further along.
+
+### Deliberately simpler than Events
+
+Keyword plus browser geolocation, with **no** Google Places typeahead. The Directory and Events pages each carry their own full copy of that autocomplete wiring, and a third would be a third place to fix the next bug in it. Distance still works — the RPC takes lat/lng either way — it just comes from the browser rather than from typing a city.
+
+A stale-response guard was built in from the start rather than after the bug: typing "youth" fires several searches, and without a generation counter a slow response for "you" can land after the one for "youth" and put the wrong results under the right search box.
+
+The empty state and the failure state say different things. "No groups match that" and "the search failed" look identical as an empty list, and only one of them is worth changing your search over.
+
+Build `2026-09-18-v155`; **migration 067 must be run by hand** (until then the page shows "Could not load groups" — `search_groups` does not exist).

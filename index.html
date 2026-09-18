@@ -251,6 +251,16 @@
       'nav.myLists': 'My Lists',
       'myLists.eyebrow': 'Yours', 'myLists.title': 'My Lists',
       'myLists.subtitle': 'Everything you are connected to \u2014 the churches, events and groups you have joined or followed.',
+      'nav.groups': 'Groups',
+      'groupsPage.title': 'Find a group',
+      'groupsPage.subtitle': 'Small groups, studies and ministries across every listed church. You will also see groups that are only shared with members of churches you belong to.',
+      'groupsPage.keywordPlaceholder': 'Search groups by name, topic or church...',
+      'groupsPage.loadMore': 'Show more groups',
+      'groupsPage.noneFound': 'No groups match that yet.',
+      'groupsPage.noneAtAll': 'No groups have been listed publicly yet.',
+      'groupsPage.membersOnlyTag': 'Members only',
+      'groupsPage.memberCount': '{n} members', 'groupsPage.memberCountOne': '1 member',
+      'groupsPage.couldNotLoad': 'Could not load groups.',
       'nav.churches': 'Churches', 'nav.events': 'Events', 'nav.forChurches': 'For churches', 'nav.pricing': 'Pricing', 'nav.admin': 'Admin',
       'nav.dashboard': 'Church Admin', 'nav.dashboardPlural': 'Church Admin',
       'nav.profile': 'Account profile', 'nav.myChurches': 'My Churches', 'nav.myEvents': 'My Events', 'nav.myGroups': 'My Groups',
@@ -838,6 +848,10 @@
       'days.thursday': 'Thursday', 'days.friday': 'Friday', 'days.saturday': 'Saturday',
       'dashGroups.noTimeSet': 'No time set yet', 'dashGroups.repeatUntil': 'Repeat until (optional)', 'dashGroups.skipDates': 'Skip specific dates',
       'dashGroups.skipDatesHint': 'e.g. skip a holiday — pick the date and press Add.', 'dashGroups.add': 'Add',
+      'dashGroups.whoCanSeeGroup': 'Who can see this group?',
+      'dashGroups.visPublic': 'Anyone \u2014 shows on your church page and in group search',
+      'dashGroups.visMembers': 'Members of this church only',
+      'dashGroups.visHint': 'Members-only groups are still visible to your approved members, wherever they look \u2014 they just do not appear to the public.',
       'dashGroups.howCanPeopleJoin': 'How can people join?', 'dashGroups.joinOpen': 'Open — join instantly',
       'dashGroups.joinRequest': 'Request to join', 'dashGroups.joinInviteOnly': 'Invite only',
       'dashGroups.leaderContact': "Let the group leader see members' contact info",
@@ -1248,6 +1262,16 @@
       'nav.myLists': 'Mis listas',
       'myLists.eyebrow': 'Tuyo', 'myLists.title': 'Mis listas',
       'myLists.subtitle': 'Todo a lo que estás conectado \u2014 las iglesias, eventos y grupos a los que te has unido o que sigues.',
+      'nav.groups': 'Grupos',
+      'groupsPage.title': 'Encuentra un grupo',
+      'groupsPage.subtitle': 'Grupos pequeños, estudios y ministerios de todas las iglesias del directorio. También verás los grupos que solo se comparten con los miembros de las iglesias a las que perteneces.',
+      'groupsPage.keywordPlaceholder': 'Busca grupos por nombre, tema o iglesia...',
+      'groupsPage.loadMore': 'Mostrar más grupos',
+      'groupsPage.noneFound': 'Ningún grupo coincide todavía.',
+      'groupsPage.noneAtAll': 'Aún no se ha publicado ningún grupo.',
+      'groupsPage.membersOnlyTag': 'Solo miembros',
+      'groupsPage.memberCount': '{n} miembros', 'groupsPage.memberCountOne': '1 miembro',
+      'groupsPage.couldNotLoad': 'No se pudieron cargar los grupos.',
       'nav.churches': 'Iglesias', 'nav.events': 'Eventos', 'nav.forChurches': 'Para iglesias', 'nav.pricing': 'Precios', 'nav.admin': 'Administración',
       'nav.dashboard': 'Gestión de iglesia', 'nav.dashboardPlural': 'Gestión de iglesias',
       'nav.profile': 'Perfil de la cuenta', 'nav.myChurches': 'Mis iglesias', 'nav.myEvents': 'Mis eventos', 'nav.myGroups': 'Mis grupos',
@@ -1828,6 +1852,10 @@
       'days.thursday': 'Jueves', 'days.friday': 'Viernes', 'days.saturday': 'Sábado',
       'dashGroups.noTimeSet': 'Aún no hay hora establecida', 'dashGroups.repeatUntil': 'Repetir hasta (opcional)', 'dashGroups.skipDates': 'Omitir fechas específicas',
       'dashGroups.skipDatesHint': 'p. ej. omitir un feriado — elige la fecha y presiona Agregar.', 'dashGroups.add': 'Agregar',
+      'dashGroups.whoCanSeeGroup': '¿Quién puede ver este grupo?',
+      'dashGroups.visPublic': 'Cualquiera \u2014 aparece en la página de tu iglesia y en la búsqueda de grupos',
+      'dashGroups.visMembers': 'Solo los miembros de esta iglesia',
+      'dashGroups.visHint': 'Los grupos solo para miembros siguen siendo visibles para tus miembros aprobados donde sea que miren \u2014 simplemente no aparecen al público.',
       'dashGroups.howCanPeopleJoin': '¿Cómo puede unirse la gente?', 'dashGroups.joinOpen': 'Abierto — unirse al instante',
       'dashGroups.joinRequest': 'Solicitar unirse', 'dashGroups.joinInviteOnly': 'Solo por invitación',
       'dashGroups.leaderContact': 'Permitir que el líder del grupo vea la información de contacto de los miembros',
@@ -4271,6 +4299,9 @@
     <nav class="links" id="nav-links">
       <a href="#directory" data-route="directory" data-i18n="nav.churches">Churches</a>
       <a href="#events" data-route="events" data-i18n="nav.events">Events</a>
+      <!-- Groups is a public search like Churches and Events, so it
+           belongs beside them rather than only behind an account. -->
+      <a href="#groups" data-route="groups" data-i18n="nav.groups">Groups</a>
       <a href="#about" data-route="about" id="nav-about-link" data-i18n="nav.about">About FaithDock</a>
       <a href="#pricing" data-route="pricing" id="nav-pricing-link" style="display:none;" data-i18n="nav.pricing">Pricing</a>
       <a href="#admin" id="nav-admin-link" data-route="admin" style="opacity:.75;display:none;white-space:nowrap;" data-i18n="nav.admin">Admin</a>
@@ -4303,6 +4334,9 @@
       </a>
       <a href="#events" data-route="events" aria-label="Events" data-i18n-title="nav.events" title="Events">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/></svg>
+      </a>
+      <a href="#groups" data-route="groups" aria-label="Groups" data-i18n-title="nav.groups" title="Groups">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 20c0-3.4 3.2-5.6 6.5-5.6s6.5 2.2 6.5 5.6"/><path d="M16.5 5.2a3.2 3.2 0 0 1 0 5.9"/><path d="M18 14.7c2.1.6 3.5 2.3 3.5 4.6"/></svg>
       </a>
     </div>
     <!-- One button, two faces. Signed out it is a hamburger; signed
@@ -4557,6 +4591,39 @@
 </section>
 
 <!-- ================= EVENTS ================= -->
+<!-- ================= GROUPS (public search) =================
+     Deliberately simpler than the Events page: keyword plus an
+     optional "use my location", with no Google Places typeahead.
+     The Directory and Events pages each carry their own full copy of
+     that autocomplete wiring already, and a third would be a third
+     place to fix the next bug in it. Distance still works -- the RPC
+     takes lat/lng either way -- it just comes from the browser rather
+     than from typing a city. -->
+<section class="page" id="page-groups">
+  <div class="wrap" style="padding-top:44px;">
+    <div class="eyebrow" data-i18n="nav.groups">Groups</div>
+    <h1 style="font-size:34px;" data-i18n="groupsPage.title">Find a group</h1>
+    <p style="color:var(--ink-mute);margin-top:8px;" data-i18n="groupsPage.subtitle">Small groups, studies and ministries across every listed church. You will also see groups that are only shared with members of churches you belong to.</p>
+
+    <div class="location-row">
+      <div class="search-field-wrap search-clear-wrap" style="max-width:340px;">
+        <span class="search-field-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></span>
+        <input class="field" type="search" id="groups-keyword-input" placeholder="Search groups by name, topic or church..." data-i18n-placeholder="groupsPage.keywordPlaceholder" autocomplete="off">
+        <button type="button" class="search-clear-btn" id="groups-keyword-clear-btn" aria-label="Clear search" data-i18n-title="common.clearSearch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      </div>
+      <button class="export-btn" id="groups-use-location-btn" data-i18n-title="events.useMyLocation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg> <span class="btn-label-text" data-i18n="events.useMyLocation">Use my location</span></button>
+      <span id="groups-location-status" style="font-size:13px;color:var(--ink-mute);"></span>
+    </div>
+
+    <div id="groups-results" style="margin-top:28px;">
+      <p style="color:var(--ink-mute);font-size:14px;" data-i18n="common.loading">Loading...</p>
+    </div>
+    <div style="margin-top:20px;">
+      <button class="export-btn" id="groups-load-more-btn" style="display:none;" data-i18n="groupsPage.loadMore">Show more groups</button>
+    </div>
+  </div>
+</section>
+
 <section class="page" id="page-events">
   <div class="wrap" style="padding-top:44px;">
     <div class="eyebrow" data-i18n="nav.events">Events</div>
@@ -7488,6 +7555,14 @@ Groups</span>
             <div id="group-exceptions-list" class="chip-list"></div>
           </div>
           <div>
+            <label data-i18n="dashGroups.whoCanSeeGroup">Who can see this group?</label>
+            <select class="field" id="group-visibility">
+              <option value="public" data-i18n="dashGroups.visPublic">Anyone — shows on your church page and in group search</option>
+              <option value="members" data-i18n="dashGroups.visMembers">Members of this church only</option>
+            </select>
+            <div style="font-size:12px;color:var(--ink-mute);margin-top:6px;" data-i18n="dashGroups.visHint">Members-only groups are still visible to your approved members, wherever they look — they just do not appear to the public.</div>
+          </div>
+          <div style="margin-top:12px;">
             <label data-i18n="dashGroups.howCanPeopleJoin">How can people join?</label>
             <select class="field" id="group-join-method">
               <option value="open" data-i18n="dashGroups.joinOpen">Open — join instantly</option>
@@ -8100,6 +8175,7 @@ Groups</span>
       <h5 data-i18n="footer.smExplore">Explore</h5>
       <a href="#directory" data-route="directory" data-i18n="nav.churches">Churches</a>
       <a href="#events" data-route="events" data-i18n="nav.events">Events</a>
+      <a href="#groups" data-route="groups" data-i18n="nav.groups">Groups</a>
       <a href="#pricing" data-route="pricing" data-i18n="nav.pricing">Pricing</a>
     </div>
     <div>
@@ -8122,7 +8198,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v154 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v155 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -9997,6 +10073,7 @@ Groups</span>
     // is also what a tab click calls. The three old route names are
     // normalised to my-lists before this map is consulted.
     'my-lists':    'enterMyLists',
+    'groups':      'loadGroupsSearch',
     'profile':     'loadProfilePage'
   };
   // Sitemap links that point at a section of the About page. The
@@ -13377,7 +13454,7 @@ Groups</span>
     // 'checkin-link' takes the token as its key segment. Tokens are
   // hex (see migration 052), so they survive being a path segment
   // without encoding and cannot contain the '/' the router splits on.
-  var validRoutes = ['home','directory','events','church','event','group','my-lists','my-groups','my-events','my-churches','profile','pricing','compare','signup','reset-password','register-church','create-event','dashboard','admin','admin-church','help','privacy','terms','ada','waitlist','checkin-link','about'];
+  var validRoutes = ['home','directory','events','church','event','group','groups','my-lists','my-groups','my-events','my-churches','profile','pricing','compare','signup','reset-password','register-church','create-event','dashboard','admin','admin-church','help','privacy','terms','ada','waitlist','checkin-link','about'];
   showRouteFromHash(true);
   applyTranslations(savedLang);
 
@@ -23987,6 +24064,173 @@ Groups</span>
     }).join('');
   };
 
+  // ============================================================
+  // Public group search.
+  //
+  // Every decision about WHICH groups exist for a given viewer is
+  // search_groups' (migration 067), not this code's: public groups,
+  // plus groups belonging to a church the caller is an approved
+  // member of, minus hidden churches and churches that switched
+  // Groups off. The page renders what it is given and asks for
+  // nothing it has not been told about.
+  // ============================================================
+  var GROUPS_PAGE_SIZE = 24;
+  var groupsSearchOffset = 0;
+  var groupsSearchTotal = 0;
+  var groupsSearchLat = null, groupsSearchLng = null;
+  // Every request gets a number, and a response whose number is no
+  // longer current is dropped. Typing 'youth' fires several searches
+  // and they do not have to come back in order -- without this, a slow
+  // response for 'you' can land after the one for 'youth' and put the
+  // wrong results under the right search box.
+  var groupsSearchGeneration = 0;
+
+  function groupsMemberCountLabel(n){
+    var count = Number(n) || 0;
+    return count === 1 ? window.t('groupsPage.memberCountOne')
+                       : window.t('groupsPage.memberCount').replace('{n}', count);
+  }
+
+  function renderGroupSearchCards(rows, myMemberships, append){
+    var listEl = document.getElementById('groups-results');
+    if (!listEl) return;
+    var html = rows.map(function(g){
+      var memberStatus = myMemberships[g.id];
+      // Same markup and the same class as the church page's own group
+      // cards, so the delegated .group-join-btn handler picks these up
+      // with no second join path to keep in step.
+      var actionHtml;
+      if (memberStatus === 'active') {
+        actionHtml = '<button class="export-btn group-join-btn btn-registered" data-group-id="' + escapeHtml(g.id) + '" data-joined="true">\u2713 ' + escapeHtml(window.t('groupPage.joinedClickToLeave')) + '</button>';
+      } else if (memberStatus === 'pending') {
+        actionHtml = '<button class="export-btn" disabled>' + escapeHtml(window.t('groupPage.requestSentWaiting')) + '</button>';
+      } else if (g.join_method === 'invite_only') {
+        actionHtml = '<p style="font-size:12.5px;color:var(--ink-mute);margin:0;">' + escapeHtml(window.t('groupPage.askLeaderToAdd')) + '</p>';
+      } else if (g.join_method === 'request') {
+        actionHtml = '<button class="export-btn group-join-btn" data-group-id="' + escapeHtml(g.id) + '" data-group-name="' + escapeHtml(g.name) + '" data-joined="false" data-join-method="request">' + escapeHtml(window.t('groupPage.requestToJoin')) + '</button>';
+      } else {
+        actionHtml = '<button class="export-btn group-join-btn" data-group-id="' + escapeHtml(g.id) + '" data-joined="false" data-join-method="open">' + escapeHtml(window.t('groupPage.joinThisGroup')) + '</button>';
+      }
+
+      // A members-only group is labelled as such. It is only in this
+      // list because the viewer belongs to that church, and saying so
+      // is the difference between 'here is a group' and 'here is
+      // something you can see because of who you are'.
+      var visTag = (g.visibility === 'members')
+        ? '<span class="tag sage" style="font-size:10px;margin-left:6px;">' + escapeHtml(window.t('groupsPage.membersOnlyTag')) + '</span>'
+        : '';
+      var where = [g.church_city, g.church_state].filter(Boolean).join(', ');
+      var dist = (g.distance_miles != null) ? Number(g.distance_miles).toFixed(1) + ' mi' : '';
+      var meta = [escapeHtml(g.church_name || ''), escapeHtml(where), escapeHtml(dist)].filter(Boolean).join(' \u00b7 ');
+
+      return '<div class="group-card" data-route="group" data-group-id="' + escapeHtml(g.id) + '" style="cursor:pointer;">'
+        + '<h4>' + escapeHtml(g.name) + visTag + '</h4>'
+        + '<div style="font-size:12.5px;color:var(--ink-mute);margin-bottom:6px;">' + meta + '</div>'
+        + (g.description ? '<p>' + escapeHtml(g.description) + '</p>' : '')
+        + (g.meeting_schedule ? '<div class="group-schedule">' + escapeHtml(g.meeting_schedule) + '</div>' : '')
+        + '<div style="font-size:12px;color:var(--ink-mute);margin-bottom:8px;">' + escapeHtml(groupsMemberCountLabel(g.member_count)) + '</div>'
+        + actionHtml
+        + '<div class="group-join-status" style="display:none;font-size:12px;color:var(--ink-mute);margin-top:6px;"></div>'
+        + '</div>';
+    }).join('');
+    if (append) listEl.insertAdjacentHTML('beforeend', html);
+    else listEl.innerHTML = html;
+  }
+
+  async function loadGroupsSearch(append){
+    var listEl = document.getElementById('groups-results');
+    var moreBtn = document.getElementById('groups-load-more-btn');
+    if (!listEl) return;
+    var myGeneration = ++groupsSearchGeneration;
+    if (!append) {
+      groupsSearchOffset = 0;
+      listEl.innerHTML = '<p style="color:var(--ink-mute);font-size:14px;">' + escapeHtml(window.t('common.loading')) + '</p>';
+    }
+    if (moreBtn) moreBtn.style.display = 'none';
+
+    var keywordEl = document.getElementById('groups-keyword-input');
+    var keyword = keywordEl ? keywordEl.value.trim() : '';
+
+    var { data: rows, error } = await supabase.rpc('search_groups', {
+      p_keyword: keyword || null,
+      p_church_ids: null,
+      p_user_lat: groupsSearchLat,
+      p_user_lng: groupsSearchLng,
+      p_max_distance_miles: null,
+      p_limit: GROUPS_PAGE_SIZE,
+      p_offset: groupsSearchOffset
+    });
+    if (myGeneration !== groupsSearchGeneration) return;
+
+    if (error) {
+      // Said out loud rather than rendered as an empty list. 'No groups
+      // match that' and 'the search failed' look identical otherwise,
+      // and only one of them is worth changing your search over.
+      console.error('Group search failed:', error);
+      listEl.innerHTML = '<p style="color:var(--clay);font-size:14px;">' + escapeHtml(window.t('groupsPage.couldNotLoad')) + '</p>';
+      return;
+    }
+
+    rows = rows || [];
+    groupsSearchTotal = rows.length ? Number(rows[0].total_count) : 0;
+
+    if (!rows.length && !append) {
+      listEl.innerHTML = '<p style="color:var(--ink-mute);font-size:14px;">'
+        + escapeHtml(keyword ? window.t('groupsPage.noneFound') : window.t('groupsPage.noneAtAll')) + '</p>';
+      return;
+    }
+
+    // Which of these the viewer has already joined. One query for the
+    // whole page rather than one per card.
+    var myMemberships = {};
+    var { data: userData } = await supabase.auth.getUser();
+    if (myGeneration !== groupsSearchGeneration) return;
+    if (userData && userData.user && rows.length) {
+      var { data: myRows } = await supabase.from('group_members')
+        .select('group_id, status').eq('user_id', userData.user.id)
+        .in('group_id', rows.map(function(g){ return g.id; }));
+      if (myGeneration !== groupsSearchGeneration) return;
+      (myRows || []).forEach(function(r){ myMemberships[r.group_id] = r.status; });
+    }
+
+    renderGroupSearchCards(rows, myMemberships, append);
+    groupsSearchOffset += rows.length;
+    if (moreBtn) moreBtn.style.display = (groupsSearchOffset < groupsSearchTotal) ? 'inline-flex' : 'none';
+  }
+  window.loadGroupsSearch = loadGroupsSearch;
+
+  var groupsKeywordInput = document.getElementById('groups-keyword-input');
+  if (groupsKeywordInput) {
+    var groupsKeywordTimer = null;
+    groupsKeywordInput.addEventListener('input', function(){
+      clearTimeout(groupsKeywordTimer);
+      groupsKeywordTimer = setTimeout(function(){ loadGroupsSearch(false); }, 300);
+    });
+  }
+  var groupsKeywordClear = document.getElementById('groups-keyword-clear-btn');
+  if (groupsKeywordClear) groupsKeywordClear.addEventListener('click', function(){
+    if (groupsKeywordInput) groupsKeywordInput.value = '';
+    loadGroupsSearch(false);
+  });
+  var groupsLoadMore = document.getElementById('groups-load-more-btn');
+  if (groupsLoadMore) groupsLoadMore.addEventListener('click', function(){ loadGroupsSearch(true); });
+
+  var groupsUseLocationBtn = document.getElementById('groups-use-location-btn');
+  if (groupsUseLocationBtn) {
+    groupsUseLocationBtn.addEventListener('click', function(){
+      var statusEl = document.getElementById('groups-location-status');
+      if (!navigator.geolocation) { statusEl.textContent = window.t('dir.geoNotSupported'); return; }
+      statusEl.textContent = window.t('dir.findingYou');
+      navigator.geolocation.getCurrentPosition(function(pos){
+        groupsSearchLat = pos.coords.latitude;
+        groupsSearchLng = pos.coords.longitude;
+        statusEl.textContent = window.t('dir.showingDistancesYourLocation');
+        loadGroupsSearch(false);
+      }, function(){
+        statusEl.textContent = window.t('dir.couldNotGetLocation');
+      });
+    });
+  }
   async function loadDirectoryPeople(){
     var tbody = document.getElementById('directory-tbody');
     if (!tbody) return;
@@ -25592,7 +25836,25 @@ Groups</span>
     }
     listEl.innerHTML = '<p style="color:var(--ink-mute);font-size:14px;">' + window.t('groupPage.loadingGroups') + '</p>';
 
-    var { data: groupsData, error } = await supabase.from('groups').select('*').eq('church_id', churchId).order('created_at', { ascending: true });
+    // Through search_groups (migration 067) rather than reading the
+    // table directly. Before this, a group marked members-only would
+    // still have been listed here to anonymous visitors -- the column
+    // would have existed and nothing would have consulted it, which is
+    // the exact shape of the directory_visibility bug (see GOTCHAS).
+    //
+    // The function is also what decides that a hidden church or one
+    // with Groups switched off shows nothing. One rule, in one place,
+    // for this page and the public search alike.
+    //
+    // p_limit is deliberately high: this is one church's whole list,
+    // not a paged feed. Ordering becomes alphabetical rather than
+    // oldest-first, which is a small change and the better default for
+    // a list somebody is scanning.
+    var { data: groupsData, error } = await supabase.rpc('search_groups', {
+      p_keyword: null, p_church_ids: [churchId],
+      p_user_lat: null, p_user_lng: null, p_max_distance_miles: null,
+      p_limit: 200, p_offset: 0
+    });
     if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:14px;">' + escapeHtml(error.message) + '</p>'; return; }
     if (!groupsData || !groupsData.length) { listEl.innerHTML = '<p style="color:var(--ink-mute);font-size:14px;">' + window.t('groupPage.noGroupsPosted') + '</p>'; return; }
 
@@ -25619,10 +25881,17 @@ Groups</span>
         actionHtml = '<button class="export-btn group-join-btn" data-group-id="' + g.id + '" data-joined="false" data-join-method="open">' + window.t('groupPage.joinThisGroup') + '</button>';
       }
 
-      return '<div class="group-card" data-route="group" data-group-id="' + g.id + '" style="cursor:pointer;">'
-        + '<h4>' + g.name + '</h4>'
-        + (g.description ? '<p>' + g.description + '</p>' : '')
-        + (g.meeting_schedule ? '<div class="group-schedule">' + g.meeting_schedule + '</div>' : '')
+      // Members-only groups reach this page only for somebody who
+      // belongs to the church, so saying which ones they are is the
+      // difference between "here is a group" and "here is something
+      // shared with members".
+      var pubVisTag = (g.visibility === 'members')
+        ? '<span class="tag sage" style="font-size:10px;margin-left:6px;">' + escapeHtml(window.t('groupsPage.membersOnlyTag')) + '</span>'
+        : '';
+      return '<div class="group-card" data-route="group" data-group-id="' + escapeHtml(g.id) + '" style="cursor:pointer;">'
+        + '<h4>' + escapeHtml(g.name) + pubVisTag + '</h4>'
+        + (g.description ? '<p>' + escapeHtml(g.description) + '</p>' : '')
+        + (g.meeting_schedule ? '<div class="group-schedule">' + escapeHtml(g.meeting_schedule) + '</div>' : '')
         + actionHtml
         + '<div class="group-join-status" style="display:none;font-size:12px;color:var(--ink-mute);margin-top:6px;"></div>'
         + '</div>';
@@ -27700,10 +27969,10 @@ Groups</span>
       var statusTag = r.status === 'pending'
         ? '<span class="tag clay" style="font-size:10px;">' + window.t('myGroups.pendingApproval') + '</span>'
         : (r.role === 'leader' ? '<span class="tag gold" style="font-size:10px;">' + window.t('myGroups.leader') + '</span>' : '');
-      return '<a href="#" data-route="group" data-group-id="' + g.id + '" class="group-card" style="display:block;text-decoration:none;color:inherit;cursor:pointer;">'
-        + '<h4>' + g.name + '</h4>'
-        + '<p style="margin-bottom:4px;">' + churchName + '</p>'
-        + (g.meeting_schedule ? '<div class="group-schedule">' + g.meeting_schedule + '</div>' : '')
+      return '<a href="#" data-route="group" data-group-id="' + escapeHtml(g.id) + '" class="group-card" style="display:block;text-decoration:none;color:inherit;cursor:pointer;">'
+        + '<h4>' + escapeHtml(g.name) + '</h4>'
+        + '<p style="margin-bottom:4px;">' + escapeHtml(churchName) + '</p>'
+        + (g.meeting_schedule ? '<div class="group-schedule">' + escapeHtml(g.meeting_schedule) + '</div>' : '')
         + (statusTag ? '<div style="margin-top:8px;">' + statusTag + '</div>' : '')
         + '</a>';
     }).join('');
@@ -30445,6 +30714,7 @@ Groups</span>
     document.getElementById('group-repeat-until').value = '';
     groupExceptions = [];
     renderGroupExceptions();
+    document.getElementById('group-visibility').value = 'public';
     document.getElementById('group-join-method').value = 'open';
     document.getElementById('group-leader-contact').checked = false;
     document.getElementById('group-show-members').checked = false;
@@ -30527,6 +30797,7 @@ Groups</span>
         meeting_repeat_until: recurrence === 'once' ? null : (repeatUntil || null),
         meeting_exceptions: (recurrence === 'once' || !groupExceptions.length) ? null : groupExceptions,
         meeting_schedule: formatGroupSchedule(recurrence, day, meetingDate, time24),
+        visibility: document.getElementById('group-visibility').value,
         join_method: document.getElementById('group-join-method').value,
         leader_can_view_contact_info: document.getElementById('group-leader-contact').checked,
         show_member_list: document.getElementById('group-show-members').checked
@@ -30576,6 +30847,11 @@ Groups</span>
         updateGroupSchedulePreview();
         document.getElementById('group-leader-contact').checked = !!g.leader_can_view_contact_info;
         document.getElementById('group-show-members').checked = !!g.show_member_list;
+        // || 'public' rather than a truthy read: the column is NOT NULL
+        // DEFAULT 'public', and showing 'members only' for a group that
+        // is actually public would tell a church its group is hidden
+        // when everyone can see it.
+        document.getElementById('group-visibility').value = g.visibility || 'public';
         document.getElementById('group-join-method').value = g.join_method || 'open';
         window.groupFormIsEditing = true;
         document.getElementById('group-form-heading').textContent = window.t('dashGroups.editGroup');
