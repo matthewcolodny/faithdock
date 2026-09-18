@@ -6,6 +6,19 @@
   function. Dispatches on `body.type`. Confirmed deployed and working
   as of 2026-09-09; this file is the exact live source.
 
+**Added 2026-09-18** (pasted from the dashboard by the user):
+
+- **`stripe-subscription.ts`** — checkout, billing portal, cancel, and
+  the redirect-back confirmation for FaithDock own plans.
+- **`stripe-subscription-webhook.ts`** — the authoritative sync from
+  Stripe into `churches`. This is the file that answers "what happens
+  when a church stops paying": `past_due` counts as ACTIVE, so the paid
+  plan is kept until Stripe itself cancels the subscription. FaithDock
+  has no grace period of its own; it inherits Stripe retry schedule.
+
+`stripe-create-checkout.ts` and `stripe-event-checkout.ts` were checked
+against what is deployed on the same date and still match.
+
 ## NOT backed up (source not available)
 
 These functions exist and are referenced in GOTCHAS.md and the

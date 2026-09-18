@@ -845,6 +845,11 @@
       'dashBilling.endingMovingToFree': 'Ending, moving to Free: ', 'dashBilling.accessEnds': 'Access ends: ', 'dashBilling.nextBillingDate': 'Next billing date: ',
       'dashBilling.pastDueWarning': "Your last payment didn't go through — please update your card to avoid losing paid-plan features.",
       'dashBilling.manageBilling': 'Manage billing', 'dashBilling.viewPlans': 'View plans',
+      'dashSettings.transferBillingWarning': 'This church is on a paid plan, and the plan goes with it. Your card stays the one being charged \u2014 transferring does not move billing to them. Cancel the plan first if you do not want to keep paying for it.',
+      'ownershipHandoff.billingNote': 'This church is on {plan}. The plan comes with it, but billing does not \u2014 the previous owner\'s card is still the one being charged until one of you changes it.',
+      'dashBilling.overLimitTitle': 'Over your plan\u2019s limits',
+      'dashBilling.overLimitHint': 'Nothing has been removed and nothing will be. You just can\u2019t add more of these until you\u2019re back under the limit or on a larger plan.',
+      'dashBilling.overLimitEvents': 'Events created this month', 'dashBilling.overLimitGroups': 'Groups', 'dashBilling.overLimitStaff': 'Team members',
       'dashBilling.downgradeToFree': 'Downgrade to Free', 'dashBilling.downgradeConfirm': 'You’ll keep your current plan’s features until the end of the billing period you’ve already paid for, then move to Free. Continue?',
       'dashBilling.downgradeScheduled': 'Downgrade scheduled — you’ll move to Free at the end of your current billing period.',
       'groupAttendance.eyebrow': 'Attendance', 'groupAttendance.meetingDate': 'Meeting date',
@@ -1802,6 +1807,11 @@
       'dashBilling.endingMovingToFree': 'Finaliza, pasarás al plan Gratis: ', 'dashBilling.accessEnds': 'El acceso finaliza: ', 'dashBilling.nextBillingDate': 'Próxima fecha de facturación: ',
       'dashBilling.pastDueWarning': 'Tu último pago no se procesó — actualiza tu tarjeta para no perder las funciones de los planes de pago.',
       'dashBilling.manageBilling': 'Administrar facturación', 'dashBilling.viewPlans': 'Ver planes',
+      'dashSettings.transferBillingWarning': 'Esta iglesia tiene un plan de pago, y el plan se transfiere con ella. Tu tarjeta sigue siendo la que se cobra \u2014 transferirla no cambia la facturación a esa persona. Cancela el plan primero si no quieres seguir pagándolo.',
+      'ownershipHandoff.billingNote': 'Esta iglesia tiene {plan}. El plan viene con ella, pero la facturación no \u2014 la tarjeta del propietario anterior sigue siendo la que se cobra hasta que alguno de los dos lo cambie.',
+      'dashBilling.overLimitTitle': 'Por encima de los límites de tu plan',
+      'dashBilling.overLimitHint': 'No se ha eliminado nada y no se eliminará nada. Simplemente no puedes añadir más hasta volver por debajo del límite o pasar a un plan mayor.',
+      'dashBilling.overLimitEvents': 'Eventos creados este mes', 'dashBilling.overLimitGroups': 'Grupos', 'dashBilling.overLimitStaff': 'Miembros del equipo',
       'dashBilling.downgradeToFree': 'Bajar al plan Gratis', 'dashBilling.downgradeConfirm': 'Conservarás las funciones de tu plan actual hasta el final del período de facturación que ya pagaste, luego pasarás al plan Gratis. ¿Continuar?',
       'dashBilling.downgradeScheduled': 'Cambio programado — pasarás al plan Gratis al final de tu período de facturación actual.',
       'groupAttendance.eyebrow': 'Asistencia', 'groupAttendance.meetingDate': 'Fecha de reunión',
@@ -7624,6 +7634,16 @@ Groups</span>
           </div>
           <div id="billing-status" style="display:none;font-size:12.5px;margin-top:10px;color:var(--clay);"></div>
         </div>
+        <!-- Nothing is ever deleted when a plan gets smaller -- see
+             GOTCHAS.md. That is the right default, but until now it
+             was also invisible: a church found out it was over its
+             limit only when the next thing it created was refused,
+             with no way to see how far over it was. -->
+        <div class="side-note" id="billing-over-limit" style="display:none;max-width:460px;">
+          <h4 data-i18n="dashBilling.overLimitTitle">Over your plan's limits</h4>
+          <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:10px;" data-i18n="dashBilling.overLimitHint">Nothing has been removed and nothing will be. You just can't add more of these until you're back under the limit or on a larger plan.</p>
+          <div id="billing-over-limit-list" style="font-size:13px;"></div>
+        </div>
       </div>
 
       <!-- Empty on purpose -- the actual pricing content
@@ -7726,6 +7746,13 @@ Groups</span>
             <div class="side-note" id="settings-ownership-section" style="display:none;">
               <h4 data-i18n="dashSettings.transferOwnership">Transfer ownership</h4>
               <p style="font-size:13.5px;color:var(--ink-mute);margin-bottom:14px;" data-i18n="dashSettings.transferOwnershipHint">Hand this church off to someone else. Nothing changes until they explicitly accept — this doesn't transfer instantly just because you send it, and you can cancel it anytime before they respond.</p>
+              <!-- Not a disclaimer for its own sake. The subscription
+                   lives on the church row and its Stripe Customer was
+                   created against THIS owner's email, so after a
+                   transfer their card is still funding a church they no
+                   longer own -- and they would have no reason to guess
+                   that. Shown only on a paid plan, by loadOwnershipTransferStatus. -->
+              <div id="ownership-transfer-billing-note" style="display:none;font-size:12.5px;color:var(--clay);background:var(--paper);border-radius:8px;padding:10px;margin-bottom:14px;"></div>
               <div id="ownership-transfer-pending" style="display:none;font-size:13px;margin-bottom:14px;padding:10px;background:var(--paper);border-radius:8px;">
                 <span id="ownership-transfer-pending-text"></span>
                 <button class="export-btn" id="ownership-transfer-cancel-btn" style="margin-top:8px;display:block;" data-i18n="dashSettings.cancelThisTransfer">Cancel this transfer</button>
@@ -7913,7 +7940,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v142 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v143 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -8046,6 +8073,9 @@ Groups</span>
   <div class="modal-card">
     <h3 style="font-family:'Fraunces';font-size:20px;margin-bottom:10px;" data-i18n="ownershipHandoff.title">Church ownership offer</h3>
     <p style="font-size:14px;color:var(--ink-mute);margin-bottom:20px;"><span id="ownership-handoff-prompt-church-name">A church</span> <span data-i18n="ownershipHandoff.body">wants to make you the owner on FaithDock. You'll get full control — billing, staff, everything. This can't be undone with one click on either end, so take a moment before deciding.</span></p>
+    <!-- What they are actually inheriting. Shown only for a paid
+         plan, because on Free there is nothing to say. -->
+    <div id="ownership-handoff-billing-note" style="display:none;font-size:12.5px;color:var(--ink);background:var(--paper);border-radius:8px;padding:10px;margin-bottom:16px;"></div>
     <button class="btn-gold" id="ownership-handoff-accept-btn" style="width:100%;justify-content:center;" data-i18n="ownershipHandoff.accept">Accept ownership</button>
     <button class="export-btn" id="ownership-handoff-decline-btn" style="width:100%;justify-content:center;margin-top:8px;" data-i18n="ownershipHandoff.decline">Decline</button>
     <div id="ownership-handoff-prompt-status" style="display:none;font-size:12px;margin-top:10px;"></div>
@@ -22966,6 +22996,22 @@ Groups</span>
     var pendingText = document.getElementById('ownership-transfer-pending-text');
     var sendBtn = document.getElementById('ownership-transfer-send-btn');
     if (!pendingWrap) return;
+    // The billing warning is about the plan, not about whether a
+    // transfer is already pending, so it is worked out first and
+    // independently -- it has to show on the very first visit, before
+    // anyone has sent anything.
+    var billingNote = document.getElementById('ownership-transfer-billing-note');
+    if (billingNote) {
+      billingNote.style.display = 'none';
+      var { data: planRows } = await supabase.from('churches').select('plan_type').eq('id', churchId).limit(1);
+      var planNow = (planRows && planRows.length) ? planRows[0].plan_type : 'free';
+      // Free has no subscription, so there is nothing to warn about
+      // and a warning would just be noise on the common case.
+      if (planNow && planNow !== 'free') {
+        billingNote.textContent = window.t('dashSettings.transferBillingWarning');
+        billingNote.style.display = 'block';
+      }
+    }
     var { data: rows } = await supabase.from('church_ownership_handoffs').select('id, to_email').eq('church_id', churchId).eq('status', 'pending').limit(1);
     if (rows && rows.length) {
       pendingText.textContent = window.t('dashSettings.transferPending') + ' ' + rows[0].to_email + ' ' + window.t('dashSettings.toRespond');
@@ -23050,7 +23096,10 @@ Groups</span>
     var { data: userData } = await supabase.auth.getUser();
     if (!userData.user || !userData.user.email) return;
     var { data: handoffRows } = await supabase.from('church_ownership_handoffs')
-      .select('id, church_id, churches(name)')
+      // plan_type is already readable by any signed-in caller (it is
+      // in PUBLIC_CHURCH_COLUMNS), so this costs one more column
+      // rather than a second query.
+      .select('id, church_id, churches(name, plan_type)')
       .ilike('to_email', userData.user.email)
       .eq('status', 'pending')
       .limit(1);
@@ -23060,6 +23109,21 @@ Groups</span>
     var modal = document.getElementById('ownership-handoff-prompt-modal');
     if (!modal) return;
     document.getElementById('ownership-handoff-prompt-church-name').textContent = handoff.churches ? handoff.churches.name : window.t('ownershipHandoff.aChurch');
+    // Somebody should know what they are accepting before they accept
+    // it: which plan comes with the church, and that the previous
+    // owner's card is still the one being charged for it.
+    var handoffPlan = handoff.churches ? handoff.churches.plan_type : null;
+    var handoffNote = document.getElementById('ownership-handoff-billing-note');
+    if (handoffNote) {
+      if (handoffPlan && handoffPlan !== 'free') {
+        var handoffLabels = planLabelsForLocale();
+        handoffNote.textContent = window.t('ownershipHandoff.billingNote')
+          .replace('{plan}', handoffLabels[handoffPlan] || handoffPlan);
+        handoffNote.style.display = 'block';
+      } else {
+        handoffNote.style.display = 'none';
+      }
+    }
     modal.setAttribute('data-handoff-id', handoff.id);
     modal.classList.add('open');
   }
@@ -25830,6 +25894,64 @@ Groups</span>
     };
   }
 
+  // Counts what this church actually has against what its plan
+  // allows, and says so. The limits themselves are enforced at
+  // CREATION only (see planLimits and GOTCHAS.md) -- nothing is
+  // deleted on a downgrade -- so a church can sit over its limit
+  // indefinitely without any surface ever admitting it.
+  //
+  // Events are counted the same way the create-event check counts
+  // them: created this calendar month, not all-time. A different
+  // denominator here would contradict the refusal message somebody
+  // sees when they hit the cap.
+  async function loadOverLimitPanel(churchId, planType){
+    var wrap = document.getElementById('billing-over-limit');
+    var listEl = document.getElementById('billing-over-limit-list');
+    if (!wrap || !listEl) return;
+    wrap.style.display = 'none';
+    listEl.innerHTML = '';
+    var limits = (window.planLimits || {})[planType || 'free'];
+    if (!limits) return;
+
+    var counts;
+    try {
+      // Three head counts in parallel, not in sequence. They do not
+      // depend on each other, and awaiting them one at a time is the
+      // N+1 shape that made the events table slow.
+      var results = await Promise.all([
+        supabase.from('events').select('id', { count: 'exact', head: true }).eq('church_id', churchId).gte('created_at', startOfThisMonthIso()),
+        supabase.from('groups').select('id', { count: 'exact', head: true }).eq('church_id', churchId),
+        supabase.from('church_staff').select('id', { count: 'exact', head: true }).eq('church_id', churchId)
+      ]);
+      counts = { events: results[0].count || 0, groups: results[1].count || 0, staff: results[2].count || 0 };
+    } catch (e) {
+      // A panel that only appears when something is wrong must not
+      // appear because the counting failed.
+      console.error('Over-limit counts unavailable:', e);
+      return;
+    }
+
+    var rows = [];
+    [['events', window.t('dashBilling.overLimitEvents')],
+     ['groups', window.t('dashBilling.overLimitGroups')],
+     ['staff',  window.t('dashBilling.overLimitStaff')]].forEach(function(pair){
+      var key = pair[0], label = pair[1];
+      var limit = limits[key];
+      // Infinity is 'no client-side cap', not a number to compare.
+      if (limit === Infinity || limit === undefined || limit === null) return;
+      if (counts[key] > limit) {
+        rows.push('<div class="info-row" style="justify-content:space-between;">'
+          + '<span>' + escapeHtml(label) + '</span>'
+          + '<span class="mono" style="color:var(--clay);">' + counts[key] + ' / ' + limit + '</span>'
+          + '</div>');
+      }
+    });
+
+    if (!rows.length) return;
+    listEl.innerHTML = rows.join('');
+    wrap.style.display = 'block';
+  }
+
   async function loadBillingPanel(){
     var planRow = document.getElementById('billing-plan-row');
     var periodRow = document.getElementById('billing-period-row');
@@ -25848,6 +25970,7 @@ Groups</span>
 
     var planLabels = planLabelsForLocale();
     planRow.textContent = planLabels[planType] || planLabels.free;
+    if (typeof loadOverLimitPanel === 'function') loadOverLimitPanel(myChurch.id, planType);
     if (row && row.current_period_end && planType !== 'free') {
       var periodLabel = cancelPending ? window.t('dashBilling.endingMovingToFree') : (row.subscription_status === 'canceled' ? window.t('dashBilling.accessEnds') : window.t('dashBilling.nextBillingDate'));
       periodRow.textContent = periodLabel + new Date(row.current_period_end).toLocaleDateString(window.appLocale());

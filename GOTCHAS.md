@@ -5142,3 +5142,34 @@ The verify block greps the deployed body for the predicate rather than checking 
 ### One that is not a bug
 
 `get_user_id_by_email`'s permission check is "owns any church, or is staff of any church, or leads any group" -- not scoped to a church, which looked wrong. It is used to resolve an email when **adding a group member or inviting staff**, both of which are for people who are not in the church yet. Scoping it per church would break exactly the thing it exists for. The residual risk is that any staff member can learn whether an address has an account, which most signup forms leak anyway. Left alone deliberately, and recorded so it is not "fixed" into a broken invite flow later.
+
+---
+
+## What actually happens to money — answered from the source
+
+With `stripe-subscription` and `stripe-subscription-webhook` finally in the repo, the billing questions have real answers instead of "the code cannot say".
+
+**Non-payment has no FaithDock grace period, because it inherits Stripe's.** The webhook's rule is one line:
+
+```
+const isActive = sub.status === 'active' || sub.status === 'trialing' || sub.status === 'past_due';
+plan_type: isActive ? (plan || 'free') : 'free',
+```
+
+`past_due` counts as **active**. A church whose card fails keeps every paid feature for as long as Stripe keeps retrying, and drops to Free only when Stripe itself cancels the subscription and fires `customer.subscription.deleted`. So the grace period is Stripe's dunning schedule, set in the Stripe Dashboard, not anything in this codebase. The red "past due" banner is shown throughout that window and is the only thing the app does about it.
+
+**A transfer does not move billing, and now says so.** `start_checkout` creates the Stripe Customer against the **original owner's** email and stores its id on the church row; `accept_church_ownership_handoff` touches none of that. So the previous owner's card keeps funding a church they no longer own, and nothing told either party. Both sides are told now -- the sender before they send, the recipient before they accept, each only when the church is actually on a paid plan, because on Free there is nothing to warn about.
+
+**Still open, and worth knowing:** `requireOwnedChurch` gates the billing portal on `owner_id`, so after a transfer the *new* owner can open a Stripe portal session for a Customer that belongs to the *previous* owner -- which shows that person's card last4, billing address and invoice history. Closing that needs an edge-function change (clear or re-point the customer on transfer), so it is recorded rather than half-done.
+
+**One more edge in the webhook:** `plan_type: isActive ? (plan || 'free') : 'free'` reads the plan from `sub.metadata.plan`. A subscription created straight in the Stripe Dashboard has no such metadata, so an active paid subscription would set the church to **free**. Only `start_checkout` sets that metadata.
+
+### Being over a plan's limit is no longer invisible
+
+Nothing is deleted when a plan gets smaller -- that is the right default and it stays. But it was also unobservable: a church found out it was over its limit only when the next thing it created was refused, with no way to see how far over.
+
+The Billing page now says so plainly, with the real numbers. Events are counted **created this calendar month**, exactly as the create-event check counts them, because a different denominator here would contradict the refusal message somebody sees at the cap.
+
+Tested by extracting the comparison from index.html and running it: exactly at the limit is not over; a limit of **0** still counts as a limit (a falsy check would skip Free's `staff: 0`, which is the commonest case); `Infinity` is never compared as a number; an unknown limit is skipped rather than reported as `0`; and a Large church dropped to Free reports all three with the real figures. The three counts run in `Promise.all`, not one after another -- the same N+1 shape that made the events table slow.
+
+Build `2026-09-18-v143`; no migration.
