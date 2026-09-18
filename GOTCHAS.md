@@ -5173,3 +5173,48 @@ The Billing page now says so plainly, with the real numbers. Events are counted 
 Tested by extracting the comparison from index.html and running it: exactly at the limit is not over; a limit of **0** still counts as a limit (a falsy check would skip Free's `staff: 0`, which is the commonest case); `Infinity` is never compared as a number; an unknown limit is skipped rather than reported as `0`; and a Large church dropped to Free reports all three with the real figures. The three counts run in `Promise.all`, not one after another -- the same N+1 shape that made the events table slow.
 
 Build `2026-09-18-v143`; no migration.
+
+---
+
+## Billing: a leak across transfer, a silent downgrade, and invoices
+
+Three changes, two of them to Edge Functions that must be pasted into the dashboard by hand.
+
+### The portal leaked the previous owner's card
+
+`requireOwnedChurch` asked one question -- does the caller own this church *today* -- and `create_portal_session` handed back a Stripe portal for whatever `stripe_customer_id` sat on the row. After a transfer that Customer belongs to the **previous** owner, so the new owner got their card's last4, billing address and full invoice history.
+
+**The marker for who a Customer belongs to lives in Stripe metadata, not in a column on `churches`.** That was the deciding constraint: `authenticated` holds table-wide UPDATE on that table, and the pin trigger deliberately lets the owner through, so a column would be writable by the very person it is meant to check. Stripe metadata is somewhere no client can reach.
+
+Authorization is now "are you the person this Customer belongs to", which is **not** the same as "do you own this church", and the difference is the whole point:
+
+- the previous owner still has a live subscription on their own card, and must be able to reach the portal to cancel it even though the church is no longer theirs
+- the new owner must not see it, and is told plainly that the previous owner is still paying and how to take over
+
+`cancel_subscription` moved to the same rule, for the same reason -- otherwise a transfer left a subscription **nobody** could cancel: the old owner failed the ownership check and the new owner was now refused.
+
+`start_checkout` had the mirror-image bug: it reused whatever `stripe_customer_id` was on the row, which after a transfer would have put the new owner's subscription **on the previous owner's card**. It now only reuses a Customer that is the caller's own, and creates a fresh one otherwise. It also no longer cancels a subscription belonging to somebody else on their behalf.
+
+Legacy Customers have no `owner_id` metadata, so the first billing action backfills it from the church's current owner. That is safe for exactly one reason worth stating: ownership transfer never actually worked until 061 (051's trigger silently reverted it), so every Customer that exists today belongs to whoever owns that church now. It self-heals -- after the first touch the check is exact rather than assumed.
+
+### An active subscription could set a church to Free
+
+`plan_type: isActive ? (plan || 'free') : 'free'` read the plan from `sub.metadata.plan`, which **only `start_checkout` sets**. A subscription created or rebuilt in the Stripe Dashboard has no such metadata, so `plan || 'free'` would strip a paying church of everything it bought, on an ordinary `customer.subscription.updated` event.
+
+Now: metadata first, then the **Price the subscription actually bills against**, which is the real record of what was sold. If neither answers, `plan_type` is left out of the update entirely -- every other field still syncs, and whatever the church has survives. Cancelled still means Free, because that is Stripe stating a fact rather than us guessing.
+
+### Invoices
+
+`list_invoices` reads them straight from Stripe. Nothing is copied into our database, so there is no second copy to drift, no webhook that can miss one, and no money data of ours to keep in sync. Only the handful of fields the page renders are returned -- an invoice object carries far more, and shipping all of it to a browser would be handing over data nothing asked for.
+
+**`escapeHtml` is not enough for an `href`.** `javascript:alert(1)` contains not one character an escaper touches, and it executes on click. This file already had `safeLinkUrl` for exactly that, and I wrote the first version without it. Both guards are there now and neither covers the other: `safeLinkUrl` vets the scheme, `escapeHtml` stops a quote closing the attribute. These URLs come from Stripe and neither guard should ever fire -- which is not a reason to skip them, because the day that stops being true is not announced.
+
+Tested by extracting the row builder **and the real `safeLinkUrl`** from index.html: a `javascript:` URL is refused and the row still renders without a link; a **tab-split** `java\tscript:` URL is refused too, which a hand-rolled `/^javascript:/` regex walks straight past; an unpaid invoice shows what is **owed** rather than `$0.00` and is visibly tagged; the currency comes from the invoice rather than being hardcoded; a missing date does not print "Invalid Date".
+
+### Another vacuous test, same cause as yesterday
+
+The first browser check reported `invokeReached: false` and an empty list. Not the feature: `loadBillingPanel` returns at its `getMyChurch()` guard when there is no session, so nothing under test ever ran. Second time this week that a signed-out probe produced a confident-looking null result. The tell is the same both times -- **the assertion that proves the stub was reached is the one that failed**, which means the measurement never happened rather than the feature failing.
+
+**Both Edge Functions must be pasted into the Supabase dashboard** — `stripe-subscription` and `stripe-subscription-webhook`. Until then: the portal still leaks across a transfer, and the invoices panel stays hidden because `list_invoices` is an unknown action.
+
+Build `2026-09-18-v144`; no migration.

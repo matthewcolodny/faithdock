@@ -847,6 +847,9 @@
       'dashBilling.manageBilling': 'Manage billing', 'dashBilling.viewPlans': 'View plans',
       'dashSettings.transferBillingWarning': 'This church is on a paid plan, and the plan goes with it. Your card stays the one being charged \u2014 transferring does not move billing to them. Cancel the plan first if you do not want to keep paying for it.',
       'ownershipHandoff.billingNote': 'This church is on {plan}. The plan comes with it, but billing does not \u2014 the previous owner\'s card is still the one being charged until one of you changes it.',
+      'dashBilling.invoicesTitle': 'Invoices',
+      'dashBilling.invoicesHint': 'Your FaithDock plan invoices. These come from Stripe \u2014 open one for the full receipt or a PDF.',
+      'dashBilling.invoiceView': 'View',
       'dashBilling.overLimitTitle': 'Over your plan\u2019s limits',
       'dashBilling.overLimitHint': 'Nothing has been removed and nothing will be. You just can\u2019t add more of these until you\u2019re back under the limit or on a larger plan.',
       'dashBilling.overLimitEvents': 'Events created this month', 'dashBilling.overLimitGroups': 'Groups', 'dashBilling.overLimitStaff': 'Team members',
@@ -1809,6 +1812,9 @@
       'dashBilling.manageBilling': 'Administrar facturación', 'dashBilling.viewPlans': 'Ver planes',
       'dashSettings.transferBillingWarning': 'Esta iglesia tiene un plan de pago, y el plan se transfiere con ella. Tu tarjeta sigue siendo la que se cobra \u2014 transferirla no cambia la facturación a esa persona. Cancela el plan primero si no quieres seguir pagándolo.',
       'ownershipHandoff.billingNote': 'Esta iglesia tiene {plan}. El plan viene con ella, pero la facturación no \u2014 la tarjeta del propietario anterior sigue siendo la que se cobra hasta que alguno de los dos lo cambie.',
+      'dashBilling.invoicesTitle': 'Facturas',
+      'dashBilling.invoicesHint': 'Las facturas de tu plan de FaithDock. Vienen de Stripe \u2014 abre una para ver el recibo completo o el PDF.',
+      'dashBilling.invoiceView': 'Ver',
       'dashBilling.overLimitTitle': 'Por encima de los límites de tu plan',
       'dashBilling.overLimitHint': 'No se ha eliminado nada y no se eliminará nada. Simplemente no puedes añadir más hasta volver por debajo del límite o pasar a un plan mayor.',
       'dashBilling.overLimitEvents': 'Eventos creados este mes', 'dashBilling.overLimitGroups': 'Grupos', 'dashBilling.overLimitStaff': 'Miembros del equipo',
@@ -7639,6 +7645,15 @@ Groups</span>
              was also invisible: a church found out it was over its
              limit only when the next thing it created was refused,
              with no way to see how far over it was. -->
+        <!-- Stripe generates and stores these; nothing is copied into
+             our database. So there is no second copy to drift, no
+             webhook that can miss one, and no money data of ours to
+             keep in sync. Hidden until there is at least one. -->
+        <div class="side-note" id="billing-invoices" style="display:none;max-width:460px;">
+          <h4 data-i18n="dashBilling.invoicesTitle">Invoices</h4>
+          <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:10px;" data-i18n="dashBilling.invoicesHint">Your FaithDock plan invoices. These come from Stripe — open one for the full receipt or a PDF.</p>
+          <div id="billing-invoices-list" style="font-size:13px;"></div>
+        </div>
         <div class="side-note" id="billing-over-limit" style="display:none;max-width:460px;">
           <h4 data-i18n="dashBilling.overLimitTitle">Over your plan's limits</h4>
           <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:10px;" data-i18n="dashBilling.overLimitHint">Nothing has been removed and nothing will be. You just can't add more of these until you're back under the limit or on a larger plan.</p>
@@ -7940,7 +7955,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v143 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v144 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -25904,6 +25919,72 @@ Groups</span>
   // them: created this calendar month, not all-time. A different
   // denominator here would contradict the refusal message somebody
   // sees when they hit the cap.
+  // The church's own plan invoices, read live from Stripe through the
+  // stripe-subscription function. Deliberately not stored here: a
+  // local copy would be a second source of truth for money, and the
+  // only way to keep it right is a webhook that must never miss one.
+  //
+  // The same function decides who may see these as decides who may
+  // open the billing portal -- the person the Stripe Customer belongs
+  // to, which after a church transfer is not the church's owner.
+  async function loadInvoicesPanel(churchId){
+    var wrap = document.getElementById('billing-invoices');
+    var listEl = document.getElementById('billing-invoices-list');
+    if (!wrap || !listEl) return;
+    wrap.style.display = 'none';
+    listEl.innerHTML = '';
+
+    var res = await supabase.functions.invoke('stripe-subscription', {
+      body: { action: 'list_invoices', churchId: churchId }
+    });
+    // Silent on failure, on purpose. A church with no billing account
+    // gets an empty list rather than an error, and a genuine outage
+    // should not put a red box on a page whose main job -- showing the
+    // current plan -- worked fine.
+    if (res.error || !res.data || !res.data.invoices || !res.data.invoices.length) {
+      if (res.error) console.error('Invoices unavailable:', res.error);
+      return;
+    }
+
+    listEl.innerHTML = res.data.invoices.map(function(inv){
+      var when = inv.created ? new Date(inv.created).toLocaleDateString(window.appLocale(), { year: 'numeric', month: 'short', day: 'numeric' }) : '';
+      // amount_paid, not amount_due: what actually left the card. An
+      // unpaid invoice shows its status instead, below.
+      var cents = (inv.status === 'paid') ? inv.amount_paid : inv.amount_due;
+      var money = ((cents || 0) / 100).toLocaleString(window.appLocale(), {
+        style: 'currency', currency: (inv.currency || 'usd').toUpperCase()
+      });
+      // Anything other than a clean paid invoice says so rather than
+      // looking like a normal one -- an unpaid or refunded line that
+      // reads identically to a paid line is a bill somebody thinks
+      // they have settled.
+      var statusTag = (inv.status === 'paid') ? ''
+        : '<span class="tag clay" style="font-size:10px;margin-left:6px;">' + escapeHtml(inv.status || '') + '</span>';
+      // TWO guards, and neither covers the other -- the same pairing
+      // safeLinkUrl/escapeHtml already exists for elsewhere in this
+      // file. escapeHtml stops a quote in the value from closing the
+      // href and opening an onclick=; it does NOTHING to a
+      // javascript: URI, which contains no character an escaper
+      // touches and executes on click.
+      //
+      // These URLs come from Stripe, so neither guard should ever have
+      // anything to do. That is not a reason to skip them: the rule
+      // here is that nothing reaches an href without its scheme being
+      // vetted, regardless of how trustworthy the source is said to
+      // be, because the day that stops being true is not announced.
+      var link = safeLinkUrl(inv.invoice_pdf || inv.hosted_invoice_url || '');
+      var linkHtml = link
+        ? '<a href="' + escapeHtml(link) + '" target="_blank" rel="noopener noreferrer" style="color:inherit;border-bottom:1px solid var(--gold);font-size:12.5px;">' + escapeHtml(window.t('dashBilling.invoiceView')) + '</a>'
+        : '';
+      return '<div class="info-row" style="justify-content:space-between;gap:10px;">'
+        + '<span style="flex:1;min-width:0;">' + escapeHtml(when) + statusTag + '</span>'
+        + '<span class="mono" style="flex-shrink:0;">' + escapeHtml(money) + '</span>'
+        + '<span style="flex-shrink:0;">' + linkHtml + '</span>'
+        + '</div>';
+    }).join('');
+    wrap.style.display = 'block';
+  }
+
   async function loadOverLimitPanel(churchId, planType){
     var wrap = document.getElementById('billing-over-limit');
     var listEl = document.getElementById('billing-over-limit-list');
@@ -25971,6 +26052,9 @@ Groups</span>
     var planLabels = planLabelsForLocale();
     planRow.textContent = planLabels[planType] || planLabels.free;
     if (typeof loadOverLimitPanel === 'function') loadOverLimitPanel(myChurch.id, planType);
+    // Not awaited: it is a round trip to Stripe, and the plan card
+    // above should not sit blank waiting for it.
+    if (typeof loadInvoicesPanel === 'function') loadInvoicesPanel(myChurch.id);
     if (row && row.current_period_end && planType !== 'free') {
       var periodLabel = cancelPending ? window.t('dashBilling.endingMovingToFree') : (row.subscription_status === 'canceled' ? window.t('dashBilling.accessEnds') : window.t('dashBilling.nextBillingDate'));
       periodRow.textContent = periodLabel + new Date(row.current_period_end).toLocaleDateString(window.appLocale());

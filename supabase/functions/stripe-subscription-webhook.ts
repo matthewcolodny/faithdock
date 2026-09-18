@@ -23,6 +23,24 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import Stripe from "https://esm.sh/stripe@14?target=deno";
 
+// Same mapping stripe-subscription uses to pick a Price at checkout,
+// read in reverse. It is the fallback for working out which plan a
+// subscription is for when its metadata does not say -- see the note
+// in syncFromSubscription.
+const PRICE_ENV_BY_PLAN = {
+  starter: 'STRIPE_PRICE_STARTER',
+  standard: 'STRIPE_PRICE_STANDARD',
+  premium: 'STRIPE_PRICE_PREMIUM',
+};
+
+function planFromPriceId(priceId) {
+  if (!priceId) return null;
+  for (const plan of Object.keys(PRICE_ENV_BY_PLAN)) {
+    if (Deno.env.get(PRICE_ENV_BY_PLAN[plan]) === priceId) return plan;
+  }
+  return null;
+}
+
 serve(async (req) => {
   const signature = req.headers.get('stripe-signature');
   const body = await req.text();
@@ -56,7 +74,19 @@ serve(async (req) => {
 
   async function syncFromSubscription(sub) {
     const churchId = sub.metadata && sub.metadata.church_id;
-    const plan = sub.metadata && sub.metadata.plan;
+    // metadata.plan is set by start_checkout and by nothing else. A
+    // subscription created or rebuilt in the Stripe Dashboard has no
+    // such metadata, and the old code's `plan || 'free'` then wrote
+    // plan_type = 'free' for a church that is actively PAYING --
+    // silently stripping a customer of everything they bought.
+    //
+    // So: metadata first, then the Price the subscription is actually
+    // billing against, which is the real source of truth for what was
+    // sold. If neither answers, plan_type is LEFT ALONE below rather
+    // than guessed at.
+    const priceId = sub.items && sub.items.data && sub.items.data[0]
+      && sub.items.data[0].price && sub.items.data[0].price.id;
+    const plan = (sub.metadata && sub.metadata.plan) || planFromPriceId(priceId);
     if (!churchId) {
       console.warn('[stripe-subscription-webhook] subscription has no church_id metadata, skipping:', sub.id);
       return;
@@ -70,8 +100,21 @@ serve(async (req) => {
     // whichever shape is actually present rather than assuming the
     // old one, and fall back to null instead of crashing if neither is.
     const periodEndUnix = sub.current_period_end || (sub.items && sub.items.data[0] && sub.items.data[0].current_period_end);
+    // Cancelled means Free, and that is not a guess -- Stripe has said
+    // the subscription is over. An ACTIVE subscription whose plan we
+    // could not identify is the case that must not be guessed: every
+    // other field is still synced, and plan_type is simply omitted so
+    // whatever the church already has survives untouched.
+    const planUpdate = {};
+    if (!isActive) {
+      planUpdate.plan_type = 'free';
+    } else if (plan) {
+      planUpdate.plan_type = plan;
+    } else {
+      console.warn('[stripe-subscription-webhook] active subscription with no identifiable plan, leaving plan_type unchanged:', sub.id);
+    }
     const { error: updateError } = await supabaseAdmin.from('churches').update({
-      plan_type: isActive ? (plan || 'free') : 'free',
+      ...planUpdate,
       stripe_customer_id: typeof sub.customer === 'string' ? sub.customer : sub.customer.id,
       stripe_subscription_id: sub.id,
       subscription_status: sub.status,

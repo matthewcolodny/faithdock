@@ -19,6 +19,32 @@
 // Requires the cancel_at_period_end column (see the migration handed
 // over alongside this file) and the corresponding read in
 // loadBillingPanel() / write in stripe-subscription-webhook.
+//
+// ============================================================
+// 2026-09-18 — three changes. See GOTCHAS.md.
+//
+// 1. A Stripe Customer now records WHO it belongs to, in its own
+//    metadata (`owner_id`). Ownership of a church can move;
+//    a saved card cannot. Without this, transferring a church handed
+//    the new owner a billing portal for the PREVIOUS owner's Customer
+//    — their card's last4, their billing address, their invoice
+//    history — because requireOwnedChurch only ever asked who owns the
+//    church today.
+//
+//    The marker lives in Stripe metadata rather than a column on
+//    `churches` on purpose: `authenticated` holds table-wide UPDATE on
+//    that table and the pin trigger deliberately lets the owner
+//    through, so a column would be writable by the very person it is
+//    meant to check.
+//
+// 2. `list_invoices` — the church's own plan invoices, read straight
+//    from Stripe. Nothing is copied into our database.
+//
+// 3. `start_checkout` no longer reuses a Customer that belongs to
+//    somebody else. It used to reuse whatever id was on the church
+//    row, which after a transfer would have put the NEW owner's
+//    subscription on the PREVIOUS owner's card.
+// ============================================================
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -79,25 +105,104 @@ serve(async (req) => {
       return church;
     }
 
+    function jsonError(message, status) {
+      return new Response(JSON.stringify({ error: message }), {
+        status: status, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Who does this Stripe Customer belong to? Returns the user id in
+    // its metadata, backfilling it from the church's current owner when
+    // it is absent.
+    //
+    // The backfill is safe for exactly one reason, and it is worth
+    // stating: ownership transfer never actually worked until migration
+    // 061 (051's trigger silently reverted it), so every Customer
+    // created before today belongs to whoever owns that church now.
+    // It also self-heals — the first time anyone touches billing, the
+    // marker is written and later checks are exact rather than assumed.
+    async function customerOwnerId(customerId, churchOwnerId) {
+      let customer;
+      try {
+        customer = await stripe.customers.retrieve(customerId);
+      } catch (e) {
+        // A customer that no longer exists in Stripe is not somebody
+        // else's, it is nobody's.
+        console.warn('[stripe-subscription] customer retrieve failed:', e.message);
+        return null;
+      }
+      if (!customer || customer.deleted) return null;
+      const marked = customer.metadata && customer.metadata.owner_id;
+      if (marked) return marked;
+      try {
+        await stripe.customers.update(customerId, {
+          metadata: { ...(customer.metadata || {}), owner_id: churchOwnerId },
+        });
+      } catch (e) {
+        console.warn('[stripe-subscription] could not backfill owner_id:', e.message);
+      }
+      return churchOwnerId;
+    }
+
+    // Shared by create_portal_session and list_invoices. Both expose
+    // one person's payment details, so both answer the same question:
+    // is the caller the person this Customer belongs to?
+    //
+    // Deliberately NOT "does the caller own the church". After a
+    // transfer those are different people, and each needs a different
+    // outcome:
+    //   * the previous owner still has a live subscription on their own
+    //     card and must be able to reach the portal to cancel it, even
+    //     though the church is no longer theirs
+    //   * the new owner must NOT see it, and is told why
+    async function resolveBillingAccess(churchId) {
+      const { data: church } = await supabaseAdmin
+        .from('churches').select('id, name, owner_id, stripe_customer_id, stripe_subscription_id').eq('id', churchId).maybeSingle();
+      if (!church) return { error: 'This church no longer exists.', status: 404 };
+      if (!church.stripe_customer_id) {
+        if (church.owner_id !== user.id) return { error: 'You do not have access to this church.', status: 403 };
+        return { error: 'No billing account on file for this church yet.', status: 404 };
+      }
+      const ownsCustomer = await customerOwnerId(church.stripe_customer_id, church.owner_id);
+      if (ownsCustomer === user.id) return { church: church };
+      if (church.owner_id === user.id) {
+        // The caller owns the church but not the card paying for it.
+        return {
+          error: 'This church\'s plan is still being paid for by its previous owner, on their own card. '
+               + 'They need to cancel it from their account. Start your own plan here to take over billing.',
+          status: 403
+        };
+      }
+      return { error: 'You do not have access to this church.', status: 403 };
+    }
+
     if (body.action === 'start_checkout') {
       const { churchId, plan, successUrl, cancelUrl } = body;
       if (!churchId || !plan || !PRICE_ENV_BY_PLAN[plan]) {
-        return new Response(JSON.stringify({ error: 'Missing or invalid plan.' }), {
-          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
+        return jsonError('Missing or invalid plan.', 400);
       }
       const priceId = Deno.env.get(PRICE_ENV_BY_PLAN[plan]);
       if (!priceId) {
-        return new Response(JSON.stringify({ error: `No Price ID configured for the ${plan} plan.` }), {
-          status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
+        return jsonError(`No Price ID configured for the ${plan} plan.`, 500);
       }
 
       const churchRow = await requireOwnedChurch(churchId);
       if (!churchRow) {
-        return new Response(JSON.stringify({ error: 'You do not have access to this church.' }), {
-          status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
+        return jsonError('You do not have access to this church.', 403);
+      }
+
+      // Reuse the existing Stripe Customer if this church already has
+      // one (e.g. downgraded once, upgrading again) instead of
+      // creating duplicates on every checkout attempt -- but ONLY if
+      // it belongs to the person checking out. After a transfer it
+      // does not, and reusing it would charge the previous owner's
+      // card for the new owner's subscription.
+      let customerId = churchRow.stripe_customer_id;
+      let reusingOwnCustomer = false;
+      if (customerId) {
+        const ownsCustomer = await customerOwnerId(customerId, churchRow.owner_id);
+        reusingOwnCustomer = (ownsCustomer === user.id);
+        if (!reusingOwnCustomer) customerId = null;
       }
 
       // Cancel any existing active subscription before starting a new
@@ -108,7 +213,12 @@ serve(async (req) => {
       // carried, so whichever subscription's webhook happened to land
       // last silently "won." Confirmed live: this is what produced
       // the plan flickering between tiers on a plain page refresh.
-      if (churchRow.stripe_subscription_id) {
+      //
+      // Only cancels a subscription on the caller's OWN customer. A
+      // subscription belonging to a previous owner is theirs to cancel;
+      // this function must not end someone else's paid plan on their
+      // behalf, and the portal path above is how they do it.
+      if (churchRow.stripe_subscription_id && reusingOwnCustomer) {
         try {
           const existingSub = await stripe.subscriptions.retrieve(churchRow.stripe_subscription_id);
           if (existingSub && existingSub.status !== 'canceled') {
@@ -121,16 +231,13 @@ serve(async (req) => {
         }
       }
 
-      // Reuse the existing Stripe Customer if this church already has
-      // one (e.g. downgraded once, upgrading again) instead of
-      // creating duplicates on every checkout attempt.
-      let customerId = churchRow.stripe_customer_id;
       if (!customerId) {
         const { data: ownerData } = await supabaseAdmin.auth.admin.getUserById(churchRow.owner_id);
         const customer = await stripe.customers.create({
           name: churchRow.name,
           email: ownerData && ownerData.user ? ownerData.user.email : undefined,
-          metadata: { church_id: churchId },
+          // owner_id is the marker every check above relies on.
+          metadata: { church_id: churchId, owner_id: churchRow.owner_id },
         });
         customerId = customer.id;
         await supabaseAdmin.from('churches').update({ stripe_customer_id: customerId }).eq('id', churchId);
@@ -151,22 +258,52 @@ serve(async (req) => {
 
     if (body.action === 'create_portal_session') {
       const { churchId, returnUrl } = body;
-      const churchRow = await requireOwnedChurch(churchId);
-      if (!churchRow) {
-        return new Response(JSON.stringify({ error: 'You do not have access to this church.' }), {
-          status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
-      }
-      if (!churchRow.stripe_customer_id) {
-        return new Response(JSON.stringify({ error: 'No billing account on file for this church yet.' }), {
-          status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
-      }
+      const access = await resolveBillingAccess(churchId);
+      if (access.error) return jsonError(access.error, access.status);
+
       const portalSession = await stripe.billingPortal.sessions.create({
-        customer: churchRow.stripe_customer_id,
+        customer: access.church.stripe_customer_id,
         return_url: returnUrl,
       });
       return new Response(JSON.stringify({ url: portalSession.url }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
+    if (body.action === 'list_invoices') {
+      // The church's own plan invoices. Stripe generates and stores
+      // these; nothing is copied into our database, so there is no
+      // second copy to drift, no webhook to miss one, and no money
+      // data of ours to keep in sync.
+      const { churchId } = body;
+      const access = await resolveBillingAccess(churchId);
+      // "No billing account on file" is not an error worth shouting
+      // about here -- a church that has never paid simply has no
+      // invoices, and the page should say that rather than turn red.
+      if (access.error) {
+        if (access.status === 404) {
+          return new Response(JSON.stringify({ invoices: [] }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        }
+        return jsonError(access.error, access.status);
+      }
+
+      const list = await stripe.invoices.list({
+        customer: access.church.stripe_customer_id,
+        limit: Math.min(Math.max(parseInt(body.limit, 10) || 12, 1), 24),
+      });
+      // Only the fields the page renders. An invoice object carries a
+      // great deal more, and shipping all of it to the browser would
+      // be handing over data nothing asked for.
+      const invoices = (list.data || []).map((inv) => ({
+        id: inv.id,
+        number: inv.number,
+        created: inv.created ? new Date(inv.created * 1000).toISOString() : null,
+        amount_paid: inv.amount_paid,
+        amount_due: inv.amount_due,
+        currency: inv.currency,
+        status: inv.status,
+        hosted_invoice_url: inv.hosted_invoice_url,
+        invoice_pdf: inv.invoice_pdf,
+      }));
+      return new Response(JSON.stringify({ invoices: invoices }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     if (body.action === 'cancel_subscription') {
@@ -178,16 +315,14 @@ serve(async (req) => {
       // stripe-subscription-webhook's customer.subscription.deleted
       // handler once the period genuinely ends.
       const { churchId } = body;
-      const churchRow = await requireOwnedChurch(churchId);
-      if (!churchRow) {
-        return new Response(JSON.stringify({ error: 'You do not have access to this church.' }), {
-          status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
-      }
+      // Same access rule as the portal: the person paying is the person
+      // who may cancel, which after a transfer is not the church's
+      // owner.
+      const access = await resolveBillingAccess(churchId);
+      if (access.error) return jsonError(access.error, access.status);
+      const churchRow = access.church;
       if (!churchRow.stripe_subscription_id) {
-        return new Response(JSON.stringify({ error: 'No active paid plan to cancel.' }), {
-          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
+        return jsonError('No active paid plan to cancel.', 400);
       }
       const sub = await stripe.subscriptions.update(churchRow.stripe_subscription_id, { cancel_at_period_end: true });
       await supabaseAdmin.from('churches').update({ cancel_at_period_end: true }).eq('id', churchId);
@@ -229,17 +364,13 @@ serve(async (req) => {
         // { success: true } while nothing actually changed. Surface
         // it instead.
         if (updateError) {
-          return new Response(JSON.stringify({ error: 'Could not update plan: ' + updateError.message }), {
-            status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          });
+          return jsonError('Could not update plan: ' + updateError.message, 500);
         }
       }
       return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    return new Response(JSON.stringify({ error: 'Unknown action.' }), {
-      status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
+    return jsonError('Unknown action.', 400);
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
