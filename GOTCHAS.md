@@ -4329,3 +4329,27 @@ This is root cause (a) from the earlier refresh writeup in its purest form: the 
 Verified through both dispatchers by counting real calls: a click fires the loader, **Back fires it too** -- which is the path that was broken -- all four mapped routes fire their own and only their own, an unmapped route fires nothing, and a loader that throws does not take routing with it.
 
 Build `2026-09-18-v116`. No migration.
+
+---
+
+## The mobile nav stops being a menu inside a menu
+
+Four changes that are really one: on a phone the hamburger opened a panel that itself contained a user dropdown, so reaching Account profile took two opens of two different controls.
+
+**Churches and Events leave the menu entirely** and become icons in the bar, left of the account button. They are the two things a visitor came to do; putting them behind a tap was the wrong default. They are also hidden from the panel at the same time -- two routes to the same page inside one menu reads as two different pages.
+
+**One button, two faces.** Signed out it is a hamburger; signed in it is the account initials. Deliberately the *same* button rather than two swapped ones, so the menu it opens is unambiguously the same menu either way. Initials take the **first and last** name parts, so "Mary Anne Fletcher" is MF rather than MA, and are written with `textContent` because a display name is something somebody chose.
+
+**The nested dropdown is flattened by CSS, not by duplicating markup.** On mobile `#nav-user-bubble` hides and `#nav-user-dropdown` becomes `position:static` with no card styling, so its items render inline as part of the one panel. The alternative -- a separate mobile menu built from its own list -- would have been a second list to keep in step with the first, which is the failure this session has now fixed twice in routing alone.
+
+Signed out the panel is About FaithDock, Pricing, Sign in, plus the theme and language toggles. Signed in it is those plus Account profile, My Churches, My Events, My Groups, Settings, Help and Log out. Verified by measuring what actually has a box on screen -- a first pass filtered on `display !== 'none'`, which is **true for a link inside a hidden parent**, and reported the account items as visible while signed out. The code was right and the measurement was wrong.
+
+**"For churches" becomes About FaithDock**, a real route rather than a link that scrolled the homepage to a band. That scroll needed a three-pass re-align because the grids above it render asynchronously and kept moving the target; routing to a page needs no timing guesswork, so the whole dance is deleted.
+
+The homepage keeps its own band. That is a **second rendering, not a move** -- the homepage one is a conversion element in its own right. The duplication is safe for the reason that matters: both are driven by the same `home.fc.*` keys, so the words have one source and editing them updates both.
+
+Mission, goals and commitment are **structured but empty**, with placeholders that say "Coming soon" rather than lorem ipsum that could ship by accident. The sitemap already links to their anchors, so adding the copy later needs no second pass.
+
+**The sitemap's section links cannot be plain `#about-goals` hrefs** -- this app's hash *is* the router, so that would be read as a route named "about-goals" and fall through to home. They carry `data-about-section`, route to About, then scroll on the next frame.
+
+Build `2026-09-18-v117`. No migration.

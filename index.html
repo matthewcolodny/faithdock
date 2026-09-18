@@ -739,6 +739,12 @@
       'myChurches.browseChurches': 'Browse churches',
       'myGroups.browseGroups': 'Find groups at a church',
       'myEvents.browseEvents': 'Browse events',
+      'nav.about': 'About FaithDock',
+      'about.eyebrow': 'About', 'about.title': 'About FaithDock',
+      'about.missionTitle': 'Our mission', 'about.missionBody': 'Coming soon.',
+      'about.goalsTitle': 'What we are building toward', 'about.goalsBody': 'Coming soon.',
+      'about.commitmentTitle': 'Our commitment', 'about.commitmentBody': 'Coming soon.',
+      'footer.smExplore': 'Explore', 'footer.smYourAccount': 'Your account', 'footer.smSupport': 'Support',
       'profile.feedbackSignIn': 'Sign in to send feedback, so we can follow up with you.',
       'dashMsg.subjectPlaceholder': 'e.g. Sunday service update', 'dashMsg.message': 'Message', 'dashMsg.writeAnnouncement': 'Write your announcement...',
       'dashMsg.scheduleForLater': 'Schedule for later instead of sending now', 'dashMsg.sendAnnouncement': 'Send announcement',
@@ -1636,6 +1642,12 @@
       'myChurches.browseChurches': 'Explorar iglesias',
       'myGroups.browseGroups': 'Buscar grupos en una iglesia',
       'myEvents.browseEvents': 'Explorar eventos',
+      'nav.about': 'Acerca de FaithDock',
+      'about.eyebrow': 'Acerca de', 'about.title': 'Acerca de FaithDock',
+      'about.missionTitle': 'Nuestra misión', 'about.missionBody': 'Próximamente.',
+      'about.goalsTitle': 'Hacia dónde vamos', 'about.goalsBody': 'Próximamente.',
+      'about.commitmentTitle': 'Nuestro compromiso', 'about.commitmentBody': 'Próximamente.',
+      'footer.smExplore': 'Explorar', 'footer.smYourAccount': 'Tu cuenta', 'footer.smSupport': 'Ayuda',
       'profile.feedbackSignIn': 'Inicia sesión para enviar comentarios, así podemos responderte.',
       'dashMsg.subjectPlaceholder': 'p. ej. Actualización del servicio dominical', 'dashMsg.message': 'Mensaje', 'dashMsg.writeAnnouncement': 'Escribe tu anuncio...',
       'dashMsg.scheduleForLater': 'Programar para más tarde en lugar de enviar ahora', 'dashMsg.sendAnnouncement': 'Enviar anuncio',
@@ -2545,11 +2557,50 @@
     display:block;padding:10px 12px;border-radius:8px;font-size:13.5px;color:var(--ink);
   }
   #nav-user-dropdown a:hover{background:var(--paper);}
+  .sitemap{background:var(--brand);color:#CBD2DE;padding:40px 0 28px;border-top:1px solid rgba(255,255,255,0.08);}
+  .sitemap-inner{display:grid;grid-template-columns:repeat(4,1fr);gap:28px;}
+  .sitemap h5{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--gold);margin-bottom:12px;font-family:'IBM Plex Mono';font-weight:500;}
+  .sitemap a{display:block;font-size:13.5px;color:#CBD2DE;padding:5px 0;}
+  .sitemap a:hover{color:#fff;}
+  /* Two columns rather than four on a phone, for the same reason the
+     dashboard nav is two: four columns at 375px gives each about 80px,
+     which wraps "What we are building toward" into five lines. */
+  @media (max-width:700px){ .sitemap-inner{grid-template-columns:1fr 1fr;gap:20px;} }
   .hamburger{display:none;background:none;border:none;color:#EDEBE2;padding:8px;cursor:pointer;flex-shrink:0;}
   .hamburger svg{width:22px;height:22px;display:block;}
 
+  .nav-quick{display:none;align-items:center;gap:4px;}
+  .nav-quick a{display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:9px;color:#CBD2DE;border-bottom:none;}
+  .nav-quick a svg{width:21px;height:21px;display:block;}
+  .nav-quick a:hover,.nav-quick a.active{color:#fff;background:rgba(255,255,255,0.10);border-bottom:none;}
+  #hamburger-initials{
+    display:none;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;
+    background:var(--gold);color:var(--brand);font-size:12.5px;font-weight:700;letter-spacing:.02em;
+  }
+
   @media (max-width:860px){
     .hamburger{display:block;}
+    .nav-quick{display:flex;}
+    /* Churches and Events live in the bar now, so they must not also
+       be in the panel -- two ways to the same page in one menu reads
+       as two different pages. */
+    nav.links > a[data-route="directory"],
+    nav.links > a[data-route="events"]{display:none;}
+    /* The user menu stops being a dropdown inside a dropdown: the
+       bubble disappears and its items render inline as part of the
+       one panel. No second markup to keep in step -- the same list
+       serves both layouts. */
+    #nav-user-menu{position:static;margin-top:0;}
+    #nav-user-bubble{display:none;}
+    #nav-user-dropdown{
+      display:block;position:static;background:none;border:none;box-shadow:none;
+      padding:0;min-width:0;border-radius:0;
+    }
+    #nav-user-dropdown a{
+      color:#CBD2DE;padding:14px 4px;border-radius:0;font-size:15px;
+      border-bottom:1px solid rgba(255,255,255,0.08);
+    }
+    #nav-user-dropdown a:hover{background:none;color:#fff;}
     nav.links{
       display:none;position:absolute;top:72px;left:0;right:0;background:var(--brand);
       flex-direction:column;align-items:stretch;padding:8px 24px 20px;gap:0;
@@ -3870,7 +3921,7 @@
     <nav class="links" id="nav-links">
       <a href="#directory" data-route="directory" data-i18n="nav.churches">Churches</a>
       <a href="#events" data-route="events" data-i18n="nav.events">Events</a>
-      <a href="#home" id="nav-for-churches-link" data-i18n="nav.forChurches">For churches</a>
+      <a href="#about" data-route="about" id="nav-about-link" data-i18n="nav.about">About FaithDock</a>
       <a href="#pricing" data-route="pricing" id="nav-pricing-link" style="display:none;" data-i18n="nav.pricing">Pricing</a>
       <a href="#admin" id="nav-admin-link" data-route="admin" style="opacity:.75;display:none;white-space:nowrap;" data-i18n="nav.admin">Admin</a>
       <div id="nav-user-menu" style="position:relative;display:none;">
@@ -3898,8 +3949,22 @@
         <button id="lang-toggle-btn" type="button" style="background:none;border:1px solid rgba(255,255,255,0.3);border-radius:7px;padding:6px 10px;font-size:12.5px;font-weight:600;color:#CBD2DE;cursor:pointer;white-space:nowrap;flex-shrink:0;">EN / ES</button>
       </div>
     </nav>
+    <div class="nav-quick" id="nav-quick">
+      <a href="#directory" data-route="directory" aria-label="Churches" data-i18n-title="nav.churches" title="Churches">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 2v6M9.5 4.5h5"/><path d="M12 8 5 13v8h14v-8L12 8Z"/><path d="M10 21v-4a2 2 0 0 1 4 0v4"/></svg>
+      </a>
+      <a href="#events" data-route="events" aria-label="Events" data-i18n-title="nav.events" title="Events">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/></svg>
+      </a>
+    </div>
+    <!-- One button, two faces. Signed out it is a hamburger; signed
+         in it is the account initials. Same control, same menu --
+         which is the point: the old mobile layout put a user
+         dropdown INSIDE the hamburger panel, so reaching Account
+         profile took two opens. -->
     <button class="hamburger" id="hamburger-btn" aria-label="Menu" data-i18n-title="common.menu">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      <svg id="hamburger-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      <span id="hamburger-initials" style="display:none;"></span>
     </button>
   </div>
 </header>
@@ -5111,6 +5176,52 @@ Groups</span>
         <div id="profile-delete-status" style="display:none;font-size:12.5px;margin-top:10px;"></div>
       </div>
     </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ABOUT FAITHDOCK ================= -->
+<section class="page" id="page-about">
+  <div class="wrap" style="padding-top:44px;max-width:760px;">
+    <div class="eyebrow" data-i18n="about.eyebrow">About</div>
+    <h1 style="font-size:34px;" data-i18n="about.title">About FaithDock</h1>
+
+    <div class="side-note" id="about-mission" style="margin-top:32px;scroll-margin-top:90px;">
+      <h4 data-i18n="about.missionTitle">Our mission</h4>
+      <p style="color:var(--ink-mute);font-size:14px;" data-i18n="about.missionBody">Coming soon.</p>
+    </div>
+
+    <div class="side-note" id="about-goals" style="margin-top:20px;scroll-margin-top:90px;">
+      <h4 data-i18n="about.goalsTitle">What we are building toward</h4>
+      <p style="color:var(--ink-mute);font-size:14px;" data-i18n="about.goalsBody">Coming soon.</p>
+    </div>
+
+    <div class="side-note" id="about-commitment" style="margin-top:20px;scroll-margin-top:90px;">
+      <h4 data-i18n="about.commitmentTitle">Our commitment</h4>
+      <p style="color:var(--ink-mute);font-size:14px;" data-i18n="about.commitmentBody">Coming soon.</p>
+    </div>
+
+    <!-- The homepage keeps its own band; this is a second rendering
+         of it, NOT a move. The homepage one is a conversion element
+         in its own right and removing it to tidy the nav would be a
+         bad trade.
+
+         The duplication is safe for the reason that matters: both
+         are driven by the same home.fc.* translation keys, so there
+         is one source of truth for the words and editing them
+         updates both. The markup differs because the contexts do --
+         a full-bleed band on the homepage, a card in a stack here. -->
+    <div class="side-note" id="about-for-churches" style="margin-top:20px;scroll-margin-top:90px;">
+      <h4 data-i18n="home.fc.eyebrow">For churches</h4>
+      <p style="font-size:16px;font-family:'Fraunces';margin-bottom:10px;" data-i18n="home.fc.heading">Be where people are already looking.</p>
+      <p style="color:var(--ink-mute);font-size:14px;" data-i18n="home.fc.lead">People come to FaithDock to find a church home and to find something to do this weekend. Get listed for free — no credit card, no subscription — and upgrade when you want event management, registration, groups, giving, and other tools.</p>
+      <div style="margin-top:16px;display:grid;gap:14px;">
+        <div><strong style="font-size:14px;" data-i18n="home.fc.p1t">Claim your free listing</strong><div style="color:var(--ink-mute);font-size:13.5px;" data-i18n="home.fc.p1b">Your church may already be in the directory. Claim it to control what people see.</div></div>
+        <div><strong style="font-size:14px;" data-i18n="home.fc.p2t">Post events people can actually find</strong><div style="color:var(--ink-mute);font-size:13.5px;" data-i18n="home.fc.p2b">Services, studies, outreach, kids' programs — each one is searchable by anyone nearby, not just your members.</div></div>
+        <div><strong style="font-size:14px;" data-i18n="home.fc.p3t">Grow the connection when you're ready</strong><div style="color:var(--ink-mute);font-size:13.5px;" data-i18n="home.fc.p3b">Paid plans add check-in, groups, messaging, and giving.</div></div>
+      </div>
+      <a class="export-btn" href="#register-church" data-route="register-church" data-list-church="true" style="display:inline-flex;margin-top:18px;" data-i18n="home.fc.cta">List your church — free</a>
+      <p style="color:var(--ink-mute);font-size:12.5px;margin-top:10px;" data-i18n="home.fc.note">FaithDock is in private testing. Listing is free; setting one up needs an invite code.</p>
     </div>
   </div>
 </section>
@@ -7285,7 +7396,40 @@ Groups</span>
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v116 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<!-- A sitemap rather than a longer single line of links: the footer
+     is the only place on the site that lists what exists, and the
+     About page has sections worth reaching directly. -->
+<div class="sitemap">
+  <div class="wrap sitemap-inner">
+    <div>
+      <h5 data-i18n="footer.smExplore">Explore</h5>
+      <a href="#directory" data-route="directory" data-i18n="nav.churches">Churches</a>
+      <a href="#events" data-route="events" data-i18n="nav.events">Events</a>
+      <a href="#pricing" data-route="pricing" data-i18n="nav.pricing">Pricing</a>
+    </div>
+    <div>
+      <h5 data-i18n="nav.about">About FaithDock</h5>
+      <a href="#about/mission" data-route="about" data-about-section="about-mission" data-i18n="about.missionTitle">Our mission</a>
+      <a href="#about/goals" data-route="about" data-about-section="about-goals" data-i18n="about.goalsTitle">What we are building toward</a>
+      <a href="#about/commitment" data-route="about" data-about-section="about-commitment" data-i18n="about.commitmentTitle">Our commitment</a>
+      <a href="#about/for-churches" data-route="about" data-about-section="about-for-churches" data-i18n="home.fc.eyebrow">For churches</a>
+    </div>
+    <div>
+      <h5 data-i18n="footer.smYourAccount">Your account</h5>
+      <a href="#my-churches" data-route="my-churches" data-i18n="nav.myChurches">My Churches</a>
+      <a href="#my-events" data-route="my-events" data-i18n="nav.myEvents">My Events</a>
+      <a href="#my-groups" data-route="my-groups" data-i18n="nav.myGroups">My Groups</a>
+      <a href="#profile" data-route="profile" data-i18n="nav.profile">Account profile</a>
+    </div>
+    <div>
+      <h5 data-i18n="footer.smSupport">Support</h5>
+      <a href="#help" data-route="help" data-i18n="nav.help">Help</a>
+      <a href="#register-church" data-route="register-church" data-list-church="true" data-i18n="home.fc.cta">List your church — free</a>
+      <a href="#" class="sitemap-feedback" data-i18n="profile.sendFeedback">Send feedback</a>
+    </div>
+  </div>
+</div>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v117 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -9090,6 +9234,62 @@ Groups</span>
     'my-churches': 'loadMyChurches',
     'profile':     'loadProfilePage'
   };
+  // Sitemap links that point at a section of the About page. The
+  // scroll happens after routing rather than through a bare #hash,
+  // because this app's hash IS the router -- an href of '#about-goals'
+  // would be read as a route named 'about-goals' and fall through to
+  // home.
+  document.addEventListener('click', function(ev){
+    var link = ev.target.closest ? ev.target.closest('[data-about-section]') : null;
+    if (!link) return;
+    ev.preventDefault();
+    var id = link.getAttribute('data-about-section');
+    if (typeof window.go === 'function') window.go('about');
+    // One frame for the page to become active before measuring it.
+    // The About page is static markup, so unlike the old homepage
+    // scroll there is nothing still loading to move the target.
+    requestAnimationFrame(function(){
+      var el = document.getElementById(id);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+
+  document.addEventListener('click', function(ev){
+    var fb = ev.target.closest ? ev.target.closest('.sitemap-feedback') : null;
+    if (!fb) return;
+    ev.preventDefault();
+    var footerLink = document.getElementById('footer-feedback-link');
+    // Delegates to the footer link's own handler rather than
+    // repeating the signed-in check -- one place decides what the
+    // feedback modal shows.
+    if (footerLink) footerLink.click();
+  });
+
+  // The hamburger shows initials once there is someone to show. Kept
+  // as one button rather than two swapped elements, so the menu it
+  // opens is unambiguously the same menu either way.
+  window.setNavInitials = function(name){
+    var iconEl = document.getElementById('hamburger-icon');
+    var initEl = document.getElementById('hamburger-initials');
+    if (!iconEl || !initEl) return;
+    var initials = '';
+    var clean = String(name || '').trim();
+    if (clean) {
+      var parts = clean.split(/\s+/).filter(Boolean);
+      // First and last rather than the first two, so "Mary Anne
+      // Fletcher" reads MF and not MA.
+      initials = (parts[0][0] + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase();
+    }
+    // textContent, not innerHTML: this comes from a display name
+    // somebody chose.
+    initEl.textContent = initials;
+    var showInitials = !!initials;
+    iconEl.style.display = showInitials ? 'none' : 'block';
+    initEl.style.display = showInitials ? 'flex' : 'none';
+    var btn = document.getElementById('hamburger-btn');
+    if (btn) btn.setAttribute('aria-label', showInitials ? clean : (window.t ? window.t('common.menu') : 'Menu'));
+  };
+
   window.runRouteEntryLoaders = function(base){
     var fn = ROUTE_ENTRY_LOADERS[base];
     if (!fn || typeof window[fn] !== 'function') return;
@@ -11338,27 +11538,11 @@ Groups</span>
   // data-route (so it never gets a misleading .active state and the
   // generic [data-route] handler ignores it); the delegated menu-close
   // listener above still closes the mobile menu on the tap.
-  var forChurchesNavLink = document.getElementById('nav-for-churches-link');
-  if (forChurchesNavLink) {
-    forChurchesNavLink.addEventListener('click', function(ev){
-      ev.preventDefault();
-      go('home');
-      // The homepage's "Churches near you" / "Upcoming events" grids
-      // render asynchronously and push the "For churches" band down
-      // after this handler runs, so a single immediate scroll lands
-      // ~one screen short. Re-align as the layout settles: a smooth
-      // pass first (real, focused tabs animate it), then two instant
-      // corrections to snap to the final position once the grids and
-      // any denomination-tinted thumbnails are in.
-      var toBand = function(smooth){
-        var band = document.querySelector('.for-churches');
-        if (band && band.scrollIntoView) band.scrollIntoView(smooth ? { behavior: 'smooth', block: 'start' } : { block: 'start' });
-      };
-      setTimeout(function(){ toBand(true); }, 80);
-      setTimeout(function(){ toBand(false); }, 550);
-      setTimeout(function(){ toBand(false); }, 1100);
-    });
-  }
+  // The "For churches" nav link used to scroll the homepage to its
+  // band, with a three-pass re-align because the grids above it
+  // render asynchronously and kept moving the target. It is a real
+  // route now (#about), so the scroll dance is gone with it --
+  // routing to a page needs no timing guesswork.
 
   var navSearchInput = document.getElementById('nav-search-input');
   if(navSearchInput){
@@ -11387,7 +11571,7 @@ Groups</span>
     // 'checkin-link' takes the token as its key segment. Tokens are
   // hex (see migration 052), so they survive being a path segment
   // without encoding and cannot contain the '/' the router splits on.
-  var validRoutes = ['home','directory','events','church','event','group','my-groups','my-events','my-churches','profile','pricing','compare','signup','reset-password','register-church','create-event','dashboard','admin','admin-church','help','privacy','terms','ada','waitlist','checkin-link'];
+  var validRoutes = ['home','directory','events','church','event','group','my-groups','my-events','my-churches','profile','pricing','compare','signup','reset-password','register-church','create-event','dashboard','admin','admin-church','help','privacy','terms','ada','waitlist','checkin-link','about'];
   showRouteFromHash(true);
   applyTranslations(savedLang);
 
@@ -14251,6 +14435,10 @@ Groups</span>
     // was removed (signup is invite-gated during private testing; the
     // homepage hero + "For churches" band carry the register CTA).
     if (loginLink) loginLink.style.display = isSignedIn ? 'none' : '';
+    // Signing out has to put the face back. Cleared here rather than
+    // only on the signed-in branch, or the previous account's initials
+    // would sit in the bar after a logout.
+    if (!isSignedIn && window.setNavInitials) window.setNavInitials('');
     // Pricing is the conversion path for anyone who isn't already paying
     // -- signed out, or signed in with no church / a free-tier church --
     // so it's known and safe to reveal immediately for a signed-out
@@ -14294,7 +14482,11 @@ Groups</span>
       var profile = (profileRows && profileRows.length) ? profileRows[0] : null;
       accountType = accountTypeResult ? accountTypeResult.data : null;
       if (userNameSpan) {
-        userNameSpan.textContent = (profile && profile.full_name) ? profile.full_name : (sessionUser.email || 'Account');
+        var navDisplayName = (profile && profile.full_name) ? profile.full_name : (sessionUser.email || 'Account');
+        userNameSpan.textContent = navDisplayName;
+        // The mobile bar shows initials of the same name, so both are
+        // set from one value rather than each deriving its own.
+        if (window.setNavInitials) window.setNavInitials(navDisplayName);
       }
       if (userMenu) userMenu.style.display = 'block';
       window.isPlatformAdmin = !!(adminResult && adminResult.data);
@@ -26736,6 +26928,9 @@ Groups</span>
       // whatever initially populated it.
       var navUserNameEl = document.getElementById('nav-user-name');
       if (navUserNameEl) navUserNameEl.textContent = newName;
+      // Same reason the line above exists: the mobile initials are a
+      // second rendering of this name and went stale identically.
+      if (window.setNavInitials) window.setNavInitials(newName);
       statusEl.textContent = window.t('profile.savedNameLocked60Days');
       statusEl.style.color = 'var(--sage)';
       statusEl.style.display = 'block';
