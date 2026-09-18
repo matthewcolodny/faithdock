@@ -4578,3 +4578,23 @@ Both loader moves matter for the same reason as the Messages one: these switches
 Verified from a live page: every moved block resolves to its intended panel, each toggle sits in the same panel as its own status line, and every view loads exactly its own content -- Directory loads people and households, Directory → Reports loads the three report panels, and both Settings pages load the toggles.
 
 Build `2026-09-18-v126`. No migration.
+
+---
+
+## The drawer learns the difference between a section and a page
+
+Reported: tapping a sidebar tab navigates correctly but closes the drawer, so it has to be reopened.
+
+Closing on arrival was right when every tab was a destination. Once a tab could be a **section**, that tap became a step *into* a menu -- and closing the drawer hid the very list the tap had just produced. Now a section keeps the drawer open and a page closes it, because only one of those is an arrival.
+
+The rule lives in two places that have to agree -- the click handler and `goDash` -- and **both ask `DASH_SECTIONS`** rather than carrying a list of section names. A second list would be one more thing to forget, which this session has now paid for three times. They also run in sequence: `goDash` fires just after the click handler, so if it kept the old unconditional close it would quietly overrule the decision the handler had just made.
+
+**The two levels slide in opposite directions**: deeper comes in from the right, back comes in from the left. That direction is the only cue that the *menu* changed rather than the page -- both lists are the same size in the same place, so without it a tap reads as nothing having happened.
+
+Re-triggering a CSS animation needs the class removed, the element reflowed (`void el.offsetWidth`) and the class added again. Without the reflow, drilling from Events straight into Directory would not animate at all: the class is already present, nothing changes, and the browser has no reason to restart it. Verified by drilling into two sections in a row and checking the class is present **both** times, and that the left-entry class never lingers on the sub-menu afterwards.
+
+**The way back to the churches overview** for a multi-church owner existed already, as small underlined text above the nav -- easy to miss, and easier once the church tag and edit-profile link were removed from around it. It now uses the same `.dash-back` control as the sub-menu's "Main menu", so "leave this level" looks like one thing wherever it appears.
+
+Build `2026-09-18-v127`. No migration.
+
+**Insights is still in the sidebar**, deliberately and not yet done: it holds seven blocks -- saved reports, giving, event attendance, consecutive absences, groups, households, involvement -- destined for four different Reports pages. Removing the tab before they land would take working features offline, so it is its own change rather than a line in this one.

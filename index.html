@@ -3657,6 +3657,17 @@
     padding:8px 12px 12px;margin-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.12);
   }
   .dash-back:hover{opacity:1;color:#fff;}
+  /* Going deeper comes in from the right; coming back comes in from
+     the left. The direction is the only cue that the menu changed
+     rather than the page -- both lists are the same size in the same
+     place, so without it a tap reads as nothing having happened. */
+  .dash-nav-enter-right{animation:dashNavFromRight .18s ease-out;}
+  .dash-nav-enter-left{animation:dashNavFromLeft .18s ease-out;}
+  @keyframes dashNavFromRight{from{transform:translateX(22%);opacity:0;}to{transform:translateX(0);opacity:1;}}
+  @keyframes dashNavFromLeft{from{transform:translateX(-22%);opacity:0;}to{transform:translateX(0);opacity:1;}}
+  @media (prefers-reduced-motion: reduce){
+    .dash-nav-enter-right,.dash-nav-enter-left{animation:none;}
+  }
   .dash-sub-heading{
     font-family:'Fraunces';color:#fff;font-size:15px;padding:0 12px 10px;
   }
@@ -6328,7 +6339,7 @@ Groups</span>
     <div class="dash-scrim" id="dash-scrim"></div>
     <div class="dash-side">
       <!-- Multi-church owner only: jump back to the Overview grid from a church view -->
-      <a id="dash-all-churches-link" role="button" style="display:none;font-size:12.5px;color:#CBD2DE;margin-bottom:20px;border-bottom:1px solid rgba(255,255,255,0.2);width:fit-content;padding-bottom:1px;cursor:pointer;" data-i18n="dash.allChurches">‹ All churches</a>
+      <a id="dash-all-churches-link" class="dash-back" role="button" style="display:none;" data-i18n="dash.allChurches">‹ All churches</a>
       <!-- Multi-church owner only: sidebar heading while on the account-level Overview -->
       <div id="dash-overview-header" style="display:none;">
         <div class="dash-church" data-i18n="dash.overview">Overview</div>
@@ -7651,7 +7662,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v126 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v127 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -9560,10 +9571,19 @@ Groups</span>
     if (ev.key === 'Escape') setDashMenu(false);
   });
 
-  // Choosing a destination closes the menu -- you have arrived, and
-  // leaving it open would cover what you came to see.
+  // Choosing a PAGE closes the menu -- you have arrived, and leaving
+  // it open would cover what you came to see. Choosing a SECTION does
+  // not: that tap opened a sub-menu, and closing the drawer would
+  // hide the list it just produced.
   document.addEventListener('click', function(ev){
-    if (ev.target.closest && ev.target.closest('.dash-side [data-dash]')) setDashMenu(false);
+    var picked = ev.target.closest && ev.target.closest('.dash-side [data-dash]');
+    if (!picked) return;
+    var pickedView = picked.getAttribute('data-dash');
+    // A section with pages behind it keeps the drawer open: the tap
+    // opened a menu, and closing it would hide what was just opened.
+    // A page closes it, because you have arrived.
+    var opensSubMenu = !!(window.DASH_SECTIONS && window.DASH_SECTIONS[pickedView]);
+    if (!opensSubMenu) setDashMenu(false);
   });
 
 
@@ -10361,6 +10381,13 @@ Groups</span>
         }).join('');
     main.style.display = 'none';
     el.style.display = '';
+    // Re-triggering an animation needs the class removed and the
+    // element reflowed first, or a second drill-down into another
+    // section does not animate at all -- the class is already there,
+    // so nothing changes and the browser has no reason to restart it.
+    el.classList.remove('dash-nav-enter-right', 'dash-nav-enter-left');
+    void el.offsetWidth;
+    el.classList.add('dash-nav-enter-right');
   }
   window.renderDashSubNav = renderDashSubNav;
 
@@ -10396,7 +10423,12 @@ Groups</span>
       var sub = document.getElementById('dash-nav-sub');
       var main = document.getElementById('dash-nav-church');
       if (sub) sub.style.display = 'none';
-      if (main) main.style.display = '';
+      if (main) {
+        main.style.display = '';
+        main.classList.remove('dash-nav-enter-right', 'dash-nav-enter-left');
+        void main.offsetWidth;
+        main.classList.add('dash-nav-enter-left');
+      }
     }
   });
 
@@ -10489,7 +10521,15 @@ Groups</span>
     // Arriving at a tab closes the drawer and names it in the bar.
     // Both here rather than only in the click handler, so deep links
     // and Back/Forward behave the same as a tap.
-    if (typeof window.setDashMenu === 'function') window.setDashMenu(false);
+    // Same rule as the click handler: a section opens a menu and
+    // keeps the drawer; a page is an arrival and closes it. Both
+    // places ask DASH_SECTIONS rather than carrying their own list,
+    // and both have to agree -- this one runs just after the other
+    // and would otherwise overrule it.
+    if (typeof window.setDashMenu === 'function'
+        && !(window.DASH_SECTIONS && window.DASH_SECTIONS[view])) {
+      window.setDashMenu(false);
+    }
     // Reported: picking a tab landed part-way down the new page,
     // because the scroll position carries over from the tab you left
     // and the panels are different heights. Arriving at a page should
