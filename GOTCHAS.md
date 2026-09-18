@@ -5053,3 +5053,44 @@ The email check needs `auth.users`, which `authenticated` cannot read, so the tr
 Migration 061 ends with a read-only query listing handoffs marked accepted whose church is not owned by the intended recipient -- every row is a church somebody believes they handed over and still owns. Completing one is left as a deliberate, commented-out statement rather than a bulk UPDATE, because the recipient may no longer want it and the `keep_as_staff` insert already happened.
 
 **Migration 061 must be run by hand.** Until it is, accepting a transfer does nothing and says it worked.
+
+---
+
+## Sweeping the untracked RPCs found a function that was never created
+
+Every `rpc('...')` name in index.html, checked against `migrations/`. Seventeen had no source anywhere. Sixteen came back from `pg_get_functiondef` and are filed under `supabase/db-functions/`.
+
+**The seventeenth did not exist.** `get_person_group_signups` has never been created, and the directory person modal has been calling it:
+
+```
+var { data: churchGroups, error: groupsErr } = await supabase.rpc('get_person_group_signups', {...});
+if (groupsErr) console.error(...);
+churchGroups = churchGroups || [];
+if (!churchGroups.length) { "No group sign-ups yet." }
+```
+
+The error goes to the console, `|| []` turns the failure into an empty array, and the empty array falls straight through to the empty state. **Somebody in three groups shows as being in none.** Staff looking at a member's record have been reading a confident wrong answer with nothing on screen suggesting a failure.
+
+This is the `|| []` failure shape: a defensive default that turns "the call failed" into "there is nothing", and they are indistinguishable at the call site. Migration 062 creates the function, modelled on `get_person_event_signups` -- the function directly above it in the same modal, doing the same job for events, which fixes the permission check, the security context and the return shape without inventing anything.
+
+**Worth repeating that check after any batch of RPC work.** A name the client calls that the database does not have fails quietly whenever the call site tolerates an empty result.
+
+### The directory privacy settings do nothing
+
+Reading `get_directory_people` settled a question I should have asked when I built the setting: `directory_visibility` and `members_see_contact_details` (migration 059, shipped v133) are **written and never read**. They appear in exactly three places in index.html -- the settings page that loads them, the settings page that saves them, and the defaults applied to a new church. Nothing consumes either one.
+
+`get_directory_people` returns rows only for the owner or staff, and references neither column. So "Staff and approved members" changes nothing -- members still get an empty result -- and the contact-details switch has no effect at all.
+
+A church can set their directory to the more private option and believe they have restricted something. I wrote in this file, two builds earlier, that "a setting that appears to control something it does not is worse than no setting", and then shipped exactly that. The check I skipped was the obvious one: **grep for who reads the column, not just who writes it.**
+
+Fixing it properly means `get_directory_people` consulting `directory_visibility`, and letting approved members call it at all -- which is a real change to who can read a church's people, not a one-line patch. Left as a stated gap rather than half-done.
+
+### Other findings, recorded rather than fixed
+
+- **`get_mass_email_recipients`' `members` branch filters `is_permanent = true` but not `status = 'approved'`**, while `get_directory_people` filters on both. The two disagree about who a member is, and the mass-email one is the permissive side -- so a church emailing "members" may reach people whose membership was never approved.
+- **`get_user_id_by_email` is not scoped to a church.** Its check is "owns any church, or is staff of any church, or leads any group", so any staff member anywhere can resolve any email address to a user id.
+- **`get_my_plan_and_usage` derives the account's plan as the highest-ranked plan among churches owned.** Transferring a church away can therefore lower the account's own limits -- relevant to the billing questions, and not something the transfer UI says.
+- `search_events` is the only one not `security definer`, which is correct for a public feed and worth knowing before someone "fixes" it.
+- Three helpers the captured functions call -- `is_church_staff_member`, `is_group_leader`, `compute_involvement_snapshot_internal` -- are still uncaptured, as are the table definitions for anything created before migrations were tracked.
+
+**Migration 062 must be run by hand.** Until it is, the directory modal keeps reporting that nobody is in any group.
