@@ -4281,3 +4281,29 @@ Feedback rows carry a `user_id`, so there is genuinely nothing to attach an anon
 Verified in both states: signed out, the footer link opens the modal with the note and no form, and forcing the form open and submitting produces the sign-in message with the button re-enabled rather than a stuck disabled button; signed in, the form shows and submits `{user_id, message}`. On the profile page the feedback card is gone, four panels remain with one card each, and the last tab reads "Account".
 
 Build `2026-09-17-v114`. No migration.
+
+---
+
+## "Keep me signed in", and why it had to invert
+
+Asked for a **functional** keep-me-signed-in, and that word is the whole design. supabase-js defaults to `persistSession` on `localStorage`, so every sign-in was already permanent -- a checkbox switching that on would have been a decoration wired to something that was always true.
+
+Making it real means making **unchecked** do something: the session goes to `sessionStorage` and dies with the browser. So the client gets a storage adapter that decides per write.
+
+Three things that matter in it:
+
+- **The choice is read at write time, not baked in when the client is constructed.** The client exists long before anyone reaches a login form.
+- **Writing to one storage REMOVES from the other.** Without that, unticking the box after a persistent sign-in leaves the old `localStorage` session behind, the browser reopens signed in, and the box looks broken for the one person who actually needed it -- someone on a shared computer.
+- **`getItem` reads both.** The choice can change between sign-ins, and a session written under the previous one still has to be found.
+
+Every accessor is wrapped in try/catch: storage throws outright in some privacy modes, and a sign-in must not fail because of it. It just will not be remembered, which is the safer direction to fail in.
+
+The box also reflects the *stored* choice on load rather than its own `checked` attribute, so someone who unticked it last time does not find it ticked again and conclude it did not take.
+
+Verified through the real client's own storage object rather than a copy of the adapter: checked writes to localStorage only; unchecked writes to sessionStorage **and clears localStorage**; remove clears both; read finds whichever exists.
+
+**Browse buttons.** My Churches loses "Add a church" for "Browse churches" -- the page is for people finding a church home, and the likely next step from an empty list is looking for one, not registering an organisation. My Groups goes to the directory rather than a group listing, because groups are not browsable platform-wide: they live on a church profile, so the honest destination is where you find the church.
+
+**The profile page's own Sign out is gone** -- the nav has had one all along, and two controls doing the same thing invite the question of whether they differ. Its handler was removed with it rather than left guarded, since a listener bound to an id that no longer exists is dead code that reads like a feature. "Sign out of all other devices" moved to the Account tab: ending other sessions is account security, not a password setting.
+
+Build `2026-09-18-v115`. No migration.

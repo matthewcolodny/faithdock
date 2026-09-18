@@ -734,6 +734,11 @@
       'dashCheckin.badEmail': 'That email address does not look right.',
       'profile.tabProfile': 'Profile', 'profile.tabEmail': 'Email',
       'profile.tabPassword': 'Password', 'profile.tabAccount': 'Account',
+      'auth.keepSignedIn': 'Keep me signed in on this device',
+      'auth.keepSignedInHint': 'Leave this unchecked on a shared or public computer — you will be signed out when the browser closes.',
+      'myChurches.browseChurches': 'Browse churches',
+      'myGroups.browseGroups': 'Find groups at a church',
+      'myEvents.browseEvents': 'Browse events',
       'profile.feedbackSignIn': 'Sign in to send feedback, so we can follow up with you.',
       'dashMsg.subjectPlaceholder': 'e.g. Sunday service update', 'dashMsg.message': 'Message', 'dashMsg.writeAnnouncement': 'Write your announcement...',
       'dashMsg.scheduleForLater': 'Schedule for later instead of sending now', 'dashMsg.sendAnnouncement': 'Send announcement',
@@ -1626,6 +1631,11 @@
       'dashCheckin.badEmail': 'Ese correo electrónico no parece correcto.',
       'profile.tabProfile': 'Perfil', 'profile.tabEmail': 'Correo',
       'profile.tabPassword': 'Contraseña', 'profile.tabAccount': 'Cuenta',
+      'auth.keepSignedIn': 'Mantener la sesión iniciada en este dispositivo',
+      'auth.keepSignedInHint': 'Déjalo sin marcar en un equipo compartido o público — se cerrará la sesión al cerrar el navegador.',
+      'myChurches.browseChurches': 'Explorar iglesias',
+      'myGroups.browseGroups': 'Buscar grupos en una iglesia',
+      'myEvents.browseEvents': 'Explorar eventos',
       'profile.feedbackSignIn': 'Inicia sesión para enviar comentarios, así podemos responderte.',
       'dashMsg.subjectPlaceholder': 'p. ej. Actualización del servicio dominical', 'dashMsg.message': 'Mensaje', 'dashMsg.writeAnnouncement': 'Escribe tu anuncio...',
       'dashMsg.scheduleForLater': 'Programar para más tarde en lugar de enviar ahora', 'dashMsg.sendAnnouncement': 'Enviar anuncio',
@@ -4620,6 +4630,9 @@ Groups</span>
     <div class="eyebrow" data-i18n="myEvents.eyebrow">Your events</div>
     <h1 style="font-size:34px;" data-i18n="myEvents.title">My Events</h1>
     <p style="color:var(--ink-mute);margin-top:8px;" data-i18n="myEvents.subtitle">Every event you've registered for or followed, across every church, in order.</p>
+    <div style="margin-top:20px;">
+      <a href="#events" data-route="events" class="export-btn" style="display:inline-flex;" data-i18n="myEvents.browseEvents">Browse events</a>
+    </div>
 
     <div style="display:flex;gap:12px;margin-top:24px;flex-wrap:wrap;">
       <select class="field" id="my-events-time-filter" style="width:auto;min-width:160px;">
@@ -4643,7 +4656,15 @@ Groups</span>
     <div class="eyebrow" data-i18n="myChurches.eyebrow">Your churches</div>
     <h1 style="font-size:34px;" data-i18n="myChurches.title">My Churches</h1>
     <p style="color:var(--ink-mute);margin-top:8px;" data-i18n="myChurches.subtitle">Every church you're connected to — home, owned, staffed, or followed — in one place.</p>
-    <div id="my-churches-list" style="margin-top:32px;max-width:640px;">
+    <!-- Browse rather than "Add a church": this page is for people
+         finding a church home, and the overwhelmingly likely next
+         step from an empty list is looking for one, not registering
+         an organisation. Adding a church still has its own route
+         from the footer and the homepage. -->
+    <div style="margin-top:20px;">
+      <a href="#directory" data-route="directory" class="export-btn" style="display:inline-flex;" data-i18n="myChurches.browseChurches">Browse churches</a>
+    </div>
+    <div id="my-churches-list" style="margin-top:24px;max-width:640px;">
       <p style="color:var(--ink-mute);font-size:14px;" data-i18n="common.loading">Loading...</p>
     </div>
   </div>
@@ -4654,7 +4675,15 @@ Groups</span>
     <div class="eyebrow" data-i18n="myGroups.eyebrow">Your groups</div>
     <h1 style="font-size:34px;" data-i18n="myGroups.title">My Groups</h1>
     <p style="color:var(--ink-mute);margin-top:8px;" data-i18n="myGroups.subtitle">Every group you've joined, across every church.</p>
-    <div id="my-groups-list" style="margin-top:32px;max-width:640px;">
+    <!-- Groups are not browsable platform-wide the way churches and
+         events are -- they live on a church profile. So this goes to
+         the directory, which is where you find the church whose
+         groups you can then see, rather than to a listing that does
+         not exist. -->
+    <div style="margin-top:20px;">
+      <a href="#directory" data-route="directory" class="export-btn" style="display:inline-flex;" data-i18n="myGroups.browseGroups">Find groups at a church</a>
+    </div>
+    <div id="my-groups-list" style="margin-top:24px;max-width:640px;">
       <p style="color:var(--ink-mute);font-size:14px;" data-i18n="common.loading">Loading...</p>
     </div>
   </div>
@@ -5056,20 +5085,23 @@ Groups</span>
         <div id="profile-password-status" style="display:none;font-size:12px;margin-top:8px;"></div>
       </form>
 
-      <button class="export-btn" id="profile-signout-others-btn" style="margin-top:20px;" data-i18n="profile.signOutOtherDevices">Sign out of all other devices</button>
-      <div style="font-size:12px;color:var(--ink-mute);margin-top:6px;" data-i18n="profile.signOutOtherDevicesHint">Ends every other signed-in session for your account — another phone, browser, or computer — without signing out this one.</div>
-      <div id="profile-signout-others-status" style="display:none;font-size:12px;margin-top:8px;"></div>
+
     </div>
     </div>
 
-    <!-- Outside the tabs deliberately: signing out is not a setting,
-         and hiding the way out of an account behind a tab nobody
-         thinks to open is a bad trade for tidiness. -->
-    <button class="export-btn" id="profile-signout-btn" style="margin-top:20px;" data-i18n="profile.signOut">Sign out</button>
 
     <div class="prof-panel" id="prof-panel-delete" style="display:none;">
     <div class="side-note" style="margin-top:20px;border-color:var(--clay);">
-      <h4 style="color:var(--clay);" data-i18n="profile.deleteAccount">Delete account</h4>
+      <!-- Ending other sessions is account security, not a password
+           setting, so it sits with Account. The page no longer
+           carries a plain "Sign out" of its own -- the nav has had
+           one all along and two of the same control invites the
+           question of whether they do different things. -->
+      <button class="export-btn" id="profile-signout-others-btn" data-i18n="profile.signOutOtherDevices">Sign out of all other devices</button>
+      <div style="font-size:12px;color:var(--ink-mute);margin-top:6px;" data-i18n="profile.signOutOtherDevicesHint">Ends every other signed-in session for your account — another phone, browser, or computer — without signing out this one.</div>
+      <div id="profile-signout-others-status" style="display:none;font-size:12px;margin-top:8px;"></div>
+
+      <h4 style="color:var(--clay);margin-top:26px;" data-i18n="profile.deleteAccount">Delete account</h4>
       <p style="font-size:13px;color:var(--ink-mute);" id="profile-delete-warning" data-i18n="profile.deleteWarningDefault">This permanently deletes your account and everything tied to it. This can't be undone.</p>
       <button class="export-btn" id="profile-delete-toggle-btn" style="border-color:var(--clay);color:var(--clay);" data-i18n="profile.deleteMyAccount">Delete my account</button>
       <div id="profile-delete-confirm-wrap" style="display:none;margin-top:12px;">
@@ -5527,7 +5559,13 @@ Groups</span>
         <input class="field" type="email" id="login-email" placeholder="jamie@email.com" data-i18n-placeholder="auth.emailPlaceholder" autocomplete="email">
         <label data-i18n="auth.password">Password</label>
         <input class="field" type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
-        <div style="text-align:right;margin-top:8px;"><a href="#" id="forgot-password-link" style="font-size:12.5px;color:var(--ink-mute);border-bottom:1px solid var(--line);" data-i18n="auth.forgotPassword">Forgot password?</a></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap;">
+          <label class="filter-check" style="margin:0;font-size:12.5px;">
+            <input type="checkbox" id="login-keep-signed-in" checked> <span data-i18n="auth.keepSignedIn">Keep me signed in on this device</span>
+          </label>
+          <a href="#" id="forgot-password-link" style="font-size:12.5px;color:var(--ink-mute);border-bottom:1px solid var(--line);" data-i18n="auth.forgotPassword">Forgot password?</a>
+        </div>
+        <div style="font-size:11.5px;color:var(--ink-mute);margin-top:6px;" data-i18n="auth.keepSignedInHint">Leave this unchecked on a shared or public computer — you will be signed out when the browser closes.</div>
       </form>
       <form id="forgot-password-fields" style="display:none;">
         <label data-i18n="auth.email">Email</label>
@@ -7247,7 +7285,7 @@ Groups</span>
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-17-v114 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v115 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -11807,11 +11845,72 @@ Groups</span>
     return pending.then(r => r.clone());
   }
 
+  // ============================================================
+  // Where the session is stored, and why it is a choice.
+  //
+  // supabase-js defaults to persistSession on localStorage, which
+  // survives closing the browser -- so before this, every sign-in was
+  // already permanent and a "keep me signed in" checkbox would have
+  // been wired to something that was always true. Making it real
+  // means making UNCHECKED do something: the session goes to
+  // sessionStorage instead and dies with the tab.
+  //
+  // The decision is read at WRITE time rather than baked in when the
+  // client is constructed, because the client exists long before
+  // anyone reaches the login form.
+  //
+  // Every accessor is wrapped: storage throws outright in some
+  // privacy modes, and a sign-in must not fail because of it -- it
+  // just will not be remembered, which is the safer way to fail.
+  var KEEP_SIGNED_IN_KEY = 'faithdock_keep_signed_in';
+  function wantsPersistentSession(){
+    try { return localStorage.getItem(KEEP_SIGNED_IN_KEY) !== '0'; }
+    catch (e) { return true; }
+  }
+  window.setKeepSignedIn = function(on){
+    try { localStorage.setItem(KEEP_SIGNED_IN_KEY, on ? '1' : '0'); } catch (e) {}
+  };
+  var faithdockAuthStorage = {
+    // Reads BOTH, because the choice can change between sign-ins and
+    // a session written under the old one still has to be found.
+    getItem: function(key){
+      try {
+        var v = window.localStorage.getItem(key);
+        if (v !== null && v !== undefined) return v;
+      } catch (e) {}
+      try { return window.sessionStorage.getItem(key); } catch (e) { return null; }
+    },
+    setItem: function(key, value){
+      var persistent = wantsPersistentSession();
+      // Removed from the other one, not just written to the chosen
+      // one. Without this, unticking the box after a persistent
+      // sign-in would leave the old localStorage session behind and
+      // the browser would still reopen signed in -- the box would
+      // look broken for the one person who actually needed it.
+      try { (persistent ? window.sessionStorage : window.localStorage).removeItem(key); } catch (e) {}
+      try { (persistent ? window.localStorage : window.sessionStorage).setItem(key, value); } catch (e) {}
+    },
+    removeItem: function(key){
+      try { window.localStorage.removeItem(key); } catch (e) {}
+      try { window.sessionStorage.removeItem(key); } catch (e) {}
+    }
+  };
+
   const supabase = createClient(
     'https://doerahlrdknedoknawex.supabase.co',
     'sb_publishable_zdoYSKnhvJyEdhhbCV_CAw_owRZ3f-V',
-    { global: { fetch: coalescingFetch } }
+    { global: { fetch: coalescingFetch }, auth: { storage: faithdockAuthStorage } }
   );
+
+  // The box reflects the stored choice rather than its own checked
+  // attribute, so someone who unticked it last time does not find it
+  // ticked again next visit and assume it did not take.
+  (function restoreKeepSignedIn(){
+    var box = document.getElementById('login-keep-signed-in');
+    if (!box) return;
+    box.checked = wantsPersistentSession();
+    box.addEventListener('change', function(){ window.setKeepSignedIn(box.checked); });
+  })();
   // Exposed globally because a separate, earlier, non-module <script>
   // block (the one with the original sample data and several
   // directory/search functions) has its own scope that can never see
@@ -26977,13 +27076,11 @@ Groups</span>
     });
   }
 
-  var profileSignoutBtn = document.getElementById('profile-signout-btn');
-  if (profileSignoutBtn) {
-    profileSignoutBtn.addEventListener('click', async function(){
-      await supabase.auth.signOut();
-      go('home');
-    });
-  }
+  // The profile page no longer has its own Sign out button -- the nav
+  // has had one all along, and two controls doing the same thing
+  // invites the question of whether they differ. The handler is
+  // removed with it rather than left guarded: a listener bound to an
+  // id that no longer exists is dead code that reads like a feature.
 
   // Church Home — designating one church as your main church. This
   // is what "congregation member" means everywhere else in the app
