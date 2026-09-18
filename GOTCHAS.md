@@ -5349,3 +5349,27 @@ Orphan counts came back zero across `church_staff`, `church_memberships`, `group
 **The verify block checks which rule the constraint carries, not that it exists.** A cascade here would be worse than no constraint at all, so "a foreign key is present" is not the thing worth asserting.
 
 One consequence to expect rather than discover: after this, deleting a user from the Supabase dashboard **fails** while they still own a church. That is the constraint working.
+
+---
+
+## About FaithDock: real copy
+
+The last item on the list. Three sections that said "Coming soon."
+
+**Written to match the voice already in the app** rather than inventing a new one — `home.headline` ("Find your church home, and everything happening there") and `home.fc.heading` ("Be where people are already looking") set it: plain, concrete, second person, no hype.
+
+**Commitment is a list, not a paragraph.** Each line is something somebody can hold FaithDock to, and a promise buried in prose is harder to check than one on its own line.
+
+**Every claim was checked against what the code actually does**, because a commitments page is exactly where an unearned sentence does damage:
+
+- "Giving goes straight to your church's own Stripe account. FaithDock never holds your congregation's money." — true by construction: `stripe-create-checkout` uses `transfer_data.destination` to the church's own Connect account, and the app already says this almost word for word in `dashSettings.givingHint`.
+- "You decide what is public, what members can see, and what stays with staff" — true **as of migration 063**. It would have been a false claim a week ago, when `directory_visibility` was stored and never read.
+- "Being listed is free. Paid plans are for tools, not for being findable." — matches `pricing.subtitle`.
+
+**What was deliberately left out:** any claim about fees. `PLATFORM_FEE_PERCENT` is 0 in both checkout functions, with a comment saying raising it later is a one-number change, and a separate 1% Free-plan event fee is described elsewhere in this file. Those two do not obviously agree, and a commitments page is the worst place to write a number that might be wrong. Also avoided "stays free forever" — a business decision nobody has made is not a promise to print.
+
+**These are promises in FaithDock's name, not mine.** They read as safe and they match the code today, but the data and pricing ones especially are the owner's to approve or reword before this is public.
+
+Verified: no "Coming soon" survives, all three anchors still resolve for the footer's `#about/mission` deep links, and the four commitments survive a language switch in both directions — `applyTranslations` sets `textContent` on every `[data-i18n]`, which removes child elements, so the `<ul>` is a **sibling** of the tagged `<p>` rather than inside it.
+
+Build `2026-09-18-v147`; no migration.
