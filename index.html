@@ -7285,7 +7285,7 @@ Groups</span>
 
 </main>
 
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v115 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v116 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -9066,6 +9066,38 @@ Groups</span>
   }
   window.resolveRouteFromHash = resolveRouteFromHash;
 
+  // ============================================================
+  // What reloads when you arrive on a route.
+  //
+  // There are two ways to arrive: go() for a click, and
+  // showRouteFromHash() for back/forward, a direct URL and the
+  // initial load. Each kept its OWN list of per-route loaders, and
+  // the lists had drifted -- go() reloaded my-churches, and
+  // showRouteFromHash() did not.
+  //
+  // Reported exactly that way: browse churches, follow some, press
+  // Back, and My Churches shows the old list. Clicking the nav link
+  // worked, so the feature looked fine.
+  //
+  // The comment beside go()'s copy documents this same bug being
+  // fixed once already, on the other dispatcher. That is the actual
+  // problem: two hand-maintained lists that have to agree, where
+  // updating one and not the other produces a page that is correct
+  // by one route and stale by another. One list now, called by both.
+  var ROUTE_ENTRY_LOADERS = {
+    'my-events':   'loadMyEvents',
+    'my-groups':   'loadMyGroups',
+    'my-churches': 'loadMyChurches',
+    'profile':     'loadProfilePage'
+  };
+  window.runRouteEntryLoaders = function(base){
+    var fn = ROUTE_ENTRY_LOADERS[base];
+    if (!fn || typeof window[fn] !== 'function') return;
+    // Guarded for the same reason refreshAfterEventChange() is: a
+    // loader throwing must not take routing down with it.
+    try { window[fn](); } catch (e) { console.error('Route loader failed:', fn, e); }
+  };
+
   // Re-populates the correct event/church content based on whatever
   // the current URL hash says, then shows that page. Used on initial
   // load, on back/forward navigation, and again once real data
@@ -9376,15 +9408,9 @@ Groups</span>
     if(resolved.base === 'signup' && typeof window.fdInviteUnlocked === 'function' && !window.fdInviteUnlocked()){
       if(typeof window.openInviteGate === 'function') window.openInviteGate();
     }
-    if(resolved.base === 'my-events' && typeof window.loadMyEvents === 'function'){
-      window.loadMyEvents();
-    }
-    if(resolved.base === 'my-groups' && typeof window.loadMyGroups === 'function'){
-      window.loadMyGroups();
-    }
-    if(resolved.base === 'profile' && typeof window.loadProfilePage === 'function'){
-      window.loadProfilePage();
-    }
+    // my-churches was missing here, which is why Back showed a stale
+    // list while the nav link did not -- see ROUTE_ENTRY_LOADERS.
+    window.runRouteEntryLoaders(resolved.base);
     // Back/Forward into Events or Home -- same reasoning as the click
     // handler's own copy of this (see its comment there).
     if((resolved.base === 'events' || resolved.base === 'home') && typeof window.refreshAllCardRegistrationStates === 'function'){
@@ -9592,26 +9618,12 @@ Groups</span>
         fullRoute = 'admin-church/' + encodeURIComponent(adminChurchId);
         if(typeof window.populateAdminChurchPage === 'function'){ window.populateAdminChurchPage(adminChurchId); }
       }
-      if(route === 'my-events' && typeof window.loadMyEvents === 'function'){
-        window.loadMyEvents();
-      }
-      if(route === 'my-groups' && typeof window.loadMyGroups === 'function'){
-        window.loadMyGroups();
-      }
-      // Real, reported bug: following a church from the Directory, then
-      // clicking the "My Churches" nav link, showed the old list until a
-      // full refresh. my-churches was missing from this same per-route
-      // reload pattern my-events/my-groups/profile already use -- its
-      // only other trigger was an auth-state-change/sign-in event, not
-      // navigating here, so a follow made mid-session (already signed
-      // in, no new auth event coming) never got picked up by a plain
-      // nav click.
-      if(route === 'my-churches' && typeof window.loadMyChurches === 'function'){
-        window.loadMyChurches();
-      }
-      if(route === 'profile' && typeof window.loadProfilePage === 'function'){
-        window.loadProfilePage();
-      }
+      // Was four separate ifs that showRouteFromHash() kept its own
+      // near-copy of. The bug the old comment here described --
+      // following a church then finding My Churches stale -- came
+      // back through Back/Forward, because the fix was applied to
+      // this list and not the other one. See ROUTE_ENTRY_LOADERS.
+      window.runRouteEntryLoaders(route);
       // Same per-route reload pattern as my-churches/profile above,
       // previously missing here entirely for 'dashboard' -- clicking
       // "Manage my church" or "← Back to my church" (both plain

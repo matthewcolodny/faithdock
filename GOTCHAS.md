@@ -4307,3 +4307,25 @@ Verified through the real client's own storage object rather than a copy of the 
 **The profile page's own Sign out is gone** -- the nav has had one all along, and two controls doing the same thing invite the question of whether they differ. Its handler was removed with it rather than left guarded, since a listener bound to an id that no longer exists is dead code that reads like a feature. "Sign out of all other devices" moved to the Account tab: ending other sessions is account security, not a password setting.
 
 Build `2026-09-18-v115`. No migration.
+
+---
+
+## The same bug, the other dispatcher
+
+Reported: browse churches from My Churches, follow a few, press Back, and My Churches still shows the old list.
+
+There are two ways to arrive at a route -- `go()` for a click, and `showRouteFromHash()` for Back/Forward, a pasted URL and the initial load -- and **each kept its own list of per-route loaders.** `go()` reloaded my-churches. `showRouteFromHash()` did not. So the nav link worked and Back did not, which is why the feature looked fine.
+
+The part worth recording is what was already in the file. Beside `go()`'s copy:
+
+> *Real, reported bug: following a church from the Directory, then clicking the "My Churches" nav link, showed the old list until a full refresh. my-churches was missing from this same per-route reload pattern my-events/my-groups/profile already use.*
+
+**Same bug. Same list. Fixed once, on one of the two dispatchers.** Adding the missing line to the second one would have left the arrangement that produced it intact and waiting for the next route.
+
+So there is one list now, `ROUTE_ENTRY_LOADERS`, called by both. Adding a route means adding one entry, and there is no longer a second place to forget.
+
+This is root cause (a) from the earlier refresh writeup in its purest form: the problem was never any particular missing loader, it was that two hand-maintained lists had to agree and nothing made them.
+
+Verified through both dispatchers by counting real calls: a click fires the loader, **Back fires it too** -- which is the path that was broken -- all four mapped routes fire their own and only their own, an unmapped route fires nothing, and a loader that throws does not take routing with it.
+
+Build `2026-09-18-v116`. No migration.
