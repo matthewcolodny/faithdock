@@ -5013,3 +5013,43 @@ Named on the page rather than omitted -- an account page that silently leaves it
 Forcing the panel visible and then awaiting `requestAnimationFrame` timed out at 45 seconds. rAF does not fire in a hidden document, and the browser pane was hidden -- the same class of trap as the frozen CSS transitions already in this file. `setTimeout` measures fine.
 
 Build `2026-09-18-v141`; no migration.
+
+---
+
+## 051 silently broke ownership transfer
+
+Asked what happens to fees when a church is transferred. Answering it meant reading `accept_church_ownership_handoff`, which turned out not to be in this repo at all -- it, its two siblings, and the `church_ownership_handoffs` table were created in the SQL editor before migrations were tracked. Captured now in `supabase/db-functions/`.
+
+With the real source in hand, the answer was worse than the question. `accept()` does one thing to the church row:
+
+```
+update churches set owner_id = auth.uid() where id = h.church_id;
+```
+
+`auth.uid()` there is the **recipient**. `SECURITY DEFINER` changes the privileges a function runs with; it does **not** change `auth.uid()`, which still reads the caller's JWT. So 051's pin trigger asks its three questions -- uid null? no. old owner null? no. uid = old owner? no -- and falls through to `new.owner_id := old.owner_id`.
+
+The transfer is reverted. `accept()` then marks the handoff `'accepted'` and, with `keep_as_staff`, inserts the old owner into `church_staff`. **The church still belongs to whoever owned it, who is now also listed as their own staff, and the handoff row is consumed so it cannot be retried.** Nothing raises, at any point.
+
+051 was right about the hole it closed -- a permitted staff editor really could PATCH `owner_id` onto themselves. It was wrong to assume every `owner_id` change by a non-owner is an attack. Exactly one is not: the handoff the current owner started on purpose. **A silent-restore guard is the hardest kind to notice you have broken something with**, because the thing it breaks reports success.
+
+I also shipped v141 on top of this -- an account page listing every church with a transfer control, all of them driving an accept path that could not work. Building UI on a mechanism I had not read end to end is the actual mistake; "it already exists" was true and not sufficient.
+
+### The fix, and why the exemption is re-derived rather than trusted
+
+061 lets the change through only when a handoff row exists for that church, still `pending`, addressed to the email of the user it is being handed to, and that user is the caller.
+
+`accept()` already checks the pending state and the email. The trigger re-derives both anyway, because it **also fires for ordinary client PATCHes**, where no function has checked anything. Drop the email check and a staff member could hijack any transfer in flight by PATCHing `owner_id` onto themselves during the pending window -- a smaller hole than 051 closed, but the same shape.
+
+The email check needs `auth.users`, which `authenticated` cannot read, so the trigger function is now `SECURITY DEFINER`. Without that it would raise permission denied on **every ordinary church edit** -- swapping a broken transfer for a broken everything. Its body only reads and assigns, and `search_path` stays pinned.
+
+**Billing deliberately stays pinned even on a legitimate handoff.** The Stripe ids on that row still point at the previous owner's customer and subscription, and an accept must not become a way to rewrite them.
+
+### What it does not fix
+
+- **The old owner keeps paying.** `plan_type` and the Stripe ids live on the church row and travel with it, so after a transfer the previous owner's card is still funding a church they gave away. Open product question, not something a trigger settles.
+- No tier check on the recipient, no refund for an unused month, no proration, and no grace period between non-payment and losing features -- `past_due` shows a warning on Billing and nothing else. None of these exist to be fixed; they are decisions nobody has made.
+- **Plan limits are enforced only at creation.** Nothing is ever removed on a downgrade: events are capped by how many were *created this calendar month*, groups the same, and a Large church with 8 staff that drops to Free (`staff: 0`) keeps all 8 and simply cannot invite a 9th.
+
+Migration 061 ends with a read-only query listing handoffs marked accepted whose church is not owned by the intended recipient -- every row is a church somebody believes they handed over and still owns. Completing one is left as a deliberate, commented-out statement rather than a bulk UPDATE, because the recipient may no longer want it and the `keep_as_staff` insert already happened.
+
+**Migration 061 must be run by hand.** Until it is, accepting a transfer does nothing and says it worked.
