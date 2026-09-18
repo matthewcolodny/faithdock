@@ -4556,3 +4556,25 @@ It is now **an inline classic script during parse**, placed immediately after th
 `window.preflightNavFace()` stays as the named, testable copy. The inline one exists for timing, not for logic, and that is written next to it.
 
 Build `2026-09-18-v125`. No migration.
+
+---
+
+## Directory splits, and two toggles find their settings page
+
+**Three of the five cards on Directory were not the directory.** Recently joined and Pending invites are time-windowed views of what has been happening; Possible duplicates is a data-health check. None is the list somebody opens Directory to read, and all three pushed that list below the fold. They move to **Directory → Reports**. Members and Households stay, because they *are* the directory.
+
+**The public-visibility toggles move to each section's Settings.** A switch that changes what visitors see is a setting, not a control you need beside the list you are editing -- both sat above their list, read on every visit and changed roughly never.
+
+### The status line has to travel with its toggle
+
+`bindGiveMessageToggleSave(toggleId, column, statusId)` writes its save confirmation into a status element. The first pass moved the toggles and left the status divs behind on the list pages -- so toggling on Settings would save correctly and print "Saved" onto **a page you were no longer looking at**.
+
+That is worse than it sounds. On a switch labelled "Show Groups on your public page", a save with no visible confirmation is indistinguishable from a save that did not happen, and the natural response is to toggle it again -- back to where it started. Caught by checking which panel each id had landed in rather than only that the toggle itself had moved.
+
+Both loader moves matter for the same reason as the Messages one: these switches default to **checked** in markup, which reads as "shown on your public page". Without `loadGiveMessageToggles` on the new pages, a church that had hidden a section would be told it was visible.
+
+**Tag balance was compared against the file before the move, not judged in isolation** -- `<label>` is 251 open to 250 close both before and after, a pre-existing imbalance elsewhere in the page. Reading the absolute number would have sent me looking for damage I had not done.
+
+Verified from a live page: every moved block resolves to its intended panel, each toggle sits in the same panel as its own status line, and every view loads exactly its own content -- Directory loads people and households, Directory → Reports loads the three report panels, and both Settings pages load the toggles.
+
+Build `2026-09-18-v126`. No migration.

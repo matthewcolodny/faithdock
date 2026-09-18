@@ -6636,11 +6636,17 @@ Groups</span>
       </div>
       <div class="dash-content" id="dash-ministries-settings">
         <h2 style="font-size:24px;margin-bottom:8px;" data-i18n="dashSub.ministriesSettings"></h2>
-        <p style="color:var(--ink-mute);font-size:13.5px;max-width:560px;" data-i18n="dashSub.placeholder">This page is being built. Nothing has moved yet — everything still works where it did before.</p>
+        <label class="filter-check" id="settings-ministries-enabled-toggle-wrap" style="display:flex;margin-bottom:14px;">
+                <input type="checkbox" id="settings-ministries-enabled-toggle" checked> <span data-i18n="dashSettings.ministriesEnabledToggle">Show Ministries on your public page</span>
+              </label>
+        <div id="settings-ministries-enabled-status" style="display:none;font-size:12px;margin-bottom:10px;"></div>
       </div>
       <div class="dash-content" id="dash-groups-settings">
         <h2 style="font-size:24px;margin-bottom:8px;" data-i18n="dashSub.groupsSettings"></h2>
-        <p style="color:var(--ink-mute);font-size:13.5px;max-width:560px;" data-i18n="dashSub.placeholder">This page is being built. Nothing has moved yet — everything still works where it did before.</p>
+        <label class="filter-check" id="settings-groups-enabled-toggle-wrap" style="display:flex;margin-bottom:14px;">
+      <input type="checkbox" id="settings-groups-enabled-toggle" checked> <span data-i18n="dashSettings.groupsEnabledToggle">Show Groups on your public page</span>
+    </label>
+        <div id="settings-groups-enabled-status" style="display:none;font-size:12px;margin-bottom:10px;"></div>
       </div>
       <div class="dash-content" id="dash-giving-tickets">
         <h2 style="font-size:24px;margin-bottom:8px;" data-i18n="dashSub.givingTickets"></h2>
@@ -6668,7 +6674,21 @@ Groups</span>
       </div>
       <div class="dash-content" id="dash-directory-reports">
         <h2 style="font-size:24px;margin-bottom:8px;" data-i18n="dashSub.directoryReports">Directory reports</h2>
-        <p style="color:var(--ink-mute);font-size:13.5px;max-width:560px;" data-i18n="dashSub.placeholder">This page is being built. Nothing has moved yet — everything still works where it did before.</p>
+        <div class="side-note" id="dir-duplicates-wrap" style="display:none;max-width:640px;">
+          <h4 data-i18n="households.possibleDuplicates">Possible duplicates</h4>
+          <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:12px;" data-i18n="households.possibleDuplicatesHint">People connected to your church who share an email or have very similar names — worth checking whether they're actually the same person under two accounts. This only flags candidates; nothing is merged automatically.</p>
+          <div id="dir-duplicates-list"></div>
+        </div>
+        <div class="side-note" id="dir-pending-invites-wrap" style="display:none;max-width:640px;">
+          <h4 data-i18n="households.invitedNotJoined">Invited, not yet joined</h4>
+          <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:12px;" data-i18n="households.invitedNotJoinedHint">People imported or invited by email who haven't created a FaithDock account yet.</p>
+          <div id="dir-pending-invites-list"></div>
+        </div>
+        <div class="side-note" id="dir-recently-joined-wrap" style="display:none;max-width:640px;">
+          <h4 data-i18n="households.recentlyJoined">Recently joined</h4>
+          <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:12px;" data-i18n="households.recentlyJoinedHint">People approved in the last 30 days. Flag someone to keep an eye on them without removing them; Remove takes them off your membership list entirely (their FaithDock account itself is unaffected).</p>
+          <div id="dir-recently-joined-list"></div>
+        </div>
       </div>
       <div class="dash-content" id="dash-directory-settings">
         <h2 style="font-size:24px;margin-bottom:8px;" data-i18n="dashSub.directorySettings">Directory settings</h2>
@@ -6768,11 +6788,7 @@ Groups</span>
           <div id="dir-members-status" style="display:none;font-size:12px;margin-top:10px;"></div>
         </div>
 
-        <div class="side-note" id="dir-recently-joined-wrap" style="display:none;max-width:640px;">
-          <h4 data-i18n="households.recentlyJoined">Recently joined</h4>
-          <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:12px;" data-i18n="households.recentlyJoinedHint">People approved in the last 30 days. Flag someone to keep an eye on them without removing them; Remove takes them off your membership list entirely (their FaithDock account itself is unaffected).</p>
-          <div id="dir-recently-joined-list"></div>
-        </div>
+
 
         <div class="side-note" id="dir-households-wrap" style="max-width:640px;">
           <h4 data-i18n="households.heading">Households</h4>
@@ -6781,17 +6797,9 @@ Groups</span>
           <button class="export-btn" id="household-add-open-btn" data-i18n="households.newHousehold">+ New household</button>
         </div>
 
-        <div class="side-note" id="dir-pending-invites-wrap" style="display:none;max-width:640px;">
-          <h4 data-i18n="households.invitedNotJoined">Invited, not yet joined</h4>
-          <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:12px;" data-i18n="households.invitedNotJoinedHint">People imported or invited by email who haven't created a FaithDock account yet.</p>
-          <div id="dir-pending-invites-list"></div>
-        </div>
 
-        <div class="side-note" id="dir-duplicates-wrap" style="display:none;max-width:640px;">
-          <h4 data-i18n="households.possibleDuplicates">Possible duplicates</h4>
-          <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:12px;" data-i18n="households.possibleDuplicatesHint">People connected to your church who share an email or have very similar names — worth checking whether they're actually the same person under two accounts. This only flags candidates; nothing is merged automatically.</p>
-          <div id="dir-duplicates-list"></div>
-        </div>
+
+
       </div>
 
       <div class="modal-overlay" id="household-modal">
@@ -6989,10 +6997,7 @@ Groups</span>
       <div class="dash-content" id="dash-groups">
     <!-- Same visibility control as Ministries, placed on the page that
          owns groups rather than buried in Settings. -->
-    <label class="filter-check" id="settings-groups-enabled-toggle-wrap" style="display:flex;margin-bottom:14px;">
-      <input type="checkbox" id="settings-groups-enabled-toggle" checked> <span data-i18n="dashSettings.groupsEnabledToggle">Show Groups on your public page</span>
-    </label>
-    <div id="settings-groups-enabled-status" style="display:none;font-size:12px;margin-bottom:10px;"></div>
+
         <h2 style="font-size:24px;margin-bottom:24px;" data-i18n="dash.groups">Groups</h2>
         <div class="dash-toolbar">
           <div style="font-size:14px;color:var(--ink-mute);" id="groups-count-label">Loading...</div>
@@ -7454,10 +7459,7 @@ Groups</span>
               <!-- Lives with the thing it governs rather than in a
                    general settings list. Moves to the Ministries page
                    along with this whole section. -->
-              <label class="filter-check" id="settings-ministries-enabled-toggle-wrap" style="display:flex;margin-bottom:14px;">
-                <input type="checkbox" id="settings-ministries-enabled-toggle" checked> <span data-i18n="dashSettings.ministriesEnabledToggle">Show Ministries on your public page</span>
-              </label>
-              <div id="settings-ministries-enabled-status" style="display:none;font-size:12px;margin-bottom:10px;"></div>
+
               <h4 data-i18n="dashSettings.ministries">Ministries</h4>
               <p style="font-size:13.5px;color:var(--ink-mute);margin-bottom:14px;" data-i18n="dashSettings.ministriesHint">The programs your church runs — a food pantry, a youth group, a recovery meeting. These show up on your public profile and can be attached to events.</p>
               <div id="ministries-list" style="margin-bottom:12px;"><p style="color:var(--ink-mute);font-size:13px;" data-i18n="common.loading">Loading...</p></div>
@@ -7649,7 +7651,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v125 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v126 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -10435,7 +10437,9 @@ Groups</span>
     var DASH_VIEW_LOADERS = {
       events:     ['loadDashboardEvents'],
       checkin:    ['loadCheckinEventPicker'],
-      directory:  ['loadDirectoryPeople', 'loadPendingInvitesPanel', 'loadRecentlyJoinedPanel'],
+      // Recently joined, pending invites and duplicates moved to
+      // Directory -> Reports, so they load there and not here.
+      directory:  ['loadDirectoryPeople', 'loadHouseholdsPanel'],
       // loadContactInbox is NOT here any more: the inbox moved to its
       // own sub-page and loading it from the composer would be a fetch
       // for something not on screen.
@@ -10460,7 +10464,7 @@ Groups</span>
       // from it is what caused the Billing bug.
       'events-reports':     [],
       'events-settings':    [],
-      'directory-reports':  [],
+      'directory-reports':  ['loadRecentlyJoinedPanel', 'loadPendingInvitesPanel', 'loadDuplicatesPanel'],
       'directory-settings': [],
       'messages-inbox':     ['loadContactInbox'],
       // The messaging toggles moved here from the composer page, and
@@ -10471,8 +10475,12 @@ Groups</span>
       // the toggles showing their unchecked HTML default.
       'messages-settings':  ['loadGiveMessageToggles'],
       'facility-rooms':     ['loadRoomsPanel'],
-      'ministries-settings': [],
-      'groups-settings':    [],
+      // loadGiveMessageToggles is what fills these switches in. Their
+      // HTML default is checked, which reads as "shown on your public
+      // page" -- so without the loader a church that had hidden the
+      // section would be told it was visible.
+      'ministries-settings': ['loadGiveMessageToggles'],
+      'groups-settings':    ['loadGiveMessageToggles'],
       'giving-tickets':     [],
       'giving-reports':     [],
       'giving-settings':    [],
