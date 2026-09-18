@@ -5558,3 +5558,30 @@ I had the evidence to know better: `profiles.id → CASCADE` was in that same re
 One column: `message_batches.created_by`, no constraint, while both siblings have one. Closed by 066 as SET NULL matching `scheduled_messages.created_by` — a record of a message that actually reached people should outlive the account that sent it, unlike a draft.
 
 An inconsistency rather than a hazard, and worth closing only because exactly one hole in an otherwise uniform rule is the kind of thing found later by surprise rather than by looking.
+
+---
+
+## Backticks in a double-quoted shell string, twice
+
+Two documentation edits in this session landed with their code spans
+silently emptied: the POLICY.md cross-link in GOTCHAS became
+`[](POLICY.md)`, and a sentence in POLICY.md #9 became "audited on
+2026-09-18:  is , so the gift record survives".
+
+Cause both times: writing Markdown through `node -e "..."` from bash.
+Inside double quotes a backtick is **command substitution**, so the
+code-span markers around `donations.donor_id` ran it as a command and
+substituted the empty output. Bash even said so -- `donations.donor_id:
+command not found` -- in the middle of output that otherwise looked
+like success, which is why it was missed the first time and, having
+been noticed and named, missed again.
+
+The lesson is not "be careful with backticks". It is that **the
+mechanism has to change, not the intention**: noticing the trap and
+resolving to avoid it demonstrably does not work. Markdown containing
+code spans goes through a quoted heredoc to a script file
+(`cat > x.js <<'SCRIPT'`), never through `node -e "..."`.
+
+It also argues for reading back what was written rather than trusting
+the exit status. Both edits reported success; the damage was only
+visible in the file.
