@@ -5513,3 +5513,21 @@ That is the two-dispatcher asymmetry this file has been bitten by repeatedly, an
 Ordering is unchanged otherwise: a saved intent still wins over everything, and a platform admin still goes to Admin.
 
 Build `2026-09-18-v154`; no migration.
+
+---
+
+## "Animations work on desktop, not mobile" — it was the phone
+
+Reported and investigated; **no code change**. The device had Android's reduce-motion accessibility setting on, which `prefers-reduced-motion: reduce` correctly reports, and both the drawer transition and the menu level animations are guarded by it on purpose.
+
+Recorded because of what the next person is likely to do. "Animations don't work on mobile" leads straight to the two `@media (prefers-reduced-motion: reduce)` blocks, which look exactly like the culprit, and deleting them makes the symptom go away. **That would be replacing a working feature with a bug** — the setting exists because motion makes some people ill, and on Android it is also switched on automatically by battery saver, so it will be reported again by somebody who never deliberately enabled it.
+
+What ruled the code out, before guessing at the device:
+
+- the `.dash-nav-enter-*` rules sit **outside** the `max-width:860px` block, so they apply at every width
+- the only `animation:none` anywhere is the reduced-motion block itself
+- at 375px the class lands (`dash-nav dash-nav-enter-right`) and a real Animation object named `dashNavFromRight` is created — on a direct call and on a real tap through the click handler
+
+And what could **not** be checked from here, which is why it was put as a question rather than a fix: the browser pane reports `document.hidden: true`, which freezes CSS animations and makes `getComputedStyle` return the start value. That is the same condition that once produced a confident "the drawer is broken" reading when the drawer was fine.
+
+The rule worth keeping: **when the code checks out at every layer you can see, suspect the environment before editing the code.** The cheapest next step was one question about a device setting, not a change.
