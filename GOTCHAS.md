@@ -4659,3 +4659,30 @@ Escaping inside `displayChurchName()` was the tempting fix and would have been w
 The lesson is about the test, not the code: **the payload was in the fixture to check the thing being built, and it found three bugs in code nobody was looking at.** A hostile string costs nothing to leave in a fixture and reports on everything that touches it, not just the feature under test.
 
 Build `2026-09-18-v129`. No migration.
+
+---
+
+## The sidebar becomes an explicit stack of levels
+
+v129 was wrong and broke working behaviour. It put Overview *inside* the church menu, which produced a list mixing Overview with Events and Check-In -- two different levels in one list -- left a lone "Overview" in the sidebar after a refresh, and stopped church cards working. The diagram supplied with the report is the spec:
+
+```
+Tier 4/5:  account  ->  churches  ->  church  ->  section
+Tier 1-3:                           church  ->  section
+```
+
+The mistake was treating this as another *section*. Overview is not a peer of Events; it is a level above the church that Events belongs to. Sections and levels were being made to share one mechanism, and the mechanism could only express one of them.
+
+So the levels are explicit now. Exactly one is current, and **Back is defined by the level rather than by which list happens to be showing** -- `dashLevelParent()` is the whole rule, and it returns null at the top, which is how a single-church account correctly has no Back at all.
+
+Three things that were decisions:
+
+- **`account`, `churches` and each section render into one container; `church` stays the static markup.** That list is the one nobody needs rebuilt, and leaving it alone keeps its permission-driven visibility rules working untouched. Its Back link is inserted rather than rendered, and removed again when there is nowhere to go up to.
+- **The old account-level nav is hidden unconditionally** by the renderer. Two lists claiming one space is exactly what put a lone "Overview" in the sidebar after a refresh.
+- **A section's first page implies the CHURCH level, not that section.** Arriving at the dashboard, or bookmarking `#dashboard/events`, should show the church's menu with that page open -- drilling in is something you do by tapping, and the click handler is what says so. A *deeper* page does imply its section, because there is no other way to have reached it.
+
+That last rule needed a companion: after a tap opens a section, `goDash` runs and would have sent the level straight back to the church list. It leaves the level alone when a tap has already chosen it.
+
+Verified as a whole chain rather than per screen, for both tiers: account (Overview/Billing/Plans, **no Back**) → churches (Test 2/3/7) → church menu (Events, Check-In, Directory...) → Events (Event list/Reports/Settings), then Back four times arriving exactly where it started. Tier 1-3 lands on the church menu with **no Back link**, opens a section, and returns. A deep link to `events-reports` opens the Events level with the right item active. Zero console errors.
+
+Build `2026-09-18-v130`. No migration.

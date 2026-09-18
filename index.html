@@ -744,6 +744,7 @@
       'dashSub.mainMenu': 'Back', 'dashSub.reports': 'Reports', 'dashSub.settings': 'Settings',
       'dashSub.eventList': 'Event list', 'dashSub.profiles': 'Profiles',
       'dashSub.insightsDashboard': 'Dashboard', 'dashSub.runReports': 'Reports', 'dashSub.savedReports': 'Saved reports',
+      'dash.allChurchesTitle': 'Your churches',
       'dashSub.ministryList': 'Ministry list', 'dashSub.groupList': 'Group list',
       'dashSub.eventsReports': 'Event reports', 'dashSub.eventsSettings': 'Event settings',
       'dashSub.directoryReports': 'Directory reports', 'dashSub.directorySettings': 'Directory settings',
@@ -1663,6 +1664,7 @@
       'dashSub.mainMenu': 'Atrás', 'dashSub.reports': 'Informes', 'dashSub.settings': 'Ajustes',
       'dashSub.eventList': 'Lista de eventos', 'dashSub.profiles': 'Perfiles',
       'dashSub.insightsDashboard': 'Panel', 'dashSub.runReports': 'Informes', 'dashSub.savedReports': 'Informes guardados',
+      'dash.allChurchesTitle': 'Tus iglesias',
       'dashSub.ministryList': 'Lista de ministerios', 'dashSub.groupList': 'Lista de grupos',
       'dashSub.eventsReports': 'Informes de eventos', 'dashSub.eventsSettings': 'Ajustes de eventos',
       'dashSub.directoryReports': 'Informes del directorio', 'dashSub.directorySettings': 'Ajustes del directorio',
@@ -3654,10 +3656,6 @@
      a colour or a bolder weight, because it has to say 'there is more
      behind this' and not 'this one is important'. */
   .dash-nav a .dash-chev{float:right;opacity:.55;}
-  /* Hidden for everyone except an owner of more than one church --
-     there is no account level to go up to otherwise. */
-  #dash-nav-overview-item{display:none;}
-  .dash-side.dash-overview-owner #dash-nav-overview-item{display:block;}
   .dash-back{
     display:block;font-size:12.5px;color:#CBD2DE;opacity:.85;cursor:pointer;
     padding:8px 12px 12px;margin-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.12);
@@ -6355,11 +6353,6 @@ Groups</span>
         <select id="dash-church-switcher" style="display:none;width:100%;margin-top:8px;margin-bottom:8px;background:#1a2740;color:#fff;border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:6px 8px;font-size:12.5px;"></select>
       </div>
       <div class="dash-nav" id="dash-nav-church">
-        <!-- Multi-church owners only (see .dash-overview-owner, set
-             by updateDashSidebarMode). It opens a list of the
-             account's churches rather than a page, which is why it
-             carries a chevron like any other section. -->
-        <a data-dash="churches" id="dash-nav-overview-item" data-i18n="dash.overview">Overview</a>
         <a data-dash="events" class="active" data-i18n="dash.events">Events</a>
         <a data-dash="checkin" data-i18n="dash.checkin">Check-In</a>
         <a data-dash="directory" data-i18n="dash.directory">Directory</a>
@@ -7680,7 +7673,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v129 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v130 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -10354,19 +10347,6 @@ Groups</span>
         { v: 'giving-settings', l: 'dashSub.settings' }
       ]
     },
-    // The only section whose items are data rather than pages. Its
-    // list is the account's churches, so it is built when it is
-    // opened instead of declared here -- a church added today has to
-    // appear without a code change.
-    churches: {
-      label: 'dash.overview',
-      dynamic: true,
-      build: function(){
-        return (window._dashOwnedChurches || []).map(function(c){
-          return { v: 'church:' + c.id, text: c.name };
-        });
-      }
-    },
     insights: {
       label: 'insights.title',
       views: [
@@ -10411,49 +10391,181 @@ Groups</span>
   var dashForceMainMenu = false;
   window.dashEnterChurchAtTopLevel = function(){ dashForceMainMenu = true; };
 
-  function renderDashSubNav(section, activeView){
+  // ============================================================
+  // The sidebar is a stack of levels, not a set of lists that take
+  // turns being visible.
+  //
+  // Tier 4/5:  account  ->  churches  ->  church  ->  section
+  // Tier 1-3:                           church  ->  section
+  //
+  // The previous attempt put Overview inside the church menu, which
+  // produced a list mixing Overview with Events and Check-In -- two
+  // different levels in one list. The levels are explicit here so
+  // that cannot happen: exactly one is current, and Back is defined
+  // by the level rather than by which list happens to be showing.
+  //
+  // 'account', 'churches' and a section key render into
+  // #dash-nav-sub. 'church' is the static #dash-nav-church markup,
+  // which is left alone -- it is the one list nobody needs rebuilt.
+  // ============================================================
+  var dashNavLevel = null;
+
+  function dashIsMultiChurch(){ return !!window._dashMultiOwner; }
+
+  // Back goes one level up, and nowhere from the top. A single-church
+  // account has no account level, so its church menu is the top.
+  function dashLevelParent(level){
+    if (level === 'account') return null;
+    if (level === 'churches') return 'account';
+    if (level === 'church') return dashIsMultiChurch() ? 'churches' : null;
+    return 'church';
+  }
+
+  function dashAccountEntries(){
+    return [
+      { level: 'churches', l: 'dash.overview', chevron: true },
+      { view: 'billing',   l: 'dash.billing' },
+      { view: 'plans',     l: 'dash.plans' }
+    ];
+  }
+
+  function dashChurchEntries(){
+    return (window._dashOwnedChurches || []).map(function(c){
+      return { church: c.id, text: c.name };
+    });
+  }
+
+  function dashLevelTitle(level){
+    if (level === 'account')  return window.t('dash.overview');
+    if (level === 'churches') return window.t('dash.allChurchesTitle');
+    var def = DASH_SECTIONS[level];
+    return def ? window.t(def.label) : '';
+  }
+
+  // One renderer for every level that is not the static church list.
+  function dashRenderLevel(level, activeView, enterFrom){
     var el = document.getElementById('dash-nav-sub');
     var main = document.getElementById('dash-nav-church');
+    var overviewNav = document.getElementById('dash-nav-overview');
     if (!el || !main) return;
-    if (dashForceMainMenu) {
-      dashForceMainMenu = false;
+    dashNavLevel = level;
+
+    // The old account-level nav is superseded by this renderer and
+    // must never show, or two lists claim the same space -- which is
+    // what put a lone "Overview" in the sidebar after a refresh.
+    if (overviewNav) overviewNav.style.display = 'none';
+
+    if (level === 'church') {
       el.style.display = 'none';
       main.style.display = '';
+      dashRenderBackInto(main, 'church');
+      dashAnimate(main, enterFrom);
       return;
     }
-    var def = DASH_SECTIONS[section];
-    if (!def) {
-      el.style.display = 'none';
-      // Only un-hide the main list if something else has not hidden
-      // it -- the multi-church Overview swaps navs too.
-      if (!document.getElementById('dash-nav-overview') ||
-          document.getElementById('dash-nav-overview').style.display === 'none') {
-        main.style.display = '';
-      }
-      return;
-    }
-    // A dynamic section builds its list at open time; a static one
-    // declares it. Both end up as the same shape here.
-    var entries = def.dynamic ? def.build() : def.views;
-    el.innerHTML = '<a class="dash-back" data-dash-back="1">&lsaquo; ' + escapeHtml(window.t('dashSub.mainMenu')) + '</a>'
-      + '<div class="dash-sub-heading">' + escapeHtml(window.t(def.label)) + '</div>'
-      + entries.map(function(entry){
-          // entry.text is a name somebody typed (a church); entry.l is
-          // a translation key. Escaped either way.
-          var label = entry.text !== undefined ? entry.text : window.t(entry.l);
-          return '<a data-dash="' + escapeHtml(entry.v) + '"' + (entry.v === activeView ? ' class="active"' : '') + '>'
-            + escapeHtml(label) + '</a>';
-        }).join('');
+
+    var entries = level === 'account' ? dashAccountEntries()
+                : level === 'churches' ? dashChurchEntries()
+                : (DASH_SECTIONS[level] ? DASH_SECTIONS[level].views : []);
+
+    var parent = dashLevelParent(level);
+    var html = parent ? '<a class="dash-back" data-dash-up="' + escapeHtml(parent) + '">&lsaquo; ' + escapeHtml(window.t('dashSub.mainMenu')) + '</a>' : '';
+    html += '<div class="dash-sub-heading">' + escapeHtml(dashLevelTitle(level)) + '</div>';
+    html += entries.map(function(entry){
+      var label = entry.text !== undefined ? entry.text : window.t(entry.l);
+      var attr = entry.church ? ' data-dash-church="' + escapeHtml(entry.church) + '"'
+               : entry.level  ? ' data-dash-level="' + escapeHtml(entry.level) + '"'
+               : ' data-dash="' + escapeHtml(entry.view || entry.v) + '"';
+      var isActive = (entry.view || entry.v) && (entry.view || entry.v) === activeView;
+      return '<a' + attr + (isActive ? ' class="active"' : '') + '>' + escapeHtml(label)
+        + (entry.chevron ? '<span class="dash-chev" aria-hidden="true">\u203A</span>' : '') + '</a>';
+    }).join('');
+
+    el.innerHTML = html;
     main.style.display = 'none';
     el.style.display = '';
-    // Re-triggering an animation needs the class removed and the
-    // element reflowed first, or a second drill-down into another
-    // section does not animate at all -- the class is already there,
-    // so nothing changes and the browser has no reason to restart it.
+    dashAnimate(el, enterFrom);
+  }
+  window.dashRenderLevel = dashRenderLevel;
+
+  // The church list is static markup, so its Back link is inserted
+  // rather than rendered -- and removed again for a single-church
+  // account, which has nowhere to go back to.
+  function dashRenderBackInto(main, level){
+    var existing = main.querySelector('[data-dash-up]');
+    var parent = dashLevelParent(level);
+    if (!parent) { if (existing) existing.remove(); return; }
+    if (!existing) {
+      existing = document.createElement('a');
+      existing.className = 'dash-back';
+      main.insertBefore(existing, main.firstChild);
+    }
+    existing.setAttribute('data-dash-up', parent);
+    existing.textContent = '\u2039 ' + window.t('dashSub.mainMenu');
+  }
+
+  function dashAnimate(el, from){
+    if (!from) return;
     el.classList.remove('dash-nav-enter-right', 'dash-nav-enter-left');
     void el.offsetWidth;
-    el.classList.add('dash-nav-enter-right');
+    el.classList.add(from === 'left' ? 'dash-nav-enter-left' : 'dash-nav-enter-right');
   }
+
+  // Going up, going into the church list, and picking a church.
+  document.addEventListener('click', function(ev){
+    if (!ev.target.closest) return;
+    var up = ev.target.closest('[data-dash-up]');
+    if (up) { dashRenderLevel(up.getAttribute('data-dash-up'), null, 'left'); return; }
+    var into = ev.target.closest('[data-dash-level]');
+    if (into) { dashRenderLevel(into.getAttribute('data-dash-level'), null, 'right'); return; }
+    var church = ev.target.closest('[data-dash-church]');
+    if (church && typeof window.setActiveChurchAndReload === 'function') {
+      window.setActiveChurchAndReload(church.getAttribute('data-dash-church'));
+    }
+  });
+
+  // Which level a VIEW implies.
+  //
+  // A section's first page (events, directory, ...) implies the CHURCH
+  // level: arriving at the dashboard, or bookmarking it, should show
+  // the church's menu with that page open -- not the section drilled
+  // into. Opening a section is something you do by tapping it, and the
+  // click handler below is what says so.
+  //
+  // A deeper page (events-reports) does imply its section, because
+  // there is no other way to have reached it.
+  function dashLevelForView(view){
+    if (view === 'churches') return dashIsMultiChurch() ? 'account' : 'church';
+    var section = dashSectionForView(view);
+    if (!section) return 'church';
+    var def = DASH_SECTIONS[section];
+    var first = def && def.views && def.views[0] && def.views[0].v;
+    return view === first ? 'church' : section;
+  }
+
+  function renderDashSubNav(section, activeView){
+    if (dashForceMainMenu) {
+      dashForceMainMenu = false;
+      dashRenderLevel('church', activeView, null);
+      return;
+    }
+    var target = dashLevelForView(activeView);
+    // Leaving the level alone when a tap already chose it: clicking
+    // Events opens the Events level, and the goDash that follows must
+    // not send it straight back to the church list.
+    if (dashNavLevel && dashNavLevel === section) target = section;
+    var from = dashNavLevel === target ? null : (target === 'church' ? 'left' : 'right');
+    dashRenderLevel(target, activeView, from);
+  }
+
+  // Tapping a section in the church list opens that section's level.
+  // Registered on the static list only -- inside a level, taps are
+  // pages and are handled by goDash.
+  document.addEventListener('click', function(ev){
+    var link = ev.target.closest ? ev.target.closest('#dash-nav-church a[data-dash]') : null;
+    if (!link) return;
+    var v = link.getAttribute('data-dash');
+    if (DASH_SECTIONS[v]) dashRenderLevel(v, v, 'right');
+  });
   window.renderDashSubNav = renderDashSubNav;
 
   // The chevrons are added from the same map, so a section cannot
@@ -10479,38 +10591,10 @@ Groups</span>
     });
   };
 
-  // A church in the Overview list is not a view, so it must be
-  // intercepted before goDash goes looking for a panel called
-  // dash-church:<uuid>. Capture phase, ahead of the generic
-  // [data-dash] handler.
-  document.addEventListener('click', function(ev){
-    var pick = ev.target.closest ? ev.target.closest('[data-dash^="church:"]') : null;
-    if (!pick) return;
-    ev.preventDefault();
-    ev.stopPropagation();
-    var churchId = pick.getAttribute('data-dash').slice('church:'.length);
-    // Switching already lands on the church's own top-level menu --
-    // see dashEnterChurchAtTopLevel inside setActiveChurchAndReload.
-    if (typeof window.setActiveChurchAndReload === 'function') window.setActiveChurchAndReload(churchId);
-  }, true);
 
-  document.addEventListener('click', function(ev){
-    if (!ev.target.closest) return;
-    if (ev.target.closest('[data-dash-back]')) {
-      // Back to the main list without changing which page is shown --
-      // the content you were reading stays put. Going back to Events
-      // as well would throw away where you were for no reason.
-      var sub = document.getElementById('dash-nav-sub');
-      var main = document.getElementById('dash-nav-church');
-      if (sub) sub.style.display = 'none';
-      if (main) {
-        main.style.display = '';
-        main.classList.remove('dash-nav-enter-right', 'dash-nav-enter-left');
-        void main.offsetWidth;
-        main.classList.add('dash-nav-enter-left');
-      }
-    }
-  });
+  // The old single-purpose back handler is gone: [data-dash-up]
+  // handles every level now, and going up still leaves the page you
+  // were reading alone -- only the menu moves.
 
   function goDash(view, skipPush){
     var panels = document.querySelectorAll('.dash-content');
