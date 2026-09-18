@@ -174,6 +174,11 @@ client-side cap, not a promised limit". The pricing card is a
 donation records. The confirmation says so: "events, groups, giving
 history, staff, and its public page".
 
+**Not the same as a donor closing their account** — that path is already
+safe, and was audited on 2026-09-18:  is
+, so the gift record survives with the donor
+detached. The open question is only about deleting the **church**.
+
 **The decision:** donors may need those records for tax purposes, and
 the church may have obligations to retain them. Possibilities: export
 before deletion, retain donation rows detached from the church, or a

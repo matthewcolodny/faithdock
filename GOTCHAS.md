@@ -5531,3 +5531,30 @@ What ruled the code out, before guessing at the device:
 And what could **not** be checked from here, which is why it was put as a question rather than a fix: the browser pane reports `document.hidden: true`, which freezes CSS animations and makes `getComputedStyle` return the start value. That is the same condition that once produced a confident "the drawer is broken" reading when the drawer was fine.
 
 The rule worth keeping: **when the code checks out at every layer you can see, suspect the environment before editing the code.** The cheapest next step was one question about a device setting, not a change.
+
+---
+
+## Auditing what happens when a user is deleted — and being wrong on the way
+
+Prompted by `churches.owner_id` having had no foreign key at all. The question was whether anything else was in that position.
+
+**The answer is no, and the design is better than I assumed.** Thirty uuid columns in `public` name a person; twenty-nine are constrained. The rules split along a clear line:
+
+- **SET NULL** for records of things that *happened* — `donations.donor_id`, `event_registrations.user_id`, `events.created_by`, `groups.created_by`, `scheduled_messages.created_by`, and the various `invited_by`/`marked_by`/`flagged_by`/`read_by` audit fields. The gift, the registration, the event survive; the attribution detaches.
+- **CASCADE** for relationships that only describe a living person — `church_staff`, `church_memberships`, `group_members`, `church_follows`, `household_members`. All `NOT NULL`, so nothing else was available, and nothing else would have been right.
+
+In particular **a donor closing their account does not destroy a church's giving history**, which was the outcome worth checking and the reason for checking at all.
+
+### The wrong turn, which is the useful part
+
+After the first query I said five tables — `church_staff`, `church_memberships.user_id`, `group_members`, `event_registrations`, `donations.donor_id` — were "in exactly the position `churches` was: no constraint at all".
+
+They were constrained. To **`profiles`**, not `auth.users` — so a query filtered on `confrelid = 'auth.users'::regclass` could not see them, by construction. `profiles.id` cascades from `auth.users`, so the cleanup is equivalent, just one hop further out.
+
+I had the evidence to know better: `profiles.id → CASCADE` was in that same result, and the orphan counts had already come back zero for all five, which is hard to explain if nothing was constrained. **An absence in a filtered query is not an absence in the database**, and I read it as one. The fix was to ask a question that could not have that blind spot — every uuid column that names a person, and whether it is constrained *to either table*.
+
+### What was actually left
+
+One column: `message_batches.created_by`, no constraint, while both siblings have one. Closed by 066 as SET NULL matching `scheduled_messages.created_by` — a record of a message that actually reached people should outlive the account that sent it, unlike a draft.
+
+An inconsistency rather than a hazard, and worth closing only because exactly one hole in an otherwise uniform rule is the kind of thing found later by surprise rather than by looking.
