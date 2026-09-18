@@ -740,6 +740,7 @@
       'myGroups.browseGroups': 'Find groups at a church',
       'myEvents.browseEvents': 'Browse events',
       'nav.about': 'About FaithDock',
+      'staffPerms.addedBy': 'Added by {name}',
       'about.eyebrow': 'About', 'about.title': 'About FaithDock',
       'about.missionTitle': 'Our mission', 'about.missionBody': 'Coming soon.',
       'about.goalsTitle': 'What we are building toward', 'about.goalsBody': 'Coming soon.',
@@ -1643,6 +1644,7 @@
       'myGroups.browseGroups': 'Buscar grupos en una iglesia',
       'myEvents.browseEvents': 'Explorar eventos',
       'nav.about': 'Acerca de FaithDock',
+      'staffPerms.addedBy': 'Añadido por {name}',
       'about.eyebrow': 'Acerca de', 'about.title': 'Acerca de FaithDock',
       'about.missionTitle': 'Nuestra misión', 'about.missionBody': 'Próximamente.',
       'about.goalsTitle': 'Hacia dónde vamos', 'about.goalsBody': 'Próximamente.',
@@ -2570,8 +2572,8 @@
   .hamburger svg{width:22px;height:22px;display:block;}
 
   .nav-quick{display:none;align-items:center;gap:4px;}
-  .nav-quick a{display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:9px;color:#CBD2DE;border-bottom:none;}
-  .nav-quick a svg{width:21px;height:21px;display:block;}
+  .nav-quick a{display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:10px;color:#CBD2DE;border-bottom:none;}
+  .nav-quick a svg{width:25px;height:25px;display:block;}
   .nav-quick a:hover,.nav-quick a.active{color:#fff;background:rgba(255,255,255,0.10);border-bottom:none;}
   #hamburger-initials{
     display:none;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;
@@ -7159,6 +7161,12 @@ Groups</span>
                  needs the one action that's specific to Billing
                  itself: managing the existing subscription. -->
             <button class="btn-gold" id="billing-manage-btn" style="width:180px;align-items:center;justify-content:center;margin-top:0;display:none;" data-i18n="dashBilling.manageBilling">Manage billing</button>
+            <!-- Cancelling was only reachable from the Plans page,
+                 under whichever card happened to be the current plan.
+                 Billing is where somebody goes to stop paying, so it
+                 has to be here too. Same function behind it, not a
+                 second cancel path. -->
+            <button type="button" id="billing-cancel-btn" style="display:none;margin-top:12px;background:none;border:none;padding:0;font-size:12.5px;color:var(--clay);cursor:pointer;border-bottom:1px solid var(--clay);" data-i18n="pricing.cancelSubscription">Cancel subscription</button>
           </div>
           <div id="billing-status" style="display:none;font-size:12.5px;margin-top:10px;color:var(--clay);"></div>
         </div>
@@ -7429,7 +7437,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v117 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v118 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -9885,12 +9893,46 @@ Groups</span>
     // this tab, rather than only whatever was loaded whenever the
     // dashboard first opened -- covers switching away to check
     // something else and back, on top of the periodic poll below.
-    if(view === 'events' && typeof window.loadDashboardEvents === 'function'){ window.loadDashboardEvents(); }
-    // Same reasoning as events above -- loadGivingInsights() otherwise
-    // only ever ran once, at page load, so a donation completed after
-    // that (e.g. testing the giving flow, then checking Insights) never
-    // showed up until a full page reload. Real bug, reported directly.
-    if(view === 'insights' && typeof window.loadGivingInsights === 'function'){ window.loadGivingInsights(); }
+    // ============================================================
+    // What reloads when you open a dashboard tab.
+    //
+    // This was two hand-picked entries -- events and insights -- each
+    // added after someone reported that tab showing stale data. Every
+    // other tab still showed whatever loaded when the dashboard was
+    // first opened.
+    //
+    // Reported for Billing: upgrade a plan, open Billing, and it
+    // still says the old one until a full refresh. Not a Stripe
+    // timing problem -- the panel simply never ran again.
+    //
+    // This is the FOURTH list of this shape in the app (the two route
+    // dispatchers, the auth-settle batch, and this). The pattern that
+    // keeps producing bugs is a list somebody has to remember to
+    // extend, so this one is complete rather than minimal: every tab
+    // that reads data names its loader, and adding a tab without one
+    // is now a visible omission rather than an invisible default.
+    // ============================================================
+    var DASH_VIEW_LOADERS = {
+      events:     ['loadDashboardEvents'],
+      checkin:    ['loadCheckinEventPicker'],
+      directory:  ['loadDirectoryPeople', 'loadPendingInvitesPanel', 'loadRecentlyJoinedPanel'],
+      messages:   ['loadContactInbox', 'loadMessageDrafts', 'loadScheduledMessages', 'loadMessageHistory'],
+      facility:   ['loadRoomsPanel'],
+      ministries: ['loadMinistriesPanel'],
+      groups:     ['loadDashboardGroups'],
+      giving:     ['loadGivingStatus'],
+      revenue:    ['loadRevenuePanel'],
+      insights:   ['loadGivingInsights', 'loadAttendanceInsights', 'loadGroupsInsights', 'loadInvolvementPanel'],
+      staff:      ['loadTeamPanel'],
+      billing:    ['loadBillingPanel'],
+      settings:   ['loadGiveMessageToggles']
+    };
+    (DASH_VIEW_LOADERS[view] || []).forEach(function(fn){
+      if (typeof window[fn] !== 'function') return;
+      // Guarded per loader, like refreshAfterEventChange(): a tab
+      // with four panels must not lose three because one threw.
+      try { window[fn](); } catch (e) { console.error('Dashboard view loader failed:', fn, e); }
+    });
     // Plans reuses the exact same content and logic as the standalone
     // #pricing page (see restorePricingContentToStandalonePage() above)
     // rather than duplicating the whole plan-card grid a second time —
@@ -18029,11 +18071,23 @@ Groups</span>
       if (s.can_manage_ministries) rowAbilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('staffPerms.ministriesTag') + '</span>');
       if (s.can_view_revenue) rowAbilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('staffPerms.revenueTag') + '</span>');
       if (s.can_edit_profile) rowAbilityTags.push('<span class="tag sage" style="font-size:10px;">' + window.t('dashOverview.permProfile') + '</span>');
+      // Who added this person and when. Not decoration: on a team of
+      // fifteen, "why does this person have Manager" is a question
+      // about provenance, and the row is where it gets asked. Both
+      // fields are new (migration 058) and absent until it runs, so
+      // each is tested on its own rather than the pair -- a name with
+      // no date is still worth showing.
+      var addedBits = [];
+      if (s.added_by_name) addedBits.push(window.t('staffPerms.addedBy').replace('{name}', s.added_by_name));
+      if (s.added_at) addedBits.push(new Date(s.added_at).toLocaleDateString(window.appLocale(), { year: 'numeric', month: 'short', day: 'numeric' }));
+      var addedLine = addedBits.length
+        ? '<div style="font-size:11.5px;color:var(--ink-mute);margin-top:3px;">' + escapeHtml(addedBits.join(' · ')) + '</div>'
+        : '';
       var rowAbilityTagsHtml = '<div style="margin-top:5px;display:flex;flex-wrap:wrap;gap:4px;">'
         + (rowAbilityTags.length ? rowAbilityTags.join('') : '<span style="font-size:11.5px;color:var(--ink-mute);">' + window.t('dashOverview.permViewOnly') + '</span>')
         + '</div>';
       html += '<div class="info-row" style="justify-content:space-between;align-items:flex-start;">'
-        + '<span><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;vertical-align:-3px;margin-right:6px;"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>' + name + ' — ' + roleLabel + '</span>' + rowAbilityTagsHtml + '</span>'
+        + '<span><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;vertical-align:-3px;margin-right:6px;"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>' + name + ' — ' + roleLabel + '</span>' + addedLine + rowAbilityTagsHtml + '</span>'
         + '<span style="display:flex;gap:6px;">'
         // Reuses the exact same directory-person-modal the Directory tab
         // already opens for any connected person (photo, roles, event/
@@ -23665,6 +23719,21 @@ Groups</span>
     }
     pastDueWarning.style.display = (row && row.subscription_status === 'past_due') ? 'block' : 'none';
     manageBtn.style.display = (planType !== 'free') ? 'inline-flex' : 'none';
+
+    // Hidden on Free (nothing to cancel), on multi_church (sales
+    // negotiated, not a self-serve Stripe subscription) and once a
+    // cancellation is already scheduled -- offering it again would
+    // invite someone to cancel a cancellation, which is not what the
+    // button does.
+    var cancelBtn = document.getElementById('billing-cancel-btn');
+    if (cancelBtn) {
+      var cancellable = planType !== 'free' && planType !== 'multi_church' && !cancelPending;
+      cancelBtn.style.display = cancellable ? 'inline-block' : 'none';
+      cancelBtn.onclick = function(){
+        if (typeof window.performPlanDowngrade !== 'function') return;
+        window.performPlanDowngrade(myChurch, cancelBtn);
+      };
+    }
   }
   window.loadBillingPanel = loadBillingPanel;
   // Upgrading and downgrading both happen from the Pricing page now
@@ -24510,6 +24579,10 @@ Groups</span>
   // standalone "Cancel subscription" link near the top of the page —
   // same action (schedules cancellation at period end via
   // stripe-subscription), two entry points to it.
+  // Exposed because the Billing panel calls it too. One cancel path,
+  // reached from two places, rather than two implementations that
+  // could drift on something as consequential as ending a plan.
+  window.performPlanDowngrade = performPlanDowngrade;
   async function performPlanDowngrade(myChurch, triggerBtn){
     if (!window.confirm(window.t('dashBilling.downgradeConfirm'))) return;
     if (triggerBtn) triggerBtn.disabled = true;

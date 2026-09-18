@@ -4353,3 +4353,27 @@ Mission, goals and commitment are **structured but empty**, with placeholders th
 **The sitemap's section links cannot be plain `#about-goals` hrefs** -- this app's hash *is* the router, so that would be read as a route named "about-goals" and fall through to home. They carry `data-about-section`, route to About, then scroll on the next frame.
 
 Build `2026-09-18-v117`. No migration.
+
+---
+
+## Billing needed a refresh, and the fourth list
+
+Reported: upgrade a plan, open Billing, and it still shows the old one until a full page reload.
+
+Not a Stripe timing problem. `goDash()` had a per-view reload list containing exactly **two** entries -- events and insights -- each added after somebody reported that one tab showing stale data. Every other tab, Billing included, showed whatever had loaded when the dashboard was first opened.
+
+**This is the fourth list of this shape in the app**: the two route dispatchers, the auth-settle batch, and this. The pattern that keeps producing bugs is a list somebody has to remember to extend, which is why this one is written **complete rather than minimal** -- every tab that reads data names its loader. Adding a tab without one is now a visible omission instead of an invisible default.
+
+All twenty-one named loaders were checked to exist before shipping, since a typo'd name in a map fails exactly as silently as the missing entry it replaced. Verified per tab by counting real calls through the nav links: Billing, Directory, Messages, Facility, Staff and Groups each reload their own panels on open.
+
+**Cancelling is on Billing now.** It was only reachable from the Plans page, under whichever card happened to be the current plan -- and Billing is where somebody goes to stop paying. It calls the same `performPlanDowngrade()` rather than a second implementation, which matters on an action as consequential as ending a plan.
+
+Hidden on Free (nothing to cancel), on Multi-Church (sales-negotiated, not a self-serve Stripe subscription), and once a cancellation is already scheduled -- offering it then would invite cancelling a cancellation, which is not what the button does. Verified across all five states including past_due, which keeps the button *and* shows the warning.
+
+**Team rows now show "Added by <name> · <date>"** (migration 058). `church_staff` has recorded `invited_by` and `created_at` all along and nothing surfaced them; on a team of fifteen, "why does this person have Manager" is a question about provenance.
+
+The join to the adder is a LEFT join on purpose: the person who did the adding may have deleted their account since, and a staff row vanishing because its inviter left would be far worse than one with a blank name. The client tests the two fields separately rather than as a pair, so a name with no date still renders -- and so the row renders unchanged before 058 has run, when both are simply absent.
+
+**A stubbing note worth keeping.** Two attempts to test `loadBillingPanel` returned "Loading..." for every case, because `getMyChurch` is closure-scoped and assigning `window.getMyChurch` does not reach it. The panel was bailing at `if (!myChurch) return`, and the test was reporting the bail as a result. Same shape as the `getEventsForDateKey` stub that silently did nothing earlier: **a stub that misses its target produces a clean-looking failure, not an error.**
+
+Build `2026-09-18-v118`; **migration 058 must be run by hand** (the Added-by line stays absent until it does).
