@@ -767,6 +767,7 @@
       'accountSettings.newChurchDefaultsHint': 'Applied when you add a church to this account. Existing churches are never changed \u2014 each one keeps whatever it has. Leave anything on \u201cNo preference\u201d and the usual default is used.',
       'accountSettings.noPreference': 'No preference', 'common.yes': 'Yes', 'common.no': 'No',
       'cropper.title': 'Adjust your image', 'cropper.zoom': 'Zoom', 'cropper.use': 'Use this image',
+      'upload.heicNotSupported': 'HEIC photos (what iPhones save by default) can\'t be shown on the web \u2014 most visitors would see a broken image. Save a copy as JPEG, or set Settings \u203a Camera \u203a Formats to \u201cMost Compatible\u201d and take it again.',
       'cropper.hint': 'Drag to move, and use the slider to zoom. What you see is what gets saved.',
       'accountSettings.ownershipTitle': 'Ownership and closing',
       'accountSettings.ownershipHint': 'Transferring this account to someone else, and closing it, are being built. Both need the person receiving or losing access to confirm, so neither can happen by a single click \u2014 until they land, email support and we will do it with you.',
@@ -1712,6 +1713,7 @@
       'accountSettings.newChurchDefaultsHint': 'Se aplican cuando añades una iglesia a esta cuenta. Las iglesias existentes nunca cambian \u2014 cada una conserva lo que tiene. Deja cualquier opción en \u201cSin preferencia\u201d y se usa el valor habitual.',
       'accountSettings.noPreference': 'Sin preferencia', 'common.yes': 'Sí', 'common.no': 'No',
       'cropper.title': 'Ajusta tu imagen', 'cropper.zoom': 'Zoom', 'cropper.use': 'Usar esta imagen',
+      'upload.heicNotSupported': 'Las fotos HEIC (el formato que usa el iPhone por defecto) no se pueden mostrar en la web \u2014 la mayoría de los visitantes vería una imagen rota. Guarda una copia en JPEG, o cambia Ajustes \u203a Cámara \u203a Formatos a \u201cMás compatible\u201d y tómala de nuevo.',
       'cropper.hint': 'Arrastra para mover y usa el control para acercar. Lo que ves es lo que se guarda.',
       'accountSettings.ownershipTitle': 'Propiedad y cierre',
       'accountSettings.ownershipHint': 'Transferir esta cuenta a otra persona, y cerrarla, están en construcción. Ambas requieren que quien recibe o pierde el acceso lo confirme, así que ninguna puede ocurrir con un solo clic \u2014 hasta que lleguen, escribe a soporte y lo haremos contigo.',
@@ -7867,7 +7869,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v137 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v138 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -9777,6 +9779,29 @@ Groups</span>
   // behind it, so what is visible is exactly what gets written. A
   // frame over a shrunk-to-fit image would need explaining.
   // ============================================================
+  // HEIC/HEIF is what an iPhone stores by default. Safari can display
+  // it; Chrome, Edge and Firefox cannot -- so an uploaded .heic is a
+  // broken image for most of the people who would ever look at it.
+  //
+  // Before this, one went straight through: it passes the /^image\//
+  // test, so the cropper accepted it, failed to decode it, and handed
+  // the original back to be uploaded raw. The church would see its own
+  // logo fine on an iPhone and have no idea it was broken for everyone
+  // else -- the worst kind of failure, because nothing reports it.
+  //
+  // iOS usually converts to JPEG when a photo is picked from the
+  // library into a file input, so this only catches the minority who
+  // pick the original file (from Files, or on a Mac). For them the
+  // alternative is an image nobody can see.
+  //
+  // file.type alone is not enough: Windows without the HEIF extension
+  // reports an empty string for a .heic, so the name is checked too.
+  window.isUnviewableImageFormat = function(file){
+    var type = ((file && file.type) || '').toLowerCase();
+    var name = ((file && file.name) || '').toLowerCase();
+    return /heic|heif/.test(type) || /\.(heic|heif)$/.test(name);
+  };
+
   var cropperState = null;
 
   // Decoded with createImageBitmap where it exists, because that is
@@ -9859,7 +9884,7 @@ Groups</span>
     // half-open modal with a dead canvas would be worse than no
     // cropper at all.
     if (!modal || !canvas || !canvas.getContext || !HTMLCanvasElement.prototype.toBlob
-        || !file || !/^image\//.test(file.type || '') || /svg/.test(file.type || '')) {
+        || !file || !/^image\//.test(file.type || '') || /svg|gif/.test(file.type || '')) {
       return Promise.resolve(file);
     }
 
@@ -14522,6 +14547,12 @@ Groups</span>
     rcLogoInput.addEventListener('change', async function(){
       var file = this.files[0];
       if (!file) return;
+      if (window.isUnviewableImageFormat(file)) {
+        rcLogoInput.value = '';
+        window.rcLogoEditedFile = null;
+        showRcError(window.t('upload.heicNotSupported'));
+        return;
+      }
       // Square, because the preview and every place a logo is shown
       // is square. Cancelling clears the field rather than keeping a
       // file the person declined to crop -- they can pick again.
@@ -17936,6 +17967,20 @@ Groups</span>
         filenameEl.textContent = window.t('rc.noFileChosen');
         return;
       }
+      if (window.isUnviewableImageFormat(file)) {
+        ceImageInput.value = '';
+        window.ceImageEditedFile = null;
+        filenameEl.setAttribute('data-i18n', 'rc.noFileChosen');
+        filenameEl.textContent = window.t('rc.noFileChosen');
+        warningEl.textContent = window.t('upload.heicNotSupported');
+        warningEl.style.color = 'var(--clay)';
+        warningEl.style.display = 'block';
+        return;
+      }
+      // Back to the usual advisory colour: the same element carries
+      // the "narrower than 1200px" hint, and a previous refusal must
+      // not leave the next warning looking like an error.
+      warningEl.style.color = '';
       filenameEl.removeAttribute('data-i18n');
       filenameEl.textContent = file.name;
       // Choosing a new file supersedes an earlier "remove" click, if
@@ -28955,6 +29000,14 @@ Groups</span>
       if (!file) return;
       var statusEl = document.getElementById('profile-photo-status');
       statusEl.style.display = 'none';
+
+      if (window.isUnviewableImageFormat(file)) {
+        profilePhotoInput.value = '';
+        statusEl.textContent = window.t('upload.heicNotSupported');
+        statusEl.style.color = 'var(--clay)';
+        statusEl.style.display = 'block';
+        return;
+      }
 
       // round: true masks the stage as a circle, because that is where
       // an avatar actually ends up -- cropping to a square and letting

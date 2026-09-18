@@ -4887,3 +4887,31 @@ That creates a stale-state trap, so the stash is cleared at **every** site the i
 Also verified: five open/cancel cycles leave no listeners behind (stray `pointermove`, `Escape` and slider `input` events after close throw nothing and reopen nothing), Escape and both cancel controls resolve `null`, a non-image file passes straight through without the modal opening at all, and both languages render.
 
 Build `2026-09-18-v137`; no migration.
+
+---
+
+## HEIC uploads, and an animated GIF I nearly flattened
+
+Asked directly: can .heic files be uploaded? They could, and that was the problem.
+
+### HEIC went straight through, silently broken
+
+`accept="image/*"` lets a .heic be picked, and `file.type` is `image/heic`, so it passed the cropper's `/^image\//` test too. The cropper then failed to decode it and -- by its own design, which is to never block an upload -- handed the **original file back to be uploaded raw**.
+
+Safari can display HEIC. Chrome, Edge and Firefox cannot. So the church uploads a logo, sees it perfectly on their iPhone, and it is a broken image for most of the people who visit their page. Nothing reports it, which makes it about the worst failure shape available.
+
+Measured rather than assumed: a file typed `image/heic` passes the cropper's image test, `createImageBitmap` rejects it, an `<img>` fails to load it, and `openImageCropper` returns the identical file object -- the modal never even opens. (The test bytes were synthetic, so that rejection does not by itself prove this browser lacks a HEIC decoder; Chromium has never shipped one. The behaviour is the same either way, and it is the behaviour that matters.)
+
+Rejected now, at all three upload points, with a message that says what to do about it rather than just refusing. iOS usually converts to JPEG when a photo is picked from the library into a file input, so this only catches the minority who pick the original file from Files or on a Mac -- but for them the alternative is an image nobody can see.
+
+**`file.type` alone is not enough.** Windows without the HEIF extension reports an **empty string** for a .heic, so the filename is checked too. And the name check is anchored to the extension, because `heicopter.png` is a perfectly good PNG. Both cases are in the test.
+
+`accept` stays `image/*`. Narrowing it would grey the file out in some pickers and behave worse in others, and it is not enforcement anyway -- the JS gate is the real one, and a clear message beats a file that cannot be selected for no stated reason.
+
+### The GIF regression, introduced two builds ago
+
+Adding the cropper in v137 quietly broke animated GIFs: drawing one to a canvas keeps the first frame and throws the animation away. Before v137 a GIF uploaded and animated; after it, it would have become a still. Nobody asked for that, and it is the same class of damage as re-encoding a transparent logo onto black.
+
+GIFs now skip the cropper entirely and upload untouched, exactly as SVG already did. Found while working out which formats the HEIC check should let through -- which is the argument for writing the allow/deny list out explicitly instead of testing one format and moving on.
+
+Build `2026-09-18-v138`; no migration.
