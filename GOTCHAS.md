@@ -5475,3 +5475,21 @@ Nobody is out of pocket in a way they would object to — the extra penny-on-the
 I had written twice in this file that the fee numbers "do not obviously agree" and left it at that, which is why the About copy deliberately claims nothing about fees. Writing the policy list is what forced actually reading both sides. **"These two might disagree" is not a finding; it is a note to go and check.**
 
 Whether to start charging or stop advertising is a decision, not a fix, so it is the first entry in POLICY.md rather than a commit.
+
+---
+
+## A scrollbar painting on top of the drawer
+
+Reported with two screenshots: the grey bar under the events table appears again *across the middle of the open side menu*.
+
+**Checking the z-indexes first is what stopped this becoming a guessing game.** The table is `position:static`, `z-index:auto`, no transform; the drawer is `position:fixed`, `z-index:45`. In normal paint order the drawer already wins, so no amount of raising it would have helped — and raising it is exactly what "a thing is showing through another thing" invites you to try.
+
+**It is an overlay scrollbar**, the kind with no layout width. Confirmed in the pane by measuring `offsetWidth - clientWidth` on a scrolling probe: **0**, same as Android. Those are composited by the browser rather than painted in their element's own layer, so they can land above a fixed overlay whatever the z-indexes say.
+
+**That is not winnable from CSS, so the condition goes instead.** While the drawer is open, nothing behind the scrim should still be a live scroll region — which is correct on its own merits. A modal drawer leaving a scrollable strip behind it is a bug even when you cannot see the scrollbar.
+
+Verified the round trip, because `overflow-x:hidden` could plausibly have reset the scroll: scrolled the table to `scrollLeft: 60`, opened the drawer (`overflow-x` → `hidden`), closed it (→ `auto`), and the position was **still 60**. Somebody who had scrolled right to read the time column does not lose their place.
+
+`table.roster` only becomes a scroll container at `max-width:860px`, the same breakpoint the drawer exists at, which is why the two only ever collide on mobile. `.rsched-scroll` is covered too — it is the only other horizontal scroller in the dashboard, currently on a panel that happens not to be open at the same time, and leaving it out would be relying on that staying true. The rule sits inside the existing mobile media block, checked by brace-counting rather than by where it looks like it is.
+
+Build `2026-09-18-v153`; no migration.

@@ -3778,6 +3778,33 @@
     }
     .dash.menu-open .dash-scrim{opacity:1;pointer-events:auto;}
 
+    /* Reported: the events table's horizontal scrollbar draws ON TOP of
+       the open drawer -- a grey bar across the middle of the menu.
+
+       Not a z-index problem, and checking that first saved guessing at
+       one: the table is position:static/z-index:auto and the drawer is
+       position:fixed/z-index:45, so in normal paint order the drawer
+       already wins. An OVERLAY scrollbar (the kind with no layout
+       width, which is what Android and this pane both use) is
+       composited by the browser rather than painted in the element's
+       own layer, so it can land above a fixed overlay whatever the
+       z-indexes say.
+
+       Fighting the compositor is not winnable from CSS. Removing the
+       CONDITION is: while the drawer is open, nothing behind the scrim
+       should still be a live scroll region anyway. That is correct on
+       its own merits -- a modal drawer leaving a scrollable strip
+       behind it is a bug even when you cannot see the scrollbar.
+
+       table.roster only becomes a scroll container at this same
+       breakpoint (see its max-width:860px rule), which is why the two
+       only ever collide on mobile. .rsched-scroll is listed too: it is
+       the only other horizontal scroller in the dashboard, currently
+       on a panel that happens not to be open at the same time, and
+       leaving it out would be relying on that staying true. */
+    .dash.menu-open table.roster,
+    .dash.menu-open .rsched-scroll{overflow-x:hidden;}
+
     /* The bar is gone: the menu button moved into the nav and every
        dashboard tab already renders its own heading, so the bar's
        title was repeating what the page says two lines lower. */
@@ -8095,7 +8122,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v152 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v153 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
