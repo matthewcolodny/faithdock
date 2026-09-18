@@ -2766,7 +2766,23 @@
      dashboard nav is two: four columns at 375px gives each about 80px,
      which wraps "What we are building toward" into five lines. */
   @media (max-width:700px){ .sitemap-inner{grid-template-columns:1fr 1fr;gap:20px;} }
-  .hamburger{display:none;background:none;border:none;color:#EDEBE2;padding:8px;cursor:pointer;flex-shrink:0;}
+  .hamburger{
+    display:none;background:none;border:none;color:#EDEBE2;padding:8px;cursor:pointer;flex-shrink:0;
+    /* Reported: tapping the initials on mobile flashes a BOX around the
+       circle. The button is ~48px square (32px circle + 8px padding)
+       and mobile browsers paint their native tap highlight over the
+       whole element, so a round face gets a square flash.
+
+       Same mechanism and same fix as .follow-heart-card above: this is
+       not outline or :focus -- it is a separate native highlight that
+       only -webkit-tap-highlight-color controls. Touch only, so the
+       keyboard focus ring is untouched. */
+    -webkit-tap-highlight-color:transparent;
+  }
+  /* Removing the highlight removes the only touch feedback this button
+     had, so it gets its own -- and one that follows the shape rather
+     than boxing it. */
+  .hamburger:active{opacity:.6;}
   .hamburger svg{width:22px;height:22px;display:block;}
 
   .nav-quick{display:none;align-items:center;gap:4px;}
@@ -8079,7 +8095,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v151 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v152 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">

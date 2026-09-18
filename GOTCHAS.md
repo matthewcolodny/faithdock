@@ -5439,3 +5439,19 @@ Three comments quoting the old label as UI text were updated too. A comment nami
 The **platform admin page** has its own link to the same destination, `admin.myChurchDashboard`, still reading "Manage my church →". It is the same place under a different name now. Changing it was outside what was asked, so it is flagged rather than done.
 
 Build `2026-09-18-v151`; no migration.
+
+---
+
+## A square flash around a round button
+
+Reported: tapping the initials on mobile flashes a box around the circle.
+
+Measured rather than guessed at: the button is **38×38 with `border-radius: 0px`**, and the initials face inside it is **32×32 with `border-radius: 50%`**. Mobile browsers paint their native tap highlight over the whole element, so a round face inside a square button gets a square flash.
+
+**Same mechanism and same fix as `.follow-heart-card`**, which this file already documents at length: this is not `outline` and not `:focus`. It is a separate native highlight that only `-webkit-tap-highlight-color` controls, and the existing comment there says so explicitly after somebody had already tried fixing it with `:focus-visible`. Reaching for the established fix beat rediscovering which property matters.
+
+**Touch only, so the keyboard focus ring is untouched** — verified by focusing the button and checking the outline is still there. A fix for a touch artefact that also removed the keyboard affordance would be a worse bug than the one reported, and an easy one to ship without noticing.
+
+**Removing the highlight removes the only touch feedback the button had**, so it gets its own: `.hamburger:active{opacity:.6}`, which follows the shape rather than boxing it.
+
+Build `2026-09-18-v152`; no migration.
