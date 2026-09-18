@@ -252,7 +252,7 @@
       'myLists.eyebrow': 'Yours', 'myLists.title': 'My Lists',
       'myLists.subtitle': 'Everything you are connected to \u2014 the churches, events and groups you have joined or followed.',
       'nav.churches': 'Churches', 'nav.events': 'Events', 'nav.forChurches': 'For churches', 'nav.pricing': 'Pricing', 'nav.admin': 'Admin',
-      'nav.dashboard': 'Manage my church', 'nav.dashboardPlural': 'Manage my churches',
+      'nav.dashboard': 'Church Admin', 'nav.dashboardPlural': 'Church Admin',
       'nav.profile': 'Account profile', 'nav.myChurches': 'My Churches', 'nav.myEvents': 'My Events', 'nav.myGroups': 'My Groups',
       'nav.settings': 'Settings', 'nav.help': 'Help', 'nav.logout': 'Log out', 'nav.login': 'Log in', 'nav.signup': 'Sign up', 'nav.signin': 'Sign in',
       'nav.searchPlaceholder': 'Search churches...',
@@ -1249,7 +1249,7 @@
       'myLists.eyebrow': 'Tuyo', 'myLists.title': 'Mis listas',
       'myLists.subtitle': 'Todo a lo que estás conectado \u2014 las iglesias, eventos y grupos a los que te has unido o que sigues.',
       'nav.churches': 'Iglesias', 'nav.events': 'Eventos', 'nav.forChurches': 'Para iglesias', 'nav.pricing': 'Precios', 'nav.admin': 'Administración',
-      'nav.dashboard': 'Administrar mi iglesia', 'nav.dashboardPlural': 'Administrar mis iglesias',
+      'nav.dashboard': 'Gestión de iglesia', 'nav.dashboardPlural': 'Gestión de iglesias',
       'nav.profile': 'Perfil de la cuenta', 'nav.myChurches': 'Mis iglesias', 'nav.myEvents': 'Mis eventos', 'nav.myGroups': 'Mis grupos',
       'nav.settings': 'Configuración', 'nav.help': 'Ayuda', 'nav.logout': 'Cerrar sesión', 'nav.login': 'Iniciar sesión', 'nav.signup': 'Registrarse', 'nav.signin': 'Iniciar sesión',
       'nav.searchPlaceholder': 'Buscar iglesias...',
@@ -2309,11 +2309,16 @@
       var groupFormHeadingEl = document.getElementById('group-form-heading');
       if (groupFormHeadingEl && dict['dashGroups.editGroup']) groupFormHeadingEl.textContent = dict['dashGroups.editGroup'];
     }
-    // The "Manage my church" account-menu link switches to the plural
-    // "Manage my churches" once loadDashboardHeader() confirms this
-    // person owns 2+ churches (window._dashMultiOwner). Its static
-    // data-i18n is the singular key, so redo the override here or a
-    // language switch would revert a multi-owner to the singular.
+    // The "Church Admin" account-menu link switches to its plural key
+    // once loadDashboardHeader() confirms this person owns 2+ churches
+    // (window._dashMultiOwner). Its static data-i18n is the singular
+    // key, so redo the override here or a language switch would revert
+    // a multi-owner to the singular.
+    //
+    // English now uses the same wording for both -- "Church Admin"
+    // reads correctly for one church or five -- so this is invisible in
+    // EN and still does real work in ES ("Gestión de iglesia" vs
+    // "...de iglesias"). That is why the machinery is still here.
     if (window._dashMultiOwner) {
       var dashNavLinkEl = document.getElementById('nav-dashboard-link');
       if (dashNavLinkEl && dict['nav.dashboardPlural']) dashNavLinkEl.textContent = dict['nav.dashboardPlural'];
@@ -4232,7 +4237,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M6 9l6 6 6-6"/></svg>
         </button>
         <div id="nav-user-dropdown">
-          <a href="#dashboard" id="nav-dashboard-link" data-route="dashboard" style="display:none;" data-i18n="nav.dashboard">Manage my church</a>
+          <a href="#dashboard" id="nav-dashboard-link" data-route="dashboard" style="display:none;" data-i18n="nav.dashboard">Church Admin</a>
           <a href="#profile" data-route="profile" data-i18n="nav.profile">Account profile</a>
           <a href="#my-lists" data-route="my-lists" data-i18n="nav.myLists">My Lists</a>
           <a href="#" id="nav-settings-link" data-i18n="nav.settings">Settings</a>
@@ -8074,7 +8079,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v150 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v151 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -11061,7 +11066,7 @@ Groups</span>
       // now applies both. Doing it twice would double every loader.
       // Same per-route reload pattern as my-churches/profile above,
       // previously missing here entirely for 'dashboard' -- clicking
-      // "Manage my church" or "← Back to my church" (both plain
+      // "Church Admin" or "← Back to my church" (both plain
       // data-route="dashboard" links) never refreshed the header name,
       // the multi-church switcher dropdown, or any of the other
       // permission-gated sections loadDashboardHeader() builds, since
@@ -16411,7 +16416,7 @@ Groups</span>
     var adminLink = document.getElementById('nav-admin-link');
     if (adminLink) adminLink.style.display = window.isPlatformAdmin ? '' : 'none';
 
-    // "Manage my church" (in the account dropdown) shows for anyone who
+    // "Church Admin" (in the account dropdown) shows for anyone who
     // actually owns OR staffs a church -- window.hasChurchAccess, the
     // same relationship-based signal go('dashboard') itself gates on.
     // (It used to key on accountType === 'church', which silently left

@@ -5419,3 +5419,23 @@ An unknown tab name falls back to Churches rather than hiding every panel, so a 
 Checked afterwards that the three old `page-*` sections are gone rather than lingering unreachable, that each list container (`my-churches-list`, `my-events-list`, `my-groups-list`, and the two event filters) exists exactly once, and that the `<section>` tag balance is unchanged from HEAD — it was off by one before this change too, inside a comment, and that is worth knowing so the next person does not go hunting for a bug I introduced.
 
 Build `2026-09-18-v150`; no migration.
+
+---
+
+## "Manage my church" becomes "Church Admin"
+
+The nav label. Both keys — singular and plural — carry the same English text now, because "Church Admin" reads correctly for one church or five.
+
+**The singular/plural machinery is left in place rather than ripped out.** It still does real work in Spanish ("Gestión de iglesia" vs "Gestión de iglesias"), and removing it would have meant touching three sites including a language-switch path, for a change nobody asked for.
+
+**Spanish deliberately does not reuse `Administración`** — that is already `nav.admin`, the platform admin panel. Two different destinations must not share a name in the same menu. Checked explicitly rather than assumed: the label differs from the platform admin entry in both the singular and plural cases.
+
+**One thing checked and found NOT broken:** line 2319 sets the link to the plural key inside `applyTranslations`, which looked at first grep like it applied the plural unconditionally. It is guarded by `if (window._dashMultiOwner)` — the guard was simply outside the grep window. Worth recording that the suspicion was wrong, since "fixing" it would have broken the multi-owner label on every language switch.
+
+Three comments quoting the old label as UI text were updated too. A comment naming a control that no longer exists sends the next reader hunting for it.
+
+### Left alone, and worth a decision
+
+The **platform admin page** has its own link to the same destination, `admin.myChurchDashboard`, still reading "Manage my church →". It is the same place under a different name now. Changing it was outside what was asked, so it is flagged rather than done.
+
+Build `2026-09-18-v151`; no migration.
