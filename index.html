@@ -7673,7 +7673,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v130 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v131 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -10486,6 +10486,26 @@ Groups</span>
     dashAnimate(el, enterFrom);
   }
   window.dashRenderLevel = dashRenderLevel;
+
+  // Redraws the level that is already showing.
+  //
+  // Whether there IS a level above the church menu depends on
+  // _dashMultiOwner, which loadDashboardHeader resolves over the
+  // network. On a refresh, goDash draws the sidebar first and that
+  // flag is still undefined, so dashLevelParent('church') returns
+  // null and the Back link is left out. The answer arrives a moment
+  // later and nothing asks the sidebar to reconsider -- which is why
+  // Back was missing after a refresh and appeared as soon as any
+  // level change forced a redraw.
+  //
+  // No animation: this is a correction to what is on screen, not a
+  // navigation, and sliding it would read as a move the person did
+  // not make.
+  window.refreshDashNavLevel = function(){
+    if (!dashNavLevel) return;
+    var activeLink = document.querySelector('#dash-nav-sub a.active, #dash-nav-church a.active');
+    dashRenderLevel(dashNavLevel, activeLink ? activeLink.getAttribute('data-dash') : null, null);
+  };
 
   // The church list is static markup, so its Back link is inserted
   // rather than rendered -- and removed again for a single-church
@@ -14340,6 +14360,11 @@ Groups</span>
     // still covers staff-of-several).
     window._dashMultiOwner = !!(myChurch.role === 'owner' && myChurch.ownedChurches && myChurch.ownedChurches.length > 1);
     window._dashOwnedChurches = (myChurch.role === 'owner' && myChurch.ownedChurches) ? myChurch.ownedChurches : [];
+    // Both of those decide whether the sidebar has a level above the
+    // church menu, and the sidebar was drawn before either was known.
+    // Asking it to redraw here is what puts the Back link in after a
+    // refresh.
+    if (typeof window.refreshDashNavLevel === 'function') window.refreshDashNavLevel();
     // Keep the account-menu link's wording (singular vs "Manage my
     // churches") in step now that we know how many they own.
     var dashNavLink = document.getElementById('nav-dashboard-link');

@@ -4686,3 +4686,23 @@ That last rule needed a companion: after a tap opens a section, `goDash` runs an
 Verified as a whole chain rather than per screen, for both tiers: account (Overview/Billing/Plans, **no Back**) → churches (Test 2/3/7) → church menu (Events, Check-In, Directory...) → Events (Event list/Reports/Settings), then Back four times arriving exactly where it started. Tier 1-3 lands on the church menu with **no Back link**, opens a section, and returns. A deep link to `events-reports` opens the Events level with the right item active. Zero console errors.
 
 Build `2026-09-18-v130`. No migration.
+
+---
+
+## Back was missing after a refresh, present after any navigation
+
+Reported precisely, and the precision is what identified it: for a tier 4/5 owner the Back link was absent when the drawer was first opened after a refresh, and appeared as soon as you went into a sub-menu and came back.
+
+Whether there *is* a level above the church menu depends on `_dashMultiOwner`, which `loadDashboardHeader` resolves over the network. On a refresh `goDash` draws the sidebar first, while that flag is still `undefined`, so `dashLevelParent('church')` correctly returns null and the link is correctly left out. The answer arrives a moment later and **nothing asks the sidebar to reconsider** -- so it stayed wrong until any level change forced a redraw, which is exactly the reported shape.
+
+Coming through "Manage my churches" worked because that path re-renders after the header has already resolved.
+
+This is the async-state-arrives-late family that has come up repeatedly here, in a new place: the render was correct for what it knew, and nobody told it when that changed. `refreshDashNavLevel()` redraws the current level, and `loadDashboardHeader` calls it immediately after setting the flag.
+
+**No animation on that redraw**, deliberately: it is a correction to what is on screen, not a navigation, and sliding it would read as a move the person did not make.
+
+Verified by reproducing the ordering rather than asserting the fix: with the flag `undefined` the link is **absent** (the bug), after the flag resolves and the redraw runs it is **present and takes you up a level**, and a single-church account does **not** gain one from the same redraw -- which is what separates this from "always show a Back link". Sitting on a sub-page, the redraw keeps the level, the active item and the displayed panel, and repeated calls leave exactly one back link and three items.
+
+One correction to the test itself: an assertion that the redraw does not animate reported false. That was a class left over from the previous navigation, not a new animation -- `dashAnimate` returns early when no direction is passed. The assertion was wrong, not the code.
+
+Build `2026-09-18-v131`. No migration.
