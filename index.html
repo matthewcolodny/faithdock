@@ -745,6 +745,8 @@
       'dashSub.eventList': 'Event list', 'dashSub.profiles': 'Profiles',
       'dashSub.insightsDashboard': 'Dashboard', 'dashSub.runReports': 'Reports', 'dashSub.savedReports': 'Saved reports',
       'dash.allChurchesTitle': 'Your churches',
+      'dashSub.accountSettings': 'Account settings',
+      'dashSub.accountSettingsHint': 'Settings that apply across every church on this account, rather than to one of them. Nothing here yet — the per-church settings live under each church.',
       'dashSub.ministryList': 'Ministry list', 'dashSub.groupList': 'Group list',
       'dashSub.eventsReports': 'Event reports', 'dashSub.eventsSettings': 'Event settings',
       'dashSub.directoryReports': 'Directory reports', 'dashSub.directorySettings': 'Directory settings',
@@ -1665,6 +1667,8 @@
       'dashSub.eventList': 'Lista de eventos', 'dashSub.profiles': 'Perfiles',
       'dashSub.insightsDashboard': 'Panel', 'dashSub.runReports': 'Informes', 'dashSub.savedReports': 'Informes guardados',
       'dash.allChurchesTitle': 'Tus iglesias',
+      'dashSub.accountSettings': 'Ajustes de la cuenta',
+      'dashSub.accountSettingsHint': 'Ajustes que se aplican a todas las iglesias de esta cuenta, no a una sola. Todavía no hay nada aquí — los ajustes de cada iglesia están dentro de ella.',
       'dashSub.ministryList': 'Lista de ministerios', 'dashSub.groupList': 'Lista de grupos',
       'dashSub.eventsReports': 'Informes de eventos', 'dashSub.eventsSettings': 'Ajustes de eventos',
       'dashSub.directoryReports': 'Informes del directorio', 'dashSub.directorySettings': 'Ajustes del directorio',
@@ -6608,13 +6612,24 @@ Groups</span>
         </div>
       </div>
 
+      <div class="dash-content" id="dash-account-settings">
+        <h2 style="font-size:24px;margin-bottom:8px;" data-i18n="dashSub.accountSettings">Account settings</h2>
+        <p style="color:var(--ink-mute);font-size:13.5px;max-width:560px;" data-i18n="dashSub.accountSettingsHint">Settings that apply across every church on this account, rather than to one of them. Nothing here yet — the per-church settings live under each church.</p>
+      </div>
       <div class="dash-content" id="dash-insights-reports">
         <h2 style="font-size:24px;margin-bottom:8px;" data-i18n="dashSub.runReports">Reports</h2>
         <p style="color:var(--ink-mute);font-size:13.5px;max-width:560px;" data-i18n="dashSub.placeholder">This page is being built. Nothing has moved yet — everything still works where it did before.</p>
       </div>
       <div class="dash-content" id="dash-insights-saved">
         <h2 style="font-size:24px;margin-bottom:8px;" data-i18n="dashSub.savedReports">Saved reports</h2>
-        <p style="color:var(--ink-mute);font-size:13.5px;max-width:560px;" data-i18n="dashSub.placeholder">This page is being built. Nothing has moved yet — everything still works where it did before.</p>
+        <div class="side-note" style="margin-top:0;max-width:640px;">
+          <h4 data-i18n="insights.savedReports">Saved reports</h4>
+          <div style="display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:14px;">
+            <button class="saved-reports-tab active" id="saved-reports-tab-active" style="background:none;border:none;padding:8px 14px 10px;font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid var(--gold);color:var(--ink);" data-i18n="insights.active">Active</button>
+            <button class="saved-reports-tab" id="saved-reports-tab-archived" style="background:none;border:none;padding:8px 14px 10px;font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;color:var(--ink-mute);" data-i18n="insights.archived">Archived</button>
+          </div>
+          <div id="saved-reports-list"><p style="color:var(--ink-mute);font-size:13px;" data-i18n="common.loading">Loading...</p></div>
+        </div>
       </div>
       <div class="dash-content" id="dash-messages-inbox">
         <h2 style="font-size:24px;margin-bottom:8px;" data-i18n="dashSub.messagesInbox"></h2>
@@ -7254,14 +7269,6 @@ Groups</span>
       <div class="dash-content" id="dash-insights">
         <h2 style="font-size:24px;margin-bottom:24px;" data-i18n="insights.title">Insights</h2>
 
-        <div class="side-note" style="margin-top:0;max-width:640px;">
-          <h4 data-i18n="insights.savedReports">Saved reports</h4>
-          <div style="display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:14px;">
-            <button class="saved-reports-tab active" id="saved-reports-tab-active" style="background:none;border:none;padding:8px 14px 10px;font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid var(--gold);color:var(--ink);" data-i18n="insights.active">Active</button>
-            <button class="saved-reports-tab" id="saved-reports-tab-archived" style="background:none;border:none;padding:8px 14px 10px;font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;color:var(--ink-mute);" data-i18n="insights.archived">Archived</button>
-          </div>
-          <div id="saved-reports-list"><p style="color:var(--ink-mute);font-size:13px;" data-i18n="common.loading">Loading...</p></div>
-        </div>
 
         <button class="export-btn" id="people-stats-open-btn" style="margin-top:20px;margin-bottom:20px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> <span data-i18n="insights.printPeopleStatsReport">Print people statistics report</span></button>
         <button class="export-btn" id="payment-reports-open-btn" style="margin-bottom:20px;margin-left:8px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> <span data-i18n="insights.printPaymentReports">Print payment reports</span></button>
@@ -7673,7 +7680,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v131 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v132 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -10424,8 +10431,12 @@ Groups</span>
   function dashAccountEntries(){
     return [
       { level: 'churches', l: 'dash.overview', chevron: true },
-      { view: 'billing',   l: 'dash.billing' },
-      { view: 'plans',     l: 'dash.plans' }
+      { view: 'billing',         l: 'dash.billing' },
+      { view: 'plans',           l: 'dash.plans' },
+      // Account-level, not the per-church Settings section. The two
+      // are different things at different levels and must not share a
+      // view id, or one would render the other.
+      { view: 'account-settings', l: 'dash.settings' }
     ];
   }
 
@@ -10670,6 +10681,8 @@ Groups</span>
       groups:     ['loadDashboardGroups'],
       giving:     ['loadGivingStatus'],
       revenue:    ['loadRevenuePanel'],
+      // loadSavedReportsList moved to insights-saved with the panel
+      // it fills. The dashboard keeps the four figure panels.
       insights:   ['loadGivingInsights', 'loadAttendanceInsights', 'loadGroupsInsights', 'loadInvolvementPanel'],
       staff:      ['loadTeamPanel'],
       billing:    ['loadBillingPanel'],
@@ -10702,7 +10715,8 @@ Groups</span>
       'giving-settings':    [],
       'settings-account':   [],
       'insights-reports':   [],
-      'insights-saved':     ['loadSavedReportsList']
+      'insights-saved':     ['loadSavedReportsList'],
+      'account-settings':   []
     };
     // Arriving at a tab closes the drawer and names it in the bar.
     // Both here rather than only in the click handler, so deep links

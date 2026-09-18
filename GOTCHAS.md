@@ -4706,3 +4706,22 @@ Verified by reproducing the ordering rather than asserting the fix: with the fla
 One correction to the test itself: an assertion that the redraw does not animate reported false. That was a class left over from the previous navigation, not a new animation -- `dashAnimate` returns early when no direction is passed. The assertion was wrong, not the code.
 
 Build `2026-09-18-v131`. No migration.
+
+---
+
+## Saved reports gets its own page; the account level gets Settings
+
+**Saved reports** moves off the Insights dashboard onto Insights → Saved reports, taking `loadSavedReportsList` with it. The dashboard keeps the four figure panels -- giving, attendance, groups, involvement -- which is what "how did the year go" actually asks for. Div balance identical at 1249/1249 before and after.
+
+**The account menu gains Settings**, which the supplied diagram listed (Overview / Billing / Settings / Plan) and v130 had left out.
+
+It is `account-settings`, deliberately **not** sharing the `settings` view id with the per-church Settings section. They are different things at different levels, and one id would have meant one rendering the other. The page says what it is for -- settings applying across every church rather than to one -- and says plainly that there is nothing in it yet, rather than sitting empty and looking broken.
+
+### Two measurements that were wrong, not two bugs
+
+Both worth recording because each looked like a real failure:
+
+- Reading `.dash-sub-heading` after navigating to church Settings returned **"Overview"**. The sub-menu was *hidden* at that point and still held the previous level's markup -- `querySelector` does not care whether an element is visible. Re-measured by first asking which list is actually on screen: the church list was showing, correctly, and the heading belonged to a hidden element. **A stale read from a hidden node reports the past as the present.**
+- A console `"Script error."` turned out to be Cloudflare Turnstile error **110200** -- the captcha site key is not registered for `localhost`. An artifact of the probe environment, not of the change, and absent on the real domain. Opaque cross-origin errors are worth resolving to their source before treating them as evidence of anything.
+
+Build `2026-09-18-v132`. No migration.
