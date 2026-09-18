@@ -6553,15 +6553,43 @@ Groups</span>
 
       <div class="dash-content" id="dash-messages-inbox">
         <h2 style="font-size:24px;margin-bottom:8px;" data-i18n="dashSub.messagesInbox"></h2>
-        <p style="color:var(--ink-mute);font-size:13.5px;max-width:560px;" data-i18n="dashSub.placeholder">This page is being built. Nothing has moved yet — everything still works where it did before.</p>
+        <div class="side-note" id="msg-inbox-section" style="max-width:560px;display:none;">
+          <h4 style="display:flex;align-items:center;gap:8px;">
+            <span data-i18n="dashInbox.title">Inbox</span>
+            <span id="msg-inbox-unread" class="tag sage" style="display:none;font-size:10px;"></span>
+          </h4>
+          <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:10px;" data-i18n="dashInbox.hint">Messages people sent from your public page. Everyone who receives contact messages sees the same inbox.</p>
+          <div style="display:flex;gap:8px;margin-bottom:12px;">
+            <button class="export-btn" id="msg-inbox-archived-btn" data-i18n="dashInbox.showArchived">Show archived</button>
+          </div>
+          <div id="msg-inbox-list"><p style="color:var(--ink-mute);font-size:13px;" data-i18n="common.loading">Loading...</p></div>
+        </div>
       </div>
       <div class="dash-content" id="dash-messages-settings">
         <h2 style="font-size:24px;margin-bottom:8px;" data-i18n="dashSub.messagesSettings"></h2>
-        <p style="color:var(--ink-mute);font-size:13.5px;max-width:560px;" data-i18n="dashSub.placeholder">This page is being built. Nothing has moved yet — everything still works where it did before.</p>
+        <div class="side-note" id="settings-messaging-section">
+              <h4 data-i18n="dashSettings.messaging">Messaging</h4>
+              <p style="font-size:13.5px;color:var(--ink-mute);margin-bottom:14px;" data-i18n="dashSettings.messagingHint">Whether visitors can message your church from its public page, and who gets a copy when they do. Add more recipients by granting the "Receive contact messages" ability to staff from the Staff page.</p>
+              <label class="filter-check" style="display:flex;margin-bottom:10px;">
+                <input type="checkbox" id="settings-messaging-enabled-toggle" checked> <span data-i18n="dashSettings.messagingEnabledToggle">Show the "Message" button on your public page</span> <span id="settings-messaging-enabled-status" style="display:none;font-size:12px;"></span>
+              </label>
+              <label class="filter-check" style="display:flex;margin-bottom:14px;">
+                <input type="checkbox" id="settings-owner-receives-messages-toggle" checked> <span data-i18n="dashSettings.ownerReceivesMessagesToggle">Send me a copy of every message</span> <span id="settings-owner-receives-messages-status" style="display:none;font-size:12px;"></span>
+              </label>
+            </div>
       </div>
       <div class="dash-content" id="dash-facility-rooms">
         <h2 style="font-size:24px;margin-bottom:8px;" data-i18n="dashSub.facilityRooms"></h2>
-        <p style="color:var(--ink-mute);font-size:13.5px;max-width:560px;" data-i18n="dashSub.placeholder">This page is being built. Nothing has moved yet — everything still works where it did before.</p>
+        <div class="side-note" id="settings-rooms-section">
+              <h4 data-i18n="dashSettings.facilityRooms">Facility rooms</h4>
+              <p style="font-size:13.5px;color:var(--ink-mute);margin-bottom:14px;" data-i18n="dashSettings.facilityRoomsHint">The spaces your church schedules — classrooms, the sanctuary, Rec Center, outdoor areas. These show up as options when creating an event.</p>
+              <div id="rooms-list" style="margin-bottom:12px;"><p style="color:var(--ink-mute);font-size:13px;" data-i18n="common.loading">Loading...</p></div>
+              <div style="display:flex;gap:8px;">
+                <input class="field" type="text" id="room-add-name" placeholder="e.g. Room 205 Classroom Adult" data-i18n-placeholder="dashSettings.roomNamePlaceholder" style="flex:1;font-size:13px;padding:9px 10px;">
+                <button class="export-btn" id="room-add-btn" style="flex-shrink:0;" data-i18n="dashSettings.add">Add</button>
+              </div>
+              <div id="room-add-status" style="display:none;font-size:12px;margin-top:8px;"></div>
+            </div>
       </div>
       <div class="dash-content" id="dash-ministries-settings">
         <h2 style="font-size:24px;margin-bottom:8px;" data-i18n="dashSub.ministriesSettings"></h2>
@@ -6833,33 +6861,14 @@ Groups</span>
       <div class="dash-content" id="dash-messages">
     <!-- Moved from Settings: messaging configuration belongs with the
          messaging page, not in a general settings list. -->
-    <div class="side-note" id="settings-messaging-section">
-              <h4 data-i18n="dashSettings.messaging">Messaging</h4>
-              <p style="font-size:13.5px;color:var(--ink-mute);margin-bottom:14px;" data-i18n="dashSettings.messagingHint">Whether visitors can message your church from its public page, and who gets a copy when they do. Add more recipients by granting the "Receive contact messages" ability to staff from the Staff page.</p>
-              <label class="filter-check" style="display:flex;margin-bottom:10px;">
-                <input type="checkbox" id="settings-messaging-enabled-toggle" checked> <span data-i18n="dashSettings.messagingEnabledToggle">Show the "Message" button on your public page</span> <span id="settings-messaging-enabled-status" style="display:none;font-size:12px;"></span>
-              </label>
-              <label class="filter-check" style="display:flex;margin-bottom:14px;">
-                <input type="checkbox" id="settings-owner-receives-messages-toggle" checked> <span data-i18n="dashSettings.ownerReceivesMessagesToggle">Send me a copy of every message</span> <span id="settings-owner-receives-messages-status" style="display:none;font-size:12px;"></span>
-              </label>
-            </div>
+
         <h2 style="font-size:24px;margin-bottom:24px;" data-i18n="dash.messages">Messages</h2>
 
         <!-- Hidden until the loader confirms this person is a
              recipient. The real gate is RLS (migration 049); this
              only avoids showing an empty box to staff it was never
              meant for. -->
-        <div class="side-note" id="msg-inbox-section" style="max-width:560px;display:none;">
-          <h4 style="display:flex;align-items:center;gap:8px;">
-            <span data-i18n="dashInbox.title">Inbox</span>
-            <span id="msg-inbox-unread" class="tag sage" style="display:none;font-size:10px;"></span>
-          </h4>
-          <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:10px;" data-i18n="dashInbox.hint">Messages people sent from your public page. Everyone who receives contact messages sees the same inbox.</p>
-          <div style="display:flex;gap:8px;margin-bottom:12px;">
-            <button class="export-btn" id="msg-inbox-archived-btn" data-i18n="dashInbox.showArchived">Show archived</button>
-          </div>
-          <div id="msg-inbox-list"><p style="color:var(--ink-mute);font-size:13px;" data-i18n="common.loading">Loading...</p></div>
-        </div>
+
         <div id="dash-messages-locked" style="display:none;margin-top:10px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--paper);font-size:12.5px;color:var(--ink-mute);max-width:560px;">
           <svg viewBox="0 0 24 24" fill="currentColor" style="width:13px;height:13px;vertical-align:-2px;margin-right:4px;"><path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2z"/></svg>
           <span data-i18n="dashMessages.locked">Mass email to members, groups, and events is available on Medium, Large, and Multi-Church plans.</span>
@@ -7363,16 +7372,7 @@ Groups</span>
   <div class="dash-content" id="dash-facility">
     <h2 style="font-family:'Fraunces';font-size:22px;margin-bottom:4px;" data-i18n="dash.facility">Facility</h2>
     <p style="color:var(--ink-mute);font-size:13.5px;margin-bottom:18px;" data-i18n="dashFacility.subtitle">Rooms you can assign to events.</p>
-    <div class="side-note" id="settings-rooms-section">
-              <h4 data-i18n="dashSettings.facilityRooms">Facility rooms</h4>
-              <p style="font-size:13.5px;color:var(--ink-mute);margin-bottom:14px;" data-i18n="dashSettings.facilityRoomsHint">The spaces your church schedules — classrooms, the sanctuary, Rec Center, outdoor areas. These show up as options when creating an event.</p>
-              <div id="rooms-list" style="margin-bottom:12px;"><p style="color:var(--ink-mute);font-size:13px;" data-i18n="common.loading">Loading...</p></div>
-              <div style="display:flex;gap:8px;">
-                <input class="field" type="text" id="room-add-name" placeholder="e.g. Room 205 Classroom Adult" data-i18n-placeholder="dashSettings.roomNamePlaceholder" style="flex:1;font-size:13px;padding:9px 10px;">
-                <button class="export-btn" id="room-add-btn" style="flex-shrink:0;" data-i18n="dashSettings.add">Add</button>
-              </div>
-              <div id="room-add-status" style="display:none;font-size:12px;margin-top:8px;"></div>
-            </div>
+
 
     <!-- Hidden until there is at least one room; an empty week grid
          with no room to put in it is just furniture. -->
@@ -7606,7 +7606,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v122 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v123 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -10357,7 +10357,15 @@ Groups</span>
       events:     ['loadDashboardEvents'],
       checkin:    ['loadCheckinEventPicker'],
       directory:  ['loadDirectoryPeople', 'loadPendingInvitesPanel', 'loadRecentlyJoinedPanel'],
-      messages:   ['loadContactInbox', 'loadMessageDrafts', 'loadScheduledMessages', 'loadMessageHistory'],
+      // loadContactInbox is NOT here any more: the inbox moved to its
+      // own sub-page and loading it from the composer would be a fetch
+      // for something not on screen.
+      messages:   ['loadMessageDrafts', 'loadScheduledMessages', 'loadMessageHistory'],
+      // loadRoomsPanel is what populates window.churchRoomsCache, and
+      // the schedule on this page is built from it -- so it runs here
+      // even though the room LIST it renders now lives on the Rooms
+      // sub-page. Without it, opening Facility straight from the menu
+      // would find an empty cache and hide the schedule entirely.
       facility:   ['loadRoomsPanel'],
       ministries: ['loadMinistriesPanel'],
       groups:     ['loadDashboardGroups'],
@@ -10376,7 +10384,13 @@ Groups</span>
       'directory-reports':  [],
       'directory-settings': [],
       'messages-inbox':     ['loadContactInbox'],
-      'messages-settings':  [],
+      // The messaging toggles moved here from the composer page, and
+      // loadGiveMessageToggles is what fills them in -- it reads all
+      // three of giving/messaging/owner-receives in one query and
+      // no-ops when none of their elements are on the page, so naming
+      // it in both places costs nothing and forgetting it would leave
+      // the toggles showing their unchecked HTML default.
+      'messages-settings':  ['loadGiveMessageToggles'],
       'facility-rooms':     ['loadRoomsPanel'],
       'ministries-settings': [],
       'groups-settings':    [],

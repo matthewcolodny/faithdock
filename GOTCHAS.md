@@ -4480,3 +4480,29 @@ So the face is decided **synchronously at start-up** from whether a Supabase ses
 Fixed by making the preflight a named, callable function instead of an anonymous IIFE, so it can be pointed at a planted session directly. The alternative was asserting on a flash that lasts one frame, which is not something to measure. Verified properly: no session leaves the hamburger; a session flips to the initials face with no network call; `setNavInitials` then fills in "MF" without the shape changing.
 
 Build `2026-09-18-v122`. No migration.
+
+---
+
+## Moving real panels into their sub-pages
+
+Three sections stop being a stack of cards on one page.
+
+- **Church inbox** leaves the composer page. Reading is a different intent from writing, and mixing them is why that page had grown four stacked cards.
+- **Messaging settings** moves one level further in. It was moved out of global Settings onto the Messages page once already; it governs messaging, so it belongs on messaging's *Settings* rather than above the composer, where it is read every time and changed almost never.
+- **Rooms** leaves the Facility page. Rooms are a thing you maintain; the schedule is a thing you consult. Separating them lets Facility open on the question people actually arrive with -- what is booked -- rather than on a list to administer.
+
+**The blocks were moved by depth-counting, not regex.** These are nested `<div>`s: a lazy match stops at the first `</div>` and a greedy one swallows the rest of the page. The move removes before it inserts, or the second search finds the copy it just made. Checked after: `<div>` balance identical at 1248/1248, `<p>` balance identical, every moved id present exactly once, and each block resolving to the right panel via `closest('.dash-content')` in a live page rather than by reading the source.
+
+**One thing the move broke quietly, which the id checks would not have caught.** Each block was inserted straight after its panel's opening tag, which put it *above* that panel's own `<h2>` -- content first, heading second. Valid markup, no error, and invisible to any check that asks "is it in the right panel". Found by comparing the index of `<h2>` against the index of `side-note` inside each panel, then lifting the headings rather than re-running the move, since the content was already where it belonged.
+
+### Loaders have to follow the content
+
+Moving a panel moves what has to load with it, and the map does not update itself:
+
+- `messages` **stops** calling `loadContactInbox` -- the inbox is not on that page any more, and loading it there is a fetch for something not on screen.
+- `messages-settings` **starts** calling `loadGiveMessageToggles`, which is what fills those toggles in. Forgetting it would have left them showing their unchecked HTML default, which on a "Show the Message button on your public page" toggle reads as *off* -- a silent misreport of a live setting rather than a blank.
+- `facility` **keeps** calling `loadRoomsPanel` even though the room list it renders now lives elsewhere: that function is what populates `window.churchRoomsCache`, and the schedule is built from it. Without it, opening Facility from the menu would find an empty cache and hide the schedule entirely.
+
+That last one is the interesting shape -- a loader whose visible output moved away but whose *side effect* is still load-bearing where it was. Verified per view by counting calls: each page now loads exactly what it shows and nothing it does not.
+
+Build `2026-09-18-v123`. No migration.
