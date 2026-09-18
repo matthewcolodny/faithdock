@@ -766,6 +766,8 @@
       'accountSettings.newChurchDefaults': 'Defaults for new churches',
       'accountSettings.newChurchDefaultsHint': 'Applied when you add a church to this account. Existing churches are never changed \u2014 each one keeps whatever it has. Leave anything on \u201cNo preference\u201d and the usual default is used.',
       'accountSettings.noPreference': 'No preference', 'common.yes': 'Yes', 'common.no': 'No',
+      'cropper.title': 'Adjust your image', 'cropper.zoom': 'Zoom', 'cropper.use': 'Use this image',
+      'cropper.hint': 'Drag to move, and use the slider to zoom. What you see is what gets saved.',
       'accountSettings.ownershipTitle': 'Ownership and closing',
       'accountSettings.ownershipHint': 'Transferring this account to someone else, and closing it, are being built. Both need the person receiving or losing access to confirm, so neither can happen by a single click \u2014 until they land, email support and we will do it with you.',
       'dashSub.ministryList': 'Ministry list', 'dashSub.groupList': 'Group list',
@@ -1709,6 +1711,8 @@
       'accountSettings.newChurchDefaults': 'Valores predeterminados para iglesias nuevas',
       'accountSettings.newChurchDefaultsHint': 'Se aplican cuando añades una iglesia a esta cuenta. Las iglesias existentes nunca cambian \u2014 cada una conserva lo que tiene. Deja cualquier opción en \u201cSin preferencia\u201d y se usa el valor habitual.',
       'accountSettings.noPreference': 'Sin preferencia', 'common.yes': 'Sí', 'common.no': 'No',
+      'cropper.title': 'Ajusta tu imagen', 'cropper.zoom': 'Zoom', 'cropper.use': 'Usar esta imagen',
+      'cropper.hint': 'Arrastra para mover y usa el control para acercar. Lo que ves es lo que se guarda.',
       'accountSettings.ownershipTitle': 'Propiedad y cierre',
       'accountSettings.ownershipHint': 'Transferir esta cuenta a otra persona, y cerrarla, están en construcción. Ambas requieren que quien recibe o pierde el acceso lo confirme, así que ninguna puede ocurrir con un solo clic \u2014 hasta que lleguen, escribe a soporte y lo haremos contigo.',
       'dashSub.ministryList': 'Lista de ministerios', 'dashSub.groupList': 'Lista de grupos',
@@ -3998,6 +4002,32 @@
     .print-hide { display: none !important; }
   }
   .share-qr-img{width:100%;aspect-ratio:1;border-radius:10px;border:1px solid var(--line);background:#fff;display:block;}
+
+  /* ---- image cropper ---- */
+  /* The stage is a window onto the image, not a frame around it: the
+     image is bigger than the stage and moves behind it, so what you
+     see IS what gets saved. A frame drawn over a shrunk-to-fit image
+     would have to explain itself. */
+  #cropper-stage{
+    position:relative;width:100%;overflow:hidden;border-radius:10px;
+    background:var(--paper);border:1px solid var(--line);
+    touch-action:none;cursor:grab;user-select:none;
+  }
+  #cropper-stage.is-dragging{cursor:grabbing;}
+  #cropper-canvas{display:block;width:100%;height:100%;}
+  /* Pointer events off, or the guides would swallow the drag. */
+  #cropper-guides{position:absolute;inset:0;pointer-events:none;}
+  #cropper-guides span{position:absolute;background:rgba(255,255,255,0.28);}
+  #cropper-guides span.v{top:0;bottom:0;width:1px;}
+  #cropper-guides span.h{left:0;right:0;height:1px;}
+  /* A round mask for the avatar case, so the crop matches where the
+     photo actually ends up rather than being a square somebody has to
+     mentally round off. */
+  #cropper-stage.is-round #cropper-guides::after{
+    content:'';position:absolute;inset:0;border-radius:50%;
+    box-shadow:0 0 0 9999px rgba(22,35,63,0.45);
+  }
+  #cropper-zoom{width:100%;margin:14px 0 4px;}
   .share-link-row{display:flex;gap:8px;}
   .share-link-row input{font-size:12px;flex:1;}
   .registrant-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line);}
@@ -6529,6 +6559,7 @@ Groups</span>
         </div>
       </div>
 
+
       <div class="modal-overlay" id="cal-day-modal">
         <div class="modal-card" style="max-width:420px;">
           <button class="modal-close" onclick="document.getElementById('cal-day-modal').classList.remove('open')" aria-label="Close" data-i18n-title="common.close">
@@ -7769,6 +7800,40 @@ Groups</span>
 
 </main>
 
+<!-- Outside every page on purpose. Two of the three uploads it
+     serves (profile photo, church logo) are not on the dashboard,
+     and a modal nested inside a display:none page renders nothing,
+     takes no clicks, and leaves its promise unsettled -- an upload
+     that hangs rather than fails.
+
+     One cropper for all three uploads (profile photo, church
+     logo, event graphic). They differ only in shape and output
+     size, which openImageCropper() takes as options -- three
+     copies of this markup would be three places to fix the
+     next bug in it. -->
+<div class="modal-overlay" id="cropper-modal">
+  <div class="modal-card" style="max-width:420px;">
+    <button class="modal-close" id="cropper-cancel-x" aria-label="Close" data-i18n-title="common.close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <h3 id="cropper-title" style="font-family:'Fraunces';font-size:18px;margin-bottom:4px;" data-i18n="cropper.title">Adjust your image</h3>
+    <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:12px;" data-i18n="cropper.hint">Drag to move, and use the slider to zoom. What you see is what gets saved.</p>
+    <div id="cropper-stage">
+      <canvas id="cropper-canvas"></canvas>
+      <div id="cropper-guides">
+        <span class="v" style="left:33.33%;"></span><span class="v" style="left:66.66%;"></span>
+        <span class="h" style="top:33.33%;"></span><span class="h" style="top:66.66%;"></span>
+      </div>
+    </div>
+    <input type="range" id="cropper-zoom" min="100" max="400" value="100" step="1" data-i18n-title="cropper.zoom" title="Zoom" aria-label="Zoom">
+    <div style="display:flex;gap:8px;margin-top:10px;">
+      <button class="btn-gold" id="cropper-apply" style="flex:1;margin-top:0;" data-i18n="cropper.use">Use this image</button>
+      <button class="export-btn" id="cropper-cancel" style="flex-shrink:0;" data-i18n="dashGroups.cancel">Cancel</button>
+    </div>
+    <div id="cropper-status" style="display:none;font-size:12px;margin-top:8px;color:var(--clay);"></div>
+  </div>
+</div>
+
 <!-- A sitemap rather than a longer single line of links: the footer
      is the only place on the site that lists what exists, and the
      About page has sections worth reaching directly. -->
@@ -7802,7 +7867,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v136 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v137 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -9695,6 +9760,239 @@ Groups</span>
     var btn = document.getElementById('dash-menu-btn');
     if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
   }
+  // ============================================================
+  // Image cropper
+  //
+  // openImageCropper(file, opts) -> Promise<File|null>
+  //   null  = the person cancelled; the caller must not upload.
+  //   file  = what to upload. The ORIGINAL file comes back unchanged
+  //           when this browser cannot crop, or when the file is not
+  //           an image we can decode -- an upload must never be
+  //           blocked by the editor that was only meant to improve it.
+  //
+  // opts: { aspect, outputWidth, round, title }
+  //
+  // The stage is a WINDOW onto the image rather than a frame drawn
+  // over it: the image is drawn larger than the stage and moves
+  // behind it, so what is visible is exactly what gets written. A
+  // frame over a shrunk-to-fit image would need explaining.
+  // ============================================================
+  var cropperState = null;
+
+  // Decoded with createImageBitmap where it exists, because that is
+  // the only way to get EXIF orientation applied -- a photo taken in
+  // portrait on a phone is stored landscape with an orientation tag,
+  // and drawing it to a canvas without honouring that tag turns it on
+  // its side. <img> honours it when rendering but canvas does not.
+  async function cropperDecode(file){
+    if (typeof createImageBitmap === 'function') {
+      try { return await createImageBitmap(file, { imageOrientation: 'from-image' }); }
+      catch (e) { /* older Safari rejects the option -- fall through */ }
+      try { return await createImageBitmap(file); } catch (e) {}
+    }
+    return await new Promise(function(resolve, reject){
+      var url = URL.createObjectURL(file);
+      var img = new Image();
+      img.onload = function(){ URL.revokeObjectURL(url); resolve(img); };
+      img.onerror = function(){ URL.revokeObjectURL(url); reject(new Error('decode failed')); };
+      img.src = url;
+    });
+  }
+
+  function cropperDraw(){
+    var st = cropperState;
+    if (!st) return;
+    var ctx = st.canvas.getContext('2d');
+    ctx.clearRect(0, 0, st.canvas.width, st.canvas.height);
+    ctx.drawImage(st.img, st.x, st.y, st.drawW * st.zoom, st.drawH * st.zoom);
+  }
+
+  // Keeps the image covering the stage at every zoom level. Without
+  // this a drag could pull an edge inward and leave a transparent
+  // strip that ends up baked into the saved file.
+  function cropperClamp(){
+    var st = cropperState;
+    var w = st.drawW * st.zoom, h = st.drawH * st.zoom;
+    st.x = Math.min(0, Math.max(st.canvas.width - w, st.x));
+    st.y = Math.min(0, Math.max(st.canvas.height - h, st.y));
+  }
+
+  function cropperSetZoom(z){
+    var st = cropperState;
+    var prev = st.zoom;
+    st.zoom = Math.max(1, z);
+    // Zoom about the middle of the stage, not the top-left corner --
+    // otherwise the subject slides out of view as you zoom in and the
+    // slider feels like it is dragging the image away from you.
+    var cx = st.canvas.width / 2, cy = st.canvas.height / 2;
+    st.x = cx - (cx - st.x) * (st.zoom / prev);
+    st.y = cy - (cy - st.y) * (st.zoom / prev);
+    cropperClamp();
+    cropperDraw();
+  }
+
+  // PNG in, PNG out. A logo with a transparent background re-encoded
+  // as JPEG comes back with a black box behind it, which is the most
+  // visible way this feature could damage the thing it was asked to
+  // improve. Everything else becomes JPEG, because a photo stored as
+  // PNG is several times larger for no gain.
+  function cropperOutputType(file){
+    return (file.type === 'image/png' || file.type === 'image/webp') ? file.type : 'image/jpeg';
+  }
+  function cropperOutputName(name, type){
+    var ext = type === 'image/png' ? '.png' : type === 'image/webp' ? '.webp' : '.jpg';
+    // The upload path builds its object key from this name and storage
+    // infers a content type from it, so an extension that disagrees
+    // with the bytes would be served wrong.
+    return String(name || 'image').replace(/\.[^.]+$/, '') + ext;
+  }
+
+  window.openImageCropper = function(file, opts){
+    opts = opts || {};
+    var aspect = opts.aspect || 1;
+    var outW = opts.outputWidth || 512;
+    var outH = Math.round(outW / aspect);
+    var modal = document.getElementById('cropper-modal');
+    var canvas = document.getElementById('cropper-canvas');
+
+    // Everything this needs, checked before anything is shown. A
+    // half-open modal with a dead canvas would be worse than no
+    // cropper at all.
+    if (!modal || !canvas || !canvas.getContext || !HTMLCanvasElement.prototype.toBlob
+        || !file || !/^image\//.test(file.type || '') || /svg/.test(file.type || '')) {
+      return Promise.resolve(file);
+    }
+
+    return new Promise(function(resolve){
+      cropperDecode(file).then(function(img){
+        var stage = document.getElementById('cropper-stage');
+        var zoomEl = document.getElementById('cropper-zoom');
+        var titleEl = document.getElementById('cropper-title');
+        var statusEl = document.getElementById('cropper-status');
+        statusEl.style.display = 'none';
+        if (opts.title) { titleEl.removeAttribute('data-i18n'); titleEl.textContent = opts.title; }
+        else { titleEl.setAttribute('data-i18n', 'cropper.title'); titleEl.textContent = window.t('cropper.title'); }
+
+        // The stage is sized in CSS pixels by the card; the canvas
+        // backing store is the OUTPUT size, so the preview and the
+        // saved file are the same picture rather than two crops that
+        // happen to look alike.
+        canvas.width = outW;
+        canvas.height = outH;
+        stage.style.aspectRatio = aspect + ' / 1';
+        stage.classList.toggle('is-round', !!opts.round);
+
+        var iw = img.width || img.naturalWidth;
+        var ih = img.height || img.naturalHeight;
+        // COVER, not contain: the image starts filling the stage, so
+        // the default crop is already valid and somebody who just
+        // clicks the button gets a sensible result.
+        var scale = Math.max(outW / iw, outH / ih);
+        cropperState = {
+          img: img, canvas: canvas, zoom: 1,
+          drawW: iw * scale, drawH: ih * scale,
+          x: (outW - iw * scale) / 2, y: (outH - ih * scale) / 2
+        };
+        zoomEl.value = 100;
+        cropperDraw();
+        modal.classList.add('open');
+
+        var settled = false;
+        function finish(result){
+          if (settled) return;
+          settled = true;
+          modal.classList.remove('open');
+          stage.classList.remove('is-dragging');
+          zoomEl.removeEventListener('input', onZoom);
+          stage.removeEventListener('pointerdown', onDown);
+          window.removeEventListener('pointermove', onMove);
+          window.removeEventListener('pointerup', onUp);
+          stage.removeEventListener('wheel', onWheel);
+          document.removeEventListener('keydown', onKey);
+          applyBtn.removeEventListener('click', onApply);
+          cancelBtn.removeEventListener('click', onCancel);
+          cancelX.removeEventListener('click', onCancel);
+          if (cropperState && cropperState.img && cropperState.img.close) cropperState.img.close();
+          cropperState = null;
+          resolve(result);
+        }
+
+        function onZoom(){ cropperSetZoom(parseInt(zoomEl.value, 10) / 100); }
+        var dragging = false, lastX = 0, lastY = 0;
+        function onDown(ev){
+          dragging = true; lastX = ev.clientX; lastY = ev.clientY;
+          stage.classList.add('is-dragging');
+        }
+        function onMove(ev){
+          if (!dragging || !cropperState) return;
+          // Pointer movement is in CSS pixels, the canvas is in output
+          // pixels. Without this ratio the image lags or races the
+          // finger by exactly the scale factor between the two.
+          var rect = stage.getBoundingClientRect();
+          // Guard against a zero-width stage: the division below would
+          // be Infinity, and the NaN coordinates that follow blank the
+          // canvas with no way back.
+          if (!rect.width) return;
+          var k = canvas.width / rect.width;
+          cropperState.x += (ev.clientX - lastX) * k;
+          cropperState.y += (ev.clientY - lastY) * k;
+          lastX = ev.clientX; lastY = ev.clientY;
+          cropperClamp();
+          cropperDraw();
+        }
+        function onUp(){ dragging = false; stage.classList.remove('is-dragging'); }
+        function onWheel(ev){
+          if (!cropperState) return;
+          ev.preventDefault();
+          var next = Math.min(4, Math.max(1, cropperState.zoom * (ev.deltaY < 0 ? 1.08 : 1 / 1.08)));
+          zoomEl.value = Math.round(next * 100);
+          cropperSetZoom(next);
+        }
+        // Escape cancels. A modal that only one button dismisses is a
+        // trap for anyone on a keyboard -- the same rule the dashboard
+        // drawer follows.
+        function onKey(ev){ if (ev.key === 'Escape') onCancel(); }
+        function onCancel(){ finish(null); }
+        function onApply(){
+          var type = cropperOutputType(file);
+          canvas.toBlob(function(blob){
+            // A failed encode must not silently upload nothing. Falling
+            // back to the original is the honest outcome: the person
+            // wanted this picture, just not cropped.
+            if (!blob) { finish(file); return; }
+            var out;
+            try {
+              out = new File([blob], cropperOutputName(file.name, type), { type: type });
+            } catch (e) {
+              // Older Safari has no File constructor. A Blob works for
+              // the upload, but carries no name, so give it one.
+              out = blob;
+              out.name = cropperOutputName(file.name, type);
+            }
+            finish(out);
+          }, type, type === 'image/jpeg' ? 0.9 : undefined);
+        }
+
+        var applyBtn = document.getElementById('cropper-apply');
+        var cancelBtn = document.getElementById('cropper-cancel');
+        var cancelX = document.getElementById('cropper-cancel-x');
+        zoomEl.addEventListener('input', onZoom);
+        stage.addEventListener('pointerdown', onDown);
+        window.addEventListener('pointermove', onMove);
+        window.addEventListener('pointerup', onUp);
+        stage.addEventListener('wheel', onWheel, { passive: false });
+        document.addEventListener('keydown', onKey);
+        applyBtn.addEventListener('click', onApply);
+        cancelBtn.addEventListener('click', onCancel);
+        cancelX.addEventListener('click', onCancel);
+      }).catch(function(){
+        // Undecodable: hand the file straight back rather than
+        // refusing it. Storage and the bucket's own rules decide
+        // whether it is acceptable, exactly as before this existed.
+        resolve(file);
+      });
+    });
+  };
   window.setDashMenu = setDashMenu;
 
   var dashMenuBtn = document.getElementById('dash-menu-btn');
@@ -14086,6 +14384,7 @@ Groups</span>
     document.getElementById('rc-logo-remove-btn').style.display = 'none';
     resetRcLogoFilename();
     window.rcLogoMarkedForRemoval = false;
+    window.rcLogoEditedFile = null;
     rcServiceTimes = [];
     if (typeof renderRcServiceTimesChips === 'function') renderRcServiceTimesChips();
   }
@@ -14220,9 +14519,20 @@ Groups</span>
   // selected, before it's ever uploaded or saved.
   var rcLogoInput = document.getElementById('rc-logo');
   if (rcLogoInput) {
-    rcLogoInput.addEventListener('change', function(){
+    rcLogoInput.addEventListener('change', async function(){
       var file = this.files[0];
       if (!file) return;
+      // Square, because the preview and every place a logo is shown
+      // is square. Cancelling clears the field rather than keeping a
+      // file the person declined to crop -- they can pick again.
+      var edited = await window.openImageCropper(file, { aspect: 1, outputWidth: 512, round: false });
+      if (edited === null) {
+        rcLogoInput.value = '';
+        window.rcLogoEditedFile = null;
+        return;
+      }
+      window.rcLogoEditedFile = edited;
+      file = edited;
       var previewUrl = URL.createObjectURL(file);
       document.getElementById('rc-logo-preview').style.backgroundImage = "url('" + previewUrl + "')";
       // Choosing a new file supersedes an earlier "remove" click, if
@@ -14253,6 +14563,7 @@ Groups</span>
   if (rcLogoRemoveBtn) {
     rcLogoRemoveBtn.addEventListener('click', function(){
       window.rcLogoMarkedForRemoval = true;
+      window.rcLogoEditedFile = null;
       document.getElementById('rc-logo-preview').style.backgroundImage = '';
       document.getElementById('rc-logo').value = '';
       resetRcLogoFilename();
@@ -17009,7 +17320,11 @@ Groups</span>
       // Only touch logo_url if a new file was actually selected, or
       // the person explicitly clicked "Remove logo" — otherwise
       // editing other fields would silently wipe out an existing logo.
-      var logoFile = document.getElementById('rc-logo').files[0];
+      // The cropped version if there is one, the raw pick otherwise --
+      // openImageCropper returns the original unchanged on a browser
+      // that cannot crop, so this is never empty when a file was
+      // chosen.
+      var logoFile = window.rcLogoEditedFile || document.getElementById('rc-logo').files[0];
       if (logoFile) {
         // Save changes already awaits this upload before touching the
         // church row at all -- this bar just makes that existing wait
@@ -17611,7 +17926,7 @@ Groups</span>
   // 1200px of real image width to stay crisp at 2-3x pixel density.
   var ceImageInput = document.getElementById('ce-image');
   if (ceImageInput) {
-    ceImageInput.addEventListener('change', function(){
+    ceImageInput.addEventListener('change', async function(){
       var file = this.files[0];
       var warningEl = document.getElementById('ce-image-warning');
       var filenameEl = document.getElementById('ce-image-filename');
@@ -17629,6 +17944,23 @@ Groups</span>
       window.ceImageMarkedForRemoval = false;
       document.getElementById('ce-image-remove-btn').style.display = 'flex';
 
+      // 16:9 and 1600 wide, matching #event-image-block's aspect-ratio
+      // and clearing the 1200px warning below by construction. The
+      // warning stays in the code because a browser that cannot crop
+      // still hands back the original, and then it is the only thing
+      // telling somebody their graphic will look soft.
+      var cropped = await window.openImageCropper(file, { aspect: 16 / 9, outputWidth: 1600 });
+      if (cropped === null) {
+        ceImageInput.value = '';
+        window.ceImageEditedFile = null;
+        filenameEl.setAttribute('data-i18n', 'rc.noFileChosen');
+        filenameEl.textContent = window.t('rc.noFileChosen');
+        document.getElementById('ce-image-remove-btn').style.display = 'none';
+        return;
+      }
+      window.ceImageEditedFile = cropped;
+      file = cropped;
+      filenameEl.textContent = file.name;
       var objectUrl = URL.createObjectURL(file);
       var img = new Image();
       img.onload = function(){
@@ -17654,6 +17986,7 @@ Groups</span>
   if (ceImageRemoveBtn) {
     ceImageRemoveBtn.addEventListener('click', function(){
       window.ceImageMarkedForRemoval = true;
+      window.ceImageEditedFile = null;
       window.ceLastImageWidth = null;
       document.getElementById('ce-image-preview').style.backgroundImage = '';
       document.getElementById('ce-image').value = '';
@@ -17995,6 +18328,7 @@ Groups</span>
     document.getElementById('ce-image').value = '';
     document.getElementById('ce-image-remove-btn').style.display = 'none';
     window.ceImageMarkedForRemoval = false;
+    window.ceImageEditedFile = null;
     var ceImageFilenameEl = document.getElementById('ce-image-filename');
     ceImageFilenameEl.setAttribute('data-i18n', 'rc.noFileChosen');
     ceImageFilenameEl.textContent = window.t('rc.noFileChosen');
@@ -18159,6 +18493,7 @@ Groups</span>
     // preview and remove button stuck on screen, a real pre-existing
     // gap since neither was ever reset here before this fix.
     window.ceImageMarkedForRemoval = false;
+    window.ceImageEditedFile = null;
     document.getElementById('ce-image-preview').style.backgroundImage = '';
     document.getElementById('ce-image-remove-btn').style.display = 'none';
     if (ev.image_url) {
@@ -18718,7 +19053,9 @@ Groups</span>
       var feeMode = priceCents ? (feeModeInput ? feeModeInput.value : 'pass') : 'pass';
 
       var imageUrl = null;
-      var imageFile = document.getElementById('ce-image').files[0];
+      // Same rule as the church logo: the cropped file wins, and the
+      // raw pick is the fallback for a browser that could not crop.
+      var imageFile = window.ceImageEditedFile || document.getElementById('ce-image').files[0];
       if (imageFile) {
         var filePath = userData.user.id + '/' + Date.now() + '-' + imageFile.name;
         var { error: uploadError } = await supabase.storage.from('event-images').upload(filePath, imageFile);
@@ -28618,6 +28955,17 @@ Groups</span>
       if (!file) return;
       var statusEl = document.getElementById('profile-photo-status');
       statusEl.style.display = 'none';
+
+      // round: true masks the stage as a circle, because that is where
+      // an avatar actually ends up -- cropping to a square and letting
+      // somebody discover the corners were cut afterwards is the whole
+      // problem this is meant to solve.
+      //
+      // Before the upload, not after: this page uploads the moment a
+      // file is chosen, so there is no save step to hold the crop for.
+      var editedPhoto = await window.openImageCropper(file, { aspect: 1, outputWidth: 512, round: true });
+      if (editedPhoto === null) { profilePhotoInput.value = ''; return; }
+      file = editedPhoto;
 
       var { data: userData } = await supabase.auth.getUser();
       if (!userData.user) return;

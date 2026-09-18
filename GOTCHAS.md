@@ -4852,3 +4852,38 @@ It would have been easy to label this "invoice email". It is not. Stripe emails 
 Transfer account ownership and close account are named on the page rather than left off it -- an account page that silently omits them reads as though FaithDock has no way to do either, which is precisely the question somebody opens it to answer. Both need the person receiving or losing access to confirm, so neither can be a single click, and closing an account also has to cancel a Stripe subscription, which needs the edge function source.
 
 Build `2026-09-18-v136`; **migration 060 must be run by hand** (the page renders but cannot load or save until it is).
+
+---
+
+## Crop and zoom on upload
+
+Requested a while back: "adjust uploaded event graphics and profile pictures, and church logos upon upload, ex. Crop; zoom?". One cropper serves all three.
+
+`openImageCropper(file, opts) -> Promise<File|null>`. `null` means cancelled and the caller must not upload; anything else is what to upload. **The original file comes back unchanged** when the browser cannot crop, when the file is not a decodable image, or when the encode fails -- an upload must never be blocked by an editor that only existed to improve it.
+
+Shapes come from where the image actually lands, not from a guess: profile photo 1:1 with a **round mask** (it becomes an avatar, and letting somebody discover the corners were cut afterwards is the exact problem this solves), church logo 1:1 at 512, event graphic **16:9 at 1600** -- 16:9 because that is `#event-image-block`'s `aspect-ratio`, and 1600 because the existing "narrower than 1200px" warning is about retina sharpness.
+
+### The things that would have quietly damaged an image
+
+- **The stage is a window, not a frame.** The image is drawn larger than the stage and moves behind it, so what is on screen *is* what gets written. The canvas backing store is the output size, so the preview and the saved file are the same picture rather than two crops that merely resemble each other. Verified by reading the output's pixels back: a 1200x400 red/green/blue banner cropped square defaults to green (the centre third), drags to red, and the saved PNG's pixels match the stage exactly.
+- **PNG in, PNG out.** A logo with a transparent background re-encoded as JPEG comes back with a black box behind it -- the most visible way this feature could wreck the thing it was asked to improve. Tested with a transparent PNG: corner alpha 0, centre alpha 255, type still `image/png`. Everything else becomes JPEG at 0.9, because a photo stored as PNG is several times larger for nothing.
+- **The output filename's extension follows the bytes.** `photo.jpeg` in, `photo.jpg` out. The upload path builds its storage key from this name and storage infers a content type from it, so an extension that disagreed with the encoding would be served wrong.
+- **Clamping.** The image must cover the stage at every zoom, or a drag could pull an edge inward and bake a transparent strip into the saved file. Tested with absurd drags in both directions and at 300% zoom: all four corners stay opaque.
+- **Zoom is about the centre of the stage**, not the top-left corner, or the subject slides out of view as you zoom and the slider feels like it is dragging the picture away from you.
+- **EXIF orientation.** Decoded with `createImageBitmap(file, {imageOrientation:'from-image'})` where it exists. `<img>` honours the orientation tag when rendering but canvas does not, so a phone photo taken in portrait would be saved on its side.
+
+### It was in the wrong place, and the test that found it
+
+The modal was first dropped in beside the dashboard's other modals -- which put it inside `#page-dashboard`, and inside `.dash-main` at that. **Two of the three uploads it serves are not on the dashboard.** On the Profile or Register-Church pages it would have rendered into a `display:none` container: nothing visible, no clickable buttons, and a promise that never settles -- an upload that *hangs* rather than fails, which is the worst of the available failures.
+
+It showed up as `stageCssWidth: 0` in a drag test. That zero is also why every pixel read back transparent: `canvas.width / rect.width` was Infinity, the NaN coordinates blanked the canvas, and the image could not be recovered. It cannot happen now that the modal is a sibling of every page rather than a child of one, but `if (!rect.width) return;` is one line and the failure it prevents is unrecoverable.
+
+### Holding the crop until save
+
+Profile photo uploads the instant a file is chosen, so it just uses the cropped file. The other two upload on save, and a `FileList` cannot be rewritten -- so the cropped file is held in `window.rcLogoEditedFile` / `window.ceImageEditedFile` and the save path prefers it over `input.files[0]`.
+
+That creates a stale-state trap, so the stash is cleared at **every** site the input is cleared: both remove (x) buttons, the new-event form reset, the edit-event form reset, and the church form reset. Five places, found by grepping for every line that clears the preview or the input. A crop left behind in one of them would be uploaded against the *next* church or event somebody edited.
+
+Also verified: five open/cancel cycles leave no listeners behind (stray `pointermove`, `Escape` and slider `input` events after close throw nothing and reopen nothing), Escape and both cancel controls resolve `null`, a non-image file passes straight through without the modal opening at all, and both languages render.
+
+Build `2026-09-18-v137`; no migration.
