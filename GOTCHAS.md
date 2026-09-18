@@ -4985,3 +4985,31 @@ Caught by asserting the error box was *not* showing afterwards, which is the kin
 Four messages instead of one, because "it didn't work" is not actionable: converting (progress), too large, converter unreachable, and could-not-convert. All four still end with the screenshot advice, which works from any phone.
 
 Build `2026-09-18-v140`; no migration.
+
+---
+
+## Transfer ownership: it already existed
+
+I had this on the roadmap as "needs to be built", and said so more than once. That was wrong. A complete per-church ownership transfer has been in this codebase all along: the `church_ownership_handoffs` table, `cancel_church_ownership_handoff`, the accept/decline security-definer RPCs, the sender's UI on the per-church Settings page, the recipient's sign-in prompt, and the notification email. Migration 030 even names it as the pattern the staff invites were modelled on.
+
+Reading the migrations before writing the feature is what turned a new table plus four RPCs into a UI change with no migration at all.
+
+**What was genuinely missing was the multi-church case.** The existing control lives on a single church's Settings page and acts on `getMyChurch()`, so an owner of five churches had to switch church, transfer, switch, transfer. The account-level page now lists every church they own with its transfer state, and drives the same table and the same RPCs.
+
+**No second mechanism.** An account-level transfer of its own would have been a second set of rules about who may hand a church over, and the two would have drifted -- the same failure this file has hit repeatedly with two lists that must agree.
+
+One query for every church's pending handoff, via the chunked helper from v139, rather than one per church. The N+1 that made the events table slow was written the same way, one row at a time, by somebody who was not thinking about round trips.
+
+**Escaping.** A church name is typed by a person and goes into both the row's text and a `data-` attribute that the confirm dialog reads back. Tested with `Trinity <script>alert(1)</script> Fellowship`: no script element is created, the name renders as literal text, and the attribute round-trips intact so the confirmation names the real church. This file has a history of unescaped church names -- nine sites in one earlier sweep -- so a new one gets tested rather than assumed.
+
+**A typed confirmation naming the church and the recipient**, because a list of several churches is exactly where the wrong row gets clicked, and this is the most consequential control on the page.
+
+### Closing an account is still not a button
+
+Named on the page rather than omitted -- an account page that silently leaves it out reads as though there is no way to do it, which is the question somebody opens the page to answer. It has to cancel a paid plan (which needs the `stripe-subscription` edge function, whose source is not in this repo) and deal with churches that would otherwise be left with no owner. Saying "transfer or delete each church, then email support" is honest; a button that half-did it would not be.
+
+### A test that hung
+
+Forcing the panel visible and then awaiting `requestAnimationFrame` timed out at 45 seconds. rAF does not fire in a hidden document, and the browser pane was hidden -- the same class of trap as the frozen CSS transitions already in this file. `setTimeout` measures fine.
+
+Build `2026-09-18-v141`; no migration.

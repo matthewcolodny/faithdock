@@ -772,8 +772,13 @@
       'upload.converterOffline': 'Couldn\'t load the photo converter \u2014 check your connection and try again. If it keeps failing, take a screenshot of the photo and upload that instead.',
       'upload.heicNotSupported': 'That photo couldn\'t be converted. Open it and take a screenshot, then upload the screenshot \u2014 that works from any phone.',
       'cropper.hint': 'Drag to move, and use the slider to zoom. What you see is what gets saved.',
-      'accountSettings.ownershipTitle': 'Ownership and closing',
-      'accountSettings.ownershipHint': 'Transferring this account to someone else, and closing it, are being built. Both need the person receiving or losing access to confirm, so neither can happen by a single click \u2014 until they land, email support and we will do it with you.',
+      'accountSettings.ownershipTitle': 'Transfer a church to someone else',
+      'accountSettings.send': 'Send',
+      'accountSettings.noChurchesToTransfer': 'You do not own any churches yet.',
+      'accountSettings.confirmTransfer': 'Send an ownership request for \u201c{church}\u201d to {email}?\n\nIf they accept, they become the owner \u2014 billing, staff, everything. Nothing changes until they do, and you can cancel before then.',
+      'accountSettings.closeTitle': 'Closing your account',
+      'accountSettings.closeHint': 'Closing an account has to cancel any paid plan and remove churches that would otherwise be left with no owner, so it is not a single button. Transfer or delete each church first, then email support and we will finish it with you.',
+      'accountSettings.ownershipHint': 'Churches move one at a time, each to whoever you name. Nothing changes until that person accepts, and you can cancel any time before they do.',
       'dashSub.ministryList': 'Ministry list', 'dashSub.groupList': 'Group list',
       'dashSub.eventsReports': 'Event reports', 'dashSub.eventsSettings': 'Event settings',
       'dashSub.directoryReports': 'Directory reports', 'dashSub.directorySettings': 'Directory settings',
@@ -1721,8 +1726,13 @@
       'upload.converterOffline': 'No se pudo cargar el conversor de fotos \u2014 revisa tu conexión e inténtalo de nuevo. Si sigue fallando, haz una captura de pantalla de la foto y sube esa.',
       'upload.heicNotSupported': 'No se pudo convertir esa foto. \u00c1brela, haz una captura de pantalla y sube la captura \u2014 eso funciona desde cualquier teléfono.',
       'cropper.hint': 'Arrastra para mover y usa el control para acercar. Lo que ves es lo que se guarda.',
-      'accountSettings.ownershipTitle': 'Propiedad y cierre',
-      'accountSettings.ownershipHint': 'Transferir esta cuenta a otra persona, y cerrarla, están en construcción. Ambas requieren que quien recibe o pierde el acceso lo confirme, así que ninguna puede ocurrir con un solo clic \u2014 hasta que lleguen, escribe a soporte y lo haremos contigo.',
+      'accountSettings.ownershipTitle': 'Transferir una iglesia a otra persona',
+      'accountSettings.send': 'Enviar',
+      'accountSettings.noChurchesToTransfer': 'Aún no eres propietario de ninguna iglesia.',
+      'accountSettings.confirmTransfer': '\u00bfEnviar una solicitud de propiedad de \u201c{church}\u201d a {email}?\n\nSi acepta, pasa a ser el propietario \u2014 facturación, personal, todo. Nada cambia hasta que acepte, y puedes cancelar antes.',
+      'accountSettings.closeTitle': 'Cerrar tu cuenta',
+      'accountSettings.closeHint': 'Cerrar una cuenta implica cancelar cualquier plan de pago y retirar las iglesias que quedarían sin propietario, así que no es un solo botón. Transfiere o elimina cada iglesia primero y luego escribe a soporte para terminarlo contigo.',
+      'accountSettings.ownershipHint': 'Las iglesias se transfieren de una en una, cada una a quien indiques. Nada cambia hasta que esa persona acepte, y puedes cancelar antes de que lo haga.',
       'dashSub.ministryList': 'Lista de ministerios', 'dashSub.groupList': 'Lista de grupos',
       'dashSub.eventsReports': 'Informes de eventos', 'dashSub.eventsSettings': 'Ajustes de eventos',
       'dashSub.directoryReports': 'Informes del directorio', 'dashSub.directorySettings': 'Ajustes del directorio',
@@ -6733,14 +6743,27 @@ Groups</span>
           <div id="account-defaults-status" style="display:none;font-size:12px;margin-top:8px;"></div>
         </div>
 
-        <!-- Transfer and Close are named here on purpose rather than
-             left off the page. Both are being built; an account page
-             that silently omits them reads as though FaithDock has no
-             way to do either, which is the question somebody comes to
+        <!-- Transferring is per CHURCH, not per account, and this page
+             does not invent a second mechanism for it. It drives the
+             church_ownership_handoffs table and the same
+             security-definer RPCs the per-church Settings page has
+             always used -- this is the one place that shows every
+             church at once, which is what an owner of several was
+             missing. -->
+        <div class="side-note" style="max-width:560px;">
+          <h4 data-i18n="accountSettings.ownershipTitle">Transfer a church to someone else</h4>
+          <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:12px;" data-i18n="accountSettings.ownershipHint">Churches move one at a time, each to whoever you name. Nothing changes until that person accepts, and you can cancel any time before they do.</p>
+          <div id="account-transfer-list"><p style="font-size:13px;color:var(--ink-mute);" data-i18n="common.loading">Loading...</p></div>
+          <div id="account-transfer-status" style="display:none;font-size:12px;margin-top:10px;"></div>
+        </div>
+
+        <!-- Named rather than omitted. An account page that silently
+             leaves this out reads as though there is no way to close
+             an account, which is exactly the question somebody opens
              this page to answer. -->
         <div class="side-note" style="max-width:560px;">
-          <h4 data-i18n="accountSettings.ownershipTitle">Ownership and closing</h4>
-          <p style="font-size:12.5px;color:var(--ink-mute);" data-i18n="accountSettings.ownershipHint">Transferring this account to someone else, and closing it, are being built. Both need the person receiving or losing access to confirm, so neither can happen by a single click — until they land, email support and we will do it with you.</p>
+          <h4 data-i18n="accountSettings.closeTitle">Closing your account</h4>
+          <p style="font-size:12.5px;color:var(--ink-mute);" data-i18n="accountSettings.closeHint">Closing an account has to cancel any paid plan and remove churches that would otherwise be left with no owner, so it is not a single button. Transfer or delete each church first, then email support and we will finish it with you.</p>
         </div>
       </div>
       <div class="dash-content" id="dash-insights-reports">
@@ -7875,7 +7898,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v140 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v141 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -11348,7 +11371,7 @@ Groups</span>
       'settings-account':   [],
       'insights-reports':   [],
       'insights-saved':     ['loadSavedReportsList'],
-      'account-settings':   ['loadAccountSettings']
+      'account-settings':   ['loadAccountSettings', 'loadAccountTransfers']
     };
     // Arriving at a tab closes the drawer and names it in the bar.
     // Both here rather than only in the click handler, so deep links
@@ -20615,6 +20638,103 @@ Groups</span>
     set('account-default-receipt', row.default_receipt_footer_text);
   }
   window.loadAccountSettings = loadAccountSettings;
+
+  // ---- Transferring churches, from the account level --------------
+  // Reuses church_ownership_handoffs and the existing RPCs rather
+  // than adding an account-level transfer of its own. A second
+  // mechanism for the same act would be a second set of rules about
+  // who may hand a church over, and the two would drift.
+  //
+  // One query for every church's pending handoff, not one per church:
+  // see the events table's N+1 in GOTCHAS.md for what that costs.
+  async function loadAccountTransfers(){
+    var listEl = document.getElementById('account-transfer-list');
+    if (!listEl) return;
+    var churches = window._dashOwnedChurches || [];
+    if (!churches.length) {
+      listEl.innerHTML = '<p style="font-size:13px;color:var(--ink-mute);">' + escapeHtml(window.t('accountSettings.noChurchesToTransfer')) + '</p>';
+      return;
+    }
+    var pendingByChurch = {};
+    try {
+      var rows = await fetchByIdsChunked('church_ownership_handoffs', 'id, church_id, to_email', 'church_id',
+        churches.map(function(c){ return c.id; }), function(q){ return q.eq('status', 'pending'); });
+      rows.forEach(function(r){ pendingByChurch[r.church_id] = r; });
+    } catch (e) {
+      // The list is still worth showing. Losing the pending state
+      // means somebody might send a second request, which the table's
+      // own rules refuse -- not silent damage.
+      console.error('Pending transfers unavailable:', e);
+    }
+    listEl.innerHTML = churches.map(function(c){
+      var pending = pendingByChurch[c.id];
+      var head = '<div style="font-weight:600;font-size:13.5px;margin-bottom:6px;">' + escapeHtml(c.name) + '</div>';
+      if (pending) {
+        return '<div class="side-note" style="margin-top:0;margin-bottom:10px;padding:12px;">' + head
+          + '<div style="font-size:12.5px;color:var(--ink-mute);">' + escapeHtml(window.t('dashSettings.transferPending'))
+          + ' ' + escapeHtml(pending.to_email) + ' ' + escapeHtml(window.t('dashSettings.toRespond')) + '</div>'
+          + '<button class="export-btn" data-cancel-handoff-id="' + escapeHtml(pending.id) + '" style="margin-top:8px;">'
+          + escapeHtml(window.t('dashSettings.cancelThisTransfer')) + '</button>'
+          + '</div>';
+      }
+      return '<div class="side-note" style="margin-top:0;margin-bottom:10px;padding:12px;">' + head
+        + '<div style="display:flex;gap:8px;">'
+        + '<input class="field" type="email" data-transfer-email-for="' + escapeHtml(c.id) + '" placeholder="' + escapeHtml(window.t('dashSettings.theirEmailAddress')) + '" style="flex:1;font-size:13px;padding:9px 10px;margin:0;">'
+        + '<button class="export-btn" data-transfer-church-id="' + escapeHtml(c.id) + '" data-transfer-church-name="' + escapeHtml(c.name) + '" style="flex-shrink:0;">' + escapeHtml(window.t('accountSettings.send')) + '</button>'
+        + '</div>'
+        + '<label class="filter-check" style="display:flex;margin-top:8px;font-size:12.5px;">'
+        + '<input type="checkbox" data-transfer-keep-staff-for="' + escapeHtml(c.id) + '" checked> <span>' + escapeHtml(window.t('dashSettings.keepAsStaff')) + '</span>'
+        + '</label>'
+        + '</div>';
+    }).join('');
+  }
+  window.loadAccountTransfers = loadAccountTransfers;
+
+  // Delegated: the list is rebuilt on every load, so per-row listeners
+  // would go with it.
+  document.addEventListener('click', async function(ev){
+    var sendBtn = ev.target.closest ? ev.target.closest('[data-transfer-church-id]') : null;
+    if (!sendBtn) return;
+    var churchId = sendBtn.getAttribute('data-transfer-church-id');
+    var churchName = sendBtn.getAttribute('data-transfer-church-name');
+    var emailEl = document.querySelector('[data-transfer-email-for="' + churchId + '"]');
+    var keepEl = document.querySelector('[data-transfer-keep-staff-for="' + churchId + '"]');
+    var toEmail = ((emailEl && emailEl.value) || '').trim();
+    if (!toEmail) { setSettingStatus('account-transfer-status', window.t('dashSettings.enterEmailAddress'), '--clay'); return; }
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(toEmail)) { setSettingStatus('account-transfer-status', window.t('accountSettings.badEmail'), '--clay'); return; }
+    // Named, and typed out in full. Handing a church over is the most
+    // consequential thing on this page, and a list of several is
+    // exactly where the wrong row gets clicked.
+    if (!confirm(window.t('accountSettings.confirmTransfer').replace('{church}', churchName).replace('{email}', toEmail))) return;
+    var { data: userData } = await supabase.auth.getUser();
+    if (!userData || !userData.user) return;
+    sendBtn.disabled = true;
+    var res = await supabase.from('church_ownership_handoffs').insert({
+      church_id: churchId, from_user_id: userData.user.id, to_email: toEmail,
+      keep_as_staff: !!(keepEl && keepEl.checked)
+    }).select('id');
+    sendBtn.disabled = false;
+    if (res.error || !res.data || !res.data.length) {
+      setSettingStatus('account-transfer-status', res.error ? res.error.message : window.t('common.somethingWrong'), '--clay');
+      return;
+    }
+    // Best-effort, exactly as the per-church page does it: the
+    // recipient sees an in-app prompt next time they sign in whether
+    // or not this email lands.
+    supabase.functions.invoke('smooth-action', { body: { type: 'ownership_handoff', email: toEmail, churchName: churchName } });
+    setSettingStatus('account-transfer-status', window.t('dashSettings.transferSent'));
+    loadAccountTransfers();
+  });
+
+  document.addEventListener('click', async function(ev){
+    var cancelBtn = ev.target.closest ? ev.target.closest('[data-cancel-handoff-id]') : null;
+    if (!cancelBtn) return;
+    cancelBtn.disabled = true;
+    var { error } = await supabase.rpc('cancel_church_ownership_handoff', { handoff_id: cancelBtn.getAttribute('data-cancel-handoff-id') });
+    cancelBtn.disabled = false;
+    if (error) { setSettingStatus('account-transfer-status', error.message, '--clay'); return; }
+    loadAccountTransfers();
+  });
 
   // One writer, like saveChurchSetting. upsert on the primary key, so
   // the first save creates the row and every later one updates it
