@@ -5373,3 +5373,15 @@ The last item on the list. Three sections that said "Coming soon."
 Verified: no "Coming soon" survives, all three anchors still resolve for the footer's `#about/mission` deep links, and the four commitments survive a language switch in both directions — `applyTranslations` sets `textContent` on every `[data-i18n]`, which removes child elements, so the `<ul>` is a **sibling** of the tagged `<p>` rather than inside it.
 
 Build `2026-09-18-v147`; no migration.
+
+---
+
+## "Overview / Overview / Billing / Plans"
+
+Reported from a screenshot of the tier 4/5 account drawer: the level's heading said **Overview**, and the first entry under it said **Overview** too. The heading names the level you are on; the entry names what it opens, which is the list of churches on the account. It says **Churches** now.
+
+**Its own string rather than reusing `nav.churches`.** That one is the public directory link in the top nav. The two share a word today and mean different things — the churches you can browse, versus the churches on your account — and renaming the public nav should not silently rename a dashboard entry. This file has spent a lot of this week on things that must agree and drift; a shared string is the same trap in miniature.
+
+Checked that the chevron survived (it marks an entry that opens a level rather than a page), that clicking still opens the churches list with both churches in it, and that Spanish renders "Iglesias" rather than falling through to the key.
+
+Build `2026-09-18-v148`; no migration.
