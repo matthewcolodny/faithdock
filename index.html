@@ -3523,8 +3523,13 @@
   body.checkin-link-page header,
   body.checkin-link-page footer,
   body.checkin-link-page .promo-bar{display:none;}
-  .dash-mobile-bar{display:none;}
   .dash-scrim{display:none;}
+  /* Hidden unless the dashboard is the page being shown -- it steers
+     the dashboard drawer and means nothing anywhere else. Driven by a
+     body class rather than :has(), which is newer than this file's
+     baseline. */
+  #dash-menu-btn{display:none;background:none;border:none;color:#EDEBE2;padding:8px;cursor:pointer;flex-shrink:0;}
+  #dash-menu-btn svg{width:22px;height:22px;display:block;}
   @media (max-width:860px){
     .dash{grid-template-columns:1fr;position:relative;}
 
@@ -3536,9 +3541,13 @@
        entirely, so the page starts at the top of the screen and the
        menu overlaps it only while open. Back to one column inside it,
        since there is now a full screen height to use. */
+    body.on-dashboard #dash-menu-btn{display:block;}
+    /* Starts BELOW the nav and sits under it in the stack. The nav is
+       sticky at z-index 50; the drawer was 60 and covered it, which
+       put the control that closes the drawer behind the drawer. */
     .dash-side{
-      position:fixed;top:0;bottom:0;left:0;width:260px;max-width:82vw;z-index:60;
-      padding:24px 18px;overflow-y:auto;
+      position:fixed;top:var(--nav-bottom,72px);bottom:0;left:0;width:260px;max-width:82vw;z-index:45;
+      padding:20px 18px;overflow-y:auto;
       transform:translateX(-100%);transition:transform .22s ease;
       box-shadow:6px 0 24px rgba(0,0,0,0.28);
     }
@@ -3546,23 +3555,23 @@
     .dash-nav{display:block;}
     .dash-nav a{margin-bottom:4px;padding:12px 12px;font-size:15px;}
 
+    /* Also starts below the nav, so the bar stays legible and usable
+       while the drawer is open rather than being dimmed along with
+       the page. */
     .dash-scrim{
-      display:block;position:fixed;inset:0;z-index:55;background:rgba(0,0,0,0.45);
+      display:block;position:fixed;top:var(--nav-bottom,72px);left:0;right:0;bottom:0;z-index:44;background:rgba(0,0,0,0.45);
       opacity:0;pointer-events:none;transition:opacity .22s ease;
     }
     .dash.menu-open .dash-scrim{opacity:1;pointer-events:auto;}
 
-    .dash-mobile-bar{
-      display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:40;
-      background:var(--paper);border-bottom:1px solid var(--line);padding:8px 12px;
-    }
-    .dash-mobile-bar button{
-      background:none;border:1px solid var(--line);border-radius:9px;color:var(--ink);
-      width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;
-    }
-    .dash-mobile-bar button svg{width:22px;height:22px;display:block;}
-    #dash-mobile-title{font-family:'Fraunces';font-size:17px;color:var(--ink);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    /* The bar is gone: the menu button moved into the nav and every
+       dashboard tab already renders its own heading, so the bar's
+       title was repeating what the page says two lines lower. */
     .dash-main{padding:20px 14px 40px;}
+    /* Four items across a phone bar -- menu, brand, the two quick
+       icons, account -- need the brand to give way first. */
+    .navbar{padding:0 12px;gap:6px;}
+    .brand-name{font-size:19px;}
   }
   /* Respecting a system setting that exists because motion makes some
      people ill. The drawer still opens; it just arrives. */
@@ -3947,6 +3956,13 @@
 
 <header class="site">
   <div class="navbar">
+    <!-- Left of the brand, and only while the dashboard is open. It
+         controls the dashboard drawer, so it belongs in the bar that
+         is always on screen rather than in a second sticky strip of
+         its own underneath it. -->
+    <button type="button" id="dash-menu-btn" aria-label="Dashboard menu" aria-expanded="false" data-i18n-title="common.menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
     <a href="#home" class="brand" data-route="home">
       <span class="brand-mark"><svg viewBox="0 0 172.84 172.84" fill="none"><path fill-rule="evenodd" fill="#C9A227" d="M35.68,122.45L89.09,17.75l49.11,104.7H35.68ZM81.67,60.71v74.46s12.45,0,12.45,0V60.71s-12.45,0-12.45,0ZM60.93,80.3h53.93s0,11.76,0,11.76h-53.93s0-11.76,0-11.76Z"/><path fill="#C9A227" d="M20.64,130.74c74.8,31.89,65.48,31.25,132.52,0H20.64Z"/></svg></span>
       <span class="brand-name">FaithDock</span>
@@ -6208,15 +6224,6 @@ Groups</span>
 <!-- ================= DASHBOARD ================= -->
 <section class="page" id="page-dashboard">
   <div class="dash">
-    <!-- Phone only. Sticky rather than inline at the top of the
-         page: a menu button you have to scroll back up to reach is a
-         menu button you stop using. -->
-    <div class="dash-mobile-bar">
-      <button type="button" id="dash-menu-btn" aria-label="Dashboard menu" aria-expanded="false" data-i18n-title="common.menu">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
-      </button>
-      <span id="dash-mobile-title"></span>
-    </div>
     <!-- Closes the drawer on a tap outside it. A drawer with no way
          out except the exact button that opened it is a trap on a
          touch screen. -->
@@ -7485,7 +7492,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v119 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v120 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -9332,6 +9339,30 @@ Groups</span>
   // menu you did not ask for and having to dismiss it is a tax on
   // every visit.
   // ============================================================
+  // The drawer starts where the nav ends, and that is not a constant:
+  // a waitlist banner sits above the sticky header and scrolls away,
+  // so the header bottom is 132px at rest and 72px once past it. A
+  // hardcoded offset is wrong in one of those two states -- it was
+  // wrong at the top of the page, which is where people arrive.
+  //
+  // rAF-throttled because scroll fires far more often than layout
+  // needs to change, and passive so it never delays the scroll itself.
+  (function trackNavBottom(){
+    var header = document.querySelector('header.site');
+    if (!header) return;
+    var pending = false;
+    function update(){
+      pending = false;
+      var bottom = Math.max(0, Math.round(header.getBoundingClientRect().bottom));
+      document.documentElement.style.setProperty('--nav-bottom', bottom + 'px');
+    }
+    window.updateNavBottom = update;
+    function schedule(){ if (pending) return; pending = true; requestAnimationFrame(update); }
+    update();
+    window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('resize', schedule);
+  })();
+
   function setDashMenu(open){
     var dash = document.querySelector('.dash');
     if (!dash) return;
@@ -9361,15 +9392,6 @@ Groups</span>
     if (ev.target.closest && ev.target.closest('.dash-side [data-dash]')) setDashMenu(false);
   });
 
-  // The bar names the tab you are on. Without it the phone layout
-  // loses the only cue about where you are, since the sidebar that
-  // used to show it is now off-screen.
-  window.setDashMobileTitle = function(view){
-    var el = document.getElementById('dash-mobile-title');
-    if (!el) return;
-    var link = document.querySelector('.dash-side [data-dash="' + (view || '').replace(/"/g, '') + '"]');
-    el.textContent = link ? link.textContent.trim() : '';
-  };
 
   window.setNavInitials = function(name){
     var iconEl = document.getElementById('hamburger-icon');
@@ -9656,6 +9678,12 @@ Groups</span>
     // account for -- and a nav bar is an invitation to wander off
     // the one screen the device is propped up to show.
     document.body.classList.toggle('checkin-link-page', resolved.base === 'checkin-link');
+    // Drives the dashboard menu button in the nav bar. A class on body
+    // rather than a CSS :has() on the active page, which is newer than
+    // this file targets -- and rather than JS toggling the button's own
+    // display, which would fight the media query that hides it on
+    // desktop.
+    document.body.classList.toggle('on-dashboard', resolved.base === 'dashboard');
     if(resolved.base === 'checkin-link'){
       if(!resolved.key){ go('home', skipPush); return; }
       // Guarded on window.supabase rather than assumed: this
@@ -10026,7 +10054,15 @@ Groups</span>
     // Both here rather than only in the click handler, so deep links
     // and Back/Forward behave the same as a tap.
     if (typeof window.setDashMenu === 'function') window.setDashMenu(false);
-    if (typeof window.setDashMobileTitle === 'function') window.setDashMobileTitle(view);
+    // Reported: picking a tab landed part-way down the new page,
+    // because the scroll position carries over from the tab you left
+    // and the panels are different heights. Arriving at a page should
+    // mean arriving at the top of it.
+    //
+    // 'auto' rather than smooth: this is a page change, not a move
+    // within a page, and animating it means watching the old content
+    // scroll past on the way to content you have already chosen.
+    window.scrollTo({ top: 0, behavior: 'auto' });
 
     (DASH_VIEW_LOADERS[view] || []).forEach(function(fn){
       if (typeof window[fn] !== 'function') return;

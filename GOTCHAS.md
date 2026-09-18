@@ -4405,3 +4405,29 @@ The general shape is one this session has hit before in other forms: **the measu
 Verified end state rather than motion: open puts the drawer at left 0 with **115px of the page still visible beside it**, which is the point of a drawer over a stacked block; scrim opacity 1 and clickable; button, scrim, Escape and tab-selection all return it to -260; the bar names the tab picked. Desktop is untouched -- static sidebar, 220px grid track, bar and scrim hidden.
 
 Build `2026-09-18-v119`. No migration.
+
+---
+
+## Four fixes to the dashboard drawer, and an offset that could not be a constant
+
+**The menu button moved into the nav bar**, left of the brand, so the phone bar reads: menu, FaithDock, church and event icons, account. It shows only while the dashboard is open, driven by a `body.on-dashboard` class from the router rather than `:has()` (newer than this file targets) or JS toggling the button's own display (which would fight the media query hiding it on desktop).
+
+**The sticky strip underneath it is gone.** Its only remaining job was naming the current tab, and every dashboard tab already renders its own `<h2>` -- it was repeating what the page said two lines lower.
+
+**The drawer sits under the nav instead of over it.** It was `z-index:60` against the header's `50`, which put the bar containing the button that closes the drawer *behind* the drawer. Now 45, with the scrim at 44, and the nav is still hittable at its centre while the drawer is open -- checked with `elementFromPoint`, not assumed.
+
+**Picking a tab lands at the top of the page.** The scroll position carried over from the tab you left, and since panels are different heights you arrived part-way down. `behavior: 'auto'` rather than smooth: this is a page change, not a move within a page, and animating it means watching the old content scroll past on the way to content you have already chosen.
+
+### The offset that could not be a constant
+
+Setting the drawer's `top` to the nav height looked obvious -- `.navbar{height:72px}` is right there. It was wrong, and the measurement said so: the header's bottom was **132px**.
+
+A 60px waitlist banner sits above the sticky header and scrolls away. So the nav's bottom edge is 132px at rest and 72px once scrolled past it, and any single number is wrong in one of those two states. It was wrong at the top of the page, which is exactly where people arrive.
+
+So a `--nav-bottom` custom property tracks `header.getBoundingClientRect().bottom`, updated on scroll and resize, rAF-throttled and passive. Verified in both states: at rest the drawer and scrim both start at 132 matching the header bottom; scrolled, both at 72.
+
+Worth keeping as a habit rather than a fact about this header: **a number that appears in CSS is not the same as the distance you actually need**, and the difference only shows up if you measure the thing itself rather than the rule you think produces it.
+
+(rAF is throttled in a hidden browser pane, so the tracker was driven directly for the test -- same hidden-pane caveat as the transitions in v119.)
+
+Build `2026-09-18-v120`. No migration.
