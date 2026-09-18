@@ -2,6 +2,8 @@
 
 Non-obvious things learned the hard way while working on this codebase. If you're picking this project up fresh — another Claude session, Claude Code, or a human — read this before touching auth, i18n, or the two-file deploy. Several of these took multiple wrong theories to actually diagnose; the goal here is to not repeat that.
 
+For questions the code **cannot** answer because nobody has decided them — refunds, fees, grace periods, retention — see [](POLICY.md). This file is what was broken and how it was fixed; that one is what has not been settled.
+
 ---
 
 ## The church-page map worked with a mouse but not with a finger
@@ -5455,3 +5457,21 @@ Measured rather than guessed at: the button is **38×38 with `border-radius: 0px
 **Removing the highlight removes the only touch feedback the button had**, so it gets its own: `.hamburger:active{opacity:.6}`, which follows the shape rather than boxing it.
 
 Build `2026-09-18-v152`; no migration.
+
+---
+
+## A policy list, and the thing it turned up
+
+Enough "that is a decision nobody has made" asides had accumulated in this file to be worth their own document. [`POLICY.md`](POLICY.md) collects thirteen of them: refunds, proration, transfer billing, the grace period, plan discounts, what a plan limit should mean, retention, and so on. Each says what the code does **today**, verified rather than remembered, and what is waiting on the answer.
+
+Gathering them turned one aside into a finding worth acting on.
+
+**The pricing page advertises fees that are not charged.** It says a Free-plan church pays a 1% fee on giving and 3% per ticket, and that paid plans pay 0%. `PLATFORM_FEE_PERCENT` is **0** in both `stripe-create-checkout.ts` and `stripe-event-checkout.ts`, for every plan, so `application_fee_amount` is 0 on every donation and every ticket. FaithDock collects nothing.
+
+**And donors are asked to cover it anyway.** A Free-plan church's Give form shows a checkbox, **ticked by default**, reading "Add 1% so the church receives your full gift, covering FaithDock's fee on this plan". When ticked the client charges `amount / 0.99`. With the platform fee at 0, the whole uplift transfers to the church.
+
+Nobody is out of pocket in a way they would object to — the extra penny-on-the-dollar goes to the church the donor chose to support. But the stated reason is not true, and it is opt-out.
+
+I had written twice in this file that the fee numbers "do not obviously agree" and left it at that, which is why the About copy deliberately claims nothing about fees. Writing the policy list is what forced actually reading both sides. **"These two might disagree" is not a finding; it is a note to go and check.**
+
+Whether to start charging or stop advertising is a decision, not a fix, so it is the first entry in POLICY.md rather than a commit.
