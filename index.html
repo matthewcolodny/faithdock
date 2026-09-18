@@ -3513,7 +3513,7 @@
   .amount-btn.active{background:var(--brand);color:#fff;border-color:var(--brand);}
 
   /* ---- dashboard ---- */
-  .dash{display:grid;grid-template-columns:220px 1fr;min-height:70vh;}
+  .dash{display:grid;grid-template-columns:196px 1fr;min-height:70vh;}
   /* Room schedule: a week of one room, so back-to-back blocks and
      the gaps between them are visible at a glance rather than
      inferred from a list of times. */
@@ -3623,7 +3623,7 @@
        sticky at z-index 50; the drawer was 60 and covered it, which
        put the control that closes the drawer behind the drawer. */
     .dash-side{
-      position:fixed;top:var(--nav-bottom,72px);bottom:0;left:0;width:260px;max-width:82vw;z-index:45;
+      position:fixed;top:var(--nav-bottom,72px);bottom:0;left:0;width:236px;max-width:78vw;z-index:45;
       padding:20px 18px;overflow-y:auto;
       transform:translateX(-100%);transition:transform .22s ease;
       box-shadow:6px 0 24px rgba(0,0,0,0.28);
@@ -7736,7 +7736,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v133 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v134 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -26133,7 +26133,6 @@ Groups</span>
     listEl.innerHTML = '<p style="color:var(--ink-mute);font-size:14px;">' + window.t('common.loading') + '</p>';
 
     var { data: userData } = await supabase.auth.getUser();
-    var addChurchRow = '<div style="margin-bottom:24px;"><a href="#register-church" data-route="register-church" data-add-church="true" class="export-btn" style="display:inline-flex;">' + window.t('myChurches.addChurch') + '</a></div>';
     if (!userData.user) {
       listEl.innerHTML = '<p style="color:var(--ink-mute);font-size:14px;">' + window.t('myChurches.signInPrompt') + '</p>';
       return;
@@ -26162,13 +26161,12 @@ Groups</span>
 
     var entries = Object.keys(byId).map(function(id){ return byId[id]; });
     if (!entries.length) {
-      // Leads with finding/following a church, not adding one — most
-      // people visiting FaithDock are looking for a church home, not
-      // registering one on the platform's behalf. The generic
-      // addChurchRow button (used as-is once the list has real
-      // entries, further below) was previously the first and only
-      // visible action here, even though it's the less common intent
-      // for a brand-new, empty list specifically.
+      // Leads with finding a church, not adding one — most people
+      // here are looking for a church home rather than registering
+      // one. The Add-a-church button that used to sit above the list
+      // is gone entirely now; this empty state keeps a quiet link to
+      // registering, which is the one place it is genuinely the next
+      // step somebody might want.
       listEl.innerHTML = '<div style="margin-bottom:24px;"><a href="#directory" data-route="directory" class="export-btn" style="display:inline-flex;">' + window.t('myChurches.findChurch') + '</a></div>'
         + '<p style="color:var(--ink-mute);font-size:14px;">' + window.t('myChurches.nothingYet') + ' <a href="#register-church" data-route="register-church" data-add-church="true" style="border-bottom:1px solid var(--gold);">' + window.t('myChurches.registerInstead') + '</a></p>';
       return;
@@ -26185,7 +26183,11 @@ Groups</span>
 
     var labelColors = { 'Home': 'gold', 'Owned': 'sage', 'Staff': 'sage', 'Following': '' };
     var labelKeys = { 'Home': 'myChurches.labelHome', 'Owned': 'myChurches.labelOwned', 'Staff': 'myChurches.labelStaff', 'Following': 'myChurches.labelFollowing' };
-    listEl.innerHTML = addChurchRow + entries.map(function(entry){
+    // No Add-a-church button above the list: the page header carries
+    // Browse churches, which is what somebody with a list of churches
+    // is far more likely to want next. Registering one is still
+    // reachable from the empty state, the footer and the homepage.
+    listEl.innerHTML = entries.map(function(entry){
       var c = entry.church;
       var logoHtml = c.logo_url
         ? '<img src="' + c.logo_url + '" alt="" style="width:44px;height:44px;border-radius:8px;object-fit:cover;flex-shrink:0;">'

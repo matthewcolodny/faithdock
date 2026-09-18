@@ -4756,3 +4756,22 @@ The first run of these tests reported every value at its default and zero writes
 Same shape as the `getEventsForDateKey` stub and the `loadBillingPanel` one before it. The tell each time is the same: *everything* comes back inert, rather than one thing being wrong. A stub that misses its target produces a clean, uniform, entirely false negative.
 
 Build `2026-09-18-v133`; **migration 059 must be run by hand** (the pages show defaults until it does).
+
+---
+
+## Removing "+ Add a church", and a narrower sidebar
+
+Two small changes with nothing to run.
+
+**"+ Add a church" is gone from the top of My Churches.** Registering a church is a rare, deliberate act -- most people do it once -- and a button for it sat above the list of churches they actually came to that page to use. It is still reachable three ways: the empty state (which is where someone with no churches actually is), the footer sitemap, and the homepage. The surrounding comment was updated too; a comment describing a button that no longer exists is worse than no comment, because the next reader goes looking for it.
+
+**The sidebar narrowed from 220px to 196px on desktop, and the mobile drawer from 260px to 236px.** The width was set to fit text that has since been shortened -- "Edit church profile" and "FaithDock Partner" were removed from the list, and "Events" replaced longer labels.
+
+Measured rather than eyeballed, because the failure mode here is a nav item silently wrapping to two lines:
+
+- Desktop: `196px 813px` grid, every item 42px tall, longest item ("Events" plus its chevron) fits on one line.
+- Mobile at 375px: drawer 236px, **139px of page still visible beside it** -- enough that the drawer still reads as a drawer over a page rather than a full-screen takeover -- and no item taller than the others.
+
+The check that matters is `every item height <= typical + 1`, not "does it look right": a single wrapped item among a dozen is easy to miss by eye and obvious in the numbers.
+
+Build `2026-09-18-v134`; no migration.
