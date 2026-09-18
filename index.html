@@ -741,7 +741,7 @@
       'myEvents.browseEvents': 'Browse events',
       'nav.about': 'About FaithDock',
       'staffPerms.addedBy': 'Added by {name}',
-      'dashSub.mainMenu': 'Main menu', 'dashSub.reports': 'Reports', 'dashSub.settings': 'Settings',
+      'dashSub.mainMenu': 'Back', 'dashSub.reports': 'Reports', 'dashSub.settings': 'Settings',
       'dashSub.eventList': 'Event list', 'dashSub.profiles': 'Profiles',
       'dashSub.insightsDashboard': 'Dashboard', 'dashSub.runReports': 'Reports', 'dashSub.savedReports': 'Saved reports',
       'dashSub.ministryList': 'Ministry list', 'dashSub.groupList': 'Group list',
@@ -1660,7 +1660,7 @@
       'myEvents.browseEvents': 'Explorar eventos',
       'nav.about': 'Acerca de FaithDock',
       'staffPerms.addedBy': 'Añadido por {name}',
-      'dashSub.mainMenu': 'Menú principal', 'dashSub.reports': 'Informes', 'dashSub.settings': 'Ajustes',
+      'dashSub.mainMenu': 'Atrás', 'dashSub.reports': 'Informes', 'dashSub.settings': 'Ajustes',
       'dashSub.eventList': 'Lista de eventos', 'dashSub.profiles': 'Perfiles',
       'dashSub.insightsDashboard': 'Panel', 'dashSub.runReports': 'Informes', 'dashSub.savedReports': 'Informes guardados',
       'dashSub.ministryList': 'Lista de ministerios', 'dashSub.groupList': 'Lista de grupos',
@@ -3654,6 +3654,10 @@
      a colour or a bolder weight, because it has to say 'there is more
      behind this' and not 'this one is important'. */
   .dash-nav a .dash-chev{float:right;opacity:.55;}
+  /* Hidden for everyone except an owner of more than one church --
+     there is no account level to go up to otherwise. */
+  #dash-nav-overview-item{display:none;}
+  .dash-side.dash-overview-owner #dash-nav-overview-item{display:block;}
   .dash-back{
     display:block;font-size:12.5px;color:#CBD2DE;opacity:.85;cursor:pointer;
     padding:8px 12px 12px;margin-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.12);
@@ -6350,12 +6354,12 @@ Groups</span>
         <div class="dash-church" id="dash-church-name">Loading...</div>
         <select id="dash-church-switcher" style="display:none;width:100%;margin-top:8px;margin-bottom:8px;background:#1a2740;color:#fff;border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:6px 8px;font-size:12.5px;"></select>
       </div>
-      <!-- Directly above the nav, in the same position the sub-menu's
-           own back link takes. Both mean "leave this level", so they
-           belong in one place rather than one of them sitting at the
-           very top of the panel above the church name. -->
-      <a id="dash-all-churches-link" class="dash-back" role="button" style="display:none;" data-i18n="dash.allChurches">‹ All churches</a>
       <div class="dash-nav" id="dash-nav-church">
+        <!-- Multi-church owners only (see .dash-overview-owner, set
+             by updateDashSidebarMode). It opens a list of the
+             account's churches rather than a page, which is why it
+             carries a chevron like any other section. -->
+        <a data-dash="churches" id="dash-nav-overview-item" data-i18n="dash.overview">Overview</a>
         <a data-dash="events" class="active" data-i18n="dash.events">Events</a>
         <a data-dash="checkin" data-i18n="dash.checkin">Check-In</a>
         <a data-dash="directory" data-i18n="dash.directory">Directory</a>
@@ -7676,7 +7680,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v128 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v129 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -10350,6 +10354,19 @@ Groups</span>
         { v: 'giving-settings', l: 'dashSub.settings' }
       ]
     },
+    // The only section whose items are data rather than pages. Its
+    // list is the account's churches, so it is built when it is
+    // opened instead of declared here -- a church added today has to
+    // appear without a code change.
+    churches: {
+      label: 'dash.overview',
+      dynamic: true,
+      build: function(){
+        return (window._dashOwnedChurches || []).map(function(c){
+          return { v: 'church:' + c.id, text: c.name };
+        });
+      }
+    },
     insights: {
       label: 'insights.title',
       views: [
@@ -10371,9 +10388,14 @@ Groups</span>
   // Which section a view belongs to, derived rather than stored, so a
   // view cannot end up listed under one section and mapped to another.
   function dashSectionForView(view){
+    // A view whose name IS a section key opens that section. True for
+    // every static section already (events, directory, ...) and the
+    // only way a dynamic one can resolve, since it has no declared
+    // views to match against.
+    if (DASH_SECTIONS[view]) return view;
     var found = null;
     Object.keys(DASH_SECTIONS).forEach(function(key){
-      DASH_SECTIONS[key].views.forEach(function(entry){
+      (DASH_SECTIONS[key].views || []).forEach(function(entry){
         if (entry.v === view) found = key;
       });
     });
@@ -10410,11 +10432,17 @@ Groups</span>
       }
       return;
     }
+    // A dynamic section builds its list at open time; a static one
+    // declares it. Both end up as the same shape here.
+    var entries = def.dynamic ? def.build() : def.views;
     el.innerHTML = '<a class="dash-back" data-dash-back="1">&lsaquo; ' + escapeHtml(window.t('dashSub.mainMenu')) + '</a>'
       + '<div class="dash-sub-heading">' + escapeHtml(window.t(def.label)) + '</div>'
-      + def.views.map(function(entry){
+      + entries.map(function(entry){
+          // entry.text is a name somebody typed (a church); entry.l is
+          // a translation key. Escaped either way.
+          var label = entry.text !== undefined ? entry.text : window.t(entry.l);
           return '<a data-dash="' + escapeHtml(entry.v) + '"' + (entry.v === activeView ? ' class="active"' : '') + '>'
-            + escapeHtml(window.t(entry.l)) + '</a>';
+            + escapeHtml(label) + '</a>';
         }).join('');
     main.style.display = 'none';
     el.style.display = '';
@@ -10450,6 +10478,21 @@ Groups</span>
       }
     });
   };
+
+  // A church in the Overview list is not a view, so it must be
+  // intercepted before goDash goes looking for a panel called
+  // dash-church:<uuid>. Capture phase, ahead of the generic
+  // [data-dash] handler.
+  document.addEventListener('click', function(ev){
+    var pick = ev.target.closest ? ev.target.closest('[data-dash^="church:"]') : null;
+    if (!pick) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    var churchId = pick.getAttribute('data-dash').slice('church:'.length);
+    // Switching already lands on the church's own top-level menu --
+    // see dashEnterChurchAtTopLevel inside setActiveChurchAndReload.
+    if (typeof window.setActiveChurchAndReload === 'function') window.setActiveChurchAndReload(churchId);
+  }, true);
 
   document.addEventListener('click', function(ev){
     if (!ev.target.closest) return;
@@ -14194,7 +14237,7 @@ Groups</span>
       var multiChurchList = myChurch.role === 'owner' ? myChurch.ownedChurches : myChurch.staffedChurches;
       if (multiChurchList && multiChurchList.length > 1) {
         churchSwitcher.innerHTML = multiChurchList.map(function(c){
-          return '<option value="' + c.id + '"' + (c.id === myChurch.id ? ' selected' : '') + '>' + displayChurchName(c.name) + '</option>';
+          return '<option value="' + c.id + '"' + (c.id === myChurch.id ? ' selected' : '') + '>' + escapeHtml(displayChurchName(c.name)) + '</option>';
         }).join('');
         churchSwitcher.style.display = 'block';
 
@@ -14349,7 +14392,6 @@ Groups</span>
     var navChurch = document.getElementById('dash-nav-church');
     var navOverview = document.getElementById('dash-nav-overview');
     var churchCtx = document.getElementById('dash-church-context');
-    var allLink = document.getElementById('dash-all-churches-link');
     var ovHeader = document.getElementById('dash-overview-header');
     var inOverview = multi && !!DASH_OVERVIEW_VIEWS[view];
 
@@ -14364,7 +14406,8 @@ Groups</span>
     if (navChurch) navChurch.style.display = inOverview ? 'none' : '';
     if (churchCtx) churchCtx.style.display = inOverview ? 'none' : 'block';
     if (ovHeader) ovHeader.style.display = inOverview ? 'block' : 'none';
-    if (allLink) allLink.style.display = (multi && !inOverview) ? 'block' : 'none';
+    // The separate All-churches link is gone; Overview sits in the
+    // nav itself now, gated by .dash-overview-owner.
 
     // For a multi-church owner, Billing/Plans are account-level and
     // live only in the Overview sidebar -- a CSS class hides the
@@ -14417,7 +14460,7 @@ Groups</span>
       return '<button type="button" class="church-tile" data-enter-church-id="' + c.id + '"'
         + (c.id === activeId ? ' style="border-color:var(--gold);"' : '') + '>'
         + logo
-        + '<div class="church-tile-name">' + displayChurchName(c.name) + '</div>'
+        + '<div class="church-tile-name">' + escapeHtml(displayChurchName(c.name)) + '</div>'
         + denom
         + (statsHtml || '')
         + '<div class="church-tile-manage">' + window.t('myChurches.manage') + ' →</div>'
@@ -14561,7 +14604,7 @@ Groups</span>
                   + window.t('dashOverview.andNMoreEvents').replace('{n}', rows.length - 5) + '</div>';
               }
             }
-            return '<div class="overview-staff-card"><h4>' + displayChurchName(c.name) + '</h4>' + body + '</div>';
+            return '<div class="overview-staff-card"><h4>' + escapeHtml(displayChurchName(c.name)) + '</h4>' + body + '</div>';
           }).join('');
           if (eventsHeading) eventsHeading.style.display = '';
         }).catch(function(){ /* same reasoning as the outer catch: a failed count shouldn't blank the overview */ });
@@ -14592,7 +14635,7 @@ Groups</span>
                 + '</div>';
             }).join('');
           }
-          return '<div class="overview-staff-card"><h4>' + displayChurchName(c.name) + '</h4>' + body + '</div>';
+          return '<div class="overview-staff-card"><h4>' + escapeHtml(displayChurchName(c.name)) + '</h4>' + body + '</div>';
         }).join('');
         if (staffHeading) staffHeading.style.display = '';
       }
@@ -14630,23 +14673,28 @@ Groups</span>
   var dashOvOverview = document.getElementById('dash-ov-overview');
   var dashOvBilling = document.getElementById('dash-ov-billing');
   var dashOvPlans = document.getElementById('dash-ov-plans');
-  var dashAllChurchesLink = document.getElementById('dash-all-churches-link');
   if (dashOvOverview) dashOvOverview.addEventListener('click', function(){ if (window.goDash) window.goDash('churches'); });
   if (dashOvBilling) dashOvBilling.addEventListener('click', function(){ enterBilledDashView('billing'); });
   if (dashOvPlans) dashOvPlans.addEventListener('click', function(){ enterBilledDashView('plans'); });
-  if (dashAllChurchesLink) dashAllChurchesLink.addEventListener('click', function(){ if (window.goDash) window.goDash('churches'); });
 
-  // Clicking a church tile selects it and drops into its dashboard.
-  // Full reload for the same closure-staleness reason the church
-  // switcher reloads.
+  // Clicking a church tile drops into that church.
+  //
+  // It used to replaceState to #dashboard/events and reload, citing
+  // the closure staleness that once made the church switcher reload
+  // too. That switcher stopped reloading in v102 and swaps in place,
+  // so the reason had been gone for a while -- and the reload was
+  // what put people in Events with its sub-menu open: it lands on
+  // that URL and no flag survives a page load.
+  //
+  // setActiveChurchAndReload does the in-place swap AND ends on the
+  // church's top-level menu, which is the whole point of entering a
+  // church from the Overview.
   document.addEventListener('click', function(ev){
     var tile = ev.target.closest ? ev.target.closest('[data-enter-church-id]') : null;
     if (!tile) return;
     var id = tile.getAttribute('data-enter-church-id');
     if (!id) return;
-    window.setActiveChurchId(id);
-    try { history.replaceState(null, '', '#dashboard/events'); } catch (e) {}
-    location.reload();
+    if (typeof window.setActiveChurchAndReload === 'function') window.setActiveChurchAndReload(id);
   });
 
   // Dashboard Events table — real data for the signed-in owner's
@@ -17543,7 +17591,7 @@ Groups</span>
     if (pickerWrap && pickerEl) {
       if (available.length > 1) {
         pickerEl.innerHTML = available.map(function(c){
-          return '<option value="' + c.id + '"' + (c.id === ceSelectedChurchId ? ' selected' : '') + '>' + displayChurchName(c.name).replace(/</g, '&lt;') + '</option>';
+          return '<option value="' + c.id + '"' + (c.id === ceSelectedChurchId ? ' selected' : '') + '>' + escapeHtml(displayChurchName(c.name)) + '</option>';
         }).join('');
         pickerWrap.style.display = 'block';
       } else {
@@ -18814,7 +18862,7 @@ Groups</span>
           churchChecksHtml = '<label style="font-size:12.5px;">' + window.t('dashSettings.addToChurches') + '</label>'
             + '<div style="margin-bottom:10px;">'
             + myChurch.ownedChurches.map(function(c){
-                return '<label class="filter-check" style="display:block;margin-bottom:2px;"><input type="checkbox" class="team-invite-church-check" value="' + c.id + '"' + (c.id === myChurch.id ? ' checked' : '') + '> ' + displayChurchName(c.name).replace(/</g, '&lt;') + '</label>';
+                return '<label class="filter-check" style="display:block;margin-bottom:2px;"><input type="checkbox" class="team-invite-church-check" value="' + c.id + '"' + (c.id === myChurch.id ? ' checked' : '') + '> ' + escapeHtml(displayChurchName(c.name)) + '</label>';
               }).join('')
             + '</div>';
         }
@@ -25826,7 +25874,7 @@ Groups</span>
       return '<div class="group-card" style="display:flex;align-items:center;gap:14px;justify-content:space-between;margin-bottom:10px;">'
         + '<a href="#" data-route="church" data-church-name="' + escapeHtml(c.name) + '" style="display:flex;align-items:center;gap:14px;text-decoration:none;color:inherit;flex:1;min-width:0;">'
         + logoHtml
-        + '<div style="min-width:0;"><h4 style="margin-bottom:2px;">' + displayChurchName(c.name) + '</h4><div>' + labelsHtml + '</div></div>'
+        + '<div style="min-width:0;"><h4 style="margin-bottom:2px;">' + escapeHtml(displayChurchName(c.name)) + '</h4><div>' + labelsHtml + '</div></div>'
         + '</a>'
         + manageBtn
         + unfollowBtn
@@ -25853,7 +25901,7 @@ Groups</span>
     else {
       verifList.innerHTML = pending.map(function(r){
         return '<div class="side-note" style="max-width:560px;">'
-          + '<h4>' + displayChurchName(r.name) + '</h4>'
+          + '<h4>' + escapeHtml(displayChurchName(r.name)) + '</h4>'
           + '<p style="font-size:13px;color:var(--ink-mute);">' + (r.denomination || '—') + ' · ' + (r.address ? titleCaseAddress(r.address) : window.t('admin.noAddressOnFile')) + '</p>'
           // Same admin-facing sink as the church detail panel below --
           // this is the verification queue, so the reviewer clicking
@@ -26110,11 +26158,11 @@ Groups</span>
         + '<button class="export-btn" data-toggle-hidden-church-id="' + c.id + '" data-toggle-hidden-to="' + (isHidden ? 'false' : 'true') + '" style="padding:6px 14px;min-width:74px;justify-content:center;">' + window.t(isHidden ? 'admin.show' : 'admin.hide') + '</button>'
         + (st === 'verified' ? '<button class="export-btn" data-unverify-church-id="' + c.id + '" style="padding:6px 14px;">' + window.t('admin.unverify') + '</button>' : '')
         + (!c.owner_id
-            ? '<button class="export-btn" data-delete-unclaimed-church-id="' + c.id + '" data-delete-unclaimed-church-name="' + displayChurchName(c.name).replace(/"/g, '&quot;') + '" style="padding:6px 14px;color:var(--clay);">' + window.t('admin.delete') + '</button>'
+            ? '<button class="export-btn" data-delete-unclaimed-church-id="' + c.id + '" data-delete-unclaimed-church-name="' + escapeHtml(displayChurchName(c.name)) + '" style="padding:6px 14px;color:var(--clay);">' + window.t('admin.delete') + '</button>'
             : '<span class="registrant-action-spacer" aria-hidden="true"></span>')
         + '</div>';
       return '<div class="registrant-row"' + (isHidden ? ' style="opacity:0.6;"' : '') + '><div style="min-width:0;">'
-        + '<div class="registrant-name"><a href="#admin-church/' + c.id + '" data-route="admin-church" data-admin-church-id="' + c.id + '" style="color:inherit;border-bottom:1px solid var(--line);">' + displayChurchName(c.name) + '</a></div>'
+        + '<div class="registrant-name"><a href="#admin-church/' + c.id + '" data-route="admin-church" data-admin-church-id="' + c.id + '" style="color:inherit;border-bottom:1px solid var(--line);">' + escapeHtml(displayChurchName(c.name)) + '</a></div>'
         + '<div class="registrant-date">' + (c.denomination || '—') + ' · <span style="color:' + statusColor + ';font-weight:600;">' + statusLabel + '</span>' + unclaimedTag + hiddenTag + '</div>'
         + (c.address ? '<div class="registrant-date" style="font-size:11.5px;">' + titleCaseAddress(c.address) + '</div>' : '')
         + '</div>'
@@ -26285,7 +26333,7 @@ Groups</span>
     var totalCount = rows.length ? rows[0].total_count : 0;
     var html = rows.map(function(c){
       return '<div class="registrant-row"><div>'
-        + '<div class="registrant-name"><a href="#admin-church/' + c.id + '" data-route="admin-church" data-admin-church-id="' + c.id + '" style="color:inherit;border-bottom:1px solid var(--line);">' + displayChurchName(c.name) + '</a></div>'
+        + '<div class="registrant-name"><a href="#admin-church/' + c.id + '" data-route="admin-church" data-admin-church-id="' + c.id + '" style="color:inherit;border-bottom:1px solid var(--line);">' + escapeHtml(displayChurchName(c.name)) + '</a></div>'
         + '<div class="registrant-date">' + (c.address ? titleCaseAddress(c.address) : window.t('admin.noAddressOnFile')) + '</div>'
         + '</div></div>';
     }).join('');

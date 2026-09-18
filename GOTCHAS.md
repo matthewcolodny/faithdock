@@ -4622,3 +4622,40 @@ What it was not, was findable. It sat at **index 0 of the sidebar** -- above the
 Worth separating those two findings: the visibility logic needed no fix, and "fixing" it would have been changing working code to chase a layout problem. Note also that it is gated on being an **owner** of more than one church, while the church *switcher* appears for multi-church staff too -- so a staff member with two churches sees a switcher and no back link. That is correct, because the Overview itself is owner-only, but it is a plausible reading of the report and worth confirming against the real account.
 
 Build `2026-09-18-v128`. No migration.
+
+---
+
+## Overview becomes a level, and nine unescaped church names
+
+**Overview is now a section whose sub-menu is the account's churches.** Picking one drops into that church's own menu. It is the only section whose items are *data* rather than pages, so its list is built when opened rather than declared -- a church added today has to appear without a code change.
+
+**"Main menu" becomes "Back."** With a churches level above the section list, "Main menu" named the wrong thing: from a church's Events pages, the level above is that church's menu, not the account's. "Back" is true at every depth.
+
+The separate "‹ All churches" link is gone. Overview sits in the nav itself, gated by `.dash-overview-owner`, so there is one route to the account level instead of two.
+
+### Why the church card kept landing in Events
+
+Reported twice, and the flag added last build did not help -- because the tile handler never reached it. It did:
+
+```
+history.replaceState(null, '', '#dashboard/events');
+location.reload();
+```
+
+**A full page reload onto that URL.** No flag survives a page load, so the fix could not have worked no matter where it was set. Its comment cited "the same closure-staleness reason the church switcher reloads" -- but the switcher stopped reloading in **v102** and swaps in place. The reason had been gone for six builds and the reload outlived it.
+
+Now it calls `setActiveChurchAndReload`, which swaps in place *and* ends on the church's top-level menu. Worth noting how this hid: the first fix was verified by driving `dashEnterChurchAtTopLevel` directly, which proved the flag worked and said nothing about whether the real path set it.
+
+### Nine unescaped church names, found by accident
+
+The fixture for the church list carried an XSS payload as a church name. The sub-menu escaped it correctly -- and `window.__XSS` fired anyway. Three real `<img>` elements existed elsewhere on the page: the Overview church tiles and two staff cards.
+
+Following it properly turned up **nine** HTML-context sites rendering `displayChurchName()` unescaped or half-escaped, across the multi-church Overview, My Churches, the church switcher, the create-event church picker, the team-invite list and two admin panels. Several used partial escapes -- `.replace(/</g,'&lt;')` or `.replace(/"/g,'&quot;')` -- each stopping the one character somebody thought of and leaving the rest.
+
+**This is not self-XSS.** A church name is typed by its owner and rendered into the dashboard of anyone who *staffs* that church, and into the platform admin panel. It crosses an account boundary.
+
+Escaping inside `displayChurchName()` was the tempting fix and would have been wrong: of its 27 call sites, several assign to `textContent`, where escaping produces a visible `&amp;`. Escaped at the HTML-context sites instead, leaving the text ones alone.
+
+The lesson is about the test, not the code: **the payload was in the fixture to check the thing being built, and it found three bugs in code nobody was looking at.** A hostile string costs nothing to leave in a fixture and reports on everything that touches it, not just the feature under test.
+
+Build `2026-09-18-v129`. No migration.
