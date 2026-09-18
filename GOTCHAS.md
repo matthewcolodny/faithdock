@@ -2,7 +2,7 @@
 
 Non-obvious things learned the hard way while working on this codebase. If you're picking this project up fresh — another Claude session, Claude Code, or a human — read this before touching auth, i18n, or the two-file deploy. Several of these took multiple wrong theories to actually diagnose; the goal here is to not repeat that.
 
-For questions the code **cannot** answer because nobody has decided them — refunds, fees, grace periods, retention — see [](POLICY.md). This file is what was broken and how it was fixed; that one is what has not been settled.
+For questions the code **cannot** answer because nobody has decided them — refunds, fees, grace periods, retention — see [`POLICY.md`](POLICY.md). This file is what was broken and how it was fixed; that one is what has not been settled.
 
 ---
 
