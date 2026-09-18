@@ -767,7 +767,10 @@
       'accountSettings.newChurchDefaultsHint': 'Applied when you add a church to this account. Existing churches are never changed \u2014 each one keeps whatever it has. Leave anything on \u201cNo preference\u201d and the usual default is used.',
       'accountSettings.noPreference': 'No preference', 'common.yes': 'Yes', 'common.no': 'No',
       'cropper.title': 'Adjust your image', 'cropper.zoom': 'Zoom', 'cropper.use': 'Use this image',
-      'upload.heicNotSupported': 'HEIC/HEIF photos can\'t be shown on the web \u2014 most visitors would see a broken image. Quickest fix: open the photo and take a screenshot, then upload that. Or turn off the high-efficiency (HEIF) setting in your camera app and take it again.',
+      'upload.converting': 'Converting your photo \u2014 this can take a few seconds the first time.',
+      'upload.heicTooLarge': 'That photo is too large to convert in the browser. Take a screenshot of it and upload that instead, or use a smaller copy.',
+      'upload.converterOffline': 'Couldn\'t load the photo converter \u2014 check your connection and try again. If it keeps failing, take a screenshot of the photo and upload that instead.',
+      'upload.heicNotSupported': 'That photo couldn\'t be converted. Open it and take a screenshot, then upload the screenshot \u2014 that works from any phone.',
       'cropper.hint': 'Drag to move, and use the slider to zoom. What you see is what gets saved.',
       'accountSettings.ownershipTitle': 'Ownership and closing',
       'accountSettings.ownershipHint': 'Transferring this account to someone else, and closing it, are being built. Both need the person receiving or losing access to confirm, so neither can happen by a single click \u2014 until they land, email support and we will do it with you.',
@@ -1713,7 +1716,10 @@
       'accountSettings.newChurchDefaultsHint': 'Se aplican cuando añades una iglesia a esta cuenta. Las iglesias existentes nunca cambian \u2014 cada una conserva lo que tiene. Deja cualquier opción en \u201cSin preferencia\u201d y se usa el valor habitual.',
       'accountSettings.noPreference': 'Sin preferencia', 'common.yes': 'Sí', 'common.no': 'No',
       'cropper.title': 'Ajusta tu imagen', 'cropper.zoom': 'Zoom', 'cropper.use': 'Usar esta imagen',
-      'upload.heicNotSupported': 'Las fotos HEIC/HEIF no se pueden mostrar en la web \u2014 la mayoría de los visitantes vería una imagen rota. Lo más rápido: abre la foto, haz una captura de pantalla y sube esa. O desactiva el ajuste de alta eficiencia (HEIF) en tu cámara y tómala de nuevo.',
+      'upload.converting': 'Convirtiendo tu foto \u2014 la primera vez puede tardar unos segundos.',
+      'upload.heicTooLarge': 'Esa foto es demasiado grande para convertirla en el navegador. Haz una captura de pantalla y sube esa, o usa una copia más pequeña.',
+      'upload.converterOffline': 'No se pudo cargar el conversor de fotos \u2014 revisa tu conexión e inténtalo de nuevo. Si sigue fallando, haz una captura de pantalla de la foto y sube esa.',
+      'upload.heicNotSupported': 'No se pudo convertir esa foto. \u00c1brela, haz una captura de pantalla y sube la captura \u2014 eso funciona desde cualquier teléfono.',
       'cropper.hint': 'Arrastra para mover y usa el control para acercar. Lo que ves es lo que se guarda.',
       'accountSettings.ownershipTitle': 'Propiedad y cierre',
       'accountSettings.ownershipHint': 'Transferir esta cuenta a otra persona, y cerrarla, están en construcción. Ambas requieren que quien recibe o pierde el acceso lo confirme, así que ninguna puede ocurrir con un solo clic \u2014 hasta que lleguen, escribe a soporte y lo haremos contigo.',
@@ -7869,7 +7875,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v139 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v140 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -9803,6 +9809,128 @@ Groups</span>
   };
 
 
+  // ============================================================
+  // HEIC/HEIF conversion
+  //
+  // No browser but Safari can decode HEIC, so the only way to accept
+  // what a phone camera actually produces is to decode it here. The
+  // decoder is ~1.9MB of WASM, so it is fetched ONLY when somebody
+  // picks a HEIC -- everybody else downloads nothing, which is the
+  // whole reason this is lazy rather than bundled.
+  //
+  // Pinned to an exact version. A floating tag would let a CDN change
+  // what executes on this page without a deploy.
+  // ============================================================
+  var HEIC_DECODER_URL = 'https://cdn.jsdelivr.net/npm/libheif-js@1.23.2/libheif-wasm/libheif-bundle.min.js';
+  // A 12MP HEIC decodes to roughly 48MB of RGBA, and a cheap phone
+  // will kill the tab rather than allocate it. Refusing with a message
+  // beats a browser that simply dies mid-upload.
+  var HEIC_MAX_BYTES = 40 * 1024 * 1024;
+  var HEIC_DECODER_SRI = 'sha384-nQUZdDFWgLagdiaBisdhAfLYGk6dNHPJYUAgI1H4GTP76YCXjJtloXsRUut3AFAg';
+  var heicDecoderPromise = null;
+
+  function loadHeifDecoder(){
+    if (heicDecoderPromise) return heicDecoderPromise;
+    heicDecoderPromise = new Promise(function(resolve, reject){
+      var el = document.createElement('script');
+      el.src = HEIC_DECODER_URL;
+      // Pinned by hash as well as by version. Without this, anything
+      // that can change what jsDelivr serves for that URL changes what
+      // executes on a page that holds the user's session -- and a
+      // version number alone does not prevent that. Computed from the
+      // bytes and checked stable across two fetches.
+      //
+      // A mismatch blocks the script, which surfaces as "couldn't load
+      // the photo converter" and the screenshot advice -- the safe
+      // direction to fail in.
+      el.integrity = HEIC_DECODER_SRI;
+      el.crossOrigin = 'anonymous';   // required for integrity to be checked
+      el.onload = function(){
+        if (typeof window.libheif === 'function') resolve(window.libheif);
+        else reject(new Error('decoder loaded but exposed nothing'));
+      };
+      el.onerror = function(){
+        // Cleared so a second attempt can retry. A cached rejected
+        // promise would make one flaky download permanent for the
+        // rest of the session.
+        heicDecoderPromise = null;
+        reject(new Error('decoder download failed'));
+      };
+      document.head.appendChild(el);
+    });
+    return heicDecoderPromise;
+  }
+
+  async function convertHeicToJpeg(file){
+    if (file.size > HEIC_MAX_BYTES) throw new Error('heic-too-large');
+    var factory = await loadHeifDecoder();
+    var lib = factory();
+    var bytes = new Uint8Array(await file.arrayBuffer());
+    var images = new lib.HeifDecoder().decode(bytes);
+    if (!images || !images.length) throw new Error('heic-no-images');
+    try {
+      // The PRIMARY image, not images[0]. A HEIC routinely holds more
+      // than one -- libheif's own sample file has two -- and the extras
+      // can be thumbnails, depth maps or the other frames of a burst.
+      // Taking the first would sometimes ship the wrong picture, and it
+      // would look like a decoding bug rather than a choice.
+      var img = null;
+      for (var i = 0; i < images.length; i++) {
+        if (images[i].is_primary && images[i].is_primary()) { img = images[i]; break; }
+      }
+      if (!img) img = images[0];
+
+      var w = img.get_width(), h = img.get_height();
+      if (!w || !h) throw new Error('heic-no-dimensions');
+      var canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      var ctx = canvas.getContext('2d');
+      var imageData = ctx.createImageData(w, h);
+      await new Promise(function(resolve, reject){
+        img.display(imageData, function(result){
+          if (result) resolve(); else reject(new Error('heic-display-failed'));
+        });
+      });
+      ctx.putImageData(imageData, 0, 0);
+      var blob = await new Promise(function(resolve){ canvas.toBlob(resolve, 'image/jpeg', 0.9); });
+      if (!blob) throw new Error('heic-encode-failed');
+      // JPEG, not PNG: a camera photo has no transparency to protect
+      // and a PNG of one is several times the size. The name has to
+      // follow, because storage infers a content type from it.
+      var name = String(file.name || 'photo').replace(/\.[^.]+$/, '') + '.jpg';
+      try { return new File([blob], name, { type: 'image/jpeg' }); }
+      catch (e) { blob.name = name; return blob; }
+    } finally {
+      // Every image, not just the one used -- these hold WASM heap
+      // memory that nothing else will reclaim.
+      images.forEach(function(im){ if (im && typeof im.free === 'function') { try { im.free(); } catch (e) {} } });
+    }
+  }
+  window.convertHeicToJpeg = convertHeicToJpeg;
+
+  // What the three upload points call. Returns the file to use, or
+  // throws -- and the caller shows its own error the way it already
+  // shows every other one.
+  //
+  // onStage is told when something slow starts, because a 1.9MB
+  // download followed by a decode is several seconds during which a
+  // silent page looks broken.
+  window.prepareUploadFile = async function(file, onStage){
+    if (!window.isUnviewableImageFormat(file)) return file;
+    if (onStage) onStage(window.t('upload.converting'));
+    var out = await convertHeicToJpeg(file);
+    if (onStage) onStage(null);
+    return out;
+  };
+
+  // Which message to show when it did not work. Size is worth saying
+  // out loud -- "too big" is actionable, "could not convert" is not.
+  window.uploadFailureMessage = function(err){
+    var code = (err && err.message) || '';
+    if (code === 'heic-too-large') return window.t('upload.heicTooLarge');
+    if (code === 'decoder download failed') return window.t('upload.converterOffline');
+    return window.t('upload.heicNotSupported');
+  };
   var cropperState = null;
 
   // Decoded with createImageBitmap where it exists, because that is
@@ -14548,10 +14676,19 @@ Groups</span>
     rcLogoInput.addEventListener('change', async function(){
       var file = this.files[0];
       if (!file) return;
-      if (window.isUnviewableImageFormat(file)) {
+      var rcLogoFilenameEl = document.getElementById('rc-logo-filename');
+      try {
+        file = await window.prepareUploadFile(file, function(msg){
+          if (!msg) return;                       // done: the lines below overwrite it anyway
+          rcLogoFilenameEl.removeAttribute('data-i18n');
+          rcLogoFilenameEl.textContent = msg;
+        });
+      } catch (convErr) {
+        rcLogoFilenameEl.setAttribute('data-i18n', 'rc.noFileChosen');
+        rcLogoFilenameEl.textContent = window.t('rc.noFileChosen');
         rcLogoInput.value = '';
         window.rcLogoEditedFile = null;
-        showRcError(window.t('upload.heicNotSupported'));
+        showRcError(window.uploadFailureMessage(convErr));
         return;
       }
       // Square, because the preview and every place a logo is shown
@@ -18020,14 +18157,23 @@ Groups</span>
         filenameEl.textContent = window.t('rc.noFileChosen');
         return;
       }
-      if (window.isUnviewableImageFormat(file)) {
+      try {
+        file = await window.prepareUploadFile(file, function(msg){
+          if (!msg) { warningEl.style.display = 'none'; return; }
+          // Advisory colour, not the error colour: this is progress.
+          warningEl.textContent = msg;
+          warningEl.style.color = '';
+          warningEl.style.display = 'block';
+        });
+      } catch (convErr) {
         ceImageInput.value = '';
         window.ceImageEditedFile = null;
         filenameEl.setAttribute('data-i18n', 'rc.noFileChosen');
         filenameEl.textContent = window.t('rc.noFileChosen');
-        warningEl.textContent = window.t('upload.heicNotSupported');
+        warningEl.textContent = window.uploadFailureMessage(convErr);
         warningEl.style.color = 'var(--clay)';
         warningEl.style.display = 'block';
+        document.getElementById('ce-image-remove-btn').style.display = 'none';
         return;
       }
       // Back to the usual advisory colour: the same element carries
@@ -29078,9 +29224,16 @@ Groups</span>
       var statusEl = document.getElementById('profile-photo-status');
       statusEl.style.display = 'none';
 
-      if (window.isUnviewableImageFormat(file)) {
+      try {
+        file = await window.prepareUploadFile(file, function(msg){
+          if (!msg) return;
+          statusEl.textContent = msg;
+          statusEl.style.color = 'var(--ink-mute)';
+          statusEl.style.display = 'block';
+        });
+      } catch (convErr) {
         profilePhotoInput.value = '';
-        statusEl.textContent = window.t('upload.heicNotSupported');
+        statusEl.textContent = window.uploadFailureMessage(convErr);
         statusEl.style.color = 'var(--clay)';
         statusEl.style.display = 'block';
         return;

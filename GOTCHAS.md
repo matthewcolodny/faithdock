@@ -4945,3 +4945,43 @@ v138's message said "what iPhones save by default" and sent people to `Settings 
 No vendor is named now, and it leads with the fix that works on every phone without hunting through settings: open the photo, screenshot it, upload the screenshot. Turning off the camera's high-efficiency setting is the second suggestion rather than the first.
 
 Build `2026-09-18-v139`; no migration.
+
+---
+
+## HEIC photos now convert instead of being refused
+
+v138 refused them. That was the honest thing to do at the time, but it landed on a real phone belonging to the person building this, and "many people will encounter this error and be unable to fix it" is the right objection.
+
+No browser but Safari decodes HEIC, so the only way to accept what a phone camera actually produces is to decode it here: libheif compiled to WASM, ~1.9MB, **fetched only when somebody picks a HEIC**. Everyone else downloads nothing, which is the entire reason it is lazy rather than bundled. Confirmed on a page that has an upload field: no request for it until a HEIC is chosen.
+
+The result is a JPEG that goes into the existing cropper like any other file. Measured end to end with libheif's own sample: HEIC in, `IMG_4821.jpg` out, through the 16:9 crop, 220ms including the decoder download on a fast connection.
+
+### Verified against real HEIC files, not assumptions
+
+Every part of this was checked in the browser before it was written into the app: that the CDN path exists, what the package actually exposes (`window.libheif`, a factory), what the decoder API is (`new HeifDecoder().decode(bytes)` -> images with `get_width`/`get_height`/`display`), and that two real HEICs from different encoders decode. Writing it first and discovering the API second is how you end up shipping a plausible-looking call that has never run.
+
+**Take the PRIMARY image, not `images[0]`.** A HEIC routinely holds more than one -- libheif's own sample has two -- and the extras can be thumbnails, depth maps or the other frames of a burst. Taking the first would sometimes ship the wrong picture, and it would read as a decoding bug rather than a choice. `is_primary()` picks it, with `images[0]` as the fallback.
+
+**Free every image, not just the one used.** They hold WASM heap memory nothing else reclaims.
+
+**A size guard.** A 12MP HEIC decodes to roughly 48MB of RGBA and a cheap phone kills the tab rather than allocate it. 40MB refuses with "take a screenshot instead", because a browser that simply dies mid-upload teaches nobody anything.
+
+**The failed-download promise is cleared**, or one flaky moment would make conversion permanently broken for the rest of the session.
+
+### Pinned by hash, not just by version
+
+An exact version stops jsDelivr serving a *newer* build. It does not stop what that URL serves from changing. This script executes on a page holding the user's session, so it carries a `sha384` integrity hash computed from the bytes and checked stable across two fetches, with `crossOrigin="anonymous"` -- which integrity requires and which is easy to leave off, in which case the check silently never happens.
+
+Proved both directions: the real hash loads and converts, and a deliberately wrong hash is **blocked**. An assertion that only tests the passing case cannot tell a working check from an absent one.
+
+A mismatch surfaces as "couldn't load the photo converter" plus the screenshot advice, which is the safe direction to fail in.
+
+### A red error box that said "Converting"
+
+The church-logo field routed its progress message through `showRcError` -- the form's **error** box. So a conversion that was going perfectly well painted a red error, and nothing ever cleared it: after the crop was applied the box was still sitting there, in red, saying "Converting your photo".
+
+Caught by asserting the error box was *not* showing afterwards, which is the kind of check that only exists if you think to ask what the screen looks like when the happy path finishes. Progress now goes on the field's own filename line, which is neutral and already describes the file in play.
+
+Four messages instead of one, because "it didn't work" is not actionable: converting (progress), too large, converter unreachable, and could-not-convert. All four still end with the screenshot advice, which works from any phone.
+
+Build `2026-09-18-v140`; no migration.
