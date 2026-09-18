@@ -4915,3 +4915,33 @@ Adding the cropper in v137 quietly broke animated GIFs: drawing one to a canvas 
 GIFs now skip the cropper entirely and upload untouched, exactly as SVG already did. Found while working out which formats the HEIC check should let through -- which is the argument for writing the allow/deny list out explicitly instead of testing one format and moving on.
 
 Build `2026-09-18-v138`; no migration.
+
+---
+
+## The slow events reload: one HTTP request per table row
+
+Reported plainly: "I refreshed events just now and it took a long time to reload the data."
+
+`loadDashboardEvents` awaited a **separate registration query per event row**, inside a `for` loop. An `await` in a loop runs the requests one after another, so 20 events meant 20 sequential round trips before a single row appeared. On a phone at a couple of hundred milliseconds each, that is several seconds of staring at an empty table.
+
+The dashboard groups table was worse: **two** count queries per group, both awaited, so 15 groups cost thirty sequential round trips.
+
+Both are now one pass, grouped in JS. Measured with `fetch` intercepted: 250 events went from 250 requests to **3**, and 15 groups from 30 to **1**.
+
+A brace-walking scan over the whole file found these two plus five more in save and admin paths (event questions, group creation, mass email, the admin import, leaving a church). Only the two read paths are fixed here -- those are the ones somebody sits and waits for. **The first version of that scan was broken**: it latched onto one unterminated block and flagged every `await supabase` in the file. A detector that flags everything has found nothing, and it took a second look to notice the output was noise rather than a result.
+
+### Three things the fix had to get right
+
+**It was in the wrong `<script>` block.** The helper went in beside the cropper, which is a different block from the one holding `const supabase`. It would have thrown `ReferenceError: supabase is not defined` on first use and taken out the entire events table -- strictly worse than the slow load it was written to fix. Caught by checking which block each of the client, the helper and both call sites actually lands in, which is now an assertion in the test.
+
+**`.in()` travels in the query string**, so a few hundred UUIDs can push a GET past a proxy's header limit. Chunked at 100 ids, which measures at 4,027 bytes -- comfortably under the usual 8KB.
+
+**A count is not subject to the API's row limit, but a SELECT is.** The old code used `count: 'exact', head: true`; the replacement fetches rows and tallies them, so a church past the limit would have seen its totals silently **under-report**. A wrong number looks exactly like a right one, which makes that a worse bug than the slow page. The helper pages with `.range()` and stops when a short page comes back -- verified: 37 rows in 1 request, 2,300 rows in 3 requests with all 2,300 returned, and exactly 1,000 rows costing one extra probe before stopping.
+
+## The HEIC message named the wrong device
+
+v138's message said "what iPhones save by default" and sent people to `Settings › Camera › Formats`. It was reported from an **Android** phone. Samsung and other Android cameras have their own high-efficiency setting, and that iOS path does not exist on them -- so the one person the message was written for got instructions they could not follow.
+
+No vendor is named now, and it leads with the fix that works on every phone without hunting through settings: open the photo, screenshot it, upload the screenshot. Turning off the camera's high-efficiency setting is the second suggestion rather than the first.
+
+Build `2026-09-18-v139`; no migration.

@@ -767,7 +767,7 @@
       'accountSettings.newChurchDefaultsHint': 'Applied when you add a church to this account. Existing churches are never changed \u2014 each one keeps whatever it has. Leave anything on \u201cNo preference\u201d and the usual default is used.',
       'accountSettings.noPreference': 'No preference', 'common.yes': 'Yes', 'common.no': 'No',
       'cropper.title': 'Adjust your image', 'cropper.zoom': 'Zoom', 'cropper.use': 'Use this image',
-      'upload.heicNotSupported': 'HEIC photos (what iPhones save by default) can\'t be shown on the web \u2014 most visitors would see a broken image. Save a copy as JPEG, or set Settings \u203a Camera \u203a Formats to \u201cMost Compatible\u201d and take it again.',
+      'upload.heicNotSupported': 'HEIC/HEIF photos can\'t be shown on the web \u2014 most visitors would see a broken image. Quickest fix: open the photo and take a screenshot, then upload that. Or turn off the high-efficiency (HEIF) setting in your camera app and take it again.',
       'cropper.hint': 'Drag to move, and use the slider to zoom. What you see is what gets saved.',
       'accountSettings.ownershipTitle': 'Ownership and closing',
       'accountSettings.ownershipHint': 'Transferring this account to someone else, and closing it, are being built. Both need the person receiving or losing access to confirm, so neither can happen by a single click \u2014 until they land, email support and we will do it with you.',
@@ -1713,7 +1713,7 @@
       'accountSettings.newChurchDefaultsHint': 'Se aplican cuando añades una iglesia a esta cuenta. Las iglesias existentes nunca cambian \u2014 cada una conserva lo que tiene. Deja cualquier opción en \u201cSin preferencia\u201d y se usa el valor habitual.',
       'accountSettings.noPreference': 'Sin preferencia', 'common.yes': 'Sí', 'common.no': 'No',
       'cropper.title': 'Ajusta tu imagen', 'cropper.zoom': 'Zoom', 'cropper.use': 'Usar esta imagen',
-      'upload.heicNotSupported': 'Las fotos HEIC (el formato que usa el iPhone por defecto) no se pueden mostrar en la web \u2014 la mayoría de los visitantes vería una imagen rota. Guarda una copia en JPEG, o cambia Ajustes \u203a Cámara \u203a Formatos a \u201cMás compatible\u201d y tómala de nuevo.',
+      'upload.heicNotSupported': 'Las fotos HEIC/HEIF no se pueden mostrar en la web \u2014 la mayoría de los visitantes vería una imagen rota. Lo más rápido: abre la foto, haz una captura de pantalla y sube esa. O desactiva el ajuste de alta eficiencia (HEIF) en tu cámara y tómala de nuevo.',
       'cropper.hint': 'Arrastra para mover y usa el control para acercar. Lo que ves es lo que se guarda.',
       'accountSettings.ownershipTitle': 'Propiedad y cierre',
       'accountSettings.ownershipHint': 'Transferir esta cuenta a otra persona, y cerrarla, están en construcción. Ambas requieren que quien recibe o pierde el acceso lo confirme, así que ninguna puede ocurrir con un solo clic \u2014 hasta que lleguen, escribe a soporte y lo haremos contigo.',
@@ -7869,7 +7869,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v138 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v139 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -9801,6 +9801,7 @@ Groups</span>
     var name = ((file && file.name) || '').toLowerCase();
     return /heic|heif/.test(type) || /\.(heic|heif)$/.test(name);
   };
+
 
   var cropperState = null;
 
@@ -15370,6 +15371,38 @@ Groups</span>
     return max ? (count + '/' + max + ' ' + pluralLabel) : (count + ' ' + (count === 1 ? singularLabel : pluralLabel));
   }
 
+  // Fetch rows for many ids in as few round trips as the URL length
+  // allows. .in() travels in the query string, so a few hundred UUIDs
+  // can push a GET past a proxy's header limit -- 100 at a time keeps
+  // it near 4KB while still turning N requests into N/100.
+  var FETCH_PAGE = 1000;
+  async function fetchByIdsChunked(table, columns, idColumn, ids, applyFilters){
+    var out = [];
+    for (var i = 0; i < ids.length; i += 100) {
+      var slice = ids.slice(i, i + 100);
+      // Paged, because this replaced count(exact, head) queries -- and a
+      // count is not subject to the API's row limit while a SELECT is.
+      // Without this, a church past the limit would see its member and
+      // registration totals silently UNDER-report, which is worse than
+      // the slow load being fixed: a wrong number looks like a right one.
+      //
+      // Costs one extra request only when a page comes back exactly
+      // full, so an installation with no server-side cap pays nothing.
+      var offset = 0;
+      for (;;) {
+        var q = supabase.from(table).select(columns).in(idColumn, slice);
+        if (applyFilters) q = applyFilters(q);
+        var res = await q.range(offset, offset + FETCH_PAGE - 1);
+        if (res.error) throw res.error;
+        var got = res.data || [];
+        out = out.concat(got);
+        if (got.length < FETCH_PAGE) break;
+        offset += FETCH_PAGE;
+      }
+    }
+    return out;
+  }
+  window.fetchByIdsChunked = fetchByIdsChunked;
   async function loadDashboardEvents(){
     var tbody = document.getElementById('dash-events-tbody');
     var myChurch = await getMyChurch();
@@ -15419,18 +15452,38 @@ Groups</span>
       return;
     }
 
+    // ONE query for every event's registrations, not one per row.
+    //
+    // This loop used to await a separate request per event, and an
+    // await inside a for-loop runs them one after another: 20 events
+    // meant 20 sequential round trips before a single row appeared.
+    // On a phone, at a couple of hundred milliseconds each, that is
+    // several seconds of staring at an empty table -- reported
+    // directly as "refreshed events and it took a long time to reload
+    // the data".
+    var regCountsByEvent = {};
+    var regEventIds = myEvents.map(function(e){ return e.id; });
+    if (regEventIds.length) {
+      try {
+        var allRegs = await fetchByIdsChunked('event_registrations', 'event_id, role', 'event_id', regEventIds,
+          function(q){ return q.eq('status', 'confirmed'); });
+        allRegs.forEach(function(r){
+          var c = regCountsByEvent[r.event_id] || (regCountsByEvent[r.event_id] = { participants: 0, volunteers: 0 });
+          if (r.role === 'volunteer') c.volunteers++; else c.participants++;
+        });
+      } catch (e) {
+        // Counts are secondary to the table itself. Showing the events
+        // with zeroes beats showing nothing at all.
+        console.error('Registration counts unavailable:', e);
+      }
+    }
+
     var totalRegistrations = 0;
     var rowsHtml = '';
     for (var i = 0; i < myEvents.length; i++) {
       var ev = myEvents[i];
-      var { data: regData } = await supabase.from('event_registrations').select('role').eq('event_id', ev.id).eq('status', 'confirmed');
-      var participantCount = 0, volunteerCount = 0;
-      if (regData) {
-        regData.forEach(function(r){
-          if (r.role === 'volunteer') volunteerCount++;
-          else participantCount++;
-        });
-      }
+      var regCounts = regCountsByEvent[ev.id] || { participants: 0, volunteers: 0 };
+      var participantCount = regCounts.participants, volunteerCount = regCounts.volunteers;
       var regCount = participantCount + volunteerCount;
       totalRegistrations += regCount;
 
@@ -24761,12 +24814,36 @@ Groups</span>
       return;
     }
 
+    // Two counts per group, both fetched per row and both awaited, so
+    // a church with 15 groups paid THIRTY sequential round trips.
+    // Same fix as the events table above: one pass, grouped here.
+    //
+    // Both statuses come back in a single query rather than two --
+    // active and pending are the only two this table cares about, and
+    // splitting them server-side would double the requests to save
+    // nothing.
+    var groupCounts = {};
+    var groupIdList = myGroups.map(function(g){ return g.id; });
+    if (groupIdList.length) {
+      try {
+        var memberRows = await fetchByIdsChunked('group_members', 'group_id, status', 'group_id', groupIdList,
+          function(q){ return q.in('status', ['active', 'pending']); });
+        memberRows.forEach(function(m){
+          var c = groupCounts[m.group_id] || (groupCounts[m.group_id] = { active: 0, pending: 0 });
+          if (m.status === 'active') c.active++; else if (m.status === 'pending') c.pending++;
+        });
+      } catch (e) {
+        console.error('Group member counts unavailable:', e);
+      }
+    }
+
     var rowsHtml = '';
     var totalPending = 0;
     for (var i = 0; i < myGroups.length; i++) {
       var g = myGroups[i];
-      var { count } = await supabase.from('group_members').select('id', { count: 'exact', head: true }).eq('group_id', g.id).eq('status', 'active');
-      var { count: pendingCount } = await supabase.from('group_members').select('id', { count: 'exact', head: true }).eq('group_id', g.id).eq('status', 'pending');
+      var gCounts = groupCounts[g.id] || { active: 0, pending: 0 };
+      var count = gCounts.active;
+      var pendingCount = gCounts.pending;
       totalPending += (pendingCount || 0);
       var pendingBadge = pendingCount ? ' <span class="tag clay" style="font-size:9px;padding:2px 5px;">' + pendingCount + ' ' + window.t('dashGroups.pendingBadge') + '</span>' : '';
       rowsHtml += '<tr>'
