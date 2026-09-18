@@ -5240,3 +5240,39 @@ Matched to the existing pattern instead, with `cursor:pointer` so they still rea
 Also verified the printer icons survive a language switch: `applyTranslations` sets `textContent` on every `[data-i18n]`, which removes child elements, and each button's label is a `<span data-i18n>` **beside** the icon rather than wrapping it. One `<svg>` per button, before and after.
 
 Build `2026-09-18-v145`; no migration.
+
+---
+
+## Deleting a church left Stripe charging the card forever
+
+Close-account turned out to exist already — Profile → Account has a full flow, with a typed DELETE confirmation and a guard that blocks while you still own a church. Third feature this week I had listed as unbuilt and found finished. Account settings now points at it instead of describing it.
+
+Looking for what close-account still needed is what turned up the actual bug, and it is the worst money bug in the app so far.
+
+**Deleting a church was a plain `supabase.from('churches').delete()`.** Nothing cancelled its subscription. The row was destroyed along with the `stripe_subscription_id` that was the only remaining pointer to it, so:
+
+- Stripe carried on charging the card every month, for a church that no longer existed
+- the webhook's `update ... .eq('id', churchId)` then matched **zero rows** and returned 200, so nothing anywhere reported it
+- and once the owner deleted their account too, there was no route back to the billing portal from inside FaithDock at all
+
+`cancel_subscription_now` ends the subscription immediately, unlike `cancel_subscription` which schedules it for the end of the paid period. The two cases genuinely differ: a downgrade keeps serving what was paid for, a deleted church has nothing left to serve.
+
+**Cancel first, delete second, and refuse to delete if the cancel fails.** That ordering is the whole fix. Verified by extracting the handler and running it: on a paid church the order is exactly `cancel,delete`; when the cancel fails the delete is **never reached**, the real Stripe reason is shown rather than a generic message, and the button re-enables for a retry. A free church deletes with no cancel call at all, and a church with no `planType` is treated as free rather than blocked.
+
+**This one Stripe failure is deliberately NOT swallowed.** Every other cancel path in that function logs and carries on, because there the worst case is a stale id. Here the caller destroys the row the moment it returns success, so a false success bills somebody forever.
+
+And the person is told before they confirm: a paid church shows that deleting cancels the plan immediately and the rest of the paid period is not refunded. Finding that out afterwards would be worse than being told.
+
+### The other N+1s: one fixed, four left alone on purpose
+
+Re-scanning found five await-in-a-loop sites outside the two already fixed. Only one was worth changing.
+
+**Fixed:** the mass-email recipient lookup. Independent **reads** merged into a set, re-run every time somebody ticks another group or event — so picking five groups meant five sequential round trips with the recipient count sitting stale in between. Now one `Promise.all`, with a per-audience error reported rather than silently shrinking the list.
+
+**Left sequential:** saving event questions, creating groups, the admin import, and leaving prior churches. All four are **writes**. A rejected `Promise.all` leaves its siblings in flight and some rows already committed, which is a worse failure than a slow save — and two of them use each insert's returned id. Changing them would trade a latency nobody has complained about for a partial-write failure mode nobody could debug.
+
+Counting five fixes would have looked better in a commit message than counting one.
+
+**`stripe-subscription` needs pasting again** — `cancel_subscription_now` is new, and until it is deployed, deleting a paid church fails with "Unknown action" rather than silently leaving the subscription running. That is the right way round.
+
+Build `2026-09-18-v146`; no migration.

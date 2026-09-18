@@ -331,6 +331,59 @@ serve(async (req) => {
       });
     }
 
+    if (body.action === 'cancel_subscription_now') {
+      // Ends the subscription IMMEDIATELY, unlike cancel_subscription
+      // which schedules it for the end of the paid period. The only
+      // caller is deleting a church, and the two cases genuinely
+      // differ: a downgrade keeps serving what was paid for, whereas a
+      // deleted church has nothing left to serve.
+      //
+      // This exists because deleting a church used to be a plain row
+      // delete. The row was destroyed along with its
+      // stripe_subscription_id, Stripe carried on charging the card
+      // every month, and the webhook's `update ... .eq('id', churchId)`
+      // then matched zero rows and returned 200 -- so nothing anywhere
+      // reported that a customer was paying for something that no
+      // longer existed. Cancel first, delete second, and refuse to
+      // delete if the cancel fails: the row is the only thing that
+      // still points at the subscription.
+      const { churchId } = body;
+      const access = await resolveBillingAccess(churchId);
+      // A church with no billing account is the ordinary case -- most
+      // are on Free. Nothing to cancel is a success, not an error, or
+      // deleting a free church would be blocked by its own safeguard.
+      if (access.error) {
+        if (access.status === 404) {
+          return new Response(JSON.stringify({ success: true, cancelled: false }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        }
+        return jsonError(access.error, access.status);
+      }
+      const churchRow = access.church;
+      if (!churchRow.stripe_subscription_id) {
+        return new Response(JSON.stringify({ success: true, cancelled: false }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+      try {
+        const existing = await stripe.subscriptions.retrieve(churchRow.stripe_subscription_id);
+        if (existing && existing.status !== 'canceled') {
+          await stripe.subscriptions.cancel(churchRow.stripe_subscription_id);
+        }
+      } catch (e) {
+        // Deliberately NOT swallowed. Every other cancel path in this
+        // file logs and carries on, because there the worst case is a
+        // stale id. Here the caller deletes the church the moment this
+        // returns success, and a false success means somebody is billed
+        // forever for a church that no longer exists.
+        return jsonError('Could not cancel the subscription, so the church was not deleted: ' + e.message, 502);
+      }
+      // Cleared rather than left pointing at a cancelled subscription,
+      // for the case where the cancel succeeds and the delete does not.
+      await supabaseAdmin.from('churches').update({
+        plan_type: 'free', subscription_status: 'canceled',
+        stripe_subscription_id: null, cancel_at_period_end: false,
+      }).eq('id', churchId);
+      return new Response(JSON.stringify({ success: true, cancelled: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
     if (body.action === 'confirm_subscription') {
       // Fallback for the redirect-back moment, in case the webhook
       // hasn't landed yet — mirrors how stripe-create-checkout
