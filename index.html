@@ -754,6 +754,8 @@
       'sectionSettings.dirStaffOnly': 'Staff only', 'sectionSettings.dirMembers': 'Staff and approved members',
       'sectionSettings.membersSeeContact': 'Members can see each other\'s phone and email',
       'sectionSettings.receiptFooter': 'Receipt footer',
+      'dashSettings.fundPublic': 'Public',
+      'dashSettings.fundPublicHint': 'Untick a fund to stop offering it to visitors. It keeps its name and every past gift \u2014 it just stops appearing on your public Give form.',
       'sectionSettings.receiptFooterHint': 'Added to the bottom of every giving receipt. Most churches put their tax-exempt statement here.',
       'sectionSettings.saved': 'Saved.', 'common.remove': 'Remove',
       'dashSub.accountSettingsHint': 'Settings that apply across every church on this account, rather than to one of them. Nothing here yet — the per-church settings live under each church.',
@@ -1686,6 +1688,8 @@
       'sectionSettings.dirStaffOnly': 'Solo el personal', 'sectionSettings.dirMembers': 'Personal y miembros aprobados',
       'sectionSettings.membersSeeContact': 'Los miembros pueden ver el teléfono y el correo de los demás',
       'sectionSettings.receiptFooter': 'Pie de recibo',
+      'dashSettings.fundPublic': 'Público',
+      'dashSettings.fundPublicHint': 'Desmarca un fondo para dejar de ofrecerlo a los visitantes. Conserva su nombre y todas las donaciones anteriores \u2014 solo deja de aparecer en tu formulario público de donación.',
       'sectionSettings.receiptFooterHint': 'Se añade al final de cada recibo de donación. La mayoría de las iglesias ponen aquí su declaración de exención fiscal.',
       'sectionSettings.saved': 'Guardado.', 'common.remove': 'Quitar',
       'dashSub.accountSettingsHint': 'Ajustes que se aplican a todas las iglesias de esta cuenta, no a una sola. Todavía no hay nada aquí — los ajustes de cada iglesia están dentro de ella.',
@@ -6714,7 +6718,32 @@ Groups</span>
         <p style="color:var(--ink-mute);font-size:13.5px;max-width:560px;" data-i18n="dashSub.placeholder">This page is being built. Nothing has moved yet — everything still works where it did before.</p>
       </div>
       <div class="dash-content" id="dash-giving-settings">
-        <h2 style="font-size:24px;margin-bottom:18px;" data-i18n="dashSub.givingSettings"></h2>
+        <h2 style="font-size:24px;margin-bottom:18px;" data-i18n="dashSub.givingSettings">Revenue settings</h2>
+        <!-- Moved here from the Revenue page itself. Funds, the public
+             Give switch and the per-fund visibility ticks are all
+             configuration; the Revenue page is for the numbers, and
+             mixing the two meant scrolling past the settings to reach
+             the totals you opened the page to see. -->
+        <div class="side-note" id="settings-funds-section" style="max-width:560px;">
+          <h4 data-i18n="dashSettings.givingFunds">Giving funds</h4>
+          <p style="font-size:13.5px;color:var(--ink-mute);margin-bottom:14px;" data-i18n="dashSettings.givingFundsHint">Designated funds donors can choose from when giving — a building campaign, a mission trip, whatever your church tracks separately. Gifts with no fund selected count toward the General Fund.</p>
+          <!-- The public "Give" on/off switch. checked/unchecked
+               reflects churches.giving_enabled (migration
+               032_church_give_message_toggles.sql), loaded and saved by
+               loadGiveMessageToggles() and the settings-giving-enabled-
+               toggle change handler further down this file. -->
+          <label class="filter-check" id="settings-giving-enabled-toggle-wrap" style="display:flex;margin-bottom:14px;">
+            <input type="checkbox" id="settings-giving-enabled-toggle" checked> <span data-i18n="dashSettings.givingEnabledToggle">Show the "Give" button on your public page</span> <span id="settings-giving-enabled-status" style="display:none;font-size:12px;"></span>
+          </label>
+          <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:8px;" data-i18n="dashSettings.fundPublicHint">Untick a fund to stop offering it to visitors. It keeps its name and every past gift — it just stops appearing on your public Give form.</p>
+          <div id="funds-list" style="margin-bottom:8px;"><p style="color:var(--ink-mute);font-size:13px;" data-i18n="common.loading">Loading...</p></div>
+          <div id="fund-public-status" style="display:none;font-size:12px;margin-bottom:10px;"></div>
+          <div style="display:flex;gap:8px;">
+            <input class="field" type="text" id="fund-add-name" placeholder="e.g. Building Campaign" data-i18n-placeholder="dashSettings.fundNamePlaceholder" style="flex:1;font-size:13px;padding:9px 10px;">
+            <button class="export-btn" id="fund-add-btn" style="flex-shrink:0;" data-i18n="dashSettings.add">Add</button>
+          </div>
+          <div id="fund-add-status" style="display:none;font-size:12px;margin-top:8px;"></div>
+        </div>
         <div class="side-note" style="max-width:560px;">
           <h4 data-i18n="sectionSettings.receiptFooter">Receipt footer</h4>
           <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:10px;" data-i18n="sectionSettings.receiptFooterHint">Added to the bottom of every giving receipt. Most churches put their tax-exempt statement here.</p>
@@ -7230,10 +7259,11 @@ Groups</span>
              was duplication with teeth, since loadGivingStatus() had
              to mirror every status string into both copies.
 
-             Kept near the top rather than filed with the settings at
-             the bottom, because it is a PREREQUISITE, not a
+             Kept on this page rather than moved to Revenue -> Settings
+             with the funds list, because it is a PREREQUISITE, not a
              preference: without a connected bank there is no revenue
-             to read the numbers about. -->
+             to read the numbers about, and a page of dashes with the
+             fix filed two clicks away would be worse than useless. -->
         <div class="side-note" id="settings-giving-section">
               <!-- Was "Giving", which sat immediately above the Giving
                    STATS heading once both landed on this page -- two
@@ -7292,34 +7322,6 @@ Groups</span>
           <a href="#" onclick="document.getElementById('payment-reports-open-btn') && document.getElementById('payment-reports-open-btn').click(); if(typeof goDash==='function') goDash('insights'); return false;" style="color:inherit;border-bottom:1px solid var(--gold);" data-i18n="dashRevenue.viewTicketDetail">View per-event ticket detail in Insights →</a>
         </p>
       
-        <!-- Giving configuration sits AFTER the numbers, not before
-             them. Funds and the public Give button are things you
-             adjust occasionally; the totals are what you open this
-             page to see. -->
-        <div class="side-note" id="settings-funds-section">
-              <h4 data-i18n="dashSettings.givingFunds">Giving funds</h4>
-              <p style="font-size:13.5px;color:var(--ink-mute);margin-bottom:14px;" data-i18n="dashSettings.givingFundsHint">Designated funds donors can choose from when giving — a building campaign, a mission trip, whatever your church tracks separately. Gifts with no fund selected count toward the General Fund.</p>
-              <!-- Requested directly, alongside removing Message/Give from
-                   unclaimed churches entirely: an on/off switch for
-                   whether the public "Give" button shows at all, placed
-                   by the funds list it affects rather than in the bank-
-                   connect section above (#settings-giving-section), which
-                   is about a DIFFERENT step (getting Stripe connected in
-                   the first place). checked/unchecked reflects
-                   churches.giving_enabled (migration
-                   032_church_give_message_toggles.sql), loaded/saved by
-                   loadGiveMessageToggles()/the settings-giving-enabled-
-                   toggle change handler further down this file. -->
-              <label class="filter-check" id="settings-giving-enabled-toggle-wrap" style="display:flex;margin-bottom:14px;">
-                <input type="checkbox" id="settings-giving-enabled-toggle" checked> <span data-i18n="dashSettings.givingEnabledToggle">Show the "Give" button on your public page</span> <span id="settings-giving-enabled-status" style="display:none;font-size:12px;"></span>
-              </label>
-              <div id="funds-list" style="margin-bottom:12px;"><p style="color:var(--ink-mute);font-size:13px;" data-i18n="common.loading">Loading...</p></div>
-              <div style="display:flex;gap:8px;">
-                <input class="field" type="text" id="fund-add-name" placeholder="e.g. Building Campaign" data-i18n-placeholder="dashSettings.fundNamePlaceholder" style="flex:1;font-size:13px;padding:9px 10px;">
-                <button class="export-btn" id="fund-add-btn" style="flex-shrink:0;" data-i18n="dashSettings.add">Add</button>
-              </div>
-              <div id="fund-add-status" style="display:none;font-size:12px;margin-top:8px;"></div>
-            </div>
       </div>
 
       <div class="dash-content" id="dash-insights">
@@ -7736,7 +7738,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v134 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v135 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -10472,6 +10474,23 @@ Groups</span>
   // which is left alone -- it is the one list nobody needs rebuilt.
   // ============================================================
   var dashNavLevel = null;
+  // Where the person actually left the menu, and the route it was
+  // chosen against.
+  //
+  // Without this the level was recomputed from the active view on
+  // EVERY render, including renders nobody asked for -- an auth-state
+  // refresh, a language switch, loadDashboardHeader finishing. So a
+  // tier 4/5 owner who had walked back up to Overview was dropped
+  // into the church menu again the next time anything redrew, with
+  // no navigation of their own in between. Reported directly: close
+  // the drawer at Overview, open it again, and it had gone "all the
+  // way back to church side dash".
+  //
+  // A genuine move still wins, because the route changes with it and
+  // the remembered level is only honoured while the route is the one
+  // it was chosen against.
+  var dashUserLevel = null;
+  var dashUserLevelRoute = null;
 
   function dashIsMultiChurch(){ return !!window._dashMultiOwner; }
 
@@ -10510,12 +10529,30 @@ Groups</span>
   }
 
   // One renderer for every level that is not the static church list.
-  function dashRenderLevel(level, activeView, enterFrom){
+  function dashRenderLevel(level, activeView, enterFrom, isCorrection){
     var el = document.getElementById('dash-nav-sub');
     var main = document.getElementById('dash-nav-church');
     var overviewNav = document.getElementById('dash-nav-overview');
     if (!el || !main) return;
     dashNavLevel = level;
+    // Recorded here rather than in each caller, so every way of
+    // moving the menu -- Back, opening a section, picking a church,
+    // arriving at a page -- is remembered by the one function they
+    // all go through. A list of callers to keep in step is what has
+    // caused most of the refresh bugs in this file.
+    //
+    // A CORRECTION is excluded. refreshDashNavLevel redraws what is
+    // already on screen, and it runs from updateDashSidebarMode, which
+    // goDash calls BEFORE it works out where the new route belongs. If
+    // that redraw re-stamped the route, the level chosen a moment
+    // earlier would be pinned to the route being navigated TO, and the
+    // navigation itself would then be ignored as a same-route redraw.
+    // Caught in testing: picking Directory from the Overview menu left
+    // the menu sitting on Overview.
+    if (!isCorrection) {
+      dashUserLevel = level;
+      dashUserLevelRoute = window._dashCurKey || null;
+    }
 
     // The old account-level nav is superseded by this renderer and
     // must never show, or two lists claim the same space -- which is
@@ -10571,7 +10608,7 @@ Groups</span>
   window.refreshDashNavLevel = function(){
     if (!dashNavLevel) return;
     var activeLink = document.querySelector('#dash-nav-sub a.active, #dash-nav-church a.active');
-    dashRenderLevel(dashNavLevel, activeLink ? activeLink.getAttribute('data-dash') : null, null);
+    dashRenderLevel(dashNavLevel, activeLink ? activeLink.getAttribute('data-dash') : null, null, true);
   };
 
   // The church list is static markup, so its Back link is inserted
@@ -10620,8 +10657,23 @@ Groups</span>
   //
   // A deeper page (events-reports) does imply its section, because
   // there is no other way to have reached it.
+  // Derived from dashAccountEntries(), which is the one list that
+  // says what the account level contains -- rather than a second
+  // hand-written set of view names beside it. Billing and Plans were
+  // missing from the old `view === 'churches'` test, so picking
+  // either from the account menu asked for the CHURCH level and
+  // dropped the person a level without them moving.
+  function dashAccountViews(){
+    var seen = {};
+    dashAccountEntries().forEach(function(entry){
+      if (entry.view) seen[entry.view] = 1;
+      if (entry.level) seen[entry.level] = 1;
+    });
+    return seen;
+  }
+
   function dashLevelForView(view){
-    if (view === 'churches') return dashIsMultiChurch() ? 'account' : 'church';
+    if (dashAccountViews()[view]) return dashIsMultiChurch() ? 'account' : 'church';
     var section = dashSectionForView(view);
     if (!section) return 'church';
     var def = DASH_SECTIONS[section];
@@ -10640,6 +10692,10 @@ Groups</span>
     // Events opens the Events level, and the goDash that follows must
     // not send it straight back to the church list.
     if (dashNavLevel && dashNavLevel === section) target = section;
+    // A redraw of the SAME route is not a navigation. Whoever asked
+    // for it -- loadDashboardHeader, a language switch, the
+    // multi-church flag arriving -- wants the menu redrawn, not moved.
+    if (dashUserLevel && dashUserLevelRoute === (window._dashCurKey || null)) target = dashUserLevel;
     var from = dashNavLevel === target ? null : (target === 'church' ? 'left' : 'right');
     dashRenderLevel(target, activeView, from);
   }
@@ -10768,7 +10824,11 @@ Groups</span>
       'groups-settings':    ['loadGiveMessageToggles'],
       'giving-tickets':     [],
       'giving-reports':     [],
-      'giving-settings':    ['loadSectionSettings'],
+      // The funds list and the public Give switch moved onto this
+      // page, so the two loaders that fill them are named here.
+      // Without them the switch would show its checked HTML default
+      // and the list would sit on 'Loading...' forever.
+      'giving-settings':    ['loadSectionSettings', 'loadFundsPanel', 'loadGiveMessageToggles'],
       'settings-account':   [],
       'insights-reports':   [],
       'insights-saved':     ['loadSavedReportsList'],
@@ -14479,11 +14539,17 @@ Groups</span>
     if (settingsEditLink) settingsEditLink.style.display = myChurch.canEditProfile ? 'inline-block' : 'none';
     var settingsGivingSection = document.getElementById('settings-giving-section');
     if (settingsGivingSection) settingsGivingSection.style.display = myChurch.canManageGiving ? 'block' : 'none';
-    // The public "Give" on/off switch lives inside #settings-funds-section
-    // (positioned there deliberately -- see that section's own HTML
-    // comment), which isn't itself permission-gated, so this one label
-    // needs its own explicit canManageGiving check rather than inheriting
-    // a section-level hide.
+    // The funds section is gated now too. It used to be open to any
+    // staff member who could reach the Revenue page, and that page is
+    // gated on canViewRevenue -- a weaker ability than canManageGiving,
+    // so somebody allowed only to read the totals could also add and
+    // retire funds. Now that it sits on a Settings page, it is gated
+    // like one.
+    var settingsFundsSection = document.getElementById('settings-funds-section');
+    if (settingsFundsSection) settingsFundsSection.style.display = myChurch.canManageGiving ? 'block' : 'none';
+    // The Give switch keeps its own check as well. The section hide
+    // above makes it redundant today, but the two are separate
+    // decisions and a later layout change should not quietly unhide it.
     var givingEnabledToggleWrap = document.getElementById('settings-giving-enabled-toggle-wrap');
     if (givingEnabledToggleWrap) givingEnabledToggleWrap.style.display = myChurch.canManageGiving ? 'flex' : 'none';
 
@@ -14568,21 +14634,26 @@ Groups</span>
   // original single-state sidebar untouched.
   function updateDashSidebarMode(view){
     var multi = !!window._dashMultiOwner;
-    var navChurch = document.getElementById('dash-nav-church');
     var navOverview = document.getElementById('dash-nav-overview');
     var churchCtx = document.getElementById('dash-church-context');
     var ovHeader = document.getElementById('dash-overview-header');
     var inOverview = multi && !!DASH_OVERVIEW_VIEWS[view];
 
-    // Empty string, not 'block'. An inline style beats every
-    // stylesheet rule, so hardcoding 'block' here silently defeated
-    // the phone layout's .dash-nav{display:grid} -- the grid columns
-    // and gap applied while display stayed block, so the nav computed
-    // as a two-column grid that was laying nothing out. Clearing the
-    // property instead hands the decision back to CSS, which is what
-    // knows about viewport width.
-    if (navOverview) navOverview.style.display = inOverview ? '' : 'none';
-    if (navChurch) navChurch.style.display = inOverview ? 'none' : '';
+    // Which nav is on screen is NOT decided here any more.
+    //
+    // It used to be: this function set navChurch/navOverview display
+    // directly, and it runs at the very end of loadDashboardHeader --
+    // which runs on every dashboard load and every auth-state
+    // refresh. refreshDashNavLevel() had already redrawn the right
+    // level a few lines earlier, and then this un-hid the church list
+    // straight over the top of it with an inline style. Two owners of
+    // one piece of state, in whichever order they happened to run:
+    // the same shape as the goDash/updateDashSidebarMode ordering
+    // note above, and the reason a tier 4/5 owner sitting on Overview
+    // kept being thrown back into the church menu.
+    //
+    // dashRenderLevel owns it now, and is asked to redraw at the end
+    // of this function instead.
     if (churchCtx) churchCtx.style.display = inOverview ? 'none' : 'block';
     if (ovHeader) ovHeader.style.display = inOverview ? 'block' : 'none';
     // The separate All-churches link is gone; Overview sits in the
@@ -14603,6 +14674,12 @@ Groups</span>
         if (el) el.classList.toggle('active', id === activeId);
       });
     }
+
+    // Last: hand the sidebar back to the level stack. .dash-overview-owner
+    // was toggled just above and decides whether Billing/Plans show in
+    // the church nav, so the redraw has to come after it -- and it is a
+    // redraw of the remembered level, never a move.
+    if (typeof window.refreshDashNavLevel === 'function') window.refreshDashNavLevel();
   }
   window.updateDashSidebarMode = updateDashSidebarMode;
 
@@ -19691,7 +19768,11 @@ Groups</span>
     var myChurch = await getMyChurch();
     if (!myChurch) { listEl.innerHTML = ''; return; }
 
-    var { data: funds, error } = await supabase.from('giving_funds').select('id, name').eq('church_id', myChurch.id).eq('is_active', true).order('name');
+    // is_public is selected outright rather than behind a retry: 059
+    // is already live, so there is no deploy window in which the
+    // column is missing, and a fallback that can never run is just a
+    // second code path nobody will ever test.
+    var { data: funds, error } = await supabase.from('giving_funds').select('id, name, is_public').eq('church_id', myChurch.id).eq('is_active', true).order('name');
     if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:13px;">' + escapeHtml(error.message) + '</p>'; return; }
 
     if (!funds || !funds.length) {
@@ -19699,9 +19780,18 @@ Groups</span>
       return;
     }
     listEl.innerHTML = funds.map(function(f){
-      return '<div class="info-row" style="justify-content:space-between;">'
-        + '<span>' + f.name.replace(/</g, '&lt;') + '</span>'
-        + '<button class="qr-btn" data-remove-fund-id="' + f.id + '" aria-label="' + window.t('dashSettings.removeFund') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'
+      // === false, not a truthy read. The column is NOT NULL DEFAULT
+      // true in the database, so anything other than an explicit
+      // false is public -- treating a null as unticked would tell a
+      // church a fund is hidden from donors when it is being offered.
+      var isPublic = f.is_public !== false;
+      return '<div class="info-row" style="justify-content:space-between;gap:10px;">'
+        + '<span style="flex:1;min-width:0;">' + escapeHtml(f.name) + '</span>'
+        + '<label class="filter-check" style="display:flex;flex-shrink:0;margin:0;font-size:12.5px;">'
+        +   '<input type="checkbox" data-fund-public-id="' + escapeHtml(f.id) + '"' + (isPublic ? ' checked' : '') + '> '
+        +   '<span>' + escapeHtml(window.t('dashSettings.fundPublic')) + '</span>'
+        + '</label>'
+        + '<button class="qr-btn" data-remove-fund-id="' + escapeHtml(f.id) + '" aria-label="' + escapeHtml(window.t('dashSettings.removeFund')) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'
         + '</div>';
     }).join('');
   }
@@ -20989,6 +21079,41 @@ Groups</span>
       loadFundsPanel();
     });
   }
+
+  // Each tick saves itself the moment it changes, like every other
+  // switch in this app. Delegated, because the list is rebuilt from
+  // scratch on every load and per-row listeners would go with it.
+  document.addEventListener('change', async function(ev){
+    var box = ev.target.closest ? ev.target.closest('[data-fund-public-id]') : null;
+    if (!box) return;
+    var statusEl = document.getElementById('fund-public-status');
+    var wanted = box.checked;
+    box.disabled = true;
+    var res = await supabase.from('giving_funds').update({ is_public: wanted })
+      .eq('id', box.getAttribute('data-fund-public-id')).select('id');
+    box.disabled = false;
+    // .select() and a row count, because an update that matches zero
+    // rows under RLS returns {error:null} and writes nothing. Without
+    // this the tick would sit there claiming a state the database
+    // does not hold -- and on a visibility switch that means telling
+    // a church a fund is hidden from donors while it is still offered.
+    if (res.error || !res.data || !res.data.length) {
+      box.checked = !wanted;
+      if (statusEl) {
+        statusEl.textContent = res.error ? res.error.message : window.t('common.somethingWrong');
+        statusEl.style.color = 'var(--clay)';
+        statusEl.style.display = 'block';
+      }
+      return;
+    }
+    if (statusEl) {
+      if (statusEl._hideTimer) clearTimeout(statusEl._hideTimer);
+      statusEl.textContent = window.t('sectionSettings.saved');
+      statusEl.style.color = 'var(--sage)';
+      statusEl.style.display = 'block';
+      statusEl._hideTimer = setTimeout(function(){ statusEl.style.display = 'none'; }, 2600);
+    }
+  });
 
   document.addEventListener('click', async function(ev){
     var removeFundBtn = ev.target.closest ? ev.target.closest('[data-remove-fund-id]') : null;
@@ -24245,7 +24370,13 @@ Groups</span>
     var fundWrap = document.getElementById('give-fund-wrap');
     var fundSelect = document.getElementById('give-fund-select');
     if (fundWrap && fundSelect) {
-      var { data: funds } = await supabase.from('giving_funds').select('id, name').eq('church_id', churchId).eq('is_active', true).order('name');
+      // The whole point of is_public. is_active is a different
+      // question -- retired versus not offered publicly -- so both
+      // filters are here rather than one standing in for the other.
+      // A church that unticks every fund simply gets no fund picker,
+      // which is the same path an empty fund list already takes and
+      // means gifts land in the General Fund.
+      var { data: funds } = await supabase.from('giving_funds').select('id, name').eq('church_id', churchId).eq('is_active', true).eq('is_public', true).order('name');
       if (funds && funds.length) {
         fundSelect.innerHTML = '<option value="">' + window.t('give.generalFund') + '</option>' + funds.map(function(f){
           return '<option value="' + f.id + '">' + f.name.replace(/</g, '&lt;') + '</option>';

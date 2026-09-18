@@ -4775,3 +4775,48 @@ Measured rather than eyeballed, because the failure mode here is a nav item sile
 The check that matters is `every item height <= typical + 1`, not "does it look right": a single wrapped item among a dozen is easy to miss by eye and obvious in the numbers.
 
 Build `2026-09-18-v134`; no migration.
+
+---
+
+## Per-fund public visibility, and a sidebar that remembers where you left it
+
+### Funds move to Revenue -> Settings
+
+The funds list, the public Give switch and the new per-fund ticks are all configuration, and they were sitting at the bottom of the Revenue page under the totals. They are settings, so they live on the Settings page now. The bank-connect block stays on Revenue deliberately: it is a PREREQUISITE, not a preference -- a page of dashes with the fix filed two clicks away would be worse than useless.
+
+Moving it closed a permission gap by accident, which is worth stating plainly. `#settings-funds-section` was never gated; the only gated thing inside it was the Give switch. Revenue is gated on `canViewRevenue`, which is weaker than `canManageGiving` -- so a staff member allowed only to *read* the totals could add and retire funds. The section is gated on `canManageGiving` now.
+
+### `is_public`, and the three places funds are read
+
+Three queries, and they must not all agree:
+
+- **The dashboard list** selects `is_public` and does **not** filter on it. A hidden fund still has to be manageable, or there would be no way to un-hide it.
+- **The public Give form** filters on it. That is the entire feature. `is_active` stays in the query too: retired and not-offered-publicly are different questions, and letting one stand in for the other would make "stop offering this" also mean "stop recording it".
+- **The Insights fund-name lookup** filters on neither -- it looks up by id, so a gift given last year to a fund since made private still shows the fund's name instead of a blank.
+
+`f.is_public !== false`, not a truthy read: the column is `NOT NULL DEFAULT true`, and treating a null as unticked would tell a church a fund is hidden from donors while it is being offered. Same reasoning as `events_enabled` in 059.
+
+`is_public` is selected outright rather than behind a soft-fetch retry. 059 is already live, so there is no deploy window where the column is missing, and a fallback that can never run is a second code path nobody will ever test.
+
+The row builder was tested by **extracting it from index.html and running it**, rather than retyping it into a test: is_public true/false/null/absent, a name containing `<img src=x onerror=...>`, and a quote inside the id (which would break out of the attribute). All escaped -- the old row escaped only `<` in the name, by hand.
+
+**A vacuous pass, caught.** The first layout check reported `noOverflow: true` and row heights of `[0,0,0]`. The probe is signed out, so the dashboard panel was hidden and every measurement was zero -- `scrollWidth <= clientWidth` is trivially true for `0 <= 0`. Forcing the panel visible gave real numbers: 31px rows, and a deliberately absurd fund name wraps to 45px with the tick and the X still inside the row.
+
+### The sidebar forgetting where you were
+
+Reported: a tier 4/5 owner walks church menu -> churches -> Overview, taps outside to close the drawer, opens it again, and it has gone "all the way back to church side dash".
+
+The drawer was innocent -- `setDashMenu` only toggles a class. **`updateDashSidebarMode()` was setting `#dash-nav-church`'s display directly**, and it runs at the very end of `loadDashboardHeader`, which runs on every dashboard load and every auth-state refresh. `refreshDashNavLevel()` had already redrawn the right level a few lines earlier; this then un-hid the church list straight over the top of it with an inline style.
+
+That is the third time in this file two functions have owned one piece of state -- `goDash` carries a comment about this exact pair, in this exact order. `dashRenderLevel` owns it now, and `updateDashSidebarMode` ends by asking it to redraw instead of deciding for itself.
+
+The level is also remembered rather than recomputed. It used to be derived from the active view on *every* render, including renders nobody asked for, so any redraw collapsed a person back to the level their route implied. Now `dashRenderLevel` records the level and the route it was chosen against, and a render for that same route is treated as a redraw, not a move.
+
+**Two bugs in that fix, caught before shipping:**
+
+1. `refreshDashNavLevel` re-stamped the route. It runs from `updateDashSidebarMode`, which `goDash` calls *before* working out where the new route belongs -- so the pre-navigation level got pinned to the route being navigated to, and the navigation was then ignored as a same-route redraw. Picking Directory from the Overview menu left the menu on Overview. Corrections no longer stamp.
+2. `dashLevelForView` only knew about `churches`, so Billing and Plans -- both account-level pages -- asked for the church level and dropped the person a level without them moving. It reads `dashAccountEntries()` now, the one list that says what the account level contains, instead of a second hand-written set of names beside it.
+
+**The fix was proved against the old behaviour, not just against itself.** Replaying the two removed lines in the live page reproduced the bug on demand (menu jumps to CHURCH MENU), and `refreshDashNavLevel()` put it back without being told where to go. Eight-step tier 4/5 walk and a seven-step tier 1-3 walk both pass, including the cases that must still MOVE: Directory drops to the church menu, Billing stays at the account level with Billing marked active.
+
+Build `2026-09-18-v135`; no migration (059 already run).
