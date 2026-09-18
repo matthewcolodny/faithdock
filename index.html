@@ -3523,16 +3523,51 @@
   body.checkin-link-page header,
   body.checkin-link-page footer,
   body.checkin-link-page .promo-bar{display:none;}
+  .dash-mobile-bar{display:none;}
+  .dash-scrim{display:none;}
   @media (max-width:860px){
-    .dash{grid-template-columns:1fr;}
-    /* Requested: two columns rather than one long one. The sidebar
-       stacks above the content on a phone, and as a single column of
-       block links it was a screen and a half of navigation before any
-       actual page content. Two columns halves that. */
-    .dash-side{padding:20px 16px;}
-    .dash-nav{display:grid;grid-template-columns:1fr 1fr;gap:4px 8px;}
-    .dash-nav a{margin-bottom:0;padding:9px 10px;font-size:13.5px;}
-    .dash-tag{margin-bottom:16px;}
+    .dash{grid-template-columns:1fr;position:relative;}
+
+    /* The sidebar becomes a drawer OVER the content rather than a
+       block stacked above it. Two columns of links was the earlier
+       answer to the same problem -- a screen and a half of navigation
+       before any page content -- and it worked, but it still pushed
+       the page down. A drawer removes the navigation from the flow
+       entirely, so the page starts at the top of the screen and the
+       menu overlaps it only while open. Back to one column inside it,
+       since there is now a full screen height to use. */
+    .dash-side{
+      position:fixed;top:0;bottom:0;left:0;width:260px;max-width:82vw;z-index:60;
+      padding:24px 18px;overflow-y:auto;
+      transform:translateX(-100%);transition:transform .22s ease;
+      box-shadow:6px 0 24px rgba(0,0,0,0.28);
+    }
+    .dash.menu-open .dash-side{transform:translateX(0);}
+    .dash-nav{display:block;}
+    .dash-nav a{margin-bottom:4px;padding:12px 12px;font-size:15px;}
+
+    .dash-scrim{
+      display:block;position:fixed;inset:0;z-index:55;background:rgba(0,0,0,0.45);
+      opacity:0;pointer-events:none;transition:opacity .22s ease;
+    }
+    .dash.menu-open .dash-scrim{opacity:1;pointer-events:auto;}
+
+    .dash-mobile-bar{
+      display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:40;
+      background:var(--paper);border-bottom:1px solid var(--line);padding:8px 12px;
+    }
+    .dash-mobile-bar button{
+      background:none;border:1px solid var(--line);border-radius:9px;color:var(--ink);
+      width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;
+    }
+    .dash-mobile-bar button svg{width:22px;height:22px;display:block;}
+    #dash-mobile-title{font-family:'Fraunces';font-size:17px;color:var(--ink);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .dash-main{padding:20px 14px 40px;}
+  }
+  /* Respecting a system setting that exists because motion makes some
+     people ill. The drawer still opens; it just arrives. */
+  @media (prefers-reduced-motion: reduce){
+    .dash-side,.dash-scrim{transition:none;}
   }
   /* Grid items default to min-width:auto, i.e. their content's own
      natural min-content width -- not 0 -- so a 1fr track doesn't
@@ -6173,6 +6208,19 @@ Groups</span>
 <!-- ================= DASHBOARD ================= -->
 <section class="page" id="page-dashboard">
   <div class="dash">
+    <!-- Phone only. Sticky rather than inline at the top of the
+         page: a menu button you have to scroll back up to reach is a
+         menu button you stop using. -->
+    <div class="dash-mobile-bar">
+      <button type="button" id="dash-menu-btn" aria-label="Dashboard menu" aria-expanded="false" data-i18n-title="common.menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <span id="dash-mobile-title"></span>
+    </div>
+    <!-- Closes the drawer on a tap outside it. A drawer with no way
+         out except the exact button that opened it is a trap on a
+         touch screen. -->
+    <div class="dash-scrim" id="dash-scrim"></div>
     <div class="dash-side">
       <!-- Multi-church owner only: jump back to the Overview grid from a church view -->
       <a id="dash-all-churches-link" role="button" style="display:none;font-size:12.5px;color:#CBD2DE;margin-bottom:20px;border-bottom:1px solid rgba(255,255,255,0.2);width:fit-content;padding-bottom:1px;cursor:pointer;" data-i18n="dash.allChurches">‹ All churches</a>
@@ -7437,7 +7485,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v118 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v119 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -9276,6 +9324,53 @@ Groups</span>
   // The hamburger shows initials once there is someone to show. Kept
   // as one button rather than two swapped elements, so the menu it
   // opens is unambiguously the same menu either way.
+  // ============================================================
+  // The dashboard drawer, on phones.
+  //
+  // Closed on arrival, deliberately: the page you navigated to should
+  // be the thing on screen. Opening it is one tap; arriving to a
+  // menu you did not ask for and having to dismiss it is a tax on
+  // every visit.
+  // ============================================================
+  function setDashMenu(open){
+    var dash = document.querySelector('.dash');
+    if (!dash) return;
+    dash.classList.toggle('menu-open', !!open);
+    var btn = document.getElementById('dash-menu-btn');
+    if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  window.setDashMenu = setDashMenu;
+
+  var dashMenuBtn = document.getElementById('dash-menu-btn');
+  if (dashMenuBtn) dashMenuBtn.addEventListener('click', function(){
+    var dash = document.querySelector('.dash');
+    setDashMenu(!(dash && dash.classList.contains('menu-open')));
+  });
+  var dashScrim = document.getElementById('dash-scrim');
+  if (dashScrim) dashScrim.addEventListener('click', function(){ setDashMenu(false); });
+
+  // Escape closes it, because a fixed overlay that only one specific
+  // button dismisses is a trap for anyone on a keyboard.
+  document.addEventListener('keydown', function(ev){
+    if (ev.key === 'Escape') setDashMenu(false);
+  });
+
+  // Choosing a destination closes the menu -- you have arrived, and
+  // leaving it open would cover what you came to see.
+  document.addEventListener('click', function(ev){
+    if (ev.target.closest && ev.target.closest('.dash-side [data-dash]')) setDashMenu(false);
+  });
+
+  // The bar names the tab you are on. Without it the phone layout
+  // loses the only cue about where you are, since the sidebar that
+  // used to show it is now off-screen.
+  window.setDashMobileTitle = function(view){
+    var el = document.getElementById('dash-mobile-title');
+    if (!el) return;
+    var link = document.querySelector('.dash-side [data-dash="' + (view || '').replace(/"/g, '') + '"]');
+    el.textContent = link ? link.textContent.trim() : '';
+  };
+
   window.setNavInitials = function(name){
     var iconEl = document.getElementById('hamburger-icon');
     var initEl = document.getElementById('hamburger-initials');
@@ -9927,6 +10022,12 @@ Groups</span>
       billing:    ['loadBillingPanel'],
       settings:   ['loadGiveMessageToggles']
     };
+    // Arriving at a tab closes the drawer and names it in the bar.
+    // Both here rather than only in the click handler, so deep links
+    // and Back/Forward behave the same as a tap.
+    if (typeof window.setDashMenu === 'function') window.setDashMenu(false);
+    if (typeof window.setDashMobileTitle === 'function') window.setDashMobileTitle(view);
+
     (DASH_VIEW_LOADERS[view] || []).forEach(function(fn){
       if (typeof window[fn] !== 'function') return;
       // Guarded per loader, like refreshAfterEventChange(): a tab

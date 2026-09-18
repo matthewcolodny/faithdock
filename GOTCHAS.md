@@ -4377,3 +4377,31 @@ The join to the adder is a LEFT join on purpose: the person who did the adding m
 **A stubbing note worth keeping.** Two attempts to test `loadBillingPanel` returned "Loading..." for every case, because `getMyChurch` is closure-scoped and assigning `window.getMyChurch` does not reach it. The panel was bailing at `if (!myChurch) return`, and the test was reporting the bail as a result. Same shape as the `getEventsForDateKey` stub that silently did nothing earlier: **a stub that misses its target produces a clean-looking failure, not an error.**
 
 Build `2026-09-18-v118`; **migration 058 must be run by hand** (the Added-by line stays absent until it does).
+
+---
+
+## The dashboard sidebar becomes a drawer on phones
+
+Two columns of nav links, added a day earlier, solved the right problem the wrong way: it halved the height of a screen-and-a-half of navigation, but the navigation still sat *above* the page and pushed it down.
+
+A drawer removes it from the flow entirely. The page now starts at the top of the screen and the menu overlaps it only while open -- which is why one column is right again inside the drawer: there is a full screen height to use, and the earlier squeeze was a workaround for a constraint that no longer exists.
+
+**Closed on arrival, deliberately.** The page you navigated to should be the thing on screen; arriving to a menu you did not ask for and having to dismiss it is a tax on every visit. Opening is one tap.
+
+Four ways out, because a fixed overlay that only one specific button dismisses is a trap: the button, a tap on the scrim, Escape, and choosing a destination (you have arrived, and leaving it open would cover what you came to see). The close-on-arrive lives in `goDash` rather than the click handler, so deep links and Back/Forward behave the same as a tap.
+
+A sticky bar carries the button and names the current tab -- sticky rather than inline at the top, because a menu button you have to scroll back up to reach is one you stop using, and the tab name is the only remaining cue about where you are once the sidebar is off-screen.
+
+### A measurement trap: a hidden pane freezes CSS transitions
+
+Worth recording in full, because it cost several rounds and looked exactly like a real bug.
+
+The drawer would not move. The class was on the parent, `matches('.dash.menu-open .dash-side')` returned **true**, both rules were in the same media block with the right specificity and order, there was no `!important` anywhere, and the computed transform stayed at `translateX(-260px)`. Then an **inline** `transform: translateX(0)` did not move it either -- and an inline style losing is the signature of `!important`, which did not exist.
+
+The cause: `document.hidden === true`. The browser pane was not displayed, and **a hidden document does not advance CSS transitions**, so `getComputedStyle` kept returning the value the animation started from. With `transition:none` forced, the same class toggle moved the element immediately: closed -260, open 0.
+
+The general shape is one this session has hit before in other forms: **the measurement was broken, not the code**, and it failed in a way that reads as a confident negative result rather than as an error. Anything animated has to be measured with transitions suppressed when the pane may be hidden.
+
+Verified end state rather than motion: open puts the drawer at left 0 with **115px of the page still visible beside it**, which is the point of a drawer over a stacked block; scrim opacity 1 and clickable; button, scrim, Escape and tab-selection all return it to -260; the bar names the tab picked. Desktop is untouched -- static sidebar, 220px grid track, bar and scrim hidden.
+
+Build `2026-09-18-v119`. No migration.
