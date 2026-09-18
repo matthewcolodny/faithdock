@@ -4454,3 +4454,29 @@ Two things this stage caught:
 Verified: chevrons on exactly the two sections that have sub-menus; opening a section hides the main list and shows three items with the right one active; a sub-page switches panels and stays in the sub-menu; Main menu restores the list and leaves the panel alone; a section without a sub-menu returns to the main list; the language toggle preserves both chevrons and re-renders the sub-menu in Spanish with the active item intact; and in the drawer, a sub-page closes it and lands at the top while Main menu does not.
 
 Build `2026-09-18-v121`. No migration.
+
+---
+
+## Sub-menus for every section, and the hamburger flash
+
+**All eight sections** now declare their sub-pages: Events, Directory, Messages, Facility, Ministries, Groups, Revenue and Settings. Check-In, Staff, Billing and Plans have none and carry no chevron. Twenty-one views in total, each with its own panel and its own entry in the loader map -- cross-checked mechanically before shipping rather than by reading, because a view declared in one list and missing from another is exactly the shape of the Billing bug.
+
+**Facility has no Settings page**, and that is a decision. Every option proposed for one was declined, and a Settings tab opening onto nothing is worse than no tab -- it reads as something broken rather than something absent. It goes in when there is a setting to put in it.
+
+**`giving` stays the view key behind the item labelled Revenue.** Renaming it would touch the panel id, the loader map and any bookmarked URL, which is churn for a string nobody sees.
+
+The pages are placeholders that say so. Nothing has moved yet; every existing panel still works where it did.
+
+### The hamburger flash, and a test that proved nothing
+
+Reported: on a refresh the account button shows a hamburger for a moment before becoming the initials, so on the dashboard it briefly reads as two hamburgers, one each side of the bar.
+
+**The cause is ordering, not speed.** The button defaults to the hamburger face in markup, and `setNavInitials` only runs once `updateAuthUI` has resolved a session -- a round trip away. Making that round trip faster would narrow the flash, never remove it.
+
+So the face is decided **synchronously at start-up** from whether a Supabase session is sitting in storage (`sb-<ref>-auth-token`). That is a proxy rather than proof: a stale token means one flip when the real answer arrives. It is right on every ordinary reload, where the old behaviour was wrong every single time. The preflight shows an **empty circle**, not guessed letters -- the shape is correct immediately and the letters arrive as a fill rather than a change of identity.
+
+**The first test of this was worthless and looked fine.** Planting a fake session token and reloading reported `storedSessionPresent: false` and no change -- because the real Supabase client found the invalid token during init and cleared it, through the very storage adapter that removes from both stores. The app deleted the fixture before it could be observed, and the result read as "the fix does not work" rather than as "the test did not run".
+
+Fixed by making the preflight a named, callable function instead of an anonymous IIFE, so it can be pointed at a planted session directly. The alternative was asserting on a flash that lasts one frame, which is not something to measure. Verified properly: no session leaves the hamburger; a session flips to the initials face with no network call; `setNavInitials` then fills in "MF" without the shape changing.
+
+Build `2026-09-18-v122`. No migration.
