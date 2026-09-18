@@ -4530,3 +4530,29 @@ One of those removals orphaned a variable too. The first pass left `roleLabel` i
 Verified with `loadDashboardHeader()` called directly and asserted not to throw, zero console errors, both elements confirmed absent, and the four sub-menus showing their new first-item names.
 
 Build `2026-09-18-v124`. No migration.
+
+---
+
+## I made the same divergence bug in the very next change
+
+Reported with a screenshot of the **homepage** showing two hamburgers -- the dashboard menu button still sitting in the nav after signing out, opening a drawer that was no longer on the page.
+
+`body.on-dashboard` was toggled inside `showRouteFromHash()` only. That is right for Back/Forward and a direct URL and wrong for everything else, and **signing out calls `go('home')`**. So the class survived the sign-out.
+
+This is precisely the bug fixed one build earlier for the route-entry loaders -- two dispatchers, one updated -- **re-created by me in the next change I made**, with the writeup about it still fresh in the file. That is the argument for the rule rather than for the fix: anything that depends on the current route does not go inline in a dispatcher, ever.
+
+### And the earlier fix was itself in the wrong place
+
+Chasing this turned up that `runRouteEntryLoaders` had been put in the **`[data-route]` click handler**, not in `go()`. `go()` is described in its own comments as the function every navigation goes through, and it is called directly all over -- signing out, plan redirects, several flows call `go('dashboard')`. **None of those were running the route loaders at all.** The earlier fix worked for clicks and for Back, and quietly did nothing for programmatic navigation.
+
+Both now live in `go()` and in `showRouteFromHash()`: two entry points, one call each. The click handler's copy is gone -- it calls `go()` anyway, so keeping it would have fired every loader twice. Verified that a click fires its loader exactly **once**, not twice.
+
+### The nav-face flash needed to move out of JavaScript's reach
+
+The preflight added in v122 could not win: it lives in the deferred module, which runs after the browser has painted the markup default, and the default is a hamburger. Making it faster narrows the flash; nothing in a deferred script removes it.
+
+It is now **an inline classic script during parse**, placed immediately after the header and before `<main>`. Verified structurally rather than by chasing a one-frame flash: the script exists, carries no `defer`/`async`/`type=module`, and sits before both `<main>` and the module script in document order. A blocking inline script running before the markup that follows it is a spec guarantee, not a race -- which is the point of moving it there.
+
+`window.preflightNavFace()` stays as the named, testable copy. The inline one exists for timing, not for logic, and that is written next to it.
+
+Build `2026-09-18-v125`. No migration.

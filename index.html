@@ -4089,6 +4089,36 @@
     </button>
   </div>
 </header>
+<script>
+  // Runs during PARSE, inline, before first paint -- which is the only
+  // place it can run and actually prevent the flash. The module script
+  // that owns the rest of the nav is deferred, so anything in there
+  // happens after the browser has already painted the markup default,
+  // and the default is a hamburger. A signed-in person saw a hamburger
+  // flip to their initials on every single load.
+  //
+  // Deliberately tiny and dependency-free: it reads storage and sets
+  // two display properties. It is duplicated in spirit by
+  // window.preflightNavFace() below, which re-asserts the same thing
+  // and is what the tests exercise -- this copy exists for timing, not
+  // for logic.
+  (function(){
+    try {
+      var found = false;
+      [window.localStorage, window.sessionStorage].forEach(function(store){
+        if (!store) return;
+        for (var i = 0; i < store.length; i++) {
+          if (/^sb-.+-auth-token$/.test(store.key(i))) found = true;
+        }
+      });
+      if (!found) return;
+      var icon = document.getElementById('hamburger-icon');
+      var initials = document.getElementById('hamburger-initials');
+      if (icon) icon.style.display = 'none';
+      if (initials) initials.style.display = 'flex';
+    } catch (e) { /* storage blocked: the hamburger is the safe default */ }
+  })();
+</script>
 
 <main>
 <!-- ================= HOME ================= -->
@@ -7619,7 +7649,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v124 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v125 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -9377,6 +9407,21 @@ Groups</span>
     // absent -- and dashPanel() covers the direct-#dashboard case
     // itself for the same reason.
     if(baseRoute === 'dashboard' && typeof window.runDashboardPanels === 'function'){ window.runDashboardPanels(); }
+    // Inside go() itself, not in the [data-route] click handler.
+    //
+    // The click handler only sees clicks. go() is also called
+    // directly -- signing out calls go('home'), and several flows
+    // call go('dashboard') -- and those calls were skipping both of
+    // these entirely. That is how body.on-dashboard survived a sign
+    // out and left the dashboard menu button sitting in the nav on
+    // the homepage, opening a drawer that was no longer there.
+    //
+    // showRouteFromHash keeps its own pair for Back/Forward and a
+    // direct URL, which do not come through here. Two entry points,
+    // two calls, one implementation each -- the click handler is not
+    // a third.
+    if (typeof window.applyRouteBodyClasses === 'function') window.applyRouteBodyClasses(baseRoute);
+    if (typeof window.runRouteEntryLoaders === 'function') window.runRouteEntryLoaders(baseRoute);
     if(skipPush){
       safeHistoryUpdate(true, '#'+route);
     } else {
@@ -9581,6 +9626,32 @@ Groups</span>
     initEl.style.display = showInitials ? 'flex' : 'none';
     var btn = document.getElementById('hamburger-btn');
     if (btn) btn.setAttribute('aria-label', showInitials ? clean : (window.t ? window.t('common.menu') : 'Menu'));
+  };
+
+  // ============================================================
+  // Body classes that depend on which route is showing.
+  //
+  // These lived in showRouteFromHash() only, which meant they were
+  // right for Back/Forward and a direct URL and WRONG for every
+  // click -- and go() is what signing out uses. So logging out from
+  // the dashboard left body.on-dashboard set, and the dashboard menu
+  // button stayed in the nav on the homepage, next to the account
+  // hamburger. Two hamburgers, and the left one opening a drawer that
+  // was no longer on the page.
+  //
+  // This is the SAME divergence as the route-entry loaders, made
+  // again in the next change, which is the argument for the rule
+  // rather than for the fix: anything that depends on the current
+  // route belongs in a function both dispatchers call, never inline
+  // in one of them.
+  // ============================================================
+  window.applyRouteBodyClasses = function(base){
+    document.body.classList.toggle('checkin-link-page', base === 'checkin-link');
+    // A class on body rather than a CSS :has() on the active page,
+    // which is newer than this file targets -- and rather than JS
+    // toggling the button's own display, which would fight the media
+    // query that hides it on desktop.
+    document.body.classList.toggle('on-dashboard', base === 'dashboard');
   };
 
   window.runRouteEntryLoaders = function(base){
@@ -9845,13 +9916,6 @@ Groups</span>
     // every link in the header leads somewhere this person has no
     // account for -- and a nav bar is an invitation to wander off
     // the one screen the device is propped up to show.
-    document.body.classList.toggle('checkin-link-page', resolved.base === 'checkin-link');
-    // Drives the dashboard menu button in the nav bar. A class on body
-    // rather than a CSS :has() on the active page, which is newer than
-    // this file targets -- and rather than JS toggling the button's own
-    // display, which would fight the media query that hides it on
-    // desktop.
-    document.body.classList.toggle('on-dashboard', resolved.base === 'dashboard');
     if(resolved.base === 'checkin-link'){
       if(!resolved.key){ go('home', skipPush); return; }
       // Guarded on window.supabase rather than assumed: this
@@ -9909,6 +9973,7 @@ Groups</span>
     }
     // my-churches was missing here, which is why Back showed a stale
     // list while the nav link did not -- see ROUTE_ENTRY_LOADERS.
+    window.applyRouteBodyClasses(resolved.base);
     window.runRouteEntryLoaders(resolved.base);
     // Back/Forward into Events or Home -- same reasoning as the click
     // handler's own copy of this (see its comment there).
@@ -10122,7 +10187,8 @@ Groups</span>
       // following a church then finding My Churches stale -- came
       // back through Back/Forward, because the fix was applied to
       // this list and not the other one. See ROUTE_ENTRY_LOADERS.
-      window.runRouteEntryLoaders(route);
+      // Not repeated here: this handler calls go() below, and go()
+      // now applies both. Doing it twice would double every loader.
       // Same per-route reload pattern as my-churches/profile above,
       // previously missing here entirely for 'dashboard' -- clicking
       // "Manage my church" or "← Back to my church" (both plain
