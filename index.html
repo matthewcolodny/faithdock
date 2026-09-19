@@ -8399,7 +8399,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-19-v172 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-19-v173 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -28629,6 +28629,19 @@ Groups</span>
   // Churches renders the church and needs its logo and address, and
   // caching per-shape would mean two caches that can disagree. The
   // extra columns cost a few rows' worth of payload once.
+  // The 44px leading square every My Lists row starts with. My
+  // Churches had one for the church logo and the other two had none,
+  // so an event's graphic never appeared on its own row at all.
+  // safeImageUrl rather than the raw column: this goes in an img src,
+  // where escaping does nothing about the scheme.
+  function myListRowThumb(url){
+    var safe = (typeof safeImageUrl === 'function') ? safeImageUrl(url) : '';
+    return safe
+      ? '<img src="' + escapeHtml(safe) + '" alt="" style="width:44px;height:44px;border-radius:8px;object-fit:cover;flex-shrink:0;">'
+      : '<div style="width:44px;height:44px;border-radius:8px;background:var(--paper);border:1px solid var(--line);flex-shrink:0;"></div>';
+  }
+  window.myListRowThumb = myListRowThumb;
+
   var CHURCH_ROLE_FIELDS = 'id, name, denomination, logo_url, address';
   var _churchRoleCache = null;
   window.invalidateChurchRoleCache = function(){ _churchRoleCache = null; };
@@ -28779,12 +28792,15 @@ Groups</span>
       var unfollowBtn = entry.labels.indexOf('Following') !== -1
         ? '<button class="export-btn" data-unfollow-group-id="' + escapeHtml(g.id) + '" data-unfollow-group-name="' + escapeHtml(g.name || '') + '" style="flex-shrink:0;">' + escapeHtml(window.t('myChurches.unfollow')) + '</button>'
         : '';
-      return '<div class="group-card" style="display:flex;align-items:flex-start;gap:14px;justify-content:space-between;">'
-        + '<a href="#" data-route="group" data-group-id="' + escapeHtml(g.id) + '" style="flex:1;min-width:0;text-decoration:none;color:inherit;cursor:pointer;">'
-        +   '<div style="margin-bottom:6px;">' + labelsHtml + '</div>'
-        +   '<h4 style="margin-top:0;">' + escapeHtml(g.name) + '</h4>'
-        +   (churchName ? '<p style="margin-bottom:4px;">' + escapeHtml(churchName) + '</p>' : '')
-        +   (g.meeting_schedule ? '<div class="group-schedule" style="margin-bottom:0;">' + escapeHtml(g.meeting_schedule) + '</div>' : '')
+      return '<div class="group-card" style="display:flex;align-items:center;gap:14px;justify-content:space-between;">'
+        + '<a href="#" data-route="group" data-group-id="' + escapeHtml(g.id) + '" style="display:flex;align-items:center;gap:14px;flex:1;min-width:0;text-decoration:none;color:inherit;cursor:pointer;">'
+        +   myListRowThumb(g.image_url)
+        +   '<div style="min-width:0;">'
+        +     (labelsHtml ? '<div style="margin-bottom:4px;">' + labelsHtml + '</div>' : '')
+        +     '<h4 style="margin-top:0;margin-bottom:2px;">' + escapeHtml(g.name) + '</h4>'
+        +     (churchName ? '<p style="margin-bottom:2px;">' + escapeHtml(churchName) + '</p>' : '')
+        +     (g.meeting_schedule ? '<div class="group-schedule" style="margin-bottom:0;">' + escapeHtml(g.meeting_schedule) + '</div>' : '')
+        +   '</div>'
         + '</a>'
         + unfollowBtn
         + '</div>';
@@ -28905,7 +28921,10 @@ Groups</span>
       return '<div class="group-card" style="display:flex;align-items:center;gap:14px;justify-content:space-between;margin-bottom:10px;">'
         + '<a href="#" data-route="church" data-church-name="' + escapeHtml(c.name) + '" style="display:flex;align-items:center;gap:14px;text-decoration:none;color:inherit;flex:1;min-width:0;">'
         + logoHtml
-        + '<div style="min-width:0;"><h4 style="margin-bottom:2px;">' + escapeHtml(displayChurchName(c.name)) + '</h4><div>' + labelsHtml + '</div></div>'
+        + '<div style="min-width:0;">'
+        +   (labelsHtml ? '<div style="margin-bottom:4px;">' + labelsHtml + '</div>' : '')
+        +   '<h4 style="margin-top:0;margin-bottom:0;">' + escapeHtml(displayChurchName(c.name)) + '</h4>'
+        + '</div>'
         + '</a>'
         + manageBtn
         + unfollowBtn
@@ -30156,11 +30175,14 @@ Groups</span>
         ? '<button class="export-btn" data-unfollow-event-id="' + e.id + '" data-unfollow-event-name="' + escapeHtml(e.title || '') + '" style="flex-shrink:0;">' + window.t('myEvents.unfollow') + '</button>'
         : '';
       return '<div class="group-card" style="display:flex;align-items:center;gap:14px;justify-content:space-between;margin-bottom:10px;">'
-        + '<a href="#" data-route="event" data-event-key="' + e.id + '" style="display:block;text-decoration:none;color:inherit;flex:1;min-width:0;cursor:pointer;">'
-        + '<div class="group-schedule" style="margin-bottom:6px;">' + dateLabel + '</div>'
-        + '<h4>' + e.title + '</h4>'
-        + '<p style="margin-bottom:8px;">' + churchName + '</p>'
-        + tagsHtml
+        + '<a href="#" data-route="event" data-event-key="' + escapeHtml(e.id) + '" style="display:flex;align-items:center;gap:14px;text-decoration:none;color:inherit;flex:1;min-width:0;cursor:pointer;">'
+        +   myListRowThumb(e.image_url)
+        +   '<div style="min-width:0;">'
+        +     '<div class="group-schedule" style="margin-bottom:6px;">' + escapeHtml(dateLabel) + '</div>'
+        +     (tagsHtml ? '<div style="margin-bottom:4px;">' + tagsHtml + '</div>' : '')
+        +     '<h4 style="margin-top:0;margin-bottom:2px;">' + escapeHtml(e.title || '') + '</h4>'
+        +     '<p style="margin-bottom:0;">' + escapeHtml(churchName) + '</p>'
+        +   '</div>'
         + '</a>'
         + unfollowBtn
         + '</div>';
@@ -30178,7 +30200,7 @@ Groups</span>
       return;
     }
 
-    var eventFields = 'id, title, start_at, end_at, location, church_id, churches(name)';
+    var eventFields = 'id, title, start_at, end_at, location, church_id, image_url, churches(name)';
     var results = await Promise.all([
       supabase.from('event_registrations')
         .select('role, events(' + eventFields + ')')

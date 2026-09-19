@@ -6118,3 +6118,33 @@ And the tags themselves re-checked against the same fixtures afterwards, since a
 **Honest limit on this one.** The numbers above come from a desktop on good wifi, where a list load is about 270ms; on mobile data each round trip is several times that, so removing six of nine is worth real seconds. But that is an argument, not a reproduction -- the report is still unexplained if it was the first tab that was slow rather than the later ones.
 
 Build `2026-09-19-v172`; no migration.
+
+## One row shape for My Lists
+
+Three things reported together: the event graphic missing from a My Events row, the unfollow button missing, and the tags sitting in a different place on each of the three lists.
+
+### The picture
+
+`eventFields` never selected `image_url`, and the row markup had nowhere to put one. My Churches had a 44px square for the church logo and the other two lists had nothing at all, so `myListRowThumb()` is now that square for all three -- the image where there is one, a muted placeholder where there is not. `safeImageUrl` rather than the raw column, because this goes in an `img src` where escaping does nothing about the scheme.
+
+### The unfollow button was not missing
+
+Checked before changing it, against fixtures covering all three cases:
+
+| event | tags | unfollow |
+| --- | --- | --- |
+| registered only | Participant | no |
+| followed only | Following | **yes** |
+| both | Participant, Following | **yes** |
+
+It renders whenever Following is among the labels. An event somebody registered for but never followed has no follow to undo -- cancelling a registration is a different action and does not live on this button. Worth recording because "it is missing" and "it is absent on purpose in this case" look identical from a screenshot, and the fix for the second one is wording, not code.
+
+### The tags
+
+My Churches and My Events had them under the title, My Groups above it. They are directly above the title on all three now. Each list keeps its own supporting lines in its own order -- an event still leads with its date -- because what was asked for was one place for the tags, not one paragraph for three different things.
+
+**`margin-top:0` on each heading is load-bearing, not tidying.** Headings here carry an inherited 21px top margin, so moving anything above one opens a gap underneath it. That is exactly the defect that made the group card heart look like it was floating two builds ago, and it would have reappeared on all three lists at once.
+
+While in these rows: `e.title` and the church name were being concatenated into HTML unescaped. Both are user data -- a church chooses its own name and an event its own title -- so both now go through `escapeHtml`, alongside the ids.
+
+Build `2026-09-19-v173`; no migration.
