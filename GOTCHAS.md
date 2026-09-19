@@ -6055,3 +6055,31 @@ Verified by exercising the real undo handler once per kind with `window.supabase
 `.church-card` and `.event-card` have carried `-webkit-tap-highlight-color:transparent` since it was reported as "the whole card blinks". `.group-card` was added later and never got it. `preventDefault` and `stopPropagation` do not touch that highlight; the browser paints it from touch state regardless of the event.
 
 Build `2026-09-19-v170`; no migration.
+
+## Church relationships on every list
+
+An owner, a staff member or a group leader had no way to tell, from My Events or My Groups, which entries belonged to their own church. My Churches has labelled Owned, Staff and Home for a while; the other two lists showed only the relationship to the item itself.
+
+Those three queries lived inside `loadMyChurches`. Two more lists needed the same answer, so they moved into **`myChurchRoleMap(uid, fields)`** -- one function returning a map from church id to labels. Three copies of the same three queries would have been three chances to disagree about what Home means, and Home is not obvious: `is_permanent` **and** `status = approved`, the distinction migration 040 turned on and the easiest of the three to get wrong from memory.
+
+`fields` is a parameter because My Churches renders the church and needs its logo and address, while the other two only need to match on an id. `churchRoleTagsHtml()` came with it, so the same relationship is the same word and the same colour on all three lists.
+
+Both `groupFields` and `eventFields` gained `church_id`. `churches(name)` gives the name to print but not the id to match on, which is the kind of thing that fails silently -- every lookup misses, every tag is absent, and the page looks merely empty rather than broken.
+
+**What the map deliberately does not contain: church follows.** Following a church is not a relationship to one of its groups, and a second Following tag beside the group's own would be one word meaning two different things.
+
+Verified against fixtures with the client patched, using a person who owns one church, staffs a second, calls a third home, and merely follows a fourth:
+
+| list | item | tags |
+| --- | --- | --- |
+| Groups | group in the owned church | Group leader, Owned |
+| Groups | group in the merely-followed church | Following only |
+| Events | event at the staffed church | Participant, Staff |
+| Events | event at the home church | Following, Home |
+| Churches | all four | Home / Owned / Staff / Following, unchanged |
+
+The second row is the control. Without it the test would pass just as happily if the code tagged everything, and a lookup that matches indiscriminately looks identical to one that matches correctly when every fixture is a match.
+
+**One judgement worth revisiting.** On an event card, `Owned` means "you own the church putting this on", not "you own this event". The tag names are the ones asked for, and the church name sits directly beneath them, but if that ever reads wrong the fix is a second set of strings for the item-level context rather than a second set of queries.
+
+Build `2026-09-19-v171`; no migration.

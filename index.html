@@ -8399,7 +8399,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-19-v170 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-19-v171 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -28596,6 +28596,62 @@ Groups</span>
   }
   window.populateGroupPage = populateGroupPage;
 
+  // What this person is to a church, as a map from church id to
+  // labels. My Churches shows these against the church itself; My
+  // Events and My Groups show them against the church behind each
+  // item, so an owner or a staff member can tell at a glance which
+  // entries are their own church's.
+  //
+  // One function because three lists now need the same answer, and
+  // three copies of these three queries would be three chances to
+  // disagree about what 'Home' means -- is_permanent AND approved,
+  // which is the distinction migration 040 turned on and which is
+  // easy to get wrong from memory.
+  //
+  // fields is a parameter because My Churches renders the church and
+  // needs its logo and address, while the other two only need to
+  // match on an id.
+  async function myChurchRoleMap(uid, fields){
+    var f = fields || 'id, name';
+    var res = await Promise.all([
+      supabase.from('churches').select(f).eq('owner_id', uid),
+      supabase.from('church_staff').select('church_id, churches(' + f + ')').eq('user_id', uid),
+      supabase.from('church_memberships').select('church_id, churches(' + f + ')').eq('user_id', uid).eq('is_permanent', true).eq('status', 'approved')
+    ]);
+    var map = {};
+    function add(c, label){
+      if (!c || !c.id) return;
+      if (!map[c.id]) map[c.id] = { church: c, labels: [] };
+      if (map[c.id].labels.indexOf(label) === -1) map[c.id].labels.push(label);
+    }
+    // A failed query is logged rather than fatal: these labels are
+    // context on a list, and losing the whole list because one of
+    // three lookups failed trades a small gap for a broken page.
+    res.forEach(function(r, i){ if (r.error) console.error('myChurchRoleMap query ' + i + ' failed', r.error); });
+    (res[0].data || []).forEach(function(c){ add(c, 'Owned'); });
+    (res[1].data || []).forEach(function(r){ add(r.churches, 'Staff'); });
+    (res[2].data || []).forEach(function(r){ add(r.churches, 'Home'); });
+    return map;
+  }
+  window.myChurchRoleMap = myChurchRoleMap;
+
+  // One renderer too, so the same relationship is the same colour and
+  // the same word on all three lists.
+  var CHURCH_ROLE_TAGS = {
+    Owned:     { color: 'sage', key: 'myChurches.labelOwned' },
+    Staff:     { color: 'sage', key: 'myChurches.labelStaff' },
+    Home:      { color: 'gold', key: 'myChurches.labelHome' },
+    Following: { color: '',     key: 'myChurches.labelFollowing' }
+  };
+  function churchRoleTagsHtml(labels){
+    return (labels || []).map(function(l){
+      var spec = CHURCH_ROLE_TAGS[l];
+      if (!spec) return '';
+      return '<span class="tag ' + spec.color + '" style="font-size:10px;margin-right:4px;">' + escapeHtml(window.t(spec.key)) + '</span>';
+    }).join('');
+  }
+  window.churchRoleTagsHtml = churchRoleTagsHtml;
+
   async function loadMyGroups(){
     var listEl = document.getElementById('my-groups-list');
     if (!listEl) return;
@@ -28617,12 +28673,13 @@ Groups</span>
     // records something the app never shows back is worse than no
     // heart, and this file has that exact note about
     // directory_visibility already.
-    var groupFields = 'id, name, meeting_schedule, image_url, churches(name)';
+    var groupFields = 'id, name, church_id, meeting_schedule, image_url, churches(name)';
     var groupResults = await Promise.all([
       supabase.from('group_members').select('role, status, groups(' + groupFields + ')').eq('user_id', userData.user.id),
-      supabase.from('group_follows').select('group_id, groups(' + groupFields + ')').eq('user_id', userData.user.id)
+      supabase.from('group_follows').select('group_id, groups(' + groupFields + ')').eq('user_id', userData.user.id),
+      myChurchRoleMap(userData.user.id)
     ]);
-    var memberRes = groupResults[0], gFollowRes = groupResults[1];
+    var memberRes = groupResults[0], gFollowRes = groupResults[1], gChurchRoles = groupResults[2];
     if (memberRes.error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:14px;">' + escapeHtml(memberRes.error.message) + '</p>'; return; }
     // A follows failure is logged rather than fatal, the same way My
     // Events treats its own: memberships are what this page is for,
@@ -28670,6 +28727,14 @@ Groups</span>
       var labelsHtml = entry.labels.map(function(l){
         return '<span class="tag ' + (gLabelColors[l] || '') + '" style="font-size:10px;margin-right:4px;">' + escapeHtml(window.t(gLabelKeys[l])) + '</span>';
       }).join('');
+      // Then what they are to the church this group belongs to.
+      // myChurchRoleMap returns Owned, Staff and Home only -- church
+      // follows are not in it, which is right here: following the
+      // church is not a relationship to this group, and a second
+      // Following tag beside the group's own would be the same word
+      // meaning two different things.
+      var gChurchEntry = gChurchRoles[g.church_id];
+      labelsHtml += churchRoleTagsHtml(gChurchEntry ? gChurchEntry.labels : []);
       // Following is independent of membership, exactly as it is for a
       // church: unfollowing a group somebody also leads must not touch
       // their leadership, so this shows whenever Following is among
@@ -28731,24 +28796,22 @@ Groups</span>
     }
     var uid = userData.user.id;
 
+    // Owned, Staff and Home come from the shared map now -- this page
+    // was where those three queries lived, and two other lists needed
+    // the same answer. Following stays here: it is the one
+    // relationship only this page acts on.
     var churchFields = 'id, name, denomination, logo_url, address';
     var results = await Promise.all([
-      supabase.from('churches').select(churchFields).eq('owner_id', uid),
-      supabase.from('church_staff').select('church_id, churches(' + churchFields + ')').eq('user_id', uid),
-      supabase.from('church_memberships').select('church_id, churches(' + churchFields + ')').eq('user_id', uid).eq('is_permanent', true).eq('status', 'approved'),
+      myChurchRoleMap(uid, churchFields),
       supabase.from('church_follows').select('church_id, churches(' + churchFields + ')').eq('user_id', uid)
     ]);
-    var ownedRes = results[0], staffRes = results[1], homeRes = results[2], followedRes = results[3];
+    var byId = results[0], followedRes = results[1];
 
-    var byId = {};
     function addChurchToMap(c, label){
       if (!c) return;
       if (!byId[c.id]) { byId[c.id] = { church: c, labels: [] }; }
       if (byId[c.id].labels.indexOf(label) === -1) byId[c.id].labels.push(label);
     }
-    (ownedRes.data || []).forEach(function(c){ addChurchToMap(c, 'Owned'); });
-    (staffRes.data || []).forEach(function(r){ addChurchToMap(r.churches, 'Staff'); });
-    (homeRes.data || []).forEach(function(r){ addChurchToMap(r.churches, 'Home'); });
     (followedRes.data || []).forEach(function(r){ addChurchToMap(r.churches, 'Following'); });
 
     var entries = Object.keys(byId).map(function(id){ return byId[id]; });
@@ -28773,8 +28836,7 @@ Groups</span>
       return aMin - bMin;
     });
 
-    var labelColors = { 'Home': 'gold', 'Owned': 'sage', 'Staff': 'sage', 'Following': '' };
-    var labelKeys = { 'Home': 'myChurches.labelHome', 'Owned': 'myChurches.labelOwned', 'Staff': 'myChurches.labelStaff', 'Following': 'myChurches.labelFollowing' };
+
     // No Add-a-church button above the list: the page header carries
     // Browse churches, which is what somebody with a list of churches
     // is far more likely to want next. Registering one is still
@@ -28784,9 +28846,7 @@ Groups</span>
       var logoHtml = c.logo_url
         ? '<img src="' + c.logo_url + '" alt="" style="width:44px;height:44px;border-radius:8px;object-fit:cover;flex-shrink:0;">'
         : '<div style="width:44px;height:44px;border-radius:8px;background:var(--paper);border:1px solid var(--line);flex-shrink:0;"></div>';
-      var labelsHtml = entry.labels.map(function(l){
-        return '<span class="tag ' + (labelColors[l] || '') + '" style="font-size:10px;margin-right:4px;">' + window.t(labelKeys[l]) + '</span>';
-      }).join('');
+      var labelsHtml = churchRoleTagsHtml(entry.labels);
       // Independent relationships — unfollowing a church they also
       // own or staff doesn't touch that ownership/staffing at all,
       // so this shows whenever Following is one of their labels,
@@ -30048,6 +30108,9 @@ Groups</span>
       var dateLabel = new Date(e.start_at).toLocaleDateString(window.appLocale(), { weekday: 'short', month: 'short', day: 'numeric' })
         + ' · ' + new Date(e.start_at).toLocaleTimeString(window.appLocale(), { hour: 'numeric', minute: '2-digit' });
       var tagsHtml = entry.labels.map(function(l){ return labelHtml[l] || ''; }).join('');
+      // What they are to the church putting the event on, after what
+      // they are to the event itself.
+      tagsHtml += churchRoleTagsHtml(entry.churchLabels);
       // Independent relationships, same as My Churches' unfollow: this
       // shows whenever Following is one of the labels, not only when
       // it's the sole one, because un-hearting an event you're also
@@ -30078,16 +30141,17 @@ Groups</span>
       return;
     }
 
-    var eventFields = 'id, title, start_at, end_at, location, churches(name)';
+    var eventFields = 'id, title, start_at, end_at, location, church_id, churches(name)';
     var results = await Promise.all([
       supabase.from('event_registrations')
         .select('role, events(' + eventFields + ')')
         .eq('user_id', userData.user.id).eq('status', 'confirmed'),
       supabase.from('event_follows')
         .select('event_id, events(' + eventFields + ')')
-        .eq('user_id', userData.user.id)
+        .eq('user_id', userData.user.id),
+      myChurchRoleMap(userData.user.id)
     ]);
-    var regRes = results[0], followRes = results[1];
+    var regRes = results[0], followRes = results[1], eventChurchRoles = results[2];
     if (regRes.error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:14px;">' + escapeHtml(regRes.error.message) + '</p>'; return; }
     // A follows failure is logged, not fatal. Registrations are the
     // thing this page exists for and they loaded fine; blanking them out
@@ -30108,6 +30172,12 @@ Groups</span>
     (followRes.data || []).forEach(function(r){ addEventToMap(r.events, 'following'); });
 
     myEventsRaw = Object.keys(byId).map(function(id){ return byId[id]; });
+    // Attached once here rather than looked up during render, which
+    // runs again on every filter change.
+    myEventsRaw.forEach(function(entry){
+      var roles = entry.event ? eventChurchRoles[entry.event.church_id] : null;
+      entry.churchLabels = roles ? roles.labels : [];
+    });
 
     // Keeps every heart elsewhere in the app agreeing with what this
     // page just read -- and, more to the point, keeps this page's own
