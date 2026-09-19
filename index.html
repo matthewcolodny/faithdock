@@ -8399,7 +8399,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-19-v171 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-19-v172 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -17115,6 +17115,9 @@ Groups</span>
     // and the routing below matters, since those call getUser()
     // themselves and must see the new state, not the old one.
     window.invalidateGetUserCache();
+    // Same event, same reason: a different person is a different set of
+    // churches owned, staffed and called home.
+    if (typeof window.invalidateChurchRoleCache === 'function') window.invalidateChurchRoleCache();
     // Temporary diagnostic logging — remove once the intermittent
     // admin-page redirect is actually caught in the act. Static code
     // review has now checked out clean twice; this is what actually
@@ -28608,11 +28611,45 @@ Groups</span>
   // which is the distinction migration 040 turned on and which is
   // easy to get wrong from memory.
   //
-  // fields is a parameter because My Churches renders the church and
-  // needs its logo and address, while the other two only need to
-  // match on an id.
-  async function myChurchRoleMap(uid, fields){
-    var f = fields || 'id, name';
+  // ---- Cached, following getUser()'s pattern above ----------------
+  //
+  // Reported: My Lists took a long time to load. Each tab issued its
+  // own three role queries, so browsing churches then events then
+  // groups spent nine round trips establishing the same three facts,
+  // none of which can change while somebody is looking at the page.
+  //
+  // Same shape as the getUser() cache: a shared in-flight promise so
+  // concurrent callers collapse to one request, a TTL as a backstop,
+  // and invalidation on auth state change, which is what actually
+  // keeps it honest. A role granted in another tab shows up within
+  // the TTL rather than instantly, which is the right trade for a set
+  // of labels on a list.
+  //
+  // One field set for every caller rather than a parameter: My
+  // Churches renders the church and needs its logo and address, and
+  // caching per-shape would mean two caches that can disagree. The
+  // extra columns cost a few rows' worth of payload once.
+  var CHURCH_ROLE_FIELDS = 'id, name, denomination, logo_url, address';
+  var _churchRoleCache = null;
+  window.invalidateChurchRoleCache = function(){ _churchRoleCache = null; };
+
+  function myChurchRoleMap(uid){
+    if (_churchRoleCache && _churchRoleCache.uid === uid && _churchRoleCache.expires > Date.now()) {
+      return _churchRoleCache.promise;
+    }
+    var entry = { uid: uid, expires: Date.now() + 60000, promise: null };
+    entry.promise = fetchChurchRoleMap(uid).catch(function(e){
+      // Never hold onto a failure: the next list to ask should try
+      // again rather than inherit a minute of missing labels.
+      _churchRoleCache = null;
+      throw e;
+    });
+    _churchRoleCache = entry;
+    return entry.promise;
+  }
+
+  async function fetchChurchRoleMap(uid){
+    var f = CHURCH_ROLE_FIELDS;
     var res = await Promise.all([
       supabase.from('churches').select(f).eq('owner_id', uid),
       supabase.from('church_staff').select('church_id, churches(' + f + ')').eq('user_id', uid),
@@ -28800,9 +28837,9 @@ Groups</span>
     // was where those three queries lived, and two other lists needed
     // the same answer. Following stays here: it is the one
     // relationship only this page acts on.
-    var churchFields = 'id, name, denomination, logo_url, address';
+    var churchFields = CHURCH_ROLE_FIELDS;
     var results = await Promise.all([
-      myChurchRoleMap(uid, churchFields),
+      myChurchRoleMap(uid),
       supabase.from('church_follows').select('church_id, churches(' + churchFields + ')').eq('user_id', uid)
     ]);
     var byId = results[0], followedRes = results[1];

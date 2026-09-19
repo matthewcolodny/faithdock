@@ -6083,3 +6083,38 @@ The second row is the control. Without it the test would pass just as happily if
 **One judgement worth revisiting.** On an event card, `Owned` means "you own the church putting this on", not "you own this event". The tag names are the ones asked for, and the church name sits directly beneath them, but if that ever reads wrong the fix is a second set of strings for the item-level context rather than a second set of queries.
 
 Build `2026-09-19-v171`; no migration.
+
+## My Lists got slower, and what the measurement actually said
+
+Reported right after v171 added church-relationship tags, which added three queries to each of My Events and My Groups. The obvious conclusion was that those three queries were the cost. **Measured first, and that was not quite it.**
+
+Timed against the real client and the real network (signed out, so RLS returns nothing, but the round trip is the same round trip):
+
+| | time |
+| --- | --- |
+| one query | 166ms |
+| the role map, three queries in parallel | 304ms |
+| a whole list load, five queries in parallel | 270ms |
+
+Five parallel queries cost about what one does, so the fan-out per list was never the problem. **What was the problem is the repetition across tabs.** Each tab called `myChurchRoleMap` itself, so churches then events then groups spent **nine round trips** establishing the same three facts -- none of which can change while somebody is looking at the page.
+
+The cache follows the `getUser()` cache already in this file rather than inventing a second style: one shared in-flight promise so concurrent callers collapse to a single request, a TTL as a backstop, and invalidation on `onAuthStateChange`, which is what actually keeps it honest. A failure is never cached -- the next list to ask retries instead of inheriting a minute of missing labels.
+
+One field set for every caller, not a parameter. My Churches renders the church and needs its logo and address; caching per-shape would mean two caches that can disagree about the same question, and the extra columns are a few rows of payload once.
+
+Verified by counting requests rather than by asserting the code looks right:
+
+| | queries |
+| --- | --- |
+| first call | 3 |
+| next three calls | **0** |
+| three concurrent callers, cold | 3 (collapsed) |
+| after invalidation | 3 |
+| a different uid | 3 (no cross-user reuse) |
+| all three tabs, end to end | **3, was 9** |
+
+And the tags themselves re-checked against the same fixtures afterwards, since a cache that returns the wrong map quickly is not an improvement.
+
+**Honest limit on this one.** The numbers above come from a desktop on good wifi, where a list load is about 270ms; on mobile data each round trip is several times that, so removing six of nine is worth real seconds. But that is an argument, not a reproduction -- the report is still unexplained if it was the first tab that was slow rather than the later ones.
+
+Build `2026-09-19-v172`; no migration.
