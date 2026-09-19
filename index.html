@@ -8268,7 +8268,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v159 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v160 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -20716,6 +20716,10 @@ Groups</span>
   function roomSchedAgenda(groups){
     // groups: [{ label, events }] -- the phone view for day and week
     // alike. Same events, no geometry.
+    //
+    // No room name on the row: day groups BY room so the heading is
+    // already the room, and week is one room picked in the control
+    // above. Printing it again per row said the same thing twice.
     var html = groups.map(function(g){
       if (!g.events.length) return '';
       var sorted = g.events.slice().sort(function(a, b){ return new Date(a.start_at) - new Date(b.start_at); });
@@ -20726,7 +20730,6 @@ Groups</span>
             return '<div style="font-size:12.5px;margin-bottom:3px;">'
               + escapeHtml(st.toLocaleTimeString(window.appLocale(), { hour: 'numeric', minute: '2-digit' })) + ' — '
               + '<a style="border-bottom:1px solid var(--line);cursor:pointer;" data-room-event="' + escapeHtml(e.id) + '">' + escapeHtml(e.title) + '</a>'
-              + (e.__roomName ? '<span style="color:var(--ink-mute);"> · ' + escapeHtml(e.__roomName) + '</span>' : '')
               + '</div>';
           }).join('')
         + '</div>';
@@ -20817,9 +20820,28 @@ Groups</span>
   function renderRoomSchedMonth(rooms, byRoom){
     var first = new Date(roomSchedAnchor.getFullYear(), roomSchedAnchor.getMonth(), 1);
     var gridStart = startOfWeek(first);
+    // One chip per EVENT, not per room it occupies. Flattening the
+    // buckets pushed a two-room booking in twice, so it drew two
+    // identical chips on the same day and inflated the "+N more"
+    // count that decides whether a day looks busy -- in a view whose
+    // whole job is showing which weeks are heavy.
+    //
+    // The rooms are collected onto the one chip instead, so the
+    // tooltip still answers where it is: "Picnic — Clasroom #1,
+    // Classroom #3".
     var all = [];
+    var chipById = {};
     rooms.forEach(function(r){
-      (byRoom[r.id] || []).forEach(function(e){ all.push(e); });
+      (byRoom[r.id] || []).forEach(function(e){
+        if (chipById[e.id]) {
+          if (e.__roomName) chipById[e.id].__roomNames.push(e.__roomName);
+          return;
+        }
+        var chip = Object.assign({}, e);
+        chip.__roomNames = e.__roomName ? [e.__roomName] : [];
+        chipById[e.id] = chip;
+        all.push(chip);
+      });
     });
     var byDay = {};
     all.forEach(function(e){
@@ -20842,7 +20864,8 @@ Groups</span>
         + (dayEvents.length ? ' data-rsched-day="' + k + '"' : '') + '>'
         + '<div class="cal-day-num">' + day.getDate() + '</div>'
         + dayEvents.slice(0, 3).map(function(e){
-            return '<span class="cal-event-chip sage" data-room-event="' + escapeHtml(e.id) + '" title="' + escapeHtml(e.title + (e.__roomName ? ' — ' + e.__roomName : '')) + '">'
+            var chipRooms = (e.__roomNames || []).join(', ');
+            return '<span class="cal-event-chip sage" data-room-event="' + escapeHtml(e.id) + '" title="' + escapeHtml(e.title + (chipRooms ? ' — ' + chipRooms : '')) + '">'
               + escapeHtml(e.title) + '</span>';
           }).join('')
         + (dayEvents.length > 3 ? '<div class="cal-more-link">+' + (dayEvents.length - 3) + '</div>' : '')
@@ -20907,7 +20930,11 @@ Groups</span>
     var roomNameById = {};
     rooms.forEach(function(r){ roomNameById[r.id] = r.name; });
     Object.keys(byRoom).forEach(function(rid){
-      byRoom[rid].forEach(function(e){ e.__roomName = roomNameById[rid] || ''; });
+      byRoom[rid] = byRoom[rid].map(function(e){
+        var booking = Object.assign({}, e);
+        booking.__roomName = roomNameById[rid] || '';
+        return booking;
+      });
     });
 
     var out = roomSchedView === 'day' ? renderRoomSchedDay(rooms, byRoom)

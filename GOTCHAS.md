@@ -5702,3 +5702,42 @@ Verified at real viewport sizes, both `on-dashboard` and not, signed-in face sho
 **A measurement note worth keeping.** The first verification sweep set `documentElement.style.width` to walk the widths. That resizes the layout box but *not* the viewport, so every media query kept evaluating at whatever the emulated viewport was -- the phone rules stayed on at 1200px and the results above about 400 were meaningless. Only `resize_window` changes what a media query sees. A sweep that never changes which rules are firing is not testing responsiveness at all.
 
 Builds `2026-09-18-v158` and `v159`; no migration.
+
+## One event, two rooms, one object: the room schedule named the wrong room
+
+Reported from the Facility page on a phone. An event booked into two rooms -- a main room and a spill-over room -- showed under both room headings in the day agenda, correctly, but **both rows were labelled with the second room**:
+
+```
+Clasroom #1
+  11:00 AM - Fall Community Picnic - Classroom #3
+Classroom #3
+  11:00 AM - Fall Community Picnic - Classroom #3
+```
+
+`fetchRoomBookings()` builds its buckets from a single `eventById` map:
+
+```js
+links.forEach(function(l){
+  var e = eventById[l.event_id];
+  (byRoom[l.room_id] = byRoom[l.room_id] || []).push(e);   // SAME object
+});
+```
+
+An event in two rooms is therefore **the same object in both buckets**. `loadRoomSchedule()` then stamped the room name per bucket:
+
+```js
+byRoom[rid].forEach(function(e){ e.__roomName = roomNameById[rid]; });
+```
+
+Two writes to one object. Last `Object.keys` iteration wins, and both rows render whatever room happened to be stamped last.
+
+The room is a property of the **booking**, not of the event, and the buckets were the only place that distinction existed -- so the fix is a shallow copy per bucket, leaving the cached event untouched.
+
+**The same root cause had two more symptoms nobody had reported yet**, found by following it rather than stopping at the screenshot:
+
+- **Month view drew the event twice.** `renderRoomSchedMonth` flattens every bucket into one list, so a two-room booking became two identical chips on the same day -- and inflated the `+N more` count that is the entire point of a month view ("which weeks are heavy"). Now deduplicated by event id, with the rooms collected onto the one chip so the tooltip still reads `Picnic - Clasroom #1, Classroom #3`.
+- **The agenda was saying the room twice anyway.** Day groups *by* room, so the heading directly above the row is the room name; week is a single room chosen in the picker. The per-row suffix repeated the line above it -- and while the bug was live it repeated it *wrongly*, which is what made it look like the event had been filed under the wrong room. Dropped.
+
+Verified by extracting the shipped source text of both changed blocks out of `index.html` and running them against a fixture built the way `fetchRoomBookings` builds one -- one object pushed into two buckets, asserted shared before the test runs, so the test cannot pass vacuously. The old line was run against the same fixture and reproduces the screenshot exactly (both rows `Classroom #3`). Single-room events checked as the negative case.
+
+Build `2026-09-18-v160`; no migration.
