@@ -5819,3 +5819,47 @@ Removed rather than rebuilt: the double-`requestAnimationFrame` dance that would
 Verified at real viewport sizes with the signed-in face showing: opens and toggles closed on the button, closes on Escape with focus returned to it, closes on an outside click, stays open on a click inside itself, hands both fields to the directory and navigates, and is absent entirely under `body.on-dashboard`. No overflow and a whole wordmark at 360 in both the signed-in and dashboard rows; 320 ellipsises, as it already did. Desktop untouched -- button and panel hidden above 860, the search box in the bar unchanged.
 
 Build `2026-09-19-v162`; no migration.
+
+## The Back link that lied, and one rule for every gap in the bar
+
+### "Back to events" was dead, and the reason was mine
+
+Reported as a dead link on the event form. It was worse than dead. Measured:
+
+```
+before click:  hash #create-event        form on screen
+after  click:  hash #dashboard/events    form STILL on screen
+```
+
+The URL changed and the view did not, so the address bar described a page you were not looking at -- and a refresh then "fixed" it, which is the most confusing possible behaviour.
+
+`go('dashboard/events')` shows `#page-dashboard` but never calls `goDash('events')`. Selecting the panel only ever happened in `showRouteFromHash`. **This is the two-dispatcher divergence this file has now paid for four times**, and v161 is what made it visible: while the event form was a page of its own, the page swap made the link appear to work, so the missing panel selection was invisible. Moving the form into the dashboard meant both routes render the same page, and a link that only swapped pages started doing nothing at all.
+
+The links are removed as asked -- the drawer is on screen throughout now, which is what they were there for. `go()` also selects the view, so the next `data-route="dashboard/x"` link is not born dead:
+
+```js
+var dashKey = route.split('/')[1];
+if (baseRoute === 'dashboard' && dashKey && window._dashCurKey !== dashKey) goDash(dashKey, true, true);
+```
+
+The `_dashCurKey` guard is not decoration. `showRouteFromHash` still calls `goDash` itself just before delegating to `go()`, so without it every dashboard deep link and every Back/Forward would run that tab's loaders -- and their queries -- twice.
+
+### Even spacing: dissolve the group rather than space it
+
+Asked for even space between the logo, the icons and the account face. The row had three flex children -- brand, icon row, account -- so `space-between` put all the slack into the two gaps either side of the icon row, which then floated in the middle with its own icons flush against each other.
+
+First attempt grew the icon row (`flex:1` + `space-evenly`). That evened out the icons but left the dashboard menu button flush against the logo, because the menu button was never part of the distribution. Measured: gaps of `[0, 6, 6, 6, 6, 6]`.
+
+The fix is `display:contents` on the icon row below 860px. Its own box disappears and its icons become items of the bar itself, so the bar's existing `space-between` spaces **every** control by the same amount, flush at both ends, with `gap:0` so nothing adds a second source of spacing. One rule owns every gap in the bar instead of three that have to agree by eye. Measured after: `[13, 13, 13, 13, 13]` signed in, `[5, 5, 5, 5, 5, 5]` on the dashboard.
+
+Worth knowing: `display:contents` leaves descendant selectors (`.nav-quick a`) and `.contains()` working exactly as before, so nothing that styles or scripts those icons had to change.
+
+### Room for the magnifier on the dashboard
+
+It had been hidden under `body.on-dashboard` on the grounds that the row was full. It was -- with the drawer button that row carries five things. Rather than hiding a control, everything gives a little at the two phone tiers: the logo mark 36 -> 31 -> 28, the wordmark 19 -> 17.5 -> 16.5px, the icons 38 -> 34 -> 31, and the two button paddings 8 -> 7 -> 6.
+
+At 360 the dashboard row now fits all five with the wordmark whole. 320 is the one width that still ellipsises the wordmark on the dashboard, with the row flush at zero gaps -- no overflow, avatar inside the bar.
+
+Verified at 320 / 360 / 393 in both the signed-in and dashboard rows, with the signed-in face showing: even gaps, no overflow, the avatar inside the bar. The panel still opens, focuses its first field, closes on an outside click and searches, on the dashboard as well. Desktop untouched -- the icon row is `display:none` above 860, so `display:contents` never applies there.
+
+Build `2026-09-19-v164`; no migration.

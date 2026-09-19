@@ -2823,13 +2823,11 @@
   .hamburger svg{width:22px;height:22px;display:block;}
 
   .nav-quick{display:none;align-items:center;gap:4px;flex-shrink:0;}
+  /* Fixed-size targets: nav-quick grows to take the slack, but the
   .nav-quick a, .nav-quick button{display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:10px;color:#CBD2DE;border-bottom:none;
     background:none;border:none;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent;}
   .nav-quick button svg{width:25px;height:25px;display:block;}
   #nav-search-btn[aria-expanded="true"]{color:#fff;background:rgba(255,255,255,0.10);}
-  /* The bar already carries the drawer button on the left there, and
-     a dashboard is not what this searches. */
-  body.on-dashboard #nav-search-btn{display:none;}
 
   /* An author display value beats the UA stylesheet rule for the
      hidden attribute, so without this the panel is laid out as flex
@@ -2870,7 +2868,7 @@
 
   @media (max-width:860px){
     .hamburger{display:block;}
-    .nav-quick{display:flex;}
+    .nav-quick{display:contents;}
     /* Churches and Events live in the bar now, so they must not also
        be in the panel -- two ways to the same page in one menu reads
        as two different pages. */
@@ -3891,12 +3889,13 @@
     /* Five items across a phone bar -- menu, brand, three quick icons,
        account -- need the brand to give way first. Groups made it three
        icons, which is what finally pushed the row past a 360px screen. */
-    .navbar{padding:0 12px;gap:6px;}
+    /* gap:0 on purpose. The icon row below distributes every gap in
+       this bar, including the ones at its own two edges, so a gap
+       here as well would make the space around the icon run wider
+       than the space between the icons. */
+    .navbar{padding:0 12px;gap:0;}
     .brand-name{font-size:19px;}
-    .brand{margin-right:auto;}
-    /* A little air between the icon row and the account face: it is
-       a different kind of control and ran together with them. */
-    .hamburger{margin-left:6px;}
+
     /* Only here. Below 860px the desktop links are gone and the row
        is menu, brand, icons, account -- the brand is the one piece
        that can give, which is the whole point. Above this width the
@@ -3914,9 +3913,13 @@
      399px and now needs 333. */
   @media (max-width:480px){
     .navbar{padding:0 10px;}
-    .brand{gap:8px;}
+    .brand{gap:7px;}
+    .brand-mark{width:31px;height:31px;}
+    .brand-name{font-size:17.5px;}
     .nav-quick{gap:0;}
-    .nav-quick a, .nav-quick button{width:38px;}
+    .nav-quick a, .nav-quick button{width:34px;}
+    .hamburger{padding:7px;}
+    #dash-menu-btn{padding:7px;}
   }
   /* 360px is the most common Android width there is, and on the
      dashboard -- the one layout with a fifth item in the bar -- it was
@@ -3928,14 +3931,14 @@
      the ellipsis takes over, which is the right thing to happen -- the
      alternative is shaving the tap targets down to win back a letter. */
   @media (max-width:380px){
-    .navbar{padding:0 8px;gap:4px;}
-    .nav-quick a, .nav-quick button{width:36px;}
-    .brand-name{font-size:18px;}
-    /* The breathing room above costs 6px, and on the dashboard at
-       360 -- the widest row there is, with its own menu button as a
-       fifth item -- 6px is the difference between a whole wordmark
-       and a clipped one. Space is worth more than separation here. */
-    .hamburger{margin-left:0;}
+    .navbar{padding:0 6px;}
+    .brand{gap:6px;}
+    .brand-mark{width:28px;height:28px;}
+    .nav-quick a, .nav-quick button{width:31px;}
+    .nav-quick a svg, .nav-quick button svg{width:22px;height:22px;}
+    .brand-name{font-size:16.5px;}
+    .hamburger{padding:6px;}
+    #dash-menu-btn{padding:6px;}
   }
   /* Respecting a system setting that exists because motion makes some
      people ill. The drawer still opens; it just arrives. */
@@ -6548,7 +6551,6 @@ Groups</span>
            are unchanged; only where it renders moved. -->
       <div class="dash-content" id="dash-create-event">
         <div style="max-width:560px;">
-      <a href="#dashboard/events" data-route="dashboard/events" style="display:inline-block;font-size:12.5px;color:var(--ink-mute);border-bottom:1px solid var(--line);margin-bottom:14px;" data-i18n="ce.backToDashboard">← Back to events</a>
       <div class="eyebrow" data-i18n="ce.newEvent">New event</div>
       <h2 style="font-family:'Fraunces';font-size:22px;margin-bottom:6px;" id="ce-heading" data-i18n="ce.createAnEvent">Create an event</h2>
       <div id="ce-church-picker-wrap" style="display:none;margin-bottom:8px;">
@@ -6846,7 +6848,6 @@ Groups</span>
         <button class="export-btn" id="ce-save-draft-btn" style="flex:1;justify-content:center;padding:13px;font-size:14.5px;margin-top:0;box-sizing:border-box;" data-i18n="ce.saveAsDraft">Save as draft</button>
         <button class="auth-submit" id="ce-submit-btn" style="flex:1;margin-top:0;box-sizing:border-box;" data-i18n="ce.publish">Publish</button>
       </div>
-      <div class="auth-note"><a href="#dashboard/events" data-route="dashboard/events" style="border-bottom:1px solid var(--gold);" data-i18n="ce.backToDashboard">← Back to events</a></div>
         </div>
       </div>
 
@@ -8353,7 +8354,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-19-v163 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-19-v164 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -10249,6 +10250,22 @@ Groups</span>
     // #dashboard/<view>, which here would overwrite the entry go() is
     // about to write and leave Back pointing at a URL nobody visited.
     if(dashView && typeof window.goDash === 'function'){ window.goDash(dashView, true, true); }
+    // '#dashboard/<view>' has to pick the VIEW, not just show the page.
+    // showRouteFromHash did this and go() never did, so an in-app link
+    // to a dashboard tab rewrote the URL and left the previous panel on
+    // screen -- an address bar describing a page you were not looking
+    // at, and a refresh that then 'fixed' it. The Back link on the event
+    // form was reported as dead and this was why.
+    //
+    // Guarded on the current view because the hash dispatcher still
+    // calls goDash itself just before delegating here; without the
+    // guard every dashboard deep link would run that tab's loaders,
+    // and its queries, twice.
+    var dashKey = route.split('/')[1];
+    if(baseRoute === 'dashboard' && dashKey && window._dashCurKey !== dashKey
+        && typeof window.goDash === 'function'){
+      window.goDash(dashKey, true, true);
+    }
     var links = document.querySelectorAll('nav.links a');
     for(var j=0;j<links.length;j++){
       if(links[j].getAttribute('data-route')===baseRoute){ links[j].classList.add('active'); }
