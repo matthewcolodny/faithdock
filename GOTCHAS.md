@@ -5983,3 +5983,30 @@ Worth recording for next time: the real boundaries here are `<script>` at 5, 21,
 Also checked: list view untouched (no thumb, still `18px 20px` padding, no grid container), the thumbnail flush to both card edges at 393 with no page overflow, and the church page groups tab rendering the same tile.
 
 Build `2026-09-19-v168`; no migration.
+
+## Four small things on the cards and the hero
+
+### The heart floating above the name
+
+A group tile had an empty band between the picture and the name, with the heart alone in it. Two causes, one visible:
+
+1. The heart was in `.card-tag-row`, which assumes there is a tag to sit beside it. A church always has a denomination, so that row is never empty there. A group usually has no tag at all, so the row held only the heart. Name and heart share one row now, and the members-only tag goes back inline after the name.
+2. Underneath that, **`h4` carries an inherited 21.28px top margin**. That was the actual gap, and it survived the first fix: with the heart moved onto the name's row, the heart sat at the top of the row and the name 21px below it, so it still read as a heart floating in space. It also made the distance from picture to name **39px where a church or event card has 18** -- the give-away that this was a margin and not the layout.
+
+Measured after: tops within 2px, centres within 4, picture-to-name 18px.
+
+### The dark-mode placeholder was pale-on-cream
+
+Reported as the group and event icons being hard to see in dark mode. `.thumb--denom` darkens its own background for dark mode; `.thumb--event` never did -- it only flipped its icon to a pale tint and left `.thumb`'s cream gradient underneath. Pale grey on cream.
+
+**This was a live bug on event cards before groups existed**, and copying `.thumb--event` faithfully for `.thumb--group` copied it. Both now darken to the same neutral the church placeholder resolves to, so all three match in the dark. Light mode is untouched: verified both still render the cream wash with the `#16233F` icon, identical to each other.
+
+Worth noting how it stayed hidden: the earlier check compared `.thumb--group` against `.thumb--event` and found them identical, which was true and proved nothing. **Matching a sibling only shows consistency, not correctness** -- if the thing being matched is wrong, a perfect match is a perfect copy of the bug.
+
+### The hero
+
+The space under the hero is not one value but three stacked: the hero's own bottom padding, then the divider's margin above and below its rule. On a phone that came to about 97px between the search box and the first heading, on top of 56px above the eyebrow.
+
+Phones only (`max-width:600px`): hero padding 56/64 -> 38/44, divider margin 56/40 -> 34/24. Gap from the bar to the eyebrow 56 -> 38; from the hero's end to the heading 97 -> 59. Desktop verified unchanged at 84/96 and 56/40.
+
+Build `2026-09-19-v169`; no migration.

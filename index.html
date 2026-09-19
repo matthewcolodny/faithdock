@@ -2971,7 +2971,8 @@
     font-weight:600;font-size:14.5px;
   }
   @media (max-width:600px){
-    .hero{padding:56px 0 64px;}
+    .hero{padding:38px 0 44px;}
+    .arch-divider{margin:34px 0 24px;}
     .hero h1{font-size:32px;}
     .hero p.lead{font-size:15.5px;}
     .search-bar{flex-direction:column;background:transparent;padding:0;gap:10px;}
@@ -3106,6 +3107,8 @@
      denomination of its own for a hue to key off. */
   .thumb--group svg{width:54px;height:54px;fill:#16233F;opacity:.45;}
   html[data-theme="dark"] .thumb--group svg{fill:#C7CCD8;opacity:.5;}
+  html[data-theme="dark"] .thumb--event,
+  html[data-theme="dark"] .thumb--group{background:hsl(220 22% 17%);}
   .thumb--denom{background:hsl(var(--thumb-hue,220) 34% 88%);}
   .thumb--denom svg{width:54px;height:54px;fill:hsl(var(--thumb-hue,220) 30% 46%);opacity:.7;}
   html[data-theme="dark"] .thumb--denom{background:hsl(var(--thumb-hue,220) 22% 17%);}
@@ -4342,7 +4345,14 @@
      component. .group-card keeps its padded form everywhere else. */
   .group-card--tile{padding:0;overflow:hidden;transition:border-color .15s,transform .15s;}
   .group-card--tile:hover{border-color:var(--gold);transform:translateY(-2px);}
-  .group-card--tile .card-body > h4{margin-bottom:6px;}
+  .group-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
+  /* margin-top:0 is the fix, not the tidy-up. Headings carry an
+     inherited 21px top margin here, which pushed the name down inside
+     its own row -- so the heart sat level with the top of the row and
+     the name sat 21px below it, which read as the heart floating in
+     empty space. It also made the gap from the picture to the name
+     39px where a church or event card has 18. */
+  .group-card-head h4{flex:1;min-width:0;margin-top:0;margin-bottom:6px;}
 
   /* Multi-church Overview: church picker tiles */
   .church-tile-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;}
@@ -8388,7 +8398,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-19-v168 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-19-v169 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -24705,11 +24715,10 @@ Groups</span>
         // The heart shares a row with the tag rather than floating over
         // the picture, which is where churches and events put it after
         // that was reported on both.
-        +   '<div class="card-tag-row">'
-        +     '<div class="card-tags">' + visTag + '</div>'
+        +   '<div class="group-card-head">'
+        +     '<h4>' + escapeHtml(g.name) + visTag + '</h4>'
         +     heart
         +   '</div>'
-        +   '<h4>' + escapeHtml(g.name) + '</h4>'
         +   '<div style="font-size:12.5px;color:var(--ink-mute);margin-bottom:6px;">' + meta + '</div>'
         +   (g.description ? '<p>' + escapeHtml(g.description) + '</p>' : '')
         +   (g.meeting_schedule ? '<div class="group-schedule">' + escapeHtml(g.meeting_schedule) + '</div>' : '')
@@ -26484,11 +26493,10 @@ Groups</span>
       return '<div class="group-card group-card--tile" data-route="group" data-group-id="' + escapeHtml(g.id) + '" style="cursor:pointer;">'
         + pubThumb
         + '<div class="card-body">'
-        +   '<div class="card-tag-row">'
-        +     '<div class="card-tags">' + pubVisTag + '</div>'
+        +   '<div class="group-card-head">'
+        +     '<h4>' + escapeHtml(g.name) + pubVisTag + '</h4>'
         +     pubHeart
         +   '</div>'
-        +   '<h4>' + escapeHtml(g.name) + '</h4>'
         +   (g.description ? '<p>' + escapeHtml(g.description) + '</p>' : '')
         +   (g.meeting_schedule ? '<div class="group-schedule">' + escapeHtml(g.meeting_schedule) + '</div>' : '')
         +   actionHtml
