@@ -532,7 +532,7 @@
       'events.registeredAsParticipant': 'Registered as a participant',
       'myGroups.signInPrompt': 'Sign in to see your groups.',
       'myGroups.noneYet': "You haven't joined any groups yet.",
-      'myGroups.pendingApproval': 'Pending approval', 'myGroups.leader': 'Leader',
+      'myGroups.pendingApproval': 'Pending approval', 'myGroups.leader': 'Group leader', 'myGroups.labelMember': 'Group member',
       'myChurches.signInPrompt': 'Sign in to see your churches.',
       'myChurches.addChurch': '+ Add a church', 'myChurches.findChurch': 'Find a church',
       'myChurches.nothingYet': 'Nothing here yet — search for a church to follow or call home.',
@@ -1547,7 +1547,7 @@
       'events.registeredAsParticipant': 'Inscrito como participante',
       'myGroups.signInPrompt': 'Inicia sesi\u00f3n para ver tus grupos.',
       'myGroups.noneYet': 'A\u00fan no te has unido a ning\u00fan grupo.',
-      'myGroups.pendingApproval': 'Aprobaci\u00f3n pendiente', 'myGroups.leader': 'L\u00edder',
+      'myGroups.pendingApproval': 'Aprobaci\u00f3n pendiente', 'myGroups.leader': 'L\u00edder del grupo', 'myGroups.labelMember': 'Miembro del grupo',
       'myChurches.signInPrompt': 'Inicia sesi\u00f3n para ver tus iglesias.',
       'myChurches.addChurch': '+ Agregar una iglesia', 'myChurches.findChurch': 'Buscar una iglesia',
       'myChurches.nothingYet': 'Nada por aqu\u00ed todav\u00eda — busca una iglesia para seguir o llamar tu iglesia principal.',
@@ -4333,7 +4333,8 @@
   .msg-history-item summary{cursor:pointer;list-style:revert;}
   .msg-history-item summary::marker{color:var(--ink-mute);}
   .msg-history-recipients{margin-top:8px;}
-  .group-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin-bottom:14px;}
+  .group-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin-bottom:14px;
+    -webkit-tap-highlight-color:transparent;}
   .group-card h4{font-size:16px;margin-bottom:6px;}
   .group-card p{font-size:13.5px;color:var(--ink-soft);margin-bottom:10px;}
   .group-card .group-schedule{font-size:12px;color:var(--ink-mute);font-family:'IBM Plex Mono';margin-bottom:12px;}
@@ -8398,7 +8399,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-19-v169 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-19-v170 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -28606,25 +28607,110 @@ Groups</span>
       return;
     }
 
-    var { data: myRows, error } = await supabase.from('group_members').select('role, status, groups(id, name, meeting_schedule, churches(name))').eq('user_id', userData.user.id).order('joined_at', { ascending: false });
-    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:14px;">' + escapeHtml(error.message) + '</p>'; return; }
-    if (!myRows || !myRows.length) { listEl.innerHTML = '<p style="color:var(--ink-mute);font-size:14px;">' + window.t('myGroups.noneYet') + '</p>'; return; }
+    // Built the way My Churches is, and for the same reason: a person
+    // can stand in more than one relationship to a group at once, and
+    // a page that shows only one of them hides the rest.
+    //
+    // Reported: following a group did not put it in My Groups. It
+    // could not -- this read group_members only, so a follow, which
+    // lives in group_follows, had nowhere to appear. A heart that
+    // records something the app never shows back is worse than no
+    // heart, and this file has that exact note about
+    // directory_visibility already.
+    var groupFields = 'id, name, meeting_schedule, image_url, churches(name)';
+    var groupResults = await Promise.all([
+      supabase.from('group_members').select('role, status, groups(' + groupFields + ')').eq('user_id', userData.user.id),
+      supabase.from('group_follows').select('group_id, groups(' + groupFields + ')').eq('user_id', userData.user.id)
+    ]);
+    var memberRes = groupResults[0], gFollowRes = groupResults[1];
+    if (memberRes.error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:14px;">' + escapeHtml(memberRes.error.message) + '</p>'; return; }
+    // A follows failure is logged rather than fatal, the same way My
+    // Events treats its own: memberships are what this page is for,
+    // and blanking them because the secondary query failed trades a
+    // small gap for a broken page.
+    if (gFollowRes.error) console.error('My Groups: group_follows query failed', gFollowRes.error);
 
-    listEl.innerHTML = myRows.map(function(r){
-      if (!r.groups) return '';
-      var g = r.groups;
+    var groupsById = {};
+    function addGroup(g, label){
+      if (!g || !g.id) return;
+      if (!groupsById[g.id]) groupsById[g.id] = { group: g, labels: [] };
+      if (groupsById[g.id].labels.indexOf(label) === -1) groupsById[g.id].labels.push(label);
+    }
+    (memberRes.data || []).forEach(function(r){
+      if (r.status === 'pending') { addGroup(r.groups, 'Pending'); return; }
+      addGroup(r.groups, r.role === 'leader' ? 'Leader' : 'Member');
+    });
+    (gFollowRes.data || []).forEach(function(r){ addGroup(r.groups, 'Following'); });
+
+    // Keeps every heart elsewhere agreeing with what this page just
+    // read, and is what this page's own Unfollow button works from.
+    window.myFollowedGroupIds = (gFollowRes.data || []).map(function(r){ return r.group_id; });
+
+    var groupEntries = Object.keys(groupsById).map(function(id){ return groupsById[id]; });
+    if (!groupEntries.length) { listEl.innerHTML = '<p style="color:var(--ink-mute);font-size:14px;">' + window.t('myGroups.noneYet') + '</p>'; return; }
+
+    // Most involved first, the same ordering idea My Churches uses.
+    var gWeight = { 'Leader': 0, 'Member': 1, 'Pending': 2, 'Following': 3 };
+    groupEntries.sort(function(a, b){
+      var am = Math.min.apply(null, a.labels.map(function(l){ return gWeight[l]; }));
+      var bm = Math.min.apply(null, b.labels.map(function(l){ return gWeight[l]; }));
+      if (am !== bm) return am - bm;
+      return (a.group.name || '').localeCompare(b.group.name || '');
+    });
+
+    var gLabelColors = { 'Leader': 'gold', 'Member': 'sage', 'Pending': 'clay', 'Following': '' };
+    var gLabelKeys = {
+      'Leader': 'myGroups.leader', 'Member': 'myGroups.labelMember',
+      'Pending': 'myGroups.pendingApproval', 'Following': 'myChurches.labelFollowing'
+    };
+
+    listEl.innerHTML = groupEntries.map(function(entry){
+      var g = entry.group;
       var churchName = g.churches ? g.churches.name : '';
-      var statusTag = r.status === 'pending'
-        ? '<span class="tag clay" style="font-size:10px;">' + window.t('myGroups.pendingApproval') + '</span>'
-        : (r.role === 'leader' ? '<span class="tag gold" style="font-size:10px;">' + window.t('myGroups.leader') + '</span>' : '');
-      return '<a href="#" data-route="group" data-group-id="' + escapeHtml(g.id) + '" class="group-card" style="display:block;text-decoration:none;color:inherit;cursor:pointer;">'
-        + '<h4>' + escapeHtml(g.name) + '</h4>'
-        + '<p style="margin-bottom:4px;">' + escapeHtml(churchName) + '</p>'
-        + (g.meeting_schedule ? '<div class="group-schedule">' + escapeHtml(g.meeting_schedule) + '</div>' : '')
-        + (statusTag ? '<div style="margin-top:8px;">' + statusTag + '</div>' : '')
-        + '</a>';
+      var labelsHtml = entry.labels.map(function(l){
+        return '<span class="tag ' + (gLabelColors[l] || '') + '" style="font-size:10px;margin-right:4px;">' + escapeHtml(window.t(gLabelKeys[l])) + '</span>';
+      }).join('');
+      // Following is independent of membership, exactly as it is for a
+      // church: unfollowing a group somebody also leads must not touch
+      // their leadership, so this shows whenever Following is among
+      // the labels rather than only when it is the only one.
+      var unfollowBtn = entry.labels.indexOf('Following') !== -1
+        ? '<button class="export-btn" data-unfollow-group-id="' + escapeHtml(g.id) + '" data-unfollow-group-name="' + escapeHtml(g.name || '') + '" style="flex-shrink:0;">' + escapeHtml(window.t('myChurches.unfollow')) + '</button>'
+        : '';
+      return '<div class="group-card" style="display:flex;align-items:flex-start;gap:14px;justify-content:space-between;">'
+        + '<a href="#" data-route="group" data-group-id="' + escapeHtml(g.id) + '" style="flex:1;min-width:0;text-decoration:none;color:inherit;cursor:pointer;">'
+        +   '<div style="margin-bottom:6px;">' + labelsHtml + '</div>'
+        +   '<h4 style="margin-top:0;">' + escapeHtml(g.name) + '</h4>'
+        +   (churchName ? '<p style="margin-bottom:4px;">' + escapeHtml(churchName) + '</p>' : '')
+        +   (g.meeting_schedule ? '<div class="group-schedule" style="margin-bottom:0;">' + escapeHtml(g.meeting_schedule) + '</div>' : '')
+        + '</a>'
+        + unfollowBtn
+        + '</div>';
     }).join('');
   }
+
+  // Unfollowing from this page, with the same undo the other two have.
+  document.addEventListener('click', async function(ev){
+    var unfollowGroupBtn = ev.target.closest ? ev.target.closest('[data-unfollow-group-id]') : null;
+    if (!unfollowGroupBtn) return;
+    var { data: gUserData } = await supabase.auth.getUser();
+    if (!gUserData.user) return;
+    unfollowGroupBtn.disabled = true;
+    var unfollowGroupId = unfollowGroupBtn.getAttribute('data-unfollow-group-id');
+    var { error: unfollowGroupError } = await supabase.from('group_follows')
+      .delete().eq('user_id', gUserData.user.id).eq('group_id', unfollowGroupId);
+    if (unfollowGroupError) {
+      unfollowGroupBtn.disabled = false;
+      console.error('Unfollow group failed', unfollowGroupError);
+      return;
+    }
+    // Every other heart for this group -- the groups search, a church
+    // page -- has to agree, for the reason recorded on the church and
+    // event versions of this button.
+    if (typeof window.applyGroupFollowState === 'function') window.applyGroupFollowState(unfollowGroupId, false);
+    loadMyGroups();
+    showUnfollowToast('group', unfollowGroupId, unfollowGroupBtn.getAttribute('data-unfollow-group-name') || '');
+  });
   window.loadMyGroups = loadMyGroups;
 
   // My Churches is the real hub now — every relationship a person can
@@ -29807,8 +29893,21 @@ Groups</span>
   // the tab or navigate away before the toast times out); Undo just
   // re-follows by re-inserting the same row, same as the follow-heart
   // toggle elsewhere already does.
+  // What each kind of follow is stored in, which heart to put back,
+  // and which list to redraw. Adding a fourth kind is an entry here
+  // rather than a third copy of the toast.
+  var UNDO_FOLLOW = {
+    church: { table: 'church_follows', column: 'church_id',
+              sync: 'applyFollowState',      reload: 'loadMyChurches' },
+    event:  { table: 'event_follows',  column: 'event_id',
+              sync: 'applyEventFollowState', reload: 'loadMyEvents' },
+    group:  { table: 'group_follows',  column: 'group_id',
+              sync: 'applyGroupFollowState', reload: 'loadMyGroups' }
+  };
+
   var unfollowToastTimer = null;
-  function showUnfollowToast(churchId, churchName){
+  function showUnfollowToast(kind, id, name){
+    if (!UNDO_FOLLOW[kind]) return;
     var el = document.getElementById('unfollow-toast');
     if (!el) {
       el = document.createElement('div');
@@ -29816,9 +29915,10 @@ Groups</span>
       el.innerHTML = '<span id="unfollow-toast-msg"></span><button type="button" id="unfollow-toast-undo"></button>';
       document.body.appendChild(el);
     }
-    document.getElementById('unfollow-toast-msg').textContent = window.t('myChurches.unfollowedToast').replace('{name}', churchName);
+    document.getElementById('unfollow-toast-msg').textContent = window.t('myChurches.unfollowedToast').replace('{name}', name);
     document.getElementById('unfollow-toast-undo').textContent = window.t('myChurches.undo');
-    el.setAttribute('data-church-id', churchId);
+    el.setAttribute('data-undo-kind', kind);
+    el.setAttribute('data-undo-id', id);
     el.classList.add('visible');
     clearTimeout(unfollowToastTimer);
     unfollowToastTimer = setTimeout(function(){ el.classList.remove('visible'); }, 6000);
@@ -29828,19 +29928,23 @@ Groups</span>
     var undoBtn = ev.target.closest ? ev.target.closest('#unfollow-toast-undo') : null;
     if (undoBtn) {
       var toastEl = document.getElementById('unfollow-toast');
-      var undoChurchId = toastEl ? toastEl.getAttribute('data-church-id') : null;
+      var undoKind = toastEl ? toastEl.getAttribute('data-undo-kind') : null;
+      var undoId = toastEl ? toastEl.getAttribute('data-undo-id') : null;
       clearTimeout(unfollowToastTimer);
       if (toastEl) toastEl.classList.remove('visible');
-      if (!undoChurchId) return;
+      var undoSpec = UNDO_FOLLOW[undoKind];
+      if (!undoId || !undoSpec) return;
       var { data: undoUserData } = await supabase.auth.getUser();
       if (!undoUserData.user) return;
-      await supabase.from('church_follows').upsert({ user_id: undoUserData.user.id, church_id: undoChurchId });
-      // Keeps every OTHER page's heart for this church (Directory,
-      // Home, its own profile page) in sync with the re-follow too --
-      // same real gap as the plain Unfollow button below, just for the
-      // Undo half of the same feature.
-      applyFollowState(undoChurchId, true);
-      loadMyChurches();
+      var undoRow = { user_id: undoUserData.user.id };
+      undoRow[undoSpec.column] = undoId;
+      await supabase.from(undoSpec.table).upsert(undoRow);
+      // Keeps every OTHER surface's heart for this thing (the
+      // directory, home, its own page) in sync with the re-follow --
+      // the same gap the plain Unfollow buttons had, for the Undo
+      // half of the same feature.
+      if (typeof window[undoSpec.sync] === 'function') window[undoSpec.sync](undoId, true);
+      if (typeof window[undoSpec.reload] === 'function') window[undoSpec.reload]();
       return;
     }
     var unfollowBtn = ev.target.closest ? ev.target.closest('[data-unfollow-church-id]') : null;
@@ -29865,7 +29969,7 @@ Groups</span>
     // toggle already uses -- see its own comment further up this file.
     applyFollowState(unfollowChurchId, false);
     loadMyChurches();
-    showUnfollowToast(unfollowChurchId, unfollowChurchName);
+    showUnfollowToast('church', unfollowChurchId, unfollowChurchName);
   });
 
   // Multi-church ownership: switches which owned church the dashboard
@@ -29949,7 +30053,7 @@ Groups</span>
       // it's the sole one, because un-hearting an event you're also
       // registered for must not cancel that registration.
       var unfollowBtn = entry.labels.indexOf('following') !== -1
-        ? '<button class="export-btn" data-unfollow-event-id="' + e.id + '" style="flex-shrink:0;">' + window.t('myEvents.unfollow') + '</button>'
+        ? '<button class="export-btn" data-unfollow-event-id="' + e.id + '" data-unfollow-event-name="' + escapeHtml(e.title || '') + '" style="flex-shrink:0;">' + window.t('myEvents.unfollow') + '</button>'
         : '';
       return '<div class="group-card" style="display:flex;align-items:center;gap:14px;justify-content:space-between;margin-bottom:10px;">'
         + '<a href="#" data-route="event" data-event-key="' + e.id + '" style="display:block;text-decoration:none;color:inherit;flex:1;min-width:0;cursor:pointer;">'
@@ -30045,6 +30149,11 @@ Groups</span>
     // showing a filled heart until something forced a re-render.
     applyEventFollowState(unfollowEventId, false);
     loadMyEvents();
+    // Same six-second undo churches have had. The row is deleted
+    // immediately rather than held pending, so Undo re-inserts it --
+    // no half-deleted state to reconcile if the tab closes first.
+    showUnfollowToast('event', unfollowEventId,
+      unfollowEventBtn.getAttribute('data-unfollow-event-name') || '');
   });
 
   var myEventsTimeFilter = document.getElementById('my-events-time-filter');

@@ -6010,3 +6010,48 @@ The space under the hero is not one value but three stacked: the hero's own bott
 Phones only (`max-width:600px`): hero padding 56/64 -> 38/44, divider margin 56/40 -> 34/24. Gap from the bar to the eyebrow 56 -> 38; from the hero's end to the heading 97 -> 59. Desktop verified unchanged at 84/96 and 56/40.
 
 Build `2026-09-19-v169`; no migration.
+
+## Following a group went nowhere, and one undo toast for three kinds
+
+### The heart recorded something the app never showed back
+
+Reported: following a group did not put it in My Groups. It could not. `loadMyGroups` read `group_members` only, so a follow -- which lives in `group_follows` -- had nowhere to appear. The heart wrote a row and nothing ever read it.
+
+**This is the `directory_visibility` shape again**, already recorded here: a value written and never read is worse than no value, because the person has been told something happened. That note was written before this heart was built, and the heart was built anyway.
+
+My Groups is now built the way My Churches is, and for the same reason its comment gives -- a person can stand in more than one relationship to a group at once, and a page showing one of them hides the rest. Memberships and follows are read together, labelled `Group leader`, `Group member`, `Pending approval` and `Following`, and sorted most-involved first. Unfollow appears whenever Following is among the labels rather than only when it is the only one, so unfollowing a group somebody also leads does not touch their leadership.
+
+Verified by feeding the loader fixtures with the client patched, rather than by signing in -- including the two cases that matter:
+
+| group | labels | unfollow |
+| --- | --- | --- |
+| followed only | Following | yes |
+| led and followed | Group leader, Following | yes |
+| member | Group member | no |
+| pending | Pending approval | no |
+
+The first row is the reported bug. The second is the one a simpler fix would have broken.
+
+### One toast, three kinds
+
+The undo toast was hardcoded to churches at every layer: a `data-church-id` attribute, a church string, `church_follows`, `loadMyChurches`. Events had an Unfollow button and no undo at all; groups had neither.
+
+Rather than a second and third copy of it, the kind travels on the toast and one table says what each kind re-inserts and refreshes:
+
+```js
+var UNDO_FOLLOW = {
+  church: { table: 'church_follows', column: 'church_id', sync: 'applyFollowState',      reload: 'loadMyChurches' },
+  event:  { table: 'event_follows',  column: 'event_id',  sync: 'applyEventFollowState', reload: 'loadMyEvents'   },
+  group:  { table: 'group_follows',  column: 'group_id',  sync: 'applyGroupFollowState', reload: 'loadMyGroups'  }
+};
+```
+
+A fourth kind is an entry here, not a third copy of the toast.
+
+Verified by exercising the real undo handler once per kind with `window.supabase` patched to record what it would write: each wrote its own table and column, each called its own heart-sync with `true`, and an unrecognised kind wrote nothing. The `getUser` patch asserts it was reached, so the run cannot pass by never getting there -- the vacuous-test trap recorded earlier in this file.
+
+### The card flashing on a heart tap
+
+`.church-card` and `.event-card` have carried `-webkit-tap-highlight-color:transparent` since it was reported as "the whole card blinks". `.group-card` was added later and never got it. `preventDefault` and `stopPropagation` do not touch that highlight; the browser paints it from touch state regardless of the event.
+
+Build `2026-09-19-v170`; no migration.
