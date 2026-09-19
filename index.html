@@ -8237,7 +8237,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v156 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v157 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -11578,6 +11578,25 @@ Groups</span>
     // must never show, or two lists claim the same space -- which is
     // what put a lone "Overview" in the sidebar after a refresh.
     if (overviewNav) overviewNav.style.display = 'none';
+
+    // The church name and its switcher belong to the CHURCH level and
+    // nowhere else. At the account level there is no single church in
+    // context, so naming one -- and offering to switch it -- says the
+    // page is about a church when it is about the account.
+    //
+    // Decided here, by the thing that knows which level is showing,
+    // rather than in updateDashSidebarMode, which was inferring it
+    // from a hand-written list of view names. That list had grown a
+    // gap: 'account-settings' was never added to DASH_OVERVIEW_VIEWS,
+    // so the switcher reappeared on Settings. A list of names that has
+    // to stay in step with a set of levels is the same trap this file
+    // keeps paying for.
+    //
+    // The select inside it stays separately gated on owning more than
+    // one church (see loadDashboardHeader) -- there is nothing to
+    // switch between otherwise.
+    var churchCtxEl = document.getElementById('dash-church-context');
+    if (churchCtxEl) churchCtxEl.style.display = (level === 'church') ? 'block' : 'none';
 
     if (level === 'church') {
       el.style.display = 'none';
@@ -15698,7 +15717,6 @@ Groups</span>
   function updateDashSidebarMode(view){
     var multi = !!window._dashMultiOwner;
     var navOverview = document.getElementById('dash-nav-overview');
-    var churchCtx = document.getElementById('dash-church-context');
     var ovHeader = document.getElementById('dash-overview-header');
     var inOverview = multi && !!DASH_OVERVIEW_VIEWS[view];
 
@@ -15717,7 +15735,11 @@ Groups</span>
     //
     // dashRenderLevel owns it now, and is asked to redraw at the end
     // of this function instead.
-    if (churchCtx) churchCtx.style.display = inOverview ? 'none' : 'block';
+    // Which levels show the church name and switcher is NOT decided
+    // here any more -- dashRenderLevel owns it, because it is the
+    // thing that knows which level is showing. This used to infer it
+    // from DASH_OVERVIEW_VIEWS, which never had 'account-settings'
+    // added to it, so the switcher came back on the Settings page.
     if (ovHeader) ovHeader.style.display = inOverview ? 'block' : 'none';
     // The separate All-churches link is gone; Overview sits in the
     // nav itself now, gated by .dash-overview-owner.

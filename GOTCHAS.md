@@ -5654,3 +5654,27 @@ The list view drops the picture and the description and keeps what somebody scan
 Verified end to end: follow writes an insert and fills the heart, unfollow writes a delete and empties it, a **failing** write reverts the optimistic change rather than leaving a heart that lies, and clicking a heart does not navigate.
 
 Build `2026-09-18-v156`; **migration 068 must be run by hand.**
+
+---
+
+## The church switcher on a page that is not about a church
+
+Reported: the "Test 2" church name and its switcher show at the account level — on Overview, Churches, and (in the screenshot) Settings. They belong to a single church, and at the account level there is no single church in context, so naming one and offering to switch it says the page is about a church when it is about the account.
+
+**The immediate cause was a list with a gap.** `updateDashSidebarMode` decided this from `DASH_OVERVIEW_VIEWS = {churches, billing, plans}` — and `account-settings`, added later, was never put in it. So Settings fell through to "this is a church page".
+
+**The fix is not to add the missing name.** `dashRenderLevel` already knows which level is showing; it now owns this the same way it owns which nav is visible, and the rule becomes what it always should have been: the church name and switcher appear on the **church** level and nowhere else. A hand-written list of view names that has to stay in step with a set of levels is the same trap this file has paid for repeatedly — and it had already silently drifted once.
+
+The select inside it stays separately gated on owning more than one church, which was always correct: there is nothing to switch between otherwise.
+
+Verified all three levels plus the reported case: church shows it, churches and account do not, `account-settings` no longer brings it back, and returning to a church restores it.
+
+## Not reproduced: the avatar past the nav bar
+
+Also reported, from the same screenshots. **Not fixed, because it could not be reproduced**, and the measurements say the thing described is not happening here:
+
+At 360, 375, 393, 412 and 430 px the header fills the viewport exactly, `header.scrollWidth === clientWidth`, `documentElement.scrollWidth === innerWidth` (no horizontal overflow anywhere on the page), and the avatar's right edge sits 12px inside the header's — checked on a dashboard page, signed-in face showing, which is where the screenshot was taken. The `.dash` grid collapses to a single column on mobile as intended, so it is not the sidebar column forcing the page wide.
+
+Recorded rather than guessed at. The last time something "did not work on mobile" here it was a device setting and the code was correct, and inventing a fix for an unreproduced symptom is how a working layout acquires a workaround nobody can later justify.
+
+Build `2026-09-18-v157`; no migration.
