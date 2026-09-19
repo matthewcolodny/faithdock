@@ -2823,11 +2823,17 @@
   .hamburger svg{width:22px;height:22px;display:block;}
 
   .nav-quick{display:none;align-items:center;gap:4px;flex-shrink:0;}
-  /* Fixed-size targets: nav-quick grows to take the slack, but the
+  /* One rule for both kinds of control in this row: the three links
+     and the search button. A <button> arrives with a grey background,
+     an outset border and padding of its own, so all of it is reset
+     here -- and flex-shrink:0 keeps the targets their size while the
+     bar distributes its slack around them. */
   .nav-quick a, .nav-quick button{display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:10px;color:#CBD2DE;border-bottom:none;
-    background:none;border:none;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+    background:none;border:none;padding:0;cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent;}
   .nav-quick button svg{width:25px;height:25px;display:block;}
-  #nav-search-btn[aria-expanded="true"]{color:#fff;background:rgba(255,255,255,0.10);}
+  /* The open panel hanging below the bar is the feedback; a box on the
+     icon as well was just another box to explain. */
+  #nav-search-btn[aria-expanded="true"]{color:#fff;}
 
   /* An author display value beats the UA stylesheet rule for the
      hidden attribute, so without this the panel is laid out as flex
@@ -2860,7 +2866,13 @@
   /* Desktop has the search box in the bar itself. */
   @media (min-width:861px){ #nav-search-btn, #nav-search-panel{display:none;} }
   .nav-quick a svg{width:25px;height:25px;display:block;}
-  .nav-quick a:hover,.nav-quick a.active{color:#fff;background:rgba(255,255,255,0.10);border-bottom:none;}
+  @media (hover:hover){
+    .nav-quick a:hover{color:#fff;background:rgba(255,255,255,0.10);border-bottom:none;}
+  }
+  /* Removing the tap highlight removes the only press feedback these
+     had, so they get one that follows the icon instead of boxing it,
+     and that ends when the finger lifts. Same fix as .hamburger. */
+  .nav-quick a:active, .nav-quick button:active{opacity:.6;}
   #hamburger-initials{
     display:none;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;
     background:var(--gold);color:var(--brand);font-size:12.5px;font-weight:700;letter-spacing:.02em;
@@ -3819,7 +3831,9 @@
      the dashboard drawer and means nothing anywhere else. Driven by a
      body class rather than :has(), which is newer than this file's
      baseline. */
-  #dash-menu-btn{display:none;background:none;border:none;color:#EDEBE2;padding:8px;cursor:pointer;flex-shrink:0;}
+  #dash-menu-btn{display:none;background:none;border:none;color:#EDEBE2;padding:8px;cursor:pointer;flex-shrink:0;
+    -webkit-tap-highlight-color:transparent;}
+  #dash-menu-btn:active{opacity:.6;}
   #dash-menu-btn svg{width:22px;height:22px;display:block;}
   @media (max-width:860px){
     .dash{grid-template-columns:1fr;position:relative;}
@@ -8354,7 +8368,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-19-v164 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-19-v165 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">

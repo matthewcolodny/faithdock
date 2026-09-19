@@ -5863,3 +5863,42 @@ At 360 the dashboard row now fits all five with the wordmark whole. 320 is the o
 Verified at 320 / 360 / 393 in both the signed-in and dashboard rows, with the signed-in face showing: even gaps, no overflow, the avatar inside the bar. The panel still opens, focuses its first field, closes on an outside click and searches, on the dashboard as well. Desktop untouched -- the icon row is `display:none` above 860, so `display:contents` never applies there.
 
 Build `2026-09-19-v164`; no migration.
+
+## An unterminated CSS comment, and two bugs that were really one
+
+Reported as two things: a grey box around the magnifier, and a box left sitting on an icon after tapping it. Both were the same defect, and the defect was a **missing `*/`** shipped in v164.
+
+The edit script that added the rule used commas where it needed `+ NL +`, so the replacement string was truncated after the comment's first line and the rest of it became extra arguments to the function. What landed was:
+
+```css
+/* Fixed-size targets: nav-quick grows to take the slack, but the
+.nav-quick a, .nav-quick button{ ...background:none;border:none;padding:0;
+  -webkit-tap-highlight-color:transparent; }
+.nav-quick button svg{...}
+#nav-search-btn[aria-expanded="true"]{...}
+/* An author display value beats the UA stylesheet rule ... */   <- first */ in the file
+```
+
+An unterminated comment does not fail. It silently swallows everything up to the next `*/` anywhere in the file -- here three live rules -- and the browser reports no error at all. So:
+
+- **The grey box** was the UA default `<button>` appearance (`background: rgb(107,107,107)`, `border: 2px outset`) showing through, because the reset that removes it was inside the comment.
+- **The box left on a tapped icon** was the native `-webkit-tap-highlight-color: rgba(51,181,229,0.4)`, because the line setting it transparent was in the same swallowed rule.
+
+Measured rather than inferred: computed `backgroundColor` on the button was `rgb(107,107,107)` and its `webkitTapHighlightColor` was the Android default, on both the button and the links.
+
+**Why the icons still looked right.** The swallowed rule was also the only place these got `display:flex` and their width -- yet they rendered at the correct size throughout, which is what stopped this being obvious. `.nav-quick` is `display:contents` on mobile, so its children are flex items of the bar itself, and **flex items are blockified**, so `width` applied to an `<a>` that had no `display` rule left. The layout was correct by accident while the appearance was wrong.
+
+### The check that should have existed
+
+A missing `*/` is invisible: no console error, no failed selector, just CSS that quietly is not there. A scan of every `<style>` block for unterminated comments -- and for comments containing a `{`, which is almost always a comment that ate a rule -- found this one immediately, and confirmed it was the only one. Worth running after any scripted CSS edit; a comment that legitimately quotes CSS in prose shows up as a false positive and is easy to eyeball.
+
+### While in here
+
+- **`:hover` is now behind `@media (hover:hover)`.** On a touch screen the hover state latches onto whatever was tapped last and stays, so the rule left a box on the icon you had just used to navigate -- which is exactly what was reported. It only ever looked like a current-page indicator; **nothing in the app sets `.active` on these links**, so that half of the selector was dead CSS making an artifact look deliberate. Removed.
+- **`:active{opacity:.6}`** on the icons and the drawer button. Removing a tap highlight removes the only press feedback a control had, so it gets one that follows the icon rather than boxing it and ends when the finger lifts -- the same fix `.hamburger` already carries.
+- **The magnifier has no box in any state now**, including while its panel is open. The panel hanging below the bar is the feedback; a box on the icon as well was one more box to explain.
+- The drawer button got the same tap-highlight reset, since it is a button in the same bar and would have been reported next.
+
+Verified at 360 and 393 in both rows: gaps unchanged (13px signed in, 5px on the dashboard), no overflow, whole wordmark, and the button now computing `background: rgba(0,0,0,0)`, `border: 0px none`, `tapHighlight: rgba(0,0,0,0)` at rest and while open. Desktop untouched.
+
+Build `2026-09-19-v165`; no migration.
