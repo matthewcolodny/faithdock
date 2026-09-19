@@ -5741,3 +5741,44 @@ The room is a property of the **booking**, not of the event, and the buckets wer
 Verified by extracting the shipped source text of both changed blocks out of `index.html` and running them against a fixture built the way `fetchRoomBookings` builds one -- one object pushed into two buckets, asserted shared before the test runs, so the test cannot pass vacuously. The old line was run against the same fixture and reproduces the screenshot exactly (both rows `Classroom #3`). Single-room events checked as the negative case.
 
 Build `2026-09-18-v160`; no migration.
+
+## Event creation moved into the dashboard, and the three things that nearly broke
+
+Reported: creating an event on a phone, the drawer button disappeared partway through. Cause: the drawer button is shown by `body.on-dashboard`, set only when the route base is `dashboard`, and `create-event` was a page of its own. The only way back was a link at the top of a 300-line form, off screen the moment you scrolled.
+
+The form is now a `.dash-content` panel inside `#page-dashboard`. **The route did not change** -- `#create-event` and every `#create-event/<id>` edit link still resolve -- only the container it renders in. `go()` maps a small set of routes to a dashboard view:
+
+```js
+var DASH_ROUTE_VIEWS = { 'create-event': 'create-event' };
+var dashView  = DASH_ROUTE_VIEWS[baseRoute] || null;
+var pageRoute = dashView ? 'dashboard' : baseRoute;
+```
+
+Everything downstream keys off `pageRoute`, so the dashboard handling that already existed -- pricing content, panel loaders, `body.on-dashboard` -- applies to it exactly as to a tab, with no second copy of any of it.
+
+**Three things this would have broken, none of them visible without looking for them:**
+
+1. **`goDash` writes its own URL.** It ends with `safeHistoryUpdate(..., '#dashboard/' + view)`. Called from `go()` for a panel route, that `replaceState` overwrites the entry `go()` is about to write -- so Back from the form would have landed on `#dashboard/create-event`, a URL the person was never on. `goDash` took a third argument, `noHistory`, for callers that own the URL themselves. Verified directly: `#dashboard/events` -> form -> Back returns to `#dashboard/events`.
+
+2. **A `.dash-content` keeps its `active` class while the dashboard page is hidden.** Three handlers asked `page.classList.contains('active')` to mean "the form is on screen". Against a panel that is true from anywhere in the app, which would have armed the unsaved-changes prompt on unrelated pages. One function, `ceFormIsOnScreen()`, now owns the question and requires both the page and the panel.
+
+3. **The unsaved-changes guard could not see the drawer.** It matched `[data-route]` only. Drawer links carry `data-dash` -- and until this move the drawer was never on screen while the form was open, so leaving through it was impossible. It is now the main way out, and a tap on Directory would have thrown away a half-written event with no prompt. The selector covers the drawer attributes, and the containment test that used to exclude other pages' links is gone: while the form is on screen, every link matching is a way out of it, including the two Back links and the Upgrade link inside the form itself.
+
+Verified with a real typed keystroke (the dirty flag only trusts `isTrusted` events) and a stubbed `confirm`: all five exits -- drawer link, in-form Back, in-form Upgrade, top nav, quick icon -- prompt while dirty; a freshly opened form prompts on none of them. The first run of that test reported a false failure because it re-entered the form with `go()`, which does not reset the dirty flag -- the assertion was wrong, not the code.
+
+### A regression from v158, found while verifying this
+
+v158 put `min-width:0` on `.brand` unconditionally so the wordmark would absorb a shortfall rather than push the avatar off screen. That is right on a phone, where the brand is the only flexible thing in the row. It is wrong on a laptop: at 1024px the desktop nav is wide, and the brand was collapsing to **"F..."** while a search box sat beside it that is built to flex. `min-width:0` now applies only below 860px, where the desktop links are gone; above it the search box gives first, with tighter margins below 1100px.
+
+### Pre-existing, not introduced: the header overflows between 860 and about 1000px
+
+Measured at 900px while checking the above. Suspecting my own change, I served the pre-v158 file and measured it the same way rather than reasoning about it:
+
+| build | overflow at 900px | page scrolls sideways |
+| --- | --- | --- |
+| v157 (before any of this) | 163px | yes |
+| v161 (now) | 109px | no |
+
+So the band was already broken and is now less broken. The desktop nav, the search box and the brand all want the same row between the phone breakpoint and about 1000px. Left alone deliberately: the fix is a choice between hiding the search box in that band and raising the compact-nav breakpoint, and quietly picking one inside an unrelated change is how a layout acquires a workaround nobody can justify later.
+
+Build `2026-09-18-v161`; no migration.

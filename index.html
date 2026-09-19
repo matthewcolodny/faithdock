@@ -1203,7 +1203,7 @@
       'rte.linkUrlPrompt': 'Link URL (include https://)', 'rte.linksMustStartWith': 'Links must start with https:// or mailto:',
       'audience.preschool': 'Preschool', 'audience.children': 'Children', 'audience.teens': 'Teens', 'audience.adults': 'Adults', 'audience.seniors': 'Seniors', 'audience.parents': 'Parents',
       'ce.unsavedChangesConfirm': 'You have unsaved changes to this event. Leave without saving?',
-      'ce.backToDashboard': '← Back to my church', 'ce.newEvent': 'New event', 'ce.createAnEvent': 'Create an event', 'ce.editEvent': 'Edit event', 'ce.postsUnderChurchName': 'Posts under {church}.', 'ce.postingAs': 'Posting as',
+      'ce.backToDashboard': '← Back to events', 'ce.newEvent': 'New event', 'ce.createAnEvent': 'Create an event', 'ce.editEvent': 'Edit event', 'ce.postsUnderChurchName': 'Posts under {church}.', 'ce.postingAs': 'Posting as',
       'ce.advancedOptions': 'Advanced options', 'ce.advancedOptionsSub': 'registration, tickets, recurrence, and more',
       'ce.eventTitle': 'Event title', 'ce.eventTitlePlaceholder': 'Fall Community Picnic', 'ce.description': 'Description', 'ce.descriptionPlaceholder': "What's happening, who it's for",
       'ce.writingAssistant': 'Writing Assistant', 'ce.checkSpellingGrammar': 'Check Spelling and Grammar', 'ce.makeItFormal': 'Make it Formal', 'ce.makeItFriendly': 'Make it Friendly', 'ce.makeItInviting': 'Make it Inviting', 'ce.writeFromKeywords': 'Write from Keywords',
@@ -2211,7 +2211,7 @@
       'rte.linkUrlPrompt': 'URL del enlace (incluye https://)', 'rte.linksMustStartWith': 'Los enlaces deben comenzar con https:// o mailto:',
       'audience.preschool': 'Preescolar', 'audience.children': 'Niños', 'audience.teens': 'Adolescentes', 'audience.adults': 'Adultos', 'audience.seniors': 'Adultos mayores', 'audience.parents': 'Padres',
       'ce.unsavedChangesConfirm': 'Tienes cambios sin guardar en este evento. ¿Salir sin guardar?',
-      'ce.backToDashboard': '← Volver a mi iglesia', 'ce.newEvent': 'Nuevo evento', 'ce.createAnEvent': 'Crear un evento', 'ce.editEvent': 'Editar evento', 'ce.postsUnderChurchName': 'Se publica bajo {church}.', 'ce.postingAs': 'Publicando como',
+      'ce.backToDashboard': '← Volver a eventos', 'ce.newEvent': 'Nuevo evento', 'ce.createAnEvent': 'Crear un evento', 'ce.editEvent': 'Editar evento', 'ce.postsUnderChurchName': 'Se publica bajo {church}.', 'ce.postingAs': 'Publicando como',
       'ce.advancedOptions': 'Opciones avanzadas', 'ce.advancedOptionsSub': 'inscripción, entradas, repetición y más',
       'ce.eventTitle': 'Título del evento', 'ce.eventTitlePlaceholder': 'Picnic comunitario de otoño', 'ce.description': 'Descripción', 'ce.descriptionPlaceholder': 'Qué va a pasar, para quién es',
       'ce.writingAssistant': 'Asistente de escritura', 'ce.checkSpellingGrammar': 'Revisar ortografía y gramática', 'ce.makeItFormal': 'Hacerlo formal', 'ce.makeItFriendly': 'Hacerlo amigable', 'ce.makeItInviting': 'Hacerlo atractivo', 'ce.writeFromKeywords': 'Escribir a partir de palabras clave',
@@ -2765,7 +2765,7 @@
     display:flex;align-items:center;justify-content:space-between;
     height:72px;
   }
-  .brand{display:flex;align-items:center;gap:12px;min-width:0;}
+  .brand{display:flex;align-items:center;gap:12px;}
   .brand-mark{width:36px;height:36px;background:transparent;
     display:flex;align-items:center;justify-content:center;flex-shrink:0;}
   .brand-mark svg{width:106%;height:106%;}
@@ -2880,6 +2880,11 @@
   }
   .nav-search input::placeholder{color:#8791A5;}
   @media (max-width:760px){ .nav-search{display:none;} }
+  /* Between the widest phone and a roomy laptop the desktop nav, the
+     search box and the brand all want the same row. The search box
+     gives first -- it is the one built to flex, and a narrower search
+     field costs nothing, where a truncated wordmark is the brand. */
+  @media (max-width:1100px){ .nav-search{margin:0 12px;min-width:110px;} }
 
   /* ---- section divider ---- */
   .arch-divider{display:flex;align-items:center;margin:56px 0 40px;}
@@ -3851,6 +3856,11 @@
        icons, which is what finally pushed the row past a 360px screen. */
     .navbar{padding:0 12px;gap:6px;}
     .brand-name{font-size:19px;}
+    /* Only here. Below 860px the desktop links are gone and the row
+       is menu, brand, icons, account -- the brand is the one piece
+       that can give, which is the whole point. Above this width the
+       search box gives instead and the wordmark stays whole. */
+    .brand{min-width:0;}
   }
   /* The ellipsis above means the bar can no longer break -- but an
      ellipsised wordmark is a poor consolation, so on an actual phone
@@ -6389,10 +6399,87 @@ Groups</span>
   </div>
 </section>
 
-<section class="page" id="page-create-event">
-  <div class="auth-wrap" style="max-width:560px;">
-    <div class="auth-card">
-      <a href="#dashboard/events" data-route="dashboard/events" style="display:inline-block;font-size:12.5px;color:var(--ink-mute);border-bottom:1px solid var(--line);margin-bottom:14px;" data-i18n="ce.backToDashboard">← Back to my church</a>
+<!-- ================= DASHBOARD ================= -->
+<section class="page" id="page-dashboard">
+  <div class="dash">
+    <!-- Closes the drawer on a tap outside it. A drawer with no way
+         out except the exact button that opened it is a trap on a
+         touch screen. -->
+    <div class="dash-scrim" id="dash-scrim"></div>
+    <div class="dash-side">
+      <!-- Multi-church owner only: jump back to the Overview grid from a church view -->
+      <!-- Multi-church owner only: sidebar heading while on the account-level Overview -->
+      <div id="dash-overview-header" style="display:none;">
+        <div class="dash-church" data-i18n="dash.overview">Overview</div>
+        <div class="dash-tag" data-i18n="dash.overviewTag">ALL CHURCHES</div>
+      </div>
+      <div id="dash-church-context">
+        <div class="dash-church" id="dash-church-name">Loading...</div>
+        <select id="dash-church-switcher" style="display:none;width:100%;margin-top:8px;margin-bottom:8px;background:#1a2740;color:#fff;border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:6px 8px;font-size:12.5px;"></select>
+      </div>
+      <div class="dash-nav" id="dash-nav-church">
+        <a data-dash="events" class="active" data-i18n="dash.events">Events</a>
+        <a data-dash="checkin" data-i18n="dash.checkin">Check-In</a>
+        <a data-dash="directory" data-i18n="dash.directory">Directory</a>
+        <a data-dash="messages" data-i18n="dash.messages">Messages</a>
+        <a data-dash="facility" data-i18n="dash.facility">Facility</a>
+        <a data-dash="ministries" data-i18n="dash.ministries">Ministries</a>
+        <a data-dash="groups"><span data-i18n="dash.groups">Groups</span> <span id="dash-groups-nav-badge" class="tag clay" style="display:none;font-size:9px;padding:2px 6px;vertical-align:2px;"></span></a>
+        <a data-dash="giving" data-i18n="dash.revenue">Revenue</a>
+        <a data-dash="insights" data-i18n="insights.title">Insights</a>
+        <a data-dash="staff" data-i18n="dash.staff">Staff</a>
+        <a data-dash="billing" data-i18n="dash.billing">Billing</a>
+        <a data-dash="plans" data-i18n="dash.plans">Plans</a>
+        <a data-dash="settings" data-i18n="dash.settings">Settings</a>
+      </div>
+      <!-- Second level. Rendered from DASH_SECTIONS rather than
+           written out per section, so a section's pages are declared
+           once and the sidebar, the routing and the back link all
+           read from the same place. -->
+      <div class="dash-nav" id="dash-nav-sub" style="display:none;"></div>
+      <!-- Multi-church owner only: account-level nav shown on the Overview -->
+      <div class="dash-nav" id="dash-nav-overview" style="display:none;">
+        <a id="dash-ov-overview" data-i18n="dash.overview">Overview</a>
+        <a id="dash-ov-billing" data-i18n="dash.billing">Billing</a>
+        <a id="dash-ov-plans" data-i18n="dash.plans">Plans</a>
+      </div>
+      <!-- Aligned with the nav items rather than floated below them:
+           same padding, same font size, same left edge, so the column
+           reads as one list that ends in Sign out. The divider above
+           is what keeps it from looking like another destination. -->
+      <button id="dash-signout-btn" data-i18n="dash.signout">Sign out</button>
+    </div>
+    <div class="dash-main">
+
+      <!-- Multi-church owner only: account-level Overview -- the churches
+           they own as a grid, plus a tile to add another. -->
+      <div class="dash-content" id="dash-churches">
+        <h2 style="font-size:24px;margin-bottom:8px;" data-i18n="dash.yourChurches">Your churches</h2>
+        <p style="color:var(--ink-mute);font-size:14px;margin-bottom:24px;" data-i18n="dash.overviewSubtitle">Pick a church to manage it, or add another.</p>
+        <div class="stat-row" id="dash-churches-summary" style="display:none;"></div>
+        <div id="dash-churches-grid" class="church-tile-grid"></div>
+        <!-- Requested: a way to see event data per church from the
+             all-churches overview. Deliberately mirrors the staff-by-
+             church section below (same card/row classes) rather than
+             inventing a second layout for the same "one card per
+             church, rows inside" idea. -->
+        <h3 id="dash-churches-events-heading" style="font-size:16px;margin:40px 0 14px;display:none;" data-i18n="dashOverview.eventsByChurch">Events by church</h3>
+        <div id="dash-churches-events"></div>
+        <h3 id="dash-churches-staff-heading" style="font-size:16px;margin:40px 0 14px;display:none;" data-i18n="dashOverview.staffByChurch">Staff by church</h3>
+        <div id="dash-churches-staff"></div>
+      </div>
+
+      <!-- Creating an event is a dashboard task -- it is reached from
+           the Events panel and returns to it -- so it is a panel here
+           rather than a page of its own. As its own page the drawer
+           button was hidden the whole time the form was open (it is
+           shown by body.on-dashboard) and the only way back was a
+           link at the top of a long form, off screen the moment you
+           scrolled. The route and every #create-event/<id> edit link
+           are unchanged; only where it renders moved. -->
+      <div class="dash-content" id="dash-create-event">
+        <div style="max-width:560px;">
+      <a href="#dashboard/events" data-route="dashboard/events" style="display:inline-block;font-size:12.5px;color:var(--ink-mute);border-bottom:1px solid var(--line);margin-bottom:14px;" data-i18n="ce.backToDashboard">← Back to events</a>
       <div class="eyebrow" data-i18n="ce.newEvent">New event</div>
       <h2 style="font-family:'Fraunces';font-size:22px;margin-bottom:6px;" id="ce-heading" data-i18n="ce.createAnEvent">Create an event</h2>
       <div id="ce-church-picker-wrap" style="display:none;margin-bottom:8px;">
@@ -6690,79 +6777,8 @@ Groups</span>
         <button class="export-btn" id="ce-save-draft-btn" style="flex:1;justify-content:center;padding:13px;font-size:14.5px;margin-top:0;box-sizing:border-box;" data-i18n="ce.saveAsDraft">Save as draft</button>
         <button class="auth-submit" id="ce-submit-btn" style="flex:1;margin-top:0;box-sizing:border-box;" data-i18n="ce.publish">Publish</button>
       </div>
-      <div class="auth-note"><a href="#dashboard/events" data-route="dashboard/events" style="border-bottom:1px solid var(--gold);" data-i18n="ce.backToDashboard">← Back to my church</a></div>
-    </div>
-  </div>
-</section>
-
-<!-- ================= DASHBOARD ================= -->
-<section class="page" id="page-dashboard">
-  <div class="dash">
-    <!-- Closes the drawer on a tap outside it. A drawer with no way
-         out except the exact button that opened it is a trap on a
-         touch screen. -->
-    <div class="dash-scrim" id="dash-scrim"></div>
-    <div class="dash-side">
-      <!-- Multi-church owner only: jump back to the Overview grid from a church view -->
-      <!-- Multi-church owner only: sidebar heading while on the account-level Overview -->
-      <div id="dash-overview-header" style="display:none;">
-        <div class="dash-church" data-i18n="dash.overview">Overview</div>
-        <div class="dash-tag" data-i18n="dash.overviewTag">ALL CHURCHES</div>
-      </div>
-      <div id="dash-church-context">
-        <div class="dash-church" id="dash-church-name">Loading...</div>
-        <select id="dash-church-switcher" style="display:none;width:100%;margin-top:8px;margin-bottom:8px;background:#1a2740;color:#fff;border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:6px 8px;font-size:12.5px;"></select>
-      </div>
-      <div class="dash-nav" id="dash-nav-church">
-        <a data-dash="events" class="active" data-i18n="dash.events">Events</a>
-        <a data-dash="checkin" data-i18n="dash.checkin">Check-In</a>
-        <a data-dash="directory" data-i18n="dash.directory">Directory</a>
-        <a data-dash="messages" data-i18n="dash.messages">Messages</a>
-        <a data-dash="facility" data-i18n="dash.facility">Facility</a>
-        <a data-dash="ministries" data-i18n="dash.ministries">Ministries</a>
-        <a data-dash="groups"><span data-i18n="dash.groups">Groups</span> <span id="dash-groups-nav-badge" class="tag clay" style="display:none;font-size:9px;padding:2px 6px;vertical-align:2px;"></span></a>
-        <a data-dash="giving" data-i18n="dash.revenue">Revenue</a>
-        <a data-dash="insights" data-i18n="insights.title">Insights</a>
-        <a data-dash="staff" data-i18n="dash.staff">Staff</a>
-        <a data-dash="billing" data-i18n="dash.billing">Billing</a>
-        <a data-dash="plans" data-i18n="dash.plans">Plans</a>
-        <a data-dash="settings" data-i18n="dash.settings">Settings</a>
-      </div>
-      <!-- Second level. Rendered from DASH_SECTIONS rather than
-           written out per section, so a section's pages are declared
-           once and the sidebar, the routing and the back link all
-           read from the same place. -->
-      <div class="dash-nav" id="dash-nav-sub" style="display:none;"></div>
-      <!-- Multi-church owner only: account-level nav shown on the Overview -->
-      <div class="dash-nav" id="dash-nav-overview" style="display:none;">
-        <a id="dash-ov-overview" data-i18n="dash.overview">Overview</a>
-        <a id="dash-ov-billing" data-i18n="dash.billing">Billing</a>
-        <a id="dash-ov-plans" data-i18n="dash.plans">Plans</a>
-      </div>
-      <!-- Aligned with the nav items rather than floated below them:
-           same padding, same font size, same left edge, so the column
-           reads as one list that ends in Sign out. The divider above
-           is what keeps it from looking like another destination. -->
-      <button id="dash-signout-btn" data-i18n="dash.signout">Sign out</button>
-    </div>
-    <div class="dash-main">
-
-      <!-- Multi-church owner only: account-level Overview -- the churches
-           they own as a grid, plus a tile to add another. -->
-      <div class="dash-content" id="dash-churches">
-        <h2 style="font-size:24px;margin-bottom:8px;" data-i18n="dash.yourChurches">Your churches</h2>
-        <p style="color:var(--ink-mute);font-size:14px;margin-bottom:24px;" data-i18n="dash.overviewSubtitle">Pick a church to manage it, or add another.</p>
-        <div class="stat-row" id="dash-churches-summary" style="display:none;"></div>
-        <div id="dash-churches-grid" class="church-tile-grid"></div>
-        <!-- Requested: a way to see event data per church from the
-             all-churches overview. Deliberately mirrors the staff-by-
-             church section below (same card/row classes) rather than
-             inventing a second layout for the same "one card per
-             church, rows inside" idea. -->
-        <h3 id="dash-churches-events-heading" style="font-size:16px;margin:40px 0 14px;display:none;" data-i18n="dashOverview.eventsByChurch">Events by church</h3>
-        <div id="dash-churches-events"></div>
-        <h3 id="dash-churches-staff-heading" style="font-size:16px;margin:40px 0 14px;display:none;" data-i18n="dashOverview.staffByChurch">Staff by church</h3>
-        <div id="dash-churches-staff"></div>
+      <div class="auth-note"><a href="#dashboard/events" data-route="dashboard/events" style="border-bottom:1px solid var(--gold);" data-i18n="ce.backToDashboard">← Back to events</a></div>
+        </div>
       </div>
 
       <div class="dash-content active" id="dash-events">
@@ -8268,7 +8284,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v160 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v161 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -10065,6 +10081,12 @@ Groups</span>
   // normalised to #my-lists, so the two cannot disagree.
   var LISTS_TAB_FOR_ROUTE = { 'my-churches': 'churches', 'my-events': 'events', 'my-groups': 'groups' };
 
+  // Routes that render as a dashboard PANEL rather than a page of
+  // their own. The route keeps its own URL, so every existing link,
+  // bookmark and #create-event/<id> edit link still resolves; only
+  // the container it renders in has changed.
+  var DASH_ROUTE_VIEWS = { 'create-event': 'create-event' };
+
   function go(route, skipPush){
     // Real, reported bug: unfollowing a church from My Churches, then
     // navigating away (even just clicking the church's own name to view
@@ -10140,11 +10162,21 @@ Groups</span>
     // 'dashboard' (any sub-tab) must never yank the pricing content
     // out from under an already-active Plans tab; goDash() below
     // handles the move whenever the tab itself actually changes.
-    if(baseRoute !== 'dashboard'){ restorePricingContentToStandalonePage(); }
+    // A panel route shows the dashboard page and picks the panel.
+    // Everything below keys off pageRoute rather than baseRoute, so
+    // the dashboard handling it already has -- pricing content, panel
+    // loaders, body.on-dashboard -- applies to it as to any tab.
+    var dashView = DASH_ROUTE_VIEWS[baseRoute] || null;
+    var pageRoute = dashView ? 'dashboard' : baseRoute;
+    if(pageRoute !== 'dashboard'){ restorePricingContentToStandalonePage(); }
     var pages = document.querySelectorAll('.page');
     for(var i=0;i<pages.length;i++){ pages[i].classList.remove('active'); }
-    var target = document.getElementById('page-'+baseRoute);
+    var target = document.getElementById('page-'+pageRoute);
     if(target) target.classList.add('active');
+    // Third argument: leave history alone. goDash normally writes
+    // #dashboard/<view>, which here would overwrite the entry go() is
+    // about to write and leave Back pointing at a URL nobody visited.
+    if(dashView && typeof window.goDash === 'function'){ window.goDash(dashView, true, true); }
     var links = document.querySelectorAll('nav.links a');
     for(var j=0;j<links.length;j++){
       if(links[j].getAttribute('data-route')===baseRoute){ links[j].classList.add('active'); }
@@ -10161,7 +10193,7 @@ Groups</span>
     // defines it, so on a direct load of another page this is simply
     // absent -- and dashPanel() covers the direct-#dashboard case
     // itself for the same reason.
-    if(baseRoute === 'dashboard' && typeof window.runDashboardPanels === 'function'){ window.runDashboardPanels(); }
+    if(pageRoute === 'dashboard' && typeof window.runDashboardPanels === 'function'){ window.runDashboardPanels(); }
     // Inside go() itself, not in the [data-route] click handler.
     //
     // The click handler only sees clicks. go() is also called
@@ -10175,7 +10207,9 @@ Groups</span>
     // direct URL, which do not come through here. Two entry points,
     // two calls, one implementation each -- the click handler is not
     // a third.
-    if (typeof window.applyRouteBodyClasses === 'function') window.applyRouteBodyClasses(baseRoute);
+    // pageRoute, not baseRoute: this is what puts the drawer button in
+    // the nav, and on a panel route the drawer is the point.
+    if (typeof window.applyRouteBodyClasses === 'function') window.applyRouteBodyClasses(pageRoute);
     if (typeof window.runRouteEntryLoaders === 'function') window.runRouteEntryLoaders(baseRoute);
     if(skipPush){
       safeHistoryUpdate(true, '#'+route);
@@ -11401,6 +11435,7 @@ Groups</span>
       label: 'dash.events',
       views: [
         { v: 'events',           l: 'dashSub.eventList' },
+        { v: 'create-event',     l: 'dashEvents.createEvent', hide: true },
         { v: 'events-reports',   l: 'dashSub.reports' },
         { v: 'events-settings',  l: 'dashSub.settings' }
       ]
@@ -11644,7 +11679,7 @@ Groups</span>
     var parent = dashLevelParent(level);
     var html = parent ? '<a class="dash-back" data-dash-up="' + escapeHtml(parent) + '">&lsaquo; ' + escapeHtml(window.t('dashSub.mainMenu')) + '</a>' : '';
     html += '<div class="dash-sub-heading">' + escapeHtml(dashLevelTitle(level)) + '</div>';
-    html += entries.map(function(entry){
+    html += entries.filter(function(entry){ return !entry.hide; }).map(function(entry){
       var label = entry.text !== undefined ? entry.text : window.t(entry.l);
       var attr = entry.church ? ' data-dash-church="' + escapeHtml(entry.church) + '"'
                : entry.level  ? ' data-dash-level="' + escapeHtml(entry.level) + '"'
@@ -11809,7 +11844,9 @@ Groups</span>
   // handles every level now, and going up still leaves the page you
   // were reading alone -- only the menu moves.
 
-  function goDash(view, skipPush){
+  // noHistory: the caller is writing the URL itself. Used by go() for
+  // a panel route, whose URL is its own route and not #dashboard/x.
+  function goDash(view, skipPush, noHistory){
     var panels = document.querySelectorAll('.dash-content');
     for(var i=0;i<panels.length;i++){ panels[i].classList.remove('active'); }
     var panel = document.getElementById('dash-'+view);
@@ -11873,6 +11910,11 @@ Groups</span>
       // empty list on purpose rather than omitted: this map is meant
       // to be read as the complete set of views, and a view missing
       // from it is what caused the Billing bug.
+      // Empty on purpose, not an omission: the loaders for this panel
+      // take arguments (loadEventRoomChecklist([], null)) so they
+      // cannot be called from this map. resetCreateEventForm runs them
+      // for the button, showRouteFromHash for a direct URL.
+      'create-event':       [],
       'events-reports':     [],
       'events-settings':    ['loadSectionSettings'],
       'directory-reports':  ['loadRecentlyJoinedPanel', 'loadPendingInvitesPanel', 'loadDuplicatesPanel'],
@@ -11947,7 +11989,9 @@ Groups</span>
     } else {
       restorePricingContentToStandalonePage();
     }
-    if(skipPush){
+    if(noHistory){
+      /* the caller owns the URL */
+    } else if(skipPush){
       safeHistoryUpdate(true, '#dashboard/'+view);
     } else {
       safeHistoryUpdate(false, '#dashboard/'+view);
@@ -19235,9 +19279,19 @@ Groups</span>
   // false for anything dispatched from code -- so populating fields
   // programmatically cannot mark the form dirty no matter when it
   // happens, while a keystroke or a click on a checkbox always does.
+  // Both must be active: the panel keeps its .active class while the
+  // dashboard page is hidden, so the panel alone is not 'on screen'.
+  window.ceFormIsOnScreen = function(){
+    var page = document.getElementById('page-dashboard');
+    var panel = document.getElementById('dash-create-event');
+    return !!(page && panel
+      && page.classList.contains('active')
+      && panel.classList.contains('active'));
+  };
+
   var ceUserEdited = false;
   (function watchForRealEdits(){
-    var page = document.getElementById('page-create-event');
+    var page = document.getElementById('dash-create-event');
     if (!page) return;
     function onEdit(ev){ if (ev.isTrusted) ceUserEdited = true; }
     // Capture phase, so it still sees events on elements that were
@@ -19254,12 +19308,17 @@ Groups</span>
   // Intercepts in the capture phase, ahead of the generic
   // [data-route] handler, so the navigation can be stopped before it
   // starts rather than undone afterwards.
+  var CE_LEAVE_SELECTOR = '[data-route],[data-dash],[data-dash-level],[data-dash-church],[data-dash-up]';
   document.addEventListener('click', function(ev){
-    var link = ev.target.closest ? ev.target.closest('[data-route]') : null;
+    var link = ev.target.closest ? ev.target.closest(CE_LEAVE_SELECTOR) : null;
     if (!link) return;
-    var page = document.getElementById('page-create-event');
-    if (!page || !page.classList.contains('active')) return;
-    if (page.contains(link) === false && !link.closest('nav')) return;
+    if (!window.ceFormIsOnScreen()) return;
+    // No containment test any more. The old one existed to ignore
+    // links belonging to other, hidden pages, back when this form WAS
+    // a page. Now every link matching the selector while the form is
+    // on screen is a way out of it -- the two Back links and the
+    // Upgrade link inside the form just as much as the drawer and the
+    // top nav -- so all of them ask.
     if (!window.createEventFormIsDirty()) return;
     if (!window.confirm(window.t('ce.unsavedChangesConfirm'))) {
       ev.preventDefault();
@@ -19274,8 +19333,7 @@ Groups</span>
   // Covers refresh and tab-close, which no click handler can see. The
   // browser shows its own wording here; returnValue is what opts in.
   window.addEventListener('beforeunload', function(ev){
-    var page = document.getElementById('page-create-event');
-    if (!page || !page.classList.contains('active')) return;
+    if (!window.ceFormIsOnScreen()) return;
     if (!window.createEventFormIsDirty()) return;
     ev.preventDefault();
     ev.returnValue = '';
@@ -22701,7 +22759,7 @@ Groups</span>
   // time the form opens and re-binding per render is how a listener
   // ends up attached three times.
   (function bindCeConflictWatch(){
-    var page = document.getElementById('page-create-event');
+    var page = document.getElementById('dash-create-event');
     if (!page) return;
     page.addEventListener('change', function(ev){
       var t = ev.target;
