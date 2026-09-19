@@ -848,6 +848,10 @@
       'days.thursday': 'Thursday', 'days.friday': 'Friday', 'days.saturday': 'Saturday',
       'dashGroups.noTimeSet': 'No time set yet', 'dashGroups.repeatUntil': 'Repeat until (optional)', 'dashGroups.skipDates': 'Skip specific dates',
       'dashGroups.skipDatesHint': 'e.g. skip a holiday — pick the date and press Add.', 'dashGroups.add': 'Add',
+      'dashGroups.groupImage': 'Group image',
+      'groupsPage.followGroup': 'Follow this group',
+      'loginRequired.followGroup': 'Sign in to follow this group and keep an eye on it.',
+      'groupsPage.viewCards': 'Cards', 'groupsPage.viewList': 'List',
       'dashGroups.whoCanSeeGroup': 'Who can see this group?',
       'dashGroups.visPublic': 'Anyone \u2014 shows on your church page and in group search',
       'dashGroups.visMembers': 'Members of this church only',
@@ -1852,6 +1856,10 @@
       'days.thursday': 'Jueves', 'days.friday': 'Viernes', 'days.saturday': 'Sábado',
       'dashGroups.noTimeSet': 'Aún no hay hora establecida', 'dashGroups.repeatUntil': 'Repetir hasta (opcional)', 'dashGroups.skipDates': 'Omitir fechas específicas',
       'dashGroups.skipDatesHint': 'p. ej. omitir un feriado — elige la fecha y presiona Agregar.', 'dashGroups.add': 'Agregar',
+      'dashGroups.groupImage': 'Imagen del grupo',
+      'groupsPage.followGroup': 'Seguir este grupo',
+      'loginRequired.followGroup': 'Inicia sesión para seguir este grupo y estar al tanto.',
+      'groupsPage.viewCards': 'Tarjetas', 'groupsPage.viewList': 'Lista',
       'dashGroups.whoCanSeeGroup': '¿Quién puede ver este grupo?',
       'dashGroups.visPublic': 'Cualquiera \u2014 aparece en la página de tu iglesia y en la búsqueda de grupos',
       'dashGroups.visMembers': 'Solo los miembros de esta iglesia',
@@ -4615,7 +4623,22 @@
       <span id="groups-location-status" style="font-size:13px;color:var(--ink-mute);"></span>
     </div>
 
-    <div id="groups-results" style="margin-top:28px;">
+    <!-- The directory's own toggle classes, not a second set. If that
+         control is ever restyled this follows, which is the whole
+         point of not inventing another one. -->
+    <div style="display:flex;justify-content:flex-end;margin-top:20px;">
+      <div class="dir-view-toggle" role="group" data-i18n-title="directory.viewToggleLabel" title="View">
+        <button type="button" class="dir-view-btn is-active" data-groups-view="cards" aria-pressed="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          <span data-i18n="groupsPage.viewCards">Cards</span>
+        </button>
+        <button type="button" class="dir-view-btn" data-groups-view="list" aria-pressed="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3.5" y1="6" x2="3.51" y2="6"/><line x1="3.5" y1="12" x2="3.51" y2="12"/><line x1="3.5" y1="18" x2="3.51" y2="18"/></svg>
+          <span data-i18n="groupsPage.viewList">List</span>
+        </button>
+      </div>
+    </div>
+    <div id="groups-results" style="margin-top:16px;">
       <p style="color:var(--ink-mute);font-size:14px;" data-i18n="common.loading">Loading...</p>
     </div>
     <div style="margin-top:20px;">
@@ -7554,6 +7577,22 @@ Groups</span>
             </div>
             <div id="group-exceptions-list" class="chip-list"></div>
           </div>
+          <!-- Same three-part control the event graphic and church
+               logo use: a preview that doubles as the remove target, a
+               hidden file input behind a styled label, and the chosen
+               filename. Reused rather than restyled so all three
+               uploads stay one control. -->
+          <div style="margin-bottom:12px;">
+            <label data-i18n="dashGroups.groupImage">Group image</label>
+            <div style="display:flex;align-items:center;gap:12px;position:relative;">
+              <div id="group-image-preview" style="position:relative;width:64px;height:64px;border-radius:10px;background:var(--paper);border:1px solid var(--line);flex-shrink:0;background-size:cover;background-position:center;">
+                <button type="button" id="group-image-remove-btn" aria-label="Remove image" data-i18n-title="ce.removeImage" title="Remove image" style="display:none;position:absolute;top:-8px;left:-8px;width:20px;height:20px;border-radius:50%;background:var(--clay);color:#fff;border:2px solid var(--paper);font-size:13px;line-height:1;cursor:pointer;align-items:center;justify-content:center;padding:0;">&times;</button>
+              </div>
+              <input type="file" id="group-image" accept="image/*" style="position:absolute;width:1px;height:1px;overflow:hidden;opacity:0;">
+              <label for="group-image" class="export-btn" style="cursor:pointer;padding:9px 14px;white-space:nowrap;" data-i18n="rc.chooseFile">Choose file</label>
+              <span id="group-image-filename" style="font-size:13px;color:var(--ink-mute);" data-i18n="rc.noFileChosen">No file chosen</span>
+            </div>
+          </div>
           <div>
             <label data-i18n="dashGroups.whoCanSeeGroup">Who can see this group?</label>
             <select class="field" id="group-visibility">
@@ -8198,7 +8237,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v155 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v156 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -8708,6 +8747,20 @@ Groups</span>
   }
   window.followHeartEvent = followHeartEvent;
 
+  // Following a GROUP. Same heart, same class, same optimistic
+  // behaviour as the church and event ones -- to somebody using the
+  // site it is the same gesture and should look identical.
+  //
+  // Following is NOT membership: an invite-only group can be followed
+  // by somebody who cannot join it, which is arguably when following
+  // matters most. The join button beside it is the other thing.
+  function followHeartGroup(g){
+    if (!g || !g.id) return '';
+    var isFollowing = !!(window.myFollowedGroupIds && window.myFollowedGroupIds.indexOf(g.id) !== -1);
+    return '<button type="button" class="follow-heart-card" data-follow-group-id="' + escapeHtml(g.id) + '" data-following="' + isFollowing + '" aria-label="' + escapeHtml(window.t('groupsPage.followGroup')) + '" title="' + escapeHtml(window.t('groupsPage.followGroup')) + '">' + HEART_ICON + '</button>';
+  }
+  window.followHeartGroup = followHeartGroup;
+
   function followHeartRow(c){
     if (!c || !c.real || !c.id) return '';
     var isFollowing = !!(window.myFollowedChurchIds && window.myFollowedChurchIds.indexOf(c.id) !== -1);
@@ -9104,6 +9157,72 @@ Groups</span>
     window.pendingListsTab = null;
     window.showListsTab(want);
   };
+
+  // ---- The group form's image ------------------------------------
+  // Same shape as the event graphic: HEIC is refused before anything
+  // else (or converted, where the browser can), the picture goes
+  // through the cropper, and the result is held beside the input
+  // because a FileList cannot be rewritten.
+  var groupImageInput = document.getElementById('group-image');
+  if (groupImageInput) {
+    groupImageInput.addEventListener('change', async function(){
+      var file = this.files[0];
+      var filenameEl = document.getElementById('group-image-filename');
+      var removeBtn = document.getElementById('group-image-remove-btn');
+      if (!file) {
+        filenameEl.setAttribute('data-i18n', 'rc.noFileChosen');
+        filenameEl.textContent = window.t('rc.noFileChosen');
+        return;
+      }
+      try {
+        file = await window.prepareUploadFile(file, function(msg){
+          if (!msg) return;
+          filenameEl.removeAttribute('data-i18n');
+          filenameEl.textContent = msg;
+        });
+      } catch (convErr) {
+        groupImageInput.value = '';
+        window.groupImageEditedFile = null;
+        filenameEl.setAttribute('data-i18n', 'rc.noFileChosen');
+        filenameEl.textContent = window.uploadFailureMessage(convErr);
+        return;
+      }
+      // 16:9 at 1600, matching the event graphic -- a group card shows
+      // the same shape in the same grid, so a different aspect here
+      // would make the two look unrelated side by side.
+      var cropped = await window.openImageCropper(file, { aspect: 16 / 9, outputWidth: 1600 });
+      if (cropped === null) {
+        groupImageInput.value = '';
+        window.groupImageEditedFile = null;
+        filenameEl.setAttribute('data-i18n', 'rc.noFileChosen');
+        filenameEl.textContent = window.t('rc.noFileChosen');
+        return;
+      }
+      window.groupImageEditedFile = cropped;
+      window.groupImageMarkedForRemoval = false;
+      filenameEl.removeAttribute('data-i18n');
+      filenameEl.textContent = cropped.name;
+      document.getElementById('group-image-preview').style.backgroundImage = "url('" + URL.createObjectURL(cropped) + "')";
+      if (removeBtn) removeBtn.style.display = 'flex';
+    });
+  }
+
+  var groupImageRemoveBtn = document.getElementById('group-image-remove-btn');
+  if (groupImageRemoveBtn) {
+    groupImageRemoveBtn.addEventListener('click', function(){
+      // Marked rather than cleared: the save path has to tell 'left
+      // alone' apart from 'deliberately removed', or editing a group's
+      // name would wipe its picture.
+      window.groupImageMarkedForRemoval = true;
+      window.groupImageEditedFile = null;
+      document.getElementById('group-image').value = '';
+      document.getElementById('group-image-preview').style.backgroundImage = '';
+      var fn = document.getElementById('group-image-filename');
+      fn.setAttribute('data-i18n', 'rc.noFileChosen');
+      fn.textContent = window.t('rc.noFileChosen');
+      groupImageRemoveBtn.style.display = 'none';
+    });
+  }
 
   window.showListsTab = function(name){
     if (!LISTS_TAB_LOADERS[name]) name = 'churches';
@@ -11035,7 +11154,7 @@ Groups</span>
     // stop other listeners bound to the SAME element -- both handlers
     // are on `document` -- so the only thing that actually keeps a
     // card's navigation from firing is this explicit bail-out.
-    if(ev.target.closest && (ev.target.closest('.register-real-btn') || ev.target.closest('.qr-btn') || ev.target.closest('.group-join-btn') || ev.target.closest('#waitlist-banner-close') || ev.target.closest('[data-follow-church-id]') || ev.target.closest('[data-follow-event-id]'))){
+    if(ev.target.closest && (ev.target.closest('.register-real-btn') || ev.target.closest('.qr-btn') || ev.target.closest('.group-join-btn') || ev.target.closest('#waitlist-banner-close') || ev.target.closest('[data-follow-church-id]') || ev.target.closest('[data-follow-event-id]') || ev.target.closest('[data-follow-group-id]'))){
       return;
     }
     var el = ev.target.closest ? ev.target.closest('[data-route]') : null;
@@ -12501,6 +12620,7 @@ Groups</span>
     if (!userData.user) {
       window.myFollowedChurchIds = [];
       window.myFollowedEventIds = [];
+      window.myFollowedGroupIds = [];
       window.myChurchHomeId = null;
       followedWrap.style.display = 'none';
       homeWrap.style.display = 'none';
@@ -12556,7 +12676,17 @@ Groups</span>
       if (typeof window.refreshEventsCardsText === 'function') window.refreshEventsCardsText();
       if (typeof window.refreshHomeEventsText === 'function') window.refreshHomeEventsText();
     });
-    await Promise.all([followPromise, homePromise, eventFollowPromise]);
+    // Fourth independent query, alongside the other three and for the
+    // same reason: a group heart should not wait on an unrelated
+    // church-membership lookup before it stops showing its signed-out
+    // empty state.
+    var groupFollowPromise = window.supabase.from('group_follows').select('group_id').eq('user_id', userData.user.id).then(function(res){
+      window.myFollowedGroupIds = (res.data || []).map(function(r){ return r.group_id; });
+      // Repaint whatever group surface is showing, so hearts arrive
+      // filled rather than on the next navigation.
+      if (typeof window.repaintGroupsView === 'function') window.repaintGroupsView();
+    });
+    await Promise.all([followPromise, homePromise, eventFollowPromise, groupFollowPromise]);
   }
   window.loadEventFilterFollowState = loadEventFilterFollowState;
 
@@ -24091,9 +24221,59 @@ Groups</span>
                        : window.t('groupsPage.memberCount').replace('{n}', count);
   }
 
+  // Which view is showing. Remembered per browser, like the
+  // directory's, so somebody who prefers the list is not put back on
+  // cards by every visit. Wrapped because storage throws in a private
+  // window, and a view preference is not worth an exception.
+  function groupsView(){
+    try { return localStorage.getItem('faithdock_groups_view') === 'list' ? 'list' : 'cards'; }
+    catch (e) { return 'cards'; }
+  }
+  function setGroupsView(v){
+    try { localStorage.setItem('faithdock_groups_view', v); } catch (e) {}
+  }
+
+  // The rows currently on screen, kept so switching view repaints
+  // without a second round trip -- the same thing the directory does.
+  var groupsLastRows = [];
+  var groupsLastMemberships = {};
+
+  window.repaintGroupsView = function(){
+    if (!groupsLastRows.length) return;
+    renderGroupSearchCards(groupsLastRows, groupsLastMemberships, false);
+  };
+
+  function syncGroupsViewButtons(){
+    var v = groupsView();
+    document.querySelectorAll('[data-groups-view]').forEach(function(btn){
+      var on = btn.getAttribute('data-groups-view') === v;
+      btn.classList.toggle('is-active', on);
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+  }
+  document.addEventListener('click', function(ev){
+    var btn = ev.target.closest ? ev.target.closest('[data-groups-view]') : null;
+    if (!btn) return;
+    var v = btn.getAttribute('data-groups-view') === 'list' ? 'list' : 'cards';
+    if (v === groupsView()) return;
+    setGroupsView(v);
+    syncGroupsViewButtons();
+    window.repaintGroupsView();
+  });
+
   function renderGroupSearchCards(rows, myMemberships, append){
     var listEl = document.getElementById('groups-results');
     if (!listEl) return;
+    // Remembered before rendering, so a view switch or a late-arriving
+    // follow list can repaint exactly what is on screen.
+    if (append) { groupsLastRows = groupsLastRows.concat(rows); }
+    else { groupsLastRows = rows.slice(); groupsLastMemberships = myMemberships; }
+    if (append) { Object.keys(myMemberships).forEach(function(k){ groupsLastMemberships[k] = myMemberships[k]; }); }
+
+    var asList = groupsView() === 'list';
+    listEl.className = asList ? '' : 'grid';
+    syncGroupsViewButtons();
+
     var html = rows.map(function(g){
       var memberStatus = myMemberships[g.id];
       // Same markup and the same class as the church page's own group
@@ -24123,7 +24303,30 @@ Groups</span>
       var dist = (g.distance_miles != null) ? Number(g.distance_miles).toFixed(1) + ' mi' : '';
       var meta = [escapeHtml(g.church_name || ''), escapeHtml(where), escapeHtml(dist)].filter(Boolean).join(' \u00b7 ');
 
-      return '<div class="group-card" data-route="group" data-group-id="' + escapeHtml(g.id) + '" style="cursor:pointer;">'
+      // safeImageUrl, not escapeHtml: this goes into a CSS url(), where
+      // escaping does nothing about a javascript: or data: scheme. The
+      // same pairing the church logo and event graphic already use.
+      var img = (typeof safeImageUrl === 'function') ? safeImageUrl(g.image_url) : '';
+      var heart = (typeof followHeartGroup === 'function') ? followHeartGroup(g) : '';
+
+      if (asList) {
+        // The list row drops the picture and the description and keeps
+        // what somebody scanning a list is actually comparing: name,
+        // church, when it meets, how big it is.
+        return '<div class="group-card" data-route="group" data-group-id="' + escapeHtml(g.id) + '" style="cursor:pointer;display:flex;align-items:center;gap:12px;margin-bottom:10px;">'
+          + '<div style="flex:1;min-width:0;">'
+          +   '<h4 style="margin-bottom:2px;">' + escapeHtml(g.name) + visTag + '</h4>'
+          +   '<div style="font-size:12.5px;color:var(--ink-mute);">' + meta + '</div>'
+          +   (g.meeting_schedule ? '<div class="group-schedule" style="margin-top:4px;">' + escapeHtml(g.meeting_schedule) + '</div>' : '')
+          + '</div>'
+          + '<div style="flex-shrink:0;font-size:12px;color:var(--ink-mute);">' + escapeHtml(groupsMemberCountLabel(g.member_count)) + '</div>'
+          + '<div style="flex-shrink:0;">' + heart + '</div>'
+          + '</div>';
+      }
+
+      return '<div class="group-card" data-route="group" data-group-id="' + escapeHtml(g.id) + '" style="cursor:pointer;position:relative;">'
+        + heart
+        + (img ? '<div style="aspect-ratio:16/9;border-radius:10px;background-size:cover;background-position:center;margin-bottom:10px;background-image:url(\'' + img + '\');"></div>' : '')
         + '<h4>' + escapeHtml(g.name) + visTag + '</h4>'
         + '<div style="font-size:12.5px;color:var(--ink-mute);margin-bottom:6px;">' + meta + '</div>'
         + (g.description ? '<p>' + escapeHtml(g.description) + '</p>' : '')
@@ -25888,7 +26091,11 @@ Groups</span>
       var pubVisTag = (g.visibility === 'members')
         ? '<span class="tag sage" style="font-size:10px;margin-left:6px;">' + escapeHtml(window.t('groupsPage.membersOnlyTag')) + '</span>'
         : '';
-      return '<div class="group-card" data-route="group" data-group-id="' + escapeHtml(g.id) + '" style="cursor:pointer;">'
+      var pubImg = (typeof safeImageUrl === 'function') ? safeImageUrl(g.image_url) : '';
+      var pubHeart = (typeof followHeartGroup === 'function') ? followHeartGroup(g) : '';
+      return '<div class="group-card" data-route="group" data-group-id="' + escapeHtml(g.id) + '" style="cursor:pointer;position:relative;">'
+        + pubHeart
+        + (pubImg ? '<div style="aspect-ratio:16/9;border-radius:10px;background-size:cover;background-position:center;margin-bottom:10px;background-image:url(\'' + pubImg + '\');"></div>' : '')
         + '<h4>' + escapeHtml(g.name) + pubVisTag + '</h4>'
         + (g.description ? '<p>' + escapeHtml(g.description) + '</p>' : '')
         + (g.meeting_schedule ? '<div class="group-schedule">' + escapeHtml(g.meeting_schedule) + '</div>' : '')
@@ -26131,6 +26338,46 @@ Groups</span>
       : (window.myFollowedEventIds || []).filter(function(id){ return id !== eventId; });
   }
   window.applyEventFollowState = applyEventFollowState;
+
+  function applyGroupFollowState(groupId, following){
+    document.querySelectorAll('[data-follow-group-id="' + groupId + '"]').forEach(function(el){
+      el.setAttribute('data-following', following ? 'true' : 'false');
+    });
+    window.myFollowedGroupIds = following
+      ? (window.myFollowedGroupIds || []).concat([groupId])
+      : (window.myFollowedGroupIds || []).filter(function(id){ return id !== groupId; });
+  }
+  window.applyGroupFollowState = applyGroupFollowState;
+
+  document.addEventListener('click', async function(ev){
+    var heartBtn = ev.target.closest ? ev.target.closest('[data-follow-group-id]') : null;
+    if (!heartBtn) return;
+    // Both guards, for the same reason the other two hearts need them:
+    // this button sits inside the card's own click-through wrapper.
+    ev.preventDefault();
+    ev.stopPropagation();
+
+    var { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) {
+      showLoginRequired(window.t('loginRequired.followGroup'));
+      return;
+    }
+    var groupId = heartBtn.getAttribute('data-follow-group-id');
+    var wasFollowing = heartBtn.getAttribute('data-following') === 'true';
+    var nowFollowing = !wasFollowing;
+    var matchingHearts = document.querySelectorAll('[data-follow-group-id="' + groupId + '"]');
+
+    // Optimistic, then reverted if the write fails. The same card can
+    // be on screen twice (search and church page), so every matching
+    // heart moves together rather than only the one clicked.
+    applyGroupFollowState(groupId, nowFollowing);
+    matchingHearts.forEach(function(el){ el.disabled = true; });
+    var writeResult = nowFollowing
+      ? await supabase.from('group_follows').insert({ user_id: userData.user.id, group_id: groupId })
+      : await supabase.from('group_follows').delete().eq('user_id', userData.user.id).eq('group_id', groupId);
+    matchingHearts.forEach(function(el){ el.disabled = false; });
+    if (writeResult.error) applyGroupFollowState(groupId, wasFollowing);
+  });
 
   document.addEventListener('click', async function(ev){
     var heartBtn = ev.target.closest ? ev.target.closest('[data-follow-event-id]') : null;
@@ -30715,6 +30962,15 @@ Groups</span>
     groupExceptions = [];
     renderGroupExceptions();
     document.getElementById('group-visibility').value = 'public';
+    window.groupImageEditedFile = null;
+    window.groupImageMarkedForRemoval = false;
+    document.getElementById('group-image').value = '';
+    document.getElementById('group-image-preview').style.backgroundImage = '';
+    var gNewRemove = document.getElementById('group-image-remove-btn');
+    if (gNewRemove) gNewRemove.style.display = 'none';
+    var gNewFilename = document.getElementById('group-image-filename');
+    gNewFilename.setAttribute('data-i18n', 'rc.noFileChosen');
+    gNewFilename.textContent = window.t('rc.noFileChosen');
     document.getElementById('group-join-method').value = 'open';
     document.getElementById('group-leader-contact').checked = false;
     document.getElementById('group-show-members').checked = false;
@@ -30803,6 +31059,27 @@ Groups</span>
         show_member_list: document.getElementById('group-show-members').checked
       };
 
+      // The picture, before the row is written. A failed upload must
+      // not leave the group saved pointing at nothing, and the
+      // three-way distinction matters: a new file, a deliberate
+      // removal, or untouched -- only the first two write the column.
+      var groupImageFile = window.groupImageEditedFile || document.getElementById('group-image').files[0];
+      if (groupImageFile) {
+        var { data: groupImgUser } = await supabase.auth.getUser();
+        var groupImgPath = groupImgUser.user.id + '/' + Date.now() + '-' + groupImageFile.name;
+        var { error: groupImgErr } = await supabase.storage.from('group-images').upload(groupImgPath, groupImageFile);
+        if (groupImgErr) {
+          var gStatus = document.getElementById('group-form-status');
+          gStatus.textContent = groupImgErr.message;
+          gStatus.style.color = 'var(--clay)';
+          gStatus.style.display = 'block';
+          return;
+        }
+        payload.image_url = supabase.storage.from('group-images').getPublicUrl(groupImgPath).data.publicUrl;
+      } else if (window.groupImageMarkedForRemoval) {
+        payload.image_url = null;
+      }
+
       var groupId = document.getElementById('group-form-id').value;
       var error;
       if (groupId) {
@@ -30852,6 +31129,16 @@ Groups</span>
         // is actually public would tell a church its group is hidden
         // when everyone can see it.
         document.getElementById('group-visibility').value = g.visibility || 'public';
+        window.groupImageEditedFile = null;
+        window.groupImageMarkedForRemoval = false;
+        var gEditPreview = document.getElementById('group-image-preview');
+        var gEditRemove = document.getElementById('group-image-remove-btn');
+        document.getElementById('group-image').value = '';
+        gEditPreview.style.backgroundImage = g.image_url ? "url('" + g.image_url + "')" : '';
+        if (gEditRemove) gEditRemove.style.display = g.image_url ? 'flex' : 'none';
+        var gEditFilename = document.getElementById('group-image-filename');
+        gEditFilename.setAttribute('data-i18n', 'rc.noFileChosen');
+        gEditFilename.textContent = window.t('rc.noFileChosen');
         document.getElementById('group-join-method').value = g.join_method || 'open';
         window.groupFormIsEditing = true;
         document.getElementById('group-form-heading').textContent = window.t('dashGroups.editGroup');

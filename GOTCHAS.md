@@ -5624,3 +5624,33 @@ A stale-response guard was built in from the start rather than after the bug: ty
 The empty state and the failure state say different things. "No groups match that" and "the search failed" look identical as an empty list, and only one of them is worth changing your search over.
 
 Build `2026-09-18-v155`; **migration 067 must be run by hand** (until then the page shows "Could not load groups" — `search_groups` does not exist).
+
+---
+
+## Groups get a picture, a heart, and two views
+
+Three additions to the group search, all of them deliberately copies of something that already exists rather than new mechanisms.
+
+**The heart is the church and event heart.** Same `HEART_ICON`, same `.follow-heart-card` class, same optimistic-then-revert behaviour, same delegated handler shape — distinguished only by carrying `data-follow-group-id`. To somebody using the site it is the same gesture, and three hearts that behaved differently would be three sets of rules to keep in step. `group_follows` mirrors `event_follows` (038), which mirrored `church_follows`.
+
+The new attribute also had to go in the **no-navigate guard list** beside the other two. Leaving it out would make tapping a heart open the group page as well — a bug already recorded for `data-follow-event-id`, which is why that list exists at all.
+
+**Following is not joining.** An invite-only group can be followed by somebody who cannot join it, which is arguably when following matters most. The heart and the join button sit on the same card doing different things.
+
+**Its own bucket**, `group-images`, rather than putting group pictures in `event-images`. The path layout is identical so reuse would have worked, but a bucket named for events holding group images is exactly the thing that is confusing to find later and painful to separate once there are files in it. 068 also has to restate 056's two storage policies with the new bucket in their list — a policy's USING and WITH CHECK cannot be edited in place.
+
+**16:9 at 1600**, matching the event graphic, because a group card sits in the same grid showing the same shape. A different aspect would make the two look unrelated side by side. The image goes through the same HEIC handling and the same cropper as every other upload.
+
+**`safeImageUrl`, not `escapeHtml`, for the picture.** It goes into a CSS `url()`, where escaping does nothing about a `javascript:` or `data:` scheme. Verified: an image URL of `javascript:alert(1)` is refused and the card still renders.
+
+### The view toggle reuses the directory's control
+
+Same `.dir-view-toggle` / `.dir-view-btn` classes, not a second set, so restyling that control carries here. The view is remembered in `localStorage` (wrapped, since storage throws in a private window and a view preference is not worth an exception).
+
+**Switching view repaints from the rows already fetched** — verified by counting RPC calls across a switch: **zero**. The rows are kept precisely so a view change, or a late-arriving follow list, can repaint what is on screen without a round trip. That last part matters: the follow query lands after the first render, and without a repaint the hearts would arrive empty and stay empty until the next navigation.
+
+The list view drops the picture and the description and keeps what somebody scanning a list actually compares: name, church, when it meets, how many people.
+
+Verified end to end: follow writes an insert and fills the heart, unfollow writes a delete and empties it, a **failing** write reverts the optimistic change rather than leaving a heart that lies, and clicking a heart does not navigate.
+
+Build `2026-09-18-v156`; **migration 068 must be run by hand.**
