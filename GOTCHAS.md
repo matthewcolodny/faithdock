@@ -5669,12 +5669,30 @@ The select inside it stays separately gated on owning more than one church, whic
 
 Verified all three levels plus the reported case: church shows it, churches and account do not, `account-settings` no longer brings it back, and returning to a church restores it.
 
-## Not reproduced: the avatar past the nav bar
+## The avatar past the nav bar: a header row that could not shrink
 
-Also reported, from the same screenshots. **Not fixed, because it could not be reproduced**, and the measurements say the thing described is not happening here:
+Reported as the account circle sitting half outside the blue bar on a Samsung at default display size, on every page while signed in, with no sideways scroll. The first pass here **failed to reproduce it and said so** -- and the note recorded then claimed the check had been run "on a dashboard page, signed-in face showing". It had not. The face was forced on, but the probe was on `#home`, and `#dash-menu-btn` only renders under `body.on-dashboard`. The state that was reported was never actually measured.
 
-At 360, 375, 393, 412 and 430 px the header fills the viewport exactly, `header.scrollWidth === clientWidth`, `documentElement.scrollWidth === innerWidth` (no horizontal overflow anywhere on the page), and the avatar's right edge sits 12px inside the header's — checked on a dashboard page, signed-in face showing, which is where the screenshot was taken. The `.dash` grid collapses to a single column on mobile as intended, so it is not the sidebar column forcing the page wide.
+Adding that one class reproduced it immediately:
 
-Recorded rather than guessed at. The last time something "did not work on mobile" here it was a device setting and the code was correct, and inventing a fix for an unreproduced symptom is how a working layout acquires a workaround nobody can later justify.
+| viewport | row needs | over by |
+| --- | --- | --- |
+| 320 | 399px | 79 |
+| 360 | 399px | 39 |
+| 375 | 399px | 24 |
+| 393 | 399px | 6 |
 
-Build `2026-09-18-v157`; no migration.
+The row needed a **fixed 399px at every width** -- that number never moved, which is the whole diagnosis. Menu button, brand, three quick icons and the account face were each either `flex-shrink:0` or an unbreakable word, so nothing in the row could give and it simply overflowed anything narrower. No horizontal scrollbar appeared because the header is a sticky bar with nothing scrollable inside it: the content was cut off at the screen edge rather than becoming scrollable, which is exactly what the user described and why "does it scroll sideways?" was the wrong question to lead with.
+
+Groups made it three quick icons in v155. The clearance before that was 5px at 360.
+
+The fix is in two parts, and the order matters:
+
+1. **Something has to be able to give.** `.brand{min-width:0}` plus `white-space:nowrap;overflow:hidden;text-overflow:ellipsis` on `.brand-name`, with the other three items left fixed. The shortfall now lands on the wordmark, which shortens, instead of on the account face, which used to leave the screen. This makes the bar structurally unable to overflow at any width or system font size -- it is the part that will still hold in a year.
+2. **Then make sure it rarely has to.** At `max-width:480px` the icon targets go 44 -> 38 (still above the 36px minimum), their gap goes to 0 since each already carries padding, the bar padding goes 12 -> 10 and the brand gap 12 -> 8. The row drops from 399px to 333px. Below 400px on the dashboard the wordmark is hidden outright, because with a fifth item in the row there is no arrangement that fits it at 360.
+
+Verified at real viewport sizes, both `on-dashboard` and not, signed-in face showing: no overflow and the avatar inside the bar at 320/360/375/393/412/430, wordmark full from 360 up, desktop untouched at 21px with no clipping.
+
+**A measurement note worth keeping.** The first verification sweep set `documentElement.style.width` to walk the widths. That resizes the layout box but *not* the viewport, so every media query kept evaluating at whatever the emulated viewport was -- the phone rules stayed on at 1200px and the results above about 400 were meaningless. Only `resize_window` changes what a media query sees. A sweep that never changes which rules are firing is not testing responsiveness at all.
+
+Build `2026-09-18-v158`; no migration.

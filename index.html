@@ -2765,11 +2765,12 @@
     display:flex;align-items:center;justify-content:space-between;
     height:72px;
   }
-  .brand{display:flex;align-items:center;gap:12px;}
+  .brand{display:flex;align-items:center;gap:12px;min-width:0;}
   .brand-mark{width:36px;height:36px;background:transparent;
     display:flex;align-items:center;justify-content:center;flex-shrink:0;}
   .brand-mark svg{width:106%;height:106%;}
-  .brand-name{font-family:'Fraunces',serif;font-size:21px;font-weight:600;color:#F5F4EE;}
+  .brand-name{font-family:'Fraunces',serif;font-size:21px;font-weight:600;color:#F5F4EE;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   nav.links{display:flex;align-items:center;gap:6px;}
   nav.links a{
     color:#CBD2DE;font-size:14.5px;font-weight:500;padding:10px 14px;border-radius:8px;
@@ -2821,7 +2822,7 @@
   .hamburger:active{opacity:.6;}
   .hamburger svg{width:22px;height:22px;display:block;}
 
-  .nav-quick{display:none;align-items:center;gap:4px;}
+  .nav-quick{display:none;align-items:center;gap:4px;flex-shrink:0;}
   .nav-quick a{display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:10px;color:#CBD2DE;border-bottom:none;}
   .nav-quick a svg{width:25px;height:25px;display:block;}
   .nav-quick a:hover,.nav-quick a.active{color:#fff;background:rgba(255,255,255,0.10);border-bottom:none;}
@@ -3845,10 +3846,40 @@
        dashboard tab already renders its own heading, so the bar's
        title was repeating what the page says two lines lower. */
     .dash-main{padding:20px 14px 40px;}
-    /* Four items across a phone bar -- menu, brand, the two quick
-       icons, account -- need the brand to give way first. */
+    /* Five items across a phone bar -- menu, brand, three quick icons,
+       account -- need the brand to give way first. Groups made it three
+       icons, which is what finally pushed the row past a 360px screen. */
     .navbar{padding:0 12px;gap:6px;}
     .brand-name{font-size:19px;}
+  }
+  /* The ellipsis above means the bar can no longer break -- but an
+     ellipsised wordmark is a poor consolation, so on an actual phone
+     the row is tightened until the full word fits rather than left to
+     truncate. 44px icon targets drop to 38, which is still above the
+     usual 36px minimum, and the gap between them goes since each one
+     already carries its own padding.
+
+     Measured at 360px, the width this was reported at: the row needed
+     399px and now needs 333. */
+  @media (max-width:480px){
+    .navbar{padding:0 10px;}
+    .brand{gap:8px;}
+    .nav-quick{gap:0;}
+    .nav-quick a{width:38px;}
+  }
+  /* The dashboard carries a fifth item -- its own menu button -- and
+     below about 390px there is no arrangement where that, the wordmark,
+     three icons and the account face all fit. The wordmark is what
+     goes: the gold mark beside it is still the brand, it is still a
+     link home, and every dashboard page names itself in its heading two
+     lines below.
+
+     400 rather than 480 because the tightened row measures 377px, so a
+     393px phone keeps its wordmark. Anything narrower loses it, and
+     anything in between that a large system font pushes over now
+     truncates instead of breaking the bar. */
+  @media (max-width:400px){
+    body.on-dashboard .brand-name{display:none;}
   }
   /* Respecting a system setting that exists because motion makes some
      people ill. The drawer still opens; it just arrives. */
@@ -8237,7 +8268,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v157 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v158 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
