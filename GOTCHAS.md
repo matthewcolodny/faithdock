@@ -5928,3 +5928,30 @@ Spanish was rewritten rather than translated word for word (`Contacta para los h
 Verified at 320 / 360 / 393 in both languages: one line everywhere.
 
 Build `2026-09-19-v166`; no migration.
+
+## Groups appeared twice in the mobile menu
+
+Reported: Groups was in the hamburger panel although it already has an icon in the bar. Churches and Events were correctly absent.
+
+The rule that hides them listed the routes by name:
+
+```css
+nav.links > a[data-route="directory"],
+nav.links > a[data-route="events"]{display:none;}
+```
+
+Groups got its icon in v155 and nobody added a third line. **A list that has to be kept in step with another list** -- the recurring bug in this file, and the same shape as the two route dispatchers, `DASH_OVERVIEW_VIEWS`, `DASH_VIEW_LOADERS` and the no-navigate guard before it.
+
+So the panel asks the bar instead of remembering it. One pass at load marks every `nav.links` entry whose route also has an icon, and the CSS hides the mark rather than the names:
+
+```css
+nav.links > a[data-in-quick-bar]{display:none;}
+```
+
+A fourth icon now removes itself from the panel with no second edit. The search button needs no special case either -- it carries no `data-route`, because it opens a panel rather than going to a page.
+
+The mark is set at every width and the CSS that acts on it lives inside the 860px media query, so desktop is unaffected: verified at 1280 with all seven nav items showing, Groups among them, while the attribute is still present on it.
+
+Also verified with a real hamburger tap rather than a forced class: the panel lists About FaithDock, Pricing, Sign in and the toggles, and the Groups icon still reaches `#groups`.
+
+Build `2026-09-19-v167`; no migration.

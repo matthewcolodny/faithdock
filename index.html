@@ -2881,11 +2881,16 @@
   @media (max-width:860px){
     .hamburger{display:block;}
     .nav-quick{display:contents;}
-    /* Churches and Events live in the bar now, so they must not also
-       be in the panel -- two ways to the same page in one menu reads
-       as two different pages. */
-    nav.links > a[data-route="directory"],
-    nav.links > a[data-route="events"]{display:none;}
+    /* A route in the icon row must not also be in the panel -- two
+       ways to the same page in one menu reads as two different pages.
+
+       Marked at runtime from the icon row itself rather than listed
+       here by name. The named version said directory and events;
+       Groups got an icon and nobody added it, so it appeared in both
+       places until it was reported. A list that has to be kept in
+       step with another list is the recurring bug in this file, so
+       this one asks the bar instead of remembering it. */
+    nav.links > a[data-in-quick-bar]{display:none;}
     /* The user menu stops being a dropdown inside a dropdown: the
        bubble disappears and its items render inline as part of the
        one panel. No second markup to keep in step -- the same list
@@ -8368,7 +8373,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-19-v166 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-19-v167 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -14938,6 +14943,29 @@ Groups</span>
   // ---- The nav search panel --------------------------------------
   // A phone bar has no room for a search box, so it gets a magnifier
   // that drops the two fields underneath the bar instead.
+  // Anything with an icon in the quick bar gets marked so the panel
+  // can leave it out. Runs once; both lists are static markup.
+  //
+  // The search button is skipped for free -- it has no data-route,
+  // because it opens a panel rather than going to a page.
+  (function markRoutesAlreadyInBar(){
+    var quick = document.getElementById('nav-quick');
+    var links = document.getElementById('nav-links');
+    if (!quick || !links) return;
+    var marked = 0;
+    Array.prototype.forEach.call(quick.querySelectorAll('[data-route]'), function(icon){
+      var route = icon.getAttribute('data-route');
+      if (!route) return;
+      Array.prototype.forEach.call(links.children, function(el){
+        if (el.tagName === 'A' && el.getAttribute('data-route') === route) {
+          el.setAttribute('data-in-quick-bar', '');
+          marked++;
+        }
+      });
+    });
+    window.__navQuickDupesMarked = marked;
+  })();
+
   var navSearchBtn = document.getElementById('nav-search-btn');
   var navSearchPanel = document.getElementById('nav-search-panel');
 
