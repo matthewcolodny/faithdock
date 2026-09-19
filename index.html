@@ -251,7 +251,7 @@
       'nav.myLists': 'My Lists',
       'myLists.eyebrow': 'Yours', 'myLists.title': 'My Lists',
       'myLists.subtitle': 'Everything you are connected to \u2014 the churches, events and groups you have joined or followed.',
-      'nav.groups': 'Groups',
+      'nav.groups': 'Groups', 'nav.search': 'Search', 'nav.searchSubmit': 'Search',
       'groupsPage.title': 'Find a group',
       'groupsPage.subtitle': 'Small groups, studies and ministries across every listed church. You will also see groups that are only shared with members of churches you belong to.',
       'groupsPage.keywordPlaceholder': 'Search groups by name, topic or church...',
@@ -1266,7 +1266,7 @@
       'nav.myLists': 'Mis listas',
       'myLists.eyebrow': 'Tuyo', 'myLists.title': 'Mis listas',
       'myLists.subtitle': 'Todo a lo que estás conectado \u2014 las iglesias, eventos y grupos a los que te has unido o que sigues.',
-      'nav.groups': 'Grupos',
+      'nav.groups': 'Grupos', 'nav.search': 'Buscar', 'nav.searchSubmit': 'Buscar',
       'groupsPage.title': 'Encuentra un grupo',
       'groupsPage.subtitle': 'Grupos pequeños, estudios y ministerios de todas las iglesias del directorio. También verás los grupos que solo se comparten con los miembros de las iglesias a las que perteneces.',
       'groupsPage.keywordPlaceholder': 'Busca grupos por nombre, tema o iglesia...',
@@ -2823,7 +2823,44 @@
   .hamburger svg{width:22px;height:22px;display:block;}
 
   .nav-quick{display:none;align-items:center;gap:4px;flex-shrink:0;}
-  .nav-quick a{display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:10px;color:#CBD2DE;border-bottom:none;}
+  .nav-quick a, .nav-quick button{display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:10px;color:#CBD2DE;border-bottom:none;
+    background:none;border:none;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+  .nav-quick button svg{width:25px;height:25px;display:block;}
+  #nav-search-btn[aria-expanded="true"]{color:#fff;background:rgba(255,255,255,0.10);}
+  /* The bar already carries the drawer button on the left there, and
+     a dashboard is not what this searches. */
+  body.on-dashboard #nav-search-btn{display:none;}
+
+  /* An author display value beats the UA stylesheet rule for the
+     hidden attribute, so without this the panel is laid out as flex
+     whether hidden is set or not -- which is exactly what it did.
+     Any element given a display here needs this alongside it. */
+  #nav-search-panel[hidden]{display:none;}
+  #nav-search-panel{background:var(--brand);padding:12px 12px 16px;
+    border-top:1px solid rgba(255,255,255,0.10);display:flex;flex-direction:column;gap:8px;}
+  /* Deliberately NOT animated open, and the first attempt here is why.
+     A reveal animation starts from opacity:0, so whenever the timeline
+     does not advance the panel renders INVISIBLE -- it fails closed.
+     Measured exactly that: playState 'running', currentTime stuck at 0,
+     computed opacity 0, with a panel that had been opened 400ms
+     earlier. Same family as the frozen drawer transitions already
+     recorded here.
+
+     Any reveal animation has this shape, because its t=0 keyframe is by
+     definition the invisible one. Motion could be added back with the
+     from-state applied inside a rAF (so a frame that never comes leaves
+     the panel correct instead of hidden), but that is a double-rAF
+     dance for decoration, and the panel appearing at once is not worse
+     to use. */
+  .nav-search-row{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.16);border-radius:10px;padding:11px 14px;}
+  .nav-search-row svg{width:17px;height:17px;color:#9AA3B5;flex-shrink:0;}
+  .nav-search-row input{flex:1;min-width:0;background:none;border:none;outline:none;color:#EDEBE2;
+    font-size:15px;font-family:inherit;}
+  .nav-search-row input::placeholder{color:#8E97A8;}
+  #nav-panel-submit{width:100%;justify-content:center;padding:12px;font-size:15px;}
+  /* Desktop has the search box in the bar itself. */
+  @media (min-width:861px){ #nav-search-btn, #nav-search-panel{display:none;} }
   .nav-quick a svg{width:25px;height:25px;display:block;}
   .nav-quick a:hover,.nav-quick a.active{color:#fff;background:rgba(255,255,255,0.10);border-bottom:none;}
   #hamburger-initials{
@@ -3856,6 +3893,10 @@
        icons, which is what finally pushed the row past a 360px screen. */
     .navbar{padding:0 12px;gap:6px;}
     .brand-name{font-size:19px;}
+    .brand{margin-right:auto;}
+    /* A little air between the icon row and the account face: it is
+       a different kind of control and ran together with them. */
+    .hamburger{margin-left:6px;}
     /* Only here. Below 860px the desktop links are gone and the row
        is menu, brand, icons, account -- the brand is the one piece
        that can give, which is the whole point. Above this width the
@@ -3875,7 +3916,7 @@
     .navbar{padding:0 10px;}
     .brand{gap:8px;}
     .nav-quick{gap:0;}
-    .nav-quick a{width:38px;}
+    .nav-quick a, .nav-quick button{width:38px;}
   }
   /* 360px is the most common Android width there is, and on the
      dashboard -- the one layout with a fifth item in the bar -- it was
@@ -3888,8 +3929,13 @@
      alternative is shaving the tap targets down to win back a letter. */
   @media (max-width:380px){
     .navbar{padding:0 8px;gap:4px;}
-    .nav-quick a{width:36px;}
+    .nav-quick a, .nav-quick button{width:36px;}
     .brand-name{font-size:18px;}
+    /* The breathing room above costs 6px, and on the dashboard at
+       360 -- the widest row there is, with its own menu button as a
+       fifth item -- 6px is the difference between a whole wordmark
+       and a clipped one. Space is worth more than separation here. */
+    .hamburger{margin-left:0;}
   }
   /* Respecting a system setting that exists because motion makes some
      people ill. The drawer still opens; it just arrives. */
@@ -4381,6 +4427,14 @@
       <a href="#directory" data-route="directory" aria-label="Churches" data-i18n-title="nav.churches" title="Churches">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 2v6M9.5 4.5h5"/><path d="M12 8 5 13v8h14v-8L12 8Z"/><path d="M10 21v-4a2 2 0 0 1 4 0v4"/></svg>
       </a>
+      <!-- Not a link: it opens the panel below the bar rather than
+           going anywhere, so it is a button and carries the state of
+           what it controls. Hidden whenever the dashboard drawer
+           button is showing -- the bar already has two controls on
+           the left there, and the drawer has its own search. -->
+      <button type="button" id="nav-search-btn" aria-label="Search" aria-expanded="false" aria-controls="nav-search-panel" data-i18n-title="nav.search" title="Search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      </button>
       <a href="#events" data-route="events" aria-label="Events" data-i18n-title="nav.events" title="Events">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/></svg>
       </a>
@@ -4397,6 +4451,21 @@
       <svg id="hamburger-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
       <span id="hamburger-initials" style="display:none;"></span>
     </button>
+  </div>
+  <!-- Sits inside the sticky header so it drops from the bar rather
+       than over the page, and scrolls away with neither. hidden
+       rather than a class: a closed panel must be out of the tab
+       order, not merely invisible. -->
+  <div id="nav-search-panel" hidden>
+    <div class="nav-search-row">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input type="search" id="nav-panel-keyword" placeholder="Search churches by name or keyword..." data-i18n-placeholder="home.keywordPlaceholder" autocomplete="off">
+    </div>
+    <div class="nav-search-row">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-5.7 7-11a7 7 0 1 0-14 0c0 5.3 7 11 7 11Z"/><circle cx="12" cy="10" r="2.6"/></svg>
+      <input type="search" id="nav-panel-location" placeholder="Enter your city or zip code" data-i18n-placeholder="home.locationPlaceholder" autocomplete="off">
+    </div>
+    <button type="button" id="nav-panel-submit" class="btn-gold" data-i18n="nav.searchSubmit">Search</button>
   </div>
 </header>
 <script>
@@ -8284,7 +8353,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-18-v161 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-19-v162 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -10106,6 +10175,9 @@ Groups</span>
     // before navigating," which is far less likely to be an accident.
     var openUnfollowToast = document.getElementById('unfollow-toast');
     if (openUnfollowToast) openUnfollowToast.classList.remove('visible');
+    // Same reasoning as the toast above: an open search panel belongs
+    // to the bar as it was, not to the page being navigated to.
+    if (typeof window.closeNavSearch === 'function') window.closeNavSearch();
     if(route === 'dashboard' && window.isSignedIn === false){ route = 'signup'; }
     // Dashboard access is now based on actually owning or staffing a
     // church — a real relationship — rather than a one-time
@@ -14797,11 +14869,11 @@ Groups</span>
   // field, and picking a suggestion from the hero location field's
   // autocomplete — all three mean "go search the directory with
   // whatever's in these two boxes right now."
-  function goToDirectoryFromHero(){
-    var heroKeywordInput = document.getElementById('hero-keyword-input');
-    var heroInput = document.getElementById('hero-location-input');
-    var typedKeyword = heroKeywordInput ? heroKeywordInput.value.trim() : '';
-    var typedLocation = heroInput ? heroInput.value.trim() : '';
+  // The one place that means 'go search the directory for this'. The
+  // hero and the nav search panel both hand it two strings, so neither
+  // carries its own copy of the handoff -- two copies of exactly this
+  // shape have drifted apart in this file before.
+  function searchDirectoryFor(typedKeyword, typedLocation){
     var keywordInput = document.getElementById('dir-keyword-input');
     if (keywordInput) keywordInput.value = typedKeyword;
     // Programmatic value assignment above doesn't fire the 'input'
@@ -14820,7 +14892,77 @@ Groups</span>
     go('directory');
     if (typeof window.renderDirectory === 'function') window.renderDirectory();
   }
+  window.searchDirectoryFor = searchDirectoryFor;
+
+  function goToDirectoryFromHero(){
+    var heroKeywordInput = document.getElementById('hero-keyword-input');
+    var heroInput = document.getElementById('hero-location-input');
+    searchDirectoryFor(
+      heroKeywordInput ? heroKeywordInput.value.trim() : '',
+      heroInput ? heroInput.value.trim() : ''
+    );
+  }
   window.goToDirectoryFromHero = goToDirectoryFromHero;
+
+  // ---- The nav search panel --------------------------------------
+  // A phone bar has no room for a search box, so it gets a magnifier
+  // that drops the two fields underneath the bar instead.
+  var navSearchBtn = document.getElementById('nav-search-btn');
+  var navSearchPanel = document.getElementById('nav-search-panel');
+
+  function setNavSearchOpen(open){
+    if (!navSearchBtn || !navSearchPanel) return;
+    navSearchPanel.hidden = !open;
+    navSearchBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (!open) return;
+    // Whatever location the homepage already worked out, rather than
+    // asking again for something already answered. Only when the field
+    // is empty, so it never overwrites a typed correction.
+    var heroLoc = document.getElementById('hero-location-input');
+    var panelLoc = document.getElementById('nav-panel-location');
+    if (panelLoc && !panelLoc.value && heroLoc && heroLoc.value) panelLoc.value = heroLoc.value;
+    var kw = document.getElementById('nav-panel-keyword');
+    if (kw) kw.focus();
+  }
+  // go() calls this on every navigation, for the same reason it
+  // dismisses the unfollow toast: something left open across a route
+  // change belongs to a page that is no longer there.
+  window.closeNavSearch = function(){ setNavSearchOpen(false); };
+
+  function submitNavSearch(){
+    var kw = document.getElementById('nav-panel-keyword');
+    var loc = document.getElementById('nav-panel-location');
+    searchDirectoryFor(kw ? kw.value.trim() : '', loc ? loc.value.trim() : '');
+  }
+
+  // One listener for opening, closing and clicking away, so the button
+  // cannot open the panel only for a separate outside-click handler to
+  // close it again in the same click.
+  document.addEventListener('click', function(ev){
+    if (!navSearchBtn || !navSearchPanel) return;
+    if (navSearchBtn.contains(ev.target)) { setNavSearchOpen(navSearchPanel.hidden); return; }
+    if (navSearchPanel.hidden) return;
+    if (navSearchPanel.contains(ev.target)) return;
+    setNavSearchOpen(false);
+  });
+
+  document.addEventListener('keydown', function(ev){
+    if (ev.key !== 'Escape' || !navSearchPanel || navSearchPanel.hidden) return;
+    setNavSearchOpen(false);
+    if (navSearchBtn) navSearchBtn.focus();
+  });
+
+  var navPanelSubmit = document.getElementById('nav-panel-submit');
+  if (navPanelSubmit) navPanelSubmit.addEventListener('click', submitNavSearch);
+  ['nav-panel-keyword', 'nav-panel-location'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('keydown', function(ev){
+      if (ev.key !== 'Enter') return;
+      ev.preventDefault();
+      submitNavSearch();
+    });
+  });
 
   var heroBrowseBtn = document.getElementById('hero-browse-btn');
   if (heroBrowseBtn) {

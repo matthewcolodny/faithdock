@@ -5782,3 +5782,40 @@ Measured at 900px while checking the above. Suspecting my own change, I served t
 So the band was already broken and is now less broken. The desktop nav, the search box and the brand all want the same row between the phone breakpoint and about 1000px. Left alone deliberately: the fix is a choice between hiding the search box in that band and raising the compact-nav breakpoint, and quietly picking one inside an unrelated change is how a layout acquires a workaround nobody can justify later.
 
 Build `2026-09-18-v161`; no migration.
+
+## A search icon on the phone bar, and an animation that failed closed
+
+Asked for: better spacing in the mobile bar, and a magnifier beside the church icon that drops the search fields down the way Eventbrite does, present only when the dashboard drawer button is not.
+
+**Spacing.** The bar was `justify-content:space-between` with three children, which put a large gap on either side of the icon cluster and left it floating in the middle looking unplaced. `.brand{margin-right:auto}` below 860px gives the ordinary app-bar shape instead -- identity on the left, actions together on the right, one predictable gap.
+
+**The panel** lives inside `<header>`, so it drops from the bar rather than over the page and scrolls away with it. It is `hidden` rather than class-toggled, because a closed panel must be out of the tab order and not merely invisible. `go()` closes it on every navigation, for the same reason it dismisses the unfollow toast. The hero and the panel now both call one `searchDirectoryFor(keyword, location)` rather than each carrying its own copy of the directory handoff.
+
+### Three things that went wrong, all the same shape: a rule that did not cover the new element
+
+**1. `display:flex` beat the `hidden` attribute.** The panel rendered open on page load. `[hidden]{display:none}` comes from the UA stylesheet, and any author `display` wins over it. Anything given a `display` needs `[hidden]{display:none}` written alongside. Measured rather than guessed: `panel.hidden === true` while `getComputedStyle(panel).display === "flex"`.
+
+**2. The narrow tiers sized `.nav-quick a`, and the new control is a `button`.** So while every icon beside it shrank to 36px the search button kept its full 44, and those eight pixels clipped the wordmark at 360. The base rule had been widened to cover both; the two media queries had not. A selector list repeated in three places, where updating one and not the others produces exactly this.
+
+**3. A 6px margin cost a whole wordmark.** `.hamburger{margin-left:6px}`, added purely for separation between the icon row and the account face, was the precise amount by which the dashboard row overflowed at 360 -- that row carries a fifth item and had about 4px of slack. Reset to 0 in the narrowest tier. Worth remembering how little slack that row has before adding anything to it.
+
+### The animation: a reveal that fails closed
+
+The panel was first given a small drop-in: `animation: navSearchDrop .18s` from `opacity:0; translateY(-8px)`. The comment written beside it claimed this was safe -- that a frozen animation would leave the panel correct because the element is already visible once `hidden` comes off. **That claim was wrong**, and measuring it said so:
+
+```
+playState: "running", currentTime: 0, computed opacity: "0"
+... on a panel opened 400ms earlier, with document.hidden === false
+```
+
+A pending or stalled CSS animation holds the element at its `from` keyframe, and for any reveal animation that keyframe is by definition the invisible one. So the failure mode is not a missing flourish, it is **a feature that silently does nothing when tapped**.
+
+This is the third time an animation in this file has misbehaved by not advancing (the drawer transitions, the `requestAnimationFrame` that never fired, now this), and the first two were diagnosed as environmental. The general rule worth keeping is not about this environment at all:
+
+> **A reveal animation must not be the thing that makes an element visible.** Its start keyframe is the hidden state, so anywhere the timeline does not advance, the element stays hidden. Either the final state is the default and motion is added from a frame callback (so a frame that never comes leaves it correct), or there is no animation.
+
+Removed rather than rebuilt: the double-`requestAnimationFrame` dance that would make it safe is a lot of machinery for decoration, and a panel that appears at once is not worse to use.
+
+Verified at real viewport sizes with the signed-in face showing: opens and toggles closed on the button, closes on Escape with focus returned to it, closes on an outside click, stays open on a click inside itself, hands both fields to the directory and navigates, and is absent entirely under `body.on-dashboard`. No overflow and a whole wordmark at 360 in both the signed-in and dashboard rows; 320 ellipsises, as it already did. Desktop untouched -- button and panel hidden above 860, the search box in the bar unchanged.
+
+Build `2026-09-19-v162`; no migration.
