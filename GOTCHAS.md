@@ -5689,10 +5689,16 @@ Groups made it three quick icons in v155. The clearance before that was 5px at 3
 The fix is in two parts, and the order matters:
 
 1. **Something has to be able to give.** `.brand{min-width:0}` plus `white-space:nowrap;overflow:hidden;text-overflow:ellipsis` on `.brand-name`, with the other three items left fixed. The shortfall now lands on the wordmark, which shortens, instead of on the account face, which used to leave the screen. This makes the bar structurally unable to overflow at any width or system font size -- it is the part that will still hold in a year.
-2. **Then make sure it rarely has to.** At `max-width:480px` the icon targets go 44 -> 38 (still above the 36px minimum), their gap goes to 0 since each already carries padding, the bar padding goes 12 -> 10 and the brand gap 12 -> 8. The row drops from 399px to 333px. Below 400px on the dashboard the wordmark is hidden outright, because with a fifth item in the row there is no arrangement that fits it at 360.
+2. **Then make sure it rarely has to.** At `max-width:480px` the icon targets go 44 -> 38, their gap goes to 0 since each already carries padding, the bar padding goes 12 -> 10 and the brand gap 12 -> 8. At `max-width:380px` a second tier takes the bar padding to 8, the gaps to 4, the icons to 36 and the wordmark to 18px. The row drops from 399px to 333px, and to 312px at the narrowest tier.
 
-Verified at real viewport sizes, both `on-dashboard` and not, signed-in face showing: no overflow and the avatar inside the bar at 320/360/375/393/412/430, wordmark full from 360 up, desktop untouched at 21px with no clipping.
+**The first fix overcorrected, and the correction is the more useful half of this entry.** v158 also hid the wordmark outright below 400px on the dashboard, on the reasoning that with five items in the row it could not fit at 360. The phone it was meant for came back showing a bare gold mark with three obvious gaps around it -- "plenty of room for the full logo and icons". Measured on that layout: 110px of slack, for a wordmark needing 103. It fitted, comfortably, and a breakpoint had hidden it anyway.
+
+A breakpoint cannot tell whether something fits. It can only encode a guess about what a width implies, and that guess was made from the *untightened* row -- by the time the 44 -> 38 icon change had landed, the premise was already stale. The ellipsis from part 1 does the same job correctly and without guessing: it shortens the wordmark exactly when there is not room and leaves it alone when there is. So v159 deleted the rule rather than moving the breakpoint, and added the 380px tier instead, which buys back the last 17px so that 360 -- the most common Android width there is -- shows the wordmark in full rather than clipped.
+
+The general form: **when a fix needs to know whether content fits, prefer the mechanism that measures over the one that predicts.** A media query predicts. `min-width:0` with an ellipsis measures.
+
+Verified at real viewport sizes, both `on-dashboard` and not, signed-in face showing: no overflow and the avatar inside the bar at 320/360/375/384/393/412/430, full wordmark everywhere from 360 up, 320 on the dashboard the one case that ellipsises, desktop untouched at 21px with no clipping. Tap targets stay 44px tall throughout -- only the width narrows.
 
 **A measurement note worth keeping.** The first verification sweep set `documentElement.style.width` to walk the widths. That resizes the layout box but *not* the viewport, so every media query kept evaluating at whatever the emulated viewport was -- the phone rules stayed on at 1200px and the results above about 400 were meaningless. Only `resize_window` changes what a media query sees. A sweep that never changes which rules are firing is not testing responsiveness at all.
 
-Build `2026-09-18-v158`; no migration.
+Builds `2026-09-18-v158` and `v159`; no migration.
