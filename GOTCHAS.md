@@ -5902,3 +5902,29 @@ A missing `*/` is invisible: no console error, no failed selector, just CSS that
 Verified at 360 and 393 in both rows: gaps unchanged (13px signed in, 5px on the dashboard), no overflow, whole wordmark, and the button now computing `background: rgba(0,0,0,0)`, `border: 0px none`, `tapHighlight: rgba(0,0,0,0)` at rest and while open. Desktop untouched.
 
 Build `2026-09-19-v165`; no migration.
+
+## "times" on a line of its own
+
+Reported on the directory list view: `Contact church for regular service times` broke after "service", leaving one word alone on the next line.
+
+Measured before changing anything. The meta column in a phone list row is **227px at 393**, and the phrase wanted **223px** -- so it fitted on this pane and broke on a slightly narrower screen. A 4px margin is not a margin.
+
+That ruled out a layout fix. `white-space:nowrap` would have overflowed instead of wrapping at any width where it did not fit, and the column cannot be widened much: of a 337px row, 110px is already padding, the follow heart, the chevron and two gaps.
+
+So the copy got shorter, in two steps, because the first was still thin:
+
+| | natural width | 320 (154px) | 360 (194px) | 393 (227px) |
+| --- | --- | --- | --- | --- |
+| `Contact church for regular service times` | 223 | wraps | wraps | 4px |
+| `Contact church for service times` | 181 | wraps | 13px | 46px |
+| `Contact for service times` | 139 | 15px | 55px | 88px |
+
+The second row is the interesting one. It fixed the reported case and would have looked done -- but 13px at 360 is one system-font bump away from breaking again, which is exactly how this arrived. **Stopping at "the reported width now fits" is how a thin margin gets shipped twice.**
+
+Dropping "church" costs nothing: every place this string renders is already about one specific church -- a row for it, a card for it, or its own page. "Regular" was doing less than it looked, since the sentence already says service times.
+
+Spanish was rewritten rather than translated word for word (`Contacta para los horarios`, 147px); the literal version was 73 characters and never had a chance on a phone.
+
+Verified at 320 / 360 / 393 in both languages: one line everywhere.
+
+Build `2026-09-19-v166`; no migration.
