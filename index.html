@@ -3100,6 +3100,12 @@
      have; a neutral ink tint keeps it clearly a placeholder. */
   .thumb--event svg{width:54px;height:54px;fill:#16233F;opacity:.45;}
   html[data-theme="dark"] .thumb--event svg{fill:#C7CCD8;opacity:.5;}
+  /* Imageless GROUP card, matching the event one exactly: the same
+     54px weight so a group tile does not read as lighter than a church
+     tile beside it, and the same neutral tint, since a group has no
+     denomination of its own for a hue to key off. */
+  .thumb--group svg{width:54px;height:54px;fill:#16233F;opacity:.45;}
+  html[data-theme="dark"] .thumb--group svg{fill:#C7CCD8;opacity:.5;}
   .thumb--denom{background:hsl(var(--thumb-hue,220) 34% 88%);}
   .thumb--denom svg{width:54px;height:54px;fill:hsl(var(--thumb-hue,220) 30% 46%);opacity:.7;}
   html[data-theme="dark"] .thumb--denom{background:hsl(var(--thumb-hue,220) 22% 17%);}
@@ -4328,6 +4334,15 @@
   .group-card h4{font-size:16px;margin-bottom:6px;}
   .group-card p{font-size:13.5px;color:var(--ink-soft);margin-bottom:10px;}
   .group-card .group-schedule{font-size:12px;color:var(--ink-mute);font-family:'IBM Plex Mono';margin-bottom:12px;}
+  /* The tile form of a group card, used wherever groups are browsed
+     rather than listed. The picture runs to the card's edges, so the
+     padding moves off the card and into .card-body -- which is how
+     .church-card and .event-card are built, and the reason a group
+     tile can sit in the same grid without looking like a different
+     component. .group-card keeps its padded form everywhere else. */
+  .group-card--tile{padding:0;overflow:hidden;transition:border-color .15s,transform .15s;}
+  .group-card--tile:hover{border-color:var(--gold);transform:translateY(-2px);}
+  .group-card--tile .card-body > h4{margin-bottom:6px;}
 
   /* Multi-church Overview: church picker tiles */
   .church-tile-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;}
@@ -8373,7 +8388,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-19-v167 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-19-v168 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -8719,6 +8734,24 @@ Groups</span>
     + '<rect x="5.8" y="15.2" width="3.4" height="3.1" rx="0.5" />'
     + '<rect x="10.3" y="15.2" width="3.4" height="3.1" rx="0.5" />'
     + '</svg>';
+
+  // A group is people, so the placeholder is people: two figures, the
+  // nearer one whole and the further one behind it. Drawn at the same
+  // weight as the other two rather than borrowed from the nav icon,
+  // which is a thin outline meant to read at 22px.
+  var groupIcon = '<svg viewBox="0 -3 24 27" fill="#16233F">'
+    + '<circle cx="9" cy="6.2" r="4.1" />'
+    + '<path d="M1.4 20.4C1.4 15.6 4.8 12.2 9 12.2C13.2 12.2 16.6 15.6 16.6 20.4Z" />'
+    + '<path d="M16.1 2.6A4.1 4.1 0 0 1 16.1 9.8A5.6 5.6 0 0 0 16.1 2.6Z" />'
+    + '<path d="M17.4 11.6C20.8 12.5 23 15.6 23 19.4H19.1C19.1 16.5 18.5 13.8 17.4 11.6Z" />'
+    + '</svg>';
+  // Unlike its two siblings, this one is read from the MODULE script
+  // block further down -- the group cards live there. A top-level var
+  // in a classic block is already a global, so it would work either
+  // way, but this file has produced three bugs from code landing in
+  // the wrong block, so the cross-block use is stated rather than
+  // left to be inferred from where it happens to sit.
+  window.groupIcon = groupIcon;
 
   // ============================================================
   // Private-testing invite gate (client-side, soft)
@@ -24663,16 +24696,27 @@ Groups</span>
           + '</div>';
       }
 
-      return '<div class="group-card" data-route="group" data-group-id="' + escapeHtml(g.id) + '" style="cursor:pointer;position:relative;">'
-        + heart
-        + (img ? '<div style="aspect-ratio:16/9;border-radius:10px;background-size:cover;background-position:center;margin-bottom:10px;background-image:url(\'' + img + '\');"></div>' : '')
-        + '<h4>' + escapeHtml(g.name) + visTag + '</h4>'
-        + '<div style="font-size:12.5px;color:var(--ink-mute);margin-bottom:6px;">' + meta + '</div>'
-        + (g.description ? '<p>' + escapeHtml(g.description) + '</p>' : '')
-        + (g.meeting_schedule ? '<div class="group-schedule">' + escapeHtml(g.meeting_schedule) + '</div>' : '')
-        + '<div style="font-size:12px;color:var(--ink-mute);margin-bottom:8px;">' + escapeHtml(groupsMemberCountLabel(g.member_count)) + '</div>'
-        + actionHtml
-        + '<div class="group-join-status" style="display:none;font-size:12px;color:var(--ink-mute);margin-top:6px;"></div>'
+      var thumb = img
+        ? '<div class="thumb" style="background-image:url(\'' + img + '\');background-size:cover;background-position:center;"></div>'
+        : '<div class="thumb thumb--group">' + groupIcon + '</div>';
+      return '<div class="group-card group-card--tile" data-route="group" data-group-id="' + escapeHtml(g.id) + '" style="cursor:pointer;">'
+        + thumb
+        + '<div class="card-body">'
+        // The heart shares a row with the tag rather than floating over
+        // the picture, which is where churches and events put it after
+        // that was reported on both.
+        +   '<div class="card-tag-row">'
+        +     '<div class="card-tags">' + visTag + '</div>'
+        +     heart
+        +   '</div>'
+        +   '<h4>' + escapeHtml(g.name) + '</h4>'
+        +   '<div style="font-size:12.5px;color:var(--ink-mute);margin-bottom:6px;">' + meta + '</div>'
+        +   (g.description ? '<p>' + escapeHtml(g.description) + '</p>' : '')
+        +   (g.meeting_schedule ? '<div class="group-schedule">' + escapeHtml(g.meeting_schedule) + '</div>' : '')
+        +   '<div style="font-size:12px;color:var(--ink-mute);margin-bottom:8px;">' + escapeHtml(groupsMemberCountLabel(g.member_count)) + '</div>'
+        +   actionHtml
+        +   '<div class="group-join-status" style="display:none;font-size:12px;color:var(--ink-mute);margin-top:6px;"></div>'
+        + '</div>'
         + '</div>';
     }).join('');
     if (append) listEl.insertAdjacentHTML('beforeend', html);
@@ -26372,6 +26416,7 @@ Groups</span>
   async function loadPublicChurchGroups(churchId){
     var listEl = document.getElementById('church-groups-list');
     if (!listEl) return;
+    listEl.className = '';
     if (!churchId) {
       listEl.innerHTML = '<p style="color:var(--ink-mute);font-size:14px;">' + window.t('groupPage.notAvailableYet') + '</p>';
       return;
@@ -26407,6 +26452,7 @@ Groups</span>
       if (myRows) myRows.forEach(function(r){ myMemberships[r.group_id] = r.status; });
     }
 
+    listEl.className = 'grid';
     listEl.innerHTML = groupsData.map(function(g){
       var memberStatus = myMemberships[g.id]; // undefined | 'pending' | 'active'
 
@@ -26432,14 +26478,22 @@ Groups</span>
         : '';
       var pubImg = (typeof safeImageUrl === 'function') ? safeImageUrl(g.image_url) : '';
       var pubHeart = (typeof followHeartGroup === 'function') ? followHeartGroup(g) : '';
-      return '<div class="group-card" data-route="group" data-group-id="' + escapeHtml(g.id) + '" style="cursor:pointer;position:relative;">'
-        + pubHeart
-        + (pubImg ? '<div style="aspect-ratio:16/9;border-radius:10px;background-size:cover;background-position:center;margin-bottom:10px;background-image:url(\'' + pubImg + '\');"></div>' : '')
-        + '<h4>' + escapeHtml(g.name) + pubVisTag + '</h4>'
-        + (g.description ? '<p>' + escapeHtml(g.description) + '</p>' : '')
-        + (g.meeting_schedule ? '<div class="group-schedule">' + escapeHtml(g.meeting_schedule) + '</div>' : '')
-        + actionHtml
-        + '<div class="group-join-status" style="display:none;font-size:12px;color:var(--ink-mute);margin-top:6px;"></div>'
+      var pubThumb = pubImg
+        ? '<div class="thumb" style="background-image:url(\'' + pubImg + '\');background-size:cover;background-position:center;"></div>'
+        : '<div class="thumb thumb--group">' + groupIcon + '</div>';
+      return '<div class="group-card group-card--tile" data-route="group" data-group-id="' + escapeHtml(g.id) + '" style="cursor:pointer;">'
+        + pubThumb
+        + '<div class="card-body">'
+        +   '<div class="card-tag-row">'
+        +     '<div class="card-tags">' + pubVisTag + '</div>'
+        +     pubHeart
+        +   '</div>'
+        +   '<h4>' + escapeHtml(g.name) + '</h4>'
+        +   (g.description ? '<p>' + escapeHtml(g.description) + '</p>' : '')
+        +   (g.meeting_schedule ? '<div class="group-schedule">' + escapeHtml(g.meeting_schedule) + '</div>' : '')
+        +   actionHtml
+        +   '<div class="group-join-status" style="display:none;font-size:12px;color:var(--ink-mute);margin-top:6px;"></div>'
+        + '</div>'
         + '</div>';
     }).join('');
   }

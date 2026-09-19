@@ -5955,3 +5955,31 @@ The mark is set at every width and the CSS that acts on it lives inside the 860p
 Also verified with a real hamburger tap rather than a forced class: the panel lists About FaithDock, Pricing, Sign in and the toggles, and the Groups icon still reaches `#groups`.
 
 Build `2026-09-19-v167`; no migration.
+
+## Group cards became cards
+
+A group card was a padded box: the picture, when there was one, sat inset inside the padding, and a group with no picture began abruptly with its name. Churches and events have had the same three parts for a long time -- a thumbnail filling the top edge to edge, then a `.card-body` -- so groups now have them too, on the groups search and on a church page.
+
+Three pieces:
+
+- **`groupIcon`**, built exactly like `buildingIcon` and `calendarIcon`: one viewBox, one solid fill, no strokes. Not borrowed from the nav icon, which is a thin outline drawn to read at 22px and looks anaemic at 54.
+- **`.thumb--group`**, a copy of `.thumb--event` rather than a new look. A group has no denomination, so there is no hue to key to the way `.thumb--denom` does.
+- **`.group-card--tile`**, which moves the padding off the card and into `.card-body` so the picture can reach the edges. Plain `.group-card` keeps its padded form everywhere else it is used -- my lists, the dashboards, ministries -- so only the two browsing surfaces changed.
+
+The heart moved from floating over the picture into the tag row, which is where churches and events put it after that was reported on both.
+
+`#church-groups-list` also gets `grid` now, set on the render rather than in the markup: a 16:9 picture across a full-width column would have been enormous, and setting it in JS keeps the loading and empty messages as plain text instead of a lone item in a three-column grid.
+
+### The block seam, checked rather than assumed
+
+`groupIcon` is defined in the classic script block; both group card renders live in the **module** block. That works -- a top-level `var` in a classic block is already a global, which is how `escapeHtml` and `safeImageUrl` are reached from module code -- but this file has produced three bugs from code landing in the wrong block, so it is stated with an explicit `window.groupIcon =` and a comment rather than left to be inferred.
+
+Worth recording for next time: the real boundaries here are `<script>` at 5, 21, 4508, 8640, and `<script type="module">` at 14081. A quick scan for those tags beats eyeballing indentation.
+
+### Verified as pixels, not markup
+
+"Matches churches and events" is a claim about what renders, so the three placeholders were built off-screen and their computed styles compared. `.thumb--group` came back identical to `.thumb--event` in both themes -- same 16:9, same gradient, same 54px icon, same fill and opacity -- and identical in geometry to `.thumb--denom`, which differs only in its denomination hue, by design.
+
+Also checked: list view untouched (no thumb, still `18px 20px` padding, no grid container), the thumbnail flush to both card edges at 393 with no page overflow, and the church page groups tab rendering the same tile.
+
+Build `2026-09-19-v168`; no migration.
