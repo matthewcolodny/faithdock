@@ -6148,3 +6148,37 @@ My Churches and My Events had them under the title, My Groups above it. They are
 While in these rows: `e.title` and the church name were being concatenated into HTML unescaped. Both are user data -- a church chooses its own name and an event its own title -- so both now go through `escapeHtml`, alongside the ids.
 
 Build `2026-09-19-v173`; no migration.
+
+## The fee the site advertised and never charged
+
+POLICY.md item 1, closed. Both Edge Functions had `PLATFORM_FEE_PERCENT = 0` while the site said otherwise in eight strings across two languages, and the Give form offered donors a tickbox, **ticked by default**, to add 1% so the church would still receive their full gift after a fee that was never taken.
+
+**A correction to how this was first described.** The extra did not vanish: with the platform taking nothing, a donor who left the box ticked simply sent about 1% more to the church. Nobody was charged for nothing. What was wrong is that the sentence beside the tick gave a reason that was not true, on a site whose About page now commits to plain dealing in six places. The money was fine; the sentence was not.
+
+The shape of the bug is the familiar one: **one number living in four places** that had drifted apart. Two Edge Function constants, eight display strings, and a hardcoded `/ 0.99` in the Give form.
+
+Now there is one client-side `window.PLATFORM_FEE = { giving, ticket }`, and:
+
+- every string that quotes a percentage writes `{givingFee}` or `{ticketFee}` instead, filled in by `t()` and by the three `data-i18n` loops (which read the dictionary directly rather than through `t()`, so they needed it too, or half the page would have shown the raw token);
+- the cover-fee checkbox is shown only when the giving fee is above zero, so it cannot ask under a false pretext again;
+- the gross-up computes `intended / (1 - rate)` from the same constant rather than a literal `0.99`.
+
+The Edge Functions stay authoritative -- they compute the real application fee server-side and nothing on the client can change what is charged. These constants exist so the **site** stops disagreeing with them, and they have to be kept in step by hand; that is one deliberate pairing rather than the four-way spread it replaced.
+
+Verified by flipping the constant at runtime and reading the copy back in both languages:
+
+| | at 0% | at 1% / 3% |
+| --- | --- | --- |
+| pricing, giving | `FaithDock fee: 0%` | `FaithDock fee: 1%` |
+| pricing, tickets | `0% per ticket` | `3% per ticket` |
+| comparison table | `0% fee` | `1% fee` |
+| Spanish | `Tarifa de FaithDock: 0%` | `Tarifa de FaithDock: 1%` |
+| cover-fee box | hidden | shown, $101.01 charged so the church nets $100 |
+
+### While in the About copy
+
+Em dashes are gone from every `about.*` string in both languages. Not a find-and-replace: an em dash usually joins two clauses a comma cannot hold on its own, so each was re-punctuated -- mostly to a colon where it introduced something, a full stop where it joined two thoughts. `home.fc.lead` still has two, deliberately: that band is shared with the homepage, and rewriting it here would have edited the homepage as a side effect.
+
+The founder story no longer names the church, in the dictionary and in the markup stub behind it. The role and the five years carry the specificity on their own. Restoring the name later is a one-line edit to `about.storyP1` in each language.
+
+Build `2026-09-20-v175`; no migration.
