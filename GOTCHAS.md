@@ -6182,3 +6182,50 @@ Em dashes are gone from every `about.*` string in both languages. Not a find-and
 The founder story no longer names the church, in the dictionary and in the markup stub behind it. The role and the five years carry the specificity on their own. Restoring the name later is a one-line edit to `about.storyP1` in each language.
 
 Build `2026-09-20-v175`; no migration.
+
+## Facebook sign-in, and the two things a second provider breaks
+
+The client half is small: a button, and `signInWithOAuth({ provider: 'facebook' })`. **It does nothing until the provider is configured in the Supabase dashboard** with credentials from a Facebook app, which is the larger half and is not in this repository.
+
+Adding a second provider is more interesting than adding the first, because it turns "the OAuth one" into "which OAuth one", and two places in this file had quietly assumed the answer.
+
+### The email-change re-auth sent everybody to Google
+
+Changing the email on a passwordless account re-authenticates by sending the person back through their provider, and it was hardcoded to Google. Correct while Google was the only one; for a Facebook account it would either fail or, worse, authenticate a **different identity** than the one asking. The provider now comes from `app_metadata.providers`, which lists every linked method, with `email` filtered out.
+
+The copy went with it. `profile.emailHintGoogle` and `profile.verifyGoogleUpdateEmail` became `{provider}`-templated `...OAuth` keys, so a Facebook account is not told to go and confirm with Google.
+
+### The privacy policy names its providers
+
+Adding a sign-in button is also a policy edit: `legal.privacyCollect1` said "if you sign in with Google", and `legal.privacyShare1` listed the service providers that receive data. Both now name Facebook too, in EN and ES, and in the markup fallback as well as the dictionary. Easy to forget, and awkward to have forgotten on a site whose About page commits to plain dealing.
+
+### One handler, not two
+
+The two buttons differ only in the provider name and whether it takes extra query params, so they share `wireOAuthButton()`. The invite gate, the redirect target and the error surface are written once. `prompt=select_account` stays Google-specific and is passed in; Facebook has no equivalent, so it gets none rather than a guess at one.
+
+### Verified, including one test that proved nothing
+
+The provider derivation was first tested by stubbing `getUser` and calling `loadProfilePage`. All four cases came back identical -- and the fields that should have held the provider came back **undefined**, which is what gave it away: the stub never reached that code, so every case agreed by not running. The assertion that catches this is including a field whose absence is visible.
+
+Retested by extracting the shipped lines out of `index.html` and running them against fixtures:
+
+| providers | provider | has password |
+| --- | --- | --- |
+| `[facebook]` | facebook | no |
+| `[google]` | google | no |
+| `[email]` | null | yes |
+| `[email, facebook]` | facebook | yes |
+| `[facebook, email]` | facebook | yes |
+| `[]` | null | no |
+
+The last three matter most: order-independence, and a password not masking the linked provider.
+
+Also checked in the browser: both buttons request their own provider with their own params, and the invite gate still swallows the Facebook click while the site is locked.
+
+### Left for the dashboard, not the code
+
+- The Facebook app, its App ID and secret, and the redirect URI pointing at the Supabase callback.
+- Facebook requires HTTPS and a live Privacy Policy URL, both of which exist.
+- **Facebook does not always return an email.** Supabase will create the user without one, and this app assumes an email in several places (password reset, the profile page, church contact). Worth deciding what should happen before this is public, rather than discovering it from the first account that has no email.
+
+Build `2026-09-21-v176`; no migration.

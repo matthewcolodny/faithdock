@@ -379,13 +379,13 @@
       'legal.contactHeading': 'Contact us',
       'legal.privacyIntro': 'FaithDock LLC ("FaithDock," "we," "us") operates faithdock.com, a platform that helps people find churches and events, and helps churches manage their community, events, groups, and giving. This page explains what information we collect, why, and how you can control it.',
       'legal.privacyCollectHeading': 'What we collect',
-      'legal.privacyCollect1': 'When you create an account, we collect your name and email address, and — if you sign in with Google — the basic profile information Google shares with us (name, email, profile photo). You can also optionally add a phone number, a profile photo, and a general age range; age range is used only for anonymous, aggregated reporting a church might see (like "giving by age group") and is never shown next to your name or shared individually.',
+      'legal.privacyCollect1': 'When you create an account, we collect your name and email address, and, if you sign in with Google or Facebook, the basic profile information that provider shares with us (name, email, profile photo). You can also optionally add a phone number, a profile photo, and a general age range; age range is used only for anonymous, aggregated reporting a church might see (like "giving by age group") and is never shown next to your name or shared individually.',
       'legal.privacyCollect2': "If you follow or join a church, we store that relationship, along with any household relationships (like spouse or child) you choose to add. If you register for an event, join a group, or check in at a church, we store that activity so the church can see its own attendance and involvement. If you give financially through FaithDock, payment processing is handled entirely by Stripe — FaithDock never holds or has direct access to your card details, and donations go straight to the receiving church's own account.",
       'legal.privacyCollect3': 'We do not collect background-check information, detailed health records, or emergency-contact information for children, and we do not knowingly collect information from children under 13.',
       'legal.privacyUseHeading': 'How we use it',
       'legal.privacyUse1': 'We use your information to run the core features of FaithDock: showing you churches and events near you, letting you register and follow along, and giving churches the tools to manage their own community. We send account-related emails (like confirming your signup, or notifying you of account changes) through Resend, our email provider. If something goes wrong in your browser, a basic error report (what happened, and which page) may be sent to us automatically to help us fix it — this never includes your password or payment details.',
       'legal.privacyShareHeading': 'Who we share it with',
-      'legal.privacyShare1': "We don't sell your personal information, and we don't share it with advertisers. A church you follow, join, or register for an event with can see the information relevant to that relationship (like your name, contact info, and attendance) — the same way it would if you walked into that church in person. We use a small number of service providers to actually run FaithDock: Supabase (our database and login system), Stripe (payment processing for giving), Resend (sending emails), Google (optional sign-in, and location search for maps), and Cloudflare (basic bot protection on our forms). Each only receives the information it needs to do its specific job.",
+      'legal.privacyShare1': "We don't sell your personal information, and we don't share it with advertisers. A church you follow, join, or register for an event with can see the information relevant to that relationship (like your name, contact info, and attendance) — the same way it would if you walked into that church in person. We use a small number of service providers to actually run FaithDock: Supabase (our database and login system), Stripe (payment processing for giving), Resend (sending emails), Google (optional sign-in, and location search for maps), Facebook (optional sign-in), and Cloudflare (basic bot protection on our forms). Each only receives the information it needs to do its specific job.",
       'legal.privacyChoicesHeading': 'Your choices',
       'legal.privacyChoices1': "You can review and update most of your information any time from your Profile page, including your name, phone number, age range, and email. You can delete your account entirely from your Profile page as well — this removes your personal data, though records a church needs to keep for its own legitimate purposes (like a giving record for tax purposes) may be retained by that church separately, the same way a paper receipt would be.",
       'legal.privacyContactPre': 'If you have questions about this policy or your data, reach us at',
@@ -554,9 +554,9 @@
       'profile.nextNameChangeAllowed': 'You can change your name again on',
       'profile.changeEmail': 'Change email',
       'profile.emailHintPassword': "Requires confirming your current password. A confirmation link goes to the new address — the change doesn't take effect until that link is clicked.",
-      'profile.emailHintGoogle': "Requires re-confirming with Google — clicking below will briefly send you to Google's sign-in, then bring you right back here.",
+      'profile.emailHintOAuth': 'Requires re-confirming with {provider}. Clicking below will send you briefly to the {provider} sign-in, then bring you right back here.',
       'profile.currentPasswordPlaceholder': 'Current password', 'profile.newEmailPlaceholder': 'New email address',
-      'profile.updateEmail': 'Update email', 'profile.verifyGoogleUpdateEmail': 'Verify with Google & update email',
+      'profile.updateEmail': 'Update email', 'profile.verifyOAuthUpdateEmail': 'Verify with {provider} & update email',
       'profile.changePassword': 'Change password', 'profile.setAPassword': 'Set a password',
       'profile.passwordHint': "At least 10 characters. Confirm your current password first, to keep this from being used by anyone who gets hold of an active, already-logged-in session but doesn't actually know it.",
       'profile.newPasswordPlaceholder': 'New password', 'profile.confirmNewPasswordPlaceholder': 'Confirm new password',
@@ -1074,7 +1074,7 @@
       'auth.fillAllFields': 'Please fill in all fields.', 'auth.removeWordFromName': 'Please remove "{word}" from your name.', 'auth.passwordsDontMatch': "Passwords don't match.", 'auth.passwordTooShort': 'Password must be at least 10 characters.',
       'auth.accountCreatedCheckEmail': 'Account created — check your email to confirm before continuing.',
       'auth.confirmedElsewhereHint': 'Confirmed on another device?', 'auth.logInHereLink': 'Log in here.',
-      'auth.continueWithGoogle': 'Continue with Google', 'common.or': 'or',
+      'auth.continueWithGoogle': 'Continue with Google', 'auth.continueWithFacebook': 'Continue with Facebook', 'common.or': 'or',
       'footer.disclaimer': 'FaithDock — private testing', 'footer.privacy': 'Privacy', 'footer.terms': 'Terms', 'footer.accessibility': 'Accessibility',
       'auth.emailNotConfirmedYet': "Your email hasn't been confirmed yet.", 'auth.resendConfirmationEmail': 'Resend the confirmation email', 'auth.verifying': 'Verifying...',
       'auth.securityCheckIncomplete': "Security check didn't complete — please try again.", 'auth.sending': 'Sending...', 'auth.confirmationEmailSent': 'Confirmation email sent — check your inbox.',
@@ -1405,13 +1405,13 @@
       'legal.contactHeading': 'Contáctanos',
       'legal.privacyIntro': 'FaithDock LLC ("FaithDock", "nosotros") opera faithdock.com, una plataforma que ayuda a las personas a encontrar iglesias y eventos, y ayuda a las iglesias a gestionar su comunidad, eventos, grupos y donaciones. Esta página explica qué información recopilamos, por qué, y cómo puedes controlarla.',
       'legal.privacyCollectHeading': 'Qué recopilamos',
-      'legal.privacyCollect1': 'Cuando creas una cuenta, recopilamos tu nombre y dirección de correo electrónico y, si inicias sesión con Google, la información básica de perfil que Google comparte con nosotros (nombre, correo electrónico, foto de perfil). También puedes agregar opcionalmente un número de teléfono, una foto de perfil y un rango de edad general; el rango de edad se usa únicamente para informes anónimos y agregados que una iglesia podría ver (como "donaciones por grupo de edad") y nunca se muestra junto a tu nombre ni se comparte de forma individual.',
+      'legal.privacyCollect1': 'Cuando creas una cuenta, recopilamos tu nombre y dirección de correo electrónico y, si inicias sesión con Google o Facebook, la información básica de perfil que ese proveedor comparte con nosotros (nombre, correo electrónico, foto de perfil). También puedes agregar opcionalmente un número de teléfono, una foto de perfil y un rango de edad general; el rango de edad se usa únicamente para informes anónimos y agregados que una iglesia podría ver (como "donaciones por grupo de edad") y nunca se muestra junto a tu nombre ni se comparte de forma individual.',
       'legal.privacyCollect2': 'Si sigues o te unes a una iglesia, almacenamos esa relación, junto con cualquier relación familiar (como cónyuge o hijo) que decidas agregar. Si te registras en un evento, te unes a un grupo o registras tu asistencia en una iglesia, almacenamos esa actividad para que la iglesia pueda ver su propia asistencia y participación. Si donas dinero a través de FaithDock, el procesamiento de pagos lo gestiona completamente Stripe — FaithDock nunca retiene ni tiene acceso directo a los datos de tu tarjeta, y las donaciones van directamente a la cuenta de la iglesia receptora.',
       'legal.privacyCollect3': 'No recopilamos información de verificación de antecedentes, historiales médicos detallados ni información de contacto de emergencia para menores, y no recopilamos a sabiendas información de niños menores de 13 años.',
       'legal.privacyUseHeading': 'Cómo la usamos',
       'legal.privacyUse1': 'Usamos tu información para operar las funciones principales de FaithDock: mostrarte iglesias y eventos cerca de ti, permitirte registrarte y seguirlos, y darles a las iglesias las herramientas para gestionar su propia comunidad. Enviamos correos relacionados con tu cuenta (como confirmar tu registro o notificarte cambios en la cuenta) a través de Resend, nuestro proveedor de correo electrónico. Si algo falla en tu navegador, es posible que se nos envíe automáticamente un informe básico del error (qué ocurrió y en qué página) para ayudarnos a solucionarlo — esto nunca incluye tu contraseña ni tus datos de pago.',
       'legal.privacyShareHeading': 'Con quién la compartimos',
-      'legal.privacyShare1': 'No vendemos tu información personal ni la compartimos con anunciantes. Una iglesia que sigas, a la que te unas o en cuyo evento te registres puede ver la información relevante a esa relación (como tu nombre, información de contacto y asistencia) — de la misma manera que lo haría si entraras a esa iglesia en persona. Usamos un pequeño número de proveedores de servicios para operar FaithDock: Supabase (nuestra base de datos y sistema de inicio de sesión), Stripe (procesamiento de pagos para donaciones), Resend (envío de correos electrónicos), Google (inicio de sesión opcional y búsqueda de ubicación para mapas) y Cloudflare (protección básica contra bots en nuestros formularios). Cada uno recibe únicamente la información que necesita para realizar su función específica.',
+      'legal.privacyShare1': 'No vendemos tu información personal ni la compartimos con anunciantes. Una iglesia que sigas, a la que te unas o en cuyo evento te registres puede ver la información relevante a esa relación (como tu nombre, información de contacto y asistencia) — de la misma manera que lo haría si entraras a esa iglesia en persona. Usamos un pequeño número de proveedores de servicios para operar FaithDock: Supabase (nuestra base de datos y sistema de inicio de sesión), Stripe (procesamiento de pagos para donaciones), Resend (envío de correos electrónicos), Google (inicio de sesión opcional y búsqueda de ubicación para mapas), Facebook (inicio de sesión opcional) y Cloudflare (protección básica contra bots en nuestros formularios). Cada uno recibe únicamente la información que necesita para realizar su función específica.',
       'legal.privacyChoicesHeading': 'Tus opciones',
       'legal.privacyChoices1': 'Puedes revisar y actualizar la mayor parte de tu información en cualquier momento desde tu página de Perfil, incluyendo tu nombre, número de teléfono, rango de edad y correo electrónico. También puedes eliminar tu cuenta por completo desde tu página de Perfil — esto elimina tus datos personales, aunque los registros que una iglesia necesite conservar para sus propios fines legítimos (como un registro de donaciones para efectos fiscales) pueden ser conservados por esa iglesia de forma independiente, de la misma manera que lo sería un recibo en papel.',
       'legal.privacyContactPre': 'Si tienes preguntas sobre esta política o tus datos, contáctanos en',
@@ -1580,9 +1580,9 @@
       'profile.nextNameChangeAllowed': 'Podrás cambiar tu nombre de nuevo el',
       'profile.changeEmail': 'Cambiar correo electrónico',
       'profile.emailHintPassword': 'Requiere confirmar tu contraseña actual. Se enviará un enlace de confirmación a la nueva dirección — el cambio no se aplica hasta que se haga clic en ese enlace.',
-      'profile.emailHintGoogle': 'Requiere volver a confirmar con Google — al hacer clic abajo se te enviará brevemente al inicio de sesión de Google, y luego volverás aquí.',
+      'profile.emailHintOAuth': 'Requiere volver a confirmar con {provider}. Al hacer clic abajo se te enviará brevemente al inicio de sesión de {provider}, y luego volverás aquí.',
       'profile.currentPasswordPlaceholder': 'Contraseña actual', 'profile.newEmailPlaceholder': 'Nueva dirección de correo',
-      'profile.updateEmail': 'Actualizar correo', 'profile.verifyGoogleUpdateEmail': 'Verificar con Google y actualizar correo',
+      'profile.updateEmail': 'Actualizar correo', 'profile.verifyOAuthUpdateEmail': 'Verificar con {provider} y actualizar correo',
       'profile.changePassword': 'Cambiar contraseña', 'profile.setAPassword': 'Establecer una contraseña',
       'profile.passwordHint': 'Al menos 10 caracteres. Confirma primero tu contraseña actual, para evitar que esto lo use alguien que obtenga acceso a una sesión activa ya iniciada pero que en realidad no la conoce.',
       'profile.newPasswordPlaceholder': 'Nueva contraseña', 'profile.confirmNewPasswordPlaceholder': 'Confirmar nueva contraseña',
@@ -2093,7 +2093,7 @@
       'auth.fillAllFields': 'Por favor completa todos los campos.', 'auth.removeWordFromName': 'Por favor elimina "{word}" de tu nombre.', 'auth.passwordsDontMatch': 'Las contraseñas no coinciden.', 'auth.passwordTooShort': 'La contraseña debe tener al menos 10 caracteres.',
       'auth.accountCreatedCheckEmail': 'Cuenta creada — revisa tu correo para confirmar antes de continuar.',
       'auth.confirmedElsewhereHint': '¿Confirmaste desde otro dispositivo?', 'auth.logInHereLink': 'Inicia sesión aquí.',
-      'auth.continueWithGoogle': 'Continuar con Google', 'common.or': 'o',
+      'auth.continueWithGoogle': 'Continuar con Google', 'auth.continueWithFacebook': 'Continuar con Facebook', 'common.or': 'o',
       'footer.disclaimer': 'FaithDock — pruebas privadas', 'footer.privacy': 'Privacidad', 'footer.terms': 'Términos', 'footer.accessibility': 'Accesibilidad',
       'auth.emailNotConfirmedYet': 'Tu correo aún no ha sido confirmado.', 'auth.resendConfirmationEmail': 'Reenviar el correo de confirmación', 'auth.verifying': 'Verificando...',
       'auth.securityCheckIncomplete': 'La verificación de seguridad no se completó — inténtalo de nuevo.', 'auth.sending': 'Enviando...', 'auth.confirmationEmailSent': 'Correo de confirmación enviado — revisa tu bandeja de entrada.',
@@ -6364,6 +6364,12 @@ Groups</span>
           </svg>
           <span data-i18n="auth.continueWithGoogle">Continue with Google</span>
         </button>
+        <button class="export-btn" id="oauth-facebook-btn" style="width:100%;justify-content:center;gap:10px;margin-top:10px;">
+          <svg viewBox="0 0 24 24" style="width:18px;height:18px;" aria-hidden="true">
+            <path fill="#1877F2" d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.69.24 2.69.24v2.96h-1.52c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.1 24 18.1 24 12.07Z"/>
+          </svg>
+          <span data-i18n="auth.continueWithFacebook">Continue with Facebook</span>
+        </button>
         <div style="display:flex;align-items:center;gap:10px;margin:16px 0;">
           <div style="flex:1;height:1px;background:var(--line);"></div>
           <span style="font-size:12px;color:var(--ink-mute);" data-i18n="common.or">or</span>
@@ -8330,7 +8336,7 @@ Groups</span>
       <p data-i18n="legal.privacyIntro">FaithDock LLC ("FaithDock," "we," "us") operates faithdock.com, a platform that helps people find churches and events, and helps churches manage their community, events, groups, and giving. This page explains what information we collect, why, and how you can control it.</p>
 
       <h3 style="margin-top:28px;" data-i18n="legal.privacyCollectHeading">What we collect</h3>
-      <p data-i18n="legal.privacyCollect1">When you create an account, we collect your name and email address, and — if you sign in with Google — the basic profile information Google shares with us (name, email, profile photo). You can also optionally add a phone number, a profile photo, and a general age range; age range is used only for anonymous, aggregated reporting a church might see (like "giving by age group") and is never shown next to your name or shared individually.</p>
+      <p data-i18n="legal.privacyCollect1">When you create an account, we collect your name and email address, and, if you sign in with Google or Facebook, the basic profile information that provider shares with us (name, email, profile photo). You can also optionally add a phone number, a profile photo, and a general age range; age range is used only for anonymous, aggregated reporting a church might see (like "giving by age group") and is never shown next to your name or shared individually.</p>
       <p data-i18n="legal.privacyCollect2">If you follow or join a church, we store that relationship, along with any household relationships (like spouse or child) you choose to add. If you register for an event, join a group, or check in at a church, we store that activity so the church can see its own attendance and involvement. If you give financially through FaithDock, payment processing is handled entirely by Stripe — FaithDock never holds or has direct access to your card details, and donations go straight to the receiving church's own account.</p>
       <p data-i18n="legal.privacyCollect3">We do not collect background-check information, detailed health records, or emergency-contact information for children, and we do not knowingly collect information from children under 13.</p>
 
@@ -8338,7 +8344,7 @@ Groups</span>
       <p data-i18n="legal.privacyUse1">We use your information to run the core features of FaithDock: showing you churches and events near you, letting you register and follow along, and giving churches the tools to manage their own community. We send account-related emails (like confirming your signup, or notifying you of account changes) through Resend, our email provider. If something goes wrong in your browser, a basic error report (what happened, and which page) may be sent to us automatically to help us fix it — this never includes your password or payment details.</p>
 
       <h3 style="margin-top:28px;" data-i18n="legal.privacyShareHeading">Who we share it with</h3>
-      <p data-i18n="legal.privacyShare1">We don't sell your personal information, and we don't share it with advertisers. A church you follow, join, or register for an event with can see the information relevant to that relationship (like your name, contact info, and attendance) — the same way it would if you walked into that church in person. We use a small number of service providers to actually run FaithDock: Supabase (our database and login system), Stripe (payment processing for giving), Resend (sending emails), Google (optional sign-in, and location search for maps), and Cloudflare (basic bot protection on our forms). Each only receives the information it needs to do its specific job.</p>
+      <p data-i18n="legal.privacyShare1">We don't sell your personal information, and we don't share it with advertisers. A church you follow, join, or register for an event with can see the information relevant to that relationship (like your name, contact info, and attendance) — the same way it would if you walked into that church in person. We use a small number of service providers to actually run FaithDock: Supabase (our database and login system), Stripe (payment processing for giving), Resend (sending emails), Google (optional sign-in, and location search for maps), Facebook (optional sign-in), and Cloudflare (basic bot protection on our forms). Each only receives the information it needs to do its specific job.</p>
 
       <h3 style="margin-top:28px;" data-i18n="legal.privacyChoicesHeading">Your choices</h3>
       <p data-i18n="legal.privacyChoices1">You can review and update most of your information any time from your Profile page, including your name, phone number, age range, and email. You can delete your account entirely from your Profile page as well — this removes your personal data, though records a church needs to keep for its own legitimate purposes (like a giving record for tax purposes) may be retained by that church separately, the same way a paper receipt would be.</p>
@@ -8473,7 +8479,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-20-v175 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-21-v176 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -17977,39 +17983,45 @@ Groups</span>
     document.getElementById('auth-error').style.display = 'none';
   }
 
-  // Google OAuth requires the provider actually configured in the
-  // Supabase dashboard (Authentication -> Providers -> Google, with
-  // credentials from Google Cloud Console) before this button does
-  // anything real — the client-side call below is only half of it.
-  var oauthGoogleBtn = document.getElementById('oauth-google-btn');
-  if (oauthGoogleBtn) {
-    oauthGoogleBtn.addEventListener('click', async function(){
+  // Each OAuth provider has to be configured in the Supabase dashboard
+  // (Authentication -> Providers) with credentials from that provider's
+  // own developer console before its button does anything real. The
+  // client-side call below is only ever half of it.
+  //
+  // One function for every provider: the invite gate, the redirect
+  // target and the error surface are identical, and only the provider
+  // name and its extra query params differ. Two copies would be two
+  // things to keep in step, which is how most of the bugs recorded in
+  // GOTCHAS.md started.
+  function wireOAuthButton(btnId, provider, queryParams){
+    var btn = document.getElementById(btnId);
+    if (!btn) return;
+    btn.addEventListener('click', async function(){
       clearAuthError();
-      // Private testing: Google sign-in creates an account for a new
-      // email, so it's gated the same as everything else on this page.
+      // Private testing: signing in with a provider creates an account
+      // for a new email, so it is gated like everything else here.
       if (typeof window.fdInviteUnlocked === 'function' && !window.fdInviteUnlocked()) {
         if (typeof window.openInviteGate === 'function') window.openInviteGate();
         return;
       }
-      var { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: window.location.origin + window.location.pathname,
-          // Forces Google to always show the account chooser rather
-          // than silently reusing whichever account it remembers
-          // being used last — otherwise, once someone's authorized
-          // FaithDock once, every later click (even from the Sign Up
-          // tab) skips straight through with no picker, which reads
-          // as "it just logged me in" regardless of which tab was
-          // active.
-          queryParams: { prompt: 'select_account' }
-        }
-      });
-      // On success this redirects the whole page to Google, so there's
-      // nothing further to do here — only reachable on failure.
+      var options = { redirectTo: window.location.origin + window.location.pathname };
+      if (queryParams) options.queryParams = queryParams;
+      var { error } = await supabase.auth.signInWithOAuth({ provider: provider, options: options });
+      // On success this redirects the whole page away, so there is
+      // nothing further to do here; only reachable on failure.
       if (error) { showAuthError(error.message); }
     });
   }
+
+  // prompt=select_account forces Google to show the account chooser
+  // rather than silently reusing whichever account it remembers. Once
+  // somebody has authorised FaithDock, every later click (even from
+  // the Sign Up tab) would otherwise skip straight through with no
+  // picker, which reads as "it just logged me in" regardless of which
+  // tab was active. Facebook has no equivalent parameter, so it gets
+  // none rather than a guess at one.
+  wireOAuthButton('oauth-google-btn', 'google', { prompt: 'select_account' });
+  wireOAuthButton('oauth-facebook-btn', 'facebook', null);
 
   // Shared by both the manual email/password flow and the OAuth
   // success path (Google, etc.) — figures out where a signed-in user
@@ -30465,8 +30477,19 @@ Groups</span>
     // exists, from original signup or from setting one later here).
     // Both the password and email forms below need to know this to
     // avoid demanding a "current password" that can't possibly exist.
-    var hasPasswordAuth = !!(userData.user.app_metadata && userData.user.app_metadata.providers && userData.user.app_metadata.providers.indexOf('email') !== -1);
+    var authProviders = (userData.user.app_metadata && userData.user.app_metadata.providers) || [];
+    var hasPasswordAuth = authProviders.indexOf('email') !== -1;
     window.profileHasPasswordAuth = hasPasswordAuth;
+    // WHICH provider, not just whether there is one. The email-change
+    // flow below re-authenticates by sending the person back through
+    // their own provider, and it used to send everyone to Google --
+    // correct only while Google was the only one there was. A Facebook
+    // account sent to Google would either fail or, worse, quietly
+    // authenticate a different identity.
+    window.profileOAuthProvider = authProviders.filter(function(pr){ return pr !== 'email'; })[0] || null;
+    window.profileOAuthProviderLabel = window.profileOAuthProvider
+      ? window.profileOAuthProvider.charAt(0).toUpperCase() + window.profileOAuthProvider.slice(1)
+      : '';
     var currentPwField = document.getElementById('profile-current-password-input');
     var pwLabel = document.getElementById('profile-password-label');
     var pwSaveBtn = document.getElementById('profile-password-save-btn');
@@ -30481,8 +30504,11 @@ Groups</span>
     var emailSaveBtn = document.getElementById('profile-email-save-btn');
     setHiddenPasswordFieldVisible(emailPwField, hasPasswordAuth);
     if (!hasPasswordAuth) {
-      if (emailPwHint) emailPwHint.textContent = window.t('profile.emailHintGoogle');
-      if (emailSaveBtn) emailSaveBtn.textContent = window.t('profile.verifyGoogleUpdateEmail');
+      // The provider is named in the copy rather than assumed, so a
+      // Facebook account is not told to go and confirm with Google.
+      var provLabel = window.profileOAuthProviderLabel || 'Google';
+      if (emailPwHint) emailPwHint.textContent = window.t('profile.emailHintOAuth').split('{provider}').join(provLabel);
+      if (emailSaveBtn) emailSaveBtn.textContent = window.t('profile.verifyOAuthUpdateEmail').split('{provider}').join(provLabel);
     } else {
       if (emailPwHint) emailPwHint.textContent = window.t('profile.emailHintPassword');
       if (emailSaveBtn) emailSaveBtn.textContent = window.t('profile.updateEmail');
@@ -31066,7 +31092,7 @@ Groups</span>
           newEmail: newEmail, originalUserId: userData.user.id
         }));
         await supabase.auth.signInWithOAuth({
-          provider: 'google',
+          provider: window.profileOAuthProvider || 'google',
           options: { redirectTo: window.location.origin + window.location.pathname + '#profile' }
         });
         return;
