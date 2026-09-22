@@ -719,7 +719,6 @@
       'dashOverview.registeredCount': '{n} registered', 'dashOverview.andNMoreEvents': '+{n} more',
       'dashOverview.owner': 'Owner', 'dashOverview.nextLabel': 'Next', 'dashOverview.noneScheduled': 'No upcoming events', 'dashOverview.memberCount': '{n} members', 'dashOverview.thisMonth': '{amount} this month',
       'dashOverview.permViewOnly': 'View only', 'dashOverview.permProfile': 'Profile',
-      'dashEvents.totalEvents': 'TOTAL EVENTS', 'dashEvents.daysToNext': 'DAYS TO NEXT EVENT', 'dashEvents.totalRegistrations': 'TOTAL REGISTRATIONS',
       'dashEvents.list': 'List', 'dashEvents.calendar': 'Calendar', 'dashEvents.exportSchedule': 'Export schedule',
       'dashEvents.attendance': 'Attendance', 'dashEvents.attendanceHint': 'Based on check-in records — only counts events where someone actually used Check-In at the door, not just registration counts.',
       'dashEvents.totalCheckedIn': 'TOTAL CHECKED IN', 'dashEvents.overallCheckinRate': 'OVERALL CHECK-IN RATE',
@@ -1809,7 +1808,6 @@
       'dashOverview.registeredCount': '{n} inscritos', 'dashOverview.andNMoreEvents': '+{n} más',
       'dashOverview.owner': 'Propietario', 'dashOverview.nextLabel': 'Próximo', 'dashOverview.noneScheduled': 'Sin eventos próximos', 'dashOverview.memberCount': '{n} miembros', 'dashOverview.thisMonth': '{amount} este mes',
       'dashOverview.permViewOnly': 'Solo lectura', 'dashOverview.permProfile': 'Perfil',
-      'dashEvents.totalEvents': 'EVENTOS TOTALES', 'dashEvents.daysToNext': 'DÍAS PARA EL PRÓXIMO EVENTO', 'dashEvents.totalRegistrations': 'INSCRIPCIONES TOTALES',
       'dashEvents.list': 'Lista', 'dashEvents.calendar': 'Calendario', 'dashEvents.exportSchedule': 'Exportar horario',
       'dashEvents.attendance': 'Asistencia', 'dashEvents.attendanceHint': 'Basado en registros de check-in — solo cuenta eventos donde alguien realmente usó Check-In en la puerta, no solo el conteo de inscripciones.',
       'dashEvents.totalCheckedIn': 'TOTAL REGISTRADOS', 'dashEvents.overallCheckinRate': 'TASA GENERAL DE CHECK-IN',
@@ -7178,11 +7176,12 @@ Groups</span>
 
       <div class="dash-content active" id="dash-events">
         <h2 style="font-size:24px;margin-bottom:24px;" data-i18n="dash.events">Events</h2>
-        <div class="stat-row">
-          <div class="stat"><div class="num" id="dash-events-count">—</div><div class="lbl" data-i18n="dashEvents.totalEvents">TOTAL EVENTS</div></div>
-          <div class="stat"><div class="num" id="dash-days-to-next">—</div><div class="lbl" data-i18n="dashEvents.daysToNext">DAYS TO NEXT EVENT</div></div>
-          <div class="stat"><div class="num" id="dash-registrations-count">—</div><div class="lbl" data-i18n="dashEvents.totalRegistrations">TOTAL REGISTRATIONS</div></div>
-        </div>
+        <!-- Total events, days to next event and total registrations
+             used to sit here. They are reporting figures, and Events is
+             an operational page -- the list is what somebody came for.
+             They belong under Reports, where a number can carry a date
+             range and a definition instead of standing alone above a
+             table it does not describe. -->
         <div class="dash-toolbar">
           <div style="display:flex;align-items:center;gap:12px;">
             <div style="font-size:14px;color:var(--ink-mute);" id="dash-events-toolbar-label">Your events</div>
@@ -8801,7 +8800,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v194 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v195 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -16344,7 +16343,9 @@ Groups</span>
   // keep answering with the PREVIOUS church for up to 1.5 seconds --
   // which is exactly long enough for every panel to load the wrong data
   // and look like the switch silently failed.
-  function setActiveChurchAndReload(id){
+  // revealMenu: open the mobile drawer once the swap is done, so
+  // arriving inside a church looks like arriving somewhere.
+  function setActiveChurchAndReload(id, revealMenu){
     setActiveChurchId(id);
 
     var canSwapInPlace = typeof window.resetDashboardPanels === 'function'
@@ -16374,6 +16375,24 @@ Groups</span>
     // the render that consumes it.
     if (typeof window.dashEnterChurchAtTopLevel === 'function') window.dashEnterChurchAtTopLevel();
     if (typeof window.renderDashSubNav === 'function') window.renderDashSubNav(null, null);
+
+    // Entering a church changes the SIDEBAR, and on a phone the
+    // sidebar is a closed drawer. So tapping a church card swapped the
+    // active church, rebuilt a menu nobody could see, and left the
+    // person looking at the same Overview -- which is indistinguishable
+    // from the card not being clickable at all, and was reported as
+    // exactly that.
+    //
+    // Opening the drawer is the mobile equivalent of what desktop
+    // already does for free: show the church's own menu. The class is
+    // inert above 860px, where the sidebar is always visible, so this
+    // needs no width check of its own.
+    //
+    // Only for callers that mean 'enter this church from outside it'.
+    // The header's church switcher does not pass this: somebody
+    // already inside a church who changes which one does not want a
+    // menu thrown over the page they are reading.
+    if (revealMenu && typeof window.setDashMenu === 'function') window.setDashMenu(true);
   }
   window.setActiveChurchAndReload = setActiveChurchAndReload;
 
@@ -17455,7 +17474,7 @@ Groups</span>
     if (!tile) return;
     var id = tile.getAttribute('data-enter-church-id');
     if (!id) return;
-    if (typeof window.setActiveChurchAndReload === 'function') window.setActiveChurchAndReload(id);
+    if (typeof window.setActiveChurchAndReload === 'function') window.setActiveChurchAndReload(id, true);
   });
 
   // Dashboard Events table — real data for the signed-in owner's
@@ -17511,13 +17530,9 @@ Groups</span>
 
     if (eventsError) {
       tbody.innerHTML = '<tr><td colspan="8" style="color:var(--clay);">Couldn\'t load events: ' + escapeHtml(eventsError.message) + '</td></tr>';
-      document.getElementById('dash-events-count').textContent = '—';
-      document.getElementById('dash-days-to-next').textContent = '—';
-      document.getElementById('dash-registrations-count').textContent = '—';
       return;
     }
 
-    document.getElementById('dash-events-count').textContent = allEvents ? allEvents.length : 0;
     // Cached so the row menu's "Add to Google Calendar" / "Download
     // .ics" actions can look an event up by ID without a second
     // fetch — those buttons pass only the event ID through their
@@ -17526,13 +17541,6 @@ Groups</span>
     window.dashboardEventsCache = allEvents || [];
 
     var now = new Date();
-    var upcomingAll = (allEvents || []).filter(function(e){ return new Date(e.start_at) >= now; });
-    if (upcomingAll.length) {
-      var daysTo = Math.max(0, Math.ceil((new Date(upcomingAll[0].start_at) - now) / 86400000));
-      document.getElementById('dash-days-to-next').textContent = daysTo;
-    } else {
-      document.getElementById('dash-days-to-next').textContent = '—';
-    }
 
     var showPast = window.dashEventsShowPast;
     var myEvents = (allEvents || []).filter(function(e){
@@ -17546,7 +17554,6 @@ Groups</span>
 
     if (!myEvents.length) {
       tbody.innerHTML = '<tr><td colspan="8" style="color:var(--ink-mute);">' + (showPast ? window.t('dashEvents.noPastEvents') : window.t('dashEvents.noUpcomingEvents')) + '</td></tr>';
-      if (!showPast) document.getElementById('dash-registrations-count').textContent = '0';
       return;
     }
 
@@ -17576,14 +17583,12 @@ Groups</span>
       }
     }
 
-    var totalRegistrations = 0;
     var rowsHtml = '';
     for (var i = 0; i < myEvents.length; i++) {
       var ev = myEvents[i];
       var regCounts = regCountsByEvent[ev.id] || { participants: 0, volunteers: 0 };
       var participantCount = regCounts.participants, volunteerCount = regCounts.volunteers;
       var regCount = participantCount + volunteerCount;
-      totalRegistrations += regCount;
 
       var badge, badgeLabel;
       if (ev.visibility === 'draft') { badge = 'clay'; badgeLabel = 'Draft'; }
@@ -17653,7 +17658,6 @@ Groups</span>
         + '</div></td></tr>';
     }
     tbody.innerHTML = rowsHtml;
-    if (!showPast) document.getElementById('dash-registrations-count').textContent = totalRegistrations;
     // Keeps the calendar in sync too if it's the active view when
     // this reload happens (e.g. returning here after creating or
     // editing an event) — otherwise it would keep showing whatever
@@ -31475,7 +31479,7 @@ Groups</span>
     // nothing left implicit for the browser to race against the
     // reload that follows immediately after.
     history.pushState(null, '', '#dashboard');
-    window.setActiveChurchAndReload(manageBtn.getAttribute('data-manage-church-id'));
+    window.setActiveChurchAndReload(manageBtn.getAttribute('data-manage-church-id'), true);
   });
 
   // One entry per EVENT, not one per relationship: an event you both
