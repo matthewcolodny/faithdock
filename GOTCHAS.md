@@ -6292,3 +6292,39 @@ The last row is the one worth having: the gate is in front of the write, not mer
 The modal was first written with `class="modal-backdrop"` and `style.display` toggling. This file has no such class -- its modals are `.modal-overlay` toggled with `.open`. It would have rendered as an unstyled block in the page flow rather than a modal, and would have looked like a broken layout rather than a wrong class name.
 
 Build `2026-09-21-v178`; no migration.
+
+## The welcome email an account with no address was owed
+
+`session.user.email` went straight into the welcome email's body. For a Facebook account that shared no address that is a send to `undefined`. The decision was to send it once an address is confirmed rather than skip it, and the interesting part is why that was not a one-line guard.
+
+### The flag gets spent before anyone knows there is somewhere to send
+
+`mark_my_welcome_email_sent()` is a check-**and-set**: it records the welcome as delivered and returns what the flag was before. `checkIsFirstEverSignIn()` called it, and the caller then decided whether to send. For an account with no email that order is fatal -- the flag is spent on a send that cannot happen, and the real address, added and confirmed a minute later, never gets anything. **The flag is the only record there is**, so spending it is unrecoverable; a guard at the send site alone would have made the bug permanent instead of fixing it.
+
+So `checkIsFirstEverSignIn` now returns before the RPC when there is no email. It returns **true**, which is not a fudge: that value only chooses the landing route, and a first-ever sign-in lands on the profile page, which is exactly where the email field is. The most useful place to put somebody whose account arrived without an address.
+
+### The third case nobody was handling
+
+The auth handler had two branches: the OAuth callback, and the signup-confirmation. An OAuth user who later adds an address and clicks its confirmation link comes back as **neither**. `maybeSendOwedWelcome()` is that third case, running after both, once per page load, and only on `SIGNED_IN` or `USER_UPDATED` so a token refresh does not put a write on the wire every hour.
+
+**Order matters and is load-bearing.** It runs after the OAuth block, not before. Before, it would mark the flag on that block's behalf, and `checkIsFirstEverSignIn` would then read "already welcomed" and route a genuinely new person to home instead of their profile. Same atomic RPC, opposite outcome, decided entirely by which line comes first.
+
+### Verified against the shipped source
+
+The three functions are module-scoped, so the test extracts them out of `index.html` and runs them with `supabase` stubbed, rather than asserting from reading:
+
+| | result |
+| --- | --- |
+| no email | first-sign-in true, **flag not marked** |
+| email, never welcomed | true, flag marked once |
+| email, already welcomed | false |
+| password account | false, flag untouched |
+| owed | welcome sent with the right address and name |
+| already welcomed | nothing sent |
+| still no email | nothing sent, flag untouched |
+| three auth events | one RPC, one send |
+| no-email call then a confirmed one, same page load | the second still sends |
+
+The second row and the last are the ones worth keeping. The second is the whole bug. The last is a trap in the one-shot guard: a no-email call must not consume it, or a confirmation arriving moments later in the same page load would be ignored.
+
+Build `2026-09-21-v179`; no migration.

@@ -8585,7 +8585,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-21-v178 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-21-v179 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -17287,9 +17287,52 @@ Groups</span>
     // there's no legitimate reason this column needs to be raw-
     // readable/writable outside a call scoped to the caller's own
     // row).
+    // Nothing to send to yet, so nothing to mark either. Returning
+    // true still routes them to their profile, which is where the
+    // email field is -- the most useful place to land somebody whose
+    // account arrived without an address. The welcome stays owed, and
+    // maybeSendOwedWelcome below pays it the moment one is confirmed.
+    if (!providerSourceUser.email) return true;
+
     var { data: alreadyWelcomed } = await supabase.rpc('mark_my_welcome_email_sent');
     if (alreadyWelcomed) return false;
     return true;
+  }
+
+  // One sender, so the two callers cannot drift on what a welcome
+  // email is. Fire-and-forget: a failed welcome is a minor miss, not
+  // something that should ever visibly interrupt a sign-in.
+  function sendWelcomeEmail(user){
+    if (!user || !user.email) return;
+    supabase.functions.invoke('smooth-action', {
+      body: { type: 'welcome_email', email: user.email, name: (user.user_metadata && user.user_metadata.full_name) || '' }
+    }).catch(function(){});
+  }
+
+  // Pays a welcome that was owed rather than skipped.
+  //
+  // A Facebook sign-in can arrive with no email, and checkIsFirstEver-
+  // SignIn deliberately leaves the flag unset in that case. When the
+  // person later adds an address and clicks its confirmation link,
+  // that returns to the site as an ordinary auth event -- not the
+  // OAuth-callback path, and not the signup-confirmation path, so
+  // neither of the branches above sees it. This is the third case.
+  //
+  // Once per page load, and only on the two events that can actually
+  // change the answer, so a token refresh does not put a write on the
+  // wire every hour.
+  var owedWelcomeChecked = false;
+  async function maybeSendOwedWelcome(session){
+    if (owedWelcomeChecked) return;
+    if (!session || !session.user || !session.user.email) return;
+    owedWelcomeChecked = true;
+    // A password account was welcomed by Supabase's own combined
+    // confirm-signup email, so it is never owed one from here.
+    var providers = (session.user.app_metadata && session.user.app_metadata.providers) || [];
+    if (providers.indexOf('email') !== -1) return;
+    var { data: alreadyWelcomed } = await supabase.rpc('mark_my_welcome_email_sent');
+    if (alreadyWelcomed) return;
+    sendWelcomeEmail(session.user);
   }
 
   supabase.auth.onAuthStateChange(async function(event, session){
@@ -17533,14 +17576,21 @@ Groups</span>
       // nowhere else currently, but built and working). Fire-and-
       // forget: a failed welcome email is a minor miss, not something
       // that should hold up or ever visibly interrupt sign-in.
-      if (isFirstEverSignIn) {
-        var oauthFullName = (session.user.user_metadata && session.user.user_metadata.full_name) || '';
-        supabase.functions.invoke('smooth-action', {
-          body: { type: 'welcome_email', email: session.user.email, name: oauthFullName }
-        }).catch(function(){});
+      // The email check is not belt-and-braces: isFirstEverSignIn is
+      // deliberately true for an account that arrived without an
+      // address, so that it routes to the profile page. Sending here
+      // without checking would post a welcome to an undefined
+      // recipient.
+      if (isFirstEverSignIn && session.user.email) {
+        sendWelcomeEmail(session.user);
       }
       routeAfterLogin(session.user, isFirstEverSignIn);
     }
+
+    if (event === 'USER_UPDATED' || event === 'SIGNED_IN') {
+      maybeSendOwedWelcome(session);
+    }
+
     clearTimeout(authRefreshTimer);
     authRefreshTimer = setTimeout(async function(){
       var uid = session && session.user ? session.user.id : null;
