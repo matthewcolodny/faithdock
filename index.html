@@ -8793,7 +8793,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v190 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v191 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -9820,6 +9820,70 @@ Groups</span>
     return ev.start.toLocaleString(window.appLocale(), opts);
   }
 
+  // Pulling the venue out of an imported LOCATION.
+  //
+  // Earlier this refused to split at all, on the grounds that
+  // '7127 Bee Cave Road' and 'Fellowship Hall' look identical to
+  // anything reading up to the first comma. That reasoning still
+  // holds for a blind split -- and this is not one.
+  //
+  // The difference is that an import knows which church it is
+  // importing into, so it knows that church's own name and address
+  // already. Matching against a value we hold is not a guess; it
+  // either matches exactly or it does not, and when it does not,
+  // nothing is split and the behaviour is what it was before.
+  //
+  // Which covers the case that actually happens: a church's calendar
+  // writes its own name in front of its own address on every single
+  // event, so the alternative is fixing the same row by hand once per
+  // event, forever.
+  function icsEscapeRe(v){ return String(v).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+  // Whitespace is allowed to differ because a calendar may wrap or
+  // double-space a name that our record writes with single spaces.
+  // Nothing else is allowed to differ.
+  function icsFlexible(v){ return icsEscapeRe(String(v).trim()).replace(/\s+/g, '\\s+'); }
+
+  function splitKnownVenue(raw, churchName, churchAddress){
+    var text = String(raw || '').trim();
+    if (!text) return { venue: null, location: null };
+
+    // 1. The location begins with this church's own name, and there
+    //    is something after it. The comma is required: without it,
+    //    'Westlake Hills Presbyterian Church Hall' would lose its
+    //    last word.
+    if (churchName && String(churchName).trim()) {
+      var nameRe = new RegExp('^\\s*(' + icsFlexible(churchName) + ')\\s*[,;]\\s*(.+)$', 'i');
+      var m = text.match(nameRe);
+      if (m && m[2] && m[2].trim()) {
+        // Our spelling, not the calendar's. The match already proved
+        // these are the same name, so the only question left is which
+        // rendering of it to store -- and a feed that writes
+        // 'westlake  hills presbyterian church' should not be allowed
+        // to name the venue on every event it imports.
+        return { venue: String(churchName).trim(), location: m[2].trim() };
+      }
+    }
+
+    // 2. The location ends with this church's own address, and
+    //    something names a place in front of it -- 'Fellowship Hall,
+    //    123 Main St'. Rarer, because a calendar has to spell the
+    //    address exactly as our record does for this to fire, and
+    //    'Road' against 'Rd' is enough to stop it. It costs nothing
+    //    when it misses.
+    if (churchAddress && String(churchAddress).trim()) {
+      var addrRe = new RegExp('^(.+?)\\s*[,;]\\s*(' + icsFlexible(churchAddress) + ')\\s*$', 'i');
+      var m2 = text.match(addrRe);
+      if (m2 && m2[1] && m2[1].trim()) {
+        return { venue: m2[1].trim(), location: m2[2].trim() };
+      }
+    }
+
+    // 3. No match, no split. Same as before this existed.
+    return { venue: null, location: text };
+  }
+  window.splitKnownVenue = splitKnownVenue;
+
   function renderIcsPreview(result){
     icsParsedEvents = result.events;
     var listEl = document.getElementById('ics-import-list');
@@ -9863,6 +9927,10 @@ Groups</span>
         +   '<span style="font-weight:600;">' + escapeHtml(ev.title) + '</span>'
         +   (ev.repeating ? ' <span class="tag sage" style="font-size:10px;">' + escapeHtml(window.t('ics.repeating')) + '</span>' : '')
         +   '<div style="font-size:12.5px;color:var(--ink-mute);">' + escapeHtml(icsFormatWhen(ev))
+        // The venue is shown as its own part rather than folded back
+        // into one string, so the split is visible before the import
+        // rather than discovered after it.
+        +     (ev.venueName ? ' &middot; ' + escapeHtml(ev.venueName) : '')
         +     (ev.location ? ' &middot; ' + escapeHtml(ev.location) : '') + '</div>'
         + '</span></label>';
     }).join('');
@@ -9919,6 +9987,17 @@ Groups</span>
       });
       merged.sort(function(a, b){ return a.start - b.start; });
 
+      // Done here, once, so the review list shows what will actually
+      // be written rather than a tidied-up version of it.
+      var importChurch = await getMyChurch();
+      if (importChurch) {
+        merged.forEach(function(ev){
+          var split = splitKnownVenue(ev.location, importChurch.name, importChurch.address);
+          ev.venueName = split.venue;
+          ev.location = split.location;
+        });
+      }
+
       document.getElementById('ics-import-status').style.display = 'none';
       renderIcsPreview({ events: merged, skipped: skipped, emptyFiles: emptyFiles + unreadable, fileCount: files.length });
       document.getElementById('ics-import-modal').classList.add('open');
@@ -9956,12 +10035,12 @@ Groups</span>
         church_id: myChurch.id,
         title: ev.title.slice(0, 200),
         description: ev.description || null,
-        // No venue_name. An .ics LOCATION is one free-text field and
-        // the shape varies by source -- 'Fellowship Hall', a bare
-        // address, or 'Name, street, city, state zip' from a Maps
-        // pick. Splitting it would be guessing, in bulk, on rows
-        // nobody is reading; these land as drafts and whoever reviews
-        // one can move the venue into its own box then.
+        // Set only when the location began with this church's own
+        // name, or ended with its own address -- an exact match
+        // against something we already hold, never a guess at where a
+        // venue ends. Null otherwise, and the whole string stays in
+        // location exactly as it arrived.
+        venue_name: ev.venueName || null,
         location: ev.location || null,
         start_at: ev.start.toISOString(),
         end_at: ev.end ? ev.end.toISOString() : null,
