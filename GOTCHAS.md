@@ -6328,3 +6328,37 @@ The three functions are module-scoped, so the test extracts them out of `index.h
 The second row and the last are the ones worth keeping. The second is the whole bug. The last is a trap in the one-shot guard: a no-email call must not consume it, or a confirmation arriving moments later in the same page load would be ignored.
 
 Build `2026-09-21-v179`; no migration.
+
+## Sign in with Apple, built and switched off
+
+The client side cost almost nothing, because `wireOAuthButton` already took a provider: a button, one line to bind it, and two strings. Everything expensive about Apple is outside this repository.
+
+`window.APPLE_SIGN_IN_ENABLED` is false and the button is `display:none`. **It is wired regardless.** A handler on a hidden button costs nothing, and it means switching Apple on is one constant rather than a constant plus remembering to bind it -- which is the same class of omission as the Groups link that was added to the icon bar and not to the panel.
+
+### The follow-ups live beside the flag
+
+Three other things have to change when it is flipped, and they are written in the comment on the constant rather than in a list somewhere else. Whoever flips it is already reading that line; a list kept anywhere else is the pattern that produced most of the entries in this file.
+
+1. `legal.privacyCollect1` and `legal.privacyShare1`, both languages **and their markup fallbacks** -- they name the providers that receive data, and adding a sign-in is a policy edit.
+2. `legal.delSocialHeading` / `legal.delSocial1` on the deletion page, which tells people where to withdraw access.
+3. **Apple's private email relay.** A user who chooses Hide My Email gets a `@privaterelay.appleid.com` address, and mail to it is **dropped** unless the Resend sending domain is registered with Apple. Every welcome, confirmation and church message to that person would vanish with no bounce and no error -- the worst failure shape there is, and the one most likely to be discovered weeks later.
+
+### Two Apple behaviours that are not bugs
+
+- **The name arrives once.** Apple sends it only on the first authorisation, never again. An account that misses it stays nameless until the person revokes access and re-authorises. Nothing in the app can recover it.
+- **The button is not the site's button.** Apple publishes enforceable guidelines and rejects over them, so it does not reuse `.export-btn`: black, their mark, their wording, 44px minimum. It looks unlike the other two on purpose, and "Sign in with" rather than "Continue with" is their requirement, not a slip.
+
+### Verified in both states
+
+| | result |
+| --- | --- |
+| flag off | button exists, `display:none`, not visible |
+| flag off, programmatic click | handler fires with `provider: apple` -- proving it is bound, not just present |
+| flag on | visible, 44px tall, black, "Sign in with Apple" |
+| flag on, click | requests `apple` with the right redirect |
+| flag on, invite gate locked | click swallowed, same as the other two |
+| Spanish | "Iniciar sesión con Apple"; Google and Facebook labels unchanged |
+
+The second row is the one worth having. A button that is present but unbound looks identical to a working one until the day somebody switches it on.
+
+Build `2026-09-21-v180`; no migration.

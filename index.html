@@ -1099,7 +1099,7 @@
       'auth.fillAllFields': 'Please fill in all fields.', 'auth.removeWordFromName': 'Please remove "{word}" from your name.', 'auth.passwordsDontMatch': "Passwords don't match.", 'auth.passwordTooShort': 'Password must be at least 10 characters.',
       'auth.accountCreatedCheckEmail': 'Account created — check your email to confirm before continuing.',
       'auth.confirmedElsewhereHint': 'Confirmed on another device?', 'auth.logInHereLink': 'Log in here.',
-      'auth.continueWithGoogle': 'Continue with Google', 'auth.continueWithFacebook': 'Continue with Facebook', 'common.or': 'or',
+      'auth.continueWithGoogle': 'Continue with Google', 'auth.continueWithFacebook': 'Continue with Facebook', 'auth.signInWithApple': 'Sign in with Apple', 'common.or': 'or',
       'footer.disclaimer': 'FaithDock — private testing', 'footer.privacy': 'Privacy', 'footer.terms': 'Terms', 'footer.accessibility': 'Accessibility', 'footer.dataDeletion': 'Delete my data',
       'auth.emailNotConfirmedYet': "Your email hasn't been confirmed yet.", 'auth.resendConfirmationEmail': 'Resend the confirmation email', 'auth.verifying': 'Verifying...',
       'auth.securityCheckIncomplete': "Security check didn't complete — please try again.", 'auth.sending': 'Sending...', 'auth.confirmationEmailSent': 'Confirmation email sent — check your inbox.',
@@ -2143,7 +2143,7 @@
       'auth.fillAllFields': 'Por favor completa todos los campos.', 'auth.removeWordFromName': 'Por favor elimina "{word}" de tu nombre.', 'auth.passwordsDontMatch': 'Las contraseñas no coinciden.', 'auth.passwordTooShort': 'La contraseña debe tener al menos 10 caracteres.',
       'auth.accountCreatedCheckEmail': 'Cuenta creada — revisa tu correo para confirmar antes de continuar.',
       'auth.confirmedElsewhereHint': '¿Confirmaste desde otro dispositivo?', 'auth.logInHereLink': 'Inicia sesión aquí.',
-      'auth.continueWithGoogle': 'Continuar con Google', 'auth.continueWithFacebook': 'Continuar con Facebook', 'common.or': 'o',
+      'auth.continueWithGoogle': 'Continuar con Google', 'auth.continueWithFacebook': 'Continuar con Facebook', 'auth.signInWithApple': 'Iniciar sesión con Apple', 'common.or': 'o',
       'footer.disclaimer': 'FaithDock — pruebas privadas', 'footer.privacy': 'Privacidad', 'footer.terms': 'Términos', 'footer.accessibility': 'Accesibilidad', 'footer.dataDeletion': 'Eliminar mis datos',
       'auth.emailNotConfirmedYet': 'Tu correo aún no ha sido confirmado.', 'auth.resendConfirmationEmail': 'Reenviar el correo de confirmación', 'auth.verifying': 'Verificando...',
       'auth.securityCheckIncomplete': 'La verificación de seguridad no se completó — inténtalo de nuevo.', 'auth.sending': 'Enviando...', 'auth.confirmationEmailSent': 'Correo de confirmación enviado — revisa tu bandeja de entrada.',
@@ -2511,6 +2511,35 @@
   // match the Edge Functions and the whole site follows in both
   // languages; there is no list of strings to remember.
   // ============================================================
+  // ============================================================
+  // Sign in with Apple: built, wired, and deliberately off.
+  //
+  // Unlike Google and Facebook it cannot be switched on from here.
+  // It needs a paid Apple Developer account, a Services ID, a signing
+  // key, and the Supabase provider configured with all three. A
+  // provider button that redirects to an error is worse than no
+  // button, so this stays false until that exists.
+  //
+  // WHEN FLIPPING THIS TO TRUE, THREE OTHER THINGS MUST CHANGE:
+  //
+  //   1. legal.privacyCollect1 and legal.privacyShare1, EN and ES,
+  //      and their markup fallbacks. They name the providers that
+  //      receive data, and adding a sign-in is a policy edit.
+  //   2. legal.delSocialHeading / legal.delSocial1 on the data
+  //      deletion page, which tells people where to withdraw access.
+  //   3. Apple's private email relay. A user who picks Hide My Email
+  //      gets a @privaterelay.appleid.com address, and mail to it is
+  //      DROPPED unless the Resend sending domain is registered with
+  //      Apple. Every welcome, confirmation and church message to
+  //      that person would vanish silently, which is the worst
+  //      failure shape there is.
+  //
+  // Also worth knowing: Apple sends the user's name only on the very
+  // first authorisation and never again, so an account that misses it
+  // stays nameless until the person revokes and re-authorises.
+  // ============================================================
+  window.APPLE_SIGN_IN_ENABLED = false;
+
   window.PLATFORM_FEE = { giving: 0, ticket: 0 };
   function applyFeeTokens(str){
     if (typeof str !== 'string' || str.indexOf('{') === -1) return str;
@@ -6420,6 +6449,14 @@ Groups</span>
           </svg>
           <span data-i18n="auth.continueWithFacebook">Continue with Facebook</span>
         </button>
+        <button type="button" id="oauth-apple-btn" style="display:none;width:100%;align-items:center;justify-content:center;gap:8px;margin-top:10px;
+            background:#000;color:#fff;border:none;border-radius:8px;min-height:44px;padding:0 14px;
+            font-size:15px;font-weight:500;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;">
+          <svg viewBox="0 0 24 24" style="width:17px;height:17px;" fill="#fff" aria-hidden="true">
+            <path d="M16.365 1.43c0 1.14-.42 2.2-1.25 3.02-.99.99-2.13 1.56-3.35 1.47-.04-1.1.44-2.24 1.24-3.03.9-.9 2.2-1.51 3.36-1.46zM20.9 17.02c-.55 1.27-.82 1.83-1.53 2.95-.99 1.56-2.38 3.5-4.11 3.52-1.53.01-1.93-1-4.01-.99-2.08.01-2.51 1.01-4.05.99-1.72-.02-3.04-1.77-4.03-3.33C.42 15.79-.02 10.6 1.86 8.02c1.15-1.58 2.83-2.5 4.4-2.5 1.61 0 2.62 1.02 3.95 1.02 1.29 0 2.08-1.02 3.94-1.02 1.4 0 2.88.76 3.94 2.08-3.46 1.9-2.9 6.84.81 8.42z"/>
+          </svg>
+          <span data-i18n="auth.signInWithApple">Sign in with Apple</span>
+        </button>
         <div style="display:flex;align-items:center;gap:10px;margin:16px 0;">
           <div style="flex:1;height:1px;background:var(--line);"></div>
           <span style="font-size:12px;color:var(--ink-mute);" data-i18n="common.or">or</span>
@@ -8585,7 +8622,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-21-v179 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-21-v180 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -18178,6 +18215,14 @@ Groups</span>
   // none rather than a guess at one.
   wireOAuthButton('oauth-google-btn', 'google', { prompt: 'select_account' });
   wireOAuthButton('oauth-facebook-btn', 'facebook', null);
+  // Wired unconditionally and hidden by default: a handler on a
+  // hidden button costs nothing, and it means turning Apple on is one
+  // constant rather than a constant plus remembering to bind it.
+  wireOAuthButton('oauth-apple-btn', 'apple', null);
+  if (window.APPLE_SIGN_IN_ENABLED) {
+    var appleBtn = document.getElementById('oauth-apple-btn');
+    if (appleBtn) appleBtn.style.display = 'flex';
+  }
 
   // Shared by both the manual email/password flow and the OAuth
   // success path (Google, etc.) — figures out where a signed-in user
