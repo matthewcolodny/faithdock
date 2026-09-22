@@ -711,6 +711,8 @@
       'dashCheckin.selectEventFirst': 'Select an event above to see its check-in list.',
       'dashCheckin.walkInTag': 'Walk-in', 'dashCheckin.noSearchMatch': 'No one matches that search.', 'dashCheckin.noOneRegisteredYet': 'No one has registered for this event yet.',
       'dashDir.all': 'All', 'dashDir.members': 'Members', 'dashDir.staff': 'Staff', 'dashDir.eventSignups': 'Event sign-ups',
+      'dashDir.optedOut': 'Unsubscribed', 'dashDir.optedOutHint': 'This person asked not to receive email from your church. They are skipped automatically.',
+      'dashMessages.someUnsubscribed': '{n} {personWord} unsubscribed and will be skipped.', 'dashMessages.person': 'person', 'dashMessages.people': 'people',
       'dashDir.groupSignups': 'Group sign-ups', 'dashDir.importMembers': 'Import members', 'dashDir.searchPlaceholder': 'Search by name or email',
       'dashDir.printProfile': 'Print profile', 'dashDir.printRoster': 'Print roster', 'dashDir.viewProfile': 'View profile',
       'dashDir.matchColumnsGuess': "Match your file's columns — best guesses are already picked, just fix anything wrong.",
@@ -1759,6 +1761,8 @@
       'dashCheckin.selectEventFirst': 'Selecciona un evento arriba para ver su lista de registro de llegada.',
       'dashCheckin.walkInTag': 'Sin inscripción', 'dashCheckin.noSearchMatch': 'Nadie coincide con esa búsqueda.', 'dashCheckin.noOneRegisteredYet': 'Aún nadie se ha inscrito en este evento.',
       'dashDir.all': 'Todos', 'dashDir.members': 'Miembros', 'dashDir.staff': 'Personal', 'dashDir.eventSignups': 'Inscripciones a eventos',
+      'dashDir.optedOut': 'Dado de baja', 'dashDir.optedOutHint': 'Esta persona pidió no recibir correos de tu iglesia. Se omite automáticamente.',
+      'dashMessages.someUnsubscribed': '{n} {personWord} se dieron de baja y se omitirán.', 'dashMessages.person': 'persona', 'dashMessages.people': 'personas',
       'dashDir.groupSignups': 'Inscripciones a grupos', 'dashDir.importMembers': 'Importar miembros', 'dashDir.searchPlaceholder': 'Buscar por nombre o correo electrónico',
       'dashDir.printProfile': 'Imprimir perfil', 'dashDir.printRoster': 'Imprimir lista', 'dashDir.viewProfile': 'Ver perfil',
       'dashDir.matchColumnsGuess': 'Relaciona las columnas de tu archivo — ya elegimos las mejores opciones, solo corrige lo que esté mal.',
@@ -8628,7 +8632,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-21-v183 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-21-v184 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -24930,13 +24934,19 @@ Groups</span>
     tbody.innerHTML = filtered.map(function(p){
       var roleLabel = p.is_owner ? window.t('dashSettings.ownerRoleLabel') : (p.is_staff ? window.t('dashDir.staff') : (p.is_member ? window.t('dashGroups.roleMember') : (p.has_registered_event ? window.t('dashDir.roleEventSignupTag') : window.t('dashDir.roleGroupSignupTag'))));
       var roleTag = (p.is_owner || p.is_staff) ? 'gold' : (p.is_member ? 'sage' : 'clay');
+      // Beside the role rather than replacing it: unsubscribing from
+      // email does not stop somebody being a member, and a row that
+      // said only 'Unsubscribed' would lose that.
+      var optOutTag = p.email_opted_out
+        ? '<span class="tag clay" style="font-size:10px;margin-left:4px;" title="' + escapeHtml(window.t('dashDir.optedOutHint')) + '">' + escapeHtml(window.t('dashDir.optedOut')) + '</span>'
+        : '';
       var photoHtml = p.avatar_url
         ? '<img src="' + p.avatar_url + '" alt="" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">'
         : '<div style="width:32px;height:32px;border-radius:50%;background:var(--paper);border:1px solid var(--line);"></div>';
       return '<tr style="cursor:pointer;" data-view-person-id="' + p.user_id + '">'
         + '<td>' + photoHtml + '</td>'
         + '<td>' + (p.full_name || '—') + '</td>'
-        + '<td><span class="tag ' + roleTag + '">' + roleLabel + '</span></td>'
+        + '<td><span class="tag ' + roleTag + '">' + roleLabel + '</span>' + optOutTag + '</td>'
         + '<td class="mono" style="font-size:12.5px;">' + (p.email || '—') + '</td>'
         + '<td class="mono" style="font-size:12.5px;">' + (p.phone || '—') + '</td>'
         + '<td><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;color:var(--ink-mute);"><path d="M9 18l6-6-6-6"/></svg></td>'
@@ -25244,6 +25254,35 @@ Groups</span>
       });
     });
   }
+  // Addresses that have unsubscribed from this church, lower-cased,
+  // as a lookup. Read through an RPC rather than the table directly:
+  // an opt-out can be recorded against a user_id, and resolving that
+  // to an address needs auth.users, which the client cannot read.
+  //
+  // Cached per church for the life of the tab because two panels want
+  // the same answer within a second of each other, and it changes
+  // when somebody clicks a link in an email -- not while a staff
+  // member is looking at the page.
+  var churchOptOutCache = {};
+  async function churchOptOutSet(churchId, force){
+    if (!churchId) return {};
+    if (!force && churchOptOutCache[churchId]) return churchOptOutCache[churchId];
+    var { data, error } = await supabase.rpc('get_church_optout_emails', { target_church_id: churchId });
+    if (error) {
+      // Reported, not swallowed. An empty set here means 'nobody has
+      // unsubscribed', which is a claim -- and the wrong one would
+      // have a church mailing people who asked it not to.
+      console.error('Opt-out lookup failed', error);
+      return {};
+    }
+    var set = {};
+    (data || []).forEach(function(e){ if (e) set[String(e).toLowerCase()] = true; });
+    churchOptOutCache[churchId] = set;
+    return set;
+  }
+  window.churchOptOutSet = churchOptOutSet;
+  window.invalidateChurchOptOutCache = function(){ churchOptOutCache = {}; };
+
   async function loadDirectoryPeople(){
     var tbody = document.getElementById('directory-tbody');
     if (!tbody) return;
@@ -25252,10 +25291,20 @@ Groups</span>
     var myChurch = await getMyChurch();
     if (!myChurch) { tbody.innerHTML = '<tr><td colspan="6" style="color:var(--ink-mute);">' + window.t('dashHeader.registerChurchFirst') + '</td></tr>'; return; }
 
-    var { data, error } = await supabase.rpc('get_directory_people', { target_church_id: myChurch.id });
+    var dirResults = await Promise.all([
+      supabase.rpc('get_directory_people', { target_church_id: myChurch.id }),
+      churchOptOutSet(myChurch.id)
+    ]);
+    var data = dirResults[0].data, error = dirResults[0].error;
+    var optedOut = dirResults[1];
     if (error) { tbody.innerHTML = '<tr><td colspan="6" style="color:var(--clay);">' + escapeHtml(error.message) + '</td></tr>'; return; }
 
-    directoryPeopleRaw = data || [];
+    directoryPeopleRaw = (data || []).map(function(person){
+      // Flagged on the row rather than looked up during render, which
+      // runs again on every filter keystroke.
+      person.email_opted_out = !!(person.email && optedOut[String(person.email).toLowerCase()]);
+      return person;
+    });
     renderDirectoryTable();
   }
   window.loadDirectoryPeople = loadDirectoryPeople;
@@ -25873,7 +25922,21 @@ Groups</span>
     }
     msgRecipientCountEl.textContent = window.t('dashMessages.checkingRecipients');
     var emails = await gatherAllRecipientEmails(myChurch, audience);
-    msgRecipientCountEl.textContent = window.t('dashMessages.willReceiveThis').replace('{n}', emails.length).replace('{recipientWord}', emails.length === 1 ? window.t('dashMessages.recipient') : window.t('dashMessages.recipients'));
+    var countText = window.t('dashMessages.willReceiveThis').replace('{n}', emails.length).replace('{recipientWord}', emails.length === 1 ? window.t('dashMessages.recipient') : window.t('dashMessages.recipients'));
+
+    // get_mass_email_recipients has already removed anyone who
+    // unsubscribed, so the number above is honest. Saying how many
+    // were removed is the other half: a church that picked an
+    // audience of 250 and is told 247 should be able to see why,
+    // rather than wonder whether the feature is broken.
+    var optedOut = await churchOptOutSet(myChurch.id);
+    var optedOutCount = Object.keys(optedOut).length;
+    if (optedOutCount) {
+      countText += ' ' + window.t('dashMessages.someUnsubscribed')
+        .replace('{n}', optedOutCount)
+        .replace('{personWord}', optedOutCount === 1 ? window.t('dashMessages.person') : window.t('dashMessages.people'));
+    }
+    msgRecipientCountEl.textContent = countText;
   }
 
   document.addEventListener('change', function(ev){
