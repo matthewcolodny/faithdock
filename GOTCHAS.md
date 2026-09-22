@@ -6362,3 +6362,104 @@ Three other things have to change when it is flipped, and they are written in th
 The second row is the one worth having. A button that is present but unbound looks identical to a working one until the day somebody switches it on.
 
 Build `2026-09-21-v180`; no migration.
+
+---
+
+## The unsubscribe page was a wall of raw HTML, and the header was never the problem
+
+Clicking unsubscribe in a real church message showed a black screen of
+markup source. The opt-out itself had worked perfectly -- the title in
+that source read "You have been unsubscribed" -- so the token signed by
+`smooth-action`, the expiry check, the HMAC verification and
+`record_email_optout` were all correct. Only the display was wrong.
+
+I had already seen this once and filed it as cosmetic: an earlier probe
+showed `Content-Type: text/plain` where `unsubscribe.ts` plainly sets
+`text/html; charset=utf-8`, and I assumed a stale deploy or a header we
+had got wrong. Both guesses were wrong, and the full header dump is what
+showed it:
+
+```
+Content-Type: text/plain
+X-Content-Type-Options: nosniff
+Content-Security-Policy: default-src 'none'; sandbox
+```
+
+We set none of those. `grep -rn -i "content-security-policy\|nosniff\|sandbox" supabase/functions/`
+returns nothing, so all three are injected by Supabase. It is an
+anti-phishing measure for the shared `*.supabase.co` origin: no edge
+function may serve rendered HTML from it, because every project on the
+platform shares that domain and one of them serving a convincing login
+page would poison it for everyone.
+
+**So the Content-Type in our source was correct the entire time and made
+no difference.** It was discarded before it reached the browser. No
+amount of fixing the header could have worked, which is exactly why the
+first diagnosis was worse than useless -- it named a fix that would have
+been applied, deployed, and changed nothing.
+
+The lesson is narrow and repeatable: when a response header is not what
+the code sets, dump *all* the headers before concluding anything. The two
+we did not set were the ones that explained it. A single grep for
+headers we never wrote turned a guess into a fact.
+
+### The fix
+
+The function stops trying to render. It records the opt-out exactly as
+before, then returns `303 See Other` to
+`faithdock.com/?u=<outcome>#unsubscribed`.
+
+Three details worth keeping:
+
+- **The outcome goes in `?u=`, before the fragment.** The client is a
+  hash router and owns everything after `#`; a state encoded there would
+  be fighting it.
+- **303, not 302.** The request that arrived was a GET whose side effect
+  has already happened. 303 says "go and GET this other thing instead",
+  which is both the honest description and the one intermediaries treat
+  most predictably.
+- **An unknown or missing `?u=` reads as success.** The only way to reach
+  the page is for the function to have sent you, so falling through to
+  the reassuring state is right. Failing closed here would tell someone
+  who *had* unsubscribed that something went wrong.
+
+### Verified
+
+Locally, all six input cases, checking computed `display` rather than the
+`hidden` attribute -- because `[hidden]` losing to an explicit `display`
+is a trap this file has sprung before:
+
+| input | shows | others `display:none` |
+| --- | --- | --- |
+| `?u=ok` | You have been unsubscribed | yes |
+| `?u=expired` | That link has expired | yes |
+| `?u=invalid` | That link is not valid | yes |
+| `?u=error` | Something went wrong | yes |
+| *(no param)* | success | yes |
+| `?u=wat` | success | yes |
+
+Spanish resolves (`Algo salió mal`), and there is no horizontal scroll at
+375px.
+
+Then against the deployed function, which is the part that matters, since
+everything above would pass just as well with a broken redirect:
+
+| request | Location |
+| --- | --- |
+| no parameters | `?u=invalid#unsubscribed` |
+| expired token | `?u=expired#unsubscribed` |
+| unexpired, bogus signature | `?u=invalid#unsubscribed` |
+
+Expired and invalid coming back different is itself a check: it proves
+the expiry test still runs *before* signature verification, which is the
+order that lets an old forwarded link say something useful instead of
+accusing the reader of tampering.
+
+Finally the whole hop in a browser: navigating to the `supabase.co`
+function URL with an expired token landed on
+`https://faithdock.com/?u=expired#unsubscribed` with "That link has
+expired" rendered. That is the test worth having -- the destination and
+the redirect each passed on their own, and only the hop proves they agree.
+
+Build `2026-09-22-v187`; no migration. Requires redeploying `unsubscribe`
+by hand, with Verify JWT still off.
