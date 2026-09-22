@@ -63,9 +63,9 @@ reg as (
 -- members, not groups with a flag set.
 grp as (select g.id from groups g, p where g.church_id = p.church_id),
 gm  as (
-  select gm.group_id, gm.user_id
-  from group_members gm
-  where gm.status = 'active' and gm.group_id in (select id from grp)
+  select m.group_id, m.user_id
+  from group_members m
+  where m.status = 'active' and m.group_id in (select id from grp)
 ),
 ga as (
   select group_id, meeting_date, attended
@@ -75,7 +75,7 @@ ga as (
 
 -- Households.
 hh as (select h.id from households h, p where h.church_id = p.church_id),
-hm as (select hm.user_id from household_members hm where hm.household_id in (select id from hh)),
+hm as (select x.user_id from household_members x where x.household_id in (select id from hh)),
 
 -- "Our people": the four-source union the old getChurchPeopleIds built
 -- in the browser. Written here with UNION ALL + DISTINCT rather than
@@ -129,7 +129,10 @@ select
   label,
   from_rpc,
   expected,
-  case when from_rpc = expected then 'match' else '*** DIFFERS ***' end as verdict
+  -- IS NOT DISTINCT FROM, not =, so a NULL on either side counts as a
+  -- difference rather than evaluating to NULL and quietly landing in
+  -- the else branch for the wrong reason.
+  case when from_rpc is not distinct from expected then 'match' else '*** DIFFERS ***' end as verdict
 from (
   select 'giving: total cents'            as label, (giving->>'total_cents')::bigint    as from_rpc, giving_total_cents     as expected from _v_rpc, _v_expected
   union all select 'giving: donations',        (giving->>'donation_count')::bigint,  giving_donation_count from _v_rpc, _v_expected
@@ -156,7 +159,11 @@ from (
   union all select 'people: total given',      (people->>'total_given_cents')::bigint, giving_total_cents  from _v_rpc, _v_expected
   union all select 'people: donors (id only)', (people->>'donors')::bigint,          people_donor_count    from _v_rpc, _v_expected
 ) cmp
-order by (verdict = 'match'), label;
+-- Ordered by the underlying columns, not by the verdict alias:
+-- Postgres accepts a bare output alias in ORDER BY but not an alias
+-- inside an expression, so (verdict = ...) is a 42703 here.
+-- False sorts first, which puts any mismatch at the top.
+order by (from_rpc is not distinct from expected), label;
 
 
 -- ======================================================================
@@ -169,7 +176,7 @@ order by (verdict = 'match'), label;
 -- the next one. If the church is not in US Central, change the zone in
 -- the _v_rpc view above to theirs and run again -- the totals must not
 -- move, only the month a boundary gift falls in.
-select 'giving by month' as section, m->>'month_start' as month, (m->>'cents')::bigint as cents
+select 'giving by month' as section, m.value->>'month_start' as month, (m.value->>'cents')::bigint as cents
 from _v_rpc, jsonb_array_elements(giving->'months') m
 order by month;
 
