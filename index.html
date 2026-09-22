@@ -8771,7 +8771,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v188 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v189 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -9888,6 +9888,12 @@ Groups</span>
         church_id: myChurch.id,
         title: ev.title.slice(0, 200),
         description: ev.description || null,
+        // No venue_name. An .ics LOCATION is one free-text field and
+        // the shape varies by source -- 'Fellowship Hall', a bare
+        // address, or 'Name, street, city, state zip' from a Maps
+        // pick. Splitting it would be guessing, in bulk, on rows
+        // nobody is reading; these land as drafts and whoever reviews
+        // one can move the venue into its own box then.
         location: ev.location || null,
         start_at: ev.start.toISOString(),
         end_at: ev.end ? ev.end.toISOString() : null,
@@ -10207,7 +10213,9 @@ Groups</span>
     else { desc2El.style.display = 'none'; }
 
     document.getElementById('event-when').innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> ' + e.when;
-    document.getElementById('event-location').innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/></svg> ' + (e.location || window.t('events.locationNotListed'));
+    // Venue on its own line above the address when both are known.
+    var placeHtml = window.eventPlaceHtml(e);
+    document.getElementById('event-location').innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/></svg> ' + (placeHtml || escapeHtml(window.t('events.locationNotListed')));
 
     var audienceRow = document.getElementById('event-audience-row');
     var audienceLabel = e.audienceLabel || (Array.isArray(e.audience) && e.audience.length ? window.t('events.for') + ' ' + e.audience.join(', ') : null);
@@ -10384,8 +10392,11 @@ Groups</span>
       icsBtn.style.display = 'inline-flex';
       var evStart = new Date(e.startAt);
       var evEnd = e.endAt ? new Date(e.endAt) : new Date(evStart.getTime() + 60 * 60 * 1000);
-      googleCalBtn.onclick = function(){ openGoogleCalendarLink(e.title, stripHtmlToPlainText(e.description), e.location, evStart, evEnd, null); };
-      icsBtn.onclick = function(){ downloadIcsFile(e.title.replace(/[^a-z0-9]+/gi, '-').toLowerCase() + '.ics', e.title, stripHtmlToPlainText(e.description), e.location, evStart, evEnd, null); };
+      // The venue belongs in the exported LOCATION as much as the
+      // address does -- 'Fellowship Hall' is the part somebody reads
+      // off their phone on arrival.
+      googleCalBtn.onclick = function(){ openGoogleCalendarLink(e.title, stripHtmlToPlainText(e.description), window.eventPlaceText(e), evStart, evEnd, null); };
+      icsBtn.onclick = function(){ downloadIcsFile(e.title.replace(/[^a-z0-9]+/gi, '-').toLowerCase() + '.ics', e.title, stripHtmlToPlainText(e.description), window.eventPlaceText(e), evStart, evEnd, null); };
     } else {
       googleCalBtn.style.display = 'none';
       icsBtn.style.display = 'none';
@@ -13612,7 +13623,7 @@ Groups</span>
       badge: badge, badgeLabel: badgeLabel, fillBadge: fillBadge,
       membersOnly: membersOnly, visibilityLabel: membersOnly ? 'Members only' : 'Public event',
       daysOut: daysOut, real: true,
-      imageUrl: row.image_url, description: row.description, location: row.location,
+      imageUrl: row.image_url, description: row.description, location: row.location, venueName: row.venue_name,
       tags: row.tags, category_tags: row.category_tags, audience: row.audience, registrationRequired: row.registration_required,
       allowVolunteers: row.allow_volunteers, startAt: row.start_at, endAt: row.end_at,
       maxParticipants: row.max_participants, maxVolunteers: row.max_volunteers,
@@ -13654,7 +13665,7 @@ Groups</span>
     // (same fallback churches' version uses), not a hard failure.
     if (!window.supabase) return found || null;
     var { data } = await window.supabase.from('events')
-      .select('id, title, description, start_at, end_at, location, registration_required, image_url, tags, category_tags, audience, allow_volunteers, max_participants, max_volunteers, contacts, price_cents, church_id, churches(name, plan_type)')
+      .select('id, title, description, start_at, end_at, location, venue_name, registration_required, image_url, tags, category_tags, audience, allow_volunteers, max_participants, max_volunteers, contacts, price_cents, church_id, churches(name, plan_type)')
       .eq('id', id).limit(1);
     if (data && data.length) {
       var row = data[0];
@@ -13668,7 +13679,7 @@ Groups</span>
       }
       var mapped = mapSearchEventRow({
         id: row.id, title: row.title, description: row.description, start_at: row.start_at, end_at: row.end_at,
-        location: row.location, registration_required: row.registration_required, image_url: row.image_url,
+        location: row.location, venue_name: row.venue_name, registration_required: row.registration_required, image_url: row.image_url,
         tags: row.tags, category_tags: row.category_tags, audience: row.audience, allow_volunteers: row.allow_volunteers,
         max_participants: row.max_participants, max_volunteers: row.max_volunteers, contacts: row.contacts, price_cents: row.price_cents,
         confirmed_participant_count: confirmedCount,
@@ -15376,6 +15387,53 @@ Groups</span>
 
     out.sort(function(a, b){ return a.start - b.start; });
     return { events: out, skipped: skipped };
+  };
+
+  // ============================================================
+  // Where an event is.
+  //
+  // Two shapes exist in the table on purpose (migration 075):
+  //
+  //   legacy : venue_name null, location 'Fellowship Hall, 123 Main St'
+  //   current: venue_name 'Fellowship Hall', location '123 Main St'
+  //
+  // Nothing splits the legacy one -- it was never splittable, which is
+  // why the column exists. Both render identically because every
+  // caller goes through here rather than reaching for .location, and
+  // that is the whole point: the last time this app had a value
+  // assembled by hand in several places, the places drifted.
+  //
+  // Accepts either a database row (venue_name) or a mapped card object
+  // (venueName), because both exist and callers should not have to
+  // care which one they are holding.
+  // ============================================================
+  function eventVenueOf(ev){
+    if (!ev) return '';
+    return String(ev.venue_name || ev.venueName || '').trim();
+  }
+
+  // One line: cards, table cells, calendar exports.
+  window.eventPlaceText = function(ev){
+    if (!ev) return '';
+    var venue = eventVenueOf(ev);
+    var addr = String(ev.location || '').trim();
+    if (venue && addr) return venue + ', ' + addr;
+    return venue || addr;
+  };
+
+  // Two lines, for the event page, where there is room to show the
+  // venue as the answer to 'where am I going' and the address as the
+  // smaller answer to 'how do I get there'. Returns HTML, so both
+  // parts are escaped here rather than hopefully at each call site.
+  window.eventPlaceHtml = function(ev){
+    var venue = eventVenueOf(ev);
+    var addr = String((ev && ev.location) || '').trim();
+    if (venue && addr) {
+      return '<span>' + escapeHtml(venue) + '</span>'
+        + '<span style="display:block;font-size:12.5px;color:var(--ink-mute);">' + escapeHtml(addr) + '</span>';
+    }
+    var only = venue || addr;
+    return only ? escapeHtml(only) : '';
   };
 
   var planLimits = {
@@ -17317,7 +17375,7 @@ Groups</span>
         + '<td><div style="display:flex;align-items:center;gap:10px;">' + thumbHtml + '<a href="#" data-route="event" data-event-key="' + ev.id + '" style="color:var(--ink);font-weight:500;">' + ev.title + '</a></div></td>'
         + '<td class="mono">' + dateLabel + '</td>'
         + '<td class="mono">' + timeLabel + '</td>'
-        + '<td style="font-size:13px;color:var(--ink-soft);">' + (ev.location || '—') + '</td>'
+        + '<td style="font-size:13px;color:var(--ink-soft);">' + (escapeHtml(window.eventPlaceText(ev)) || '—') + '</td>'
         + '<td style="font-size:13px;color:var(--ink-soft);">' + creatorName + '</td>'
         + '<td>' + regCell + '</td>'
         + '<td><span class="tag ' + badge + '">' + badgeLabel + '</span></td>'
@@ -17620,7 +17678,7 @@ Groups</span>
     var duplicate = {
       church_id: src.church_id, created_by: userData.user ? userData.user.id : null,
       title: src.title + ' (Copy)', description: src.description,
-      start_at: src.start_at, end_at: src.end_at, location: src.location,
+      start_at: src.start_at, end_at: src.end_at, location: src.location, venue_name: src.venue_name,
       image_url: src.image_url, tags: src.tags, audience: src.audience,
       registration_required: src.registration_required, allow_volunteers: src.allow_volunteers,
       max_participants: src.max_participants, max_volunteers: src.max_volunteers,
@@ -20483,13 +20541,19 @@ Groups</span>
     document.getElementById('ce-description').innerHTML = sanitizeRichText(ev.description || '');
     document.getElementById('ce-description-count').textContent = (document.getElementById('ce-description').textContent || '').length + ' / 800';
     // Existing events only ever stored one combined location string --
-    // there's no reliable way to split "Fellowship Hall, 123 Main St"
-    // back into venue name + address on edit, so the whole thing goes
-    // into the address field as before and venue name starts blank.
-    // Editing and re-saving without touching either still round-trips
-    // correctly (the submit handler falls back to the address alone
-    // when venue name is empty).
-    document.getElementById('ce-venue-name').value = '';
+    // Since migration 075 the two are stored apart, so an event saved
+    // by this form comes back into the same two boxes it left from.
+    //
+    // Rows created before that column existed still hold one joined
+    // string in `location`, and it stays there: splitting it would mean
+    // guessing where the venue ends, and "7127 Bee Cave Road" looks
+    // exactly like "Fellowship Hall" to anything before the first
+    // comma. Such a row shows everything in the address box with Venue
+    // blank, exactly as it did before -- and re-saving it untouched
+    // changes nothing, because an empty Venue box writes null. Somebody
+    // who fills the box in converts that row, which is the only moment
+    // a human is actually reading the value.
+    document.getElementById('ce-venue-name').value = ev.venue_name || '';
     document.getElementById('ce-location').disabled = false;
     document.getElementById('ce-use-church-address').checked = false;
     document.getElementById('ce-location').value = ev.location || '';
@@ -20780,9 +20844,9 @@ Groups</span>
     var evEnd = matched.end_at ? new Date(matched.end_at) : new Date(evStart.getTime() + 60 * 60 * 1000);
     var plainDesc = stripHtmlToPlainText(matched.description);
     if (gcalBtn) {
-      openGoogleCalendarLink(matched.title, plainDesc, matched.location, evStart, evEnd, null);
+      openGoogleCalendarLink(matched.title, plainDesc, window.eventPlaceText(matched), evStart, evEnd, null);
     } else {
-      downloadIcsFile(matched.title.replace(/[^a-z0-9]+/gi, '-').toLowerCase() + '.ics', matched.title, plainDesc, matched.location, evStart, evEnd, null);
+      downloadIcsFile(matched.title.replace(/[^a-z0-9]+/gi, '-').toLowerCase() + '.ics', matched.title, plainDesc, window.eventPlaceText(matched), evStart, evEnd, null);
     }
   });
 
@@ -21025,14 +21089,17 @@ Groups</span>
       var description = sanitizeRichText(document.getElementById('ce-description').innerHTML);
       var startAt = combineDateTime(document.getElementById('ce-start-date').value, document.getElementById('ce-start-time').value);
       var endAt = combineDateTime(document.getElementById('ce-end-date').value, document.getElementById('ce-end-time').value);
-      // events.location stays a single text column -- the venue-name
-      // field is a UI-only convenience for entering it, not a second
-      // stored field, so the two are combined here into the one
-      // string the rest of the app (and every existing event) already
-      // expects.
       var ceVenueName = document.getElementById('ce-venue-name').value.trim();
       var ceAddressValue = document.getElementById('ce-location').value.trim();
-      var location = ceVenueName && ceAddressValue ? (ceVenueName + ', ' + ceAddressValue) : (ceVenueName || ceAddressValue);
+      // Stored apart since migration 075. They used to be joined with a
+      // comma into `location`, which read correctly and could never be
+      // taken back apart -- so reopening an event for editing showed
+      // the whole string in the address box and an empty Venue box.
+      //
+      // Nulls rather than empty strings, so 'no venue' is one value in
+      // the column instead of two that every reader has to know about.
+      var location = ceAddressValue || null;
+      var venueName = ceVenueName || null;
       var repeatType = document.getElementById('ce-repeats').value;
       var repeatUntil = document.getElementById('ce-repeat-until').value;
 
@@ -21132,6 +21199,7 @@ Groups</span>
           start_at: new Date(startAt).toISOString(),
           end_at: endAt ? new Date(endAt).toISOString() : null,
           location: location,
+          venue_name: venueName,
           tags: ceTags.length ? ceTags : null,
           category_tags: getSelectedCeCategories().length ? getSelectedCeCategories() : null,
           audience: audience.length ? audience : null,
@@ -21239,6 +21307,7 @@ Groups</span>
           title: title, description: description,
           start_at: occ.start, end_at: occ.end,
           location: location,
+          venue_name: venueName,
           image_url: imageUrl,
           // Only a genuine recurring series gets a series_id — a
           // one-off event has nothing to be "the same thing over
@@ -24161,7 +24230,7 @@ Groups</span>
       var toIso = new Date(toVal + 'T23:59:59').toISOString();
 
       var { data: events, error } = await supabase.from('events')
-        .select('id, title, start_at, end_at, location')
+        .select('id, title, start_at, end_at, location, venue_name')
         .eq('church_id', myChurch.id)
         .gte('start_at', fromIso)
         .lte('start_at', toIso)
@@ -24212,7 +24281,7 @@ Groups</span>
           // Falls back to the free-text Location field when no
           // structured room was picked — not every event needs the
           // room checklist filled in for this export to still work.
-          var primaryName = primary ? primary.name : (rooms.length ? rooms[0].name : (e.location || '—'));
+          var primaryName = primary ? primary.name : (rooms.length ? rooms[0].name : (window.eventPlaceText(e) || '—'));
           html += '<tr><td class="mono">' + timeStr + '</td><td>' + e.title.replace(/</g, '&lt;') + '</td><td>' + primaryName.replace(/</g, '&lt;') + '</td><td>' + others.replace(/</g, '&lt;') + '</td></tr>';
         });
         html += '</table>';
