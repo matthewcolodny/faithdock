@@ -19,7 +19,7 @@
 --
 -- WHAT A VOLUNTEER KEEPS. Traced from what the check-in screen actually
 -- queries, plus an explicit product decision:
---   events                   -- to choose which event's door they are on
+--   events, except drafts    -- to choose which event's door they are on
 --   event_registrations      -- the roster, and writing checked_in_at
 --   event_question_answers   -- deliberately. "Severe nut allergy" and
 --                               "may be collected by her grandmother"
@@ -28,6 +28,14 @@
 --                               worse.
 --   event_checkin_links      -- link-based check-in
 --   their own church_staff row -- so the app can work out who they are
+--
+-- RE-RUNNABLE. Every statement here is drop-if-exists plus create, or
+-- create-or-replace, so running it twice is the same as running it
+-- once. That matters because the SQL Editor runs a script as a single
+-- transaction: when the verify block at the bottom raised on the
+-- first attempt, every policy in this file rolled back with it. The
+-- failure was total rather than partial, which is the right way round
+-- for a file that rewrites twenty-three policies.
 --
 -- WHAT THIS IS NOT. It does not fix the other write gaps in
 -- docs/staff-permission-audit.md -- a staff member with only
@@ -387,6 +395,44 @@ create policy "Church owner/staff can view their event room links"
       where e.id = event_rooms.event_id
         and (c.owner_id = auth.uid() or staff_beyond_checkin(c.id))
     )
+  );
+
+-- Draft events. A volunteer needs to see the events they are working
+-- a door for; they do not need the church's unpublished planning.
+--
+-- Left alone in the first draft of this migration, on the grounds
+-- that volunteers must be able to read events at all. That conflated
+-- two things: reading events is the OTHER branch of this policy
+-- (visibility <> 'draft'), which is untouched and covers everybody.
+-- This branch only ever granted drafts.
+--
+-- Dropped by lookup rather than by name. PostgreSQL truncates
+-- identifiers at 63 bytes and this one hit the limit exactly, so its
+-- stored name ends in a space where the original sentence continued.
+-- Typing that out is a quiet way to drop nothing and report success.
+do $drop_events_select$
+declare
+  v_name text;
+begin
+  select p.polname into v_name
+  from pg_policy p join pg_class c on c.oid = p.polrelid
+  where c.relname = 'events' and p.polcmd = 'r'
+    and p.polname like 'Public and members-only events%';
+  if v_name is not null then
+    execute format('drop policy %I on events', v_name);
+  end if;
+end
+$drop_events_select$;
+
+-- Renamed on the way through, to something that fits in 63 bytes and
+-- therefore still means what it says next time somebody reads it.
+drop policy if exists "Drafts are staff-only; everything else is visible" on events;
+create policy "Drafts are staff-only; everything else is visible"
+  on events for select
+  using (
+    visibility <> 'draft'
+    or exists (select 1 from churches c where c.id = events.church_id and c.owner_id = auth.uid())
+    or staff_beyond_checkin(events.church_id)
   );
 
 -- Managing events -- creating, editing, deleting. A volunteer keeps
