@@ -365,6 +365,9 @@
       'rc.churchName': 'Church name', 'rc.denomination': 'Denomination', 'rc.selectOne': 'Select one', 'rc.other': 'Other',
       'rc.enterDenomination': 'Enter your denomination', 'rc.address': 'Address', 'rc.addressPlaceholder': 'Start typing an address...',
       'rc.website': 'Website', 'rc.freeListing': 'Free listing', 'rc.planListing': '{plan} plan', 'rc.registerHeading': 'Register your church', 'rc.editHeading': 'Edit your church',
+      'rc.websitePublic': 'Show this on our public profile',
+      'rc.websitePublicHint': 'Off by default. Your website is only linked from your FaithDock page once you turn this on.',
+      'admin.websitePublic': 'Show website on the public profile',
       'rc.publicNotice': "This is what shows publicly on your church's page.", 'rc.phone': 'Church phone number',
       'rc.description': 'Description', 'rc.logo': 'Logo', 'rc.removeLogo': 'Remove logo',
       'rc.serviceTimes': 'Service times', 'rc.removeServiceTime': 'Remove service time',
@@ -1417,6 +1420,9 @@
       'rc.churchName': 'Nombre de la iglesia', 'rc.denomination': 'Denominación', 'rc.selectOne': 'Selecciona una', 'rc.other': 'Otra',
       'rc.enterDenomination': 'Ingresa tu denominación', 'rc.address': 'Dirección', 'rc.addressPlaceholder': 'Empieza a escribir una dirección...',
       'rc.website': 'Sitio web', 'rc.freeListing': 'Listado gratuito', 'rc.planListing': 'Plan {plan}', 'rc.registerHeading': 'Registra tu iglesia', 'rc.editHeading': 'Edita tu iglesia',
+      'rc.websitePublic': 'Mostrarlo en nuestro perfil público',
+      'rc.websitePublicHint': 'Desactivado por defecto. Tu sitio web solo se enlaza desde tu página de FaithDock cuando actives esto.',
+      'admin.websitePublic': 'Mostrar el sitio web en el perfil público',
       'rc.publicNotice': 'Esto es lo que se muestra públicamente en la página de tu iglesia.', 'rc.phone': 'Teléfono de la iglesia',
       'rc.description': 'Descripción', 'rc.logo': 'Logotipo', 'rc.removeLogo': 'Quitar logotipo',
       'rc.serviceTimes': 'Horarios de servicio', 'rc.removeServiceTime': 'Quitar horario de servicio',
@@ -5784,7 +5790,8 @@ Groups</span>
       <input class="field" type="text" id="admin-church-edit-phone" style="margin-bottom:12px;">
 
       <label style="display:block;font-size:12.5px;margin-bottom:4px;" data-i18n="admin.website">Website</label>
-      <input class="field" type="text" id="admin-church-edit-website" style="margin-bottom:14px;">
+      <input class="field" type="text" id="admin-church-edit-website" style="margin-bottom:6px;">
+      <label class="filter-check" style="margin-bottom:14px;"><input type="checkbox" id="admin-church-edit-website-public"> <span data-i18n="admin.websitePublic">Show website on the public profile</span></label>
 
       <div style="display:flex;gap:10px;align-items:center;">
         <button type="button" class="btn-gold" id="admin-church-edit-save-btn" data-i18n="admin.saveChanges">Save changes</button>
@@ -6587,6 +6594,8 @@ Groups</span>
 
       <label data-i18n="rc.website">Website</label>
       <input class="field" type="url" id="rc-website" placeholder="https://yourchurch.org" data-i18n-placeholder="rc.websitePlaceholder">
+      <label class="filter-check" style="margin-top:8px;"><input type="checkbox" id="rc-website-public"> <span data-i18n="rc.websitePublic">Show this on our public profile</span></label>
+      <div style="font-size:12px;color:var(--ink-mute);margin-top:4px;" data-i18n="rc.websitePublicHint">Off by default. Your website is only linked from your FaithDock page once you turn this on.</div>
 
       <label data-i18n="rc.phone">Church phone number</label>
       <input class="field" type="tel" id="rc-phone" placeholder="(512) 555-0100">
@@ -8619,7 +8628,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-21-v182 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-21-v183 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -9463,7 +9472,17 @@ Groups</span>
     // person to touch this line could remove without noticing.
     // safeLinkUrl makes it deliberate, and hides the row outright for
     // anything it won't vouch for rather than rendering a dead link.
-    var safeWebsite = safeLinkUrl(c.website);
+    // Two conditions, not one. safeLinkUrl says the address is safe
+    // to link; website_public says somebody at the church agreed it
+    // should be shown. Most of the directory is imported listings
+    // nobody there has looked at yet, and publishing their website
+    // under a profile they have never seen reads as FaithDock
+    // republishing them rather than representing them.
+    //
+    // == true rather than truthy: an older row read before migration
+    // 070 has this undefined, and undefined must mean hidden. Failing
+    // closed is the whole point of the default.
+    var safeWebsite = (c.website_public === true) ? safeLinkUrl(c.website) : '';
     if (safeWebsite) {
       var link = document.getElementById('church-website-link');
       link.href = safeWebsite;
@@ -11255,7 +11274,7 @@ Groups</span>
   // actually running that migration by hand. Fetched separately, softly,
   // right below instead -- see the giving_enabled/messaging_enabled
   // block in findOrFetchChurchByName().
-  var PUBLIC_CHURCH_COLUMNS = 'id, owner_id, name, description, address, city, state, created_at, denomination, denomination_tags, website, logo_url, lat, lng, phone, facebook_url, instagram_url, stripe_account_id, stripe_onboarding_complete, verification_status, verification_requested_at, verification_reviewed_at, plan_type, subscription_status, current_period_end, dedupe_key, service_times';
+  var PUBLIC_CHURCH_COLUMNS = 'id, owner_id, name, description, address, city, state, created_at, denomination, denomination_tags, website, logo_url, lat, lng, phone, facebook_url, instagram_url, stripe_account_id, stripe_onboarding_complete, verification_status, verification_requested_at, verification_reviewed_at, plan_type, subscription_status, current_period_end, dedupe_key, service_times, website_public';
 
   // Once a church was cached here it stayed cached forever, for the
   // life of the tab -- confirmed as a real bug (address/phone/name/
@@ -15682,6 +15701,8 @@ Groups</span>
     document.getElementById('rc-denomination-other').value = '';
     document.getElementById('rc-denomination-other').style.display = 'none';
     document.getElementById('rc-website').value = '';
+    var rcWebsitePublicReset = document.getElementById('rc-website-public');
+    if (rcWebsitePublicReset) rcWebsitePublicReset.checked = false;
     document.getElementById('rc-phone').value = '';
     document.getElementById('rc-facebook').value = '';
     document.getElementById('rc-instagram').value = '';
@@ -15802,6 +15823,8 @@ Groups</span>
       denomOther.style.display = 'none';
     }
     document.getElementById('rc-website').value = church.website || '';
+    var rcWebsitePublicEl = document.getElementById('rc-website-public');
+    if (rcWebsitePublicEl) rcWebsitePublicEl.checked = church.website_public === true;
     document.getElementById('rc-phone').value = church.phone || '';
     document.getElementById('rc-facebook').value = church.facebook_url || '';
     document.getElementById('rc-instagram').value = church.instagram_url || '';
@@ -18723,6 +18746,8 @@ Groups</span>
         denomination = document.getElementById('rc-denomination-other').value || 'Other';
       }
       var website = document.getElementById('rc-website').value;
+      var websitePublicEl = document.getElementById('rc-website-public');
+      var websitePublic = !!(websitePublicEl && websitePublicEl.checked);
       var phone = document.getElementById('rc-phone').value;
       var facebook = document.getElementById('rc-facebook').value;
       var instagram = document.getElementById('rc-instagram').value;
@@ -18743,7 +18768,7 @@ Groups</span>
 
       var payload = {
         name: name, address: address, description: description,
-        denomination: denomination, website: website,
+        denomination: denomination, website: website, website_public: websitePublic,
         phone: phone, facebook_url: facebook, instagram_url: instagram,
         service_times: rcServiceTimes
       };
@@ -30286,6 +30311,8 @@ Groups</span>
     document.getElementById('admin-church-edit-address').value = current.address;
     document.getElementById('admin-church-edit-phone').value = current.phone;
     document.getElementById('admin-church-edit-website').value = current.website;
+    var adminWebPubEl = document.getElementById('admin-church-edit-website-public');
+    if (adminWebPubEl) adminWebPubEl.checked = current.website_public === true;
     document.getElementById('admin-church-edit-status').textContent = '';
     document.getElementById('admin-church-profile').style.display = 'none';
     document.getElementById('admin-church-edit-form').style.display = 'block';
@@ -30309,6 +30336,8 @@ Groups</span>
     var newAddress = document.getElementById('admin-church-edit-address').value.trim();
     var newPhone = document.getElementById('admin-church-edit-phone').value.trim();
     var newWebsite = document.getElementById('admin-church-edit-website').value.trim();
+    var adminWebPubInput = document.getElementById('admin-church-edit-website-public');
+    var newWebsitePublic = !!(adminWebPubInput && adminWebPubInput.checked);
 
     if (!newName) {
       statusEl.style.color = 'var(--clay)';
@@ -30350,6 +30379,7 @@ Groups</span>
       p_address: newAddress || null,
       p_phone: newPhone || null,
       p_website: newWebsite || null,
+      p_website_public: newWebsitePublic,
       p_lat: newLat,
       p_lng: newLng,
       p_update_coords: newAddress !== current.address
