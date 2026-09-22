@@ -1103,6 +1103,7 @@
       'reports.noEventsInDateRange': 'No events in that date range.', 'reports.scheduleSuffix': ' Schedule', 'reports.time': 'Time', 'reports.primaryLocation': 'Primary Location', 'reports.additionalLocations': 'Additional Locations',
       'insights.title': 'Insights', 'insights.savedReports': 'Saved reports', 'insights.active': 'Active', 'insights.archived': 'Archived',
       'insights.printPeopleStatsReport': 'Print people statistics report', 'insights.printPaymentReports': 'Print payment reports', 'insights.printAttendanceReports': 'Print group attendance reports',
+      'insights.givingNoAccess': 'You do not have access to giving figures for this church. Ask an owner to turn on the revenue permission if you need them.',
       'insights.giving': 'Giving', 'insights.allTimeGiven': 'ALL-TIME GIVEN', 'insights.totalDonors': 'TOTAL DONORS', 'insights.averageGift': 'AVERAGE GIFT', 'insights.last12Months': 'Last 12 months',
       'insights.byAgeGroupDonors': "By age group (self-reported, optional — many donors won't have shared this)",
       'insights.eventAttendance': 'Event attendance', 'insights.totalCheckedIn': 'TOTAL CHECKED IN', 'insights.checkInRate': 'CHECK-IN RATE', 'insights.checkedInLast8': 'Checked in, last 8 past events', 'insights.byAgeGroupOptional': 'By age group (self-reported, optional)',
@@ -2193,6 +2194,7 @@
       'reports.noEventsInDateRange': 'No hay eventos en ese rango de fechas.', 'reports.scheduleSuffix': ' — Horario', 'reports.time': 'Hora', 'reports.primaryLocation': 'Ubicación principal', 'reports.additionalLocations': 'Ubicaciones adicionales',
       'insights.title': 'Estadísticas', 'insights.savedReports': 'Informes guardados', 'insights.active': 'Activos', 'insights.archived': 'Archivados',
       'insights.printPeopleStatsReport': 'Imprimir informe de estadísticas de personas', 'insights.printPaymentReports': 'Imprimir informes de pagos', 'insights.printAttendanceReports': 'Imprimir informes de asistencia de grupos',
+      'insights.givingNoAccess': 'No tienes acceso a las cifras de donaciones de esta iglesia. Pide a un propietario que active el permiso de ingresos si las necesitas.',
       'insights.giving': 'Donaciones', 'insights.allTimeGiven': 'TOTAL DONADO', 'insights.totalDonors': 'TOTAL DE DONANTES', 'insights.averageGift': 'DONACIÓN PROMEDIO', 'insights.last12Months': 'Últimos 12 meses',
       'insights.byAgeGroupDonors': 'Por grupo de edad (autoinformado, opcional — muchos donantes no habrán compartido esto)',
       'insights.eventAttendance': 'Asistencia a eventos', 'insights.totalCheckedIn': 'TOTAL REGISTRADOS', 'insights.checkInRate': 'TASA DE REGISTRO', 'insights.checkedInLast8': 'Registrados, últimos 8 eventos pasados', 'insights.byAgeGroupOptional': 'Por grupo de edad (autoinformado, opcional)',
@@ -8218,8 +8220,15 @@ Groups</span>
           <a data-dash="insights-reports" style="color:inherit;border-bottom:1px solid var(--gold);cursor:pointer;" data-i18n="insights.reportsMoved">Printable reports are on the Reports page →</a>
         </p>
 
-        <div class="side-note" style="margin-top:0;max-width:640px;">
+        <div class="side-note" style="margin-top:0;max-width:640px;" id="insights-giving-block">
           <h4 data-i18n="insights.giving">Giving</h4>
+          <!-- Shown INSTEAD of the figures when this staff member has
+               no revenue ability. Saying so matters: with the tighter
+               policy (migration 079) the queries return nothing, and a
+               chart drawn from nothing looks exactly like a church that
+               has received no gifts. One of those is worth telling a
+               treasurer about and the other is not. -->
+          <p id="insights-giving-no-access" hidden style="font-size:13px;color:var(--ink-mute);margin-top:8px;" data-i18n="insights.givingNoAccess">You do not have access to giving figures for this church. Ask an owner to turn on the revenue permission if you need them.</p>
           <div class="stat-row" style="margin-top:10px;margin-bottom:10px;">
             <div class="stat"><div class="num" id="insights-giving-total">—</div><div class="lbl" data-i18n="insights.allTimeGiven">ALL-TIME GIVEN</div></div>
             <div class="stat"><div class="num" id="insights-giving-donors">—</div><div class="lbl" data-i18n="insights.totalDonors">TOTAL DONORS</div></div>
@@ -8808,7 +8817,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v200 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v201 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -23107,11 +23116,37 @@ Groups</span>
     }).join('');
   }
 
+  // Insights was gated by nothing, while the Revenue page was gated on
+  // canViewRevenue -- so the figures that ability exists to protect
+  // were one click away on a page it did not cover. This closes that
+  // on the client; migration 079 closes it in the database, which is
+  // the half that actually decides who can read the rows.
+  function applyGivingInsightsGate(myChurch){
+    var block = document.getElementById('insights-giving-block');
+    var note  = document.getElementById('insights-giving-no-access');
+    var allowed = !!(myChurch && myChurch.canViewRevenue);
+    if (!block) return allowed;
+    // The figures go, the heading and the reason stay. Hiding the whole
+    // block would leave somebody wondering whether Giving had moved.
+    Array.prototype.forEach.call(block.querySelectorAll('.stat-row, .mini-chart, h5, .insights-note'), function(el){
+      el.style.display = allowed ? '' : 'none';
+    });
+    var ageNote = document.getElementById('insights-giving-age-note');
+    if (ageNote) ageNote.style.display = allowed ? '' : 'none';
+    if (note) note.hidden = allowed;
+    return allowed;
+  }
+
   async function loadGivingInsights(){
     var totalEl = document.getElementById('insights-giving-total');
     if (!totalEl) return;
     var myChurch = await getMyChurch();
     if (!myChurch) return;
+
+    // Before the query, not after: without the ability there is nothing
+    // to ask for, and asking anyway would return zeros that render as a
+    // church with no giving.
+    if (!applyGivingInsightsGate(myChurch)) return;
 
     // Aggregated in Postgres (migration 077) rather than here. This
     // used to download every succeeded donation the church had ever
@@ -23199,6 +23234,10 @@ Groups</span>
     // Ten queries became one (migration 078). Four of them were the
     // church-people union, and one downloaded every donation ever
     // taken in order to add the amounts up.
+    // Total given and total donors sit in this report too, so the same
+    // ability gates them here. The rest of the report -- people, groups,
+    // households, ages -- is not about money and stays.
+    var canSeeGiving = !!myChurch.canViewRevenue;
     var { data: ps, error: psError } = await supabase.rpc('get_people_stats', { target_church_id: myChurch.id });
     if (psError || !ps) {
       console.error('get_people_stats failed', psError);
@@ -23233,8 +23272,8 @@ Groups</span>
       + '<tr><td>' + window.t('reports.staffIncludingOwner') + '</td><td class="mono">' + (Number(ps.staff || 0) + 1) + '</td></tr>'
       + '<tr><td>' + window.t('dash.groups') + '</td><td class="mono">' + Number(ps.groups || 0) + '</td></tr>'
       + '<tr><td>' + window.t('households.heading') + '</td><td class="mono">' + window.t('reports.householdsCountGrouped').replace('{count}', Number(ps.households || 0)).replace('{peopleCount}', householdMemberCount) + '</td></tr>'
-      + '<tr><td>' + window.t('reports.totalGivenAllTime') + '</td><td class="mono">$' + (totalGivenCents / 100).toLocaleString(window.appLocale(), { maximumFractionDigits: 0 }) + '</td></tr>'
-      + '<tr><td>' + window.t('reports.totalDonors') + '</td><td class="mono">' + donorCount + '</td></tr>'
+      + (canSeeGiving ? '<tr><td>' + window.t('reports.totalGivenAllTime') + '</td><td class="mono">$' + (totalGivenCents / 100).toLocaleString(window.appLocale(), { maximumFractionDigits: 0 }) + '</td></tr>' : '')
+      + (canSeeGiving ? '<tr><td>' + window.t('reports.totalDonors') + '</td><td class="mono">' + donorCount + '</td></tr>' : '')
       + '</table>'
       + '<h3 class="sched-date" style="margin-top:0;">' + window.t('reports.ageGroups') + ' <span style="font-size:11px;font-weight:400;color:var(--ink-mute);">' + window.t('reports.selfReportedBasedOn').replace('{shared}', ageSharedCount).replace('{total}', peopleCount) + '</span></h3>'
       + '<table class="sched-table">' + ageBucketOrder.map(function(k){ return '<tr><td>' + ageBucketLabels[k] + '</td><td class="mono">' + ageCounts[k] + '</td></tr>'; }).join('') + '</table>';
