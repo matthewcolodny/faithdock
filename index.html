@@ -404,6 +404,15 @@
       'legal.termsContactPre': 'Questions about these terms can be sent to',
       'legal.adaTitle': 'Accessibility Statement',
       'legal.delTitle': 'Deleting your data',
+      'emailNeeded.title': 'We need an email address',
+      'emailNeeded.why': 'Your account was created through a sign-in that did not share one. Adding one takes a moment and only has to be done once.',
+      'emailNeeded.label': 'Email address',
+      'emailNeeded.save': 'Add email',
+      'emailNeeded.cancel': 'Not now',
+      'emailNeeded.invalid': 'That does not look like an email address.',
+      'emailNeeded.sent': 'Check {email} and click the link to confirm it. Once you have, come back and try again.',
+      'emailNeeded.reasonEvent': 'Registering sends you a confirmation, and lets the church reach you about the event.',
+      'emailNeeded.reasonChurch': 'A church listing needs a reachable owner. Claims, transfers and support all start from this address.',
       'legal.delIntro': 'You can delete your FaithDock account and the data attached to it at any time, yourself, without asking us. This page explains how, what goes, and what to do if you cannot get into your account.',
       'legal.delSelfHeading': 'Delete it yourself',
       'legal.delSelf1': 'Sign in, open Account profile, and use Delete account at the bottom of the page. You will be asked to type DELETE to confirm. It takes effect immediately and cannot be undone.',
@@ -1446,6 +1455,15 @@
       'legal.termsContactPre': 'Las preguntas sobre estos términos pueden enviarse a',
       'legal.adaTitle': 'Declaración de Accesibilidad',
       'legal.delTitle': 'Eliminar tus datos',
+      'emailNeeded.title': 'Necesitamos un correo electrónico',
+      'emailNeeded.why': 'Tu cuenta se creó con un inicio de sesión que no compartía uno. Agregarlo toma un momento y solo hay que hacerlo una vez.',
+      'emailNeeded.label': 'Correo electrónico',
+      'emailNeeded.save': 'Agregar correo',
+      'emailNeeded.cancel': 'Ahora no',
+      'emailNeeded.invalid': 'Eso no parece un correo electrónico.',
+      'emailNeeded.sent': 'Revisa {email} y haz clic en el enlace para confirmarlo. Cuando lo hayas hecho, vuelve e inténtalo de nuevo.',
+      'emailNeeded.reasonEvent': 'Al inscribirte te enviamos una confirmación, y la iglesia puede contactarte sobre el evento.',
+      'emailNeeded.reasonChurch': 'Una ficha de iglesia necesita un dueño localizable. Los reclamos, las transferencias y el soporte parten de esa dirección.',
       'legal.delIntro': 'Puedes eliminar tu cuenta de FaithDock y los datos asociados a ella en cualquier momento, t\u00fa mismo, sin pedirnos permiso. Esta p\u00e1gina explica c\u00f3mo hacerlo, qu\u00e9 se elimina y qu\u00e9 hacer si no puedes entrar a tu cuenta.',
       'legal.delSelfHeading': 'Elim\u00ednala t\u00fa mismo',
       'legal.delSelf1': 'Inicia sesi\u00f3n, abre Perfil de la cuenta y usa Eliminar cuenta al final de la p\u00e1gina. Se te pedir\u00e1 escribir DELETE para confirmar. Tiene efecto de inmediato y no se puede deshacer.',
@@ -8419,6 +8437,28 @@ Groups</span>
   </div>
 </section>
 
+<!-- Asked for at the point of need, not at sign-in. A Facebook
+     account can arrive with no email at all: Facebook only shares one
+     if the person has a verified address and grants the permission.
+     Supabase creates the account regardless, and it is a perfectly
+     good account for browsing, following and joining a group. It is
+     only the handful of things that have to write to somebody that
+     cannot proceed, so only those ask. -->
+<div id="email-needed-modal" class="modal-overlay">
+  <div class="modal-card" style="max-width:420px;">
+    <h3 style="font-family:'Fraunces';font-size:20px;margin-bottom:6px;" data-i18n="emailNeeded.title">We need an email address</h3>
+    <p style="color:var(--ink-mute);font-size:14px;margin-bottom:4px;" id="email-needed-reason"></p>
+    <p style="color:var(--ink-mute);font-size:13.5px;margin-bottom:14px;" data-i18n="emailNeeded.why">Your account was created through a sign-in that did not share one. Adding one takes a moment and only has to be done once.</p>
+    <label data-i18n="emailNeeded.label">Email address</label>
+    <input class="field" type="email" id="email-needed-input" placeholder="you@email.com" autocomplete="email">
+    <div id="email-needed-status" style="display:none;font-size:13px;margin-top:10px;"></div>
+    <div style="display:flex;gap:10px;margin-top:16px;">
+      <button class="export-btn" id="email-needed-cancel" style="flex:1;justify-content:center;" data-i18n="emailNeeded.cancel">Not now</button>
+      <button class="btn-gold" id="email-needed-save" style="flex:1;" data-i18n="emailNeeded.save">Add email</button>
+    </div>
+  </div>
+</div>
+
 <section class="page" id="page-data-deletion">
   <div class="wrap" style="padding-top:44px;max-width:760px;">
     <div class="eyebrow">Legal</div>
@@ -8545,7 +8585,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-21-v177 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-21-v178 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -18708,6 +18748,10 @@ Groups</span>
         // (only column-level, minus the two stripe_* billing ids). Same
         // reason every churches read switched to PUBLIC_CHURCH_COLUMNS;
         // these two mutation call sites were missed at the time.
+        // A church listing has to have a reachable owner: every
+        // ownership transfer, claim and support thread starts from
+        // this address.
+        if (!(await window.requireEmailOnFile('emailNeeded.reasonChurch'))) { return; }
         var { data, error } = await supabase.from('churches').insert(payload).select(PUBLIC_CHURCH_COLUMNS);
         if (error) { showRcError(error.message); return; }
         // Make the just-created church the active one — otherwise the
@@ -28805,6 +28849,70 @@ Groups</span>
   }
   window.myListRowThumb = myListRowThumb;
 
+  // ============================================================
+  // Does this account have an email, and if not, ask for one.
+  //
+  // requireEmailOnFile(reasonKey) resolves true when the caller may
+  // proceed and false when it must stop. Callers await it and bail on
+  // false; nothing else is expected of them.
+  //
+  // It resolves false even after a successful submit, and that is not
+  // a bug. Supabase does not accept a new address on trust: it sends a
+  // confirmation link and the address is not on the account until that
+  // link is clicked. Returning true here would let the caller carry on
+  // and then fail to email anyone, which is worse than stopping.
+  // ============================================================
+  window.accountEmailOnFile = async function(){
+    var { data } = await supabase.auth.getUser();
+    return !!(data && data.user && data.user.email);
+  };
+
+  var emailNeededResolve = null;
+  function closeEmailNeeded(result){
+    var modal = document.getElementById('email-needed-modal');
+    if (modal) modal.classList.remove('open');
+    var r = emailNeededResolve; emailNeededResolve = null;
+    if (r) r(result);
+  }
+
+  window.requireEmailOnFile = async function(reasonKey){
+    if (await window.accountEmailOnFile()) return true;
+    var modal = document.getElementById('email-needed-modal');
+    if (!modal) return false;
+    var reasonEl = document.getElementById('email-needed-reason');
+    if (reasonEl) reasonEl.textContent = reasonKey ? window.t(reasonKey) : '';
+    var input = document.getElementById('email-needed-input');
+    if (input) input.value = '';
+    var statusEl = document.getElementById('email-needed-status');
+    if (statusEl) statusEl.style.display = 'none';
+    modal.classList.add('open');
+    if (input) setTimeout(function(){ input.focus(); }, 50);
+    return await new Promise(function(resolve){ emailNeededResolve = resolve; });
+  };
+
+  var emailNeededCancel = document.getElementById('email-needed-cancel');
+  if (emailNeededCancel) emailNeededCancel.addEventListener('click', function(){ closeEmailNeeded(false); });
+
+  var emailNeededSave = document.getElementById('email-needed-save');
+  if (emailNeededSave) emailNeededSave.addEventListener('click', async function(){
+    var input = document.getElementById('email-needed-input');
+    var statusEl = document.getElementById('email-needed-status');
+    var value = (input.value || '').trim();
+    function say(msg, colour){ statusEl.textContent = msg; statusEl.style.color = colour; statusEl.style.display = 'block'; }
+    if (!value || value.indexOf('@') === -1) { say(window.t('emailNeeded.invalid'), 'var(--clay)'); return; }
+    emailNeededSave.disabled = true;
+    var { error } = await supabase.auth.updateUser({ email: value });
+    emailNeededSave.disabled = false;
+    if (error) { say(error.message, 'var(--clay)'); return; }
+    // Deliberately not closing on success: the person has to go and
+    // click a link, and a modal that vanishes here reads as done.
+    say(window.t('emailNeeded.sent').split('{email}').join(value), 'var(--sage)');
+    input.disabled = true;
+    emailNeededSave.style.display = 'none';
+    var cancelBtn = document.getElementById('email-needed-cancel');
+    if (cancelBtn) cancelBtn.textContent = window.t('common.close');
+  });
+
   var CHURCH_ROLE_FIELDS = 'id, name, denomination, logo_url, address';
   var _churchRoleCache = null;
   window.invalidateChurchRoleCache = function(){ _churchRoleCache = null; };
@@ -32797,6 +32905,13 @@ Groups</span>
     if (!userData.user) {
       btn.disabled = false;
       showLoginRequired(window.t('loginRequired.registerEvent'));
+      return;
+    }
+
+    // A registration is a promise to send this person a confirmation
+    // and to let the church reach them, so it needs an address.
+    if (!(await window.requireEmailOnFile('emailNeeded.reasonEvent'))) {
+      btn.disabled = false;
       return;
     }
 

@@ -6250,3 +6250,45 @@ The page says four things, all of which are already how the product behaves:
 Verified in both languages after a direct load of the URL, not just a hash change: the route resolves, only that page is active, all sixteen strings resolve rather than falling through to their key, the footer link renders in both, and the page carries no em dashes.
 
 Build `2026-09-21-v177`; no migration.
+
+## An account with no email
+
+Facebook only shares an email if the person has a verified one and grants the permission, so a Facebook sign-in can produce an account with none. Supabase creates it regardless. The decision was to let them in and ask at the point of need rather than refuse the sign-in, which is right: the account is perfectly good for browsing, following and joining a group. It is only the handful of things that have to **write to somebody** that cannot proceed.
+
+`requireEmailOnFile(reasonKey)` resolves true when the caller may continue and false when it must stop. Callers await it and bail on false; nothing else is asked of them.
+
+### It resolves false even on success, and that is the point
+
+Supabase does not take a new address on trust. `updateUser({ email })` sends a confirmation link and the address is **not on the account until that link is clicked** -- the same thing the profile page's own email change has always done. So a successful submit still returns false, because returning true would let the caller carry on and then fail to email anyone, which is worse than stopping.
+
+For the same reason the modal does not close on success. It swaps the button for a line saying which address to go and check. A modal that vanishes at that moment reads as "done", and the person would come back to the same gate with no idea why.
+
+### Where the gates are
+
+Two, chosen because both are promises to contact someone:
+
+- **Registering for an event.** The registration sends a confirmation and lets the church reach the attendee.
+- **Registering a church.** Claims, ownership transfers and support all start from the owner's address.
+
+Giving is deliberately not gated: the Give form already collects a donor address in its own field, so it does not need the account to have one. Following, joining a group and browsing are not gated either, and should not be.
+
+Three places already guarded themselves -- the pending-invite and message lookups bail on `!userData.user.email` -- so a no-email account gets an empty list rather than an error there. Left alone.
+
+### Verified
+
+| case | result |
+| --- | --- |
+| account has an email | passes through, no modal |
+| account has none | modal opens with the caller's reason |
+| cancel | resolves false, modal closes |
+| submit a valid address | `updateUser` called with it, "check your inbox" shown, modal stays open, **resolves false** |
+| submit a non-address | rejected, `updateUser` never called |
+| real Register click, no email | modal shown, **zero rows written**, button re-enabled after cancel |
+
+The last row is the one worth having: the gate is in front of the write, not merely in front of the button.
+
+### One convention nearly missed
+
+The modal was first written with `class="modal-backdrop"` and `style.display` toggling. This file has no such class -- its modals are `.modal-overlay` toggled with `.open`. It would have rendered as an unstyled block in the page flow rather than a modal, and would have looked like a broken layout rather than a wrong class name.
+
+Build `2026-09-21-v178`; no migration.
