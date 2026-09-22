@@ -6229,3 +6229,24 @@ Also checked in the browser: both buttons request their own provider with their 
 - **Facebook does not always return an email.** Supabase will create the user without one, and this app assumes an email in several places (password reset, the profile page, church contact). Worth deciding what should happen before this is public, rather than discovering it from the first account that has no email.
 
 Build `2026-09-21-v176`; no migration.
+
+## A data deletion page, for Facebook and for anyone who asks
+
+Facebook will not let an app go public without one. It accepts either a **Data Deletion Instructions URL**, a page telling people how to ask, or a **Data Deletion Callback URL**, an endpoint it POSTs a signed request to and expects JSON back.
+
+This is the first, deliberately. The callback needs an Edge Function that verifies a `signed_request` against the app secret, deployed by hand, and it would exist only to satisfy Facebook. The instructions page is a page, needs no secret, and describes a route that **already exists** rather than promising a new one: Account profile has had self-serve deletion for a while, through the `delete-account` function.
+
+`#data-deletion`, registered in `validRoutes`, linked from the footer beside Privacy, Terms and Accessibility. The footer link is not decoration: a deletion page reachable only by the people Facebook gave the URL to is the kind of compliance that is technically true.
+
+The page says four things, all of which are already how the product behaves:
+
+- **Delete it yourself**, with a button straight to Account profile.
+- **Owning a church stops it**, and why. `delete-account` already refuses while the caller owns one, and the client checks first so the refusal is a sentence rather than a server error.
+- **Deleting here does not touch Google or Facebook**, and removing the app on their side does not delete anything here. Both directions, because either one alone leaves somebody thinking they have finished when they have not.
+- **What does not disappear.** A church keeps its own record of a gift because it needs one for its books, and the payment lives in that church's Stripe account, which is theirs rather than ours. That is the same fact as the About page's first commitment -- FaithDock never holds the money -- read from the other end: not holding it is also why we cannot delete it.
+
+**One commitment worth noticing before it is public:** the page says deletion requests are acted on within 30 days. That is a normal figure and a safe one, but it is now a promise on a public page rather than an intention.
+
+Verified in both languages after a direct load of the URL, not just a hash change: the route resolves, only that page is active, all sixteen strings resolve rather than falling through to their key, the footer link renders in both, and the page carries no em dashes.
+
+Build `2026-09-21-v177`; no migration.
