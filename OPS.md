@@ -115,6 +115,14 @@ rather than alongside anything else.
 
 ### Verify JWT was on for `resend-webhook` -- fixed 2026-09-21
 
+Endpoint re-enabled in Resend the same day, and the whole chain probed
+end to end: gateway open, `RESEND_WEBHOOK_SECRET` set, Svix verification
+running, `apply_resend_webhook_event` present and correctly toothless to
+an anonymous caller (SECURITY INVOKER against a table with RLS on and
+SELECT-only policies, so it matches zero rows). The one thing not
+verifiable from outside is which event types the Resend endpoint
+subscribes to.
+
 Resend disabled the webhook endpoint after every event since deployment
 on 2026-09-15 was rejected. The cause was Supabase's per-function
 "Verify JWT", which defaults **on**: Resend has no Supabase JWT and never
