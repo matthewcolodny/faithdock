@@ -19,66 +19,7 @@ The state it ended in is worth more later than the fact it was on a list.
 
 ---
 
-## 1. Nobody is reading our DMARC reports
-
-**Today**, verified by DNS lookup on 2026-09-21:
-
-```
-_dmarc.faithdock.com  TXT
-  v=DMARC1; p=quarantine; adkim=r; aspf=r;
-  rua=mailto:dmarc_rua@onsecureserver.net;
-```
-
-`onsecureserver.net` is the registrar's own default address, not ours.
-The policy itself is sound -- `p=quarantine` with relaxed alignment, and
-Resend passes it via DKIM on the root domain plus SPF on `send.` -- but
-every aggregate report the receiving world sends back about our domain
-goes somewhere we cannot read.
-
-**Why it matters:** DMARC aggregate reports are the only mechanism that
-tells you somebody is sending mail as `@faithdock.com` who is not us.
-There is no other signal. You find out through the reports, or you find
-out when a church tells you they got a phishing email from FaithDock.
-They are also the evidence you would want before tightening to
-`p=reject`, which is where this should eventually land.
-
-**What doing it involves.** The naive version is to point `rua` at an
-address we own:
-
-```
-v=DMARC1; p=quarantine; adkim=r; aspf=r; rua=mailto:dmarc@faithdock.com;
-```
-
-That works, and needs no extra authorization record because the mailbox
-is on the same domain as the policy. But what arrives is gzipped XML,
-one file per reporting provider per day, and in practice nobody reads
-it. An unread mailbox is the state we are already in.
-
-The practical version is a free DMARC report reader -- Postmark's DMARC
-Digests, dmarcian, or URIports all have free tiers. You sign up, they
-give you an address, you put it in `rua`, and they email a plain-English
-weekly summary instead of raw XML. They also publish the cross-domain
-authorization record on their side automatically, which otherwise has to
-be done by hand: a `rua` address on a different domain is ignored unless
-that domain publishes `faithdock.com._report._dmarc.<theirdomain>`
-saying it accepts reports for us.
-
-Both addresses can be listed if you want the raw files kept as well:
-
-```
-rua=mailto:dmarc@faithdock.com, mailto:<service-address>;
-```
-
-The record is edited wherever faithdock.com's DNS is hosted -- the
-registrar, given the `onsecureserver.net` default currently in place.
-
-**Not urgent.** Nothing is broken and no mail is failing. It is worth
-doing before signups open, because that is when the domain becomes worth
-spoofing.
-
----
-
-## 2. Two Resend accounts, one of them empty
+## 1. Two Resend accounts, one of them empty
 
 **Today:** there are two Resend accounts -- a personal one
 (`matthewcolodny`) and one created around 2026-09-14 against the Google
@@ -112,6 +53,49 @@ rather than alongside anything else.
 ---
 
 ## Done
+
+### DMARC reports now reach us -- 2026-09-22
+
+Aggregate reports went to dmarc_rua@onsecureserver.net, a registrar
+default nobody could read -- so the one mechanism that reports
+somebody sending mail as @faithdock.com was pointed at a bin. They now
+go to Postmark's free DMARC Digests, which returns a weekly summary in
+plain English rather than gzipped XML.
+
+Final record, identical on 8.8.8.8 and 1.1.1.1, every tag exactly once:
+
+```
+v=DMARC1; p=quarantine; adkim=r; aspf=r;
+  rua=mailto:re+as3iexljqvl@dmarc.postmarkapp.com;
+```
+
+**Two things nearly went wrong, both worth remembering.**
+
+Postmark hands you a complete record to paste, and theirs says
+`p=none`. Pasting it would have downgraded an already-correct
+domain from quarantining failures to doing nothing. They default that
+way because most people arrive with no policy at all; taking only the
+rua address out of what they give you is the right move.
+
+The first attempt also arrived carrying `sp=none` and a
+duplicate `aspf=r`. `sp` is the subdomain policy,
+and when it is absent subdomains inherit `p` -- so
+`sp=none` exempted every subdomain from quarantine while doing
+nothing at all for our own mail, which is From the root domain and
+governed by `p`. Pure downside. The duplicate tag was untidy
+rather than harmful, but a receiver strict about the RFC could treat
+the whole record as malformed -- which would mean no DMARC rather than
+a lenient one.
+
+**Where this goes next.** Reports begin within 24-72 hours, weekly
+digests after. The thing to watch for is a legitimate sender nobody
+remembers: anything sending as @faithdock.com that is not Resend or
+Google Workspace. Finding those is the whole reason to sit at
+`p=quarantine` for a few weeks before considering
+`p=reject` -- reject on a domain you cannot observe is how a
+forgotten sender silently stops being delivered.
+
+---
 
 ### Insights numbers verified against real data -- 2026-09-22
 
