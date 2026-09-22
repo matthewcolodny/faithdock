@@ -8793,7 +8793,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v191 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v192 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -9879,7 +9879,40 @@ Groups</span>
       }
     }
 
-    // 3. No match, no split. Same as before this existed.
+    // 3. Neither name matched, so nothing we hold appears in this
+    //    string. This rule reads the shape of the text instead, and
+    //    is the only part of this function that is a judgement rather
+    //    than a comparison.
+    //
+    //    It splits at the first comma when, and only when:
+    //      - there is something after that comma, and
+    //      - the part before it contains no digit at all, and
+    //      - the part after it begins with one.
+    //
+    //    Which is to say: a name, then a street number. A US street
+    //    address starts with its number, so 'Grace Chapel, 12 High St'
+    //    splits and '12 High St, Austin, TX' does not -- the first
+    //    segment carries a digit, so it is already the address.
+    //    'Room 5, 12 High St' does not split either, for the same
+    //    reason, which is the conservative outcome: leaving a venue
+    //    in the address reads fine, and moving half an address into
+    //    the venue field does not.
+    //
+    //    This is allowed to be a judgement because it is not silent.
+    //    The review list shows the venue as its own part before
+    //    anything is written, and every imported event is a draft, so
+    //    a wrong split is visible and costs an edit rather than a
+    //    published mistake.
+    var comma = text.indexOf(',');
+    if (comma > 0) {
+      var head = text.slice(0, comma).trim();
+      var tail = text.slice(comma + 1).trim();
+      if (head && tail && !/\d/.test(head) && /^\d/.test(tail)) {
+        return { venue: head, location: tail };
+      }
+    }
+
+    // 4. No rule applied. Same as before any of this existed.
     return { venue: null, location: text };
   }
   window.splitKnownVenue = splitKnownVenue;
