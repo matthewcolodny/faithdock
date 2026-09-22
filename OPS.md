@@ -17,42 +17,55 @@ The distinction between the three files:
 When one is finished, move it to "Done" at the bottom with the date.
 The state it ended in is worth more later than the fact it was on a list.
 
----
-
-## 1. Two Resend accounts, one of them empty
-
-**Today:** there are two Resend accounts -- a personal one
-(`matthewcolodny`) and one created around 2026-09-14 against the Google
-Workspace (`faithdock`). Only the personal one is live.
-
-Established by DNS and by inference rather than by looking, on
-2026-09-21: `faithdock.com` carries exactly one DKIM key at the standard
-`resend._domainkey` selector, so it can be verified in only one account.
-And Resend disabled the personal account's webhook for *failed delivery
-of events*, which requires events to have existed -- an account that
-sends nothing generates nothing to fail. So the personal account holds
-the verified domain and the API key in `RESEND_API_KEY`.
-
-**Why it matters:** production email is reachable only through a personal
-Gmail login. That is a single point of failure with no second holder.
-
-**What doing it involves.** Not a migration. Moving accounts means a new
-DKIM key, a DNS swap, sending broken until it propagates, rotating
-`RESEND_API_KEY`, rebuilding the webhook, and losing the send history.
-
-The cheap route is Settings -> Team in the existing account: invite the
-workspace address as an owner. Same account, same domain, same key, no
-DNS change -- it just stops being the only way in. Then delete the empty
-`faithdock` account so there is one obvious place to look.
-
-**Unverified:** Resend's free plan may cap the account at a single team
-seat. If the invite is gated behind Upgrade, a real migration becomes
-the only option, and should be done as its own deliberate operation
-rather than alongside anything else.
+**Nothing is pending as of 2026-09-22.** Everything below the Done
+heading was closed out; this section is empty until something else
+turns up that lives outside the repository.
 
 ---
 
 ## Done
+
+### Production email is no longer behind one personal login -- 2026-09-22
+
+Resend was reachable only through a personal Gmail account. One
+person, one login, no second holder: if that account became
+unreachable, nobody could rotate an API key, re-verify the domain or
+read why sending had stopped.
+
+mcolodny@faithdock.com (the Google Workspace identity) was invited to
+the existing account as a team member with **full access**, and the
+invite accepted. Not a migration, deliberately: same account, same
+verified domain, same `RESEND_API_KEY`, no DNS change and no
+gap in sending. Keys belong to the account rather than to a person, so
+nothing needed rotating.
+
+The free plan turned out to allow a second seat, which was the open
+question that had stalled this. Had it not, the only route would have
+been a real migration -- new DKIM key, DNS swap, sending broken until
+it propagated, key rotation, webhook rebuilt, send history lost -- and
+that would have wanted doing on its own rather than alongside anything
+else.
+
+The role matters as much as the invite. A view-only second seat looks
+like a fix and is not one: it cannot rotate a key or re-verify a
+domain, which are exactly the things needed on the day the first
+login is gone.
+
+DNS re-checked afterwards and unchanged: exactly one DKIM key at
+`resend._domainkey`, so the domain is still verified in exactly
+one account, and the MAIL FROM subdomain still carries its SPF and its
+feedback-smtp MX.
+
+**Left open on purpose:** the empty second Resend account, created
+2026-09-14 against the Workspace, still exists. Deleting it is tidying
+rather than risk reduction -- it holds no domain, no keys and no
+history -- but leaving it is what made the webhook outage confusing to
+diagnose, because there were two plausible places for the answer to
+be. Worth removing when convenient, and safe to: it cannot affect DNS,
+having never verified a domain.
+
+---
+
 
 ### DMARC reports now reach us -- 2026-09-22
 
