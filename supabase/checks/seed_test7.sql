@@ -102,8 +102,14 @@ begin
   values (v_church, 'SEED- verify insights household')
   returning id into v_house;
 
-  insert into household_members (household_id, user_id, relationship)
-  values (v_house, v_user, 'adult');
+  -- relationship deliberately omitted. It is nullable, it carries a
+  -- CHECK constraint whose allowed values are not in this repo, and
+  -- nothing being verified reads it -- household slots counts rows and
+  -- people in households counts distinct users. Guessing at an
+  -- enumeration to fill a column nobody looks at is how the first
+  -- attempt failed on 23514.
+  insert into household_members (household_id, user_id)
+  values (v_house, v_user);
 
   -- ---- Donations -----------------------------------------------------
   -- Distinctive amounts, so a wrong sum is obvious rather than
