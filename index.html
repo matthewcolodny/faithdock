@@ -8817,7 +8817,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v202 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v203 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -21046,7 +21046,7 @@ Groups</span>
 
     var { data, error } = await supabase
       .from('event_registrations')
-      .select('id, status, role, created_at, payment_status, amount_paid_cents, profiles(full_name)')
+      .select('id, status, role, created_at, payment_status, profiles(full_name)')
       .eq('event_id', eventId)
       .order('created_at', { ascending: true });
 
@@ -21089,8 +21089,14 @@ Groups</span>
         ? '<span class="tag clay" style="font-size:10px;">' + window.t('registrants.cancelled') + '</span>'
         : (r.status === 'pending' ? '<span class="tag gold" style="font-size:10px;">' + window.t('registrants.paymentPending') + '</span>' : '<span class="tag sage" style="font-size:10px;">' + window.t('registrants.confirmed') + '</span>');
       var roleTag = r.role === 'volunteer' ? '<span class="tag gold" style="font-size:10px;margin-left:6px;">' + window.t('registrants.volunteer') + '</span>' : '';
-      var paymentTag = (r.payment_status === 'succeeded' && r.amount_paid_cents)
-        ? ' <span class="tag sage" style="font-size:10px;margin-left:6px;">' + window.t('registrants.paid') + ' $' + (r.amount_paid_cents / 100).toFixed(2) + '</span>'
+      // "Paid", not "Paid $12.00". Whether somebody has paid is what
+      // this list is for and anybody running the event needs it; what
+      // they paid is income, and income is behind can_view_revenue
+      // (migrations 079 and 083). The amount is not fetched at all
+      // rather than fetched and hidden -- a number in the page source
+      // is not a number somebody cannot see.
+      var paymentTag = (r.payment_status === 'succeeded')
+        ? ' <span class="tag sage" style="font-size:10px;margin-left:6px;">' + window.t('registrants.paid') + '</span>'
         : '';
       var answersHtml = '';
       var thisAnswers = answersByRegistration[r.id];
@@ -23617,13 +23623,24 @@ Groups</span>
     var fromIso = new Date(fromVal + 'T00:00:00').toISOString();
     var toIso = new Date(toVal + 'T23:59:59').toISOString();
 
-    var { data: regs, error } = await supabase.from('event_registrations')
-      .select('amount_paid_cents, payment_status, created_at, profiles(full_name), events!inner(title, price_cents, church_id)')
-      .eq('events.church_id', myChurch.id)
-      .eq('role', 'participant')
-      .not('events.price_cents', 'is', null)
-      .gte('created_at', fromIso).lte('created_at', toIso)
-      .order('created_at');
+    // Amounts come from get_ticket_payments (migration 083), which is
+    // the only thing that can read them. The filters the query used to
+    // apply server-side are applied here instead: the function takes a
+    // church and a date range, and deliberately not much else, so that
+    // one permission check covers every caller rather than each caller
+    // inventing its own.
+    var { data: allPayments, error } = await supabase.rpc('get_ticket_payments', {
+      target_church_id: myChurch.id, p_from: fromIso, p_to: toIso
+    });
+    var regs = (allPayments || []).filter(function(r){
+      return r.role === 'participant' && r.event_price_cents != null;
+    }).map(function(r){
+      // Reshaped to what the rendering below already expects, so the
+      // change stops here rather than running through the report.
+      return { amount_paid_cents: r.amount_paid_cents, payment_status: r.payment_status,
+               created_at: r.created_at, profiles: { full_name: r.person_name },
+               events: { title: r.event_title, price_cents: r.event_price_cents } };
+    });
 
     if (error) { outputEl.innerHTML = '<p style="color:var(--clay);font-size:13px;">' + escapeHtml(error.message) + '</p>'; return; }
 
@@ -23698,12 +23715,15 @@ Groups</span>
     var fromIso = new Date(fromVal + 'T00:00:00').toISOString();
     var toIso = new Date(toVal + 'T23:59:59').toISOString();
 
-    var { data: regs, error } = await supabase.from('event_registrations')
-      .select('discount_amount_cents, amount_paid_cents, created_at, profiles(full_name), events!inner(title, church_id), event_discount_codes(code)')
-      .eq('events.church_id', myChurch.id)
-      .not('discount_code_id', 'is', null)
-      .gte('created_at', fromIso).lte('created_at', toIso)
-      .order('created_at');
+    var { data: allDiscounted, error } = await supabase.rpc('get_ticket_payments', {
+      target_church_id: myChurch.id, p_from: fromIso, p_to: toIso
+    });
+    var regs = (allDiscounted || []).filter(function(r){ return r.discount_code != null; })
+      .map(function(r){
+        return { discount_amount_cents: r.discount_amount_cents, amount_paid_cents: r.amount_paid_cents,
+                 created_at: r.created_at, profiles: { full_name: r.person_name },
+                 events: { title: r.event_title }, event_discount_codes: { code: r.discount_code } };
+      });
 
     var html = '<h2 style="font-family:\'Fraunces\';font-size:20px;margin-bottom:4px;">' + escapeHtml(myChurch.name) + window.t('reports.discountCodeReportSuffix') + '</h2>'
       + '<p style="font-size:12px;color:var(--ink-mute);margin-bottom:18px;">' + new Date(fromVal + 'T00:00:00').toLocaleDateString(window.appLocale()) + ' ' + window.t('reports.dateRangeTo') + ' ' + new Date(toVal + 'T00:00:00').toLocaleDateString(window.appLocale()) + '</p>';
@@ -25763,11 +25783,12 @@ Groups</span>
     var myChurch = await getMyChurch();
     if (!myChurch) return { totalCents: 0, netCents: null };
 
-    var { data: regs, error } = await supabase.from('event_registrations')
-      .select('amount_paid_cents, net_amount_cents, created_at, events!inner(church_id)')
-      .eq('events.church_id', myChurch.id)
-      .eq('payment_status', 'succeeded')
-      .not('amount_paid_cents', 'is', null);
+    var { data: allTickets, error } = await supabase.rpc('get_ticket_payments', {
+      target_church_id: myChurch.id, p_from: null, p_to: null
+    });
+    var regs = (allTickets || []).filter(function(r){
+      return r.payment_status === 'succeeded' && r.amount_paid_cents != null;
+    });
     if (error) { console.error('loadTicketSalesPanel:', error); return { totalCents: 0, netCents: null }; }
 
     var regs2 = regs || [];
@@ -34285,11 +34306,18 @@ Groups</span>
       // the money, with no trace anywhere that it happened. Free
       // registrations still delete cleanly, since there's nothing
       // to preserve.
-      var { data: existingReg } = await supabase.from('event_registrations').select('id, payment_status, amount_paid_cents').eq('event_id', eventId).eq('user_id', userData.user.id).limit(1);
+      var { data: existingReg } = await supabase.from('event_registrations').select('id, payment_status').eq('event_id', eventId).eq('user_id', userData.user.id).limit(1);
       var wasPaid = existingReg && existingReg.length && existingReg[0].payment_status === 'succeeded';
 
       if (wasPaid) {
-        var paidAmount = (existingReg[0].amount_paid_cents / 100).toFixed(2);
+        // Their own receipt, not the church's income, so it comes back
+        // through a function scoped to auth.uid() rather than from the
+        // column -- which migration 083 no longer grants. Falls back to
+        // a dash rather than NaN if the lookup fails: a confirmation
+        // that says "you paid $NaN" is worse than one that says the
+        // amount is not to hand.
+        var { data: paidCents } = await supabase.rpc('my_paid_amount_for_event', { p_event_id: eventId });
+        var paidAmount = (paidCents != null) ? (paidCents / 100).toFixed(2) : '—';
         if (!confirm(window.t('events.paidCancelConfirm').replace('{amount}', paidAmount))) {
           btn.disabled = false;
           return;
@@ -34472,7 +34500,12 @@ Groups</span>
 
     var { data: regRow, error } = await supabase.from('event_registrations').upsert({
       event_id: eventId, user_id: userData.user.id, status: 'confirmed', role: role, guest_count: guestCount || 0
-    }, { onConflict: 'event_id,user_id' }).select().limit(1);
+      // Columns named rather than select(). A bare select() asks for
+      // every column, and since migration 083 the money columns are
+      // not granted to authenticated -- so this would fail for the
+      // person registering, which is the one path that must never
+      // break.
+    }, { onConflict: 'event_id,user_id' }).select('id, event_id, user_id, status, role, guest_count').limit(1);
 
     if (error) {
       // A database trigger enforces the real capacity limit atomically
