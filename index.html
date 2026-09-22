@@ -468,6 +468,7 @@
       'legal.adaContactPre': 'Reach us about accessibility at',
       'common.loading': 'Loading...', 'common.loadMore': 'Load more', 'common.prev': 'Prev', 'common.next': 'Next', 'common.saved': 'Saved!', 'common.somethingWrong': 'Something went wrong.',
       'common.unavailableShort': 'Unavailable',
+      'common.noPermission': 'You do not have permission to do that. Ask an owner to change your staff permissions.',
       'directory.viewCards': 'Cards', 'directory.viewList': 'List', 'directory.viewToggleLabel': 'View',
       'common.on': 'On', 'common.off': 'Off',
       'common.close': 'Close', 'common.toggleDarkMode': 'Toggle dark mode', 'common.menu': 'Menu', 'common.searchLocation': 'Search location', 'common.dismiss': 'Dismiss', 'common.clearSearch': 'Clear search',
@@ -727,7 +728,7 @@
       'dashEvents.viewCurrent': 'View current events',
       'dashEvents.noPastEvents': 'No past events yet.',
       'dashEvents.noUpcomingEvents': 'No upcoming events yet — click Create event to add your first one.',
-      'dashEvents.viewPast': 'View past events', 'dashEvents.createEvent': 'Create event', 'dashEvents.exportSpreadsheet': 'Export to spreadsheet',
+      'dashEvents.viewPast': 'View past events', 'dashEvents.createEvent': 'Create event', 
       'dashEvents.importIcs': 'Import from calendar file',
       'ics.title': 'Import from a calendar file',
       'ics.found': 'Found {n} events to import. Skipped {skipped} (cancelled, or no date).',
@@ -1566,6 +1567,7 @@
       'legal.adaContactPre': 'Contáctanos sobre accesibilidad en',
       'common.loading': 'Cargando...', 'common.loadMore': 'Cargar más', 'common.prev': 'Anterior', 'common.next': 'Siguiente', 'common.saved': '¡Guardado!', 'common.somethingWrong': 'Algo salió mal.',
       'common.unavailableShort': 'No disponible',
+      'common.noPermission': 'No tienes permiso para hacer eso. Pide a un propietario que cambie tus permisos de personal.',
       'directory.viewCards': 'Tarjetas', 'directory.viewList': 'Lista', 'directory.viewToggleLabel': 'Vista',
       'common.on': 'Activado', 'common.off': 'Desactivado',
       'common.close': 'Cerrar', 'common.toggleDarkMode': 'Cambiar a modo oscuro', 'common.menu': 'Menú', 'common.searchLocation': 'Buscar ubicación', 'common.dismiss': 'Descartar', 'common.clearSearch': 'Limpiar búsqueda',
@@ -1818,7 +1820,7 @@
       'dashEvents.viewCurrent': 'Ver eventos actuales',
       'dashEvents.noPastEvents': 'Aún no hay eventos pasados.',
       'dashEvents.noUpcomingEvents': 'Aún no hay próximos eventos — haz clic en Crear evento para agregar el primero.',
-      'dashEvents.viewPast': 'Ver eventos pasados', 'dashEvents.createEvent': 'Crear evento', 'dashEvents.exportSpreadsheet': 'Exportar a hoja de cálculo',
+      'dashEvents.viewPast': 'Ver eventos pasados', 'dashEvents.createEvent': 'Crear evento', 
       'dashEvents.importIcs': 'Importar de un archivo de calendario',
       'ics.title': 'Importar de un archivo de calendario',
       'ics.found': 'Encontramos {n} eventos para importar. Se omitieron {skipped} (canceladas o sin fecha).',
@@ -4212,6 +4214,9 @@
   .dash-side{background:var(--brand);color:#CBD2DE;padding:32px 20px;}
   .dash-church{font-family:'Fraunces';color:#fff;font-size:17px;margin-bottom:2px;cursor:default;user-select:none;}
   .dash-tag{font-size:12px;color:var(--gold);font-family:'IBM Plex Mono';margin-bottom:28px;cursor:default;user-select:none;}
+  /* Until loadDashboardHeader has decided what this person may see.
+     Removed once it has. Unknown permissions show nothing. */
+  .dash-nav.perms-pending a[data-dash]{display:none !important;}
   .dash-nav a{display:block;padding:10px 12px;border-radius:8px;font-size:14px;margin-bottom:4px;color:#CBD2DE;cursor:pointer;}
   .dash-nav a.active{background:#223252;color:#fff;}
   #dash-signout-btn{
@@ -6831,7 +6836,14 @@ Groups</span>
         <div class="dash-church" id="dash-church-name">Loading...</div>
         <select id="dash-church-switcher" style="display:none;width:100%;margin-top:8px;margin-bottom:8px;background:#1a2740;color:#fff;border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:6px 8px;font-size:12.5px;"></select>
       </div>
-      <div class="dash-nav" id="dash-nav-church">
+      <!-- perms-pending: every link starts hidden. The gating below runs
+           in loadDashboardHeader, which is async, so without this the
+           whole menu rendered and then retracted -- a staff member
+           watched Revenue and Billing appear and vanish, which looks
+           like being shown something they were not meant to see. Fails
+           closed: unknown permissions show nothing rather than
+           everything. -->
+      <div class="dash-nav perms-pending" id="dash-nav-church">
         <a data-dash="events" class="active" data-i18n="dash.events">Events</a>
         <a data-dash="checkin" data-i18n="dash.checkin">Check-In</a>
         <a data-dash="directory" data-i18n="dash.directory">Directory</a>
@@ -7205,7 +7217,11 @@ Groups</span>
             <button class="btn-gold" id="dash-create-event-btn" style="padding:10px 18px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;vertical-align:-3px;margin-right:4px;"><path d="M12 5v14M5 12h14"/></svg><span data-i18n="dashEvents.createEvent">Create event</span></button>
             <button class="export-btn" id="dash-import-ics-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15V3m0 12l-4-4m4 4l4-4"/><path d="M4 19h16"/></svg> <span data-i18n="dashEvents.importIcs">Import from calendar file</span></button>
             <input type="file" id="dash-import-ics-input" accept=".ics,text/calendar" multiple style="position:absolute;width:1px;height:1px;opacity:0;">
-            <button class="export-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 19h16"/></svg> <span data-i18n="dashEvents.exportSpreadsheet">Export to spreadsheet</span></button>
+            <!-- "Export to spreadsheet" sat here: a button with no id and
+                 no handler, so it did nothing at all. Export schedule already
+                 covers the job. Removed rather than wired up, since nobody
+                 asked for a second export and a dead control teaches people
+                 not to trust the others. -->
             <button class="export-btn" id="dash-export-schedule-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> <span data-i18n="dashEvents.exportSchedule">Export schedule</span></button>
           </div>
         </div>
@@ -8817,7 +8833,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v203 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v204 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -15624,6 +15640,34 @@ Groups</span>
     return String(ev.venue_name || ev.venueName || '').trim();
   }
 
+  // Database errors, said in words.
+  //
+  // Postgres reports a refused write as "new row violates row-level
+  // security policy for table \"groups\"", which is accurate, useless to
+  // the person reading it, and slightly alarming -- it reads like a
+  // crash rather than a rule. Since migration 082 several ordinary
+  // actions can be refused this way, so the translation lives in one
+  // place rather than at each of the fourteen sites that display an
+  // error.
+  //
+  // A function DECLARATION rather than an assignment, so hoisting
+  // makes it available to callers that appear earlier in this block.
+  function friendlyDbError(err){
+    if (!err) return '';
+    var msg = String(err.message || '');
+    // 42501 is insufficient_privilege, which is what a column grant
+    // refuses with; the message test catches RLS, which refuses with
+    // 42501 on some paths and a plain error on others.
+    if (err.code === '42501' || /row-level security|violates row-level|permission denied/i.test(msg)) {
+      return window.t('common.noPermission');
+    }
+    // Anything else is a real fault and the operator wants the real
+    // words -- a friendly message over a genuine failure is how a bug
+    // goes unreported for a month.
+    return msg;
+  }
+  window.friendlyDbError = friendlyDbError;
+
   // One line: cards, table cells, calendar exports.
   window.eventPlaceText = function(ev){
     if (!ev) return '';
@@ -16973,6 +17017,15 @@ Groups</span>
   // race each other regardless of any single query's own timing.
   window.dashboardRefreshGeneration = 0;
 
+  // Drops the class that hides the dashboard nav while permissions are
+  // unknown. Called at every exit from the gating below -- a menu that
+  // stays hidden because a later line threw is a worse failure than a
+  // menu that flickered.
+  function revealDashNav(){
+    var nav = document.getElementById('dash-nav-church');
+    if (nav) nav.classList.remove('perms-pending');
+  }
+
   async function loadDashboardHeader(knownUserId, externalGeneration){
     var myGeneration = externalGeneration !== undefined ? externalGeneration : ++window.dashboardRefreshGeneration;
     var myChurch = await getMyChurch(knownUserId);
@@ -17118,6 +17171,7 @@ Groups</span>
       // at a door. It is a display choice rather than a boundary -- the
       // boundary is 081 -- but it is the right display choice here.
       if (typeof window.setCheckinFocus === 'function') window.setCheckinFocus(true);
+      revealDashNav();
       return;
     }
 
@@ -17152,6 +17206,8 @@ Groups</span>
     var isPaidChurch = !!(churchPlanLimits && churchPlanLimits.staff > 0);
     var dashStaffNavLink = document.querySelector('[data-dash="staff"]');
     if (dashStaffNavLink) dashStaffNavLink.style.display = isPaidChurch ? '' : 'none';
+    // Every link now has an explicit display. Safe to show the menu.
+    revealDashNav();
     var settingsTeamPointer = document.getElementById('settings-team-pointer-section');
     if (settingsTeamPointer) settingsTeamPointer.style.display = isPaidChurch ? 'block' : 'none';
 
@@ -18831,7 +18887,7 @@ Groups</span>
       window.currentCaptchaToken = null;
       sendResetLinkBtn.disabled = false;
       if (error) {
-        statusEl.textContent = error.message;
+        statusEl.textContent = friendlyDbError(error);
         statusEl.style.color = 'var(--clay)';
       } else {
         statusEl.textContent = window.t('auth.checkEmailForResetLink');
@@ -18875,7 +18931,7 @@ Groups</span>
         // Comes straight from Supabase — always English regardless of
         // site language, same as every other raw error.message shown
         // elsewhere in this file.
-        statusEl.textContent = error.message;
+        statusEl.textContent = friendlyDbError(error);
         statusEl.style.color = 'var(--clay)';
         statusEl.style.display = 'block';
         return;
@@ -21566,7 +21622,7 @@ Groups</span>
         else if (window.ceImageMarkedForRemoval) { updatePayload.image_url = null; }
 
         var { data, error } = await supabase.from('events').update(updatePayload).eq('id', ceEditingEventId).select();
-        if (error) { showCeError(error.message); return; }
+        if (error) { showCeError(friendlyDbError(error)); return; }
         await saveEventRooms(ceEditingEventId);
         await saveEventMinistries(ceEditingEventId);
         await saveEventQuestions(ceEditingEventId);
@@ -21680,7 +21736,7 @@ Groups</span>
 
       // eslint-disable-next-line no-redeclare -- see the matching comment in the if-branch above; this is the other half of that same mutually-exclusive pair.
       var { data, error } = await supabase.from('events').insert(rows).select();
-      if (error) { showCeError(error.message); return; }
+      if (error) { showCeError(friendlyDbError(error)); return; }
 
       // Every occurrence of a recurring event gets the same room
       // booking — a weekly rehearsal in the same room each week, not
@@ -24198,7 +24254,7 @@ Groups</span>
       if (!myChurch) return;
       var { error } = await supabase.from('giving_funds').insert({ church_id: myChurch.id, name: name });
       if (error) {
-        statusEl.textContent = error.message;
+        statusEl.textContent = friendlyDbError(error);
         statusEl.style.color = 'var(--clay)';
         statusEl.style.display = 'block';
         return;
@@ -24568,7 +24624,7 @@ Groups</span>
       ceAddDiscountCodeBtn.disabled = false;
 
       if (error) {
-        statusEl.textContent = error.message;
+        statusEl.textContent = friendlyDbError(error);
         statusEl.style.color = 'var(--clay)';
         statusEl.style.display = 'block';
         return;
@@ -24710,7 +24766,7 @@ Groups</span>
       if (!myChurch) return;
       var { error } = await supabase.from('church_rooms').insert({ church_id: myChurch.id, name: name });
       if (error) {
-        statusEl.textContent = error.message;
+        statusEl.textContent = friendlyDbError(error);
         statusEl.style.color = 'var(--clay)';
         statusEl.style.display = 'block';
         return;
@@ -24766,7 +24822,7 @@ Groups</span>
       if (!myChurch) return;
       var { error } = await supabase.from('church_ministries').insert({ church_id: myChurch.id, name: name, description: description || null });
       if (error) {
-        statusEl.textContent = error.message;
+        statusEl.textContent = friendlyDbError(error);
         statusEl.style.color = 'var(--clay)';
         statusEl.style.display = 'block';
         return;
@@ -25264,7 +25320,7 @@ Groups</span>
       });
       if (error) {
         ownershipTransferSendBtn.disabled = false;
-        statusEl.textContent = error.message;
+        statusEl.textContent = friendlyDbError(error);
         statusEl.style.color = 'var(--clay)';
         statusEl.style.display = 'block';
         return;
@@ -25293,7 +25349,7 @@ Groups</span>
       ownershipTransferCancelBtn.disabled = false;
       if (error) {
         var statusEl = document.getElementById('ownership-transfer-status');
-        statusEl.textContent = error.message;
+        statusEl.textContent = friendlyDbError(error);
         statusEl.style.color = 'var(--clay)';
         statusEl.style.display = 'block';
         return;
@@ -25360,7 +25416,7 @@ Groups</span>
       var { error } = await supabase.rpc('accept_church_ownership_handoff', { handoff_id: handoffId });
       ownershipHandoffAcceptBtn.disabled = false;
       if (error) {
-        statusEl.textContent = error.message;
+        statusEl.textContent = friendlyDbError(error);
         statusEl.style.color = 'var(--clay)';
         statusEl.style.display = 'block';
         return;
@@ -25430,7 +25486,7 @@ Groups</span>
       var { error } = await supabase.rpc('accept_staff_invite', { invite_id: inviteId });
       staffInviteAcceptBtn.disabled = false;
       if (error) {
-        statusEl.textContent = error.message;
+        statusEl.textContent = friendlyDbError(error);
         statusEl.style.color = 'var(--clay)';
         statusEl.style.display = 'block';
         return;
@@ -25566,7 +25622,7 @@ Groups</span>
       staffPermissionsSaveBtn.disabled = false;
 
       if (error) {
-        statusEl.textContent = error.message;
+        statusEl.textContent = friendlyDbError(error);
         statusEl.style.color = 'var(--clay)';
         statusEl.style.display = 'block';
         return;
@@ -26672,7 +26728,7 @@ Groups</span>
       var { data, error } = await supabase.rpc('compute_involvement_snapshot', { target_church_id: myChurch.id });
       involvementComputeBtn.disabled = false;
       if (error) {
-        statusEl.textContent = error.message;
+        statusEl.textContent = friendlyDbError(error);
         statusEl.style.color = 'var(--clay)';
         return;
       }
@@ -26731,7 +26787,7 @@ Groups</span>
       householdSaveBtn.disabled = true;
       var { data: householdRow, error } = await supabase.from('households').insert({ church_id: myChurch.id, name: name }).select().limit(1);
       if (error) {
-        statusEl.textContent = error.message;
+        statusEl.textContent = friendlyDbError(error);
         statusEl.style.color = 'var(--clay)';
         statusEl.style.display = 'block';
         householdSaveBtn.disabled = false;
@@ -27706,7 +27762,7 @@ Groups</span>
       churchDeleteConfirmBtn.disabled = false;
 
       if (error) {
-        statusEl.textContent = error.message;
+        statusEl.textContent = friendlyDbError(error);
         statusEl.style.color = 'var(--clay)';
         return;
       }
@@ -29495,7 +29551,7 @@ Groups</span>
       var { error } = await supabase.from('event_registrations').insert(walkinPayload);
       checkinWalkinAddBtn.disabled = false;
       if (error) {
-        statusEl.textContent = error.message;
+        statusEl.textContent = friendlyDbError(error);
         statusEl.style.color = 'var(--clay)';
         statusEl.style.display = 'block';
         return;
@@ -29898,7 +29954,7 @@ Groups</span>
       });
       churchClaimSubmitBtn.disabled = false;
       if (error) {
-        statusEl.textContent = error.message;
+        statusEl.textContent = friendlyDbError(error);
         statusEl.style.color = 'var(--clay)';
         statusEl.style.display = 'block';
         return;
@@ -31401,7 +31457,7 @@ Groups</span>
     saveBtn.disabled = false;
     if (error) {
       statusEl.style.color = 'var(--clay)';
-      statusEl.textContent = error.message;
+      statusEl.textContent = friendlyDbError(error);
       return;
     }
 
@@ -32030,7 +32086,7 @@ Groups</span>
       helpSupportSubmitBtn.disabled = false;
 
       if (error) {
-        statusEl.textContent = error.message;
+        statusEl.textContent = friendlyDbError(error);
         statusEl.style.color = 'var(--clay)';
         statusEl.style.display = 'block';
         return;
@@ -32078,7 +32134,7 @@ Groups</span>
           statusEl.textContent = window.t('waitlist.alreadyOnList');
           statusEl.style.color = 'var(--sage)';
         } else {
-          statusEl.textContent = error.message;
+          statusEl.textContent = friendlyDbError(error);
           statusEl.style.color = 'var(--clay)';
         }
         statusEl.style.display = 'block';
@@ -32148,7 +32204,7 @@ Groups</span>
       profileFeedbackSubmitBtn.disabled = false;
 
       if (error) {
-        statusEl.textContent = error.message;
+        statusEl.textContent = friendlyDbError(error);
         statusEl.style.color = 'var(--clay)';
         statusEl.style.display = 'block';
         return;
@@ -32312,7 +32368,7 @@ Groups</span>
         // what the pre-emptive check on page load already showed,
         // so this is never the only thing standing between someone
         // and bypassing it.
-        statusEl.textContent = error.message;
+        statusEl.textContent = friendlyDbError(error);
         statusEl.style.color = 'var(--clay)';
         statusEl.style.display = 'block';
         return;
@@ -32427,7 +32483,7 @@ Groups</span>
       profilePasswordSaveBtn.disabled = false;
 
       if (error) {
-        statusEl.textContent = error.message;
+        statusEl.textContent = friendlyDbError(error);
         statusEl.style.color = 'var(--clay)';
         statusEl.style.display = 'block';
         return;
@@ -32535,7 +32591,7 @@ Groups</span>
       profileEmailSaveBtn.disabled = false;
 
       if (error) {
-        statusEl.textContent = error.message;
+        statusEl.textContent = friendlyDbError(error);
         statusEl.style.color = 'var(--clay)';
         statusEl.style.display = 'block';
         return;
@@ -32836,7 +32892,7 @@ Groups</span>
       profileSignoutOthersBtn.disabled = false;
       if (error) {
         statusEl.style.color = 'var(--clay)';
-        statusEl.textContent = error.message;
+        statusEl.textContent = friendlyDbError(error);
         return;
       }
       statusEl.style.color = 'var(--sage)';
@@ -33098,7 +33154,7 @@ Groups</span>
       churchHomeBtn.disabled = false;
 
       if (error) {
-        statusEl.textContent = error.message;
+        statusEl.textContent = friendlyDbError(error);
         statusEl.style.display = 'block';
         return;
       }
@@ -33391,7 +33447,7 @@ Groups</span>
 
       groupSaveBtn.disabled = false;
       if (error) {
-        statusEl.textContent = error.message;
+        statusEl.textContent = friendlyDbError(error);
         statusEl.style.color = 'var(--clay)';
         statusEl.style.display = 'block';
         return;
@@ -33639,7 +33695,7 @@ Groups</span>
       groupAttendanceSaveBtn.disabled = false;
 
       if (error) {
-        statusEl.textContent = error.message;
+        statusEl.textContent = friendlyDbError(error);
         statusEl.style.color = 'var(--clay)';
         statusEl.style.display = 'block';
         return;
