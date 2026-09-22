@@ -65,7 +65,7 @@ begin
   -- but a stray marker on another church's row must not be deletable
   -- from here.
   delete from donations
-  where church_id = v_church and stripe_checkout_session_id = 'SEED-verify-insights';
+  where church_id = v_church and stripe_checkout_session_id like 'SEED-verify-insights%';
   get diagnostics n_don = row_count;
 
   -- The one field the seed changed rather than created. Only reset if
@@ -84,5 +84,5 @@ $cleanup$;
 select 'events left'        as what, count(*) as n from events where church_id = 'ce5fc05e-4b02-4489-acfb-da672c5391f4' and title like 'SEED- %'
 union all select 'groups left',       count(*) from groups where church_id = 'ce5fc05e-4b02-4489-acfb-da672c5391f4' and name like 'SEED- %'
 union all select 'households left',   count(*) from households where church_id = 'ce5fc05e-4b02-4489-acfb-da672c5391f4' and name like 'SEED- %'
-union all select 'donations left',    count(*) from donations where church_id = 'ce5fc05e-4b02-4489-acfb-da672c5391f4' and stripe_checkout_session_id = 'SEED-verify-insights'
+union all select 'donations left',    count(*) from donations where church_id = 'ce5fc05e-4b02-4489-acfb-da672c5391f4' and stripe_checkout_session_id like 'SEED-verify-insights%'
 union all select 'age_range left set', count(*) from profiles p join churches c on c.owner_id = p.id where c.id = 'ce5fc05e-4b02-4489-acfb-da672c5391f4' and p.age_range = '25_39';

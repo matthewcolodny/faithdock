@@ -10,10 +10,11 @@
 -- different answer than a correct implementation.
 --
 -- SCOPE. Everything is attached to objects created here and named with
--- the SEED- prefix, except donations, which carry
--- stripe_checkout_session_id = 'SEED-verify-insights' because that is
--- the only free text column on that table. cleanup_test7.sql removes
--- exactly these and nothing else.
+-- the SEED- prefix, except donations, which carry a
+-- stripe_checkout_session_id beginning 'SEED-verify-insights' -- the
+-- only free text column on that table, and a UNIQUE one, so each row
+-- gets its own suffix. cleanup_test7.sql matches that prefix, scoped
+-- to Test 7's id as well, and removes exactly these and nothing else.
 --
 -- ONE THING IT CHANGES THAT IT DID NOT CREATE: the single existing
 -- profile's age_range, which is currently null, is set so the two
@@ -122,12 +123,16 @@ begin
   -- so giving sees 1 + 2 + 1 = 4 donors and people sees 1. Any
   -- implementation that accidentally used the same rule for both would
   -- report the same number twice and be caught.
+  -- stripe_checkout_session_id is UNIQUE, so the marker cannot be the
+  -- same string on every row -- it is a real Stripe session id in
+  -- normal use, and Stripe never reuses one. Suffixed instead, and
+  -- cleanup matches the prefix rather than the exact value.
   insert into donations (church_id, donor_id, donor_email, amount_cents, status, created_at, stripe_checkout_session_id)
   values
-    (v_church, v_user, null,              1234, 'succeeded', now() - interval '3 days',  'SEED-verify-insights'),
-    (v_church, null,   'seed-a@example.com', 2345, 'succeeded', now() - interval '5 days',  'SEED-verify-insights'),
-    (v_church, null,   'seed-b@example.com', 3456, 'succeeded', now() - interval '9 days',  'SEED-verify-insights'),
-    (v_church, null,   null,              4567, 'succeeded', now() - interval '40 days', 'SEED-verify-insights'),
+    (v_church, v_user, null,              1234, 'succeeded', now() - interval '3 days',  'SEED-verify-insights-1'),
+    (v_church, null,   'seed-a@example.com', 2345, 'succeeded', now() - interval '5 days',  'SEED-verify-insights-2'),
+    (v_church, null,   'seed-b@example.com', 3456, 'succeeded', now() - interval '9 days',  'SEED-verify-insights-3'),
+    (v_church, null,   null,              4567, 'succeeded', now() - interval '40 days', 'SEED-verify-insights-4'),
 
     -- THE BOUNDARY CASE, and the reason p_tz exists at all.
     -- 2026-09-01 04:30 UTC is 2026-08-31 23:30 in America/Chicago. A
@@ -135,7 +140,7 @@ begin
     -- the reader's zone puts it in AUGUST, which is where the church's
     -- own books have it. The verification script prints the month rows
     -- so this can be read directly.
-    (v_church, null, null, 5678, 'succeeded', timestamptz '2026-09-01 04:30:00+00', 'SEED-verify-insights');
+    (v_church, null, null, 5678, 'succeeded', timestamptz '2026-09-01 04:30:00+00', 'SEED-verify-insights-5');
 
   -- ---- Age, so the by-age charts are not empty -----------------------
   -- The only row here that modifies something this script did not
