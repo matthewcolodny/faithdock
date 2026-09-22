@@ -8817,7 +8817,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v201 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v202 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -16876,7 +16876,7 @@ Groups</span>
       var activeChurchIdForOwned = getActiveChurchId();
       var chosenChurch = (activeChurchIdForOwned && owned.filter(function(c){ return c.id === activeChurchIdForOwned; })[0]) || owned[0];
       if (chosenChurch.id !== activeChurchIdForOwned) setActiveChurchId(chosenChurch.id);
-      return { id: chosenChurch.id, name: chosenChurch.name, denomination: chosenChurch.denomination, planType: chosenChurch.plan_type, role: 'owner', canManageEvents: true, canManageGiving: true, canManageBilling: true, canEditProfile: true, canManageGroups: true, canManageMessages: true, canManageMembers: true, canManageRooms: true, canManageMinistries: true, canViewRevenue: true, isManager: true, ownedChurches: owned };
+      return { id: chosenChurch.id, name: chosenChurch.name, denomination: chosenChurch.denomination, planType: chosenChurch.plan_type, role: 'owner', canCheckIn: true, isCheckinOnly: false, canManageEvents: true, canManageGiving: true, canManageBilling: true, canEditProfile: true, canManageGroups: true, canManageMessages: true, canManageMembers: true, canManageRooms: true, canManageMinistries: true, canViewRevenue: true, isManager: true, ownedChurches: owned };
     }
 
     // No .limit(1) here either, as of this change -- church_staff's
@@ -16904,7 +16904,7 @@ Groups</span>
     // 'not granted' -- the safe direction for a permission.
     var newAbilityByChurch = {};
     var { data: newAbilityRows, error: newAbilityError } = await supabase.from('church_staff')
-      .select('church_id, can_manage_rooms, can_manage_ministries, can_view_revenue').eq('user_id', userId);
+      .select('church_id, can_manage_rooms, can_manage_ministries, can_view_revenue, can_check_in').eq('user_id', userId);
     if (!newAbilityError && newAbilityRows) {
       newAbilityRows.forEach(function(r){ newAbilityByChurch[r.church_id] = r; });
     }
@@ -16920,6 +16920,22 @@ Groups</span>
       return { id: chosenStaffed.id, name: chosenStaffed.name, denomination: chosenStaffed.denomination, planType: chosenStaffed.plan_type, role: 'staff', canManageEvents: chosenStaffed.can_manage_events, canManageGiving: chosenStaffed.can_manage_giving, canEditProfile: chosenStaffed.can_edit_profile, canManageGroups: chosenStaffed.can_manage_groups, canManageMessages: chosenStaffed.can_manage_messages, canManageMembers: chosenStaffed.can_manage_members,
         canManageRooms: !!(newAbilityByChurch[chosenStaffed.id] && newAbilityByChurch[chosenStaffed.id].can_manage_rooms),
         canManageMinistries: !!(newAbilityByChurch[chosenStaffed.id] && newAbilityByChurch[chosenStaffed.id].can_manage_ministries),
+        canCheckIn: !!(newAbilityByChurch[chosenStaffed.id] && newAbilityByChurch[chosenStaffed.id].can_check_in),
+        // Somebody brought in to run a welcome desk and given nothing
+        // else. Defined by absence, exactly as the database defines it
+        // (migration 081): can_check_in, and none of the others. The
+        // two definitions have to agree -- if the client thought
+        // somebody was a volunteer and the database did not, they
+        // would be shown a stripped-down dashboard over data they
+        // could still reach, which is the worse way round.
+        isCheckinOnly: !!(newAbilityByChurch[chosenStaffed.id] && newAbilityByChurch[chosenStaffed.id].can_check_in)
+          && !chosenStaffed.can_manage_events && !chosenStaffed.can_manage_giving
+          && !chosenStaffed.can_edit_profile && !chosenStaffed.can_manage_groups
+          && !chosenStaffed.can_manage_messages && !chosenStaffed.can_manage_members
+          && !chosenStaffed.is_manager
+          && !(newAbilityByChurch[chosenStaffed.id] && newAbilityByChurch[chosenStaffed.id].can_manage_rooms)
+          && !(newAbilityByChurch[chosenStaffed.id] && newAbilityByChurch[chosenStaffed.id].can_manage_ministries)
+          && !(newAbilityByChurch[chosenStaffed.id] && newAbilityByChurch[chosenStaffed.id].can_view_revenue),
         // can_manage_giving IMPLIES viewing revenue. Someone who can
         // process giving but cannot see the totals is an incoherent
         // state, and nobody configuring a treasurer would think to tick
@@ -17081,6 +17097,30 @@ Groups</span>
     if (dashFacilityNavLink) dashFacilityNavLink.style.display = myChurch.canManageRooms ? '' : 'none';
     var dashMinistriesNavLink = document.querySelector('[data-dash="ministries"]');
     if (dashMinistriesNavLink) dashMinistriesNavLink.style.display = myChurch.canManageMinistries ? '' : 'none';
+    // A check-in-only volunteer gets Check-In and nothing else.
+    //
+    // Migration 081 already takes the DATA away, so without this they
+    // would open Directory and find it empty -- which reads as a church
+    // with no members rather than as a page that is not theirs. The
+    // same distinction the giving gate exists to make.
+    //
+    // Applied by hiding every link and then putting one back, rather
+    // than by listing what to hide. The list of dashboard sections has
+    // grown four times this month; a deny-list would have let each new
+    // one through by default, which is exactly the wrong direction for
+    // a rule about what somebody may not see.
+    if (myChurch.isCheckinOnly) {
+      Array.prototype.forEach.call(document.querySelectorAll('#dash-nav-church a[data-dash]'), function(a){
+        a.style.display = a.getAttribute('data-dash') === 'checkin' ? '' : 'none';
+      });
+      if (typeof window.goDash === 'function') window.goDash('checkin');
+      // Focus mode too, since a volunteer is usually on a shared device
+      // at a door. It is a display choice rather than a boundary -- the
+      // boundary is 081 -- but it is the right display choice here.
+      if (typeof window.setCheckinFocus === 'function') window.setCheckinFocus(true);
+      return;
+    }
+
     var dashRevenueNavLink = document.querySelector('[data-dash="giving"]');
     if (dashRevenueNavLink) dashRevenueNavLink.style.display = myChurch.canViewRevenue ? '' : 'none';
     var dashMessagesNavLink = document.querySelector('[data-dash="messages"]');
@@ -17092,10 +17132,24 @@ Groups</span>
     var settingsMessagingSection = document.getElementById('settings-messaging-section');
     if (settingsMessagingSection) settingsMessagingSection.style.display = myChurch.canManageMessages ? 'block' : 'none';
     // Dedicated Staff page: tiers 2-5 only (Starter/Standard/Premium/
-    // Multi-Church) -- free-tier churches get 0 staff seats
-    // (planLimits.free.staff === 0), so the whole page has nothing to
-    // offer them. Reuses isPaidChurch, already computed above for the
-    // church-status-tag wording.
+    // Multi-Church) -- free-tier churches get 0 staff seats, so the
+    // whole page has nothing to offer them.
+    //
+    // This used to say "reuses isPaidChurch, already computed above".
+    // It was not computed above, or anywhere: the name existed only in
+    // that comment. So this line threw a ReferenceError on EVERY call
+    // to loadDashboardHeader, and because the four callers do not
+    // await or catch it, the rejection was silent and the last thirty
+    // lines of this function never ran. That is why Delete church and
+    // Transfer ownership never appeared in Settings for an owner --
+    // both default to display:none in the markup and are revealed
+    // below, after this line.
+    //
+    // Derived from the reason the comment gives, rather than from a
+    // plan-name comparison, so a new tier is covered by adding it to
+    // planLimits and nothing else.
+    var churchPlanLimits = planLimits[myChurch.planType];
+    var isPaidChurch = !!(churchPlanLimits && churchPlanLimits.staff > 0);
     var dashStaffNavLink = document.querySelector('[data-dash="staff"]');
     if (dashStaffNavLink) dashStaffNavLink.style.display = isPaidChurch ? '' : 'none';
     var settingsTeamPointer = document.getElementById('settings-team-pointer-section');
