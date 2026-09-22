@@ -75,6 +75,26 @@
 // endpoint didn't previously re-verify that itself, so a direct API call
 // could have bypassed it.
 //
+// EDITED A SIXTH TIME 2026-09-21, NOT YET CONFIRMED DEPLOYED:
+// mass_email now (a) refuses to send without a churchId, (b) removes
+// anyone who has unsubscribed from that church before sending, and
+// (c) puts a working unsubscribe link in every message.
+//
+// (a) is a behaviour change. churchId was optional for backward
+// compatibility with tracking; it cannot stay optional now, because
+// without it there is no way to know whose opt-out list to check, and
+// sending bulk mail that cannot honour an opt-out is the thing this
+// change exists to prevent. The only caller already sends it.
+//
+// (b) is the enforceable half. get_mass_email_recipients already
+// filters (migration 072), so the count the sender sees is honest --
+// but the client hands this function an array of addresses, and a
+// tampered or stale client could hand it anything. This check is the
+// one that actually decides who receives mail.
+//
+// Requires migrations 069/072/073 and the UNSUBSCRIBE_SECRET secret,
+// which must be the SAME value as the unsubscribe function's.
+//
 // Dispatches on body.type: welcome_email, contact_church, mass_email,
 // group_join_request, ownership_handoff, member_invite,
 // event_contact_notify, and a no-type default (staff invite, keyed on
@@ -87,6 +107,30 @@ const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Must stay byte-identical to the same function in unsubscribe.ts:
+// this one signs the link and that one verifies it, so any drift
+// between them makes every unsubscribe link in the wild fail
+// verification -- silently, and only for the people trying to leave.
+const UNSUBSCRIBE_SECRET = Deno.env.get('UNSUBSCRIBE_SECRET');
+
+async function unsubscribeHmac(data: string) {
+  const key = await crypto.subtle.importKey(
+    'raw', new TextEncoder().encode(UNSUBSCRIBE_SECRET),
+    { name: 'HMAC', hash: 'SHA-256' }, false, ['sign'],
+  );
+  const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(data));
+  return [...new Uint8Array(sig)].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function unsubscribeUrl(churchId: string, email: string) {
+  const addr = String(email).toLowerCase();
+  const expiry = Math.floor(Date.now() / 1000) + 180 * 86400;
+  const sig = await unsubscribeHmac(`${churchId}.${addr}.${expiry}`);
+  const base = Deno.env.get('SUPABASE_URL');
+  return `${base}/functions/v1/unsubscribe?c=${encodeURIComponent(churchId)}`
+    + `&e=${encodeURIComponent(addr)}&t=${expiry}.${sig}`;
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -196,6 +240,23 @@ serve(async (req) => {
           status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
       }
+      // No longer optional. Without it there is no opt-out list to
+      // check and no church to unsubscribe from, so the alternative is
+      // sending bulk mail that cannot be stopped.
+      if (!churchId) {
+        return new Response(JSON.stringify({ error: 'churchId is required to send a message.' }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+      if (!UNSUBSCRIBE_SECRET) {
+        // Refuse rather than send without a working unsubscribe link.
+        // A message nobody can opt out of is the one kind this must
+        // never send, and a missing secret is a deploy mistake worth
+        // failing loudly on rather than papering over.
+        return new Response(JSON.stringify({ error: 'Email service not fully configured (missing UNSUBSCRIBE_SECRET).' }), {
+          status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
 
       // Delivery/open/bounce tracking (see migration
       // 028_message_delivery_tracking.sql and resend-webhook.ts): one
@@ -235,7 +296,7 @@ serve(async (req) => {
               message_type: recipientEmails.length === 1 ? 'individual' : 'mass_email',
               subject: subject,
               audience_label: audienceLabel || null,
-              recipient_count: recipientEmails.length,
+              recipient_count: recipientEmails.length, // before the opt-out filter, deliberately: it is what was asked for
               created_by: senderId,
             })
             .select('id').single();
@@ -243,18 +304,70 @@ serve(async (req) => {
         } catch (e) { /* best-effort — send proceeds untracked */ }
       }
 
+      // === The enforceable opt-out check ===
+      //
+      // get_mass_email_recipients already filtered, so this normally
+      // removes nothing. It exists because the list arrives from the
+      // browser: a stale tab holding a list from before somebody
+      // unsubscribed, or a crafted request, would otherwise reach
+      // people who asked not to be reached. Whichever of the two
+      // filters is the last one before Resend is the one that counts,
+      // and this is it.
+      let sendList = recipientEmails;
+      const { data: optedOutRows, error: optOutError } = await supabaseAdmin
+        .from('church_email_optouts').select('email, user_id').eq('church_id', churchId);
+      if (optOutError) {
+        // Fail the send. An unreadable opt-out list is indistinguishable
+        // from an empty one, and guessing 'empty' here means mailing
+        // everyone who ever unsubscribed.
+        console.error('opt-out lookup failed', optOutError);
+        return new Response(JSON.stringify({ error: 'Could not verify the unsubscribe list. Nothing was sent.' }), {
+          status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+      if (optedOutRows && optedOutRows.length) {
+        const blocked = new Set<string>();
+        optedOutRows.forEach((r: any) => { if (r.email) blocked.add(String(r.email).toLowerCase()); });
+        // Rows recorded against an account rather than an address have
+        // to be resolved, or an opt-out made while signed in would not
+        // match the address we are about to mail.
+        const userIds = optedOutRows.filter((r: any) => r.user_id).map((r: any) => r.user_id);
+        for (const uid of userIds) {
+          const { data: u } = await supabaseAdmin.auth.admin.getUserById(uid);
+          if (u && u.user && u.user.email) blocked.add(String(u.user.email).toLowerCase());
+        }
+        sendList = recipientEmails.filter((e: string) => !blocked.has(String(e).toLowerCase()));
+      }
+      if (!sendList.length) {
+        return new Response(JSON.stringify({ success: true, sentCount: 0, skippedAllUnsubscribed: true }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
       const fromLine = `${churchName} via FaithDock <invites@faithdock.com>`;
-      const html = `<div>${bodyHtml}</div><p style="color:#8791A5;font-size:12px;margin-top:24px;">Sent via FaithDock on behalf of ${churchName}.</p>`;
 
       const chunkSize = 100;
       let totalSent = 0;
-      for (let i = 0; i < recipientEmails.length; i += chunkSize) {
-        const chunk = recipientEmails.slice(i, i + chunkSize);
-        const payload = chunk.map((email) => (
-          senderEmail
-            ? { from: fromLine, to: [email], subject: subject, html: html, reply_to: senderEmail }
-            : { from: fromLine, to: [email], subject: subject, html: html }
-        ));
+      for (let i = 0; i < sendList.length; i += chunkSize) {
+        const chunk = sendList.slice(i, i + chunkSize);
+        // Per recipient now, not one shared body: the unsubscribe link
+        // is signed for one address and one church, so it cannot be
+        // built once and reused. Promise.all because signing is async.
+        const payload = await Promise.all(chunk.map(async (email: string) => {
+          const link = await unsubscribeUrl(churchId, email);
+          const html = `<div>${bodyHtml}</div>`
+            + `<p style="color:#8791A5;font-size:12px;margin-top:24px;">Sent via FaithDock on behalf of ${churchName}.`
+            + `<br><a href="${link}" style="color:#8791A5;">Unsubscribe from ${churchName}</a>`
+            + ` &middot; This only affects ${churchName}, not other churches you follow.</p>`;
+          const msg: Record<string, unknown> = { from: fromLine, to: [email], subject: subject, html: html,
+            // The header mail clients read for their own one-click
+            // unsubscribe button. Gmail and Outlook surface it above
+            // the message, and its presence measurably reduces the
+            // odds of being reported as spam instead.
+            headers: { 'List-Unsubscribe': `<${link}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' } };
+          if (senderEmail) msg.reply_to = senderEmail;
+          return msg;
+        }));
         const res = await fetch('https://api.resend.com/emails/batch', {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${resendApiKey}`, 'Content-Type': 'application/json' },
