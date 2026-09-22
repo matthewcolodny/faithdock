@@ -12,7 +12,9 @@ date and the reasoning, rather than deleting it. The reasoning is the
 part that gets lost.
 
 Related: [`GOTCHAS.md`](GOTCHAS.md) holds what was broken and how it was
-fixed. This file holds what has not been decided.
+fixed, and [`OPS.md`](OPS.md) holds work that is decided but not yet
+done off-repo (DNS, dashboards, third-party accounts). This file holds
+what has not been decided.
 
 ---
 
