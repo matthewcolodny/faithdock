@@ -8802,7 +8802,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v197 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v198 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -16345,9 +16345,11 @@ Groups</span>
   // keep answering with the PREVIOUS church for up to 1.5 seconds --
   // which is exactly long enough for every panel to load the wrong data
   // and look like the switch silently failed.
-  // revealMenu: open the mobile drawer once the swap is done, so
-  // arriving inside a church looks like arriving somewhere.
-  function setActiveChurchAndReload(id, revealMenu){
+  // enterChurch: the caller is coming from OUTSIDE this church -- a
+  // card on the Overview, Manage on My Churches -- so land on the
+  // church's own first page rather than leaving the person where they
+  // were with a different church silently selected underneath them.
+  function setActiveChurchAndReload(id, enterChurch){
     setActiveChurchId(id);
 
     var canSwapInPlace = typeof window.resetDashboardPanels === 'function'
@@ -16378,23 +16380,30 @@ Groups</span>
     if (typeof window.dashEnterChurchAtTopLevel === 'function') window.dashEnterChurchAtTopLevel();
     if (typeof window.renderDashSubNav === 'function') window.renderDashSubNav(null, null);
 
-    // Entering a church changes the SIDEBAR, and on a phone the
-    // sidebar is a closed drawer. So tapping a church card swapped the
-    // active church, rebuilt a menu nobody could see, and left the
-    // person looking at the same Overview -- which is indistinguishable
-    // from the card not being clickable at all, and was reported as
-    // exactly that.
+    // Entering a church changes the SIDEBAR, and on a phone the sidebar
+    // is a closed drawer -- so without this, tapping a church card
+    // swapped the active church, rebuilt a menu nobody could see, and
+    // left the person on the same Overview. Indistinguishable from a
+    // dead card, and reported as exactly that.
     //
-    // Opening the drawer is the mobile equivalent of what desktop
-    // already does for free: show the church's own menu. The class is
-    // inert above 860px, where the sidebar is always visible, so this
-    // needs no width check of its own.
+    // The first attempt opened the drawer, which was worse. The drawer
+    // brings a scrim with pointer-events:auto covering the whole
+    // content area, so the cards underneath stopped taking taps: the
+    // next card tapped hit the scrim, closed the drawer, and did
+    // nothing else. Two taps per switch, which is how it was reported
+    // the second time.
     //
-    // Only for callers that mean 'enter this church from outside it'.
-    // The header's church switcher does not pass this: somebody
-    // already inside a church who changes which one does not want a
-    // menu thrown over the page they are reading.
-    if (revealMenu && typeof window.setDashMenu === 'function') window.setDashMenu(true);
+    // So: go somewhere. 'events' is the first entry in the church menu
+    // and already the one marked active, so it is the church's landing
+    // page in every other path too. Nothing is laid over the Overview,
+    // so nothing swallows the next tap, and the person ends up inside
+    // the church rather than looking at a menu about it.
+    //
+    // Not for the header's church switcher, which passes nothing:
+    // somebody already reading a church's Directory who switches
+    // church expects the same page for the other church, not to be
+    // moved to Events.
+    if (enterChurch && typeof window.goDash === 'function') window.goDash('events');
   }
   window.setActiveChurchAndReload = setActiveChurchAndReload;
 

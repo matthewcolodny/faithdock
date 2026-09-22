@@ -111,6 +111,49 @@ rather than alongside anything else.
 
 ---
 
+## 3. Insights numbers are unverified against real data
+
+**Today:** all four Insights loaders -- giving, attendance, groups and
+people statistics -- were moved from browser-side aggregation to
+Postgres RPCs on 2026-09-22 (migrations 077 and 078). Each was checked
+against stubbed return values, arithmetic included: 63% from 40/64,
+not-in-group 35 from 57-22, average household 2.9 from 26/9, staff 4
+from 3+1, $4,568 from 456789 cents.
+
+**What that does not prove.** Those tests confirm the client renders a
+given payload correctly. They say nothing about whether the SQL
+produces the same payload the JavaScript used to. Every one of these
+is a rewrite of a calculation in a different language against the same
+tables, and the failure mode is not an error -- it is a number that is
+quietly wrong by a little.
+
+The places most likely to disagree, because each was a judgement:
+
+- **Giving by month.** Boundaries are drawn in the browser's timezone,
+  passed to the RPC. A gift late on the last day of a month is the
+  case to look at.
+- **Donor counts.** Giving counts donor-or-email and collapses all
+  anonymous gifts into one donor; People Statistics counts donor_id
+  only. They are meant to differ, so neither can be checked against
+  the other.
+- **Attendance by age** counts check-ins, not people, so it exceeds
+  the number of humans involved whenever anyone attends twice.
+- **Meetings tracked** is distinct (group, date) pairs, not rows.
+- **Staff** is church_staff + 1 for the owner, which double counts an
+  owner who is also listed as staff.
+
+**What doing it involves:** open Insights on a church with real data
+and compare each figure against what it showed before, or against the
+underlying tables. Anything that disagrees is worth reporting with
+both numbers rather than assumed to be the new one being right -- the
+old code is what people have been reading.
+
+**Do it before the numbers are used for anything.** A reporting figure
+that has been wrong for a month is harder to correct than one that was
+never trusted, because by then somebody has quoted it.
+
+---
+
 ## Done
 
 ### Verify JWT was on for `resend-webhook` -- fixed 2026-09-21
