@@ -467,6 +467,7 @@
       'legal.adaFeedback1': "If you use assistive technology and run into something on FaithDock that doesn't work the way it should, we want to know. Please tell us the page you were on, what you were trying to do, and what happened instead — that's the fastest way for us to reproduce and fix it.",
       'legal.adaContactPre': 'Reach us about accessibility at',
       'common.loading': 'Loading...', 'common.loadMore': 'Load more', 'common.prev': 'Prev', 'common.next': 'Next', 'common.saved': 'Saved!', 'common.somethingWrong': 'Something went wrong.',
+      'common.unavailableShort': 'Unavailable',
       'directory.viewCards': 'Cards', 'directory.viewList': 'List', 'directory.viewToggleLabel': 'View',
       'common.on': 'On', 'common.off': 'Off',
       'common.close': 'Close', 'common.toggleDarkMode': 'Toggle dark mode', 'common.menu': 'Menu', 'common.searchLocation': 'Search location', 'common.dismiss': 'Dismiss', 'common.clearSearch': 'Clear search',
@@ -1563,6 +1564,7 @@
       'legal.adaFeedback1': 'Si usas tecnología de asistencia y encuentras algo en FaithDock que no funciona como debería, queremos saberlo. Por favor cuéntanos en qué página estabas, qué intentabas hacer, y qué sucedió en su lugar — esa es la forma más rápida de reproducir y corregir el problema.',
       'legal.adaContactPre': 'Contáctanos sobre accesibilidad en',
       'common.loading': 'Cargando...', 'common.loadMore': 'Cargar más', 'common.prev': 'Anterior', 'common.next': 'Siguiente', 'common.saved': '¡Guardado!', 'common.somethingWrong': 'Algo salió mal.',
+      'common.unavailableShort': 'No disponible',
       'directory.viewCards': 'Tarjetas', 'directory.viewList': 'Lista', 'directory.viewToggleLabel': 'Vista',
       'common.on': 'Activado', 'common.off': 'Desactivado',
       'common.close': 'Cerrar', 'common.toggleDarkMode': 'Cambiar a modo oscuro', 'common.menu': 'Menú', 'common.searchLocation': 'Buscar ubicación', 'common.dismiss': 'Descartar', 'common.clearSearch': 'Limpiar búsqueda',
@@ -8800,7 +8802,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v195 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v196 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -23096,57 +23098,71 @@ Groups</span>
     var myChurch = await getMyChurch();
     if (!myChurch) return;
 
-    var { data: allDonations } = await supabase.from('donations').select('amount_cents, donor_id, donor_email, created_at').eq('church_id', myChurch.id).eq('status', 'succeeded');
-    var donations = allDonations || [];
-    var totalCents = donations.reduce(function(s, d){ return s + d.amount_cents; }, 0);
-    var uniqueDonors = {};
-    donations.forEach(function(d){ uniqueDonors[d.donor_id || d.donor_email || 'unknown'] = true; });
+    // Aggregated in Postgres (migration 077) rather than here. This
+    // used to download every succeeded donation the church had ever
+    // taken in order to produce nine numbers, so the page got slower
+    // every year the church stayed open. The month boundaries are
+    // drawn in the reader's own zone, which is why it goes along --
+    // done in UTC, a late gift on the 31st lands in the wrong month
+    // for anyone west of Greenwich, and the chart stops agreeing with
+    // the church's books.
+    var tz = 'UTC';
+    try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'; } catch (e) {}
+    var { data: giving, error: givingError } = await supabase.rpc('get_giving_insights', {
+      target_church_id: myChurch.id, p_tz: tz
+    });
+    if (givingError || !giving) {
+      // Says so rather than drawing an empty chart. Zero giving and
+      // 'we could not ask' look identical once rendered, and only one
+      // of them should make a treasurer relax.
+      console.error('get_giving_insights failed', givingError);
+      totalEl.textContent = window.t('common.unavailableShort');
+      document.getElementById('insights-giving-donors').textContent = window.t('common.unavailableShort');
+      document.getElementById('insights-giving-average').textContent = window.t('common.unavailableShort');
+      return;
+    }
+
+    var totalCents = Number(giving.total_cents || 0);
+    var donationCount = Number(giving.donation_count || 0);
 
     totalEl.textContent = '$' + (totalCents / 100).toLocaleString(window.appLocale(), { maximumFractionDigits: 0 });
-    document.getElementById('insights-giving-donors').textContent = Object.keys(uniqueDonors).length;
-    document.getElementById('insights-giving-average').textContent = donations.length ? '$' + Math.round(totalCents / donations.length / 100).toLocaleString(window.appLocale()) : '$0';
+    document.getElementById('insights-giving-donors').textContent = Number(giving.donor_count || 0);
+    document.getElementById('insights-giving-average').textContent = donationCount ? '$' + Math.round(totalCents / donationCount / 100).toLocaleString(window.appLocale()) : '$0';
 
-    var twelveMonthsAgo = new Date();
-    twelveMonthsAgo.setDate(1);
-    twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 11);
-    twelveMonthsAgo.setHours(0, 0, 0, 0);
-    var months = [];
-    for (var i = 0; i < 12; i++) {
-      var d = new Date(twelveMonthsAgo);
-      d.setMonth(d.getMonth() + i);
-      months.push({ key: d.getFullYear() + '-' + d.getMonth(), label: window.capitalizeFirst(d.toLocaleDateString(window.appLocale(), { month: 'short' })), value: 0 });
-    }
-    donations.forEach(function(don){
-      var dd = new Date(don.created_at);
-      if (dd < twelveMonthsAgo) return;
-      var key = dd.getFullYear() + '-' + dd.getMonth();
-      var m = months.filter(function(mo){ return mo.key === key; })[0];
-      if (m) m.value += don.amount_cents;
+    // Twelve buckets arrive zero-filled and in order, so a quiet month
+    // is a gap rather than a missing bar that shifts every later bar
+    // one place to the left. The label is still made here, because a
+    // month name belongs to the reader's language, not the database's.
+    var months = (giving.months || []).map(function(m){
+      // 'YYYY-MM-DD' split by hand rather than new Date(s): parsing a
+      // bare date string gives UTC midnight, which in a western zone
+      // renders as the previous month.
+      var parts = String(m.month_start).split('-');
+      var d = new Date(Number(parts[0]), Number(parts[1]) - 1, 1);
+      return {
+        label: window.capitalizeFirst(d.toLocaleDateString(window.appLocale(), { month: 'short' })),
+        value: Number(m.cents || 0) / 100
+      };
     });
-    renderMiniBarChart('insights-giving-chart', months.map(function(m){ return { label: m.label, value: m.value / 100 }; }), function(v){ return '$' + Math.round(v).toLocaleString(window.appLocale()); });
+    renderMiniBarChart('insights-giving-chart', months, function(v){ return '$' + Math.round(v).toLocaleString(window.appLocale()); });
 
     // By age — self-reported and optional, so this is only ever a
     // partial picture. Donations from people who haven't shared an
     // age range simply aren't represented in this specific chart,
     // rather than being lumped into a misleading "unknown" bucket
     // that would look like a real age group.
-    var ageableDonorIds = Array.from(new Set(donations.filter(function(d){ return d.donor_id; }).map(function(d){ return d.donor_id; })));
-    var ageById = {};
-    if (ageableDonorIds.length) {
-      var { data: ageProfiles } = await supabase.from('profiles').select('id, age_range').in('id', ageableDonorIds);
-      (ageProfiles || []).forEach(function(p){ ageById[p.id] = p.age_range; });
-    }
+    // The profiles round trip goes too -- the join happens in the same
+    // statement now. Empty buckets are still listed so the chart keeps
+    // all six age groups and their order, whether or not anyone in a
+    // group has given.
     var ageBucketOrder = ['under_18', '18_24', '25_39', '40_59', '60_79', '80_plus'];
     var ageBucketLabels = { under_18: window.t('reports.ageUnder18'), '18_24': window.t('reports.age18to24'), '25_39': window.t('reports.age25to39'), '40_59': window.t('reports.age40to59'), '60_79': window.t('reports.age60to79'), '80_plus': window.t('reports.age80plus') };
+    var byAge = giving.by_age || {};
     var ageTotals = {};
-    ageBucketOrder.forEach(function(k){ ageTotals[k] = 0; });
-    var sharedCount = 0;
-    donations.forEach(function(d){
-      var age = d.donor_id ? ageById[d.donor_id] : null;
-      if (age && ageTotals.hasOwnProperty(age)) { ageTotals[age] += d.amount_cents; sharedCount++; }
-    });
+    ageBucketOrder.forEach(function(k){ ageTotals[k] = Number(byAge[k] || 0); });
+    var sharedCount = Number(giving.aged_count || 0);
     var giveAgeNote = document.getElementById('insights-giving-age-note');
-    if (giveAgeNote) { giveAgeNote.textContent = window.t('insights.byAgeGroupBasedOn').replace('{shared}', sharedCount).replace('{total}', donations.length); }
+    if (giveAgeNote) { giveAgeNote.textContent = window.t('insights.byAgeGroupBasedOn').replace('{shared}', sharedCount).replace('{total}', donationCount); }
     renderMiniBarChart('insights-giving-age-chart', ageBucketOrder.map(function(k){ return { label: ageBucketLabels[k], value: ageTotals[k] / 100 }; }), function(v){ return '$' + Math.round(v).toLocaleString(window.appLocale()); });
   }
   window.loadGivingInsights = loadGivingInsights;
