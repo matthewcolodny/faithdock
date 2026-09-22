@@ -1,3 +1,26 @@
+// EDITED 2026-09-22, NOT YET CONFIRMED DEPLOYED: this function no
+// longer tries to show anybody a page. It records the opt-out and
+// redirects to faithdock.com/#unsubscribed with the outcome in ?u=.
+//
+// The reason is a platform rule, not a preference. Supabase serves
+// every edge function response from *.supabase.co with:
+//
+//     Content-Type: text/plain          (overriding whatever we set)
+//     X-Content-Type-Options: nosniff
+//     Content-Security-Policy: default-src 'none'; sandbox
+//
+// which is an anti-phishing measure for the shared supabase.co
+// origin. HTML returned from here is therefore shown to the person as
+// source code. It was, for every unsubscribe until this change: a
+// wall of raw markup on a black screen, at the exact moment somebody
+// is already annoyed enough to be leaving. Setting the header
+// correctly does not help, because ours is discarded.
+//
+// Redirecting moves the page to our own origin where it renders, is
+// bilingual, and looks like FaithDock. The opt-out is still recorded
+// here, before the redirect, so the outcome does not depend on the
+// person ever arriving.
+//
 // Deploy by hand from the Supabase dashboard as a function named
 // `unsubscribe`, with "Verify JWT" turned OFF.
 //
@@ -51,16 +74,28 @@ export async function makeUnsubscribeToken(churchId: string, email: string, days
   return `${expiry}.${await hmac(payload)}`;
 }
 
-function page(title: string, body: string, status = 200): Response {
-  return new Response(
-    `<!doctype html><meta charset="utf-8">
-     <meta name="viewport" content="width=device-width,initial-scale=1">
-     <title>${title}</title>
-     <body style="font-family:system-ui,sans-serif;max-width:32rem;margin:15vh auto;padding:0 1.5rem;line-height:1.6;color:#16233F;">
-       <h1 style="font-size:1.4rem;">${title}</h1>${body}
-     </body>`,
-    { status, headers: { 'Content-Type': 'text/html; charset=utf-8' } },
-  );
+// Where the person ends up. SITE_URL is overridable so a staging
+// deploy does not send people to production, but the default is the
+// real site because that is what almost every send is.
+const SITE_URL = Deno.env.get('SITE_URL') ?? 'https://faithdock.com';
+
+// 303 rather than 302. The request that got here is a GET whose side
+// effect has already happened; 303 says plainly 'go and GET this
+// other thing instead', which is the honest description and what
+// every intermediary handles most predictably.
+//
+// The outcome rides in ?u= ahead of the fragment because the client
+// is a hash router -- anything after the # belongs to it.
+function finish(outcome: 'ok' | 'expired' | 'invalid' | 'error'): Response {
+  return new Response(null, {
+    status: 303,
+    headers: {
+      Location: `${SITE_URL}/?u=${outcome}#unsubscribed`,
+      // Nothing about this response is worth keeping: the next person
+      // to click a link has a different token and a different result.
+      'Cache-Control': 'no-store',
+    },
+  });
 }
 
 Deno.serve(async (req) => {
@@ -70,20 +105,20 @@ Deno.serve(async (req) => {
   const token = url.searchParams.get('t') ?? '';
 
   if (!churchId || !email || !token) {
-    return page('That link is incomplete', '<p>Please use the unsubscribe link exactly as it appears in the email.</p>', 400);
+    return finish('invalid');
   }
 
   const [expiryRaw, signature] = token.split('.');
   const expiry = Number(expiryRaw);
   if (!expiry || !signature) {
-    return page('That link is not valid', '<p>Please use the unsubscribe link from the email.</p>', 400);
+    return finish('invalid');
   }
   if (expiry < Math.floor(Date.now() / 1000)) {
-    return page('That link has expired', '<p>Open a more recent message from this church and use the unsubscribe link there, or reply asking them to remove you.</p>', 410);
+    return finish('expired');
   }
   const expected = await hmac(`${churchId}.${email}.${expiry}`);
   if (!safeEqual(signature, expected)) {
-    return page('That link is not valid', '<p>Please use the unsubscribe link from the email.</p>', 400);
+    return finish('invalid');
   }
 
   const admin = createClient(
@@ -103,17 +138,12 @@ Deno.serve(async (req) => {
 
   if (error) {
     console.error('record_email_optout failed', error);
-    return page('Something went wrong', '<p>We could not record that just now. Please try the link again, or reply to the email and ask to be removed.</p>', 500);
+    return finish('error');
   }
 
   // A GET that changes state is how every unsubscribe link works, and
   // mail clients pre-fetch links. That is acceptable here precisely
   // because the action is the one the person wanted and is reversible
   // from their account -- the opposite trade to a delete.
-  return page(
-    'You have been unsubscribed',
-    `<p>You will not receive further email from this church through FaithDock.</p>
-     <p style="color:#5a6478;font-size:0.95rem;">This does not affect any other church, and it does not close your account.
-     You can turn it back on from your account settings at any time.</p>`,
-  );
+  return finish('ok');
 });

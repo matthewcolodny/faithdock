@@ -407,6 +407,18 @@
       'legal.termsContactPre': 'Questions about these terms can be sent to',
       'legal.adaTitle': 'Accessibility Statement',
       'legal.delTitle': 'Deleting your data',
+      'unsub.eyebrow': 'Email preferences',
+      'unsub.okTitle': 'You have been unsubscribed',
+      'unsub.okBody1': 'You will not receive further email from this church through FaithDock.',
+      'unsub.okBody2': 'This does not affect any other church you follow, and it does not close your account. You can turn it back on from your account settings whenever you want.',
+      'unsub.expiredTitle': 'That link has expired',
+      'unsub.expiredBody': 'Unsubscribe links stop working after six months, so that one found in an old forwarded email cannot be used against you. Open a more recent message from the church and use the link there, or reply to them and ask to be removed.',
+      'unsub.invalidTitle': 'That link is not valid',
+      'unsub.invalidBody': 'It may have been broken across lines by your email program. Try opening it straight from the message rather than copying it, or reply to the church and ask them to remove you.',
+      'unsub.errorTitle': 'Something went wrong',
+      'unsub.errorBody': 'We could not record that just now, which means you are still subscribed. Please try the link again in a few minutes. If it keeps failing, reply to the email and ask to be removed, which always works.',
+      'unsub.settings': 'Email settings',
+      'unsub.backHome': 'Back to FaithDock',
       'emailNeeded.title': 'We need an email address',
       'emailNeeded.why': 'Your account was created through a sign-in that did not share one. Adding one takes a moment and only has to be done once.',
       'emailNeeded.label': 'Email address',
@@ -1475,6 +1487,18 @@
       'legal.termsContactPre': 'Las preguntas sobre estos términos pueden enviarse a',
       'legal.adaTitle': 'Declaración de Accesibilidad',
       'legal.delTitle': 'Eliminar tus datos',
+      'unsub.eyebrow': 'Preferencias de correo',
+      'unsub.okTitle': 'Te has dado de baja',
+      'unsub.okBody1': 'No recibirás más correos de esta iglesia a través de FaithDock.',
+      'unsub.okBody2': 'Esto no afecta a ninguna otra iglesia que sigas, y no cierra tu cuenta. Puedes volver a activarlo desde la configuración de tu cuenta cuando quieras.',
+      'unsub.expiredTitle': 'Ese enlace ha caducado',
+      'unsub.expiredBody': 'Los enlaces para darse de baja dejan de funcionar después de seis meses, para que uno encontrado en un correo reenviado antiguo no pueda usarse en tu contra. Abre un mensaje más reciente de la iglesia y usa el enlace de ahí, o respóndeles y pide que te quiten de la lista.',
+      'unsub.invalidTitle': 'Ese enlace no es válido',
+      'unsub.invalidBody': 'Es posible que tu programa de correo lo haya cortado en varias líneas. Intenta abrirlo directamente desde el mensaje en lugar de copiarlo, o responde a la iglesia y pide que te quiten de la lista.',
+      'unsub.errorTitle': 'Algo salió mal',
+      'unsub.errorBody': 'No pudimos registrarlo en este momento, lo que significa que sigues suscrito. Intenta el enlace de nuevo en unos minutos. Si sigue fallando, responde al correo y pide que te quiten de la lista, lo cual siempre funciona.',
+      'unsub.settings': 'Configuración de correo',
+      'unsub.backHome': 'Volver a FaithDock',
       'emailNeeded.title': 'Necesitamos un correo electrónico',
       'emailNeeded.why': 'Tu cuenta se creó con un inicio de sesión que no compartía uno. Agregarlo toma un momento y solo hay que hacerlo una vez.',
       'emailNeeded.label': 'Correo electrónico',
@@ -8549,6 +8573,51 @@ Groups</span>
   </div>
 </div>
 
+<!-- Where the unsubscribe edge function sends people when it is done.
+     It cannot show them this itself: Supabase serves every edge
+     function response from *.supabase.co as text/plain with a sandbox
+     CSP, so HTML returned from there is displayed as source code, not
+     rendered. That is a platform rule and not something a
+     Content-Type header of ours can override -- so the function now
+     records the opt-out and redirects here, where the page is on our
+     own origin, bilingual, and looks like the rest of FaithDock.
+
+     The outcome arrives as ?u= before the hash, because hash routing
+     owns everything after it. Anything unrecognised reads as success,
+     which is the right way round: the only way to reach this page at
+     all is for the function to have redirected here. -->
+<section class="page" id="page-unsubscribed">
+  <div class="wrap" style="padding-top:44px;max-width:640px;">
+    <div class="eyebrow" data-i18n="unsub.eyebrow">Email preferences</div>
+
+    <div id="unsub-state-ok">
+      <h1 style="font-size:34px;" data-i18n="unsub.okTitle">You have been unsubscribed</h1>
+      <p style="margin-top:16px;font-size:15px;line-height:1.7;" data-i18n="unsub.okBody1">You will not receive further email from this church through FaithDock.</p>
+      <p style="margin-top:12px;font-size:15px;line-height:1.7;color:var(--ink-mute);" data-i18n="unsub.okBody2">This does not affect any other church you follow, and it does not close your account. You can turn it back on from your account settings whenever you want.</p>
+    </div>
+
+    <div id="unsub-state-expired" hidden>
+      <h1 style="font-size:34px;" data-i18n="unsub.expiredTitle">That link has expired</h1>
+      <p style="margin-top:16px;font-size:15px;line-height:1.7;" data-i18n="unsub.expiredBody">Unsubscribe links stop working after six months, so that one found in an old forwarded email cannot be used against you. Open a more recent message from the church and use the link there, or reply to them and ask to be removed.</p>
+    </div>
+
+    <div id="unsub-state-invalid" hidden>
+      <h1 style="font-size:34px;" data-i18n="unsub.invalidTitle">That link is not valid</h1>
+      <p style="margin-top:16px;font-size:15px;line-height:1.7;" data-i18n="unsub.invalidBody">It may have been broken across lines by your email program. Try opening it straight from the message rather than copying it, or reply to the church and ask them to remove you.</p>
+    </div>
+
+    <div id="unsub-state-error" hidden>
+      <h1 style="font-size:34px;" data-i18n="unsub.errorTitle">Something went wrong</h1>
+      <p style="margin-top:16px;font-size:15px;line-height:1.7;" data-i18n="unsub.errorBody">We could not record that just now, which means you are still subscribed. Please try the link again in a few minutes. If it keeps failing, reply to the email and ask to be removed -- that always works.</p>
+    </div>
+
+    <p style="margin-top:28px;">
+      <a class="export-btn" href="#profile" data-route="profile" style="display:inline-flex;" data-i18n="unsub.settings">Email settings</a>
+      <a href="#home" data-route="home" style="margin-left:14px;color:var(--ink-mute);border-bottom:1px solid currentColor;" data-i18n="unsub.backHome">Back to FaithDock</a>
+    </p>
+  </div>
+</section>
+
 <section class="page" id="page-data-deletion">
   <div class="wrap" style="padding-top:44px;max-width:760px;">
     <div class="eyebrow">Legal</div>
@@ -8675,7 +8744,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-21-v186 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v187 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -14233,7 +14302,28 @@ Groups</span>
     // 'checkin-link' takes the token as its key segment. Tokens are
   // hex (see migration 052), so they survive being a path segment
   // without encoding and cannot contain the '/' the router splits on.
-  var validRoutes = ['home','directory','events','church','event','group','groups','my-lists','my-groups','my-events','my-churches','profile','pricing','compare','signup','reset-password','register-church','create-event','dashboard','admin','admin-church','help','privacy','terms','ada','data-deletion','waitlist','checkin-link','about'];
+  // Which of the four outcome blocks on #unsubscribed to show. The
+  // edge function cannot render its own result page (Supabase serves
+  // function responses as sandboxed text/plain), so it redirects here
+  // carrying the outcome in ?u=. Runs on load and on hashchange; an
+  // unknown or absent value means success, since arriving here at all
+  // requires the function to have sent you.
+  function applyUnsubscribeState(){
+    var page = document.getElementById('page-unsubscribed');
+    if(!page) return;
+    var m = String(location.search || '').match(/[?&]u=([a-z]+)/i);
+    var state = m ? m[1].toLowerCase() : 'ok';
+    var known = ['ok','expired','invalid','error'];
+    if(known.indexOf(state) === -1) state = 'ok';
+    for(var i=0;i<known.length;i++){
+      var el = document.getElementById('unsub-state-' + known[i]);
+      if(el) el.hidden = (known[i] !== state);
+    }
+  }
+  window.addEventListener('hashchange', applyUnsubscribeState);
+  applyUnsubscribeState();
+
+  var validRoutes = ['home','directory','events','church','event','group','groups','my-lists','my-groups','my-events','my-churches','profile','pricing','compare','signup','reset-password','register-church','create-event','dashboard','admin','admin-church','help','privacy','terms','ada','data-deletion','waitlist','checkin-link','about','unsubscribed'];
   showRouteFromHash(true);
   applyTranslations(savedLang);
 
