@@ -8801,7 +8801,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v193 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v194 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -16354,7 +16354,7 @@ Groups</span>
     // panel registry is not available for any reason.
     if (!canSwapInPlace) { location.reload(); return; }
 
-    window._myChurchCache = null;
+    window.invalidateMyChurchCache();
 
     // Reached from My Churches -> Manage, which pushes #dashboard and
     // used to rely on the reload to actually go there.
@@ -16737,6 +16737,14 @@ Groups</span>
   // click, or a refresh right after editing a church) still gets a
   // fully fresh query rather than stale cached data.
   window._myChurchCache = null; // { userId, expires, promise, settled, value }
+
+  // Every place that clears this cache goes through here, because the
+  // list of places that must clear it is exactly the kind of
+  // hand-maintained agreement this file keeps getting wrong. It is
+  // also what lets the TTL below be long: while the TTL was the real
+  // correctness mechanism it had to be short enough to paper over
+  // whatever nobody remembered to clear.
+  window.invalidateMyChurchCache = function(){ window._myChurchCache = null; };
   async function getMyChurch(knownUserId, retriesLeft){
     if (retriesLeft === undefined) {
       var cacheKey = knownUserId || '__current_user__';
@@ -16750,7 +16758,16 @@ Groups</span>
       // instantly, with no hide-then-reveal flash at all, when a very
       // recent call on this same page (or the previous one, within the
       // 1.5s window) already resolved this.
-      var cacheEntry = { userId: cacheKey, expires: Date.now() + 1500, promise: null, settled: false, value: undefined };
+      // 20 seconds, up from 1.5. Every dashboard panel begins with
+      // `await getMyChurch()` -- 82 call sites -- and at 1.5s a person
+      // moving between panels re-paid a churches-by-owner round trip
+      // on almost every one, in front of that panel's own queries. The
+      // short TTL existed because clearing was incomplete; it is not
+      // any more (auth change, church switch, church creation, profile
+      // edit and plan change all clear it explicitly), so this is a
+      // backstop for whatever is still missed rather than the thing
+      // holding it together.
+      var cacheEntry = { userId: cacheKey, expires: Date.now() + 20000, promise: null, settled: false, value: undefined };
       var freshPromise = getMyChurchUncached(knownUserId, 3).then(function(v){
         cacheEntry.settled = true;
         cacheEntry.value = v;
@@ -18244,6 +18261,14 @@ Groups</span>
     // Same event, same reason: a different person is a different set of
     // churches owned, staffed and called home.
     if (typeof window.invalidateChurchRoleCache === 'function') window.invalidateChurchRoleCache();
+    // getMyChurch's cache was NOT being cleared here, and its key for
+    // the ordinary no-argument call is the literal string
+    // '__current_user__' -- which does not change when the user does.
+    // So signing out and back in as somebody else within the TTL could
+    // answer with the previous person's churches. A narrow window at
+    // 1.5 seconds and a real one; the fix is clearing it here, which
+    // is also what makes a longer TTL safe.
+    if (typeof window.invalidateMyChurchCache === 'function') window.invalidateMyChurchCache();
     // Temporary diagnostic logging — remove once the intermittent
     // admin-page redirect is actually caught in the act. Static code
     // review has now checked out clean twice; this is what actually
@@ -19643,7 +19668,7 @@ Groups</span>
         // not patched, since it carries several derived/joined fields
         // (ownedChurches, staffedChurches, role) this form has no way to
         // recompute correctly from `data` alone.
-        window._myChurchCache = null;
+        window.invalidateMyChurchCache();
         // (3) Everything else the dashboard shows about this church --
         // the big header name, the "Manage my churches" overview grid
         // (window._dashOwnedChurches), and the multi-church switcher
@@ -19716,6 +19741,12 @@ Groups</span>
         // getActiveChurchId()'s existing fallback (alphabetically
         // first owned church), which usually isn't the one just made.
         window.setActiveChurchId(data[0].id);
+        // This account had no church a moment ago and getMyChurch may
+        // be holding that answer. go('dashboard') below leads straight
+        // to panels that ask it, and a stale 'no church' there shows
+        // the register-a-church-first message on the dashboard of a
+        // church that was just created.
+        if (typeof window.invalidateMyChurchCache === 'function') window.invalidateMyChurchCache();
         // Registering a church IS what makes an account a church
         // account — this has to happen before go('dashboard') below,
         // not just on next sign-in, or the dashboard's own route
@@ -28362,6 +28393,11 @@ Groups</span>
     var sessionId = params.get('sub_session_id');
     if (!sessionId) return;
     await supabase.functions.invoke('stripe-subscription', { body: { action: 'confirm_subscription', sessionId: sessionId } });
+    // planType is one of the fields getMyChurch caches, and the plan
+    // has just changed. Without this the caps and the billing copy
+    // would keep quoting the old tier to somebody who has this second
+    // finished paying for a new one.
+    if (typeof window.invalidateMyChurchCache === 'function') window.invalidateMyChurchCache();
     // Strip the query param so refreshing doesn't re-trigger this.
     window.history.replaceState({}, '', window.location.pathname + window.location.hash);
     if (typeof window.loadBillingPanel === 'function') window.loadBillingPanel();
