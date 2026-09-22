@@ -4276,6 +4276,14 @@
   @media (max-width:339px){.stat-row{grid-template-columns:1fr;}}
   .stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;min-width:0;}
   .stat .num{font-family:'Fraunces';font-size:28px;color:var(--ink);}
+  /* A number we do not have yet. Dimmed and gently pulsing so it
+     reads as "coming" rather than as a real value of nothing -- an
+     em dash at full contrast looks like an answer. */
+  .stat .num.dash-stat-pending{color:var(--ink-mute);opacity:.55;animation:dashStatPulse 1.4s ease-in-out infinite;}
+  @keyframes dashStatPulse{0%,100%{opacity:.35;}50%{opacity:.7;}}
+  @media (prefers-reduced-motion: reduce){
+    .stat .num.dash-stat-pending{animation:none;}
+  }
   .stat .lbl{font-size:12.5px;color:var(--ink-mute);margin-top:4px;font-family:'IBM Plex Mono';}
   .dash-toolbar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px;}
   /* Every dash-toolbar's direct children are their own small flex
@@ -8793,7 +8801,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v192 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v193 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -17179,6 +17187,22 @@ Groups</span>
       + '</a>';
     host.innerHTML = list.map(function(c){ return tileHtml(c, ''); }).join('') + addTile;
 
+    // The stat row appears now, not when the queries land. Three of
+    // the four numbers need a round trip, but the church count does
+    // not -- we are already holding the list -- and an empty frame
+    // where a number will be reads as loading, while nothing at all
+    // reads as broken. On a phone the difference is several seconds
+    // of wondering whether the page works.
+    var summaryElEarly = document.getElementById('dash-churches-summary');
+    if (summaryElEarly && list.length) {
+      summaryElEarly.innerHTML = ''
+        + '<div class="stat"><div class="num">' + list.length + '</div><div class="lbl">' + window.t('dashOverview.churches') + '</div></div>'
+        + '<div class="stat"><div class="num dash-stat-pending">&mdash;</div><div class="lbl">' + window.t('dashOverview.upcomingEvents') + '</div></div>'
+        + '<div class="stat"><div class="num dash-stat-pending">&mdash;</div><div class="lbl">' + window.t('dashOverview.members') + '</div></div>'
+        + '<div class="stat"><div class="num dash-stat-pending">&mdash;</div><div class="lbl">' + window.t('dashOverview.givingThisMonth') + '</div></div>';
+      summaryElEarly.style.display = '';
+    }
+
     if (!list.length || !window.supabase) return;
     var ids = list.map(function(c){ return c.id; });
     var monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0,0,0,0);
@@ -17189,9 +17213,22 @@ Groups</span>
       // also feeds the per-church events breakdown below -- one query
       // for both rather than a second round trip for fields the first
       // one could just as easily have asked for.
-      window.supabase.from('events').select('id, church_id, start_at, title, registration_required, max_participants, visibility, members_only_registration').in('church_id', ids),
+      // Upcoming only. Every consumer below reads per[id].upcoming,
+      // which was already filtered to start_at >= now on arrival --
+      // so every past event was fetched, parsed and discarded. That
+      // was survivable when a church had a handful of events and is
+      // not now that a calendar import can add a year of them in one
+      // go, since the cost grows with a church's whole history rather
+      // than with what it is being asked to show.
+      window.supabase.from('events').select('id, church_id, start_at, title, registration_required, max_participants, visibility, members_only_registration').in('church_id', ids).gte('start_at', nowIso),
       window.supabase.from('church_memberships').select('church_id').in('church_id', ids).eq('status', 'approved'),
-      window.supabase.from('donations').select('church_id, amount_cents, created_at').in('church_id', ids).eq('status', 'succeeded'),
+      // This month only, for the same reason and more sharply: the
+      // only figure taken from this is 'giving this month', and
+      // donations are the one table here that never stops growing.
+      // Unbounded, this query gets slower every month a church is
+      // successful. The client-side month check below stays as the
+      // authority on the boundary.
+      window.supabase.from('donations').select('church_id, amount_cents, created_at').in('church_id', ids).eq('status', 'succeeded').gte('created_at', monthStart.toISOString()),
       window.supabase.from('church_staff').select('church_id, user_id, can_manage_events, can_manage_giving, can_manage_groups, can_manage_messages, is_manager, can_edit_profile, profiles!user_id(full_name)').in('church_id', ids)
     ]).then(function(res){
       if (window._dashChurchesGen !== myGen) return; // superseded
