@@ -1298,7 +1298,7 @@
       'ce.starts': 'Starts', 'ce.ends': 'Ends', 'ce.multiDayHint': 'For a multi-day event like a summer camp, just set the end date a few days after the start.',
       'ce.location': 'Location', 'ce.locationPlaceholder': 'Church lawn, or an address',
       'ce.venueName': 'Venue name (optional)', 'ce.venueNamePlaceholder': 'e.g. Fellowship Hall, Church lawn', 'ce.locationAddressPlaceholder': 'Start typing an address...', 'ce.useChurchAddress': "Use my church's address",
-      'ce.roomsUsed': 'Rooms used', 'ce.roomsHint': 'Select every room this event uses — mark one as primary if it uses more than one. Managed in Settings → Facility rooms.', 'ce.primary': 'Primary', 'ce.noRoomsSetUpYet': 'No rooms set up yet — add some in Settings → Facility rooms.', 'ce.aRoom': 'a room',
+      'ce.roomsNoneSelected': 'No rooms selected', 'ce.roomsNSelected': '{n} rooms selected', 'ce.roomsUsed': 'Rooms used', 'ce.roomsHint': 'Select every room this event uses — mark one as primary if it uses more than one. Managed in Settings → Facility rooms.', 'ce.primary': 'Primary', 'ce.noRoomsSetUpYet': 'No rooms set up yet — add some in Settings → Facility rooms.', 'ce.aRoom': 'a room',
       'ce.ministriesHosting': 'Ministries hosting', 'ce.ministriesHint': "Attach any of your church's ministries hosting this event — mark one as primary if more than one. Managed in Settings → Ministries.", 'ce.noMinistriesSetUpYet': 'No ministries set up yet — add some in Settings → Ministries.',
       'ce.eventContacts': 'Event contacts', 'ce.contactsHint': 'Who should be reachable about this event. Checking "Notify" emails them once, letting them know they\'ve been added as a contact.', 'ce.addAContact': '+ Add a contact', 'ce.namePlaceholder': 'Name', 'ce.notify': 'Notify',
       'ce.registrationQuestions': 'Registration questions', 'ce.participantQuestions': 'Questions for participants', 'ce.questionsHint': "Ask registrants anything specific to this event — a T-shirt size, an allergy to plan food around, a childcare need. Answers are tied to this event's registrations only, never added to anyone's profile.",
@@ -2390,7 +2390,7 @@
       'ce.starts': 'Comienza', 'ce.ends': 'Termina', 'ce.multiDayHint': 'Para un evento de varios días, como un campamento de verano, solo establece la fecha de fin unos días después del inicio.',
       'ce.location': 'Ubicación', 'ce.locationPlaceholder': 'El jardín de la iglesia, o una dirección',
       'ce.venueName': 'Nombre del lugar (opcional)', 'ce.venueNamePlaceholder': 'p. ej. Salón de comunión, jardín de la iglesia', 'ce.locationAddressPlaceholder': 'Empieza a escribir una dirección...', 'ce.useChurchAddress': 'Usar la dirección de mi iglesia',
-      'ce.roomsUsed': 'Salones usados', 'ce.roomsHint': 'Selecciona cada salón que use este evento — marca uno como principal si usa más de uno. Se gestionan en Configuración → Salones de la instalación.', 'ce.primary': 'Principal', 'ce.noRoomsSetUpYet': 'Aún no hay salones configurados — agrega algunos en Configuración → Salones de la instalación.', 'ce.aRoom': 'un salón',
+      'ce.roomsNoneSelected': 'Ningún salón seleccionado', 'ce.roomsNSelected': '{n} salones seleccionados', 'ce.roomsUsed': 'Salones usados', 'ce.roomsHint': 'Selecciona cada salón que use este evento — marca uno como principal si usa más de uno. Se gestionan en Configuración → Salones de la instalación.', 'ce.primary': 'Principal', 'ce.noRoomsSetUpYet': 'Aún no hay salones configurados — agrega algunos en Configuración → Salones de la instalación.', 'ce.aRoom': 'un salón',
       'ce.ministriesHosting': 'Ministerios organizadores', 'ce.ministriesHint': 'Vincula los ministerios de tu iglesia que organizan este evento — marca uno como principal si hay más de uno. Se gestionan en Configuración → Ministerios.', 'ce.noMinistriesSetUpYet': 'Aún no hay ministerios configurados — agrega algunos en Configuración → Ministerios.',
       'ce.eventContacts': 'Contactos del evento', 'ce.contactsHint': 'Quién debería ser localizable sobre este evento. Marcar "Notificar" les envía un correo una vez, avisándoles que fueron agregados como contacto.', 'ce.addAContact': '+ Agregar un contacto', 'ce.namePlaceholder': 'Nombre', 'ce.notify': 'Notificar',
       'ce.registrationQuestions': 'Preguntas de inscripción', 'ce.participantQuestions': 'Preguntas para participantes', 'ce.questionsHint': 'Pregunta a los inscritos cualquier cosa específica de este evento — una talla de camiseta, una alergia para planear la comida, una necesidad de cuidado infantil. Las respuestas se vinculan solo a las inscripciones de este evento, nunca se agregan al perfil de nadie.',
@@ -7032,7 +7032,21 @@ Groups</span>
 
       <label style="margin-top:14px;" data-i18n="ce.roomsUsed">Rooms used</label>
       <div style="font-size:12px;color:var(--ink-mute);margin-bottom:8px;" data-i18n="ce.roomsHint">Select every room this event uses — mark one as primary if it uses more than one. Managed in Settings → Facility rooms.</div>
-      <div id="ce-rooms-checklist"><p style="color:var(--ink-mute);font-size:12.5px;" data-i18n="common.loading">Loading...</p></div>
+      <!-- A dropdown rather than a flat list: a church with fifteen
+           rooms pushed the rest of this form off the screen, and the
+           rooms are usually one or two of them. The checklist itself is
+           unchanged inside -- same inputs, same ids -- so the conflict
+           warning, the primary-room radio and the save path did not
+           have to learn anything about this. -->
+      <div id="ce-rooms-dropdown-wrap" style="position:relative;">
+        <button type="button" id="ce-rooms-dropdown-btn" style="width:100%;padding:9px 10px;font-size:13.5px;color:var(--ink);border:1px solid var(--line);border-radius:8px;background:var(--card);display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;text-align:left;">
+          <span id="ce-rooms-dropdown-label" data-i18n="ce.roomsNoneSelected">No rooms selected</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;flex-shrink:0;"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div id="ce-rooms-dropdown-panel" style="display:none;position:absolute;left:0;right:0;background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,0.16);padding:12px;z-index:200;max-height:300px;overflow-y:auto;margin-top:4px;">
+          <div id="ce-rooms-checklist"><p style="color:var(--ink-mute);font-size:12.5px;" data-i18n="common.loading">Loading...</p></div>
+        </div>
+      </div>
       <!-- Sits with the rooms, not at the top of the form: the
            clash is about this choice, and a banner somewhere else
            makes the person hunt for what it refers to. -->
@@ -8853,7 +8867,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v211 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v212 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -24514,6 +24528,8 @@ Groups</span>
     var { data: rooms } = await supabase.from('church_rooms').select('id, name').eq('church_id', churchId).eq('is_active', true).order('name');
     if (!rooms || !rooms.length) {
       container.innerHTML = '<p style="color:var(--ink-mute);font-size:12.5px;">' + window.t('ce.noRoomsSetUpYet') + '</p>';
+      var emptyLabel = document.getElementById('ce-rooms-dropdown-label');
+      if (emptyLabel) emptyLabel.textContent = window.t('ce.noRoomsSetUpYet');
       return;
     }
     selectedRoomIds = selectedRoomIds || [];
@@ -24525,8 +24541,56 @@ Groups</span>
         + '<label style="font-size:11px;color:var(--ink-mute);display:flex;align-items:center;gap:4px;white-space:nowrap;"><input type="radio" name="ce-room-primary" value="' + r.id + '"' + (isPrimary ? ' checked' : '') + '> ' + window.t('ce.primary') + '</label>'
         + '</div>';
     }).join('');
+    // Editing an existing event arrives with rooms already ticked, so
+    // the button has to be right before anyone touches it.
+    if (typeof window.refreshCeRoomsLabel === 'function') window.refreshCeRoomsLabel();
   }
   window.loadEventRoomChecklist = loadEventRoomChecklist;
+
+  // The button has to say what is inside it, or a closed dropdown is
+  // just a thing that hides the answer. One room is named outright --
+  // the common case, and more useful than "1 selected".
+  function refreshCeRoomsLabel(){
+    var labelEl = document.getElementById('ce-rooms-dropdown-label');
+    if (!labelEl) return;
+    var checked = Array.prototype.slice.call(document.querySelectorAll('.ce-room-check:checked'));
+    if (!checked.length) { labelEl.textContent = window.t('ce.roomsNoneSelected'); return; }
+    if (checked.length === 1) {
+      var only = checked[0].closest('label');
+      labelEl.textContent = only ? only.textContent.trim() : window.t('ce.roomsNSelected').replace('{n}', 1);
+      return;
+    }
+    labelEl.textContent = window.t('ce.roomsNSelected').replace('{n}', checked.length);
+  }
+  window.refreshCeRoomsLabel = refreshCeRoomsLabel;
+
+  function setCeRoomsOpen(open){
+    var panel = document.getElementById('ce-rooms-dropdown-panel');
+    var btn = document.getElementById('ce-rooms-dropdown-btn');
+    if (!panel) return;
+    panel.style.display = open ? 'block' : 'none';
+    if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+
+  document.addEventListener('click', function(ev){
+    if (!ev.target.closest) return;
+    var btn = ev.target.closest('#ce-rooms-dropdown-btn');
+    if (btn) {
+      var panel = document.getElementById('ce-rooms-dropdown-panel');
+      setCeRoomsOpen(!panel || panel.style.display === 'none');
+      return;
+    }
+    // Clicks INSIDE the panel are choices, not dismissals -- ticking a
+    // second room should not close the list you are ticking it from.
+    if (ev.target.closest('#ce-rooms-dropdown-panel')) return;
+    setCeRoomsOpen(false);
+  });
+
+  // Escape closes it, because a floating panel that only one specific
+  // click dismisses is a trap for anyone on a keyboard.
+  document.addEventListener('keydown', function(ev){
+    if (ev.key === 'Escape') setCeRoomsOpen(false);
+  });
 
   // Warns before double-booking a room — checked against every other
   // event (published or draft; a draft still holds a real slot on
@@ -24614,7 +24678,7 @@ Groups</span>
     page.addEventListener('change', function(ev){
       var t = ev.target;
       if (!t) return;
-      if (t.classList && t.classList.contains('ce-room-check')) { refreshCeRoomConflicts(); return; }
+      if (t.classList && t.classList.contains('ce-room-check')) { refreshCeRoomConflicts(); refreshCeRoomsLabel(); return; }
       if (['ce-start-date', 'ce-start-time', 'ce-end-date', 'ce-end-time'].indexOf(t.id) !== -1) refreshCeRoomConflicts();
     });
   })();
