@@ -701,6 +701,17 @@
       'dashEvents.noPastEvents': 'No past events yet.',
       'dashEvents.noUpcomingEvents': 'No upcoming events yet — click Create event to add your first one.',
       'dashEvents.viewPast': 'View past events', 'dashEvents.createEvent': 'Create event', 'dashEvents.exportSpreadsheet': 'Export to spreadsheet',
+      'dashEvents.importIcs': 'Import from calendar file',
+      'ics.title': 'Import from a calendar file',
+      'ics.found': 'Found {n} events to import. Skipped {skipped} (cancelled, or no date).',
+      'ics.truncated': 'A repeating event was cut off at three months ahead. Import again later for the rest.',
+      'ics.unsupportedRule': 'One repeat rule was too complex to read, so only its first date was taken.',
+      'ics.timezoneNote': 'Times are read as your own timezone unless the file said otherwise. Check a few before publishing.',
+      'ics.repeating': 'repeats', 'ics.cancel': 'Cancel', 'ics.confirm': 'Import as drafts',
+      'ics.nothingToImport': 'There was nothing in that file we could import.',
+      'ics.couldNotRead': 'We could not read that file. It should be a .ics calendar file.',
+      'ics.nonePicked': 'Tick at least one event to import.',
+      'ics.importing': 'Importing {n}...', 'ics.imported': 'Imported {n} events as drafts. Review and publish them from your events list.',
       'dashEvents.event': 'Event', 'dashEvents.date': 'Date', 'dashEvents.time': 'Time', 'dashEvents.location': 'Location',
       'dashEvents.createdBy': 'Created by', 'dashEvents.registrations': 'Registrations', 'dashEvents.status': 'Status',
       'dashEvents.loadingEvents': 'Loading your events...',
@@ -1751,6 +1762,17 @@
       'dashEvents.noPastEvents': 'Aún no hay eventos pasados.',
       'dashEvents.noUpcomingEvents': 'Aún no hay próximos eventos — haz clic en Crear evento para agregar el primero.',
       'dashEvents.viewPast': 'Ver eventos pasados', 'dashEvents.createEvent': 'Crear evento', 'dashEvents.exportSpreadsheet': 'Exportar a hoja de cálculo',
+      'dashEvents.importIcs': 'Importar de un archivo de calendario',
+      'ics.title': 'Importar de un archivo de calendario',
+      'ics.found': 'Encontramos {n} eventos para importar. Se omitieron {skipped} (canceladas o sin fecha).',
+      'ics.truncated': 'Un evento repetido se cortó a los tres meses. Vuelve a importar más adelante para el resto.',
+      'ics.unsupportedRule': 'Una regla de repetición era demasiado compleja, así que solo se tomó su primera fecha.',
+      'ics.timezoneNote': 'Las horas se leen en tu zona horaria salvo que el archivo indique otra. Revisa algunas antes de publicar.',
+      'ics.repeating': 'se repite', 'ics.cancel': 'Cancelar', 'ics.confirm': 'Importar como borradores',
+      'ics.nothingToImport': 'No había nada que pudiéramos importar en ese archivo.',
+      'ics.couldNotRead': 'No pudimos leer ese archivo. Debe ser un archivo de calendario .ics.',
+      'ics.nonePicked': 'Marca al menos un evento para importar.',
+      'ics.importing': 'Importando {n}...', 'ics.imported': 'Se importaron {n} eventos como borradores. Revísalos y publicícalos desde tu lista de eventos',
       'dashEvents.event': 'Evento', 'dashEvents.date': 'Fecha', 'dashEvents.time': 'Hora', 'dashEvents.location': 'Ubicación',
       'dashEvents.createdBy': 'Creado por', 'dashEvents.registrations': 'Inscripciones', 'dashEvents.status': 'Estado',
       'dashEvents.loadingEvents': 'Cargando tus eventos...',
@@ -7091,6 +7113,8 @@ Groups</span>
           <div style="display:flex;gap:10px;">
             <button class="export-btn" id="dash-events-toggle-past-btn" data-i18n="dashEvents.viewPast">View past events</button>
             <button class="btn-gold" id="dash-create-event-btn" style="padding:10px 18px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;vertical-align:-3px;margin-right:4px;"><path d="M12 5v14M5 12h14"/></svg><span data-i18n="dashEvents.createEvent">Create event</span></button>
+            <button class="export-btn" id="dash-import-ics-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15V3m0 12l-4-4m4 4l4-4"/><path d="M4 19h16"/></svg> <span data-i18n="dashEvents.importIcs">Import from calendar file</span></button>
+            <input type="file" id="dash-import-ics-input" accept=".ics,text/calendar" style="position:absolute;width:1px;height:1px;opacity:0;">
             <button class="export-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 19h16"/></svg> <span data-i18n="dashEvents.exportSpreadsheet">Export to spreadsheet</span></button>
             <button class="export-btn" id="dash-export-schedule-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> <span data-i18n="dashEvents.exportSchedule">Export schedule</span></button>
           </div>
@@ -8491,6 +8515,25 @@ Groups</span>
      good account for browsing, following and joining a group. It is
      only the handful of things that have to write to somebody that
      cannot proceed, so only those ask. -->
+<!-- Nothing is created until somebody has looked at this. An import
+     that publishes straight to a public directory will eventually
+     publish something wrong, and that is a trust problem rather than
+     a bug -- so everything lands as a draft and this list is the step
+     in between. -->
+<div id="ics-import-modal" class="modal-overlay">
+  <div class="modal-card" style="max-width:640px;">
+    <h3 style="font-family:'Fraunces';font-size:20px;margin-bottom:6px;" data-i18n="ics.title">Import from a calendar file</h3>
+    <p id="ics-import-summary" style="color:var(--ink-mute);font-size:13.5px;margin-bottom:12px;"></p>
+    <div id="ics-import-warnings" style="display:none;font-size:12.5px;color:var(--clay);margin-bottom:12px;"></div>
+    <div id="ics-import-list" style="max-height:46vh;overflow-y:auto;border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:14px;"></div>
+    <div id="ics-import-status" style="display:none;font-size:13px;margin-bottom:10px;"></div>
+    <div style="display:flex;gap:10px;">
+      <button class="export-btn" id="ics-import-cancel" style="flex:1;justify-content:center;" data-i18n="ics.cancel">Cancel</button>
+      <button class="btn-gold" id="ics-import-confirm" style="flex:1;" data-i18n="ics.confirm">Import as drafts</button>
+    </div>
+  </div>
+</div>
+
 <div id="email-needed-modal" class="modal-overlay">
   <div class="modal-card" style="max-width:420px;">
     <h3 style="font-family:'Fraunces';font-size:20px;margin-bottom:6px;" data-i18n="emailNeeded.title">We need an email address</h3>
@@ -8632,7 +8675,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-21-v184 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-21-v186 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -9646,6 +9689,128 @@ Groups</span>
       groupImageRemoveBtn.style.display = 'none';
     });
   }
+
+  // ============================================================
+  // Calendar import: file in, drafts out, with a look in between.
+  // ============================================================
+  var icsParsedEvents = [];
+
+  function icsFormatWhen(ev){
+    var opts = ev.allDay
+      ? { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }
+      : { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' };
+    return ev.start.toLocaleString(window.appLocale(), opts);
+  }
+
+  function renderIcsPreview(result){
+    icsParsedEvents = result.events;
+    var listEl = document.getElementById('ics-import-list');
+    var summaryEl = document.getElementById('ics-import-summary');
+    var warnEl = document.getElementById('ics-import-warnings');
+    var confirmBtn = document.getElementById('ics-import-confirm');
+
+    summaryEl.textContent = window.t('ics.found')
+      .replace('{n}', result.events.length)
+      .replace('{skipped}', result.skipped);
+
+    // Said plainly, up front. A repeating event that was cut off at
+    // the horizon is the single most surprising thing about this
+    // feature, and finding out later is worse than reading it now.
+    var warnings = [];
+    if (result.events.some(function(e){ return e.truncated; })) warnings.push(window.t('ics.truncated'));
+    if (result.events.some(function(e){ return e.ruleUnsupported; })) warnings.push(window.t('ics.unsupportedRule'));
+    if (result.events.some(function(e){ return !e.allDay; })) warnings.push(window.t('ics.timezoneNote'));
+    warnEl.innerHTML = warnings.map(function(w){ return '<div>' + escapeHtml(w) + '</div>'; }).join('');
+    warnEl.style.display = warnings.length ? 'block' : 'none';
+
+    if (!result.events.length) {
+      listEl.innerHTML = '<p style="color:var(--ink-mute);font-size:13.5px;">' + escapeHtml(window.t('ics.nothingToImport')) + '</p>';
+      confirmBtn.style.display = 'none';
+      return;
+    }
+    confirmBtn.style.display = '';
+
+    listEl.innerHTML = result.events.map(function(ev, i){
+      return '<label class="filter-check" style="display:flex;align-items:flex-start;gap:10px;padding:6px 0;">'
+        + '<input type="checkbox" class="ics-pick" data-ics-index="' + i + '" checked>'
+        + '<span style="min-width:0;">'
+        +   '<span style="font-weight:600;">' + escapeHtml(ev.title) + '</span>'
+        +   (ev.repeating ? ' <span class="tag sage" style="font-size:10px;">' + escapeHtml(window.t('ics.repeating')) + '</span>' : '')
+        +   '<div style="font-size:12.5px;color:var(--ink-mute);">' + escapeHtml(icsFormatWhen(ev))
+        +     (ev.location ? ' &middot; ' + escapeHtml(ev.location) : '') + '</div>'
+        + '</span></label>';
+    }).join('');
+  }
+
+  var icsBtn = document.getElementById('dash-import-ics-btn');
+  var icsInput = document.getElementById('dash-import-ics-input');
+  if (icsBtn && icsInput) {
+    icsBtn.addEventListener('click', function(){ icsInput.value = ''; icsInput.click(); });
+    icsInput.addEventListener('change', async function(){
+      var file = this.files && this.files[0];
+      if (!file) return;
+      var text = '';
+      try { text = await file.text(); }
+      catch (e) { alert(window.t('ics.couldNotRead')); return; }
+      var result;
+      try { result = window.parseIcsEvents(text, { horizonMonths: 3, hardCap: 60 }); }
+      catch (e) { alert(window.t('ics.couldNotRead')); return; }
+      document.getElementById('ics-import-status').style.display = 'none';
+      renderIcsPreview(result);
+      document.getElementById('ics-import-modal').classList.add('open');
+    });
+  }
+
+  var icsCancel = document.getElementById('ics-import-cancel');
+  if (icsCancel) icsCancel.addEventListener('click', function(){
+    document.getElementById('ics-import-modal').classList.remove('open');
+  });
+
+  var icsConfirm = document.getElementById('ics-import-confirm');
+  if (icsConfirm) icsConfirm.addEventListener('click', async function(){
+    var statusEl = document.getElementById('ics-import-status');
+    function say(msg, colour){ statusEl.textContent = msg; statusEl.style.color = colour; statusEl.style.display = 'block'; }
+
+    var picked = Array.prototype.filter.call(document.querySelectorAll('.ics-pick'), function(c){ return c.checked; })
+      .map(function(c){ return icsParsedEvents[+c.getAttribute('data-ics-index')]; })
+      .filter(Boolean);
+    if (!picked.length) { say(window.t('ics.nonePicked'), 'var(--clay)'); return; }
+
+    var myChurch = await getMyChurch();
+    if (!myChurch) { say(window.t('common.somethingWrong'), 'var(--clay)'); return; }
+
+    icsConfirm.disabled = true;
+    say(window.t('ics.importing').replace('{n}', picked.length), 'var(--ink-mute)');
+
+    // visibility 'draft' on every row, and that is the whole safety
+    // model here: a draft is invisible to everyone but this church's
+    // own staff, and drafts are exempt from the plan caps, so an
+    // import can neither publish something wrong nor eat an
+    // allowance somebody was saving for a real event.
+    var rows = picked.map(function(ev){
+      return {
+        church_id: myChurch.id,
+        title: ev.title.slice(0, 200),
+        description: ev.description || null,
+        location: ev.location || null,
+        start_at: ev.start.toISOString(),
+        end_at: ev.end ? ev.end.toISOString() : null,
+        visibility: 'draft',
+        registration_required: false
+      };
+    });
+
+    // One insert, not a loop: a rejected Promise.all would leave some
+    // rows committed and some not, and a half-imported calendar is
+    // worse to clean up than one that plainly failed.
+    var { error } = await supabase.from('events').insert(rows);
+    icsConfirm.disabled = false;
+    if (error) { say(error.message, 'var(--clay)'); return; }
+
+    say(window.t('ics.imported').replace('{n}', rows.length), 'var(--sage)');
+    if (typeof window.loadDashboardEvents === 'function') window.loadDashboardEvents();
+    setTimeout(function(){ document.getElementById('ics-import-modal').classList.remove('open'); }, 1600);
+  });
 
   window.showListsTab = function(name){
     if (!LISTS_TAB_LOADERS[name]) name = 'churches';
@@ -14901,6 +15066,200 @@ Groups</span>
         'Missing an icon:', missing, 'Icon with no category:', extra);
     }
   })();
+
+  // ============================================================
+  // Reading an .ics calendar file.
+  //
+  // Deliberately a pure function of the text: no DOM, no network, no
+  // Supabase. Everything that can go wrong with a calendar file goes
+  // wrong here, where it can be tested against a fixture, rather than
+  // half here and half in a click handler.
+  // ============================================================
+
+  // RFC 5545 folds long lines: a CRLF followed by one space or tab is
+  // a continuation, not a new line. Unfolding first means the rest of
+  // the parser never has to think about it -- and NOT doing it is why
+  // naive parsers truncate long descriptions and locations.
+  function icsUnfold(text){
+    return String(text || '').replace(/\r\n/g, '\n').replace(/\n[ \t]/g, '');
+  }
+
+  // Values escape commas, semicolons, backslashes and newlines.
+  // Order matters: backslash last, or every other unescape undoes
+  // itself.
+  function icsUnescape(v){
+    return String(v || '')
+      .replace(/\\n/gi, '\n')
+      .replace(/\\,/g, ',')
+      .replace(/\\;/g, ';')
+      .replace(/\\\\/g, '\\');
+  }
+
+  // A date in an .ics comes in three shapes and they mean different
+  // things:
+  //   20261004T100000Z         an instant, in UTC
+  //   20261004T100000          a wall-clock time, in the TZID given
+  //   20261004                 a whole day, no time at all
+  //
+  // The middle one is the trap. Without a timezone library the honest
+  // thing is to read it as local time in the importing browser, which
+  // is right when the church is in its own timezone and wrong when it
+  // is not -- so the preview shows the time it parsed and asks the
+  // person to confirm, rather than quietly being off by hours.
+  function icsParseDate(raw, params){
+    var v = String(raw || '').trim();
+    var isDateOnly = /^\d{8}$/.test(v) || (params && /VALUE=DATE(?!-TIME)/i.test(params));
+    var m = v.match(/^(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2})(\d{2})(Z)?)?$/);
+    if (!m) return null;
+    var y = +m[1], mo = +m[2] - 1, d = +m[3];
+    var hh = m[4] ? +m[4] : 0, mi = m[5] ? +m[5] : 0, ss = m[6] ? +m[6] : 0;
+    var date = m[7] === 'Z' ? new Date(Date.UTC(y, mo, d, hh, mi, ss)) : new Date(y, mo, d, hh, mi, ss);
+    if (isNaN(date.getTime())) return null;
+    return { date: date, allDay: isDateOnly };
+  }
+
+  var ICS_WEEKDAYS = { SU:0, MO:1, TU:2, WE:3, TH:4, FR:5, SA:6 };
+
+  // Expanding a repeat rule.
+  //
+  // A repeating event is stored ONCE with a rule, not as N copies, so
+  // the expansion is ours to do and ours to bound. Two bounds, both
+  // needed: a horizon, because FREQ=WEEKLY with no UNTIL means
+  // forever; and a hard cap, because a daily rule inside the horizon
+  // is still hundreds of rows and nobody wants to review that.
+  //
+  // Supports FREQ DAILY/WEEKLY/MONTHLY/YEARLY with INTERVAL, BYDAY on
+  // weekly, COUNT and UNTIL. Anything more exotic (BYSETPOS, BYMONTHDAY
+  // lists, and so on) is reported as unsupported rather than silently
+  // approximated -- a wrong date on a church calendar is worse than an
+  // honest 'we only imported the first one'.
+  function icsExpandRule(rrule, start, horizonMonths, hardCap){
+    var out = [start];
+    if (!rrule) return { dates: out, truncated: false, unsupported: false };
+
+    var parts = {};
+    String(rrule).split(';').forEach(function(bit){
+      var kv = bit.split('=');
+      if (kv.length === 2) parts[kv[0].toUpperCase()] = kv[1].toUpperCase();
+    });
+
+    var freq = parts.FREQ;
+    if (['DAILY','WEEKLY','MONTHLY','YEARLY'].indexOf(freq) === -1) {
+      return { dates: out, truncated: false, unsupported: true };
+    }
+    if (parts.BYSETPOS || parts.BYMONTHDAY || parts.BYYEARDAY || parts.BYWEEKNO) {
+      return { dates: out, truncated: false, unsupported: true };
+    }
+
+    var interval = Math.max(1, parseInt(parts.INTERVAL || '1', 10) || 1);
+    var count = parts.COUNT ? parseInt(parts.COUNT, 10) : null;
+    var until = null;
+    if (parts.UNTIL) { var u = icsParseDate(parts.UNTIL, null); if (u) until = u.date; }
+
+    var horizon = new Date(start.getTime());
+    horizon.setMonth(horizon.getMonth() + horizonMonths);
+
+    var byDays = (freq === 'WEEKLY' && parts.BYDAY)
+      ? parts.BYDAY.split(',').map(function(d){ return ICS_WEEKDAYS[d.replace(/^[-+]?\d+/, '')]; })
+                   .filter(function(d){ return d !== undefined; })
+      : null;
+
+    out = [];
+    var truncated = false;
+    var cursor = new Date(start.getTime());
+    var guard = 0;
+
+    while (guard++ < 5000) {
+      var candidates = [cursor];
+      if (byDays && byDays.length) {
+        // A weekly rule with BYDAY fires on every named day of the
+        // week, not just the start's own weekday.
+        candidates = byDays.map(function(wd){
+          var c = new Date(cursor.getTime());
+          c.setDate(c.getDate() + ((wd - c.getDay() + 7) % 7));
+          return c;
+        }).sort(function(a, b){ return a - b; });
+      }
+      for (var i = 0; i < candidates.length; i++) {
+        var c = candidates[i];
+        if (c < start) continue;
+        if (until && c > until) { return { dates: out, truncated: truncated, unsupported: false }; }
+        if (c > horizon) { return { dates: out, truncated: true, unsupported: false }; }
+        if (out.length >= hardCap) { return { dates: out, truncated: true, unsupported: false }; }
+        // A rule can produce the same instant twice (BYDAY naming the
+        // start's own weekday, for one); the calendar shows it once.
+        if (!out.some(function(d){ return d.getTime() === c.getTime(); })) out.push(new Date(c.getTime()));
+        if (count && out.length >= count) { return { dates: out, truncated: false, unsupported: false }; }
+      }
+      if (freq === 'DAILY')   cursor.setDate(cursor.getDate() + interval);
+      else if (freq === 'WEEKLY')  cursor.setDate(cursor.getDate() + 7 * interval);
+      else if (freq === 'MONTHLY') cursor.setMonth(cursor.getMonth() + interval);
+      else                    cursor.setFullYear(cursor.getFullYear() + interval);
+      if (cursor > horizon) return { dates: out, truncated: true, unsupported: false };
+    }
+    return { dates: out, truncated: true, unsupported: false };
+  }
+
+  // The whole file to a list of events ready for review.
+  window.parseIcsEvents = function(text, options){
+    var opts = options || {};
+    var horizonMonths = opts.horizonMonths || 3;
+    var hardCap = opts.hardCap || 60;
+    var lines = icsUnfold(text).split('\n');
+    var events = [], current = null, skipped = 0;
+
+    lines.forEach(function(line){
+      var t = line.trim();
+      if (t === 'BEGIN:VEVENT') { current = { exdates: [] }; return; }
+      if (t === 'END:VEVENT') { if (current) events.push(current); current = null; return; }
+      if (!current) return;
+      var idx = t.indexOf(':');
+      if (idx === -1) return;
+      var left = t.slice(0, idx), value = t.slice(idx + 1);
+      var semi = left.indexOf(';');
+      var name = (semi === -1 ? left : left.slice(0, semi)).toUpperCase();
+      var params = semi === -1 ? '' : left.slice(semi + 1);
+      if (name === 'SUMMARY') current.title = icsUnescape(value);
+      else if (name === 'DESCRIPTION') current.description = icsUnescape(value);
+      else if (name === 'LOCATION') current.location = icsUnescape(value);
+      else if (name === 'DTSTART') { current.start = icsParseDate(value, params); }
+      else if (name === 'DTEND') { current.end = icsParseDate(value, params); }
+      else if (name === 'RRULE') current.rrule = value;
+      else if (name === 'EXDATE') {
+        value.split(',').forEach(function(v){
+          var d = icsParseDate(v.trim(), params); if (d) current.exdates.push(d.date.getTime());
+        });
+      }
+      else if (name === 'STATUS' && value.toUpperCase() === 'CANCELLED') current.cancelled = true;
+    });
+
+    var out = [];
+    events.forEach(function(ev){
+      // No start is not an event. No title is, so it gets a placeholder
+      // rather than being dropped -- a nameless entry the person can
+      // rename is more useful than a silently missing one.
+      if (!ev.start || ev.cancelled) { skipped++; return; }
+      var durationMs = (ev.end && ev.end.date) ? (ev.end.date - ev.start.date) : 0;
+      var expansion = icsExpandRule(ev.rrule, ev.start.date, horizonMonths, hardCap);
+      expansion.dates.forEach(function(d){
+        if (ev.exdates.indexOf(d.getTime()) !== -1) return;
+        out.push({
+          title: ev.title || '(untitled)',
+          description: ev.description || '',
+          location: ev.location || '',
+          start: d,
+          end: durationMs > 0 ? new Date(d.getTime() + durationMs) : null,
+          allDay: !!ev.start.allDay,
+          repeating: !!ev.rrule,
+          ruleUnsupported: !!expansion.unsupported,
+          truncated: !!expansion.truncated
+        });
+      });
+    });
+
+    out.sort(function(a, b){ return a.start - b.start; });
+    return { events: out, skipped: skipped };
+  };
 
   var planLimits = {
     free:         { events: 8,        internalEvents: 30,       groups: 3,        staff: 0 },
