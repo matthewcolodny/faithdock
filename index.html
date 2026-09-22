@@ -8867,7 +8867,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v212 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v213 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -21719,15 +21719,14 @@ Groups</span>
       if (createRoomIds.length) {
         // Checks every occurrence, not just the first — a weekly
         // rehearsal could clash on week 3 even if week 1 is clear.
-        // Capped at the first 20 occurrences checked so an
-        // open-ended recurring series doesn't turn this into dozens
-        // of queries before the button even responds.
-        var allCreateConflicts = [];
-        var occurrencesToCheck = occurrences.slice(0, 20);
-        for (var oi = 0; oi < occurrencesToCheck.length; oi++) {
-          var occConflicts = await checkRoomConflicts(createRoomIds, occurrencesToCheck[oi].start, occurrencesToCheck[oi].end, null);
-          occConflicts.forEach(function(c){ allCreateConflicts.push(c); });
-        }
+        //
+        // This used to be a loop of one query per occurrence, capped at
+        // twenty to stop it running away. The cap was a workaround for
+        // the wrong shape: the query never depended on the occurrence,
+        // so it is now asked once and every occurrence is tested against
+        // the answer. The cap is gone with it -- week 40 of an
+        // open-ended series gets checked and costs nothing extra.
+        var allCreateConflicts = await checkRoomConflictsForOccurrences(createRoomIds, occurrences, null);
         if (allCreateConflicts.length) {
           var createConflictMsg = window.t('ce.thisOverlapsWith') + '\n' + allCreateConflicts.slice(0, 8).map(function(c){
             return '• ' + c.eventTitle + ' (' + c.roomName + ', ' + c.eventTime + ')';
@@ -21775,7 +21774,7 @@ Groups</span>
       // Every occurrence of a recurring event gets the same room
       // booking — a weekly rehearsal in the same room each week, not
       // a one-off choice per instance.
-      for (var ri = 0; ri < data.length; ri++) { await saveEventRooms(data[ri].id); await saveEventMinistries(data[ri].id); await saveEventQuestions(data[ri].id); }
+      await saveEventChildrenBulk(data.map(function(row){ return row.id; }));
 
       // One notification per contact, not one per occurrence of a
       // recurring series — uses the first occurrence's time for the
@@ -24598,11 +24597,32 @@ Groups</span>
   // block: real scheduling sometimes has legitimate overlaps a
   // person needs to resolve, not something the app should refuse
   // outright.
-  async function checkRoomConflicts(roomIds, startIso, endIso, excludeEventId){
+  // Every booking of these rooms, in one query.
+  //
+  // Split out from checkRoomConflicts below because the query does not
+  // depend on the time being checked -- only on the rooms. Creating a
+  // twelve-week series used to run this once PER OCCURRENCE, fetching
+  // the same rows over and over before the Publish button so much as
+  // twitched. Now it is fetched once and the occurrences are tested
+  // against it in memory.
+  async function fetchBookingsForRooms(roomIds){
     if (!roomIds || !roomIds.length) return [];
-    var { data } = await supabase.from('event_rooms')
+    var { data, error } = await supabase.from('event_rooms')
       .select('room_id, church_rooms(name), events(id, title, start_at, end_at)')
       .in('room_id', roomIds);
+    // A failure here used to be swallowed, and a swallowed failure
+    // reads as "no clashes" -- the one answer that must never be
+    // guessed, because it is the answer that lets a double booking
+    // through quietly. Say so instead.
+    if (error) { console.error('fetchBookingsForRooms:', error); return null; }
+    return data || [];
+  }
+
+  // The overlap rule itself, over already-fetched rows. Pure: no
+  // queries, so the same rows can be tested against twelve different
+  // times without twelve trips to the database.
+  function conflictsAmong(bookings, startIso, endIso, excludeEventId){
+    var data = bookings;
     var newStart = new Date(startIso);
     var newEnd = endIso ? new Date(endIso) : new Date(newStart.getTime() + 60 * 60 * 1000);
     var conflicts = [];
@@ -24622,6 +24642,38 @@ Groups</span>
       }
     });
     return conflicts;
+  }
+
+  // One time, one query. Unchanged signature, unchanged answer --
+  // what callers of this have always got.
+  async function checkRoomConflicts(roomIds, startIso, endIso, excludeEventId){
+    if (!roomIds || !roomIds.length) return [];
+    var bookings = await fetchBookingsForRooms(roomIds);
+    if (!bookings) return [];
+    return conflictsAmong(bookings, startIso, endIso, excludeEventId);
+  }
+
+  // Many times, still one query. Used when publishing a recurring
+  // series, where every occurrence needs checking against the same
+  // set of bookings.
+  async function checkRoomConflictsForOccurrences(roomIds, occurrences, excludeEventId){
+    if (!roomIds || !roomIds.length || !occurrences.length) return [];
+    var bookings = await fetchBookingsForRooms(roomIds);
+    if (!bookings) return [];
+    // Deduplicated. One existing booking that clashes with ten
+    // occurrences of a weekly series is ONE thing wrong, and listing it
+    // ten times buries the other nine problems under it. The entries
+    // describe the EXISTING event, so the repeats are identical text.
+    var all = [], seen = {};
+    occurrences.forEach(function(occ){
+      conflictsAmong(bookings, occ.start, occ.end, excludeEventId).forEach(function(c){
+        var key = c.roomName + '|' + c.eventTitle + '|' + c.eventTime;
+        if (seen[key]) return;
+        seen[key] = true;
+        all.push(c);
+      });
+    });
+    return all;
   }
 
 
@@ -24764,6 +24816,77 @@ Groups</span>
   // becomes a new row; one removed from the form gets deleted (and
   // its answers with it, which is the correct call — the question no
   // longer exists to have been answered).
+  // Rooms, ministries and questions for a whole batch of freshly
+  // created events, in three inserts rather than three per event.
+  //
+  // The per-event functions below exist for EDITING, where an event
+  // already has rows that have to be reconciled -- read what is there,
+  // update what changed, delete what went. That reconciliation is
+  // pointless on rows created a moment ago: there is nothing to
+  // reconcile with.
+  //
+  // Creating a weekly event for a term meant a loop of about eight
+  // sequential round trips per occurrence -- roughly a hundred for a
+  // twelve-week series, which is the ten seconds somebody waited
+  // watching a spinner. It is now three, whatever the length.
+  //
+  // Every occurrence gets the SAME rooms, ministries and questions,
+  // which is what the loop assumed too: a weekly rehearsal is in the
+  // same room every week.
+  async function saveEventChildrenBulk(eventIds){
+    if (!eventIds || !eventIds.length) return;
+
+    var roomIds = getSelectedCeRoomIds();
+    var primaryRoomRadio = document.querySelector('input[name="ce-room-primary"]:checked');
+    var primaryRoomId = primaryRoomRadio ? primaryRoomRadio.value : null;
+
+    var ministryIds = getSelectedCeMinistryIds();
+    var primaryMinRadio = document.querySelector('input[name="ce-ministry-primary"]:checked');
+    var primaryMinId = primaryMinRadio ? primaryMinRadio.value : null;
+
+    function questionRowsFor(eventId){
+      var out = [];
+      [[ceQuestions, 'participant'], [ceVolunteerQuestions, 'volunteer']].forEach(function(pair){
+        (pair[0] || []).forEach(function(q, i){
+          if (!q.question_text || !q.question_text.trim()) return;
+          out.push({
+            event_id: eventId,
+            question_text: q.question_text,
+            question_type: q.question_type,
+            options: (q.question_type === 'multiple_choice' && q.optionsText)
+              ? q.optionsText.split(',').map(function(x){ return x.trim(); }).filter(function(x){ return x; })
+              : null,
+            is_required: !!q.is_required,
+            // Position within its own group, matching what
+            // syncQuestionGroup writes -- the two lists are numbered
+            // separately there and must stay that way here.
+            sort_order: i,
+            applies_to: pair[1]
+          });
+        });
+      });
+      return out;
+    }
+
+    var roomRows = [], ministryRows = [], questionRows = [];
+    eventIds.forEach(function(id){
+      roomIds.forEach(function(rid){ roomRows.push({ event_id: id, room_id: rid, is_primary: rid === primaryRoomId }); });
+      ministryIds.forEach(function(mid){ ministryRows.push({ event_id: id, ministry_id: mid, is_primary: mid === primaryMinId }); });
+      questionRows = questionRows.concat(questionRowsFor(id));
+    });
+
+    // In parallel: three different tables, no ordering between them.
+    // Errors are reported rather than thrown -- the events themselves
+    // are already saved, and failing the whole submit now would leave
+    // somebody thinking nothing was created when it was.
+    var results = await Promise.all([
+      roomRows.length     ? supabase.from('event_rooms').insert(roomRows)         : Promise.resolve({ error: null }),
+      ministryRows.length ? supabase.from('event_ministries').insert(ministryRows) : Promise.resolve({ error: null }),
+      questionRows.length ? supabase.from('event_questions').insert(questionRows)  : Promise.resolve({ error: null })
+    ]);
+    results.forEach(function(r){ if (r && r.error) console.error('saveEventChildrenBulk:', r.error); });
+  }
+
   async function saveEventQuestions(eventId){
     var { data: existingRows } = await supabase.from('event_questions').select('id, question_text, applies_to').eq('event_id', eventId);
 
