@@ -8802,7 +8802,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v196 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v197 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -23181,41 +23181,47 @@ Groups</span>
     if (!myChurch) return;
     outputEl.innerHTML = '<p style="color:var(--ink-mute);font-size:13px;">' + window.t('common.loading') + '</p>';
 
-    var peopleIds = await getChurchPeopleIds(myChurch.id);
-    var { data: memberships } = await supabase.from('church_memberships').select('user_id').eq('church_id', myChurch.id).eq('status', 'approved');
-    var { data: staffRows } = await supabase.from('church_staff').select('user_id').eq('church_id', myChurch.id);
-    var { data: groups } = await supabase.from('groups').select('id').eq('church_id', myChurch.id);
-    var { data: households } = await supabase.from('households').select('id, household_members(user_id)').eq('church_id', myChurch.id);
-    var { data: donations } = await supabase.from('donations').select('amount_cents, donor_id').eq('church_id', myChurch.id).eq('status', 'succeeded');
+    // Ten queries became one (migration 078). Four of them were the
+    // church-people union, and one downloaded every donation ever
+    // taken in order to add the amounts up.
+    var { data: ps, error: psError } = await supabase.rpc('get_people_stats', { target_church_id: myChurch.id });
+    if (psError || !ps) {
+      console.error('get_people_stats failed', psError);
+      outputEl.innerHTML = '<p style="color:var(--clay);">' + escapeHtml(window.t('common.somethingWrong')) + '</p>';
+      return;
+    }
 
     var ageBucketOrder = ['under_18', '18_24', '25_39', '40_59', '60_79', '80_plus'];
     var ageBucketLabels = { under_18: window.t('reports.ageUnder18'), '18_24': window.t('reports.age18to24'), '25_39': window.t('reports.age25to39'), '40_59': window.t('reports.age40to59'), '60_79': window.t('reports.age60to79'), '80_plus': window.t('reports.age80plus') };
+    var byAge = ps.by_age || {};
     var ageCounts = {};
-    ageBucketOrder.forEach(function(k){ ageCounts[k] = 0; });
-    var ageSharedCount = 0;
-    if (peopleIds.length) {
-      var { data: ageProfiles } = await supabase.from('profiles').select('id, age_range').in('id', peopleIds);
-      (ageProfiles || []).forEach(function(p){ if (p.age_range && ageCounts.hasOwnProperty(p.age_range)) { ageCounts[p.age_range]++; ageSharedCount++; } });
-    }
+    ageBucketOrder.forEach(function(k){ ageCounts[k] = Number(byAge[k] || 0); });
+    var ageSharedCount = Number(ps.aged_count || 0);
 
-    var totalGivenCents = (donations || []).reduce(function(s, d){ return s + d.amount_cents; }, 0);
-    var uniqueDonors = {};
-    (donations || []).forEach(function(d){ if (d.donor_id) uniqueDonors[d.donor_id] = true; });
-    var householdMemberCount = 0;
-    (households || []).forEach(function(h){ householdMemberCount += (h.household_members || []).length; });
+    var peopleCount = Number(ps.total_people || 0);
+    var totalGivenCents = Number(ps.total_given_cents || 0);
+    // Signed-in donors only, no email fallback. The giving page counts
+    // donor-or-email and so reports a larger number; they answer
+    // different questions and both are left as they were.
+    var donorCount = Number(ps.donors || 0);
+    var householdMemberCount = Number(ps.household_slots || 0);
 
     outputEl.innerHTML = '<h2 style="font-family:\'Fraunces\';font-size:20px;margin-bottom:4px;">' + escapeHtml(myChurch.name) + '</h2>'
       + '<p style="font-size:12px;color:var(--ink-mute);margin-bottom:20px;">' + window.t('reports.peopleStatisticsGenerated').replace('{date}', new Date().toLocaleDateString(window.appLocale())) + '</p>'
       + '<table class="sched-table" style="margin-bottom:20px;">'
-      + '<tr><td>' + window.t('reports.totalPeopleConnected') + '</td><td class="mono">' + peopleIds.length + '</td></tr>'
-      + '<tr><td>' + window.t('dashDir.members') + '</td><td class="mono">' + (memberships || []).length + '</td></tr>'
-      + '<tr><td>' + window.t('reports.staffIncludingOwner') + '</td><td class="mono">' + ((staffRows || []).length + 1) + '</td></tr>'
-      + '<tr><td>' + window.t('dash.groups') + '</td><td class="mono">' + (groups || []).length + '</td></tr>'
-      + '<tr><td>' + window.t('households.heading') + '</td><td class="mono">' + window.t('reports.householdsCountGrouped').replace('{count}', (households || []).length).replace('{peopleCount}', householdMemberCount) + '</td></tr>'
+      + '<tr><td>' + window.t('reports.totalPeopleConnected') + '</td><td class="mono">' + peopleCount + '</td></tr>'
+      + '<tr><td>' + window.t('dashDir.members') + '</td><td class="mono">' + Number(ps.members || 0) + '</td></tr>'
+      // Still +1 for the owner, exactly as before. Folding that into
+      // the query would change the number for a church whose owner is
+      // also listed as staff -- a separate question from where the
+      // counting happens, and not one to answer by accident.
+      + '<tr><td>' + window.t('reports.staffIncludingOwner') + '</td><td class="mono">' + (Number(ps.staff || 0) + 1) + '</td></tr>'
+      + '<tr><td>' + window.t('dash.groups') + '</td><td class="mono">' + Number(ps.groups || 0) + '</td></tr>'
+      + '<tr><td>' + window.t('households.heading') + '</td><td class="mono">' + window.t('reports.householdsCountGrouped').replace('{count}', Number(ps.households || 0)).replace('{peopleCount}', householdMemberCount) + '</td></tr>'
       + '<tr><td>' + window.t('reports.totalGivenAllTime') + '</td><td class="mono">$' + (totalGivenCents / 100).toLocaleString(window.appLocale(), { maximumFractionDigits: 0 }) + '</td></tr>'
-      + '<tr><td>' + window.t('reports.totalDonors') + '</td><td class="mono">' + Object.keys(uniqueDonors).length + '</td></tr>'
+      + '<tr><td>' + window.t('reports.totalDonors') + '</td><td class="mono">' + donorCount + '</td></tr>'
       + '</table>'
-      + '<h3 class="sched-date" style="margin-top:0;">' + window.t('reports.ageGroups') + ' <span style="font-size:11px;font-weight:400;color:var(--ink-mute);">' + window.t('reports.selfReportedBasedOn').replace('{shared}', ageSharedCount).replace('{total}', peopleIds.length) + '</span></h3>'
+      + '<h3 class="sched-date" style="margin-top:0;">' + window.t('reports.ageGroups') + ' <span style="font-size:11px;font-weight:400;color:var(--ink-mute);">' + window.t('reports.selfReportedBasedOn').replace('{shared}', ageSharedCount).replace('{total}', peopleCount) + '</span></h3>'
       + '<table class="sched-table">' + ageBucketOrder.map(function(k){ return '<tr><td>' + ageBucketLabels[k] + '</td><td class="mono">' + ageCounts[k] + '</td></tr>'; }).join('') + '</table>';
   }
   window.loadPeopleStatsReport = loadPeopleStatsReport;
@@ -23786,49 +23792,48 @@ Groups</span>
     var myChurch = await getMyChurch();
     if (!myChurch) return;
 
-    var { data: recentEvents } = await supabase.from('events').select('id, title, start_at').eq('church_id', myChurch.id).lt('start_at', new Date().toISOString()).order('start_at', { ascending: false }).limit(8);
-    if (!recentEvents || !recentEvents.length) {
-      renderMiniBarChart('insights-attendance-chart', []);
-    } else {
-      var recentIds = recentEvents.map(function(e){ return e.id; });
-      var { data: recentRegs } = await supabase.from('event_registrations').select('event_id, checked_in_at').in('event_id', recentIds).eq('status', 'confirmed');
-      var chartData = recentEvents.slice().reverse().map(function(e){
-        var eventRegs = (recentRegs || []).filter(function(r){ return r.event_id === e.id; });
-        var checkedIn = eventRegs.filter(function(r){ return r.checked_in_at; }).length;
-        return { label: new Date(e.start_at).toLocaleDateString(window.appLocale(), { month: 'short', day: 'numeric' }), value: checkedIn };
-      });
-      renderMiniBarChart('insights-attendance-chart', chartData);
+    // Five queries became one (migration 078). Three of the five had
+    // no bound at all: every confirmed registration the church had
+    // ever taken was downloaded twice over, once to count check-ins
+    // and once to bucket them by age.
+    var { data: att, error: attError } = await supabase.rpc('get_attendance_insights', { target_church_id: myChurch.id });
+    if (attError || !att) {
+      console.error('get_attendance_insights failed', attError);
+      totalEl.textContent = window.t('common.unavailableShort');
+      document.getElementById('insights-attendance-rate').textContent = window.t('common.unavailableShort');
+      return;
     }
+
+    var recent = att.recent || [];
+    renderMiniBarChart('insights-attendance-chart', recent.map(function(r){
+      return {
+        label: new Date(r.start_at).toLocaleDateString(window.appLocale(), { month: 'short', day: 'numeric' }),
+        value: Number(r.checked_in || 0)
+      };
+    }));
 
     // Overall rate across every past event, not just the 8 charted —
     // the chart is a recent-trend snapshot, this stat is the full
     // picture.
-    var { data: allRegs } = await supabase.from('event_registrations').select('checked_in_at, events!inner(church_id)').eq('events.church_id', myChurch.id).eq('status', 'confirmed');
-    var totalCheckedIn = (allRegs || []).filter(function(r){ return r.checked_in_at; }).length;
-    var totalRegistered = (allRegs || []).length;
+    var totalCheckedIn = Number(att.total_checked_in || 0);
+    var totalRegistered = Number(att.total_registered || 0);
     totalEl.textContent = totalCheckedIn;
     document.getElementById('insights-attendance-rate').textContent = totalRegistered ? Math.round((totalCheckedIn / totalRegistered) * 100) + '%' : '—';
 
     // By age — same self-reported, optional, partial-picture caveat
     // as giving by age.
-    var { data: allRegsWithUser } = await supabase.from('event_registrations').select('user_id, checked_in_at, events!inner(church_id)').eq('events.church_id', myChurch.id).eq('status', 'confirmed').not('checked_in_at', 'is', null).not('user_id', 'is', null);
-    var attendeeIds = Array.from(new Set((allRegsWithUser || []).map(function(r){ return r.user_id; })));
-    var attendeeAgeById = {};
-    if (attendeeIds.length) {
-      var { data: attendeeProfiles } = await supabase.from('profiles').select('id, age_range').in('id', attendeeIds);
-      (attendeeProfiles || []).forEach(function(p){ attendeeAgeById[p.id] = p.age_range; });
-    }
     var attAgeBucketOrder = ['under_18', '18_24', '25_39', '40_59', '60_79', '80_plus'];
     var attAgeBucketLabels = { under_18: window.t('reports.ageUnder18'), '18_24': window.t('reports.age18to24'), '25_39': window.t('reports.age25to39'), '40_59': window.t('reports.age40to59'), '60_79': window.t('reports.age60to79'), '80_plus': window.t('reports.age80plus') };
+    // Still counting check-ins rather than people: somebody who comes
+    // to ten events contributes ten. That is what this chart has
+    // always measured, and it answers 'who fills the room' -- but it
+    // is not a headcount, and the two are easy to read as the same.
+    var attByAge = att.by_age || {};
     var attAgeCounts = {};
-    attAgeBucketOrder.forEach(function(k){ attAgeCounts[k] = 0; });
-    var attSharedCount = 0;
-    (allRegsWithUser || []).forEach(function(r){
-      var age = attendeeAgeById[r.user_id];
-      if (age && attAgeCounts.hasOwnProperty(age)) { attAgeCounts[age]++; attSharedCount++; }
-    });
+    attAgeBucketOrder.forEach(function(k){ attAgeCounts[k] = Number(attByAge[k] || 0); });
+    var attSharedCount = Number(att.aged_count || 0);
     var attAgeNote = document.getElementById('insights-attendance-age-note');
-    if (attAgeNote) { attAgeNote.textContent = window.t('insights.byAgeGroupCheckInsBasedOn').replace('{shared}', attSharedCount).replace('{total}', (allRegsWithUser || []).length); }
+    if (attAgeNote) { attAgeNote.textContent = window.t('insights.byAgeGroupCheckInsBasedOn').replace('{shared}', attSharedCount).replace('{total}', Number(att.aged_total || 0)); }
     renderMiniBarChart('insights-attendance-age-chart', attAgeBucketOrder.map(function(k){ return { label: attAgeBucketLabels[k], value: attAgeCounts[k] }; }));
   }
   window.loadAttendanceInsights = loadAttendanceInsights;
@@ -23981,23 +23986,13 @@ Groups</span>
   // above — the church's full connected-people count, computed
   // client-side across the same four tables rather than adding a new
   // RPC just for this one number.
-  async function getChurchPeopleIds(churchId){
-    var peopleSet = {};
-    var { data: memberships } = await supabase.from('church_memberships').select('user_id').eq('church_id', churchId).eq('status', 'approved');
-    (memberships || []).forEach(function(m){ peopleSet[m.user_id] = true; });
-    var { data: staffRows } = await supabase.from('church_staff').select('user_id').eq('church_id', churchId);
-    (staffRows || []).forEach(function(s){ peopleSet[s.user_id] = true; });
-    var { data: eventRegs } = await supabase.from('event_registrations').select('user_id, events!inner(church_id)').eq('events.church_id', churchId).not('user_id', 'is', null);
-    (eventRegs || []).forEach(function(r){ peopleSet[r.user_id] = true; });
-    var { data: groupMembersAll } = await supabase.from('group_members').select('user_id, groups!inner(church_id)').eq('groups.church_id', churchId);
-    (groupMembersAll || []).forEach(function(g){ peopleSet[g.user_id] = true; });
-    return Object.keys(peopleSet);
-  }
-
-  async function getTotalChurchPeopleCount(churchId){
-    var ids = await getChurchPeopleIds(churchId);
-    return ids.length;
-  }
+  // getChurchPeopleIds/getTotalChurchPeopleCount lived here and made
+  // four unbounded queries to union members, staff, event registrants
+  // and group members in the browser. Both of their callers now ask
+  // Postgres instead, where the same union is one statement and the
+  // answer is a number rather than every id. The definition of "our
+  // people" moved with them, into church_people_ids (migration 078),
+  // so it is stated once rather than rebuilt per caller.
 
   async function loadGroupsInsights(){
     var totalEl = document.getElementById('insights-groups-total');
@@ -24005,11 +24000,23 @@ Groups</span>
     var myChurch = await getMyChurch();
     if (!myChurch) return;
 
-    var { data: groups } = await supabase.from('groups').select('id').eq('church_id', myChurch.id);
-    var groupIds = (groups || []).map(function(g){ return g.id; });
-    totalEl.textContent = groupIds.length;
+    // Seven queries became one (migration 078), four of which were
+    // the church-people count alone -- it unioned members, staff,
+    // event registrants and group members in the browser purely to
+    // take the size of the result.
+    var { data: gi, error: giError } = await supabase.rpc('get_groups_insights', { target_church_id: myChurch.id });
+    if (giError || !gi) {
+      console.error('get_groups_insights failed', giError);
+      totalEl.textContent = window.t('common.unavailableShort');
+      return;
+    }
 
-    if (!groupIds.length) {
+    var totalGroups = Number(gi.total_groups || 0);
+    var activeCount = Number(gi.active_groups || 0);
+    var inGroups = Number(gi.people_in_groups || 0);
+    totalEl.textContent = totalGroups;
+
+    if (!totalGroups) {
       document.getElementById('insights-groups-active').textContent = '0';
       document.getElementById('insights-groups-inactive').textContent = '0';
       document.getElementById('insights-groups-in-group').textContent = '0';
@@ -24019,47 +24026,35 @@ Groups</span>
       return;
     }
 
-    var { data: members } = await supabase.from('group_members').select('group_id, user_id').in('group_id', groupIds).eq('status', 'active');
-    var groupsWithMembers = {};
-    var peopleInGroups = {};
-    (members || []).forEach(function(m){ groupsWithMembers[m.group_id] = true; peopleInGroups[m.user_id] = true; });
-    var activeCount = Object.keys(groupsWithMembers).length;
-
     document.getElementById('insights-groups-active').textContent = activeCount;
-    document.getElementById('insights-groups-inactive').textContent = groupIds.length - activeCount;
-    document.getElementById('insights-groups-in-group').textContent = Object.keys(peopleInGroups).length;
-
-    var totalPeople = await getTotalChurchPeopleCount(myChurch.id);
-    document.getElementById('insights-groups-not-in-group').textContent = Math.max(totalPeople - Object.keys(peopleInGroups).length, 0);
+    document.getElementById('insights-groups-inactive').textContent = totalGroups - activeCount;
+    document.getElementById('insights-groups-in-group').textContent = inGroups;
+    document.getElementById('insights-groups-not-in-group').textContent = Math.max(Number(gi.total_people || 0) - inGroups, 0);
 
     // Attendance — reads group_attendance directly rather than
     // joining through groups.church_id per row, since we already
     // have the full list of this church's group IDs right here.
-    var { data: attendanceRows } = await supabase.from('group_attendance').select('group_id, meeting_date, attended').in('group_id', groupIds);
-    var uniqueMeetings = new Set();
-    var presentCount = 0;
-    (attendanceRows || []).forEach(function(r){
-      uniqueMeetings.add(r.group_id + '|' + r.meeting_date);
-      if (r.attended) presentCount++;
-    });
-    document.getElementById('insights-groups-meetings-tracked').textContent = uniqueMeetings.size;
-    document.getElementById('insights-groups-attendance-rate').textContent = (attendanceRows && attendanceRows.length)
-      ? Math.round((presentCount / attendanceRows.length) * 100) + '%'
+    // A meeting is one (group, date) pair however many people were
+    // marked at it -- counted with a DISTINCT now rather than by
+    // building a Set of string keys over every attendance mark the
+    // church has ever recorded.
+    var attTotal = Number(gi.attendance_total || 0);
+    document.getElementById('insights-groups-meetings-tracked').textContent = Number(gi.meetings_tracked || 0);
+    document.getElementById('insights-groups-attendance-rate').textContent = attTotal
+      ? Math.round((Number(gi.attendance_present || 0) / attTotal) * 100) + '%'
       : '—';
 
     // Households — same total-people denominator as the groups
     // stat above, for "not yet grouped" to mean the same thing in
     // both places.
-    var { data: households } = await supabase.from('households').select('id, household_members(user_id)').eq('church_id', myChurch.id);
-    var householdsList = households || [];
-    var peopleInHouseholds = {};
-    var totalMemberSlots = 0;
-    householdsList.forEach(function(h){
-      (h.household_members || []).forEach(function(m){ peopleInHouseholds[m.user_id] = true; totalMemberSlots++; });
-    });
-    document.getElementById('insights-households-total').textContent = householdsList.length;
-    document.getElementById('insights-households-avg-size').textContent = householdsList.length ? (totalMemberSlots / householdsList.length).toFixed(1) : '—';
-    document.getElementById('insights-households-ungrouped').textContent = Math.max(totalPeople - Object.keys(peopleInHouseholds).length, 0);
+    var householdsCount = Number(gi.households || 0);
+    var totalMemberSlots = Number(gi.household_slots || 0);
+    var peopleInHouseholdsCount = Number(gi.people_in_households || 0);
+    document.getElementById('insights-households-total').textContent = householdsCount;
+    document.getElementById('insights-households-avg-size').textContent = householdsCount ? (totalMemberSlots / householdsCount).toFixed(1) : '—';
+    // Same denominator as the groups stat above, so "not yet grouped"
+    // means the same thing in both places.
+    document.getElementById('insights-households-ungrouped').textContent = Math.max(Number(gi.total_people || 0) - peopleInHouseholdsCount, 0);
   }
   window.loadGroupsInsights = loadGroupsInsights;
 
