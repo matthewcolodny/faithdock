@@ -6463,3 +6463,79 @@ the redirect each passed on their own, and only the hop proves they agree.
 
 Build `2026-09-22-v187`; no migration. Requires redeploying `unsubscribe`
 by hand, with Verify JWT still off.
+
+---
+
+## The venue split: three rules, and only one of them is a guess
+
+A church calendar writes the church's own name in front of its own
+address on every event, so an import that kept `LOCATION` whole meant
+correcting the same row by hand once per event, forever.
+
+I had argued against splitting, and the argument was that
+"7127 Bee Cave Road" and "Fellowship Hall" look identical to anything
+reading up to the first comma. That is true of a blind split. It was
+wrong as a reason to do nothing, because an import knows which church
+it is importing into, and therefore already holds that church's name
+and address. Comparing against a value you hold is not a guess.
+
+So `splitKnownVenue(raw, churchName, churchAddress)` tries, in order:
+
+1. **Starts with the church's own name**, followed by a comma. The
+   comma is required, or "Westlake Hills Presbyterian Church Hall"
+   loses its last word. When this fires the venue is written in OUR
+   spelling, not the calendar's -- the match already proved the names
+   are the same, and a feed writing "westlake  hills presbyterian
+   church" should not get to name the venue on every imported event.
+
+2. **Ends with the church's own address**, with something named in
+   front. Rare, because the calendar has to spell the address exactly
+   as our record does and "Road" against "Rd" stops it. Costs nothing
+   when it misses.
+
+3. **Shape only**: split at the first comma when the part before it
+   contains no digit and the part after it starts with one. A name,
+   then a street number.
+
+Rule 3 exists because rules 1 and 2 covered only "a church importing
+its own calendar". Importing anything else -- including into a test
+church, which is how this was found -- matched nothing and split
+nothing. Correct by its own rules and useless in practice.
+
+Rule 3 is the only judgement in the function, and the conservative
+direction is deliberate: a venue left sitting in the address reads
+fine, while half an address moved into the venue field does not. So
+"Room 5, 12 High St" does not split, and neither does
+"12 High St, Austin, TX", because that first segment already carries
+the number.
+
+**A judgement is acceptable here only because it is not silent.** The
+review list shows the venue as its own part before anything is
+written, and every imported event lands as a draft. A wrong split
+costs an edit, not a published mistake. The same rule applied
+invisibly during a backfill would not be acceptable, which is exactly
+why migration 075 backfills nothing.
+
+It applies at import only. Rows imported earlier keep the whole string
+in `location`; re-importing picks up the split.
+
+### Two things that cost real time, both about the edit scripts
+
+Neither is about the feature, and both will happen again.
+
+**`String.replace` expands `$&` in the replacement.** A replacement
+containing a regex escape -- `.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')`
+is the one that did it -- pastes the entire matched text back in
+wherever `$&` appears. It turned a 59-line insertion into 49,113 and
+was only obvious because the next three anchors then reported
+ambiguous matches. Use a replacement **function**: `replace(find,
+function(){ return to; })` is taken literally.
+
+**`git checkout` hands the file back as CRLF.** This repo has
+`core.autocrlf=true`, so restoring a file rewrites its line endings,
+and every multi-line anchor joined with `\n` then matches nothing.
+It fails safe -- a miss, never a wrong edit -- but it looks exactly
+like a bad anchor, which is the confusing part. Normalise on read:
+`readFileSync(p, 'utf8').split(CR+LF).join(LF)`.
+
+Build `2026-09-22-v192`; no migration (075 added the column).
