@@ -610,9 +610,9 @@
       'pricing.large.tagline': 'Run your whole church. Unlimited team, top visibility in search, up to five churches on one account.',
       'pricing.multiChurch.tagline': 'Run a network. Every church you oversee under one roof, with limits and billing set to fit.',
       'pricing.free.name': 'Free', 'pricing.free.f1': 'Listing in the public directory', 'pricing.free.f2': 'Church management tools',
-      'pricing.free.f3': 'Up to 8 events / month, 3 groups', 'pricing.free.f4': 'Unlimited giving. FaithDock fee: {givingFee}',
+      'pricing.free.f3': 'Up to 8 public events / month, plus 30 members-only, 3 groups', 'pricing.free.f4': 'Unlimited giving. FaithDock fee: {givingFee}',
       'pricing.free.f5': 'Event reminders', 'pricing.free.f6': 'Paid ticketed events. FaithDock fee: {ticketFee} per ticket', 'pricing.free.cta': 'Get started free',
-      'pricing.starter.name': 'Starter', 'pricing.starter.f1': 'Everything in Free', 'pricing.starter.f2': 'Up to 20 events / month, 6 groups',
+      'pricing.starter.name': 'Starter', 'pricing.starter.f1': 'Everything in Free', 'pricing.starter.f2': 'Up to 20 public events / month, plus 60 members-only, 6 groups',
       'pricing.starter.f3': 'Up to 2 staff invites', 'pricing.starter.f4': 'Congregation member import',
       'pricing.starter.f5': '0% FaithDock fee on tickets & giving', 'pricing.starter.cta': 'Start Starter plan',
       'pricing.feeFootnote1': 'FaithDock service fees apply on the Free plan only — every paid plan keeps 100% of what’s given or sold.',
@@ -655,7 +655,7 @@
       'events.hostedByMinistry': 'Hosted by',
       'events.participant': 'Participant', 'events.volunteerRole': 'Volunteer',
       'events.hostedBy': 'hosted by', 'events.hostedByLabel': 'Hosted by', 'events.linkCopied': 'Link copied!', 'events.linkCopiedInstagram': 'Link copied — paste it into your Instagram Story or bio.',
-      'category.volunteer': 'Volunteer', 'category.celebrations': 'Celebrations',
+      'category.music': 'Music', 'category.volunteer': 'Volunteer', 'category.celebrations': 'Celebrations',
       'category.fellowship': 'Fellowship', 'category.worship': 'Worship',
       // The \n is a deliberate break point for the Events icon row,
       // where .event-category-btn span sets white-space:pre-line so the
@@ -1279,8 +1279,9 @@
       'ce.skipSpecificDates': 'Skip specific dates', 'ce.skipDatesHint': 'e.g. skip the Friday before Christmas — pick the date and press Add.',
       'ce.saveAsDraft': 'Save as draft', 'ce.publish': 'Publish',
       'ce.needToSignUpOrLogIn': 'You need to sign up or log in first.', 'ce.registerChurchFirst': 'Register a church before creating an event, or ask an owner to add you as staff.',
-      'ce.aHigherPlan': 'a higher plan', 'ce.planLimitPerChurch': "Your plan includes {limit} events per month per church, and you've used them all this month. Contact us about Multi-Church for more room.",
-      'ce.planLimitUpgrade': "Your plan includes {limit} events per month, and you've used them all this month. Upgrade to {tier} for more.",
+      'ce.aHigherPlan': 'a higher plan', 'ce.planLimitPerChurch': "Your plan includes {limit} {kind} per month per church, and you've used them all this month. Contact us about Multi-Church for more room.",
+      'ce.planLimitUpgrade': "Your plan includes {limit} {kind} per month, and you've used them all this month. Upgrade to {tier} for more.",
+      'ce.limitKindPublic': 'public events', 'ce.limitKindInternal': 'members-only events',
       'ce.titleRequired': 'Event title is required.', 'ce.removeWordFromTitle': 'Please remove "{word}" from the title.', 'ce.removeWordFromDescription': 'Please remove "{word}" from the description.',
       'ce.startDateRequired': 'Start date is required.', 'ce.endBeforeStart': "End time can't be before the start time.",
       'ce.priceMustBePositive': 'Ticket price must be a positive amount, or left blank for free.', 'ce.paidEventsUpgradeNeeded': 'Paid events (ticket pricing) are available on Starter plans and above. Upgrade to add a ticket price.',
@@ -1661,9 +1662,9 @@
       'pricing.large.tagline': 'Dirige toda tu iglesia. Equipo ilimitado, prioridad en las búsquedas y hasta cinco iglesias por cuenta.',
       'pricing.multiChurch.tagline': 'Dirige una red. Todas las iglesias que supervisas en un solo lugar, con límites y facturación a medida.',
       'pricing.free.name': 'Gratis', 'pricing.free.f1': 'Listado en el directorio público', 'pricing.free.f2': 'Herramientas de gestión de la iglesia',
-      'pricing.free.f3': 'Hasta 8 eventos al mes, 3 grupos', 'pricing.free.f4': 'Donaciones ilimitadas. Tarifa de FaithDock: {givingFee}',
+      'pricing.free.f3': 'Hasta 8 eventos públicos al mes, más 30 solo para miembros, 3 grupos', 'pricing.free.f4': 'Donaciones ilimitadas. Tarifa de FaithDock: {givingFee}',
       'pricing.free.f5': 'Recordatorios de eventos', 'pricing.free.f6': 'Eventos con entrada de pago. Tarifa de FaithDock: {ticketFee} por entrada', 'pricing.free.cta': 'Comenzar gratis',
-      'pricing.starter.name': 'Inicial', 'pricing.starter.f1': 'Todo lo del plan Gratis', 'pricing.starter.f2': 'Hasta 20 eventos al mes, 6 grupos',
+      'pricing.starter.name': 'Inicial', 'pricing.starter.f1': 'Todo lo del plan Gratis', 'pricing.starter.f2': 'Hasta 20 eventos públicos al mes, más 60 solo para miembros, 6 grupos',
       'pricing.starter.f3': 'Hasta 2 invitaciones de personal', 'pricing.starter.f4': 'Importaci\u00f3n de miembros de la congregaci\u00f3n',
       'pricing.starter.f5': '0% de tarifa de FaithDock en entradas y donaciones', 'pricing.starter.cta': 'Comenzar plan Inicial',
       'pricing.feeFootnote1': 'Las tarifas de servicio de FaithDock aplican solo en el plan Gratis \u2014 todos los planes de pago conservan el 100% de lo donado o vendido.',
@@ -1706,7 +1707,7 @@
       'events.hostedByMinistry': 'Organizado por',
       'events.participant': 'Participante', 'events.volunteerRole': 'Voluntario',
       'events.hostedBy': 'organizado por', 'events.hostedByLabel': 'Organizado por', 'events.linkCopied': '¡Enlace copiado!', 'events.linkCopiedInstagram': 'Enlace copiado — pégalo en tu historia o biografía de Instagram.',
-      'category.volunteer': 'Voluntariado', 'category.celebrations': 'Celebraciones',
+      'category.music': 'Música', 'category.volunteer': 'Voluntariado', 'category.celebrations': 'Celebraciones',
       'category.fellowship': 'Compañerismo', 'category.worship': 'Adoración',
       // Break points chosen for Spanish rather than copied from the
       // English -- "Clases y estudios" divides after the noun, not
@@ -2323,8 +2324,9 @@
       'ce.skipSpecificDates': 'Omitir fechas específicas', 'ce.skipDatesHint': 'p. ej. omitir el viernes antes de Navidad — elige la fecha y presiona Agregar.',
       'ce.saveAsDraft': 'Guardar como borrador', 'ce.publish': 'Publicar',
       'ce.needToSignUpOrLogIn': 'Necesitas registrarte o iniciar sesión primero.', 'ce.registerChurchFirst': 'Registra una iglesia antes de crear un evento, o pide a un propietario que te agregue como personal.',
-      'ce.aHigherPlan': 'un plan superior', 'ce.planLimitPerChurch': 'Tu plan incluye {limit} eventos al mes por iglesia, y ya los has usado todos este mes. Contáctanos sobre Multi-Iglesia para más espacio.',
-      'ce.planLimitUpgrade': 'Tu plan incluye {limit} eventos al mes, y ya los has usado todos este mes. Mejora a {tier} para tener más.',
+      'ce.aHigherPlan': 'un plan superior', 'ce.planLimitPerChurch': 'Tu plan incluye {limit} {kind} al mes por iglesia, y ya los has usado todos este mes. Contáctanos sobre Multi-Iglesia para más espacio.',
+      'ce.planLimitUpgrade': 'Tu plan incluye {limit} {kind} al mes, y ya los has usado todos este mes. Mejora a {tier} para tener más.',
+      'ce.limitKindPublic': 'eventos públicos', 'ce.limitKindInternal': 'eventos solo para miembros',
       'ce.titleRequired': 'El título del evento es obligatorio.', 'ce.removeWordFromTitle': 'Por favor elimina "{word}" del título.', 'ce.removeWordFromDescription': 'Por favor elimina "{word}" de la descripción.',
       'ce.startDateRequired': 'La fecha de inicio es obligatoria.', 'ce.endBeforeStart': 'La hora de fin no puede ser antes de la hora de inicio.',
       'ce.priceMustBePositive': 'El precio de la entrada debe ser una cantidad positiva, o déjalo en blanco para que sea gratis.', 'ce.paidEventsUpgradeNeeded': 'Los eventos de pago (precio de entrada) están disponibles en los planes Inicial y superiores. Mejora tu plan para agregar un precio.',
@@ -6897,6 +6899,7 @@ Groups</span>
         <button type="button" id="ce-category-clear-all-btn" style="background:none;border:none;padding:0;color:var(--ink-mute);border-bottom:1px solid var(--ink-mute);cursor:pointer;font-size:12px;" data-i18n="filters.uncheckAll">Uncheck all</button>
       </div>
       <div class="checkbox-grid">
+        <label class="filter-check"><input type="checkbox" class="ce-category" value="Music"> <span data-i18n="category.music">Music</span></label>
         <label class="filter-check"><input type="checkbox" class="ce-category" value="Volunteer"> <span data-i18n="category.volunteer">Volunteer</span></label>
         <label class="filter-check"><input type="checkbox" class="ce-category" value="Celebrations"> <span data-i18n="category.celebrations">Celebrations</span></label>
         <label class="filter-check"><input type="checkbox" class="ce-category" value="Fellowship"> <span data-i18n="category.fellowship">Fellowship</span></label>
@@ -8622,7 +8625,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-21-v180 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-21-v181 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -14818,13 +14821,28 @@ Groups</span>
   // genuinely "negotiated" per the pricing spec, not a real
   // client-side number — Infinity is a placeholder meaning "no
   // client-side cap", not a promised limit.
+  // `events` is the PUBLIC allowance. `internalEvents` covers
+  // everything that is not public -- members-only, whether listed or
+  // hidden, and staff-only drafts.
+  //
+  // They are separate caps rather than one pool because they are
+  // different products. A public event is reach, which is what the
+  // paid tiers sell; an internal one is a church running its own week,
+  // which it should not have to buy a bigger plan to keep doing.
   var planLimits = {
-    free:         { events: 8,        groups: 3,        staff: 0 },
-    starter:      { events: 20,       groups: 6,        staff: 2 },
-    standard:     { events: 50,       groups: 12,       staff: 8 },
-    premium:      { events: 75,       groups: 30,       staff: Infinity },
-    multi_church: { events: Infinity, groups: Infinity, staff: Infinity }
+    free:         { events: 8,        internalEvents: 30,       groups: 3,        staff: 0 },
+    starter:      { events: 20,       internalEvents: 60,       groups: 6,        staff: 2 },
+    standard:     { events: 50,       internalEvents: Infinity, groups: 12,       staff: 8 },
+    premium:      { events: 75,       internalEvents: Infinity, groups: 30,       staff: Infinity },
+    multi_church: { events: Infinity, internalEvents: Infinity, groups: Infinity, staff: Infinity }
   };
+
+  // The four values ce-visibility can hold, split the way the caps
+  // are. Named here rather than tested inline in three places.
+  var PUBLIC_EVENT_VISIBILITIES = ['public'];
+  var INTERNAL_EVENT_VISIBILITIES = ['members_listed', 'members_hidden', 'draft'];
+  window.PUBLIC_EVENT_VISIBILITIES = PUBLIC_EVENT_VISIBILITIES;
+  window.INTERNAL_EVENT_VISIBILITIES = INTERNAL_EVENT_VISIBILITIES;
   window.planLimits = planLimits;
 
   // Mirrors migration 029's plan_tiers.can_assign_manager (true for
@@ -20395,20 +20413,44 @@ Groups</span>
       // creating a new one; editing an existing event should never
       // be blocked here, even if that push would exceed the cap.
       if (!ceEditingEventId) {
-        var eventLimit = planLimits[myChurch.planType || 'free'].events;
-        var { count: eventsThisMonth } = await supabase.from('events').select('id', { count: 'exact', head: true }).eq('church_id', myChurch.id).gte('created_at', startOfThisMonthIso());
-        if (eventsThisMonth && eventsThisMonth >= eventLimit) {
+        // Which allowance this event draws on, decided by what is
+        // actually about to be saved rather than by the plan alone.
+        var ceVisibilityEl = document.getElementById('ce-visibility');
+        var chosenVisibility = ceVisibilityEl ? ceVisibilityEl.value : 'public';
+        var isPublicEvent = PUBLIC_EVENT_VISIBILITIES.indexOf(chosenVisibility) !== -1;
+        var limits = planLimits[myChurch.planType || 'free'];
+        var eventLimit = isPublicEvent ? limits.events : limits.internalEvents;
+
+        // Counted with .in() on an explicit list rather than
+        // .neq('visibility','public'). A row whose visibility is NULL
+        // -- and older rows predate the column -- compares as NULL to
+        // anything, so neq would silently drop it from BOTH counts and
+        // quietly hand out free headroom.
+        var countedVisibilities = isPublicEvent ? PUBLIC_EVENT_VISIBILITIES : INTERNAL_EVENT_VISIBILITIES;
+        var monthCountQuery = supabase.from('events').select('id', { count: 'exact', head: true })
+          .eq('church_id', myChurch.id)
+          .gte('created_at', startOfThisMonthIso());
+        if (isPublicEvent) {
+          // A legacy NULL is a public event: it was written before
+          // anything else existed.
+          monthCountQuery = monthCountQuery.or('visibility.eq.public,visibility.is.null');
+        } else {
+          monthCountQuery = monthCountQuery.in('visibility', countedVisibilities);
+        }
+        var { count: eventsThisMonth } = await monthCountQuery;
+        if (eventLimit !== Infinity && eventsThisMonth && eventsThisMonth >= eventLimit) {
           // 5-tier "what's next" map. premium (Large) has no self-serve
           // tier above it — Multi-Church is negotiated, not a checkout
           // upgrade — so that case gets its own message instead of an
           // "Upgrade to X" phrasing that would imply one.
           var nextTierMap = { free: window.t('pricing.starter.name'), starter: window.t('pricing.medium.name'), standard: window.t('pricing.large.name') };
           var currentPlanType = myChurch.planType || 'free';
+          var limitKind = window.t(isPublicEvent ? 'ce.limitKindPublic' : 'ce.limitKindInternal');
           if (currentPlanType === 'premium') {
-            showCeError(window.t('ce.planLimitPerChurch').replace('{limit}', eventLimit));
+            showCeError(window.t('ce.planLimitPerChurch').replace('{limit}', eventLimit).replace('{kind}', limitKind));
           } else {
             var nextTier = nextTierMap[currentPlanType] || window.t('ce.aHigherPlan');
-            showCeError(window.t('ce.planLimitUpgrade').replace('{limit}', eventLimit).replace('{tier}', nextTier));
+            showCeError(window.t('ce.planLimitUpgrade').replace('{limit}', eventLimit).replace('{kind}', limitKind).replace('{tier}', nextTier));
           }
           return;
         }
