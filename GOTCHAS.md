@@ -6539,3 +6539,88 @@ like a bad anchor, which is the confusing part. Normalise on read:
 `readFileSync(p, 'utf8').split(CR+LF).join(LF)`.
 
 Build `2026-09-22-v192`; no migration (075 added the column).
+
+---
+
+## A permission that only hid a nav link
+
+`can_view_revenue` looked like an access control for two
+reasons: it is named like one, and the Revenue page genuinely is
+hidden without it. It was not one. The SELECT policy on
+`donations` ended in:
+
+```
+or is_church_staff_member(church_id)
+```
+
+Membership, not permission. Any staff member could read every
+donation the church had ever received, whatever their abilities said
+-- and not only through a page. A session plus a `church_staff`
+row was enough to read the table straight from PostgREST.
+
+### How it stayed invisible
+
+The client hid the Revenue nav link unless `canViewRevenue`,
+so the ability appeared to be doing its job. What it actually did was
+hide one link. Insights was gated by nothing at all -- it is not in
+the list of nav links that get an ability check -- and Insights shows
+all-time given, donor count, average gift and a twelve-month chart.
+
+So the figures the ability exists to protect were one click away, on a
+page the ability did not cover, for anybody on staff.
+
+It was found by a question rather than by a test: "what data should
+staff see in Test 2?" Nothing was failing, so nothing would have
+surfaced it. The answer to "what SHOULD they see" and the answer to
+"what DO they see" had drifted apart and nobody had put the two
+questions next to each other.
+
+### Why the fix is two halves
+
+Either alone is worse than useless.
+
+The migration decides who can read rows. Without it, hiding the
+figures in the client is a fix that only looks like one -- the data
+stays fetchable by anyone who opens a console.
+
+The client change decides what the absence looks like. With the
+tighter policy and no client change, a staff member without the
+ability gets an empty result set, and `$0` across every
+giving figure reads as a church nobody has given to. That is a
+different and much worse message than "you do not have access", and a
+treasurer would act on it.
+
+The gate also runs BEFORE the query rather than after. There is
+nothing to ask for without the ability, and asking anyway would return
+zeros that need explaining away.
+
+### Two details in the migration worth keeping
+
+The policy mirrors what the client computes --
+`can_manage_giving OR can_view_revenue`, two flags because the
+second arrived later (migration 047) as a read-only companion to the
+first. If those two expressions disagreed, one side would show figures
+the other refused to return, which is the same class of bug as the
+original.
+
+The verify block fails if `donations` ends up with more than
+one SELECT policy. Multiple SELECT policies are OR-ed: an old one
+surviving under a different name would keep granting exactly what the
+migration removes, while the migration reported success. Dropping by
+name and then counting is the only way to know the replacement
+replaced something.
+
+### Verified
+
+All four ability combinations resolve as intended (`manage_giving`
+alone, `view_revenue` alone, both, neither), and both
+rendered states: with no ability the figures and chart are hidden, the
+heading stays so nobody concludes Giving has moved, the explanation
+shows, and the RPC is never called.
+
+Against the live database afterwards: one SELECT policy,
+`is_church_staff_member` gone from it, a revenue ability
+mentioned in it, and zero staff losing visibility -- so the change is
+invisible to every existing user.
+
+Build `2026-09-22-v201`; migration 079.
