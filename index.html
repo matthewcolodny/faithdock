@@ -408,6 +408,12 @@
       'legal.adaTitle': 'Accessibility Statement',
       'legal.delTitle': 'Deleting your data',
       'unsub.eyebrow': 'Email preferences',
+      'profile.churchEmailsHeading': 'Churches you have unsubscribed from',
+      'profile.churchEmailsHint': 'You will not receive email from these churches. Following them, being a member and everything else is unaffected.',
+      'profile.resubscribe': 'Resubscribe',
+      'profile.resubscribing': 'Turning it back on...',
+      'profile.resubscribed': 'Done. You will receive email from them again.',
+      'profile.resubscribeFailed': 'That did not work. Please try again in a moment.',
       'unsub.okTitle': 'You have been unsubscribed',
       'unsub.okBody1': 'You will not receive further email from this church through FaithDock.',
       'unsub.okBody2': 'This does not affect any other church you follow, and it does not close your account. You can turn it back on from your account settings whenever you want.',
@@ -1488,6 +1494,12 @@
       'legal.adaTitle': 'Declaración de Accesibilidad',
       'legal.delTitle': 'Eliminar tus datos',
       'unsub.eyebrow': 'Preferencias de correo',
+      'profile.churchEmailsHeading': 'Iglesias de las que te diste de baja',
+      'profile.churchEmailsHint': 'No recibirás correos de estas iglesias. Seguirlas, ser miembro y todo lo demás no se ve afectado.',
+      'profile.resubscribe': 'Volver a suscribirme',
+      'profile.resubscribing': 'Activándolo de nuevo...',
+      'profile.resubscribed': 'Listo. Volverás a recibir sus correos.',
+      'profile.resubscribeFailed': 'Eso no funcionó. Inténtalo de nuevo en un momento.',
       'unsub.okTitle': 'Te has dado de baja',
       'unsub.okBody1': 'No recibirás más correos de esta iglesia a través de FaithDock.',
       'unsub.okBody2': 'Esto no afecta a ninguna otra iglesia que sigas, y no cierra tu cuenta. Puedes volver a activarlo desde la configuración de tu cuenta cuando quieras.',
@@ -5979,6 +5991,21 @@ Groups</span>
     </div>
     </div>
 
+    <!-- The other half of the unsubscribe link. Lives in the Email tab
+         rather than a page of its own because that is where somebody
+         looking for "why am I not getting their emails" will go.
+
+         The whole block hides when the list is empty: a permanent
+         "Churches you have unsubscribed from: none" is clutter on
+         every other account, and it invites the question for people
+         who never had it. -->
+    <div class="side-note" style="margin-top:20px;" id="profile-optouts-block" hidden>
+      <label style="margin-top:0;" data-i18n="profile.churchEmailsHeading">Churches you have unsubscribed from</label>
+      <div style="font-size:12px;color:var(--ink-mute);margin-bottom:10px;" data-i18n="profile.churchEmailsHint">You will not receive email from these churches. Following them, being a member and everything else is unaffected.</div>
+      <div id="profile-optouts-list"></div>
+      <div id="profile-optouts-status" style="display:none;font-size:12px;margin-top:8px;"></div>
+    </div>
+
     <div class="prof-panel" id="prof-panel-password" style="display:none;">
     <div class="side-note" style="margin-top:20px;">
       <form id="profile-password-form">
@@ -8744,7 +8771,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v187 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v188 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -32069,7 +32096,101 @@ Groups</span>
   // re-rendered on each switch, which is how a captcha ends up
   // showing an expired token.
   // ============================================================
+  // ============================================================
+  // Churches this person has unsubscribed from, and undoing it.
+  //
+  // Both halves go through RPCs rather than touching the table
+  // directly, and not for tidiness. An opt-out is stored as two rows
+  // (migration 073) -- one keyed by address, one by account -- and the
+  // RLS policies only ever match the account row, because the address
+  // row has a NULL user_id and NULL = anything is NULL rather than
+  // true. A select here would hide opt-outs made while signed out; a
+  // delete here would remove one row of two, clear the badge, look
+  // like it worked, and leave the person unmailable for good.
+  // ============================================================
+  var optOutsLoaded = false;
+
+  function optOutsSay(msg, colour){
+    var el = document.getElementById('profile-optouts-status');
+    if (!el) return;
+    el.textContent = msg;
+    el.style.color = colour;
+    el.style.display = msg ? 'block' : 'none';
+  }
+
+  function renderMyEmailOptOuts(rows){
+    var block = document.getElementById('profile-optouts-block');
+    var list = document.getElementById('profile-optouts-list');
+    if (!block || !list) return;
+    if (!rows || !rows.length) { block.hidden = true; list.innerHTML = ''; return; }
+    block.hidden = false;
+    list.innerHTML = rows.map(function(r){
+      return '<div class="optout-row" data-church-id="' + escapeHtml(r.church_id) + '"'
+        + ' style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);">'
+        + '<span style="min-width:0;overflow-wrap:anywhere;">' + escapeHtml(r.church_name || '') + '</span>'
+        // The label is set now rather than left to a re-translate
+        // pass: applyTranslations() takes a language and falls back to
+        // English when called without one, and it rewrites textContent
+        // for EVERY [data-i18n] element on the page, which is a large
+        // side effect to trigger for one button. data-i18n stays on it
+        // so switching language later still catches it.
+        + '<button class="export-btn optout-undo-btn" type="button" style="flex-shrink:0;" data-i18n="profile.resubscribe">'
+        +   escapeHtml(window.t('profile.resubscribe')) + '</button>'
+        + '</div>';
+    }).join('');
+  }
+
+  async function loadMyEmailOptOuts(force){
+    if (optOutsLoaded && !force) return;
+    var block = document.getElementById('profile-optouts-block');
+    if (!block) return;
+    var { data, error } = await supabase.rpc('my_email_optouts');
+    if (error) {
+      // Stay quiet and stay hidden. The alternative is telling somebody
+      // they have no opt-outs when the truth is we could not look --
+      // and that is a claim, not a blank.
+      console.error('my_email_optouts failed', error);
+      block.hidden = true;
+      return;
+    }
+    optOutsLoaded = true;
+    renderMyEmailOptOuts(data || []);
+  }
+  window.loadMyEmailOptOuts = loadMyEmailOptOuts;
+  window.invalidateMyEmailOptOuts = function(){ optOutsLoaded = false; };
+
+  document.addEventListener('click', async function(ev){
+    var btn = ev.target.closest ? ev.target.closest('.optout-undo-btn') : null;
+    if (!btn) return;
+    var row = btn.closest('.optout-row');
+    if (!row) return;
+    var churchId = row.getAttribute('data-church-id');
+    btn.disabled = true;
+    optOutsSay(window.t('profile.resubscribing'), 'var(--ink-mute)');
+    var { data, error } = await supabase.rpc('resubscribe_to_church', { p_church_id: churchId });
+    if (error) {
+      btn.disabled = false;
+      optOutsSay(window.t('profile.resubscribeFailed'), 'var(--clay)');
+      return;
+    }
+    // The count comes back from the function so "nothing was removed"
+    // is distinguishable from "done" without asking again. Zero here
+    // means the list was stale -- another tab, or the same person on a
+    // phone -- so reload rather than claim a success that did not
+    // happen.
+    if (!data) { await loadMyEmailOptOuts(true); optOutsSay('', ''); return; }
+    row.remove();
+    optOutsSay(window.t('profile.resubscribed'), 'var(--sage)');
+    if (!document.querySelectorAll('.optout-row').length) {
+      var block = document.getElementById('profile-optouts-block');
+      if (block) block.hidden = true;
+    }
+  });
+
   function showProfileTab(name){
+    // Lazily, and only here: most visits to this page never open the
+    // Email tab, and this is a round trip.
+    if (name === 'email') loadMyEmailOptOuts();
     ['profile','email','password','delete'].forEach(function(n){
       var panel = document.getElementById('prof-panel-' + n);
       if (panel) panel.style.display = (n === name) ? '' : 'none';
