@@ -111,50 +111,46 @@ rather than alongside anything else.
 
 ---
 
-## 3. Insights numbers are unverified against real data
-
-**Today:** all four Insights loaders -- giving, attendance, groups and
-people statistics -- were moved from browser-side aggregation to
-Postgres RPCs on 2026-09-22 (migrations 077 and 078). Each was checked
-against stubbed return values, arithmetic included: 63% from 40/64,
-not-in-group 35 from 57-22, average household 2.9 from 26/9, staff 4
-from 3+1, $4,568 from 456789 cents.
-
-**What that does not prove.** Those tests confirm the client renders a
-given payload correctly. They say nothing about whether the SQL
-produces the same payload the JavaScript used to. Every one of these
-is a rewrite of a calculation in a different language against the same
-tables, and the failure mode is not an error -- it is a number that is
-quietly wrong by a little.
-
-The places most likely to disagree, because each was a judgement:
-
-- **Giving by month.** Boundaries are drawn in the browser's timezone,
-  passed to the RPC. A gift late on the last day of a month is the
-  case to look at.
-- **Donor counts.** Giving counts donor-or-email and collapses all
-  anonymous gifts into one donor; People Statistics counts donor_id
-  only. They are meant to differ, so neither can be checked against
-  the other.
-- **Attendance by age** counts check-ins, not people, so it exceeds
-  the number of humans involved whenever anyone attends twice.
-- **Meetings tracked** is distinct (group, date) pairs, not rows.
-- **Staff** is church_staff + 1 for the owner, which double counts an
-  owner who is also listed as staff.
-
-**What doing it involves:** open Insights on a church with real data
-and compare each figure against what it showed before, or against the
-underlying tables. Anything that disagrees is worth reporting with
-both numbers rather than assumed to be the new one being right -- the
-old code is what people have been reading.
-
-**Do it before the numbers are used for anything.** A reporting figure
-that has been wrong for a month is harder to correct than one that was
-never trusted, because by then somebody has quoted it.
-
----
-
 ## Done
+
+### Insights numbers verified against real data -- 2026-09-22
+
+All four Insights loaders were moved from browser-side aggregation to
+Postgres RPCs (migrations 077 and 078) and then checked against SQL
+written independently from what the old JavaScript did. Twenty-four
+scalar comparisons, all matching.
+
+Verifying it needed data that did not exist. Test 7 was seeded
+deliberately (supabase/checks/seed_test7.sql), checked, then cleaned
+up -- because zeros cannot verify anything: 0 = 0 matches whether the
+SQL is right or wrong, and the first run against an unseeded church
+reported a clean pass that meant nothing.
+
+**The case most likely to be wrong was right.** A gift stored at
+2026-09-01 04:30 UTC is 2026-08-31 23:30 in America/Chicago. It
+landed in August: the month totals came back 10245 and 7035, matching
+the seed exactly. Bucketed in UTC they would have read 4567 and 12713
+and the chart would have disagreed with the church's own books.
+
+The two deliberate definitional splits also held: attendance by age
+reported 2 while people by age reported 1, from a church containing
+one person, which is check-ins versus people demonstrated rather than
+asserted; and the donor counts came back 4 and 1, so the giving page
+and the people report are provably not using the same rule.
+
+**What it did not establish.** The check runs as the SQL Editor's
+role, which bypasses RLS, so the invoker-rights path is still
+untested -- these functions are SECURITY INVOKER precisely so that a
+caller sees only what RLS allows, and nothing here proves that holds.
+A signed-in staff member reading correct numbers off the real Insights
+page is the remaining check, and it is a small one.
+
+Also worth recording: two predictions in the seed were wrong. It
+expected 3 registrations and 1 group; the answers were 4 and 2,
+because Test 7 already held a registration and a group. Both sides of
+each comparison agreed, so the verification stands -- but a stated
+expectation that assumed an empty church was not a safe assumption.
+
 
 ### Verify JWT was on for `resend-webhook` -- fixed 2026-09-21
 
