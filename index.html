@@ -8833,7 +8833,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v204 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v205 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -18224,7 +18224,7 @@ Groups</span>
       // loadDashboardHeader() also makes) rather than this function's
       // own separate owned/staffed existence queries -- getMyChurch()
       // returns a row for either case, so its truthiness is exactly
-      // hasChurchAccess, and its own 1.5s cache means whichever of
+      // hasChurchAccess, and its own cache means whichever of
       // updateAuthUI() / loadDashboardHeader() runs first does the one
       // real round trip and the other just reuses it, instead of both
       // independently querying the same relationship on every load.
@@ -25492,6 +25492,41 @@ Groups</span>
         return;
       }
       modal.classList.remove('open');
+
+      // Accepting makes this person staff, which changes what
+      // getMyChurch() answers. go('dashboard') below is guarded on
+      // window.hasChurchAccess, which is derived from getMyChurch() --
+      // so without clearing the cache first the guard still sees the
+      // pre-acceptance answer, decides this person has no church, and
+      // rewrites the route to 'home'. That is why accepting an invite
+      // needed a page refresh before the dashboard would appear.
+      //
+      // The cache TTL was raised from 1.5 to 20 seconds earlier the
+      // same day, which is what turned this from an intermittent
+      // flicker into a reliable failure. The gap was always here; the
+      // longer TTL just stopped hiding it.
+      if (typeof window.invalidateMyChurchCache === 'function') window.invalidateMyChurchCache();
+      // Different cache, same reason: a person who is now staff has a
+      // different relationship to this church, and My Lists tags read
+      // from it.
+      if (typeof window.invalidateChurchRoleCache === 'function') window.invalidateChurchRoleCache();
+
+      // Re-derived rather than assumed true. If the RPC reported
+      // success but the row is not visible for any reason, staying put
+      // with a message beats sending somebody to a dashboard that will
+      // be empty and unexplained.
+      var joinedChurch = await getMyChurch();
+      window.hasChurchAccess = !!joinedChurch;
+      if (!joinedChurch) {
+        statusEl.textContent = window.t('common.somethingWrong');
+        statusEl.style.color = 'var(--clay)';
+        statusEl.style.display = 'block';
+        return;
+      }
+      // Pick the church they just joined, rather than leaving
+      // getActiveChurchId() to fall back to whichever sorts first.
+      if (typeof window.setActiveChurchId === 'function') window.setActiveChurchId(joinedChurch.id);
+
       if (typeof window.go === 'function') window.go('dashboard');
     });
   }
