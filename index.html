@@ -408,8 +408,17 @@
       'legal.adaTitle': 'Accessibility Statement',
       'legal.delTitle': 'Deleting your data',
       'unsub.eyebrow': 'Email preferences',
-      'profile.churchEmailsHeading': 'Churches you have unsubscribed from',
-      'profile.churchEmailsHint': 'You will not receive email from these churches. Following them, being a member and everything else is unaffected.',
+      'profile.churchEmailsHeading': 'Church emails',
+      'profile.subReasonStaff': 'Staff',
+      'profile.subReasonMember': 'Member',
+      'profile.subReasonGroup': 'Group member',
+      'profile.subReasonEvent': 'Event registration',
+      'profile.subStateOn': 'Receiving email',
+      'profile.subStateOff': 'Unsubscribed',
+      'profile.unsubscribe': 'Unsubscribe',
+      'profile.unsubscribing': 'Turning it off...',
+      'profile.unsubscribed': 'Done. They will not email you again.',
+      'profile.churchEmailsHint': 'Every church that can email you, and whether it currently does. Turning one off changes nothing else: you stay a member, stay in your groups, and keep your event registrations.',
       'profile.resubscribe': 'Resubscribe',
       'profile.resubscribing': 'Turning it back on...',
       'profile.resubscribed': 'Done. You will receive email from them again.',
@@ -724,6 +733,8 @@
       'ics.found': 'Found {n} events to import. Skipped {skipped} (cancelled, or no date).',
       'ics.truncated': 'A repeating event was cut off at three months ahead. Import again later for the rest.',
       'ics.unsupportedRule': 'One repeat rule was too complex to read, so only its first date was taken.',
+      'ics.oneFileEmpty': 'One of the files you chose had no events in it, so nothing from it appears below.',
+      'ics.someFilesEmpty': '{n} of the {total} files you chose had no events in them, so nothing from them appears below.',
       'ics.timezoneNote': 'Times are read as your own timezone unless the file said otherwise. Check a few before publishing.',
       'ics.repeating': 'repeats', 'ics.cancel': 'Cancel', 'ics.confirm': 'Import as drafts',
       'ics.nothingToImport': 'There was nothing in that file we could import.',
@@ -1494,8 +1505,17 @@
       'legal.adaTitle': 'Declaración de Accesibilidad',
       'legal.delTitle': 'Eliminar tus datos',
       'unsub.eyebrow': 'Preferencias de correo',
-      'profile.churchEmailsHeading': 'Iglesias de las que te diste de baja',
-      'profile.churchEmailsHint': 'No recibirás correos de estas iglesias. Seguirlas, ser miembro y todo lo demás no se ve afectado.',
+      'profile.churchEmailsHeading': 'Correos de iglesias',
+      'profile.subReasonStaff': 'Personal',
+      'profile.subReasonMember': 'Miembro',
+      'profile.subReasonGroup': 'Miembro de grupo',
+      'profile.subReasonEvent': 'Inscripción a evento',
+      'profile.subStateOn': 'Recibiendo correos',
+      'profile.subStateOff': 'Dado de baja',
+      'profile.unsubscribe': 'Darme de baja',
+      'profile.unsubscribing': 'Desactivándolo...',
+      'profile.unsubscribed': 'Listo. No volverán a enviarte correos.',
+      'profile.churchEmailsHint': 'Cada iglesia que puede enviarte correos, y si lo hace actualmente. Desactivar una no cambia nada más: sigues siendo miembro, sigues en tus grupos y conservas tus inscripciones a eventos.',
       'profile.resubscribe': 'Volver a suscribirme',
       'profile.resubscribing': 'Activándolo de nuevo...',
       'profile.resubscribed': 'Listo. Volverás a recibir sus correos.',
@@ -1803,6 +1823,8 @@
       'ics.found': 'Encontramos {n} eventos para importar. Se omitieron {skipped} (canceladas o sin fecha).',
       'ics.truncated': 'Un evento repetido se cortó a los tres meses. Vuelve a importar más adelante para el resto.',
       'ics.unsupportedRule': 'Una regla de repetición era demasiado compleja, así que solo se tomó su primera fecha.',
+      'ics.oneFileEmpty': 'Uno de los archivos que elegiste no tenía eventos, así que no aparece nada de él abajo.',
+      'ics.someFilesEmpty': '{n} de los {total} archivos que elegiste no tenían eventos, así que no aparece nada de ellos abajo.',
       'ics.timezoneNote': 'Las horas se leen en tu zona horaria salvo que el archivo indique otra. Revisa algunas antes de publicar.',
       'ics.repeating': 'se repite', 'ics.cancel': 'Cancelar', 'ics.confirm': 'Importar como borradores',
       'ics.nothingToImport': 'No había nada que pudiéramos importar en ese archivo.',
@@ -6000,8 +6022,8 @@ Groups</span>
          every other account, and it invites the question for people
          who never had it. -->
     <div class="side-note" style="margin-top:20px;" id="profile-optouts-block" hidden>
-      <label style="margin-top:0;" data-i18n="profile.churchEmailsHeading">Churches you have unsubscribed from</label>
-      <div style="font-size:12px;color:var(--ink-mute);margin-bottom:10px;" data-i18n="profile.churchEmailsHint">You will not receive email from these churches. Following them, being a member and everything else is unaffected.</div>
+      <label style="margin-top:0;" data-i18n="profile.churchEmailsHeading">Church emails</label>
+      <div style="font-size:12px;color:var(--ink-mute);margin-bottom:10px;" data-i18n="profile.churchEmailsHint">Every church that can email you, and whether it currently does. Turning one off changes nothing else: you stay a member, stay in your groups, and keep your event registrations.</div>
       <div id="profile-optouts-list"></div>
       <div id="profile-optouts-status" style="display:none;font-size:12px;margin-top:8px;"></div>
     </div>
@@ -7165,7 +7187,7 @@ Groups</span>
             <button class="export-btn" id="dash-events-toggle-past-btn" data-i18n="dashEvents.viewPast">View past events</button>
             <button class="btn-gold" id="dash-create-event-btn" style="padding:10px 18px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;vertical-align:-3px;margin-right:4px;"><path d="M12 5v14M5 12h14"/></svg><span data-i18n="dashEvents.createEvent">Create event</span></button>
             <button class="export-btn" id="dash-import-ics-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15V3m0 12l-4-4m4 4l4-4"/><path d="M4 19h16"/></svg> <span data-i18n="dashEvents.importIcs">Import from calendar file</span></button>
-            <input type="file" id="dash-import-ics-input" accept=".ics,text/calendar" style="position:absolute;width:1px;height:1px;opacity:0;">
+            <input type="file" id="dash-import-ics-input" accept=".ics,text/calendar" multiple style="position:absolute;width:1px;height:1px;opacity:0;">
             <button class="export-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 19h16"/></svg> <span data-i18n="dashEvents.exportSpreadsheet">Export to spreadsheet</span></button>
             <button class="export-btn" id="dash-export-schedule-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> <span data-i18n="dashEvents.exportSchedule">Export schedule</span></button>
           </div>
@@ -8771,7 +8793,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v189 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v190 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -9816,6 +9838,14 @@ Groups</span>
     if (result.events.some(function(e){ return e.truncated; })) warnings.push(window.t('ics.truncated'));
     if (result.events.some(function(e){ return e.ruleUnsupported; })) warnings.push(window.t('ics.unsupportedRule'));
     if (result.events.some(function(e){ return !e.allDay; })) warnings.push(window.t('ics.timezoneNote'));
+    // Named before the list rather than after the import, because the
+    // moment to notice a missing file is while you can still go back
+    // and pick it.
+    if (result.emptyFiles) {
+      warnings.push(window.t(result.emptyFiles === 1 ? 'ics.oneFileEmpty' : 'ics.someFilesEmpty')
+        .replace('{n}', result.emptyFiles)
+        .replace('{total}', result.fileCount || ''));
+    }
     warnEl.innerHTML = warnings.map(function(w){ return '<div>' + escapeHtml(w) + '</div>'; }).join('');
     warnEl.style.display = warnings.length ? 'block' : 'none';
 
@@ -9843,16 +9873,54 @@ Groups</span>
   if (icsBtn && icsInput) {
     icsBtn.addEventListener('click', function(){ icsInput.value = ''; icsInput.click(); });
     icsInput.addEventListener('change', async function(){
-      var file = this.files && this.files[0];
-      if (!file) return;
-      var text = '';
-      try { text = await file.text(); }
-      catch (e) { alert(window.t('ics.couldNotRead')); return; }
-      var result;
-      try { result = window.parseIcsEvents(text, { horizonMonths: 3, hardCap: 60 }); }
-      catch (e) { alert(window.t('ics.couldNotRead')); return; }
+      var files = this.files ? Array.prototype.slice.call(this.files) : [];
+      if (!files.length) return;
+
+      // Several files at once, because some calendars only publish one
+      // event per file. Squarespace is the case in hand: its event
+      // pages each carry their own ?format=ical link and there is no
+      // whole-calendar feed, so a church with seven upcoming events has
+      // seven downloads and no way to combine them. Merging here turns
+      // that into one review instead of seven.
+      var merged = [], skipped = 0, unreadable = 0, emptyFiles = 0;
+      for (var i = 0; i < files.length; i++) {
+        var text = '';
+        try { text = await files[i].text(); }
+        catch (e) { unreadable++; continue; }
+        try {
+          var one = window.parseIcsEvents(text, { horizonMonths: 3, hardCap: 60 });
+          // A file that is not a calendar at all does not throw -- it
+          // parses to nothing, because there is no VEVENT to find. That
+          // is the quiet case: pick the wrong file among several and it
+          // simply is not there afterwards, with no line of the summary
+          // to explain it. Counted so it can be said out loud.
+          if (!one.events.length && !one.skipped) emptyFiles++;
+          merged = merged.concat(one.events);
+          skipped += one.skipped;
+        } catch (e) { unreadable++; }
+      }
+      // One bad file among several should not lose the good ones, so a
+      // failure counts rather than aborts -- but say so, because
+      // quietly importing four of five files is how somebody ends up
+      // missing an event they believe they imported.
+      if (unreadable) skipped += unreadable;
+      if (!merged.length && unreadable === files.length) { alert(window.t('ics.couldNotRead')); return; }
+
+      // The same event can arrive twice -- the whole-calendar export
+      // plus a single event re-downloaded, or simply the same file
+      // picked twice. Same title at the same instant is the same
+      // event for review purposes.
+      var seen = {};
+      merged = merged.filter(function(ev){
+        var key = ev.title + '|' + ev.start.getTime();
+        if (seen[key]) return false;
+        seen[key] = true;
+        return true;
+      });
+      merged.sort(function(a, b){ return a.start - b.start; });
+
       document.getElementById('ics-import-status').style.display = 'none';
-      renderIcsPreview(result);
+      renderIcsPreview({ events: merged, skipped: skipped, emptyFiles: emptyFiles + unreadable, fileCount: files.length });
       document.getElementById('ics-import-modal').classList.add('open');
     });
   }
@@ -15217,6 +15285,14 @@ Groups</span>
   // itself.
   function icsUnescape(v){
     return String(v || '')
+      // Zero-width characters, written as escapes on purpose: real
+      // calendars carry them, and a title like
+      //   'Holy Rollers \uFEFF\uFEFFYouth and Children Event'
+      // looks perfectly normal while sorting oddly and matching no
+      // search for 'Rollers Youth'. Found in an actual church feed,
+      // not imagined. Written literally here they would be invisible
+      // in this source too, which is how they survive so long.
+      .replace(/[\uFEFF\u200B-\u200D]/g, '')
       .replace(/\\n/gi, '\n')
       .replace(/\\,/g, ',')
       .replace(/\\;/g, ';')
@@ -32187,24 +32263,49 @@ Groups</span>
     el.style.display = msg ? 'block' : 'none';
   }
 
-  function renderMyEmailOptOuts(rows){
+  // Why a church is on somebody's list, in words. The reason comes
+  // from the same four audiences the sender uses, so 'why am I getting
+  // this' has an answer rather than a shrug.
+  var SUB_REASON_KEYS = {
+    staff:  'profile.subReasonStaff',
+    member: 'profile.subReasonMember',
+    group:  'profile.subReasonGroup',
+    event:  'profile.subReasonEvent'
+  };
+
+  function renderMyEmailSubscriptions(rows){
     var block = document.getElementById('profile-optouts-block');
     var list = document.getElementById('profile-optouts-list');
     if (!block || !list) return;
     if (!rows || !rows.length) { block.hidden = true; list.innerHTML = ''; return; }
     block.hidden = false;
     list.innerHTML = rows.map(function(r){
+      var off = !!r.opted_out;
+      // A church with no reason left is one they have unsubscribed
+      // from and since left, or were never on the list of. Saying
+      // 'unsubscribed' alone is honest there; inventing a reason
+      // would not be.
+      var reasonKey = SUB_REASON_KEYS[r.reason];
+      var bits = [];
+      if (reasonKey) bits.push(window.t(reasonKey));
+      bits.push(window.t(off ? 'profile.subStateOff' : 'profile.subStateOn'));
+      // The label is set now rather than left to a re-translate pass:
+      // applyTranslations() takes a language and falls back to English
+      // when called without one, and it rewrites textContent for EVERY
+      // [data-i18n] element on the page, which is a large side effect
+      // to trigger for one button. data-i18n stays on it so switching
+      // language later still catches it.
+      var actionKey = off ? 'profile.resubscribe' : 'profile.unsubscribe';
       return '<div class="optout-row" data-church-id="' + escapeHtml(r.church_id) + '"'
-        + ' style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);">'
-        + '<span style="min-width:0;overflow-wrap:anywhere;">' + escapeHtml(r.church_name || '') + '</span>'
-        // The label is set now rather than left to a re-translate
-        // pass: applyTranslations() takes a language and falls back to
-        // English when called without one, and it rewrites textContent
-        // for EVERY [data-i18n] element on the page, which is a large
-        // side effect to trigger for one button. data-i18n stays on it
-        // so switching language later still catches it.
-        + '<button class="export-btn optout-undo-btn" type="button" style="flex-shrink:0;" data-i18n="profile.resubscribe">'
-        +   escapeHtml(window.t('profile.resubscribe')) + '</button>'
+        + ' data-opted-out="' + (off ? '1' : '0') + '"'
+        + ' style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);">'
+        + '<span style="min-width:0;overflow-wrap:anywhere;">'
+        +   escapeHtml(r.church_name || '')
+        +   '<span class="optout-why" style="display:block;font-size:12px;color:' + (off ? 'var(--ink-mute)' : 'var(--sage)') + ';">'
+        +     escapeHtml(bits.join(' \u00b7 ')) + '</span>'
+        + '</span>'
+        + '<button class="export-btn optout-undo-btn" type="button" style="flex-shrink:0;" data-i18n="' + actionKey + '">'
+        +   escapeHtml(window.t(actionKey)) + '</button>'
         + '</div>';
     }).join('');
   }
@@ -32213,17 +32314,18 @@ Groups</span>
     if (optOutsLoaded && !force) return;
     var block = document.getElementById('profile-optouts-block');
     if (!block) return;
-    var { data, error } = await supabase.rpc('my_email_optouts');
+    var { data, error } = await supabase.rpc('my_email_subscriptions');
     if (error) {
-      // Stay quiet and stay hidden. The alternative is telling somebody
-      // they have no opt-outs when the truth is we could not look --
-      // and that is a claim, not a blank.
-      console.error('my_email_optouts failed', error);
+      // Stay quiet and stay hidden. The alternative is showing somebody
+      // an empty list when the truth is we could not look -- and an
+      // empty list here reads as 'no church can email you', which is a
+      // specific claim rather than a blank.
+      console.error('my_email_subscriptions failed', error);
       block.hidden = true;
       return;
     }
     optOutsLoaded = true;
-    renderMyEmailOptOuts(data || []);
+    renderMyEmailSubscriptions(data || []);
   }
   window.loadMyEmailOptOuts = loadMyEmailOptOuts;
   window.invalidateMyEmailOptOuts = function(){ optOutsLoaded = false; };
@@ -32234,26 +32336,45 @@ Groups</span>
     var row = btn.closest('.optout-row');
     if (!row) return;
     var churchId = row.getAttribute('data-church-id');
+    var wasOff = row.getAttribute('data-opted-out') === '1';
     btn.disabled = true;
-    optOutsSay(window.t('profile.resubscribing'), 'var(--ink-mute)');
-    var { data, error } = await supabase.rpc('resubscribe_to_church', { p_church_id: churchId });
-    if (error) {
+    optOutsSay(window.t(wasOff ? 'profile.resubscribing' : 'profile.unsubscribing'), 'var(--ink-mute)');
+
+    var res = wasOff
+      ? await supabase.rpc('resubscribe_to_church', { p_church_id: churchId })
+      : await supabase.rpc('unsubscribe_from_church', { p_church_id: churchId });
+
+    if (res.error) {
       btn.disabled = false;
       optOutsSay(window.t('profile.resubscribeFailed'), 'var(--clay)');
       return;
     }
-    // The count comes back from the function so "nothing was removed"
-    // is distinguishable from "done" without asking again. Zero here
-    // means the list was stale -- another tab, or the same person on a
-    // phone -- so reload rather than claim a success that did not
-    // happen.
-    if (!data) { await loadMyEmailOptOuts(true); optOutsSay('', ''); return; }
-    row.remove();
-    optOutsSay(window.t('profile.resubscribed'), 'var(--sage)');
-    if (!document.querySelectorAll('.optout-row').length) {
-      var block = document.getElementById('profile-optouts-block');
-      if (block) block.hidden = true;
+
+    // Resubscribing returns how many rows it removed. Zero means this
+    // list was stale -- another tab, or the same person on a phone --
+    // so reload rather than report a change that did not happen.
+    // Unsubscribing returns true and is idempotent, so there is no
+    // equivalent doubt on that side.
+    if (wasOff && !res.data) { await loadMyEmailOptOuts(true); optOutsSay('', ''); return; }
+
+    // The row stays put and flips. Removing it would be wrong now that
+    // this list shows both states -- the church can still email them
+    // tomorrow if they change their mind, and a row that vanishes when
+    // you touch it reads as a mistake.
+    row.setAttribute('data-opted-out', wasOff ? '0' : '1');
+    btn.disabled = false;
+    var nextKey = wasOff ? 'profile.unsubscribe' : 'profile.resubscribe';
+    btn.setAttribute('data-i18n', nextKey);
+    btn.textContent = window.t(nextKey);
+    var why = row.querySelector('.optout-why');
+    if (why) {
+      var parts = why.textContent.split(' \u00b7 ');
+      var stateWord = window.t(wasOff ? 'profile.subStateOn' : 'profile.subStateOff');
+      parts[parts.length - 1] = stateWord;
+      why.textContent = parts.join(' \u00b7 ');
+      why.style.color = wasOff ? 'var(--sage)' : 'var(--ink-mute)';
     }
+    optOutsSay(window.t(wasOff ? 'profile.resubscribed' : 'profile.unsubscribed'), 'var(--sage)');
   });
 
   function showProfileTab(name){
