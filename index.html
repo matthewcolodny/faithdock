@@ -798,7 +798,7 @@
       'dashFacility.scheduleTitle': 'Room schedule',
       'dashFacility.scheduleHint': 'Day shows every room side by side. Two blocks on top of each other are the same double-booking the event form warns about.',
       'dashFacility.thisWeek': 'This week', 'dashFacility.nothingThisWeek': 'Nothing booked in this range.',
-      'dashFacility.today': 'Today',
+      'dashFacility.renameRoom': 'Rename room', 'dashFacility.roomNameTaken': 'A room with that name already exists.', 'dashFacility.roomNameRequired': 'A room needs a name.', 'dashFacility.today': 'Today',
       'dashFacility.allRooms': 'All rooms', 'dashFacility.viewDay': 'Day', 'dashFacility.viewWeek': 'Week', 'dashFacility.viewMonth': 'Month',
       'dashFacility.nUpcoming': '{n} upcoming', 'dashFacility.noUpcoming': 'nothing booked',
       'dashSettings.removeRoomStillBooked': 'This room still has {n} upcoming event(s):',
@@ -1890,7 +1890,7 @@
       'dashFacility.scheduleTitle': 'Horario de salas',
       'dashFacility.scheduleHint': 'La vista de día muestra todas las salas una al lado de la otra. Dos bloques superpuestos son la misma doble reserva que advierte el formulario de eventos.',
       'dashFacility.thisWeek': 'Esta semana', 'dashFacility.nothingThisWeek': 'Nada reservado en este rango.',
-      'dashFacility.today': 'Hoy',
+      'dashFacility.renameRoom': 'Cambiar nombre de la sala', 'dashFacility.roomNameTaken': 'Ya existe una sala con ese nombre.', 'dashFacility.roomNameRequired': 'La sala necesita un nombre.', 'dashFacility.today': 'Hoy',
       'dashFacility.allRooms': 'Todas las salas', 'dashFacility.viewDay': 'Día', 'dashFacility.viewWeek': 'Semana', 'dashFacility.viewMonth': 'Mes',
       'dashFacility.nUpcoming': '{n} próximos', 'dashFacility.noUpcoming': 'sin reservas',
       'dashSettings.removeRoomStillBooked': 'Esta sala todavía tiene {n} evento(s) próximo(s):',
@@ -8853,7 +8853,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v207 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v211 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -22165,6 +22165,10 @@ Groups</span>
     if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:13px;">' + escapeHtml(error.message) + '</p>'; return; }
 
     window.churchRoomsCache = rooms || [];
+    // Any change made on this panel -- added, renamed, retired --
+    // lands here, and the schedule below must not redraw from a
+    // snapshot taken before it.
+    roomSchedCache = {};
 
     if (!rooms || !rooms.length) {
       listEl.innerHTML = '<p style="color:var(--ink-mute);font-size:13px;">' + window.t('dashSettings.noRoomsYet') + '</p>';
@@ -22254,17 +22258,46 @@ Groups</span>
   // ---- Per-room upcoming list on the Facility page ----------------
   var roomUsageExpanded = {};
 
+  // Which room is being renamed, if any. One at a time, in the same
+  // shape as roomUsageExpanded above -- a second piece of state to
+  // reconcile would be worse than re-rendering the list.
+  var roomRenamingId = null;
+
+  // Trimmed and case-folded, because "Room 300" and "room 300 " are
+  // the same room to everybody except a string comparison. Used by
+  // both add and rename so the two cannot disagree about what a
+  // duplicate is.
+  function roomNameKey(name){ return String(name || '').trim().toLowerCase(); }
+
+  function duplicateRoomName(name, exceptId){
+    var key = roomNameKey(name);
+    return (window.churchRoomsCache || []).some(function(r){
+      return r.id !== exceptId && roomNameKey(r.name) === key;
+    });
+  }
+
   function roomUsageRowsHtml(room, bookings){
     var count = bookings.length;
     var open = !!roomUsageExpanded[room.id];
     var html = '<div class="info-row" style="display:block;" data-room-row="' + escapeHtml(room.id) + '">'
       + '<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;">'
-        + '<span style="min-width:0;cursor:pointer;" data-room-toggle="' + escapeHtml(room.id) + '">'
-          + escapeHtml(room.name)
-          + ' <span style="color:var(--ink-mute);font-size:12px;">'
-          + (count ? window.t('dashFacility.nUpcoming').replace('{n}', count) : window.t('dashFacility.noUpcoming'))
-          + '</span>'
-        + '</span>'
+        + (room.id === roomRenamingId
+          // The input replaces the name in place rather than opening a
+          // dialog: renaming a room is a one-word correction, and a
+          // modal for it would be more ceremony than the change.
+          ? '<span style="display:flex;gap:6px;flex:1;min-width:0;">'
+              + '<input class="field" type="text" id="room-rename-input" value="' + escAttr(room.name) + '" style="margin:0;flex:1;min-width:0;font-size:13px;padding:6px 8px;">'
+              + '<button class="export-btn" data-room-rename-save="' + escapeHtml(room.id) + '" style="flex-shrink:0;">' + escapeHtml(window.t('profile.save')) + '</button>'
+              + '<button class="export-btn" data-room-rename-cancel="1" style="flex-shrink:0;">' + escapeHtml(window.t('emailNeeded.cancel')) + '</button>'
+            + '</span>'
+          : '<span style="min-width:0;cursor:pointer;" data-room-toggle="' + escapeHtml(room.id) + '">'
+              + escapeHtml(room.name)
+              + ' <span style="color:var(--ink-mute);font-size:12px;">'
+              + (count ? window.t('dashFacility.nUpcoming').replace('{n}', count) : window.t('dashFacility.noUpcoming'))
+              + '</span>'
+            + '</span>')
+        + (room.id === roomRenamingId ? '' :
+           '<button class="qr-btn" data-rename-room-id="' + escapeHtml(room.id) + '" aria-label="' + window.t('dashFacility.renameRoom') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>')
         + '<button class="qr-btn" data-remove-room-id="' + escapeHtml(room.id) + '" aria-label="' + window.t('dashSettings.removeRoom') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'
       + '</div>';
     if (open && count) {
@@ -22320,6 +22353,15 @@ Groups</span>
   // why the clash is marked by more than its colour.
   function roomHueAt(index){ return Math.round((index * 137.508 + 150) % 360); }
 
+  // Last fetched booking range, so switching views does not re-ask
+  // for something just fetched. See loadRoomSchedule.
+  // Keyed by range, not a single slot. Day, week and month each ask
+  // for a different range, so one slot means week -> month -> week
+  // evicts the week on the way past and the return trip pays full
+  // price -- which is precisely the back-and-forth this exists to
+  // make free.
+  var roomSchedCache = {};
+
   var ROOM_SCHED_ALL = '__all';
   var roomSchedRoomId = ROOM_SCHED_ALL;   // week view only; day and month are always all rooms
 
@@ -22368,7 +22410,17 @@ Groups</span>
       var aStart = new Date(item.event.start_at), aEnd = roomEventEnd(item.event);
       var clash = sorted.some(function(other){
         if (other === item.event) return false;
-        return aStart < roomEventEnd(other) && new Date(other.start_at) < aEnd;
+        if (!(aStart < roomEventEnd(other) && new Date(other.start_at) < aEnd)) return false;
+        // Overlapping in TIME is only a double-booking if it is the
+        // same ROOM. A column used to be one room, so time alone was
+        // enough; the all-rooms week view broke that assumption and
+        // painted every concurrent booking as a clash -- a false
+        // warning in the one view whose job is showing real ones.
+        var mine = item.event.__roomIds, theirs = other.__roomIds;
+        // No ids means a single-room column, where any overlap is
+        // still a genuine clash.
+        if (!mine || !theirs) return true;
+        return mine.some(function(id){ return theirs.indexOf(id) !== -1; });
       });
       return { event: item.event, col: item.col, cols: item.clusterRef.__cols || 1, clash: clash };
     });
@@ -22517,10 +22569,12 @@ Groups</span>
         (byRoom[r.id] || []).forEach(function(e){
           if (seen[e.id]) {
             if (e.__roomName) seen[e.id].__roomNames.push(e.__roomName);
+            (e.__roomIds || []).forEach(function(rid){ seen[e.id].__roomIds.push(rid); });
             return;
           }
           var merged = Object.assign({}, e);
           merged.__roomNames = e.__roomName ? [e.__roomName] : [];
+          merged.__roomIds = (e.__roomIds || []).slice();
           seen[e.id] = merged;
           source.push(merged);
         });
@@ -22695,7 +22749,25 @@ Groups</span>
     var myChurch = await getMyChurch();
     if (!myChurch) return;
     var range = roomSchedRange();
-    var byRoom = await fetchRoomBookings(myChurch.id, range.from.toISOString(), range.to.toISOString());
+    // Toggling day / week / month re-asks for a range the page often
+    // already fetched a second ago, and the round trip is what the
+    // delay between views actually is. Memoised on the exact range so
+    // moving back and forth is free.
+    //
+    // Thirty seconds, and deliberately short: this is a booking grid,
+    // and somebody who creates an event in another tab should not be
+    // looking at a schedule that disagrees for long. Cleared outright
+    // whenever the rooms panel reloads, which is what happens after
+    // any change made here.
+    var rangeKey = myChurch.id + "|" + range.from.toISOString() + "|" + range.to.toISOString();
+    var byRoom;
+    var cached = roomSchedCache[rangeKey];
+    if (cached && cached.expires > Date.now()) {
+      byRoom = cached.value;
+    } else {
+      byRoom = await fetchRoomBookings(myChurch.id, range.from.toISOString(), range.to.toISOString());
+      roomSchedCache[rangeKey] = { value: byRoom, expires: Date.now() + 30000 };
+    }
 
     // The room name travels with the event, because day and month show
     // several rooms at once and a block that does not say which room
@@ -22711,6 +22783,11 @@ Groups</span>
         var booking = Object.assign({}, e);
         booking.__roomName = roomNameById[rid] || '';
         booking.__roomHue = roomHueById[rid];
+        // Which room(s) this block represents. A clash is an overlap
+        // IN A ROOM, and the all-rooms week view puts every room in
+        // one column -- without this, two bookings at 9am in
+        // different rooms were flagged as a double-booking.
+        booking.__roomIds = [rid];
         return booking;
       });
     });
@@ -24861,6 +24938,65 @@ Groups</span>
     schedulePrintBtn.addEventListener('click', function(){ window.print(); });
   }
 
+  document.addEventListener('click', async function(ev){
+    if (!ev.target.closest) return;
+
+    var startBtn = ev.target.closest('[data-rename-room-id]');
+    if (startBtn) {
+      roomRenamingId = startBtn.getAttribute('data-rename-room-id');
+      await loadRoomsPanel();
+      var input = document.getElementById('room-rename-input');
+      // Focused and selected, so the next keystroke replaces the name
+      // rather than appending to it.
+      if (input) { input.focus(); input.select(); }
+      return;
+    }
+
+    if (ev.target.closest('[data-room-rename-cancel]')) {
+      roomRenamingId = null;
+      loadRoomsPanel();
+      return;
+    }
+
+    var saveBtn = ev.target.closest('[data-room-rename-save]');
+    if (saveBtn) {
+      var roomId = saveBtn.getAttribute('data-room-rename-save');
+      var input2 = document.getElementById('room-rename-input');
+      var statusEl2 = document.getElementById('room-add-status');
+      var newName = input2 ? input2.value.trim() : '';
+      function sayRoom(msg){
+        if (!statusEl2) return;
+        statusEl2.textContent = msg;
+        statusEl2.style.color = 'var(--clay)';
+        statusEl2.style.display = 'block';
+      }
+      if (!newName) { sayRoom(window.t('dashFacility.roomNameRequired')); return; }
+      // Itself excluded, or saving a room under its own name would
+      // report a clash with itself.
+      if (duplicateRoomName(newName, roomId)) { sayRoom(window.t('dashFacility.roomNameTaken')); return; }
+
+      saveBtn.disabled = true;
+      var { error: renameError } = await supabase.from('church_rooms')
+        .update({ name: newName }).eq('id', roomId).select('id');
+      saveBtn.disabled = false;
+      if (renameError) {
+        // 23505 is the unique index from migration 084 firing. It can
+        // only happen when the client check passed on a stale list --
+        // another tab, another person -- and "duplicate key value
+        // violates unique constraint" is not a sentence about rooms.
+        sayRoom(renameError.code === '23505' ? window.t('dashFacility.roomNameTaken') : friendlyDbError(renameError));
+        return;
+      }
+      if (statusEl2) statusEl2.style.display = 'none';
+      roomRenamingId = null;
+      // The schedule shows room names on its blocks and in its picker,
+      // so it has to be rebuilt too -- loadRoomsPanel does that at the
+      // end of its own refresh.
+      loadRoomsPanel();
+      return;
+    }
+  });
+
   var roomAddBtn = document.getElementById('room-add-btn');
   if (roomAddBtn) {
     roomAddBtn.addEventListener('click', async function(){
@@ -24869,11 +25005,22 @@ Groups</span>
       var nameInput = document.getElementById('room-add-name');
       var name = nameInput.value.trim();
       if (!name) return;
+      // Caught here so the message names the problem. The database
+      // refuses it too (migration 084) -- that is the guarantee, since
+      // a second tab or a stale cache can get past this check -- but a
+      // unique-violation surfaced raw says "duplicate key value", which
+      // is not a sentence about rooms.
+      if (duplicateRoomName(name, null)) {
+        statusEl.textContent = window.t('dashFacility.roomNameTaken');
+        statusEl.style.color = 'var(--clay)';
+        statusEl.style.display = 'block';
+        return;
+      }
       var myChurch = await getMyChurch();
       if (!myChurch) return;
       var { error } = await supabase.from('church_rooms').insert({ church_id: myChurch.id, name: name });
       if (error) {
-        statusEl.textContent = friendlyDbError(error);
+        statusEl.textContent = error.code === '23505' ? window.t('dashFacility.roomNameTaken') : friendlyDbError(error);
         statusEl.style.color = 'var(--clay)';
         statusEl.style.display = 'block';
         return;
