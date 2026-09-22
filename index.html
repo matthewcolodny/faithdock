@@ -799,7 +799,7 @@
       'dashFacility.scheduleHint': 'Day shows every room side by side. Two blocks on top of each other are the same double-booking the event form warns about.',
       'dashFacility.thisWeek': 'This week', 'dashFacility.nothingThisWeek': 'Nothing booked in this range.',
       'dashFacility.today': 'Today',
-      'dashFacility.viewDay': 'Day', 'dashFacility.viewWeek': 'Week', 'dashFacility.viewMonth': 'Month',
+      'dashFacility.allRooms': 'All rooms', 'dashFacility.viewDay': 'Day', 'dashFacility.viewWeek': 'Week', 'dashFacility.viewMonth': 'Month',
       'dashFacility.nUpcoming': '{n} upcoming', 'dashFacility.noUpcoming': 'nothing booked',
       'dashSettings.removeRoomStillBooked': 'This room still has {n} upcoming event(s):',
       'ce.roomAlreadyBooked': 'Already booked at this time:',
@@ -1891,7 +1891,7 @@
       'dashFacility.scheduleHint': 'La vista de día muestra todas las salas una al lado de la otra. Dos bloques superpuestos son la misma doble reserva que advierte el formulario de eventos.',
       'dashFacility.thisWeek': 'Esta semana', 'dashFacility.nothingThisWeek': 'Nada reservado en este rango.',
       'dashFacility.today': 'Hoy',
-      'dashFacility.viewDay': 'Día', 'dashFacility.viewWeek': 'Semana', 'dashFacility.viewMonth': 'Mes',
+      'dashFacility.allRooms': 'Todas las salas', 'dashFacility.viewDay': 'Día', 'dashFacility.viewWeek': 'Semana', 'dashFacility.viewMonth': 'Mes',
       'dashFacility.nUpcoming': '{n} próximos', 'dashFacility.noUpcoming': 'sin reservas',
       'dashSettings.removeRoomStillBooked': 'Esta sala todavía tiene {n} evento(s) próximo(s):',
       'ce.roomAlreadyBooked': 'Ya reservada a esta hora:',
@@ -4328,6 +4328,9 @@
   .cal-day.other-month .cal-day-num{color:var(--ink-mute);}
   .cal-day.today{background:var(--today-bg);}
   .cal-day-num{font-size:12px;font-weight:600;margin-bottom:3px;color:var(--ink);}
+  /* The room on a chip or a block: present, and clearly secondary to
+     the name of the thing happening. */
+  .cal-chip-room,.rsched-block-room{opacity:.72;font-weight:400;}
   .cal-event-chip{display:block;font-size:10px;padding:2px 5px;border-radius:4px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;line-height:1.5;}
   .cal-event-chip.sage{background:var(--sage-bg);color:var(--sage);}
   .cal-event-chip.gold{background:var(--gold-bg);color:var(--gold-ink);}
@@ -8833,7 +8836,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v205 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v206 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -22276,7 +22279,11 @@ Groups</span>
   // ============================================================
   var roomSchedView = 'day';
   var roomSchedAnchor = null;   // the day/week/month being shown
-  var roomSchedRoomId = null;   // week view only; day and month are always all rooms
+  // Not a room id. Sentinel for the week view showing every room at
+  // once, so it can live in the same variable and the same <select>
+  // without a second piece of state to keep in step.
+  var ROOM_SCHED_ALL = '__all';
+  var roomSchedRoomId = ROOM_SCHED_ALL;   // week view only; day and month are always all rooms
 
   function startOfWeek(d){
     var out = new Date(d.getFullYear(), d.getMonth(), d.getDate());
@@ -22379,7 +22386,12 @@ Groups</span>
         + ' title="' + escapeHtml(e.title + (showRoomName && e.__roomName ? ' — ' + e.__roomName : '')) + '"'
         + ' style="top:' + top + 'px;height:' + height + 'px;left:' + (item.col * widthPct) + '%;width:calc(' + widthPct + '% - 2px);">'
         + escapeHtml(st.toLocaleTimeString(window.appLocale(), { hour: 'numeric', minute: '2-digit' }))
-        + ' ' + escapeHtml(e.title) + '</div>';
+        + ' ' + escapeHtml(e.title)
+        // Visible, not only in the title attribute. A tooltip is no use
+        // on a phone, and "which room" is the whole question in a view
+        // showing all of them.
+        + (showRoomName && e.__roomName ? ' <span class="rsched-block-room">' + escapeHtml(e.__roomName) + '</span>' : '')
+        + '</div>';
     });
     return '<div class="rsched-col" style="height:' + ((range.max - range.min) * pxPerHour) + 'px;">' + inner + '</div>';
   }
@@ -22452,8 +22464,34 @@ Groups</span>
   function renderRoomSchedWeek(rooms, byRoom){
     var weekStart = startOfWeek(roomSchedAnchor);
     var weekEnd = addDays(weekStart, 7);
-    var room = rooms.filter(function(r){ return r.id === roomSchedRoomId; })[0] || rooms[0];
-    var events = (room ? (byRoom[room.id] || []) : []).filter(function(e){
+    var showAll = roomSchedRoomId === ROOM_SCHED_ALL;
+    var source;
+    if (showAll) {
+      // One entry per EVENT, not per room it occupies -- the same
+      // mistake the month view already documents. A booking in two
+      // rooms would otherwise draw two identical blocks side by side
+      // and read as a double-booking, which is precisely the thing
+      // this view exists to make visible.
+      var seen = {};
+      source = [];
+      rooms.forEach(function(r){
+        (byRoom[r.id] || []).forEach(function(e){
+          if (seen[e.id]) {
+            if (e.__roomName) seen[e.id].__roomNames.push(e.__roomName);
+            return;
+          }
+          var merged = Object.assign({}, e);
+          merged.__roomNames = e.__roomName ? [e.__roomName] : [];
+          seen[e.id] = merged;
+          source.push(merged);
+        });
+      });
+      source.forEach(function(e){ e.__roomName = e.__roomNames.join(', '); });
+    } else {
+      var room = rooms.filter(function(r){ return r.id === roomSchedRoomId; })[0] || rooms[0];
+      source = room ? (byRoom[room.id] || []) : [];
+    }
+    var events = source.filter(function(e){
       var st = new Date(e.start_at);
       return st >= weekStart && st < weekEnd;
     });
@@ -22474,7 +22512,9 @@ Groups</span>
       return '<div class="rsched-head' + (d.isToday ? ' today' : '') + '">' + escapeHtml(d.label) + '</div>';
     }).join('');
     var cols = days.map(function(d){
-      return roomSchedColumn(d.events, d.date, d.end, range, RSCHED_PX_PER_HOUR, false);
+      // Room names shown only when several rooms are on screen. In a
+      // single-room week they would repeat the dropdown on every block.
+      return roomSchedColumn(d.events, d.date, d.end, range, RSCHED_PX_PER_HOUR, showAll);
     }).join('');
 
     return { grid: '<div class="rsched" style="grid-template-columns:52px repeat(7,minmax(0,1fr));">' + head
@@ -22537,7 +22577,9 @@ Groups</span>
         + dayEvents.slice(0, 3).map(function(e){
             var chipRooms = (e.__roomNames || []).join(', ');
             return '<span class="cal-event-chip sage" data-room-event="' + escapeHtml(e.id) + '" title="' + escapeHtml(e.title + (chipRooms ? ' — ' + chipRooms : '')) + '">'
-              + escapeHtml(e.title) + '</span>';
+              + escapeHtml(e.title)
+              + (chipRooms ? ' <span class="cal-chip-room">' + escapeHtml(chipRooms) + '</span>' : '')
+              + '</span>';
           }).join('')
         + (dayEvents.length > 3 ? '<div class="cal-more-link">+' + (dayEvents.length - 3) + '</div>' : '')
         + '</div>';
@@ -22569,8 +22611,13 @@ Groups</span>
     section.style.display = 'block';
 
     if (!roomSchedAnchor) roomSchedAnchor = startOfDay(new Date());
-    if (!roomSchedRoomId || !rooms.filter(function(r){ return r.id === roomSchedRoomId; }).length) {
-      roomSchedRoomId = rooms[0].id;
+    // '__all' is not a room, so it has to be allowed through the
+    // validity check below -- which otherwise resets anything it
+    // cannot find in the room list back to the first room, and would
+    // silently undo the choice every time the view reloaded.
+    if (roomSchedRoomId !== ROOM_SCHED_ALL &&
+        (!roomSchedRoomId || !rooms.filter(function(r){ return r.id === roomSchedRoomId; }).length)) {
+      roomSchedRoomId = ROOM_SCHED_ALL;
     }
 
     // The room picker only means anything in week view, where the grid
@@ -22581,7 +22628,15 @@ Groups</span>
     if (selectWrap) selectWrap.style.display = roomSchedView === 'week' ? '' : 'none';
     var selectEl = document.getElementById('room-schedule-room');
     if (selectEl) {
-      selectEl.innerHTML = rooms.map(function(r){
+      // First, and the default. A week view that opens on one room
+      // answers "is Room 300 free", which is a question somebody
+      // arrives with already knowing the room. Opening on everything
+      // answers "what is happening this week", which is the question
+      // somebody has before they know which room to ask about.
+      selectEl.innerHTML = '<option value="' + ROOM_SCHED_ALL + '"'
+          + (roomSchedRoomId === ROOM_SCHED_ALL ? ' selected' : '') + '>'
+          + escapeHtml(window.t('dashFacility.allRooms')) + '</option>'
+        + rooms.map(function(r){
         return '<option value="' + escapeHtml(r.id) + '"' + (r.id === roomSchedRoomId ? ' selected' : '') + '>' + escapeHtml(r.name) + '</option>';
       }).join('');
     }
