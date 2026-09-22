@@ -2873,6 +2873,11 @@
     --paper:#F5F4EE;
     --card:#FCFBF7;
     --gold:#C9A227;
+    /* Room colours vary only in HUE. These keep the rest of the
+       recipe per-theme, so hue 155 reproduces --sage exactly and
+       nothing about the existing look changes. */
+    --room-block-s:21%; --room-block-l:32%;
+    --room-chip-bg-s:22%; --room-chip-bg-l:92%;
     --sage:#3F6152;
     --sage-bg:#E7EEE9;
     --clay:#A8503A;
@@ -2891,6 +2896,8 @@
     --paper:#101826;
     --card:#182338;
     --gold:#D9B646;
+    --room-block-s:40%; --room-block-l:68%;
+    --room-chip-bg-s:27%; --room-chip-bg-l:16%;
     --sage:#8FCBAA;
     --sage-bg:#1D3327;
     --clay:#E2917A;
@@ -3995,12 +4002,21 @@
   .rsched-col:last-child{border-right:0;}
   .rsched-line{position:absolute;left:0;right:0;border-top:1px solid var(--line);opacity:.5;}
   .rsched-block{position:absolute;overflow:hidden;border-radius:5px;padding:3px 4px;font-size:10.5px;line-height:1.25;
-    background:var(--sage);color:#fff;cursor:pointer;border:1px solid rgba(0,0,0,.08);}
+    background:hsl(var(--room-hue,155) var(--room-block-s,21%) var(--room-block-l,32%));
+    color:#fff;cursor:pointer;border:1px solid rgba(0,0,0,.08);}
   /* An overlap inside ONE room is the double-booking the event form
      warns about at save time. Colouring it here means the Facility
      page shows the same fact the warning does, instead of the two
      disagreeing about whether anything is wrong. */
-  .rsched-block.clash{background:var(--clay);}
+  /* Wins over the room hue on purpose: an overlap is more urgent than
+     which room it happens to be in, and a clash that was merely a
+     different shade of its room would not read as a warning. */
+  .rsched-block.clash{background:var(--clay) !important;
+    /* Marked by shape as well as colour. Room hues cover the wheel,
+       so with enough rooms one of them sits near clay -- and a
+       warning that depends on being the only reddish block stops
+       being a warning on the day it is not. */
+    box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.85);}
   .rsched-agenda{display:none;}
   /* Day view can carry more columns than fit -- one per room. Equal
      fractions past about six rooms squeeze each below the width of a
@@ -4332,7 +4348,8 @@
      the name of the thing happening. */
   .cal-chip-room,.rsched-block-room{opacity:.72;font-weight:400;}
   .cal-event-chip{display:block;font-size:10px;padding:2px 5px;border-radius:4px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;line-height:1.5;}
-  .cal-event-chip.sage{background:var(--sage-bg);color:var(--sage);}
+  .cal-event-chip.sage{background:hsl(var(--room-hue,155) var(--room-chip-bg-s,22%) var(--room-chip-bg-l,92%));
+    color:hsl(var(--room-hue,155) var(--room-block-s,21%) var(--room-block-l,32%));}
   .cal-event-chip.gold{background:var(--gold-bg);color:var(--gold-ink);}
   .cal-event-chip.clay{background:var(--clay-bg);color:var(--clay);}
   .cal-more-link{font-size:10px;color:var(--ink-mute);cursor:pointer;padding:1px 5px;font-weight:600;}
@@ -8836,7 +8853,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v206 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v207 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -22282,6 +22299,27 @@ Groups</span>
   // Not a room id. Sentinel for the week view showing every room at
   // once, so it can live in the same variable and the same <select>
   // without a second piece of state to keep in step.
+  // A hue per room, so a glance at the grid answers "which room"
+  // before reading a word of it.
+  //
+  // By POSITION in the room list, spaced by the golden angle, rather
+  // than hashed from the room id. A hash is stable when rooms are
+  // added but spreads badly -- with five rooms two of them can land a
+  // few degrees apart and look identical, which defeats the purpose.
+  // The golden angle guarantees the opposite: consecutive rooms are
+  // always far apart on the wheel.
+  //
+  // The cost is that adding a room shifts the colours of the rooms
+  // after it. Distinguishing rooms from each other today is worth more
+  // than keeping Room 300 the same green across a change nobody makes
+  // often.
+  // Offset so the FIRST room lands on 150 -- the green these blocks
+  // have always been -- rather than on 0, which is red and would make
+  // a perfectly ordinary Room 300 booking look like the clash
+  // warning. With enough rooms one will still land near red, which is
+  // why the clash is marked by more than its colour.
+  function roomHueAt(index){ return Math.round((index * 137.508 + 150) % 360); }
+
   var ROOM_SCHED_ALL = '__all';
   var roomSchedRoomId = ROOM_SCHED_ALL;   // week view only; day and month are always all rooms
 
@@ -22384,7 +22422,8 @@ Groups</span>
       inner += '<div class="rsched-block' + (item.clash ? ' clash' : '') + '"'
         + ' data-room-event="' + escapeHtml(e.id) + '"'
         + ' title="' + escapeHtml(e.title + (showRoomName && e.__roomName ? ' — ' + e.__roomName : '')) + '"'
-        + ' style="top:' + top + 'px;height:' + height + 'px;left:' + (item.col * widthPct) + '%;width:calc(' + widthPct + '% - 2px);">'
+        + ' style="' + (e.__roomHue != null ? '--room-hue:' + e.__roomHue + ';' : '')
+        + 'top:' + top + 'px;height:' + height + 'px;left:' + (item.col * widthPct) + '%;width:calc(' + widthPct + '% - 2px);">'
         + escapeHtml(st.toLocaleTimeString(window.appLocale(), { hour: 'numeric', minute: '2-digit' }))
         + ' ' + escapeHtml(e.title)
         // Visible, not only in the title attribute. A tooltip is no use
@@ -22546,10 +22585,12 @@ Groups</span>
       (byRoom[r.id] || []).forEach(function(e){
         if (chipById[e.id]) {
           if (e.__roomName) chipById[e.id].__roomNames.push(e.__roomName);
+          if (e.__roomHue != null) chipById[e.id].__roomHues.push(e.__roomHue);
           return;
         }
         var chip = Object.assign({}, e);
         chip.__roomNames = e.__roomName ? [e.__roomName] : [];
+        chip.__roomHues = e.__roomHue != null ? [e.__roomHue] : [];
         chipById[e.id] = chip;
         all.push(chip);
       });
@@ -22576,7 +22617,13 @@ Groups</span>
         + '<div class="cal-day-num">' + day.getDate() + '</div>'
         + dayEvents.slice(0, 3).map(function(e){
             var chipRooms = (e.__roomNames || []).join(', ');
-            return '<span class="cal-event-chip sage" data-room-event="' + escapeHtml(e.id) + '" title="' + escapeHtml(e.title + (chipRooms ? ' — ' + chipRooms : '')) + '">'
+            // The first room's hue when a booking spans several. The
+            // chip names them all in its text; the colour can only be
+            // one, and the first is the one the room list sorts to.
+            var chipHue = e.__roomHues && e.__roomHues.length ? e.__roomHues[0] : null;
+            return '<span class="cal-event-chip sage" data-room-event="' + escapeHtml(e.id) + '"'
+              + (chipHue != null ? ' style="--room-hue:' + chipHue + ';"' : '')
+              + ' title="' + escapeHtml(e.title + (chipRooms ? ' — ' + chipRooms : '')) + '">'
               + escapeHtml(e.title)
               + (chipRooms ? ' <span class="cal-chip-room">' + escapeHtml(chipRooms) + '</span>' : '')
               + '</span>';
@@ -22654,11 +22701,16 @@ Groups</span>
     // several rooms at once and a block that does not say which room
     // it is in is worse than no block.
     var roomNameById = {};
-    rooms.forEach(function(r){ roomNameById[r.id] = r.name; });
+    var roomHueById = {};
+    rooms.forEach(function(r, i){
+      roomNameById[r.id] = r.name;
+      roomHueById[r.id] = roomHueAt(i);
+    });
     Object.keys(byRoom).forEach(function(rid){
       byRoom[rid] = byRoom[rid].map(function(e){
         var booking = Object.assign({}, e);
         booking.__roomName = roomNameById[rid] || '';
+        booking.__roomHue = roomHueById[rid];
         return booking;
       });
     });
