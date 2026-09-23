@@ -9029,7 +9029,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v223 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v224 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12935,6 +12935,80 @@ Groups</span>
 
   // noHistory: the caller is writing the URL itself. Used by go() for
   // a panel route, whose URL is its own route and not #dashboard/x.
+  // Which loaders each dashboard view owns.
+  //
+  // Module scope rather than inside goDash: the panel flush below
+  // consults this to decide what is on screen, and on a direct
+  // #dashboard load the classic router runs before goDash has ever
+  // been called -- so a map that only existed once goDash ran was
+  // undefined at the one moment it was first needed.
+  var DASH_VIEW_LOADERS = window.DASH_VIEW_LOADERS = {
+    events:     ['loadDashboardEvents'],
+    checkin:    ['loadCheckinEventPicker'],
+    // Recently joined, pending invites and duplicates moved to
+    // Directory -> Reports, so they load there and not here.
+    directory:  ['loadDirectoryPeople', 'loadHouseholdsPanel'],
+    // loadContactInbox is NOT here any more: the inbox moved to its
+    // own sub-page and loading it from the composer would be a fetch
+    // for something not on screen.
+    messages:   ['loadMessageDrafts', 'loadScheduledMessages', 'loadMessageHistory'],
+    // loadRoomsPanel is what populates window.churchRoomsCache, and
+    // the schedule on this page is built from it -- so it runs here
+    // even though the room LIST it renders now lives on the Rooms
+    // sub-page. Without it, opening Facility straight from the menu
+    // would find an empty cache and hide the schedule entirely.
+    facility:   ['loadRoomsPanel'],
+    ministries: ['loadMinistriesPanel'],
+    groups:     ['loadDashboardGroups'],
+    giving:     ['loadGivingStatus'],
+    revenue:    ['loadRevenuePanel'],
+    // loadSavedReportsList moved to insights-saved with the panel
+    // it fills. The dashboard keeps the four figure panels.
+    insights:   ['loadGivingInsights', 'loadAttendanceInsights', 'loadGroupsInsights', 'loadInvolvementPanel'],
+    staff:      ['loadTeamPanel'],
+    billing:    ['loadBillingPanel'],
+    settings:   ['loadGiveMessageToggles'],
+    // The four shelled sub-pages have no data yet. Named with an
+    // empty list on purpose rather than omitted: this map is meant
+    // to be read as the complete set of views, and a view missing
+    // from it is what caused the Billing bug.
+    // Empty on purpose, not an omission: the loaders for this panel
+    // take arguments (loadEventRoomChecklist([], null)) so they
+    // cannot be called from this map. resetCreateEventForm runs them
+    // for the button, showRouteFromHash for a direct URL.
+    'create-event':       [],
+    'events-reports':     [],
+    'events-settings':    ['loadSectionSettings'],
+    'directory-reports':  ['loadRecentlyJoinedPanel', 'loadPendingInvitesPanel', 'loadDuplicatesPanel'],
+    'directory-settings': ['loadSectionSettings'],
+    'messages-inbox':     ['loadContactInbox'],
+    // The messaging toggles moved here from the composer page, and
+    // loadGiveMessageToggles is what fills them in -- it reads all
+    // three of giving/messaging/owner-receives in one query and
+    // no-ops when none of their elements are on the page, so naming
+    // it in both places costs nothing and forgetting it would leave
+    // the toggles showing their unchecked HTML default.
+    'messages-settings':  ['loadGiveMessageToggles'],
+    'facility-rooms':     ['loadRoomsPanel'],
+    // loadGiveMessageToggles is what fills these switches in. Their
+    // HTML default is checked, which reads as "shown on your public
+    // page" -- so without the loader a church that had hidden the
+    // section would be told it was visible.
+    'ministries-settings': ['loadGiveMessageToggles'],
+    'groups-settings':    ['loadGiveMessageToggles'],
+    'giving-tickets':     [],
+    'giving-reports':     [],
+    // The funds list and the public Give switch moved onto this
+    // page, so the two loaders that fill them are named here.
+    // Without them the switch would show its checked HTML default
+    // and the list would sit on 'Loading...' forever.
+    'giving-settings':    ['loadSectionSettings', 'loadFundsPanel', 'loadGiveMessageToggles'],
+    'settings-account':   [],
+    'insights-reports':   [],
+    'insights-saved':     ['loadSavedReportsList'],
+    'account-settings':   ['loadAccountSettings', 'loadAccountTransfers']
+  };
+
   function goDash(view, skipPush, noHistory){
     var panels = document.querySelectorAll('.dash-content');
     for(var i=0;i<panels.length;i++){ panels[i].classList.remove('active'); }
@@ -12969,72 +13043,6 @@ Groups</span>
     // that reads data names its loader, and adding a tab without one
     // is now a visible omission rather than an invisible default.
     // ============================================================
-    var DASH_VIEW_LOADERS = window.DASH_VIEW_LOADERS = {
-      events:     ['loadDashboardEvents'],
-      checkin:    ['loadCheckinEventPicker'],
-      // Recently joined, pending invites and duplicates moved to
-      // Directory -> Reports, so they load there and not here.
-      directory:  ['loadDirectoryPeople', 'loadHouseholdsPanel'],
-      // loadContactInbox is NOT here any more: the inbox moved to its
-      // own sub-page and loading it from the composer would be a fetch
-      // for something not on screen.
-      messages:   ['loadMessageDrafts', 'loadScheduledMessages', 'loadMessageHistory'],
-      // loadRoomsPanel is what populates window.churchRoomsCache, and
-      // the schedule on this page is built from it -- so it runs here
-      // even though the room LIST it renders now lives on the Rooms
-      // sub-page. Without it, opening Facility straight from the menu
-      // would find an empty cache and hide the schedule entirely.
-      facility:   ['loadRoomsPanel'],
-      ministries: ['loadMinistriesPanel'],
-      groups:     ['loadDashboardGroups'],
-      giving:     ['loadGivingStatus'],
-      revenue:    ['loadRevenuePanel'],
-      // loadSavedReportsList moved to insights-saved with the panel
-      // it fills. The dashboard keeps the four figure panels.
-      insights:   ['loadGivingInsights', 'loadAttendanceInsights', 'loadGroupsInsights', 'loadInvolvementPanel'],
-      staff:      ['loadTeamPanel'],
-      billing:    ['loadBillingPanel'],
-      settings:   ['loadGiveMessageToggles'],
-      // The four shelled sub-pages have no data yet. Named with an
-      // empty list on purpose rather than omitted: this map is meant
-      // to be read as the complete set of views, and a view missing
-      // from it is what caused the Billing bug.
-      // Empty on purpose, not an omission: the loaders for this panel
-      // take arguments (loadEventRoomChecklist([], null)) so they
-      // cannot be called from this map. resetCreateEventForm runs them
-      // for the button, showRouteFromHash for a direct URL.
-      'create-event':       [],
-      'events-reports':     [],
-      'events-settings':    ['loadSectionSettings'],
-      'directory-reports':  ['loadRecentlyJoinedPanel', 'loadPendingInvitesPanel', 'loadDuplicatesPanel'],
-      'directory-settings': ['loadSectionSettings'],
-      'messages-inbox':     ['loadContactInbox'],
-      // The messaging toggles moved here from the composer page, and
-      // loadGiveMessageToggles is what fills them in -- it reads all
-      // three of giving/messaging/owner-receives in one query and
-      // no-ops when none of their elements are on the page, so naming
-      // it in both places costs nothing and forgetting it would leave
-      // the toggles showing their unchecked HTML default.
-      'messages-settings':  ['loadGiveMessageToggles'],
-      'facility-rooms':     ['loadRoomsPanel'],
-      // loadGiveMessageToggles is what fills these switches in. Their
-      // HTML default is checked, which reads as "shown on your public
-      // page" -- so without the loader a church that had hidden the
-      // section would be told it was visible.
-      'ministries-settings': ['loadGiveMessageToggles'],
-      'groups-settings':    ['loadGiveMessageToggles'],
-      'giving-tickets':     [],
-      'giving-reports':     [],
-      // The funds list and the public Give switch moved onto this
-      // page, so the two loaders that fill them are named here.
-      // Without them the switch would show its checked HTML default
-      // and the list would sit on 'Loading...' forever.
-      'giving-settings':    ['loadSectionSettings', 'loadFundsPanel', 'loadGiveMessageToggles'],
-      'settings-account':   [],
-      'insights-reports':   [],
-      'insights-saved':     ['loadSavedReportsList'],
-      'account-settings':   ['loadAccountSettings', 'loadAccountTransfers']
-    };
     // Arriving at a tab closes the drawer and names it in the bar.
     // Both here rather than only in the click handler, so deep links
     // and Back/Forward behave the same as a tap.
@@ -15443,26 +15451,112 @@ Groups</span>
   // same module but reads better asking a named question than repeating
   // the hash parsing.
   window.dashboardIsCurrentRoute = dashboardIsCurrentRoute;
+  var _dashFlushScheduled = false;
   function dashPanel(fn){
     _dashPanelRegistry.push(fn);
-    // Landing directly on #dashboard: this module runs after routing
-    // has already settled on it, so there is nothing to wait for and
-    // queuing would just delay the panel by a tick.
-    if (_dashPanelsFlushed || dashboardIsCurrentRoute()) {
-      _dashPanelsFlushed = true;
-      try { fn(); } catch (e) { console.error('Dashboard panel failed to load:', e); }
-    }
+    // Registering used to RUN it, when the dashboard was already the
+    // current route. Since dashPanel() is called twenty-six times as
+    // this module evaluates, a refresh on the dashboard fired all
+    // twenty-six one after another during parse, each opening its own
+    // queries -- which is most of why a refresh was slow.
+    //
+    // Registration is now only registration. One flush is scheduled
+    // instead, as a microtask, so it runs after the whole module body
+    // has finished registering and the flush below can see the
+    // complete set and decide what is actually on screen.
+    if (_dashPanelsFlushed || _dashFlushScheduled || !dashboardIsCurrentRoute()) return;
+    _dashFlushScheduled = true;
+    Promise.resolve().then(function(){
+      _dashFlushScheduled = false;
+      if (dashboardIsCurrentRoute()) window.runDashboardPanels();
+    });
   }
   // Called from showRouteFromHash when the dashboard becomes the active
   // route. One panel throwing must not stop the other 23 from loading,
   // hence the per-panel try/catch -- previously each was its own
   // top-level statement and had that isolation for free.
+  // How many panel loaders may be in flight at once.
+  //
+  // Reported: refreshing the church dashboard left Directory on
+  // "Loading..." for over ten seconds, Team and Permissions took ten,
+  // Groups took five to show one group, and two panels came back with
+  // a raw Postgres error. All twenty-six panels were fired at the same
+  // instant, each with its own queries -- so the panel somebody was
+  // actually looking at queued behind two dozen for pages nobody had
+  // opened.
+  //
+  // Deliberately NOT "only load the visible one". Several of these
+  // feed counts that are meant to be right when you open their tab,
+  // and the comment above this registry says so. They all still run.
+  // They stop racing the one in front of you.
+  var DASH_PANEL_CONCURRENCY = 4;
+
+  function runPanelsThrottled(fns){
+    var queue = fns.slice(), active = 0;
+    function pump(){
+      while (active < DASH_PANEL_CONCURRENCY && queue.length) {
+        var fn = queue.shift();
+        active++;
+        var done = function(){ active--; pump(); };
+        try {
+          var r = fn();
+          // A loader that is not async finishes here and frees its slot
+          // immediately; one that returns a promise holds it until it
+          // settles. Rejection frees it too -- one panel failing must
+          // not stall the queue behind it.
+          if (r && typeof r.then === 'function') r.then(done, done); else done();
+        } catch (e) {
+          console.error('Dashboard panel failed to load:', e);
+          done();
+        }
+      }
+    }
+    pump();
+  }
+
   window.runDashboardPanels = function(){
     if (_dashPanelsFlushed) return;
     _dashPanelsFlushed = true;
+
+    var views = window.DASH_VIEW_LOADERS || {};
+    var view = (typeof window.currentDashView === 'function') ? window.currentDashView() : null;
+
+    // goDash runs a view's loaders itself when it opens that view, and
+    // on the initial route dispatch it has already done so by the time
+    // this runs. _dashCurKey is what it sets when it does, so matching
+    // it means those loaders are in flight and must not be started a
+    // second time -- which is what used to happen to whichever view you
+    // landed on.
+    var alreadyRunning = {};
+    if (window._dashCurKey && window._dashCurKey === view) {
+      (views[view] || []).forEach(function(n){ alreadyRunning[n] = true; });
+    }
+
+    var onScreen = {};
+    (views[view] || []).forEach(function(n){ onScreen[n] = true; });
+
+    // A panel no view claims is page furniture -- the dashboard header
+    // above every tab -- not a tab of its own, so it belongs in the
+    // first wave too.
+    var claimed = {};
+    Object.keys(views).forEach(function(v){ (views[v] || []).forEach(function(n){ claimed[n] = true; }); });
+
+    var first = [], rest = [];
     _dashPanelRegistry.forEach(function(fn){
-      try { fn(); } catch (e) { console.error('Dashboard panel failed to load:', e); }
+      var name = fn.name;
+      if (alreadyRunning[name]) return;
+      if (onScreen[name] || !claimed[name]) first.push(fn); else rest.push(fn);
     });
+
+    // What is on screen, with nothing else competing for a connection.
+    runPanelsThrottled(first);
+
+    // Everything else once the browser has had a chance to paint it.
+    // Idle rather than a timer where it exists, with a timeout so a
+    // busy page cannot postpone them indefinitely.
+    var kickRest = function(){ runPanelsThrottled(rest); };
+    if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(kickRest, { timeout: 1500 });
+    else setTimeout(kickRest, 250);
   };
   // Marks every panel stale WITHOUT loading anything, so they reload
   // the next time the dashboard is actually opened.
@@ -15496,19 +15590,17 @@ Groups</span>
   // it itself, and in a specific position -- the sub-nav render it
   // triggers consumes state set after it.
   window.runUnviewedDashPanels = function(){
-    var views = window.DASH_VIEW_LOADERS;
-    // No map yet means goDash has never run, and there is no basis
-    // for deciding what is covered. Do the old thing rather than
-    // guess and skip something.
-    if (!views) { window.resetDashboardPanels(); window.runDashboardPanels(); return; }
+    // Always defined now -- the map lives at module scope rather than
+    // inside goDash, so this no longer needs a fallback that could
+    // re-enter runDashboardPanels.
+    var views = window.DASH_VIEW_LOADERS || {};
     var claimed = { loadDashboardHeader: true };
     Object.keys(views).forEach(function(v){
       (views[v] || []).forEach(function(n){ claimed[n] = true; });
     });
-    _dashPanelRegistry.forEach(function(fn){
-      if (fn.name && claimed[fn.name]) return;
-      try { fn(); } catch (e) { console.error('Dashboard panel failed to load:', e); }
-    });
+    runPanelsThrottled(_dashPanelRegistry.filter(function(fn){
+      return !(fn.name && claimed[fn.name]);
+    }));
   };
 
   // ============================================================
@@ -15905,6 +15997,39 @@ Groups</span>
   //
   // A function DECLARATION rather than an assignment, so hoisting
   // makes it available to callers that appear earlier in this block.
+  // One retry, for the class of failure that is about the connection
+  // rather than the query.
+  //
+  // Reported with a screenshot: Scheduled announcements and Sent
+  // messages both showed "current transaction is aborted, commands
+  // ignored until end of transaction block" after a dashboard
+  // refresh. That message means a command ran inside a transaction
+  // that had ALREADY failed -- and a single-statement read cannot
+  // cause that on its own. Nothing is wrong with these two queries;
+  // they were handed a pooled connection that arrived in that state.
+  //
+  // It showed up under exactly the conditions that make it likeliest:
+  // twenty-six panels reaching for connections at the same instant.
+  // Throttling that storm is the actual fix and is done separately;
+  // this is the backstop for whatever is left, and it is a retry
+  // rather than a politer error message because the second attempt
+  // gets a different connection and simply works.
+  //
+  // Once, and only for this shape of message. A retry loop over a
+  // genuine permission or constraint failure would turn one honest
+  // error into several slow ones.
+  var TRANSIENT_DB_ERROR = /current transaction is aborted|server closed the connection|connection reset|timeout|too many connections/i;
+  async function queryWithRetry(run){
+    var res = await run();
+    if (res && res.error && TRANSIENT_DB_ERROR.test(res.error.message || '')) {
+      console.warn('Retrying after a transient database error:', res.error.message);
+      await new Promise(function(r){ setTimeout(r, 350); });
+      res = await run();
+    }
+    return res;
+  }
+  window.queryWithRetry = queryWithRetry;
+
   function friendlyDbError(err){
     if (!err) return '';
     var msg = String(err.message || '');
@@ -28758,8 +28883,14 @@ Groups</span>
     var myChurch = await getMyChurch();
     if (!myChurch) { listEl.innerHTML = ''; return; }
 
-    var { data: pending, error } = await supabase.from('scheduled_messages').select('*').eq('church_id', myChurch.id).eq('status', 'pending').order('send_at', { ascending: true });
-    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:13px;">' + escapeHtml(error.message) + '</p>'; return; }
+    var { data: pending, error } = await queryWithRetry(function(){
+      return supabase.from('scheduled_messages').select('*').eq('church_id', myChurch.id).eq('status', 'pending').order('send_at', { ascending: true });
+    });
+    // friendlyDbError rather than the raw message: "current transaction
+    // is aborted, commands ignored until end of transaction block" is
+    // a sentence about Postgres internals printed where somebody
+    // expected a list of announcements.
+    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:13px;">' + escapeHtml(friendlyDbError(error)) + '</p>'; return; }
     if (!pending || !pending.length) { listEl.innerHTML = '<p style="color:var(--ink-mute);font-size:13px;">' + window.t('dashMsg.nothingScheduled') + '</p>'; return; }
 
     listEl.innerHTML = pending.map(function(m){
@@ -28790,8 +28921,10 @@ Groups</span>
     var myChurch = await getMyChurch();
     if (!myChurch) { listEl.innerHTML = ''; return; }
 
-    var { data: batches, error } = await supabase.from('message_batches').select('*').eq('church_id', myChurch.id).order('created_at', { ascending: false }).limit(20);
-    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:13px;">' + escapeHtml(error.message) + '</p>'; return; }
+    var { data: batches, error } = await queryWithRetry(function(){
+      return supabase.from('message_batches').select('*').eq('church_id', myChurch.id).order('created_at', { ascending: false }).limit(20);
+    });
+    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:13px;">' + escapeHtml(friendlyDbError(error)) + '</p>'; return; }
     if (!batches || !batches.length) { listEl.innerHTML = '<p style="color:var(--ink-mute);font-size:13px;">' + window.t('dashMsg.noSentMessages') + '</p>'; return; }
 
     var batchIds = batches.map(function(b){ return b.id; });
