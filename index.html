@@ -9107,7 +9107,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v233 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v234 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12370,6 +12370,7 @@ Groups</span>
       // renderDirectory() immediately here, before a manual or
       // auto-detected location has actually been applied yet, flashing
       // an unfiltered page for a moment even after that fix landed.
+      if (typeof window.wantSurface === 'function') window.wantSurface('directory');
       if (typeof window.renderOnceLocationKnown === 'function') {
         window.renderOnceLocationKnown([function(){ window.renderDirectory(directoryPageFromHash()); }]);
       } else {
@@ -12560,6 +12561,7 @@ Groups</span>
       // The nav "Churches" link (and any plain data-route="directory")
       // is a fresh entry -> page 1, not wherever pagination was left.
       if(route === 'directory' && typeof window.renderDirectory === 'function'){
+        if (typeof window.wantSurface === 'function') window.wantSurface('directory');
         window.renderDirectory(1);
       }
       // 'events' and 'home' were the last two card-rendering routes with
@@ -15286,6 +15288,31 @@ Groups</span>
   // ============================================================
   var _builtSurfaces = {};
 
+  // Which card grids this page has asked for.
+  //
+  // Gating buildSurfacesForRoute was not enough, and the timeline said
+  // so: search_churches still ran twice and search_events four times
+  // on a dashboard load. applyDirLocationCoords renders all four
+  // surfaces DIRECTLY when a location arrives -- it has to, because
+  // renderOnceLocationKnown deliberately defers rendering until the
+  // location is known and that function is what "known" means. So it
+  // never went through the route gate at all.
+  //
+  // It could not simply check whether a grid had been rendered,
+  // either: on a fresh load of the home page with geolocation pending,
+  // nothing has rendered yet and applyDirLocationCoords is the thing
+  // that will. Asking "is it on screen" would deadlock.
+  //
+  // So the flag is WANTED, not rendered. buildSurfacesForRoute sets it
+  // when it decides a route needs a grid, whether or not the render
+  // happens now or later when coordinates land.
+  //
+  // This is also why the local test missed it. Signed out in a browser
+  // with no location, the location never resolves, this path never
+  // runs, and the count looked perfect.
+  window.wantedSurfaces = {};
+  window.wantSurface = function(name){ window.wantedSurfaces[name] = true; };
+
   function currentBaseRoute(){
     if (typeof window.resolveRouteFromHash === 'function') {
       var r = window.resolveRouteFromHash(location.hash);
@@ -15295,13 +15322,20 @@ Groups</span>
   }
 
   function surfaceRenderersFor(route){
-    if (route === 'home') return [
-      function(){ if (typeof window.renderHomeChurches === 'function') window.renderHomeChurches(); },
-      function(){ if (typeof window.renderHomeEvents === 'function') window.renderHomeEvents(); }
-    ];
-    if (route === 'events') return [
-      function(){ if (typeof window.renderEvents === 'function') window.renderEvents(); }
-    ];
+    if (route === 'home') {
+      window.wantSurface('homeChurches');
+      window.wantSurface('homeEvents');
+      return [
+        function(){ if (typeof window.renderHomeChurches === 'function') window.renderHomeChurches(); },
+        function(){ if (typeof window.renderHomeEvents === 'function') window.renderHomeEvents(); }
+      ];
+    }
+    if (route === 'events') {
+      window.wantSurface('events');
+      return [
+        function(){ if (typeof window.renderEvents === 'function') window.renderEvents(); }
+      ];
+    }
     return [];
   }
 
@@ -16496,10 +16530,16 @@ Groups</span>
     // page 1, since whatever page they were on for the OLD location's
     // results may not even exist for the new one.
     var dirPage = resetToPageOne ? 1 : (window.directoryPageFromHash ? window.directoryPageFromHash() : 1);
-    if (typeof window.renderDirectory === 'function') window.renderDirectory(dirPage);
-    if (typeof window.renderHomeChurches === 'function') window.renderHomeChurches();
-    if (typeof window.renderEvents === 'function') window.renderEvents();
-    if (typeof window.renderHomeEvents === 'function') window.renderHomeEvents();
+    // Only the grids this page asked for. Before this, a location
+    // arriving re-rendered all four -- the Churches directory, the home
+    // page's churches, the Events list and the home page's events --
+    // whichever page was showing, which on a dashboard load was two
+    // search_churches and four search_events for nothing on screen.
+    var want = window.wantedSurfaces || {};
+    if (want.directory && typeof window.renderDirectory === 'function') window.renderDirectory(dirPage);
+    if (want.homeChurches && typeof window.renderHomeChurches === 'function') window.renderHomeChurches();
+    if (want.events && typeof window.renderEvents === 'function') window.renderEvents();
+    if (want.homeEvents && typeof window.renderHomeEvents === 'function') window.renderHomeEvents();
   }
   window.applyDirLocationCoords = applyDirLocationCoords;
 
