@@ -2892,6 +2892,12 @@
        nothing about the existing look changes. */
     --room-block-s:21%; --room-block-l:32%;
     --room-chip-bg-s:22%; --room-chip-bg-l:92%;
+    /* The block is DARK on this theme (32% lightness), so white text
+       sits on it at 6.3:1 to 9.0:1 depending on the hue. Measured, not
+       assumed -- the dark theme needs the opposite and used to get
+       white too, at 1.65:1. See the dark block below. */
+    --room-block-ink:#FFFFFF;
+    --room-clash-ring:rgba(255,255,255,.85);
     --sage:#3F6152;
     --sage-bg:#E7EEE9;
     --clay:#A8503A;
@@ -2912,6 +2918,12 @@
     --gold:#D9B646;
     --room-block-s:40%; --room-block-l:68%;
     --room-chip-bg-s:27%; --room-chip-bg-l:16%;
+    /* Here the block is LIGHT (68% lightness) and white text on it
+       measured 1.65:1 to 2.69:1 across the hue wheel -- under the 3:1
+       floor for large text, let alone body. The page's own dark ink
+       gets 6.6:1 to 10.8:1 on the same blocks. */
+    --room-block-ink:#101826;
+    --room-clash-ring:rgba(0,0,0,.45);
     --sage:#8FCBAA;
     --sage-bg:#1D3327;
     --clay:#E2917A;
@@ -4017,7 +4029,7 @@
   .rsched-line{position:absolute;left:0;right:0;border-top:1px solid var(--line);opacity:.5;}
   .rsched-block{position:absolute;overflow:hidden;border-radius:5px;padding:3px 4px;font-size:10.5px;line-height:1.25;
     background:hsl(var(--room-hue,155) var(--room-block-s,21%) var(--room-block-l,32%));
-    color:#fff;cursor:pointer;border:1px solid rgba(0,0,0,.08);}
+    color:var(--room-block-ink,#fff);cursor:pointer;border:1px solid rgba(0,0,0,.08);}
   /* An overlap inside ONE room is the double-booking the event form
      warns about at save time. Colouring it here means the Facility
      page shows the same fact the warning does, instead of the two
@@ -4030,7 +4042,7 @@
        so with enough rooms one of them sits near clay -- and a
        warning that depends on being the only reddish block stops
        being a warning on the day it is not. */
-    box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.85);}
+    box-shadow:inset 0 0 0 1.5px var(--room-clash-ring,rgba(255,255,255,.85));}
   /* DAY VIEW: rooms are rows and hours are columns -- the transpose of
      the week grid above.
 
@@ -4055,8 +4067,8 @@
   .rsched-vline{position:absolute;top:0;bottom:0;border-left:1px solid var(--line);opacity:.45;}
   .rsched-hblock{position:absolute;overflow:hidden;border-radius:5px;padding:2px 5px;font-size:10.5px;line-height:1.3;
     background:hsl(var(--room-hue,155) var(--room-block-s,21%) var(--room-block-l,32%));
-    color:#fff;cursor:pointer;border:1px solid rgba(0,0,0,.08);white-space:nowrap;text-overflow:ellipsis;}
-  .rsched-hblock.clash{background:var(--clay) !important;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.85);}
+    color:var(--room-block-ink,#fff);cursor:pointer;border:1px solid rgba(0,0,0,.08);white-space:nowrap;text-overflow:ellipsis;}
+  .rsched-hblock.clash{background:var(--clay) !important;box-shadow:inset 0 0 0 1.5px var(--room-clash-ring,rgba(255,255,255,.85));}
   /* A room with nothing in it still gets a row -- "Room 103 is free"
      is an answer, and a room that vanishes on quiet days makes the
      list jump about. */
@@ -4403,6 +4415,22 @@
   .cal-event-chip{display:block;font-size:10px;padding:2px 5px;border-radius:4px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;line-height:1.5;}
   .cal-event-chip.sage{background:hsl(var(--room-hue,155) var(--room-chip-bg-s,22%) var(--room-chip-bg-l,92%));
     color:hsl(var(--room-hue,155) var(--room-block-s,21%) var(--room-block-l,32%));}
+  /* Month view's room chips, and the same chips in the "+N" day list.
+
+     Reported: the month colours did not match day and week. The HUE
+     always matched -- both come from roomHueAt() on the same room
+     index -- but the treatment was inverted. Day and week draw a solid
+     saturated block; month drew a pale tint of the same hue with the
+     text in the block colour. The same room read as a dark green bar
+     on one view and a faint green pill on another.
+
+     Its own class rather than changing .cal-event-chip.sage, because
+     that class is shared with the EVENTS calendar, whose chips carry
+     no room hue at all and would all have turned into solid sage
+     blocks. */
+  .cal-event-chip.rsched-chip{
+    background:hsl(var(--room-hue,155) var(--room-block-s,21%) var(--room-block-l,32%));
+    color:var(--room-block-ink,#fff);}
   .cal-event-chip.gold{background:var(--gold-bg);color:var(--gold-ink);}
   .cal-event-chip.clay{background:var(--clay-bg);color:var(--clay);}
   .cal-more-link{font-size:10px;color:var(--ink-mute);cursor:pointer;padding:1px 5px;font-weight:600;}
@@ -4461,6 +4489,10 @@
     /* The desktop chip uses the muted -bg pair for a filled label.
        A 6px dot needs the solid colour or it disappears. */
     .cal-event-chip.sage{background:var(--sage);}
+    /* A dot has no room for text, so its hue is the whole message --
+       flattening the room chips to one sage would throw away the only
+       thing left. */
+    .cal-event-chip.rsched-chip{background:hsl(var(--room-hue,155) var(--room-block-s,21%) var(--room-block-l,32%));}
     .cal-event-chip.gold{background:var(--gold);}
     .cal-event-chip.clay{background:var(--clay);}
     .cal-more-link{font-size:9px;padding:0;}
@@ -8948,7 +8980,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v217 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v218 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -23278,7 +23310,7 @@ Groups</span>
             // chip names them all in its text; the colour can only be
             // one, and the first is the one the room list sorts to.
             var chipHue = e.__roomHues && e.__roomHues.length ? e.__roomHues[0] : null;
-            return '<span class="cal-event-chip sage" data-room-event="' + escapeHtml(e.id) + '"'
+            return '<span class="cal-event-chip rsched-chip" data-room-event="' + escapeHtml(e.id) + '"'
               + (chipHue != null ? ' style="--room-hue:' + chipHue + ';"' : '')
               + ' title="' + escapeHtml(e.title + (chipRooms ? ' — ' + chipRooms : '')) + '">'
               + escapeHtml(e.title)
@@ -23479,7 +23511,7 @@ Groups</span>
     if (listEl) listEl.innerHTML = dayEvents.map(function(e){
       var timeStr = new Date(e.start_at).toLocaleTimeString(window.appLocale(), { hour: 'numeric', minute: '2-digit' });
       var where = (e.__roomNames || []).join(', ');
-      return '<div class="cal-event-chip sage" data-room-event="' + escapeHtml(e.id) + '"'
+      return '<div class="cal-event-chip rsched-chip" data-room-event="' + escapeHtml(e.id) + '"'
         + (e.__roomHues && e.__roomHues.length ? ' style="--room-hue:' + e.__roomHues[0] + ';display:block;white-space:normal;font-size:13px;line-height:1.4;width:auto;height:auto;border-radius:6px;padding:8px 10px;margin-bottom:6px;"' : ' style="display:block;white-space:normal;font-size:13px;line-height:1.4;width:auto;height:auto;border-radius:6px;padding:8px 10px;margin-bottom:6px;"')
         + '><strong>' + escapeHtml(timeStr) + '</strong> — ' + escapeHtml(e.title)
         + (where ? ' <span class="cal-chip-room">' + escapeHtml(where) + '</span>' : '')
