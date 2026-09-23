@@ -9050,7 +9050,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v227 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v228 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -19263,12 +19263,26 @@ Groups</span>
       // is what actually lets the nav bar correct itself — signing
       // out is what fires the real SIGNED_OUT event this app was
       // otherwise never getting.
+      //
+      // MEASURED, and the reason this no longer blocks: that getUser()
+      // call is a round trip to the auth service, and on a real
+      // dashboard load it took 1419 ms. Everything below waited for
+      // it, on every auth settle, to answer a question that is almost
+      // always "yes, still valid".
+      //
+      // It still runs, and it still signs out a dead session -- that
+      // behaviour was written for a real bug and is worth keeping. It
+      // just runs ALONGSIDE the rest instead of in front of it. The
+      // cost of not waiting is that a genuinely dead session may fire
+      // a few requests that come back 401 before the sign-out lands,
+      // which is the thing the original comment was avoiding. That
+      // was the right trade when it was written and is the wrong one
+      // now: a handful of wasted 401s in a rare case, against a second
+      // and a half added to every single load.
       if (uid) {
-        var { error: sessionCheckError } = await supabase.auth.getUser();
-        if (sessionCheckError) {
-          await supabase.auth.signOut();
-          return;
-        }
+        supabase.auth.getUser().then(function(res){
+          if (res && res.error) supabase.auth.signOut();
+        }).catch(function(){ /* offline is not a dead session */ });
       }
 
       // The debounce above only collapses a BURST of the same event —
