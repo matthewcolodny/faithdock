@@ -4744,7 +4744,23 @@
      is right for a wide roster and wrong for a three-column one --
      nothing here is too wide to wrap. */
   @media (max-width:860px){
-    table.roster.roster-fits{display:table;width:100%;table-layout:fixed;white-space:normal;overflow-x:visible;}
+    /* border-collapse:separate, with the four outer corners rounded by
+       hand.
+
+       table.roster carries border-radius:12px and overflow:hidden, and
+       the overflow was what actually did the rounding -- it clips
+       because the phone rule made this a block. Putting the real table
+       layout back took that away with it, and a collapsed table paints
+       its cell backgrounds over the container corners. Reported as the
+       box not being rounded. */
+    table.roster.roster-fits{display:table;width:100%;table-layout:fixed;white-space:normal;overflow-x:visible;border-collapse:separate;border-spacing:0;}
+    table.roster.roster-fits tr:first-child th:first-child{border-top-left-radius:12px;}
+    table.roster.roster-fits tr:first-child th:last-child{border-top-right-radius:12px;}
+    table.roster.roster-fits tr:last-child td:first-child{border-bottom-left-radius:12px;}
+    table.roster.roster-fits tr:last-child td:last-child{border-bottom-right-radius:12px;}
+    /* The box sits under its own heading rather than off to one side. */
+    #checkin-table.roster-fits th:nth-child(3),
+    #cl-table.roster-fits th:nth-child(3){text-align:center;}
     table.roster.roster-fits th, table.roster.roster-fits td{padding:10px 8px;font-size:13px;overflow-wrap:break-word;}
     /* The uppercase mono headings are the widest thing in these cells
        and REGISTRATION is one unbreakable word, so it gets a size that
@@ -9211,7 +9227,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v241 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v242 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
