@@ -8581,9 +8581,13 @@ Groups</span>
         <span id="room-schedule-room-wrap" style="flex:1;min-width:150px;display:none;">
           <select class="field" id="room-schedule-room" style="width:100%;font-size:13px;padding:9px 10px;margin:0;"></select>
         </span>
-        <div style="display:flex;gap:6px;align-items:center;margin-left:auto;">
+        <!-- Wraps. Adding the date picker pushed this group wider
+             than the card on a narrow column, and it had nowhere to
+             go: the outer row wraps but this one did not, so Today
+             and half the date ran off the right edge. -->
+        <div style="display:flex;gap:6px;align-items:center;margin-left:auto;flex-wrap:wrap;justify-content:flex-end;">
           <button class="qr-btn" id="room-schedule-prev" aria-label="Previous">&#8249;</button>
-          <span id="room-schedule-label" style="font-size:12.5px;color:var(--ink-mute);min-width:140px;text-align:center;"></span>
+          <span id="room-schedule-label" style="font-size:12.5px;color:var(--ink-mute);min-width:120px;text-align:center;flex:1;"></span>
           <button class="qr-btn" id="room-schedule-next" aria-label="Next">&#8250;</button>
           <!-- Day view only. Prev/next is fine for tomorrow and
                useless for the third Sunday in March, which is exactly
@@ -8980,7 +8984,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v218 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v219 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -17907,6 +17911,24 @@ Groups</span>
     // without this the winner is whichever reply is slower.
     var myGen = window.churchSwitchGeneration;
     function stillCurrent(){ return myGen === window.churchSwitchGeneration; }
+
+    // Reported again after the generation guard went in: switching
+    // from Test 7 to Test 2 still flashed Test 7's events.
+    //
+    // Which was right, and the guard was never going to fix it. The
+    // guard stops a STALE REPLY painting. This is not a reply at all
+    // -- it is the rows from last time, still in the table, because
+    // nothing clears a table before refilling it. They sit there for
+    // as long as the new query takes, under the new church's name.
+    //
+    // Cleared only when the church actually changed, so an ordinary
+    // refresh (after saving an event, say) does not blink.
+    if (window.dashEventsPaintedGen !== myGen) {
+      tbody.innerHTML = '<tr><td colspan="8" style="color:var(--ink-mute);">' + window.t('common.loading') + '</td></tr>';
+      var staleCal = document.getElementById('cal-grid');
+      if (staleCal) staleCal.innerHTML = '';
+    }
+
     var myChurch = await getMyChurch();
     if (!stillCurrent()) return;
     if (!myChurch) { tbody.innerHTML = '<tr><td colspan="8" style="color:var(--ink-mute);">' + window.t('dashHeader.registerChurchFirst') + '</td></tr>'; return; }
@@ -17914,6 +17936,8 @@ Groups</span>
     var churchId = myChurch.id;
     var { data: allEvents, error: eventsError } = await supabase.from('events').select('*, profiles(full_name)').eq('church_id', churchId).order('start_at', { ascending: true });
     if (!stillCurrent()) return;
+    // Whatever is painted below belongs to this church from here on.
+    window.dashEventsPaintedGen = myGen;
 
     if (eventsError) {
       tbody.innerHTML = '<tr><td colspan="8" style="color:var(--clay);">Couldn\'t load events: ' + escapeHtml(eventsError.message) + '</td></tr>';
@@ -23066,6 +23090,39 @@ Groups</span>
     return '<div class="rsched-col" style="height:' + ((range.max - range.min) * pxPerHour + RSCHED_PAD * 2) + 'px;">' + inner + '</div>';
   }
 
+  // Day's list is one timeline, with the room on each line.
+  //
+  // It used to be roomSchedAgenda grouped by room, which made the
+  // room name a heading. Reported as "the list should include room
+  // names" -- which it did, as headings, in a shape easy to miss and
+  // in an order that made "what is happening at 10am" a question you
+  // answered by reading fifteen headings. A day is a timeline; the
+  // room is an attribute of each entry on it.
+  function roomSchedDayList(rooms, perRoom){
+    // Merged by event, so a booking held in two rooms is one line
+    // naming both rather than two lines that look like two bookings.
+    var byId = {}, order = [];
+    rooms.forEach(function(r, i){
+      (perRoom[i] || []).forEach(function(e){
+        if (byId[e.id]) { byId[e.id].rooms.push(r.name); return; }
+        byId[e.id] = { e: e, rooms: [r.name] };
+        order.push(byId[e.id]);
+      });
+    });
+    if (!order.length) return '<p style="color:var(--ink-mute);font-size:12.5px;">' + window.t('dashFacility.nothingThisWeek') + '</p>';
+    order.sort(function(a, b){ return new Date(a.e.start_at) - new Date(b.e.start_at); });
+    return order.map(function(row){
+      var st = new Date(row.e.start_at);
+      return '<div style="font-size:12.5px;margin-bottom:6px;display:flex;gap:8px;align-items:baseline;">'
+        + '<span style="color:var(--ink-mute);flex-shrink:0;">' + escapeHtml(st.toLocaleTimeString(window.appLocale(), { hour: 'numeric', minute: '2-digit' })) + '</span>'
+        + '<span style="min-width:0;">'
+          + '<a style="border-bottom:1px solid var(--line);cursor:pointer;" data-room-event="' + escapeHtml(row.e.id) + '">' + escapeHtml(row.e.title) + '</a>'
+          + ' <span style="color:var(--ink-mute);">' + escapeHtml(row.rooms.join(', ')) + '</span>'
+        + '</span>'
+        + '</div>';
+    }).join('');
+  }
+
   function roomSchedAgenda(groups){
     // groups: [{ label, events }] -- the phone view for day and week
     // alike. Same events, no geometry.
@@ -23174,7 +23231,7 @@ Groups</span>
     });
 
     return { grid: '<div class="rsched-rows">' + body + '</div>',
-             agenda: roomSchedAgenda(rooms.map(function(r, i){ return { label: r.name, events: perRoom[i] }; })),
+             agenda: roomSchedDayList(rooms, perRoom),
              label: dayStart.toLocaleDateString(window.appLocale(), { weekday: 'long', month: 'long', day: 'numeric' }) };
   }
 
