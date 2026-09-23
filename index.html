@@ -4595,7 +4595,18 @@
      bar's own min-height instead of overflowing. */
   .mini-chart{display:flex;align-items:stretch;gap:4px;height:170px;padding-top:10px;}
   .mini-chart-bar-wrap{flex:1;display:grid;grid-template-rows:auto minmax(0,1fr) auto;justify-items:center;min-width:0;}
-  .mini-chart-bar{width:100%;align-self:end;background:var(--gold);border-radius:4px 4px 0 0;min-height:2px;}
+  /* 74% of the column, not 100%.
+
+     The 4px gap is real -- measured at 4px between 27.6px bars -- but
+     that is 87% fill, and two tall neighbours of the same gold read as
+     one stepped shape rather than two bars. Reported as "bars now look
+     connected".
+
+     A percentage rather than a bigger gap on the chart, so the
+     proportion holds however many columns there are: twelve months and
+     six age bands both end up with a bar three quarters the width of
+     its slot. */
+  .mini-chart-bar{width:74%;align-self:end;background:var(--gold);border-radius:4px 4px 0 0;min-height:2px;}
   .mini-chart-value{font-size:9.5px;color:var(--ink-mute);margin-bottom:3px;white-space:nowrap;align-self:end;}
   .mini-chart-label{font-size:9px;color:var(--ink-mute);margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;align-self:start;}
 
@@ -9159,7 +9170,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v237 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v238 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
