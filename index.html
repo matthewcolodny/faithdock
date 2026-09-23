@@ -4336,8 +4336,29 @@
   .dash-church{font-family:'Fraunces';color:#fff;font-size:17px;margin-bottom:2px;cursor:default;user-select:none;}
   .dash-tag{font-size:12px;color:var(--gold);font-family:'IBM Plex Mono';margin-bottom:28px;cursor:default;user-select:none;}
   /* Until loadDashboardHeader has decided what this person may see.
-     Removed once it has. Unknown permissions show nothing. */
-  .dash-nav.perms-pending a[data-dash]{display:none !important;}
+     Removed once it has.
+
+     display:none was the first version, and it fixed one flash by
+     causing a worse one: the whole sidebar collapsed, Sign out jumped
+     to the top under a serif "Loading...", and then everything
+     reappeared somewhere else. Reported with a screenshot.
+
+     The links keep their boxes now and lose only their words. The
+     sidebar is the right height and nothing moves when the answer
+     arrives -- and the thing this exists to prevent is still
+     prevented, because a staff member cannot read "Revenue" on a bar
+     with no text in it. */
+  .dash-nav.perms-pending a[data-dash]{
+    color:transparent !important;background:rgba(255,255,255,0.05);
+    pointer-events:none;user-select:none;
+  }
+  /* Same treatment for the church name above them, which otherwise
+     sat there as the one readable word on the page, in the display
+     serif, saying "Loading...". */
+  .dash-church.is-loading{
+    color:transparent;background:rgba(255,255,255,0.05);border-radius:6px;
+    user-select:none;
+  }
   .dash-nav a{display:block;padding:10px 12px;border-radius:8px;font-size:14px;margin-bottom:4px;color:#CBD2DE;cursor:pointer;}
   .dash-nav a.active{background:#223252;color:#fff;}
   #dash-signout-btn{
@@ -6983,7 +7004,7 @@ Groups</span>
         <div class="dash-tag" data-i18n="dash.overviewTag">ALL CHURCHES</div>
       </div>
       <div id="dash-church-context">
-        <div class="dash-church" id="dash-church-name">Loading...</div>
+        <div class="dash-church is-loading" id="dash-church-name">Loading...</div>
         <select id="dash-church-switcher" style="display:none;width:100%;margin-top:8px;margin-bottom:8px;background:#1a2740;color:#fff;border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:6px 8px;font-size:12.5px;"></select>
       </div>
       <!-- perms-pending: every link starts hidden. The gating below runs
@@ -9029,7 +9050,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v224 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v225 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -17278,6 +17299,15 @@ Groups</span>
       var freshPromise = getMyChurchUncached(knownUserId, 3).then(function(v){
         cacheEntry.settled = true;
         cacheEntry.value = v;
+        // A null answer is not an answer worth keeping for twenty
+        // seconds. null means "no church found", which every panel
+        // reads as "show nothing" -- so one transient failure, or one
+        // unlucky pass through the RLS lag the retry below exists for,
+        // would blank the entire dashboard and keep it blank for the
+        // full TTL. Held for a second instead: still long enough to
+        // collapse one batch's fan-out, short enough that the next
+        // thing to ask actually re-asks.
+        if (v === null) cacheEntry.expires = Date.now() + 1000;
         return v;
       });
       cacheEntry.promise = freshPromise;
@@ -17303,26 +17333,27 @@ Groups</span>
   async function getMyChurchUncached(knownUserId, retriesLeft){
     var userId = knownUserId;
     if (!userId) {
-      var { data: userData, error: userError } = await supabase.auth.getUser();
-      // Deliberately does NOT sign out here on an error — confirmed as
-      // a real, live bug: this function is called from many places for
-      // completely anonymous, never-logged-in visitors too (browsing
-      // public pages), and getUser() without a known user id reports
-      // an error in that same "nobody's signed in" case, not only when
-      // an actual session has gone bad. Treating every such error as
-      // "this session is dead, sign out" caused signOut() to fire for
-      // someone who was never signed in to begin with — which itself
-      // triggers a fresh SIGNED_OUT event, re-arming the 400ms refresh
-      // timer, which calls this same function again, fails the same
-      // way, signs out again, on an unbroken ~400ms loop that a real
-      // test caught directly in the console. Detecting a session that
-      // existed and then genuinely died belongs solely with the
-      // refresh timer's own check below, which only runs when a
-      // session was already known to be present a moment before — the
-      // one place with enough context to make that call safely.
-      if (userError) return null;
-      if (!userData.user) return null;
-      userId = userData.user.id;
+      // getSession() reads the stored session (refreshing it only if
+      // it has actually expired). getUser(), which this used to call,
+      // makes a round trip to the auth server EVERY time -- and this
+      // function is the first thing every dashboard panel awaits, so
+      // that round trip sat in front of the entire page.
+      //
+      // Safe because the id is only ever used as a query filter. It
+      // is not what grants access: every request still carries the
+      // JWT and RLS still decides, server side, whose rows come back.
+      // A stale or tampered id in the browser widens nothing -- it
+      // just asks for rows the database then refuses.
+      var { data: sessionData } = await supabase.auth.getSession();
+      var sessionUser = sessionData && sessionData.session && sessionData.session.user;
+      // Same reasoning as the long note that used to be here: this is
+      // called for signed-out visitors browsing public pages too, so
+      // "no session" is an ordinary answer and must not be treated as
+      // a dead session to sign out of. That detection belongs solely
+      // to the refresh timer, which knows a session existed a moment
+      // ago.
+      if (!sessionUser) return null;
+      userId = sessionUser.id;
     }
 
     // No .limit(1) — an owner can have several churches (Large's "up
@@ -17332,7 +17363,25 @@ Groups</span>
     // inheritance for a 2nd+ church) don't need a second query. For
     // anyone with 0 or 1 owned churches this resolves identically to
     // the old .limit(1) behavior.
-    var { data: owned, error: ownedError } = await supabase.from('churches').select('id, name, denomination, plan_type, logo_url, subscription_status').eq('owner_id', userId).order('name');
+    // All three lookups at once.
+    //
+    // They were three sequential awaits, and for any given person two
+    // of them are guaranteed to return nothing: an owner has no
+    // church_staff row, a staff member owns no church. So everybody
+    // paid for all three, one after another, in front of a dashboard
+    // that could not draw its own sidebar until they finished. With
+    // the auth round trip above that was four sequential trips before
+    // a single panel could start. It is one now.
+    //
+    // The two church_staff selects stay two queries rather than one
+    // merged select on purpose -- see the note below the second -- but
+    // there is no reason for them to be two WAITS.
+    var [ownedRes, staffRes, abilityRes] = await Promise.all([
+      supabase.from('churches').select('id, name, denomination, plan_type, logo_url, subscription_status').eq('owner_id', userId).order('name'),
+      supabase.from('church_staff').select('church_id, can_manage_events, can_manage_giving, can_edit_profile, can_manage_groups, can_manage_messages, is_manager, receives_contact_messages, can_manage_members, churches(id, name, denomination, plan_type)').eq('user_id', userId),
+      supabase.from('church_staff').select('church_id, can_manage_rooms, can_manage_ministries, can_view_revenue, can_check_in').eq('user_id', userId)
+    ]);
+    var owned = ownedRes.data, ownedError = ownedRes.error;
     if (ownedError) { console.error('getMyChurch (owned lookup):', ownedError); }
     if (owned && owned.length) {
       var activeChurchIdForOwned = getActiveChurchId();
@@ -17357,7 +17406,7 @@ Groups</span>
     // longer exists as a column (migration 029: billing is owner-only
     // with no exceptions, the ability was removed entirely, not just
     // defaulted off).
-    var { data: staffRows, error: staffError } = await supabase.from('church_staff').select('church_id, can_manage_events, can_manage_giving, can_edit_profile, can_manage_groups, can_manage_messages, is_manager, receives_contact_messages, can_manage_members, churches(id, name, denomination, plan_type)').eq('user_id', userId);
+    var staffRows = staffRes.data, staffError = staffRes.error;
     // Migration 047's abilities are fetched separately and softly,
     // deliberately: folding them into the select above would fail the
     // whole query with 42703 until that migration runs, and this
@@ -17365,8 +17414,7 @@ Groups</span>
     // abilities stay undefined, which the nav gating below treats as
     // 'not granted' -- the safe direction for a permission.
     var newAbilityByChurch = {};
-    var { data: newAbilityRows, error: newAbilityError } = await supabase.from('church_staff')
-      .select('church_id, can_manage_rooms, can_manage_ministries, can_view_revenue, can_check_in').eq('user_id', userId);
+    var newAbilityRows = abilityRes.data, newAbilityError = abilityRes.error;
     if (!newAbilityError && newAbilityRows) {
       newAbilityRows.forEach(function(r){ newAbilityByChurch[r.church_id] = r; });
     }
@@ -17442,6 +17490,10 @@ Groups</span>
   function revealDashNav(){
     var nav = document.getElementById('dash-nav-church');
     if (nav) nav.classList.remove('perms-pending');
+    // The church name is filled in by the same pass that decides the
+    // links, so it stops being a skeleton at the same moment they do.
+    var nameEl = document.getElementById('dash-church-name');
+    if (nameEl) nameEl.classList.remove('is-loading');
   }
 
   async function loadDashboardHeader(knownUserId, externalGeneration){
