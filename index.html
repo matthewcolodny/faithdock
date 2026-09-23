@@ -4089,6 +4089,8 @@
      They were briefly stacked at every width. That was tidy and wrong:
      a wide card has room for one line and does not need two. */
   .rsched-nav{display:flex;gap:6px;align-items:center;margin-left:auto;}
+  .rsched-nav-row{display:flex;gap:6px;align-items:center;}
+  .rsched-nav-jump{justify-content:center;}
 
   .rsched-agenda{display:none;}
   /* Day view can carry more columns than fit -- one per room. Equal
@@ -4124,12 +4126,30 @@
        happens to be -- so the date picker and Today landed hard right
        here and inline on a wider phone. Stacking decides it. */
     /* margin-left:auto is what pins this to the right on a desktop,
-       where it belongs beside the Day/Week/Month toggle. On a phone
-       it is the only thing on its line, so the auto margin just
-       shoved a centred pair of rows against the right edge and left
-       a hole where the toggle is not. Full width, centred in the
-       card. */
-    .rsched-nav{flex-direction:column;gap:8px;align-items:center;margin-left:0;width:100%;}
+       where it belongs beside the Day/Week/Month toggle. On a phone it
+       is the only thing on its line, so the auto margin shoved the
+       rows against the right edge and left a hole where the toggle is
+       not.
+
+       Centring them on each other was the next attempt and still read
+       as crooked, because it lines the rows up with each OTHER and
+       with nothing else: two ragged-edged rows floating in the middle,
+       under a Day/Week/Month toggle sitting hard left. Three elements,
+       three different left edges.
+
+       So both rows span the card instead. Their left edge is the
+       toggle's left edge, their right edge is the card's, and the
+       controls inside spread to fill -- one column of aligned edges
+       rather than three things each centred on their own idea of the
+       middle. */
+    .rsched-nav{flex-direction:column;gap:8px;align-items:stretch;margin-left:0;width:100%;}
+    .rsched-nav-row{width:100%;}
+    /* Arrows to the outside edges, the date filling between them. */
+    .rsched-nav-step{justify-content:space-between;}
+    .rsched-nav-step #room-schedule-label{flex:1;min-width:0;}
+    /* The date field takes the slack so this row ends flush with the
+       one above it rather than stopping wherever Today happens to. */
+    .rsched-nav-jump #room-schedule-date{flex:1;min-width:0;width:auto;}
     /* Measured at 375px: the cells here are 36px wide because the
        side-note adds padding, so 52px made them half again taller than
        wide -- the same stretch the events calendar had. The chips are
@@ -8607,12 +8627,12 @@ Groups</span>
              narrow column and inline on a wide one. Stacked, they are
              always centred under the date they act on. -->
         <div class="rsched-nav">
-          <div style="display:flex;gap:6px;align-items:center;">
+          <div class="rsched-nav-row rsched-nav-step">
             <button class="qr-btn" id="room-schedule-prev" aria-label="Previous">&#8249;</button>
             <span id="room-schedule-label" style="font-size:12.5px;color:var(--ink-mute);min-width:120px;text-align:center;"></span>
             <button class="qr-btn" id="room-schedule-next" aria-label="Next">&#8250;</button>
           </div>
-          <div style="display:flex;gap:6px;align-items:center;justify-content:center;">
+          <div class="rsched-nav-row rsched-nav-jump">
             <!-- Day view only. Prev/next is fine for tomorrow and
                  useless for the third Sunday in March, which is exactly
                  the kind of date somebody checks a room against. -->
@@ -9009,7 +9029,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v222 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v223 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
