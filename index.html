@@ -9107,7 +9107,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v231 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v232 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12357,6 +12357,12 @@ Groups</span>
     // (covers a fresh load, a bookmark, and Back/Forward between pages).
     // Needs supabase; on the very first pre-module call it isn't ready
     // yet, and loadRealChurches() does the initial render itself.
+    // Back/Forward and deep links reach here without going through the
+    // nav click handler, so the build-once call belongs here too. It
+    // guards itself, so both paths firing is one build.
+    if(typeof window.buildSurfacesForRoute === 'function'){
+      window.buildSurfacesForRoute(resolved.base);
+    }
     if(resolved.base === 'directory' && window.supabase && typeof window.renderDirectory === 'function'){
       // Gated the same way loadRealChurches() gates its own initial
       // render (see renderOnceLocationKnown, module script) -- without
@@ -12566,6 +12572,12 @@ Groups</span>
       // refreshAllCardRegistrationStates() is one query that only
       // updates the buttons in place, and (since its missing else branch
       // was fixed) can now clear a stale "Registered" as well as set one.
+      // Build this route's lists if this is the first time it has been
+      // shown. A no-op on every later visit, which is what keeps
+      // Load-more pagination intact.
+      if(typeof window.buildSurfacesForRoute === 'function'){
+        window.buildSurfacesForRoute(route);
+      }
       if((route === 'events' || route === 'home') && typeof window.refreshAllCardRegistrationStates === 'function'){
         window.refreshAllCardRegistrationStates();
       }
@@ -15235,6 +15247,81 @@ Groups</span>
   // the URL already points straight at #directory on load.
   window.renderOnceLocationKnown = renderOnceLocationKnown;
 
+  // ============================================================
+  // Which lists get built, and when.
+  //
+  // loadRealChurches() and loadRealEvents() ran at module load and
+  // rendered EVERY card surface in the app: the home page's churches,
+  // the home page's events, the Churches directory and the Events
+  // list. Whatever page you were actually on.
+  //
+  // MEASURED, loading straight to the dashboard while signed out (so
+  // the page showed the signup form and nothing else):
+  //
+  //   rest/v1/rpc/search_events    x4
+  //   rest/v1/rpc/search_churches  x2
+  //   rest/v1/churches             x2
+  //
+  // Eight requests, none of them for anything on screen. On a
+  // connection where each round trip costs 150-500 ms and the browser
+  // runs six at a time, that is most of a second spent before the page
+  // you asked for has started.
+  //
+  // FIRST VISIT, NOT EVERY VISIT. home and events deliberately do not
+  // re-render when you navigate back to them -- that would reset
+  // Load-more pagination just for clicking the tab, which is why the
+  // nav handler calls refreshAllCardRegistrationStates() instead. So
+  // this builds once and then leaves them alone, which is exactly the
+  // behaviour they had; the only change is WHEN the once happens.
+  //
+  // The location machinery is untouched. Each route's renderers still
+  // go through renderOnceLocationKnown, so a list is still not painted
+  // before the location that filters it is known. What changed is only
+  // which renderers get handed to it.
+  //
+  // #directory is deliberately absent. It already re-renders on every
+  // arrival -- showRouteFromHash renders the page the URL names, and
+  // the nav link renders page 1 -- so it needs no build-once path and
+  // would only double-render if it had one.
+  // ============================================================
+  var _builtSurfaces = {};
+
+  function currentBaseRoute(){
+    if (typeof window.resolveRouteFromHash === 'function') {
+      var r = window.resolveRouteFromHash(location.hash);
+      if (r && r.base) return r.base;
+    }
+    return (location.hash || '').replace(/^#/, '').split('/')[0] || 'home';
+  }
+
+  function surfaceRenderersFor(route){
+    if (route === 'home') return [
+      function(){ if (typeof window.renderHomeChurches === 'function') window.renderHomeChurches(); },
+      function(){ if (typeof window.renderHomeEvents === 'function') window.renderHomeEvents(); }
+    ];
+    if (route === 'events') return [
+      function(){ if (typeof window.renderEvents === 'function') window.renderEvents(); }
+    ];
+    return [];
+  }
+
+  function buildSurfacesForRoute(route){
+    route = route || currentBaseRoute();
+    if (_builtSurfaces[route]) return;
+    var fns = surfaceRenderersFor(route);
+    // Marked built either way, so a route with no lists is not asked
+    // about again on every navigation.
+    _builtSurfaces[route] = true;
+    if (!fns.length) return;
+    renderOnceLocationKnown(fns);
+    // Only worth asking which cards this person is registered for once
+    // there are cards to ask about.
+    if (typeof window.refreshAllCardRegistrationStates === 'function') {
+      window.refreshAllCardRegistrationStates();
+    }
+  }
+  window.buildSurfacesForRoute = buildSurfacesForRoute;
+
   // Content safety — checks user-entered text before it can be
   // submitted anywhere public-facing. Combines a maintained, general
   // profanity library with an additional list of church-specific
@@ -16319,10 +16406,11 @@ Groups</span>
     // Anyone who never triggered a re-render (denied location,
     // didn't search) would see a permanently blank page.
     if (typeof window.renderForChurchesCount === 'function') window.renderForChurchesCount();
-    renderOnceLocationKnown([
-      function(){ if (typeof window.renderHomeChurches === 'function') window.renderHomeChurches(); },
-      function(){ if (typeof window.renderDirectory === 'function') window.renderDirectory(window.directoryPageFromHash ? window.directoryPageFromHash() : 1); }
-    ]);
+    // Only the page being shown. renderDirectory is gone from here
+    // entirely: showRouteFromHash below renders #directory itself when
+    // the URL names it, and did so even before this -- the call here
+    // was a second render of the same grid.
+    buildSurfacesForRoute();
     if (typeof window.showRouteFromHash === 'function') window.showRouteFromHash(true);
     if (typeof window.checkForCompletedDonation === 'function') window.checkForCompletedDonation();
     if (typeof window.checkForCompletedEventTicket === 'function') window.checkForCompletedEventTicket();
@@ -22814,12 +22902,15 @@ Groups</span>
     // ones replace them" gate used for churches above -- events have
     // the identical problem, since renderEvents()/renderHomeEvents()
     // also read window.dirUserLat/Lng.
-    renderOnceLocationKnown([
-      function(){ if (typeof window.renderHomeEvents === 'function') window.renderHomeEvents(); },
-      function(){ if (typeof window.renderEvents === 'function') window.renderEvents(); }
-    ]);
+    // Same one route. buildSurfacesForRoute has its own once-guard, so
+    // this and loadRealChurches above asking for the same route costs
+    // one build, not two -- which is also what stops the home page
+    // rendering its events twice, as it did.
+    buildSurfacesForRoute();
     if (typeof window.showRouteFromHash === 'function') window.showRouteFromHash(true);
-    refreshAllCardRegistrationStates();
+    // refreshAllCardRegistrationStates moved inside buildSurfacesForRoute:
+    // it reads the cards on screen, so running it when none were built
+    // was a query about nothing.
   }
   loadRealEvents();
 
