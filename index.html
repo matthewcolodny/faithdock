@@ -4781,10 +4781,11 @@
     #directory-table.roster-fits th:nth-child(2){width:42%;}
     #directory-table.roster-fits th:nth-child(3){width:33%;}
     #directory-table.roster-fits th:nth-child(6){width:10%;}
-    /* The avatar is a fixed 32px and the chevron 15px, so neither
-       column needs the side padding the text ones do. */
-    #directory-table.roster-fits td:first-child,
-    #directory-table.roster-fits td:last-child{padding-left:6px;padding-right:6px;}
+    /* The chevron is 15px and needs no side padding; the avatar is
+       32px and does -- at 6px it sat almost against the table's own
+       border, which reads as a mistake rather than a tight layout. */
+    #directory-table.roster-fits td:first-child{padding-left:12px;padding-right:8px;}
+    #directory-table.roster-fits td:last-child{padding-left:4px;padding-right:8px;}
     table.roster.roster-fits th, table.roster.roster-fits td{padding:10px 8px;font-size:13px;overflow-wrap:break-word;}
     /* The uppercase mono headings are the widest thing in these cells
        and REGISTRATION is one unbreakable word, so it gets a size that
@@ -4879,14 +4880,26 @@
     .compare-table tr:not(:first-child) td.compare-cloyst-col{border-right:1px solid var(--line);}
   }
   /* ---- share modal ---- */
+  /* align-items:flex-start with margin:auto on the card, rather than
+     align-items:center.
+
+     Centred, a card taller than the window overflows in BOTH
+     directions -- and because the overlay is position:fixed and did
+     not scroll, the top of it could not be reached at all. Asked
+     directly: what happens to the person card when somebody has a
+     long list of event sign-ups. This is what happened.
+
+     Auto margins in a flex container absorb the free space, so a card
+     that fits is still centred exactly as before. One that does not
+     fit sits at the top and the overlay scrolls to the rest of it. */
   .modal-overlay{
     display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(22,35,63,0.55);z-index:100;
-    align-items:center;justify-content:center;padding:20px;
+    align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;
   }
   .modal-overlay.open{display:flex;}
   .modal-card{
     background:var(--card);border-radius:var(--radius);padding:28px;max-width:340px;width:100%;
-    position:relative;
+    position:relative;margin:auto;
   }
   /* Dark mode only. On the light theme a white card on a dimmed page
      has an obvious edge; in dark mode the card and the overlay behind
@@ -9251,7 +9264,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v243 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v244 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -29720,12 +29733,22 @@ Groups</span>
       photoEmptyEl.style.display = 'block';
     }
 
+    // What this person IS to the church, and nothing more.
+    //
+    // The Event sign-up and Group sign-up tags are gone. They said
+    // "this person has signed up for something" directly above two
+    // sections that list exactly what they signed up for -- so the tag
+    // was a worse version of the thing underneath it. Reported as not
+    // seeming necessary, which it is not.
+    //
+    // These were also the only hardcoded English left on this card.
+    // The directory TABLE translates the same five labels; the card
+    // spelled them out in English and showed them to Spanish readers
+    // unchanged. Same keys as the table now, so they cannot drift.
     var roles = [];
-    if (person.is_owner) roles.push('<span class="tag gold" style="font-size:10px;">Owner</span>');
-    else if (person.is_staff) roles.push('<span class="tag gold" style="font-size:10px;">Staff</span>');
-    if (person.is_member) roles.push('<span class="tag sage" style="font-size:10px;">Member</span>');
-    if (person.has_registered_event) roles.push('<span class="tag clay" style="font-size:10px;">Event sign-up</span>');
-    if (person.has_group_signup) roles.push('<span class="tag clay" style="font-size:10px;">Group sign-up</span>');
+    if (person.is_owner) roles.push('<span class="tag gold" style="font-size:10px;">' + escapeHtml(window.t('dashSettings.ownerRoleLabel')) + '</span>');
+    else if (person.is_staff) roles.push('<span class="tag gold" style="font-size:10px;">' + escapeHtml(window.t('dashDir.staff')) + '</span>');
+    if (person.is_member) roles.push('<span class="tag sage" style="font-size:10px;">' + escapeHtml(window.t('dashGroups.roleMember')) + '</span>');
     document.getElementById('directory-person-roles').innerHTML = roles.join('');
 
     document.getElementById('directory-person-modal').classList.add('open');
