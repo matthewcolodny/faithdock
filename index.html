@@ -9107,7 +9107,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v229 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v230 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -15456,10 +15456,21 @@ Groups</span>
         return { what: 'NET ' + path, at_ms: Math.round(r.startTime - _fdT0), took_ms: Math.round(r.duration) };
       });
     var all = _fdMarks.concat(net).sort(function(a, b){ return a.at_ms - b.at_ms; });
-    console.log('--- FaithDock load timeline (ms from page start) ---');
-    if (console.table) console.table(all); else console.log(JSON.stringify(all, null, 1));
-    console.log('--- copy the table above ---');
-    return all;
+    // Plain text, in ONE console.log, rather than console.table.
+    //
+    // console.table renders a widget the console collapses to
+    // "Array(54)" and which does not copy as text -- so asking for
+    // "the table" asked for something that could not be handed over.
+    // One string can be selected and copied like any other line.
+    var text = all.map(function(r){
+      return String(r.at_ms).padStart(7) + ' ms  +' + String(r.took_ms || '').padStart(6) + '   ' + r.what;
+    }).join('\n');
+    window.fdPerfText = text;
+    console.log('=== FaithDock load timeline ===\n'
+      + '  start      took   what\n'
+      + text
+      + '\n=== end (select from "===" to "===" and copy) ===');
+    return text;
   };
   window.fdMark('module start');
 
@@ -17644,6 +17655,14 @@ Groups</span>
     var settingsEditLink = document.getElementById('dash-edit-profile-settings-link');
     if (!myChurch) {
       document.getElementById('dash-church-name').textContent = window.t('dashHeader.noChurchFound');
+      // The skeleton has to come off even here, or "No church found"
+      // is written in transparent text on a grey bar and the person
+      // sees a sidebar that never finishes loading. The LINKS stay
+      // hidden -- there is no church, so there is nothing for them to
+      // lead to -- which is what perms-pending is for and is not what
+      // this clears.
+      var noChurchNameEl = document.getElementById('dash-church-name');
+      if (noChurchNameEl) noChurchNameEl.classList.remove('is-loading');
       return;
     }
     document.getElementById('dash-church-name').textContent = myChurch.name;
@@ -19382,7 +19401,22 @@ Groups</span>
       var isFirstSettleOfPageLoad = (window._lastAuthRefreshUserId === undefined);
       window._lastAuthRefreshUserId = uid;
 
-      var thisGeneration = (window.dashboardRefreshGeneration = (window.dashboardRefreshGeneration || 0) + 1);
+      // The generation counter is how a newer dashboard refresh tells
+      // an older one to stop painting. Bumping it means "whatever is
+      // in flight is now stale, I am redoing it".
+      //
+      // Which is a promise, and on the first settle of a page load it
+      // is now a lie: the batch below is skipped, so nothing redoes
+      // anything. loadDashboardHeader had already taken generation 1
+      // and was sitting on its await; it woke up, found the counter on
+      // 2, and returned without revealing the sidebar. Nothing ever
+      // called it again. The skeleton stayed on screen indefinitely --
+      // reported with a screenshot, and caused by me removing the
+      // batch in v227 while leaving the line that invalidates the work
+      // the batch existed to redo.
+      //
+      // So the bump belongs with the redo, not before it.
+      var thisGeneration = window.dashboardRefreshGeneration || 0;
       // These all sit in the DOM at all times regardless of which
       // page is currently visible (single-page app), so calling them
       // unconditionally is safe — it just means whichever page the
@@ -19415,6 +19449,8 @@ Groups</span>
       } else if (typeof window.dashboardIsCurrentRoute === 'function' && !window.dashboardIsCurrentRoute()) {
         if (typeof window.resetDashboardPanels === 'function') window.resetDashboardPanels();
       } else {
+        // Here, and only here, is anything actually being redone.
+        thisGeneration = (window.dashboardRefreshGeneration = thisGeneration + 1);
         if (typeof window.loadDashboardHeader === 'function') window.loadDashboardHeader(uid, thisGeneration);
         if (typeof window.loadDashboardEvents === 'function') window.loadDashboardEvents();
         if (typeof window.loadDashboardGroups === 'function') window.loadDashboardGroups();
