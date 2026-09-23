@@ -4081,6 +4081,15 @@
   .rsched-block.narrow{padding:3px 1px;text-align:center;}
   .rsched-vtext{writing-mode:vertical-rl;text-orientation:mixed;display:inline-block;max-height:100%;overflow:hidden;}
 
+  /* Date controls. One row on a desktop, where there is room for one;
+     two centred rows on a phone, where there is not -- see the 760px
+     block further down, which is the same breakpoint that swaps the
+     grid for the list.
+
+     They were briefly stacked at every width. That was tidy and wrong:
+     a wide card has room for one line and does not need two. */
+  .rsched-nav{display:flex;gap:6px;align-items:center;}
+
   .rsched-agenda{display:none;}
   /* Day view can carry more columns than fit -- one per room. Equal
      fractions past about six rooms squeeze each below the width of a
@@ -4110,6 +4119,11 @@
     #room-schedule-grid:not(.rsched-month) .rsched,
     #room-schedule-grid:not(.rsched-month) .rsched-rows{display:none;}
     .rsched-agenda{display:block;}
+    /* Stacked and centred. Wrapping a single row was the first
+       attempt, and where it breaks depends on how wide the card
+       happens to be -- so the date picker and Today landed hard right
+       here and inline on a wider phone. Stacking decides it. */
+    .rsched-nav{flex-direction:column;gap:8px;align-items:center;}
     /* Measured at 375px: the cells here are 36px wide because the
        side-note adds padding, so 52px made them half again taller than
        wide -- the same stretch the events calendar had. The chips are
@@ -8586,7 +8600,7 @@ Groups</span>
              be, so the date picker and Today landed hard right on a
              narrow column and inline on a wide one. Stacked, they are
              always centred under the date they act on. -->
-        <div style="display:flex;flex-direction:column;gap:8px;align-items:center;margin-left:auto;">
+        <div class="rsched-nav" style="margin-left:auto;">
           <div style="display:flex;gap:6px;align-items:center;">
             <button class="qr-btn" id="room-schedule-prev" aria-label="Previous">&#8249;</button>
             <span id="room-schedule-label" style="font-size:12.5px;color:var(--ink-mute);min-width:120px;text-align:center;"></span>
@@ -8989,7 +9003,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v220 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v221 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
