@@ -812,7 +812,8 @@
       'dashDir.optedOut': 'Unsubscribed', 'dashDir.optedOutHint': 'This person asked not to receive email from your church. They are skipped automatically.',
       'dashMessages.someUnsubscribed': '{n} {personWord} unsubscribed and will be skipped.', 'dashMessages.person': 'person', 'dashMessages.people': 'people',
       'dashDir.groupSignups': 'Group sign-ups', 'dashDir.importMembers': 'Import members', 'dashDir.searchPlaceholder': 'Search by name or email',
-      'dashDir.printProfile': 'Print profile', 'dashDir.printRoster': 'Print roster', 'dashDir.viewProfile': 'View profile',
+      'dashDir.printProfile': 'Export full profile', 'dashDir.printRoster': 'Print roster', 'dashDir.viewProfile': 'View profile',
+      'reports.joined': 'Joined', 'reports.allEventRegistrations': 'Event registrations', 'reports.noGivingOnRecord': 'No giving on record.',
       'dashDir.matchColumnsGuess': "Match your file's columns — best guesses are already picked, just fix anything wrong.",
       'dashDir.emailColumn': 'Email column', 'dashDir.fullNameColumn': "Full name column, or first name if your file splits it",
       'dashDir.lastNameColumn': 'Last name column', 'dashDir.lastNameColumnOptional': '(optional — combined with the column above)',
@@ -1913,7 +1914,8 @@
       'dashDir.optedOut': 'Dado de baja', 'dashDir.optedOutHint': 'Esta persona pidió no recibir correos de tu iglesia. Se omite automáticamente.',
       'dashMessages.someUnsubscribed': '{n} {personWord} se dieron de baja y se omitirán.', 'dashMessages.person': 'persona', 'dashMessages.people': 'personas',
       'dashDir.groupSignups': 'Inscripciones a grupos', 'dashDir.importMembers': 'Importar miembros', 'dashDir.searchPlaceholder': 'Buscar por nombre o correo electrónico',
-      'dashDir.printProfile': 'Imprimir perfil', 'dashDir.printRoster': 'Imprimir lista', 'dashDir.viewProfile': 'Ver perfil',
+      'dashDir.printProfile': 'Exportar perfil completo', 'dashDir.printRoster': 'Imprimir lista', 'dashDir.viewProfile': 'Ver perfil',
+      'reports.joined': 'Se unió', 'reports.allEventRegistrations': 'Inscripciones a eventos', 'reports.noGivingOnRecord': 'Sin donaciones registradas.',
       'dashDir.matchColumnsGuess': 'Relaciona las columnas de tu archivo — ya elegimos las mejores opciones, solo corrige lo que esté mal.',
       'dashDir.emailColumn': 'Columna de correo electrónico', 'dashDir.fullNameColumn': 'Columna de nombre completo, o nombre si tu archivo lo separa',
       'dashDir.lastNameColumn': 'Columna de apellido', 'dashDir.lastNameColumnOptional': '(opcional — se combina con la columna anterior)',
@@ -8237,7 +8239,7 @@ Groups</span>
           <div class="info-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg> <span id="directory-person-phone">—</span></div>
 
           <button class="export-btn" id="directory-person-message-btn" style="margin-top:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v12H7l-3 3z"/></svg> <span data-i18n="dashDir.message">Message</span></button>
-          <button class="export-btn" id="directory-person-print-btn" style="margin-top:14px;margin-left:8px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> <span data-i18n="dashDir.printProfile">Print profile</span></button>
+          <button class="export-btn" id="directory-person-print-btn" style="margin-top:14px;margin-left:8px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> <span data-i18n="dashDir.printProfile">Export full profile</span></button>
           <div id="directory-person-message-form" style="display:none;margin-top:12px;">
             <input class="field" type="text" id="directory-message-subject" placeholder="Subject" data-i18n-placeholder="dashDir.subject">
             <textarea class="field" id="directory-message-body" rows="5" placeholder="Write your message..." style="margin-top:8px;" data-i18n-placeholder="dashDir.writeMessage"></textarea>
@@ -9270,7 +9272,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v245 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v246 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -25353,7 +25355,7 @@ Groups</span>
   // Profile report — a fuller, printable version of the same person
   // the Directory tab's detail modal already shows, adding household
   // and involvement context that modal doesn't have room for.
-  async function loadProfileReport(personId, personName, personEmail, personPhone){
+  async function loadProfileReport(personId, personName, personEmail, personPhone, personJoinedAt){
     var outputEl = document.getElementById('profile-report-output');
     if (!outputEl) return;
     var myChurch = await getMyChurch();
@@ -25370,7 +25372,10 @@ Groups</span>
     var { data: groupRows } = await supabase.from('group_members').select('status, groups!inner(name, church_id)').eq('user_id', personId).eq('groups.church_id', myChurch.id);
     var groupNames = (groupRows || []).filter(function(g){ return g.status === 'active'; }).map(function(g){ return g.groups.name; });
 
-    var { data: eventRows } = await supabase.from('event_registrations').select('status, checked_in_at, events!inner(title, start_at, church_id)').eq('user_id', personId).eq('events.church_id', myChurch.id).order('events(start_at)', { ascending: false }).limit(10);
+    // No limit. This is the full profile -- a ten-row cap is right for
+    // a glance at a card and wrong for the thing somebody exports
+    // because they want the whole record.
+    var { data: eventRows } = await supabase.from('event_registrations').select('status, checked_in_at, events!inner(title, start_at, church_id)').eq('user_id', personId).eq('events.church_id', myChurch.id).order('events(start_at)', { ascending: false });
 
     var { data: donationRows } = await supabase.from('donations').select('amount_cents, created_at').eq('church_id', myChurch.id).eq('donor_id', personId).eq('status', 'succeeded').order('created_at', { ascending: false });
     var totalGivenCents = (donationRows || []).reduce(function(s, d){ return s + d.amount_cents; }, 0);
@@ -25382,15 +25387,37 @@ Groups</span>
       + '<tr><td>' + window.t('dashDir.phone') + '</td><td>' + (personPhone || '—') + '</td></tr>'
       + '<tr><td>' + window.t('profile.ageRange') + '</td><td>' + ageLabel + '</td></tr>'
       + '<tr><td>' + window.t('households.heading') + '</td><td>' + householdName.replace(/</g, '&lt;') + '</td></tr>'
-      + '<tr><td>' + window.t('dash.groups') + '</td><td>' + (groupNames.length ? groupNames.join(', ').replace(/</g, '&lt;') : window.t('reports.none')) + '</td></tr>'
+      + '<tr><td>' + window.t('reports.joined') + '</td><td class="mono">'
+        + (personJoinedAt ? new Date(personJoinedAt).toLocaleDateString(window.appLocale(), { year: 'numeric', month: 'long', day: 'numeric' }) : '—')
+        + '</td></tr>'
       + '<tr><td>' + window.t('reports.totalGivenAllTime') + '</td><td class="mono">$' + (totalGivenCents / 100).toFixed(2) + '</td></tr>'
       + '</table>'
-      + '<h3 class="sched-date" style="margin-top:0;">' + window.t('reports.recentEventRegistrations') + '</h3>'
+
+      // Groups as a table with their status, rather than a comma list
+      // of the active ones squeezed into a summary cell. A pending or
+      // left group is part of the record too.
+      + '<h3 class="sched-date" style="margin-top:0;">' + window.t('dashDir.groupSignups') + '</h3>'
+      + (groupRows && groupRows.length
+          ? '<table class="sched-table"><tr><th>' + window.t('dashGroups.group') + '</th><th>' + window.t('dashEvents.status') + '</th></tr>' + groupRows.map(function(g){
+              return '<tr><td>' + String(g.groups.name).replace(/</g, '&lt;') + '</td><td>' + escapeHtml(g.status || '—') + '</td></tr>';
+            }).join('') + '</table>'
+          : '<p style="color:var(--ink-mute);font-size:12.5px;">' + window.t('reports.none') + '</p>')
+
+      + '<h3 class="sched-date">' + window.t('reports.allEventRegistrations') + '</h3>'
       + (eventRows && eventRows.length
           ? '<table class="sched-table"><tr><th>' + window.t('dashEvents.event') + '</th><th>' + window.t('dashEvents.date') + '</th><th>' + window.t('reports.attended') + '</th></tr>' + eventRows.map(function(r){
               return '<tr><td>' + r.events.title.replace(/</g, '&lt;') + '</td><td class="mono">' + new Date(r.events.start_at).toLocaleDateString(window.appLocale()) + '</td><td>' + (r.checked_in_at ? window.t('reports.yes') : window.t('reports.no')) + '</td></tr>';
             }).join('') + '</table>'
-          : '<p style="color:var(--ink-mute);font-size:12.5px;">' + window.t('reports.noEventRegistrationsOnRecord') + '</p>');
+          : '<p style="color:var(--ink-mute);font-size:12.5px;">' + window.t('reports.noEventRegistrationsOnRecord') + '</p>')
+
+      // Every gift, not just the total. The rows were already being
+      // fetched to compute that total and then thrown away.
+      + '<h3 class="sched-date">' + window.t('dashDir.givingHistory') + '</h3>'
+      + (donationRows && donationRows.length
+          ? '<table class="sched-table"><tr><th>' + window.t('dashEvents.date') + '</th><th>' + window.t('dashGiving.amount') + '</th></tr>' + donationRows.map(function(d){
+              return '<tr><td class="mono">' + new Date(d.created_at).toLocaleDateString(window.appLocale()) + '</td><td class="mono">$' + (d.amount_cents / 100).toFixed(2) + '</td></tr>';
+            }).join('') + '</table>'
+          : '<p style="color:var(--ink-mute);font-size:12.5px;">' + window.t('reports.noGivingOnRecord') + '</p>');
   }
   window.loadProfileReport = loadProfileReport;
 
@@ -25401,7 +25428,7 @@ Groups</span>
       if (!currentDirectoryPersonId) return;
       document.getElementById('profile-report-modal').classList.add('open');
       // eslint-disable-next-line no-use-before-define -- same reasoning, currentDirectoryPersonId/Name/Email.
-      loadProfileReport(currentDirectoryPersonId, currentDirectoryPersonName, currentDirectoryPersonEmail, document.getElementById('directory-person-phone').textContent);
+      loadProfileReport(currentDirectoryPersonId, currentDirectoryPersonName, currentDirectoryPersonEmail, document.getElementById('directory-person-phone').textContent, currentDirectoryPersonJoinedAt);
     });
   }
   var profileReportPrintBtn = document.getElementById('profile-report-print-btn');
@@ -28065,6 +28092,9 @@ Groups</span>
   var currentDirectoryPersonEmail = null;
   var currentDirectoryPersonName = null;
   var currentDirectoryPersonId = null;
+  // Carried from the card to the export, rather than re-fetched: the
+  // card already has it and the export is opened from the card.
+  var currentDirectoryPersonJoinedAt = null;
   var directoryCurrentFilter = 'all';
 
   function renderDirectoryTable(){
@@ -29723,6 +29753,7 @@ Groups</span>
     currentDirectoryPersonEmail = person.email || null;
     currentDirectoryPersonName = person.full_name || 'them';
     currentDirectoryPersonId = person.user_id;
+    currentDirectoryPersonJoinedAt = person.joined_at || null;
     document.getElementById('directory-person-message-form').style.display = 'none';
     document.getElementById('directory-message-subject').value = '';
     document.getElementById('directory-message-body').value = '';
