@@ -9050,7 +9050,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v225 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v226 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -15353,6 +15353,59 @@ Groups</span>
     }
   };
 
+  // ============================================================
+  // Where the dashboard's load time actually goes.
+  //
+  // Three separate readings of this code produced three different
+  // explanations for a slow refresh -- the panel storm, getMyChurch's
+  // sequential round trips, the pooled-connection error -- and the
+  // refresh was still slow after all three. Each change was an
+  // improvement and none of them was the answer, which means the
+  // answer is not visible from reading.
+  //
+  // So this measures. It is deliberately always on and costs nothing
+  // measurable: a timestamp per phase, and the network timings the
+  // browser already collected. window.fdPerf() prints the table at
+  // any moment; the dashboard prints it once by itself a few seconds
+  // after opening, so reproducing the problem is just a refresh.
+  // ============================================================
+  var _fdT0 = performance.now();
+  var _fdMarks = [];
+  window.fdMark = function(label, startedAt){
+    var now = performance.now();
+    _fdMarks.push({
+      what: label,
+      at_ms: Math.round((startedAt === undefined ? now : startedAt) - _fdT0),
+      took_ms: startedAt === undefined ? '' : Math.round(now - startedAt)
+    });
+  };
+  // Wraps a promise-returning call and records when it started and how
+  // long it took, without changing what it returns or how it fails.
+  window.fdTime = function(label, fn){
+    var started = performance.now();
+    var done = function(){ window.fdMark(label, started); };
+    try {
+      var r = fn();
+      if (r && typeof r.then === 'function') { r.then(done, done); return r; }
+      done();
+      return r;
+    } catch (e) { done(); throw e; }
+  };
+  window.fdPerf = function(){
+    var net = performance.getEntriesByType('resource')
+      .filter(function(r){ return r.name.indexOf('supabase.co') !== -1; })
+      .map(function(r){
+        var path = r.name.replace(/^https:\/\/[^/]+\//, '').split('?')[0];
+        return { what: 'NET ' + path, at_ms: Math.round(r.startTime - _fdT0), took_ms: Math.round(r.duration) };
+      });
+    var all = _fdMarks.concat(net).sort(function(a, b){ return a.at_ms - b.at_ms; });
+    console.log('--- FaithDock load timeline (ms from page start) ---');
+    if (console.table) console.table(all); else console.log(JSON.stringify(all, null, 1));
+    console.log('--- copy the table above ---');
+    return all;
+  };
+  window.fdMark('module start');
+
   const supabase = createClient(
     'https://doerahlrdknedoknawex.supabase.co',
     'sb_publishable_zdoYSKnhvJyEdhhbCV_CAw_owRZ3f-V',
@@ -15520,7 +15573,7 @@ Groups</span>
         active++;
         var done = function(){ active--; pump(); };
         try {
-          var r = fn();
+          var r = window.fdTime('panel ' + (fn.name || 'anonymous'), fn);
           // A loader that is not async finishes here and frees its slot
           // immediately; one that returns a promise holds it until it
           // settles. Rejection frees it too -- one panel failing must
@@ -15575,6 +15628,10 @@ Groups</span>
     // Everything else once the browser has had a chance to paint it.
     // Idle rather than a timer where it exists, with a timeout so a
     // busy page cannot postpone them indefinitely.
+    // One automatic report, so reproducing a slow load is just a
+    // refresh and a glance at the console.
+    setTimeout(function(){ if (window.fdPerf) window.fdPerf(); }, 8000);
+
     var kickRest = function(){ runPanelsThrottled(rest); };
     if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(kickRest, { timeout: 1500 });
     else setTimeout(kickRest, 250);
@@ -17331,6 +17388,10 @@ Groups</span>
   }
   window.peekMyChurch = peekMyChurch;
   async function getMyChurchUncached(knownUserId, retriesLeft){
+    var _fdStart = performance.now();
+    // Marked on the way out of every path, including the retry, so a
+    // retry loop shows up as several entries rather than one long one.
+    var _fdOut = function(v){ window.fdMark('getMyChurch (retries left ' + retriesLeft + ') -> ' + (v ? v.role : 'null'), _fdStart); return v; };
     var userId = knownUserId;
     if (!userId) {
       // getSession() reads the stored session (refreshing it only if
@@ -17344,7 +17405,13 @@ Groups</span>
       // JWT and RLS still decides, server side, whose rows come back.
       // A stale or tampered id in the browser widens nothing -- it
       // just asks for rows the database then refuses.
-      var { data: sessionData } = await supabase.auth.getSession();
+      // getSession() is a plausible suspect precisely because it does
+      // not look like one: it reads storage, but it also waits on the
+      // client own initialisation, and it refreshes an expired token
+      // before answering. Timed rather than assumed.
+      var { data: sessionData } = await window.fdTime("auth.getSession", function(){
+        return supabase.auth.getSession();
+      });
       var sessionUser = sessionData && sessionData.session && sessionData.session.user;
       // Same reasoning as the long note that used to be here: this is
       // called for signed-out visitors browsing public pages too, so
@@ -17352,7 +17419,7 @@ Groups</span>
       // a dead session to sign out of. That detection belongs solely
       // to the refresh timer, which knows a session existed a moment
       // ago.
-      if (!sessionUser) return null;
+      if (!sessionUser) return _fdOut(null);
       userId = sessionUser.id;
     }
 
@@ -17376,18 +17443,18 @@ Groups</span>
     // The two church_staff selects stay two queries rather than one
     // merged select on purpose -- see the note below the second -- but
     // there is no reason for them to be two WAITS.
-    var [ownedRes, staffRes, abilityRes] = await Promise.all([
+    var [ownedRes, staffRes, abilityRes] = await window.fdTime('getMyChurch: church lookups', function(){ return Promise.all([
       supabase.from('churches').select('id, name, denomination, plan_type, logo_url, subscription_status').eq('owner_id', userId).order('name'),
       supabase.from('church_staff').select('church_id, can_manage_events, can_manage_giving, can_edit_profile, can_manage_groups, can_manage_messages, is_manager, receives_contact_messages, can_manage_members, churches(id, name, denomination, plan_type)').eq('user_id', userId),
       supabase.from('church_staff').select('church_id, can_manage_rooms, can_manage_ministries, can_view_revenue, can_check_in').eq('user_id', userId)
-    ]);
+    ]); });
     var owned = ownedRes.data, ownedError = ownedRes.error;
     if (ownedError) { console.error('getMyChurch (owned lookup):', ownedError); }
     if (owned && owned.length) {
       var activeChurchIdForOwned = getActiveChurchId();
       var chosenChurch = (activeChurchIdForOwned && owned.filter(function(c){ return c.id === activeChurchIdForOwned; })[0]) || owned[0];
       if (chosenChurch.id !== activeChurchIdForOwned) setActiveChurchId(chosenChurch.id);
-      return { id: chosenChurch.id, name: chosenChurch.name, denomination: chosenChurch.denomination, planType: chosenChurch.plan_type, role: 'owner', canCheckIn: true, isCheckinOnly: false, canManageEvents: true, canManageGiving: true, canManageBilling: true, canEditProfile: true, canManageGroups: true, canManageMessages: true, canManageMembers: true, canManageRooms: true, canManageMinistries: true, canViewRevenue: true, isManager: true, ownedChurches: owned };
+      return _fdOut({ id: chosenChurch.id, name: chosenChurch.name, denomination: chosenChurch.denomination, planType: chosenChurch.plan_type, role: 'owner', canCheckIn: true, isCheckinOnly: false, canManageEvents: true, canManageGiving: true, canManageBilling: true, canEditProfile: true, canManageGroups: true, canManageMessages: true, canManageMembers: true, canManageRooms: true, canManageMinistries: true, canViewRevenue: true, isManager: true, ownedChurches: owned });
     }
 
     // No .limit(1) here either, as of this change -- church_staff's
@@ -17427,7 +17494,7 @@ Groups</span>
       var activeChurchIdForStaffed = getActiveChurchId();
       var chosenStaffed = (activeChurchIdForStaffed && staffedChurches.filter(function(sc){ return sc.id === activeChurchIdForStaffed; })[0]) || staffedChurches[0];
       if (chosenStaffed.id !== activeChurchIdForStaffed) setActiveChurchId(chosenStaffed.id);
-      return { id: chosenStaffed.id, name: chosenStaffed.name, denomination: chosenStaffed.denomination, planType: chosenStaffed.plan_type, role: 'staff', canManageEvents: chosenStaffed.can_manage_events, canManageGiving: chosenStaffed.can_manage_giving, canEditProfile: chosenStaffed.can_edit_profile, canManageGroups: chosenStaffed.can_manage_groups, canManageMessages: chosenStaffed.can_manage_messages, canManageMembers: chosenStaffed.can_manage_members,
+      return _fdOut({ id: chosenStaffed.id, name: chosenStaffed.name, denomination: chosenStaffed.denomination, planType: chosenStaffed.plan_type, role: 'staff', canManageEvents: chosenStaffed.can_manage_events, canManageGiving: chosenStaffed.can_manage_giving, canEditProfile: chosenStaffed.can_edit_profile, canManageGroups: chosenStaffed.can_manage_groups, canManageMessages: chosenStaffed.can_manage_messages, canManageMembers: chosenStaffed.can_manage_members,
         canManageRooms: !!(newAbilityByChurch[chosenStaffed.id] && newAbilityByChurch[chosenStaffed.id].can_manage_rooms),
         canManageMinistries: !!(newAbilityByChurch[chosenStaffed.id] && newAbilityByChurch[chosenStaffed.id].can_manage_ministries),
         canCheckIn: !!(newAbilityByChurch[chosenStaffed.id] && newAbilityByChurch[chosenStaffed.id].can_check_in),
@@ -17451,7 +17518,7 @@ Groups</span>
         // state, and nobody configuring a treasurer would think to tick
         // both. The implication lives here rather than in the database
         // so the two stay independently revocable.
-        canViewRevenue: !!(chosenStaffed.can_manage_giving || (newAbilityByChurch[chosenStaffed.id] && newAbilityByChurch[chosenStaffed.id].can_view_revenue)), isManager: chosenStaffed.is_manager, receivesContactMessages: chosenStaffed.receives_contact_messages, staffedChurches: staffedChurches };
+        canViewRevenue: !!(chosenStaffed.can_manage_giving || (newAbilityByChurch[chosenStaffed.id] && newAbilityByChurch[chosenStaffed.id].can_view_revenue)), isManager: chosenStaffed.is_manager, receivesContactMessages: chosenStaffed.receives_contact_messages, staffedChurches: staffedChurches });
     }
 
     // church_staff has RLS that depends on the server independently
@@ -17463,11 +17530,12 @@ Groups</span>
     // Retrying closes that gap without gambling on one fixed delay
     // being exactly long enough.
     if (retriesLeft > 0) {
+      window.fdMark('getMyChurch: nothing found, sleeping 500ms then retrying', _fdStart);
       await new Promise(function(resolve){ setTimeout(resolve, 500); });
       return getMyChurchUncached(userId, retriesLeft - 1);
     }
 
-    return null;
+    return _fdOut(null);
   }
   window.getMyChurch = getMyChurch;
 
