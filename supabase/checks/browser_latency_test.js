@@ -1,69 +1,95 @@
 // Paste this whole file into your browser console (F12 -> Console) on
-// faithdock.com, press Enter, and wait about ten seconds.
+// faithdock.com, press Enter, wait about fifteen seconds.
 //
-// WHAT IT SETTLES
+// WHAT THE LAST RUN ESTABLISHED
 //
-// Three things are now measured and agree with each other:
+//   one at a time (ms):  138, 101, 100, 90, 86
+//   six at once   (ms):  85, 167, 251, 336, 421, 513
+//   six, wall clock:     514 ms
 //
-//   - the SQL is fast          is_platform_admin, server-side mean 6.08 ms
-//   - the project is fast      170-290 ms per request, measured from a
-//                              different machine, six at once, just now
-//   - your browser is slow     4365-6638 ms for the same class of request
+// Your network is fine -- a request costs about 90 ms. That rules out
+// the slow-path explanation completely.
 //
-// So the time is going somewhere between your browser and Supabase.
-// There are two candidates and they need opposite fixes:
+// But the "six at once" numbers are a perfect staircase in 85 ms steps,
+// which is what strictly-one-at-a-time looks like, not what six in
+// parallel looks like.
 //
-//   A. The path itself is slow -- your network, a VPN, a proxy, an
-//      extension intercepting requests, DNS. Then every request is
-//      slow, including this one, and no amount of rewriting the page
-//      helps. The fix is on your machine or your connection.
+// THE FLAW IN THAT TEST, WHICH IS MINE
 //
-//   B. The path is fine and the PAGE is queuing its own requests --
-//      too many at once for the browser to open connections for, so
-//      most of that "6638 ms" is time spent waiting in the browser's
-//      own queue rather than on the wire. Then the fix is mine: fewer
-//      requests per load.
+// I sent six IDENTICAL urls. Browsers deliberately serialise identical
+// in-flight GETs so the second one can reuse the first one's cached
+// response. So that staircase may be my test's own doing rather than
+// anything about this app, and concluding from it would be the same
+// mistake I have made repeatedly here.
 //
-// This asks the same endpoint the page asks, one request at a time,
-// with nothing else competing. That removes queuing from the picture
-// entirely -- so whatever it reports is the real cost of one request.
+// This run fixes that and adds the comparison that actually matters:
+//
+//   1. six DIFFERENT urls, raw fetch      -- can the browser parallelise?
+//   2. six DIFFERENT queries, via the app's own supabase client
+//
+// If 1 is parallel and 2 is a staircase, the serialisation is in the
+// client library or in how this page uses it, and it is mine to fix.
+// If both are staircases, something below the page is serialising and
+// the answer is elsewhere.
 
 (async () => {
-  const URL = 'https://doerahlrdknedoknawex.supabase.co/rest/v1/churches?select=id&limit=1';
+  const BASE = 'https://doerahlrdknedoknawex.supabase.co/rest/v1/churches';
   const KEY = 'sb_publishable_zdoYSKnhvJyEdhhbCV_CAw_owRZ3f-V';
 
-  const one = [];
-  for (let i = 0; i < 5; i++) {
+  // Six genuinely different urls, so nothing can be coalesced with
+  // anything else. Different offsets, same trivial cost.
+  const urls = [0, 1, 2, 3, 4, 5].map(
+    n => BASE + '?select=id&limit=1&offset=' + n
+  );
+
+  async function timeIt(fn) {
     const t = performance.now();
-    try { await fetch(URL, { headers: { apikey: KEY } }); }
-    catch (e) { one.push('FAILED: ' + e.message); continue; }
-    one.push(Math.round(performance.now() - t));
+    try { await fn(); } catch (e) { return 'FAIL'; }
+    return Math.round(performance.now() - t);
   }
 
-  // And six at once, which is the shape the page actually produces.
-  // If these are much worse than the one-at-a-time numbers, the
-  // browser is queuing and the page is asking for too much at once.
-  const t6 = performance.now();
-  const six = await Promise.all(
-    Array.from({ length: 6 }, async () => {
-      const t = performance.now();
-      try { await fetch(URL, { headers: { apikey: KEY } }); }
-      catch (e) { return 'FAILED'; }
-      return Math.round(performance.now() - t);
-    })
+  // ---- 1. raw fetch, six different urls, all at once ---------------
+  const rawStart = performance.now();
+  const raw = await Promise.all(
+    urls.map(u => timeIt(() => fetch(u, { headers: { apikey: KEY } })))
   );
-  const sixWall = Math.round(performance.now() - t6);
+  const rawWall = Math.round(performance.now() - rawStart);
+
+  // ---- 2. the page's own client, six different queries --------------
+  let cli = ['supabase client not found on window'];
+  let cliWall = -1;
+  if (window.supabase && window.supabase.from) {
+    const cliStart = performance.now();
+    cli = await Promise.all(
+      [0, 1, 2, 3, 4, 5].map(n =>
+        timeIt(() => window.supabase.from('churches').select('id').range(n, n))
+      )
+    );
+    cliWall = Math.round(performance.now() - cliStart);
+  }
+
+  // ---- 3. is an auth lock in play? ----------------------------------
+  // supabase-js serialises auth work behind a Web Lock. If one is held
+  // while every request waits for a token, that is the serialiser.
+  let locks = 'navigator.locks not available';
+  try {
+    if (navigator.locks && navigator.locks.query) {
+      const q = await navigator.locks.query();
+      locks = 'held=[' + (q.held || []).map(l => l.name).join(', ') + ']'
+            + '  pending=[' + (q.pending || []).map(l => l.name).join(', ') + ']';
+    }
+  } catch (e) { locks = 'lock query failed: ' + e.message; }
 
   console.log(
-    '=== FaithDock latency test ===\n' +
-    'one at a time (ms):  ' + one.join(', ') + '\n' +
-    'six at once   (ms):  ' + six.join(', ') + '\n' +
-    'six, wall clock:     ' + sixWall + ' ms\n' +
-    'connection:          ' + (navigator.connection
-        ? (navigator.connection.effectiveType || '?') + ', downlink ' +
-          (navigator.connection.downlink || '?') + ' Mbps, rtt ' +
-          (navigator.connection.rtt || '?') + ' ms'
-        : 'not reported by this browser') + '\n' +
+    '=== FaithDock parallelism test ===\n' +
+    'raw fetch, 6 different urls (ms): ' + raw.join(', ') + '\n' +
+    '   wall clock:                    ' + rawWall + ' ms\n' +
+    'supabase client, 6 queries  (ms): ' + cli.join(', ') + '\n' +
+    '   wall clock:                    ' + cliWall + ' ms\n' +
+    'web locks:                        ' + locks + '\n' +
+    'protocol (this page):             ' +
+      ((performance.getEntriesByType('resource')
+        .filter(r => r.name.includes('supabase.co'))[0] || {}).nextHopProtocol || 'unknown') + '\n' +
     '=== end (select from "===" to "===" and copy) ==='
   );
 })();
