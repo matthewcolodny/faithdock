@@ -862,6 +862,7 @@
       'ce.roomAlreadyBooked': 'Already booked at this time:',
       'checkinLink.sectionTitle': 'Check-in links',
       'checkinLink.sectionHint': 'A link or QR code that lets a volunteer check people in for this event without a FaithDock account. It shows names only, and stops working when it expires or you revoke it.',
+      'dashCheckin.checkInCol': 'Check In',
       'checkinLink.labelPlaceholder': 'e.g. Front door tablet',
       'checkinLink.create': 'Create link', 'checkinLink.created': 'Link created.',
       'checkinLink.none': 'No links for this event yet.', 'checkinLink.untitled': 'Untitled link',
@@ -1961,6 +1962,7 @@
       'ce.roomAlreadyBooked': 'Ya reservada a esta hora:',
       'checkinLink.sectionTitle': 'Enlaces de registro',
       'checkinLink.sectionHint': 'Un enlace o código QR que permite a un voluntario registrar asistentes a este evento sin tener cuenta de FaithDock. Muestra solo nombres y deja de funcionar cuando caduca o lo revocas.',
+      'dashCheckin.checkInCol': 'Entrada',
       'checkinLink.labelPlaceholder': 'p. ej. Tableta de la entrada',
       'checkinLink.create': 'Crear enlace', 'checkinLink.created': 'Enlace creado.',
       'checkinLink.none': 'Aún no hay enlaces para este evento.', 'checkinLink.untitled': 'Enlace sin título',
@@ -4728,8 +4730,37 @@
   .qr-btn svg{width:15px;height:15px;display:block;}
   .checkin-row{cursor:pointer;}
   .checkin-row:hover{background:var(--paper);}
-  .checkin-status::after{content:"Not checked in";font-size:12px;color:var(--ink-mute);font-family:'IBM Plex Mono';}
-  .checkin-row[data-checked="true"] .checkin-status::after{content:"✓ Checked in";color:var(--sage);font-weight:500;}
+  /* The state used to be the words "Not checked in" / "Checked in",
+     written by CSS ::after content -- which also made them hardcoded
+     English on a bilingual page, since content: is invisible to the
+     data-i18n pass that translates everything else. A box says the
+     same thing in any language, in a fraction of the width, and looks
+     like the thing you tap. */
+  .checkin-status{text-align:center;}
+  .checkin-status svg{width:20px;height:20px;vertical-align:middle;}
+
+  /* Rosters that are meant to fit a phone rather than scroll sideways.
+     table.roster becomes a nowrap horizontal scroller at 860px, which
+     is right for a wide roster and wrong for a three-column one --
+     nothing here is too wide to wrap. */
+  @media (max-width:860px){
+    table.roster.roster-fits{display:table;width:100%;table-layout:fixed;white-space:normal;overflow-x:visible;}
+    table.roster.roster-fits th, table.roster.roster-fits td{padding:10px 8px;font-size:13px;overflow-wrap:break-word;}
+    /* The uppercase mono headings are the widest thing in these cells
+       and REGISTRATION is one unbreakable word, so it gets a size that
+       fits its column rather than being snapped in half. break-word
+       above rather than anywhere for the same reason: break a word only
+       when there is genuinely no other option. */
+    table.roster.roster-fits th{font-size:10px;letter-spacing:0;}
+    /* Measured, not guessed: at 12px with the mono letter-spacing,
+       "Participant" needs 82px and the cell offers 81. One pixel, and
+       it snapped the word in half. Dropping the tracking and half a
+       point brings it to about 76px. */
+    table.roster.roster-fits td.mono{font-size:11.5px;letter-spacing:0;}
+    #checkin-table.roster-fits th:nth-child(1){width:50%;}
+    #checkin-table.roster-fits th:nth-child(2){width:32%;}
+    #checkin-table.roster-fits th:nth-child(3){width:18%;}
+  }
 
   /* ---- conference ---- */
   .conf-hero{background:var(--brand);color:#fff;padding:90px 0;text-align:center;}
@@ -8033,8 +8064,8 @@ Groups</span>
           <div id="checkin-walkin-status" style="display:none;font-size:12px;margin-top:8px;"></div>
         </div>
 
-        <table class="roster" id="checkin-table">
-          <tr><th data-i18n="dashCheckin.name">Name</th><th data-i18n="dashCheckin.registration">Registration</th><th></th></tr>
+        <table class="roster roster-fits" id="checkin-table">
+          <tr><th data-i18n="dashCheckin.name">Name</th><th data-i18n="dashCheckin.registration">Registration</th><th data-i18n="dashCheckin.checkInCol">Check In</th></tr>
           <tbody id="checkin-tbody">
             <tr><td colspan="3" style="color:var(--ink-mute);" data-i18n="dashCheckin.selectEventFirst">Select an event above to see its check-in list.</td></tr>
           </tbody>
@@ -9170,7 +9201,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v238 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v239 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -30924,9 +30955,19 @@ Groups</span>
           + (r.guest_email ? '<div style="font-size:11.5px;color:var(--ink-mute);">' + escapeHtml(r.guest_email) + '</div>' : '')
           + '</td>'
         + '<td class="mono">' + regLabel + '</td>'
-        + '<td class="checkin-status">' + (checked ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:16px;height:16px;color:var(--gold);"><path d="M20 6L9 17l-5-5"/></svg>' : '') + '</td>'
+        + '<td class="checkin-status">' + checkinBoxSvg(checked) + '</td>'
         + '</tr>';
     }).join('');
+  }
+
+  // An empty box, or a ticked one. Two render sites use this -- the
+  // staff roster and the account-less door page -- and a check-in mark
+  // that differed between them would be a small cruelty to whoever
+  // works both.
+  function checkinBoxSvg(checked){
+    return checked
+      ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--sage);" aria-label="' + escAttr(window.t('dashCheckin.checkInCol')) + '"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 12l3 3 5-6" stroke-width="2.5"/></svg>'
+      : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--ink-mute);opacity:.65;"><rect x="3" y="3" width="18" height="18" rx="4"/></svg>';
   }
 
   async function loadCheckinList(eventId){
@@ -31032,7 +31073,7 @@ Groups</span>
       return '<tr class="checkin-row" data-checked="' + checked + '" data-cl-id="' + escapeHtml(r.id) + '">'
         + '<td>' + escapeHtml(r.name) + '</td>'
         + '<td class="mono">' + escapeHtml(label) + '</td>'
-        + '<td class="checkin-status">' + (checked ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:16px;height:16px;color:var(--gold);"><path d="M20 6L9 17l-5-5"/></svg>' : '') + '</td>'
+        + '<td class="checkin-status">' + checkinBoxSvg(checked) + '</td>'
         + '</tr>';
     }).join('');
   }
