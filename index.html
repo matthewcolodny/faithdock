@@ -9107,7 +9107,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v232 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v233 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -15305,6 +15305,12 @@ Groups</span>
     return [];
   }
 
+  // True once any card surface exists. What the follow-state and
+  // registration-state loaders are FOR -- they fill in hearts and
+  // Registered badges on cards -- so with no cards they are three
+  // queries about nothing.
+  window.anySurfaceBuilt = false;
+
   function buildSurfacesForRoute(route){
     route = route || currentBaseRoute();
     if (_builtSurfaces[route]) return;
@@ -15314,10 +15320,20 @@ Groups</span>
     _builtSurfaces[route] = true;
     if (!fns.length) return;
     renderOnceLocationKnown(fns);
+    window.anySurfaceBuilt = true;
     // Only worth asking which cards this person is registered for once
     // there are cards to ask about.
     if (typeof window.refreshAllCardRegistrationStates === 'function') {
       window.refreshAllCardRegistrationStates();
+    }
+    // Same for the hearts. This used to run unconditionally from the
+    // auth-settle batch -- three queries (church_follows,
+    // event_follows, group_follows) fired whatever page was showing.
+    // Running it HERE instead means it happens exactly when a grid of
+    // hearts comes into existence, which is the only time its answer
+    // can be seen, and it re-renders those grids itself when it lands.
+    if (typeof window.loadEventFilterFollowState === 'function') {
+      window.loadEventFilterFollowState();
     }
   }
   window.buildSurfacesForRoute = buildSurfacesForRoute;
@@ -19589,8 +19605,31 @@ Groups</span>
       if (typeof window.checkExistingChurch === 'function' && typeof window.resolveRouteFromHash === 'function' && window.resolveRouteFromHash(location.hash).base === 'register-church') {
         window.checkExistingChurch(uid, window.resolveRouteFromHash(location.hash).key);
       }
-      if (typeof window.loadMyGroups === 'function') window.loadMyGroups();
-      if (typeof window.loadMyChurches === 'function') window.loadMyChurches();
+      // Only the page being shown.
+      //
+      // MEASURED, 783 ms into a real dashboard load: thirteen requests
+      // at once -- church_follows twice, group_follows twice,
+      // church_memberships twice, event_follows, group_members,
+      // churches twice, church_ownership_handoffs, church_staff_invites.
+      // This batch, firing every loader in the app.
+      //
+      // loadMyChurches / loadMyEvents / loadMyGroups fill the My Lists
+      // page, which already loads its own tab when you arrive -- and
+      // only the visible one. The comment above LISTS_TAB_LOADERS says
+      // loading all three "would triple the queries for somebody who
+      // came to look at one". Calling all three from here did exactly
+      // that, on every page load, for somebody not on that page at all.
+      //
+      // Each of those routes refreshes itself on entry, so nothing is
+      // lost by not pre-loading them: the only change is that the
+      // queries happen when the page is opened rather than always.
+      var settleBase = (typeof window.resolveRouteFromHash === 'function')
+        ? ((window.resolveRouteFromHash(location.hash) || {}).base || '') : '';
+      var SETTLE_LIST_ROUTES = { 'my-lists': 1, 'my-churches': 1, 'my-events': 1, 'my-groups': 1 };
+      if (SETTLE_LIST_ROUTES[settleBase]) {
+        if (typeof window.loadMyGroups === 'function') window.loadMyGroups();
+        if (typeof window.loadMyChurches === 'function') window.loadMyChurches();
+      }
       // Reported: refreshing Manage your plan reverts it to "Become a
       // Partner Church". populatePricingPage() returns early when
       // window.isSignedIn is false, which it still is on a cold load
@@ -19603,9 +19642,17 @@ Groups</span>
       // getMyChurch() it depends on is cached by this point, so the
       // cost off-page is one cache read.
       if (typeof window.populatePricingPage === 'function') window.populatePricingPage();
-      if (typeof window.loadEventFilterFollowState === 'function') window.loadEventFilterFollowState();
+      // Only when there are hearts to fill in. buildSurfacesForRoute
+      // calls this itself the moment a card grid is built, which covers
+      // arriving on one of those pages later; this covers signing in
+      // while already looking at one.
+      if (window.anySurfaceBuilt && typeof window.loadEventFilterFollowState === 'function') {
+        window.loadEventFilterFollowState();
+      }
       if (typeof window.loadAdminPanel === 'function') window.loadAdminPanel();
-      if (typeof window.loadMyEvents === 'function') window.loadMyEvents();
+      if (SETTLE_LIST_ROUTES[settleBase] && typeof window.loadMyEvents === 'function') {
+        window.loadMyEvents();
+      }
       if (typeof window.checkPendingMemberInvite === 'function') window.checkPendingMemberInvite(uid);
       if (typeof window.checkPendingOwnershipHandoff === 'function') window.checkPendingOwnershipHandoff(uid);
       if (typeof window.checkPendingStaffInvite === 'function') window.checkPendingStaffInvite(uid);
