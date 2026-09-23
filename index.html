@@ -8900,7 +8900,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v215 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v216 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12840,7 +12840,7 @@ Groups</span>
     // that reads data names its loader, and adding a tab without one
     // is now a visible omission rather than an invisible default.
     // ============================================================
-    var DASH_VIEW_LOADERS = {
+    var DASH_VIEW_LOADERS = window.DASH_VIEW_LOADERS = {
       events:     ['loadDashboardEvents'],
       checkin:    ['loadCheckinEventPicker'],
       // Recently joined, pending invites and duplicates moved to
@@ -12974,6 +12974,24 @@ Groups</span>
     if(view === 'churches' && typeof window.loadDashboardChurchesPanel === 'function'){ window.loadDashboardChurchesPanel(); }
   }
   window.goDash = goDash;
+
+  // Which sub-page is actually showing. Needed by the church switch,
+  // which has to reload what is on screen and only what is on screen.
+  window.currentDashView = function(){
+    var active = document.querySelector('.dash-content.active');
+    return active ? active.id.replace(/^dash-/, '') : null;
+  };
+
+  // Run one view's loaders, the same set goDash runs when you open it.
+  window.runDashViewLoaders = function(view){
+    var names = (window.DASH_VIEW_LOADERS || {})[view];
+    if (!names) return;
+    names.forEach(function(n){
+      if (typeof window[n] === 'function') {
+        try { window[n](); } catch (e) { console.error('Dashboard view loader failed:', n, e); }
+      }
+    });
+  };
 
   function authTab(which){
     document.getElementById('tab-signup').classList.toggle('active', which==='signup');
@@ -15331,6 +15349,39 @@ Groups</span>
   // the work to the moment it's actually needed.
   window.resetDashboardPanels = function(){ _dashPanelsFlushed = false; };
 
+  // The registered panels that no dashboard VIEW claims.
+  //
+  // Switching church reloads the view on screen, and opening any
+  // other view runs its own loaders -- between them that covers 23 of
+  // the 26 registered panels. This runs the remainder, so nothing is
+  // left holding the previous church's data with no path back to a
+  // refresh.
+  //
+  // Computed by subtracting the view map from the registry rather
+  // than written down. A hand-kept copy of "the ones not in the other
+  // list" is the exact shape of thing this file keeps getting wrong:
+  // it is correct on the day it is written and silently wrong the
+  // first time a panel is added.
+  //
+  // loadDashboardHeader is excluded because the church switch calls
+  // it itself, and in a specific position -- the sub-nav render it
+  // triggers consumes state set after it.
+  window.runUnviewedDashPanels = function(){
+    var views = window.DASH_VIEW_LOADERS;
+    // No map yet means goDash has never run, and there is no basis
+    // for deciding what is covered. Do the old thing rather than
+    // guess and skip something.
+    if (!views) { window.resetDashboardPanels(); window.runDashboardPanels(); return; }
+    var claimed = { loadDashboardHeader: true };
+    Object.keys(views).forEach(function(v){
+      (views[v] || []).forEach(function(n){ claimed[n] = true; });
+    });
+    _dashPanelRegistry.forEach(function(fn){
+      if (fn.name && claimed[fn.name]) return;
+      try { fn(); } catch (e) { console.error('Dashboard panel failed to load:', e); }
+    });
+  };
+
   // ============================================================
   // What a change to an event makes stale.
   //
@@ -16446,6 +16497,13 @@ Groups</span>
     try { return localStorage.getItem('fd-active-church-id'); } catch (e) { return null; }
   }
   window.getActiveChurchId = getActiveChurchId;
+  // Bumped every time the active church changes. A loader started
+  // before the switch can still be waiting on the network when the
+  // switch happens, and it must not paint when it lands -- that is
+  // the reported "flashed Test 7's events" exactly: not the wrong
+  // query, the right query for a church nobody is looking at any more.
+  window.churchSwitchGeneration = 0;
+
   function setActiveChurchId(id){
     try { localStorage.setItem('fd-active-church-id', id); } catch (e) {}
   }
@@ -16483,6 +16541,7 @@ Groups</span>
   // were with a different church silently selected underneath them.
   function setActiveChurchAndReload(id, enterChurch){
     setActiveChurchId(id);
+    window.churchSwitchGeneration++;
 
     var canSwapInPlace = typeof window.resetDashboardPanels === 'function'
       && typeof window.runDashboardPanels === 'function'
@@ -16501,11 +16560,43 @@ Groups</span>
     }
 
     window.loadDashboardHeader();
-    // Billing and Plans are outside the dashPanel registry and do hold
-    // per-church state, so they are refreshed explicitly.
+
+    // Reported: clicking a church card on Overview took over fifteen
+    // seconds, and on the way there it showed one church's events,
+    // flashed another's, and settled on a third.
+    //
+    // runDashboardPanels() fires every registered panel -- twenty-six
+    // of them, all at once, all querying. Twenty-five were for
+    // sub-pages nobody was looking at. Worse, the events loader then
+    // ran a SECOND time a few lines below, because goDash('events')
+    // runs that view's loaders too: two concurrent loads of the same
+    // table, which is the flash. Click a second card before the first
+    // settles and there are four, from two different churches, in a
+    // race decided by whichever server reply happens to land last.
+    //
+    // goDash already owns a complete map of which loaders each view
+    // needs, so the answer is to load the view on screen and mark the
+    // rest stale. Opening any other tab runs its own loaders, exactly
+    // as it already did -- nothing can show the old church's data,
+    // because nothing shows anything until its own view is opened.
+    // Deliberately NOT resetDashboardPanels(). That marks the whole
+    // registry stale, and sub-tab navigation routes back through
+    // showRouteFromHash, which calls runDashboardPanels() -- so
+    // marking stale here just moves all twenty-six queries to the
+    // next tab click instead of removing them.
+    if (typeof window.runDashViewLoaders === 'function' && typeof window.currentDashView === 'function') {
+      // Not when entering a church: goDash('events') at the bottom is
+      // about to load that view, and running the current one first
+      // would be a fetch for a page being navigated away from.
+      if (!enterChurch) window.runDashViewLoaders(window.currentDashView());
+      if (typeof window.runUnviewedDashPanels === 'function') window.runUnviewedDashPanels();
+    } else {
+      window.resetDashboardPanels();
+      window.runDashboardPanels();
+    }
+    // Billing holds per-church state and is not in any view the switch
+    // reloads unless you are standing on it, so it stays explicit.
     if (typeof window.loadBillingPanel === 'function') window.loadBillingPanel();
-    window.resetDashboardPanels();
-    window.runDashboardPanels();
     // Arriving inside a church shows that church's whole menu. Set
     // after the loaders above because loadDashboardHeader triggers
     // the render that consumes it.
@@ -17731,11 +17822,18 @@ Groups</span>
   window.fetchByIdsChunked = fetchByIdsChunked;
   async function loadDashboardEvents(){
     var tbody = document.getElementById('dash-events-tbody');
+    // Claimed before the first await, checked before every paint. Two
+    // of these in flight for two different churches is a race, and
+    // without this the winner is whichever reply is slower.
+    var myGen = window.churchSwitchGeneration;
+    function stillCurrent(){ return myGen === window.churchSwitchGeneration; }
     var myChurch = await getMyChurch();
+    if (!stillCurrent()) return;
     if (!myChurch) { tbody.innerHTML = '<tr><td colspan="8" style="color:var(--ink-mute);">' + window.t('dashHeader.registerChurchFirst') + '</td></tr>'; return; }
 
     var churchId = myChurch.id;
     var { data: allEvents, error: eventsError } = await supabase.from('events').select('*, profiles(full_name)').eq('church_id', churchId).order('start_at', { ascending: true });
+    if (!stillCurrent()) return;
 
     if (eventsError) {
       tbody.innerHTML = '<tr><td colspan="8" style="color:var(--clay);">Couldn\'t load events: ' + escapeHtml(eventsError.message) + '</td></tr>';
