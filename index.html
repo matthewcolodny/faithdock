@@ -40,14 +40,71 @@
       } catch (e) { /* logging an error must never itself throw */ }
     }
 
+    // Errors that carry no information, and therefore no reason to
+    // store one row per page load for the rest of time.
+    //
+    // MEASURED, in a table that had grown to 16,517 rows with 15.3
+    // million rows walked:
+    //
+    //   Script error.                          x8373
+    //   Uncaught TurnstileError: ... 110200     x7706
+    //   isPaidChurch is not defined              x182
+    //   everything else                          <260
+    //
+    // 16,079 of 16,517 rows were those first two. Neither is
+    // actionable. "Script error." is what a browser reports for an
+    // exception in a cross-origin script -- no message, no stack, no
+    // file, no line: it is the ABSENCE of an error report. Turnstile's
+    // errors belong to Cloudflare's own widget, are numbered by
+    // Cloudflare, and are already in the console for anyone looking.
+    //
+    // This matters beyond tidiness. The database has 500 MB of shared
+    // RAM. Sixteen thousand junk rows being scanned occupy buffer
+    // cache that the insights queries then have to read from disk --
+    // and those measure 75 ms warm against a recorded mean of 1570 ms.
+    // The gap between those two numbers is cache misses.
+    function isNoiseError(message){
+      var m = String(message || '');
+      return /^Script error\.?$/i.test(m.trim())
+          || m.indexOf('TurnstileError') !== -1
+          || m.indexOf('[Cloudflare Turnstile]') !== -1;
+    }
+
+    // The dedup window has to outlive the page, which is the whole
+    // reason the table filled up.
+    //
+    // recentlyLoggedErrors is an ordinary object, so it was born empty
+    // on every load -- and a 60-second window inside a page session
+    // stops a render loop but does nothing at all about an error that
+    // happens once per load, forever. That is precisely the shape of
+    // both of the errors above: 8,373 rows is 8,373 page loads.
+    //
+    // sessionStorage, and every access wrapped: it throws outright in
+    // some privacy modes, and failing to dedup is much better than
+    // failing to report.
+    function seenRecently(key, windowMs){
+      var storeKey = 'fd_err_' + key;
+      try {
+        var prev = sessionStorage.getItem(storeKey);
+        if (prev && (Date.now() - Number(prev)) < windowMs) return true;
+        sessionStorage.setItem(storeKey, String(Date.now()));
+      } catch (e) { /* no storage: fall through and log it */ }
+      return false;
+    }
+
     function queueOrSendError(message, stack, url){
-      // De-duped for 60 seconds per unique message+location — a bug
-      // stuck in a render loop could otherwise generate hundreds of
+      if (isNoiseError(message)) return;
+      // De-duped per unique message+location -- a bug stuck in a
+      // render loop could otherwise generate hundreds of
       // near-identical rows in seconds and flood the table.
       var key = String(message).slice(0, 200) + '|' + (url || '');
       var now = Date.now();
       if (recentlyLoggedErrors[key] && (now - recentlyLoggedErrors[key]) < 60000) return;
       recentlyLoggedErrors[key] = now;
+      // An hour, across reloads. Long enough that refreshing a broken
+      // page twenty times writes one row, short enough that a problem
+      // still present tomorrow is still reported tomorrow.
+      if (seenRecently(key.slice(0, 120), 3600000)) return;
 
       var entry = {
         message: String(message || 'Unknown error').slice(0, 2000),
@@ -9050,7 +9107,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v228 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v229 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
