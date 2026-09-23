@@ -8581,19 +8581,24 @@ Groups</span>
         <span id="room-schedule-room-wrap" style="flex:1;min-width:150px;display:none;">
           <select class="field" id="room-schedule-room" style="width:100%;font-size:13px;padding:9px 10px;margin:0;"></select>
         </span>
-        <!-- Wraps. Adding the date picker pushed this group wider
-             than the card on a narrow column, and it had nowhere to
-             go: the outer row wraps but this one did not, so Today
-             and half the date ran off the right edge. -->
-        <div style="display:flex;gap:6px;align-items:center;margin-left:auto;flex-wrap:wrap;justify-content:flex-end;">
-          <button class="qr-btn" id="room-schedule-prev" aria-label="Previous">&#8249;</button>
-          <span id="room-schedule-label" style="font-size:12.5px;color:var(--ink-mute);min-width:120px;text-align:center;flex:1;"></span>
-          <button class="qr-btn" id="room-schedule-next" aria-label="Next">&#8250;</button>
-          <!-- Day view only. Prev/next is fine for tomorrow and
-               useless for the third Sunday in March, which is exactly
-               the kind of date somebody checks a room against. -->
-          <input type="date" class="field" id="room-schedule-date" style="display:none;width:auto;font-size:12.5px;padding:7px 9px;margin:0;">
-          <button class="export-btn" id="room-schedule-today" data-i18n="dashFacility.today">Today</button>
+        <!-- Two stacked rows rather than one that wraps: which way a
+             wrapped row breaks depends on how wide the card happens to
+             be, so the date picker and Today landed hard right on a
+             narrow column and inline on a wide one. Stacked, they are
+             always centred under the date they act on. -->
+        <div style="display:flex;flex-direction:column;gap:8px;align-items:center;margin-left:auto;">
+          <div style="display:flex;gap:6px;align-items:center;">
+            <button class="qr-btn" id="room-schedule-prev" aria-label="Previous">&#8249;</button>
+            <span id="room-schedule-label" style="font-size:12.5px;color:var(--ink-mute);min-width:120px;text-align:center;"></span>
+            <button class="qr-btn" id="room-schedule-next" aria-label="Next">&#8250;</button>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;justify-content:center;">
+            <!-- Day view only. Prev/next is fine for tomorrow and
+                 useless for the third Sunday in March, which is exactly
+                 the kind of date somebody checks a room against. -->
+            <input type="date" class="field" id="room-schedule-date" style="display:none;width:auto;font-size:12.5px;padding:7px 9px;margin:0;">
+            <button class="export-btn" id="room-schedule-today" data-i18n="dashFacility.today">Today</button>
+          </div>
         </div>
       </div>
       <div id="room-schedule-grid"></div>
@@ -8984,7 +8989,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v219 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v220 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -23117,7 +23122,12 @@ Groups</span>
         + '<span style="color:var(--ink-mute);flex-shrink:0;">' + escapeHtml(st.toLocaleTimeString(window.appLocale(), { hour: 'numeric', minute: '2-digit' })) + '</span>'
         + '<span style="min-width:0;">'
           + '<a style="border-bottom:1px solid var(--line);cursor:pointer;" data-room-event="' + escapeHtml(row.e.id) + '">' + escapeHtml(row.e.title) + '</a>'
-          + ' <span style="color:var(--ink-mute);">' + escapeHtml(row.rooms.join(', ')) + '</span>'
+          // Its own line under the title. Inline, a long room name ran
+          // the title off the end of the row, and the two read as one
+          // sentence -- "Adult Bible Class Room 101 Childrens
+          // Classroom" -- with nothing saying where the event stops
+          // and the place begins.
+          + '<div style="color:var(--ink-mute);font-size:11.5px;margin-top:1px;">' + escapeHtml(row.rooms.join(', ')) + '</div>'
         + '</span>'
         + '</div>';
     }).join('');
@@ -23571,7 +23581,9 @@ Groups</span>
       return '<div class="cal-event-chip rsched-chip" data-room-event="' + escapeHtml(e.id) + '"'
         + (e.__roomHues && e.__roomHues.length ? ' style="--room-hue:' + e.__roomHues[0] + ';display:block;white-space:normal;font-size:13px;line-height:1.4;width:auto;height:auto;border-radius:6px;padding:8px 10px;margin-bottom:6px;"' : ' style="display:block;white-space:normal;font-size:13px;line-height:1.4;width:auto;height:auto;border-radius:6px;padding:8px 10px;margin-bottom:6px;"')
         + '><strong>' + escapeHtml(timeStr) + '</strong> — ' + escapeHtml(e.title)
-        + (where ? ' <span class="cal-chip-room">' + escapeHtml(where) + '</span>' : '')
+        // Same shape as the day list: the place goes under the name,
+        // not after it.
+        + (where ? '<div class="cal-chip-room" style="margin-top:2px;">' + escapeHtml(where) + '</div>' : '')
         + '</div>';
     }).join('');
     var modal = document.getElementById('cal-day-modal');
