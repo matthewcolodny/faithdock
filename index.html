@@ -4031,6 +4031,44 @@
        warning that depends on being the only reddish block stops
        being a warning on the day it is not. */
     box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.85);}
+  /* DAY VIEW: rooms are rows and hours are columns -- the transpose of
+     the week grid above.
+
+     A column per room meant the grid grew sideways with the room
+     list, and a church with a dozen rooms had to scroll horizontally
+     to see the building. Hours do not grow: thirteen of them fit
+     across any screen, and rooms scroll downwards, which is the
+     direction a page already scrolls. */
+  /* Wide enough for "Room 109 Connections Room" to get most of the way
+     out before it truncates -- 118px cut it at "Room 109 Conne...",
+     which loses the part that tells rooms apart. */
+  .rsched-rows{display:grid;grid-template-columns:150px 1fr;gap:0;border:1px solid var(--line);border-radius:10px;overflow:hidden;}
+  .rsched-rowhead{font-size:11px;color:var(--ink-mute);padding:5px 8px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);background:var(--paper);display:flex;align-items:center;overflow:hidden;}
+  .rsched-rowhead span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .rsched-timehead{position:relative;height:24px;border-bottom:1px solid var(--line);background:var(--paper);}
+  /* Left-aligned at the gridline rather than centred on it: a centred
+     first label hangs half outside the grid and gets cut by the
+     rounded corner. Sitting just right of its own line also reads
+     correctly -- the label marks where the hour starts. */
+  .rsched-tick{position:absolute;top:6px;font-size:10px;color:var(--ink-mute);white-space:nowrap;padding-left:3px;}
+  .rsched-row{position:relative;border-bottom:1px solid var(--line);}
+  .rsched-vline{position:absolute;top:0;bottom:0;border-left:1px solid var(--line);opacity:.45;}
+  .rsched-hblock{position:absolute;overflow:hidden;border-radius:5px;padding:2px 5px;font-size:10.5px;line-height:1.3;
+    background:hsl(var(--room-hue,155) var(--room-block-s,21%) var(--room-block-l,32%));
+    color:#fff;cursor:pointer;border:1px solid rgba(0,0,0,.08);white-space:nowrap;text-overflow:ellipsis;}
+  .rsched-hblock.clash{background:var(--clay) !important;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.85);}
+  /* A room with nothing in it still gets a row -- "Room 103 is free"
+     is an answer, and a room that vanishes on quiet days makes the
+     list jump about. */
+  .rsched-row.is-empty{background:transparent;}
+
+  /* When several rooms are busy at once the week grid packs their
+     blocks into slivers, and a sliver cannot hold "9:45 AM Adult
+     Bible Class". Turned on its side it can hold the one thing that
+     actually distinguishes it from its neighbours: which room. */
+  .rsched-block.narrow{padding:3px 1px;text-align:center;}
+  .rsched-vtext{writing-mode:vertical-rl;text-orientation:mixed;display:inline-block;max-height:100%;overflow:hidden;}
+
   .rsched-agenda{display:none;}
   /* Day view can carry more columns than fit -- one per room. Equal
      fractions past about six rooms squeeze each below the width of a
@@ -4057,7 +4095,8 @@
        width per column and there is none. Month is exempt -- it is
        a .cal-grid, which stays legible small because its cells hold
        a number and dots rather than text. */
-    #room-schedule-grid:not(.rsched-month) .rsched{display:none;}
+    #room-schedule-grid:not(.rsched-month) .rsched,
+    #room-schedule-grid:not(.rsched-month) .rsched-rows{display:none;}
     .rsched-agenda{display:block;}
     /* Measured at 375px: the cells here are 36px wide because the
        side-note adds padding, so 52px made them half again taller than
@@ -4454,6 +4493,11 @@
   .row-menu-dropdown{
     display:none;position:fixed;background:var(--card);border:1px solid var(--line);
     border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,0.16);min-width:180px;padding:6px;z-index:200;
+    /* A menu taller than the window has to scroll rather than run off
+       the bottom of it. The flip-up in the toggle handler covers the
+       ordinary case; this covers a short window where neither side
+       has room. */
+    max-height:calc(100vh - 16px);overflow-y:auto;
   }
   .row-menu-dropdown.open{display:block;}
   .row-menu-dropdown button, .row-menu-dropdown a{
@@ -8509,6 +8553,10 @@ Groups</span>
           <button class="qr-btn" id="room-schedule-prev" aria-label="Previous">&#8249;</button>
           <span id="room-schedule-label" style="font-size:12.5px;color:var(--ink-mute);min-width:140px;text-align:center;"></span>
           <button class="qr-btn" id="room-schedule-next" aria-label="Next">&#8250;</button>
+          <!-- Day view only. Prev/next is fine for tomorrow and
+               useless for the third Sunday in March, which is exactly
+               the kind of date somebody checks a room against. -->
+          <input type="date" class="field" id="room-schedule-date" style="display:none;width:auto;font-size:12.5px;padding:7px 9px;margin:0;">
           <button class="export-btn" id="room-schedule-today" data-i18n="dashFacility.today">Today</button>
         </div>
       </div>
@@ -8900,7 +8948,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v216 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v217 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -18204,8 +18252,27 @@ Groups</span>
           var rect = toggleBtn.getBoundingClientRect();
           var dropdownWidth = 190; // matches min-width plus a little padding room
           var left = Math.min(rect.right - dropdownWidth, window.innerWidth - dropdownWidth - 8);
-          dropdown.style.top = (rect.bottom + 6) + 'px';
           dropdown.style.left = Math.max(8, left) + 'px';
+
+          // Reported: the menu is cut off when the row is near the
+          // bottom of the page. It was pinned below the button with no
+          // idea how tall it is or how much window is left.
+          //
+          // Measured after .open, which is what gives it a height at
+          // all -- a display:none element measures zero, so asking
+          // first would always conclude it fits.
+          dropdown.style.top = '0px';
+          var menuH = dropdown.offsetHeight;
+          var below = rect.bottom + 6;
+          var top = below;
+          if (below + menuH > window.innerHeight - 8) {
+            var above = rect.top - 6 - menuH;
+            // Above when it fits there. When it fits in neither -- a
+            // short window and a long menu -- pin it to the top and
+            // let its own max-height scroll the rest.
+            top = above >= 8 ? above : 8;
+          }
+          dropdown.style.top = top + 'px';
         }
       }
       return;
@@ -22692,7 +22759,15 @@ Groups</span>
     var count = bookings.length;
     var open = !!roomUsageExpanded[room.id];
     var html = '<div class="info-row" style="display:block;" data-room-row="' + escapeHtml(room.id) + '">'
-      + '<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;">'
+      // Name on the left taking all the slack, buttons together on the
+      // right.
+      //
+      // This was justify-content:space-between over THREE children,
+      // which pushes the first left, the last right, and leaves the
+      // middle one -- the rename pencil -- floating at whatever x the
+      // room's name happened to end at. A column of pencils in a
+      // ragged diagonal down the page, reported with a screenshot.
+      + '<div style="display:flex;gap:10px;align-items:center;">'
         + (room.id === roomRenamingId
           // The input replaces the name in place rather than opening a
           // dialog: renaming a room is a one-word correction, and a
@@ -22702,15 +22777,27 @@ Groups</span>
               + '<button class="export-btn" data-room-rename-save="' + escapeHtml(room.id) + '" style="flex-shrink:0;">' + escapeHtml(window.t('profile.save')) + '</button>'
               + '<button class="export-btn" data-room-rename-cancel="1" style="flex-shrink:0;">' + escapeHtml(window.t('emailNeeded.cancel')) + '</button>'
             + '</span>'
-          : '<span style="min-width:0;cursor:pointer;" data-room-toggle="' + escapeHtml(room.id) + '">'
+          // flex:1 rather than relying on space-between to push the
+          // buttons over: the name is what should absorb a wide row,
+          // and a long one then truncates instead of shoving them off.
+          : '<span style="flex:1;min-width:0;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" data-room-toggle="' + escapeHtml(room.id) + '">'
               + escapeHtml(room.name)
               + ' <span style="color:var(--ink-mute);font-size:12px;">'
               + (count ? window.t('dashFacility.nUpcoming').replace('{n}', count) : window.t('dashFacility.noUpcoming'))
               + '</span>'
             + '</span>')
+        // The two buttons are one group, so they stay adjacent however
+        // long the name is, and the whole column lines up.
         + (room.id === roomRenamingId ? '' :
-           '<button class="qr-btn" data-rename-room-id="' + escapeHtml(room.id) + '" aria-label="' + window.t('dashFacility.renameRoom') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>')
-        + '<button class="qr-btn" data-remove-room-id="' + escapeHtml(room.id) + '" aria-label="' + window.t('dashSettings.removeRoom') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'
+           '<span style="display:flex;gap:6px;flex-shrink:0;">'
+           + '<button class="qr-btn" data-rename-room-id="' + escapeHtml(room.id) + '" aria-label="' + window.t('dashFacility.renameRoom') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>'
+           + '<button class="qr-btn" data-remove-room-id="' + escapeHtml(room.id) + '" aria-label="' + window.t('dashSettings.removeRoom') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'
+           + '</span>')
+        // While renaming, the input group owns the row and only the
+        // remove button stays beside it.
+        + (room.id === roomRenamingId
+           ? '<button class="qr-btn" style="flex-shrink:0;" data-remove-room-id="' + escapeHtml(room.id) + '" aria-label="' + window.t('dashSettings.removeRoom') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'
+           : '')
       + '</div>';
     if (open && count) {
       html += '<div style="margin-top:8px;padding-left:2px;">' + bookings.slice(0, 10).map(function(e){
@@ -22765,6 +22852,27 @@ Groups</span>
   // why the clash is marked by more than its colour.
   function roomHueAt(index){ return Math.round((index * 137.508 + 150) % 360); }
 
+  // The shortest thing that still tells two rooms apart, for a block
+  // too small to hold a name.
+  //
+  // An hour-long block in the week grid is 34 pixels tall. Turned on
+  // its side that is room for about four characters, and the first
+  // four characters of "Room 109 Connections Room" are "Room" -- which
+  // every room in the list begins with, so the label distinguishes
+  // nothing at all.
+  //
+  // The number is what people actually use, so it wins when there is
+  // one. Failing that the first word, which is what a named room
+  // (Sanctuary, Nursery, Chapel) is called anyway. The full name stays
+  // in the tooltip.
+  function roomShortLabel(name){
+    var str = String(name || '').trim();
+    var num = str.match(/[0-9]+/);
+    if (num) return num[0];
+    var first = str.split(" ")[0] || str;
+    return first.slice(0, 6);
+  }
+
   // Last fetched booking range, so switching views does not re-ask
   // for something just fetched. See loadRoomSchedule.
   // Keyed by range, not a single slot. Day, week and month each ask
@@ -22773,6 +22881,10 @@ Groups</span>
   // price -- which is precisely the back-and-forth this exists to
   // make free.
   var roomSchedCache = {};
+
+  // Month view's events grouped by day, kept from the last render so
+  // the "+N" link can list that day.
+  var roomSchedDayIndex = {};
 
   var ROOM_SCHED_ALL = '__all';
   var roomSchedRoomId = ROOM_SCHED_ALL;   // week view only; day and month are always all rooms
@@ -22855,10 +22967,19 @@ Groups</span>
     return { min: minHour, max: maxHour };
   }
 
+  // Breathing room at the top and bottom of the time axis.
+  //
+  // Reported as the calendar "clipping at 8 AM and 9 PM". The hour
+  // labels are centred on their own gridline (translateY(-50%)), so
+  // the first one sat half above a container with overflow:hidden and
+  // the last half below it -- the two hours that bound the range were
+  // the two you could not read.
+  var RSCHED_PAD = 10;
+
   function roomSchedTimeGutter(range, pxPerHour){
-    var html = '<div class="rsched-gutter" style="height:' + ((range.max - range.min) * pxPerHour) + 'px;">';
+    var html = '<div class="rsched-gutter" style="height:' + ((range.max - range.min) * pxPerHour + RSCHED_PAD * 2) + 'px;">';
     for (var h = range.min; h <= range.max; h++) {
-      html += '<div class="rsched-hour" style="top:' + ((h - range.min) * pxPerHour) + 'px;">'
+      html += '<div class="rsched-hour" style="top:' + (RSCHED_PAD + (h - range.min) * pxPerHour) + 'px;">'
         + escapeHtml(new Date(2000, 0, 1, h).toLocaleTimeString(window.appLocale(), { hour: 'numeric' })) + '</div>';
     }
     return html + '</div>';
@@ -22870,7 +22991,7 @@ Groups</span>
   function roomSchedColumn(events, dayStart, dayEnd, range, pxPerHour, showRoomName){
     var inner = '';
     for (var hh = range.min + 1; hh < range.max; hh++) {
-      inner += '<div class="rsched-line" style="top:' + ((hh - range.min) * pxPerHour) + 'px;"></div>';
+      inner += '<div class="rsched-line" style="top:' + (RSCHED_PAD + (hh - range.min) * pxPerHour) + 'px;"></div>';
     }
     layoutDayBlocks(events).forEach(function(item){
       var e = item.event;
@@ -22880,23 +23001,37 @@ Groups</span>
       // An event running past midnight would otherwise compute a
       // negative height and vanish; clamped to the day's end instead.
       if (en <= st || en >= dayEnd) endH = range.max;
-      var top = Math.max(0, (startH - range.min) * pxPerHour);
+      var top = RSCHED_PAD + Math.max(0, (startH - range.min) * pxPerHour);
       var height = Math.max(16, (Math.min(endH, range.max) - Math.max(startH, range.min)) * pxPerHour - 2);
       var widthPct = 100 / item.cols;
-      inner += '<div class="rsched-block' + (item.clash ? ' clash' : '') + '"'
+      // Three or more abreast and a block is under a third of a
+      // column, which cannot hold "9:45 AM Adult Bible Class" -- it
+      // held "9: A", which distinguishes nothing. Turned on its side
+      // it holds the one thing that tells these blocks apart.
+      var narrow = item.cols >= 3;
+      // A block spanning several rooms has several names joined by
+      // commas; shortening each keeps "109, 114" readable where
+      // "Room 109 Connections Room, Room 114 Dining Hall" is four
+      // characters of "Room".
+      var narrowText = (showRoomName && e.__roomName)
+        ? e.__roomName.split(',').map(function(n){ return roomShortLabel(n); }).join('/')
+        : roomShortLabel(e.title);
+      inner += '<div class="rsched-block' + (item.clash ? ' clash' : '') + (narrow ? ' narrow' : '') + '"'
         + ' data-room-event="' + escapeHtml(e.id) + '"'
         + ' title="' + escapeHtml(e.title + (showRoomName && e.__roomName ? ' — ' + e.__roomName : '')) + '"'
         + ' style="' + (e.__roomHue != null ? '--room-hue:' + e.__roomHue + ';' : '')
         + 'top:' + top + 'px;height:' + height + 'px;left:' + (item.col * widthPct) + '%;width:calc(' + widthPct + '% - 2px);">'
-        + escapeHtml(st.toLocaleTimeString(window.appLocale(), { hour: 'numeric', minute: '2-digit' }))
-        + ' ' + escapeHtml(e.title)
-        // Visible, not only in the title attribute. A tooltip is no use
-        // on a phone, and "which room" is the whole question in a view
-        // showing all of them.
-        + (showRoomName && e.__roomName ? ' <span class="rsched-block-room">' + escapeHtml(e.__roomName) + '</span>' : '')
+        + (narrow
+          ? '<span class="rsched-vtext">' + escapeHtml(narrowText) + '</span>'
+          : escapeHtml(st.toLocaleTimeString(window.appLocale(), { hour: 'numeric', minute: '2-digit' }))
+            + ' ' + escapeHtml(e.title)
+            // Visible, not only in the title attribute. A tooltip is no
+            // use on a phone, and "which room" is the whole question in
+            // a view showing all of them.
+            + (showRoomName && e.__roomName ? ' <span class="rsched-block-room">' + escapeHtml(e.__roomName) + '</span>' : ''))
         + '</div>';
     });
-    return '<div class="rsched-col" style="height:' + ((range.max - range.min) * pxPerHour) + 'px;">' + inner + '</div>';
+    return '<div class="rsched-col" style="height:' + ((range.max - range.min) * pxPerHour + RSCHED_PAD * 2) + 'px;">' + inner + '</div>';
   }
 
   function roomSchedAgenda(groups){
@@ -22926,9 +23061,19 @@ Groups</span>
   // ---- The three renderers ----------------------------------------
   var RSCHED_PX_PER_HOUR = 34;
 
-  // DAY: one column per room, every room at once. The default, and
-  // the reason this rewrite exists -- "what is happening on Sunday"
-  // is a question about the building, not about one room.
+  // DAY: one ROW per room, hours across the top.
+  //
+  // This was a column per room, which grew the grid sideways with the
+  // room list -- a church with a dozen rooms had to scroll
+  // horizontally to see its own building, and the columns were narrow
+  // enough that the blocks in them held "9: A". Reported as both.
+  //
+  // Transposed, neither problem exists: hours do not grow, thirteen of
+  // them fit across any screen, and rooms scroll downwards, which is
+  // the direction a page already scrolls. A booking also gets the wide
+  // side of the block, so it has room for its own name.
+  var RSCHED_ROW_H = 30;
+
   function renderRoomSchedDay(rooms, byRoom){
     var dayStart = roomSchedAnchor;
     var dayEnd = addDays(dayStart, 1);
@@ -22941,23 +23086,62 @@ Groups</span>
     var all = [];
     perRoom.forEach(function(list){ list.forEach(function(e){ all.push(e); }); });
     var range = roomSchedHourRange(all);
-    var bodyH = (range.max - range.min) * RSCHED_PX_PER_HOUR;
+    var span = range.max - range.min;
+    function pctOf(hours){ return (hours / span) * 100; }
 
-    var head = '<div class="rsched-head"></div>' + rooms.map(function(r){
-      return '<div class="rsched-head" title="' + escapeHtml(r.name) + '">' + escapeHtml(r.name) + '</div>';
-    }).join('');
-    var cols = rooms.map(function(r, i){
-      return roomSchedColumn(perRoom[i], dayStart, dayEnd, range, RSCHED_PX_PER_HOUR, false);
-    }).join('');
+    // Hour ticks and the vertical lines they label. The closing hour
+    // gets a line but no label -- its text would hang off the right
+    // edge, and the range end is implied by the grid stopping.
+    var ticks = '', vlines = '';
+    for (var h = range.min; h <= range.max; h++) {
+      var leftPct = pctOf(h - range.min);
+      if (h > range.min) vlines += '<div class="rsched-vline" style="left:' + leftPct + '%;"></div>';
+      if (h < range.max) {
+        ticks += '<div class="rsched-tick" style="left:' + leftPct + '%;">'
+          + escapeHtml(new Date(2000, 0, 1, h).toLocaleTimeString(window.appLocale(), { hour: 'numeric' }))
+          + '</div>';
+      }
+    }
 
-    // A room count is not a layout the CSS can guess, so the column
-    // track is set here. minmax with a floor rather than 1fr: past
-    // about six rooms equal fractions squeeze each column below the
-    // width of a time, and an unreadable grid is worse than one that
-    // scrolls.
-    var gridStyle = 'grid-template-columns:52px repeat(' + rooms.length + ',minmax(96px,1fr));';
-    return { grid: '<div class="rsched rsched-scroll" style="' + gridStyle + '">' + head
-             + roomSchedTimeGutter(range, RSCHED_PX_PER_HOUR) + cols + '</div>',
+    var body = '<div class="rsched-rowhead"></div><div class="rsched-timehead">' + ticks + '</div>';
+    rooms.forEach(function(r, i){
+      // The same packing the week grid uses, read the other way up:
+      // what was a side-by-side column is now a stacked sub-row, so
+      // two bookings that overlap make the room's row twice as tall
+      // instead of half as wide.
+      var placed = layoutDayBlocks(perRoom[i]);
+      var lanes = placed.reduce(function(m, it){ return Math.max(m, it.cols); }, 1);
+      var rowH = lanes * RSCHED_ROW_H;
+      var blocks = vlines;
+      placed.forEach(function(item){
+        var e = item.event;
+        var st = new Date(e.start_at), en = roomEventEnd(e);
+        var startH = st.getHours() + st.getMinutes() / 60;
+        var endH = en.getHours() + en.getMinutes() / 60;
+        // Past midnight would otherwise compute a negative width and
+        // vanish; clamped to the end of the day instead.
+        if (en <= st || en >= dayEnd) endH = range.max;
+        var left = Math.max(0, pctOf(Math.max(startH, range.min) - range.min));
+        var width = Math.max(1.2, pctOf(Math.min(endH, range.max) - Math.max(startH, range.min)));
+        blocks += '<div class="rsched-hblock' + (item.clash ? ' clash' : '') + '"'
+          + ' data-room-event="' + escapeHtml(e.id) + '"'
+          + ' title="' + escapeHtml(st.toLocaleTimeString(window.appLocale(), { hour: 'numeric', minute: '2-digit' }) + ' — ' + e.title + ' — ' + r.name) + '"'
+          + ' style="' + (e.__roomHue != null ? '--room-hue:' + e.__roomHue + ';' : '')
+          + 'left:' + left + '%;width:calc(' + width + '% - 2px);'
+          + 'top:' + (item.col * RSCHED_ROW_H + 2) + 'px;height:' + (RSCHED_ROW_H - 5) + 'px;">'
+          // The title alone. The block's position on the hour axis
+          // already says when it is, and a one-hour block is about
+          // seventy pixels wide -- spending half of that repeating
+          // "9:45 AM" left "Adult Bible Class" as "A...". The exact
+          // time is in the tooltip with the room.
+          + escapeHtml(e.title)
+          + '</div>';
+      });
+      body += '<div class="rsched-rowhead" title="' + escapeHtml(r.name) + '"><span>' + escapeHtml(r.name) + '</span></div>'
+        + '<div class="rsched-row' + (perRoom[i].length ? '' : ' is-empty') + '" style="height:' + rowH + 'px;">' + blocks + '</div>';
+    });
+
+    return { grid: '<div class="rsched-rows">' + body + '</div>',
              agenda: roomSchedAgenda(rooms.map(function(r, i){ return { label: r.name, events: perRoom[i] }; })),
              label: dayStart.toLocaleDateString(window.appLocale(), { weekday: 'long', month: 'long', day: 'numeric' }) };
   }
@@ -23067,6 +23251,13 @@ Groups</span>
       (byDay[k] = byDay[k] || []).push(e);
     });
 
+    // Kept so the "+N" link can list a day without re-deriving it.
+    // The chips on the cell are capped at three, and the capped ones
+    // were unreachable -- clicking the count dropped into day view,
+    // which answers a different question than "what are the other
+    // five".
+    roomSchedDayIndex = byDay;
+
     var todayK = startOfDay(new Date()).getTime();
     var dow = '';
     for (var i = 0; i < 7; i++) {
@@ -23094,7 +23285,7 @@ Groups</span>
               + (chipRooms ? ' <span class="cal-chip-room">' + escapeHtml(chipRooms) + '</span>' : '')
               + '</span>';
           }).join('')
-        + (dayEvents.length > 3 ? '<div class="cal-more-link">+' + (dayEvents.length - 3) + '</div>' : '')
+        + (dayEvents.length > 3 ? '<div class="cal-more-link" data-rsched-more="' + k + '">+' + (dayEvents.length - 3) + '</div>' : '')
         + '</div>';
     }
     return { grid: '<div class="cal-grid">' + dow + cells + '</div>',
@@ -23139,6 +23330,14 @@ Groups</span>
     // the view is filtered when it is showing everything.
     var selectWrap = document.getElementById('room-schedule-room-wrap');
     if (selectWrap) selectWrap.style.display = roomSchedView === 'week' ? '' : 'none';
+
+    // Shown on day view and kept in step with the arrows, so the two
+    // controls never disagree about which day is on screen.
+    var dateInput = document.getElementById('room-schedule-date');
+    if (dateInput) {
+      dateInput.style.display = roomSchedView === 'day' ? '' : 'none';
+      if (roomSchedView === 'day') dateInput.value = toLocalDateStr(roomSchedAnchor);
+    }
     var selectEl = document.getElementById('room-schedule-room');
     if (selectEl) {
       // First, and the default. A week view that opens on one room
@@ -23245,6 +23444,16 @@ Groups</span>
   if (rsPrev) rsPrev.addEventListener('click', function(){ shiftRoomSchedule(-1); });
   var rsNext = document.getElementById('room-schedule-next');
   if (rsNext) rsNext.addEventListener('click', function(){ shiftRoomSchedule(1); });
+  var rsDate = document.getElementById('room-schedule-date');
+  if (rsDate) rsDate.addEventListener('change', function(){
+    if (!rsDate.value) return;
+    // Split rather than new Date('2026-03-15'), which parses a bare
+    // date as UTC and lands on the 14th anywhere west of Greenwich.
+    var parts = rsDate.value.split('-');
+    roomSchedAnchor = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+    roomSchedView = 'day';
+    loadRoomSchedule();
+  });
   var rsToday = document.getElementById('room-schedule-today');
   if (rsToday) rsToday.addEventListener('click', function(){
     roomSchedAnchor = startOfDay(new Date());
@@ -23253,9 +23462,39 @@ Groups</span>
 
   // Tapping a day in month view drops into that day across all rooms,
   // which is the natural next question after "that week looks busy".
+  // "+N" lists the whole day, in the modal the events calendar
+  // already uses for the same job. Before the cell handler below, and
+  // returning, so the two do not both fire -- the link sits inside the
+  // cell it would otherwise also trigger.
+  document.addEventListener('click', function(ev){
+    var more = ev.target.closest ? ev.target.closest('[data-rsched-more]') : null;
+    if (!more) return;
+    ev.stopPropagation();
+    var key = Number(more.getAttribute('data-rsched-more'));
+    var dayEvents = (roomSchedDayIndex[key] || []).slice()
+      .sort(function(a, b){ return new Date(a.start_at) - new Date(b.start_at); });
+    var titleEl = document.getElementById('cal-day-modal-title');
+    if (titleEl) titleEl.textContent = new Date(key).toLocaleDateString(window.appLocale(), { weekday: 'long', month: 'long', day: 'numeric' });
+    var listEl = document.getElementById('cal-day-modal-list');
+    if (listEl) listEl.innerHTML = dayEvents.map(function(e){
+      var timeStr = new Date(e.start_at).toLocaleTimeString(window.appLocale(), { hour: 'numeric', minute: '2-digit' });
+      var where = (e.__roomNames || []).join(', ');
+      return '<div class="cal-event-chip sage" data-room-event="' + escapeHtml(e.id) + '"'
+        + (e.__roomHues && e.__roomHues.length ? ' style="--room-hue:' + e.__roomHues[0] + ';display:block;white-space:normal;font-size:13px;line-height:1.4;width:auto;height:auto;border-radius:6px;padding:8px 10px;margin-bottom:6px;"' : ' style="display:block;white-space:normal;font-size:13px;line-height:1.4;width:auto;height:auto;border-radius:6px;padding:8px 10px;margin-bottom:6px;"')
+        + '><strong>' + escapeHtml(timeStr) + '</strong> — ' + escapeHtml(e.title)
+        + (where ? ' <span class="cal-chip-room">' + escapeHtml(where) + '</span>' : '')
+        + '</div>';
+    }).join('');
+    var modal = document.getElementById('cal-day-modal');
+    if (modal) modal.classList.add('open');
+  }, true);
+
+  // Tapping a day in month view drops into that day across all rooms,
+  // which is the natural next question after "that week looks busy".
   document.addEventListener('click', function(ev){
     var cell = ev.target.closest ? ev.target.closest('[data-rsched-day]') : null;
     if (!cell || (ev.target.closest && ev.target.closest('[data-room-event]'))) return;
+    if (ev.target.closest && ev.target.closest('[data-rsched-more]')) return;
     roomSchedAnchor = startOfDay(new Date(Number(cell.getAttribute('data-rsched-day'))));
     roomSchedView = 'day';
     loadRoomSchedule();
@@ -23273,6 +23512,10 @@ Groups</span>
     }
     var eventLink = ev.target.closest('[data-room-event]');
     if (eventLink && typeof window.editEvent === 'function') {
+      // The day list is a modal, and leaving it open over the event
+      // form would hide the thing that was just opened.
+      var openDayModal = document.getElementById('cal-day-modal');
+      if (openDayModal) openDayModal.classList.remove('open');
       window.editEvent(eventLink.getAttribute('data-room-event'));
     }
   });
