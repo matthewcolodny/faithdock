@@ -4554,11 +4554,26 @@
   .cal-more-link{font-size:10px;color:var(--ink-mute);cursor:pointer;padding:1px 5px;font-weight:600;}
   .cal-more-link:hover{color:var(--ink);}
 
-  .mini-chart{display:flex;align-items:flex-end;gap:4px;height:160px;padding-top:10px;}
-  .mini-chart-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;min-width:0;}
-  .mini-chart-bar{width:100%;background:var(--gold);border-radius:4px 4px 0 0;min-height:2px;}
-  .mini-chart-value{font-size:9.5px;color:var(--ink-mute);margin-bottom:3px;white-space:nowrap;}
-  .mini-chart-label{font-size:9px;color:var(--ink-mute);margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+  /* Three fixed rows per column -- value, bar, label -- rather than a
+     flex stack.
+
+     As a flex column the bar was a SIBLING of the label, with a
+     percentage height of the whole column. A tall bar therefore had to
+     be shrunk to make room for the two text rows, and the rounding of
+     that shrink moved the label. Measured: with one month at $102 and
+     ten at $0, the August label sat 3px below every other -- small,
+     and visible enough to be reported twice, for the giving months and
+     again for the 25-39 age band.
+
+     In a grid the label owns its own row. The bar lives in the middle
+     row and can be any height it likes without the label knowing.
+     minmax(0,1fr) rather than 1fr so the row may shrink below the
+     bar's own min-height instead of overflowing. */
+  .mini-chart{display:flex;align-items:stretch;gap:4px;height:170px;padding-top:10px;}
+  .mini-chart-bar-wrap{flex:1;display:grid;grid-template-rows:auto minmax(0,1fr) auto;justify-items:center;min-width:0;}
+  .mini-chart-bar{width:100%;align-self:end;background:var(--gold);border-radius:4px 4px 0 0;min-height:2px;}
+  .mini-chart-value{font-size:9.5px;color:var(--ink-mute);margin-bottom:3px;white-space:nowrap;align-self:end;}
+  .mini-chart-label{font-size:9px;color:var(--ink-mute);margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;align-self:start;}
 
   /* Requested directly: on desktop these should fill the row, ending
      flush with the line below, and never show a horizontal scrollbar.
@@ -4601,18 +4616,31 @@
     .cal-dow{font-size:9px;padding:6px 2px;}
     /* font-size:0 rather than a separate element, so the same
        markup serves both layouts and nothing has to know which one
-       it is rendering for. */
-    .cal-event-chip{font-size:0;line-height:0;display:inline-block;
+       it is rendering for.
+
+       SCOPED TO .cal-grid. These rules used to match every
+       .cal-event-chip on the page, and the day-list modal uses that
+       same class for full-width rows of readable text. So on a phone
+       the modal's rows were given the DOT treatment: a solid
+       background from here, over the text colour from the desktop
+       rule, which for clay is clay-on-clay -- an invisible line --
+       and for gold is gold-ink on gold. Reported with a screenshot
+       showing one row as a solid red bar with nothing written on it.
+
+       The grid is the only place a chip has to become a dot. Inside
+       the modal there is room for the words, which is the entire
+       reason the modal exists. */
+    .cal-grid .cal-event-chip{font-size:0;line-height:0;display:inline-block;
       width:6px;height:6px;border-radius:50%;padding:0;margin:0 2px 2px 0;vertical-align:top;}
     /* The desktop chip uses the muted -bg pair for a filled label.
        A 6px dot needs the solid colour or it disappears. */
-    .cal-event-chip.sage{background:var(--sage);}
+    .cal-grid .cal-event-chip.sage{background:var(--sage);}
     /* A dot has no room for text, so its hue is the whole message --
        flattening the room chips to one sage would throw away the only
        thing left. */
-    .cal-event-chip.rsched-chip{background:hsl(var(--room-hue,155) var(--room-block-s,21%) var(--room-block-l,32%));}
-    .cal-event-chip.gold{background:var(--gold);}
-    .cal-event-chip.clay{background:var(--clay);}
+    .cal-grid .cal-event-chip.rsched-chip{background:hsl(var(--room-hue,155) var(--room-block-s,21%) var(--room-block-l,32%));}
+    .cal-grid .cal-event-chip.gold{background:var(--gold);}
+    .cal-grid .cal-event-chip.clay{background:var(--clay);}
     .cal-more-link{font-size:9px;padding:0;}
     /* Category icons wrap onto several rows of four here rather than
        stretching across one, so all of them sit visible at once
@@ -9107,7 +9135,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v235 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v236 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -18730,7 +18758,19 @@ Groups</span>
   if (dashEventsViewListBtn && dashEventsViewCalendarBtn) {
     dashEventsViewListBtn.addEventListener('click', function(){
       window.calViewActive = false;
-      document.getElementById('dash-events-table').style.display = 'table';
+      // '' rather than 'table', so the stylesheet decides.
+      //
+      // An inline display:table beats the media query that makes this
+      // a scroll container on a phone --
+      //   @media (max-width:860px){ table.roster{ display:block;
+      //                             overflow-x:auto; } }
+      // -- so going to Calendar and back turned the table into a real
+      // table again, which then overflowed the page and broke the
+      // mobile layout for every other element beside it. Reported
+      // exactly that way. The table's default display IS table, so
+      // clearing the property restores desktop behaviour and lets the
+      // phone rule win again.
+      document.getElementById('dash-events-table').style.display = '';
       document.getElementById('dash-events-calendar').style.display = 'none';
       dashEventsViewListBtn.style.background = 'var(--brand)'; dashEventsViewListBtn.style.color = '#fff';
       dashEventsViewCalendarBtn.style.background = 'var(--card)'; dashEventsViewCalendarBtn.style.color = 'var(--ink)';
