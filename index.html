@@ -9201,7 +9201,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v239 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v240 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -18088,7 +18088,25 @@ Groups</span>
       var nameDisplay = document.getElementById('delete-church-name-display');
       if (nameDisplay) nameDisplay.textContent = myChurch.name;
       var deletePlanNote = document.getElementById('delete-church-plan-note');
-      if (deletePlanNote) deletePlanNote.style.display = (myChurch.planType && myChurch.planType !== 'free') ? 'block' : 'none';
+      if (deletePlanNote) {
+        // "Deleting this cancels your plan" is only true when this is
+        // the last church the plan is holding up.
+        //
+        // Premium allows five churches and Multi-Church unlimited
+        // (plan_tiers.max_churches, migration 016). An owner on either,
+        // with more than one church, deletes one and their subscription
+        // carries on covering the rest -- so warning them that the
+        // period they have paid for is about to be forfeited is simply
+        // false, and it is the kind of false that stops somebody doing
+        // something they are entitled to do.
+        //
+        // Counted rather than tier-matched, so it stays right in both
+        // directions: a Premium owner down to their last church DOES
+        // still see it, and a tier added later needs no change here.
+        var ownedCount = (myChurch.ownedChurches && myChurch.ownedChurches.length) || 1;
+        var onPaidPlan = !!(myChurch.planType && myChurch.planType !== 'free');
+        deletePlanNote.style.display = (onPaidPlan && ownedCount <= 1) ? 'block' : 'none';
+      }
     }
 
     var ownershipSection = document.getElementById('settings-ownership-section');
