@@ -4258,6 +4258,17 @@
   body.checkin-focus .promo-bar{display:none;}
   #checkin-focus-exit{display:none;}
   body.checkin-focus #checkin-focus-exit{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--brand);color:#fff;padding:10px 16px;border-radius:10px;margin-bottom:18px;font-size:13.5px;}
+  /* The exit button has to be legible on the navy banner.
+
+     .export-btn carries color:var(--ink), and on the light theme --ink
+     is the same dark navy as --brand, which is the banner behind it.
+     Dark navy on dark navy: the button was there, outlined, with
+     nothing written on it. Reported as a blank button.
+
+     The dark theme already had its own pairing two rules below, added
+     when the banner turns gold there. Light was never given the
+     equivalent. */
+  body.checkin-focus #checkin-focus-exit .export-btn{color:#fff;border-color:rgba(255,255,255,0.55);}
   body.checkin-focus #checkin-focus-enter{display:none;}
   /* See .for-churches-cta above for the same pairing: on dark, the
      brand navy becomes the TEXT and gold becomes the surface. */
@@ -4761,6 +4772,19 @@
     /* The box sits under its own heading rather than off to one side. */
     #checkin-table.roster-fits th:nth-child(3),
     #cl-table.roster-fits th:nth-child(3){text-align:center;}
+
+    /* Directory: the photo, who they are, and what they are. Email and
+       phone are on the person's card, one tap away, and between them
+       they were the whole reason this table scrolled sideways. */
+    .dir-col-contact{display:none;}
+    #directory-table.roster-fits th:nth-child(1){width:15%;}
+    #directory-table.roster-fits th:nth-child(2){width:42%;}
+    #directory-table.roster-fits th:nth-child(3){width:33%;}
+    #directory-table.roster-fits th:nth-child(6){width:10%;}
+    /* The avatar is a fixed 32px and the chevron 15px, so neither
+       column needs the side padding the text ones do. */
+    #directory-table.roster-fits td:first-child,
+    #directory-table.roster-fits td:last-child{padding-left:6px;padding-right:6px;}
     table.roster.roster-fits th, table.roster.roster-fits td{padding:10px 8px;font-size:13px;overflow-wrap:break-word;}
     /* The uppercase mono headings are the widest thing in these cells
        and REGISTRATION is one unbreakable word, so it gets a size that
@@ -8128,8 +8152,8 @@ Groups</span>
             <input class="field" type="text" id="directory-search-input" placeholder="Search by name or email" style="width:auto;min-width:220px;" data-i18n-placeholder="dashDir.searchPlaceholder">
           </div>
         </div>
-        <table class="roster">
-          <tr><th></th><th data-i18n="dashCheckin.name">Name</th><th data-i18n="dashDir.role">Role</th><th data-i18n="dashDir.email">Email</th><th data-i18n="dashDir.phone">Phone</th><th></th></tr>
+        <table class="roster roster-fits" id="directory-table">
+          <tr><th></th><th data-i18n="dashCheckin.name">Name</th><th data-i18n="dashDir.role">Role</th><th class="dir-col-contact" data-i18n="dashDir.email">Email</th><th class="dir-col-contact" data-i18n="dashDir.phone">Phone</th><th></th></tr>
           <tbody id="directory-tbody">
             <tr><td colspan="6" style="color:var(--ink-mute);" data-i18n="dashDir.loadingDirectory">Loading directory...</td></tr>
           </tbody>
@@ -9227,7 +9251,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v242 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v243 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -28064,8 +28088,13 @@ Groups</span>
         + '<td>' + photoHtml + '</td>'
         + '<td>' + (p.full_name || '—') + '</td>'
         + '<td><span class="tag ' + roleTag + '">' + roleLabel + '</span>' + optOutTag + '</td>'
-        + '<td class="mono" style="font-size:12.5px;">' + (p.email || '—') + '</td>'
-        + '<td class="mono" style="font-size:12.5px;">' + (p.phone || '—') + '</td>'
+        // Email and phone are hidden on a phone -- they are both on the
+        // person's card, which is one tap away, and they were what
+        // pushed this table into sideways scrolling. Rendered rather
+        // than skipped so the desktop table is unchanged and the
+        // decision stays in one place, the stylesheet.
+        + '<td class="mono dir-col-contact" style="font-size:12.5px;">' + (p.email || '—') + '</td>'
+        + '<td class="mono dir-col-contact" style="font-size:12.5px;">' + (p.phone || '—') + '</td>'
         + '<td><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;color:var(--ink-mute);"><path d="M9 18l6-6-6-6"/></svg></td>'
         + '</tr>';
     }).join('');
