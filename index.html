@@ -8900,7 +8900,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v214 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v215 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12061,7 +12061,13 @@ Groups</span>
       window.populateAdminChurchPage(resolved.key);
     }
     if(resolved.base === 'create-event' && resolved.key && typeof window.editEvent === 'function'){
-      window.editEvent(resolved.key);
+      // #create-event/copy-<id> fills the form from <id> without
+      // binding to it. Encoded in the route rather than held in a
+      // variable so a refresh, or Back, lands on the same thing
+      // instead of turning the copy into an edit of the original.
+      var copyOf = /^copy-(.+)$/.exec(resolved.key);
+      if (copyOf) window.editEvent(copyOf[1], true);
+      else window.editEvent(resolved.key);
     }
     // Plain #create-event (a brand-new event, no id) only ever got
     // its room checklist populated via the dashboard's own "Create
@@ -18113,28 +18119,21 @@ Groups</span>
     }
   });
 
-  // Duplicate an event — copies every real field except id/timestamps
-  // and registration data, so staff can quickly reuse a past event as
-  // a starting point instead of rebuilding one from scratch.
+  // Duplicate an event -- opens the create form filled in from it.
+  //
+  // This used to insert a row the instant it was clicked, which was
+  // wrong twice over: a half-copied event appeared in the list with no
+  // chance to change the date it was obviously going to need, and the
+  // hand-written copy dropped most of the form. Both are fixed by not
+  // having a second copy of the field list at all -- it reuses the
+  // same population the edit form does, and nothing is written until
+  // Publish.
   document.addEventListener('click', async function(ev){
     var copyBtn = ev.target.closest ? ev.target.closest('[data-copy-event-id]') : null;
     if (!copyBtn) return;
     var eventId = copyBtn.getAttribute('data-copy-event-id');
-    var { data: original } = await supabase.from('events').select('*').eq('id', eventId).limit(1);
-    if (!original || !original.length) return;
-    var src = original[0];
-    var { data: userData } = await supabase.auth.getUser();
-    var duplicate = {
-      church_id: src.church_id, created_by: userData.user ? userData.user.id : null,
-      title: src.title + ' (Copy)', description: src.description,
-      start_at: src.start_at, end_at: src.end_at, location: src.location, venue_name: src.venue_name,
-      image_url: src.image_url, tags: src.tags, audience: src.audience,
-      registration_required: src.registration_required, allow_volunteers: src.allow_volunteers,
-      max_participants: src.max_participants, max_volunteers: src.max_volunteers,
-      visibility: src.visibility
-    };
-    await supabase.from('events').insert(duplicate);
-    loadDashboardEvents();
+    document.querySelectorAll('.row-menu-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
+    if (typeof window.editEvent === 'function') await window.editEvent(eventId, true);
   });
 
   // Delete an event — permanent, so this asks for explicit
@@ -20020,6 +20019,15 @@ Groups</span>
   // Real event creation — posts under whichever church the
   // signed-in user owns. MVP assumption: one church per owner.
   // ============================================================
+  // Last save's banner belongs to the last save. Leaving "26
+  // occurrences created under Test 7" sitting above an empty form
+  // reads as if THIS one already worked -- reported exactly that way.
+  function clearCeStatus(){
+    var e = document.getElementById('ce-error'); if (e) e.style.display = 'none';
+    var o = document.getElementById('ce-success'); if (o) o.style.display = 'none';
+  }
+  window.clearCeStatus = clearCeStatus;
+
   function showCeError(msg){
     var el = document.getElementById('ce-error');
     document.getElementById('ce-success').style.display = 'none';
@@ -20840,8 +20848,18 @@ Groups</span>
     // session.
     ceSelectedChurchId = null;
     refreshCeChurchScope();
+    clearCeStatus();
     document.getElementById('ce-heading').textContent = window.t('ce.createAnEvent');
     document.getElementById('ce-repeats-section').style.display = 'block';
+    // Recurrence was the one section this never cleared. Reported: a
+    // new event picked up the previous one's weekly repeat and its
+    // end date the moment a start date was filled in -- which looks
+    // like the form guessing, and is really the form remembering.
+    document.getElementById('ce-repeats').value = 'none';
+    document.getElementById('ce-repeat-until').value = '';
+    document.getElementById('ce-repeat-until-wrap').style.display = 'none';
+    ceExceptions = [];
+    if (window.renderCeExceptions) window.renderCeExceptions();
     // A brand-new event has nothing in Advanced yet -- start it collapsed.
     var ceAdvReset = document.getElementById('ce-advanced');
     if (ceAdvReset) ceAdvReset.open = false;
@@ -20861,6 +20879,9 @@ Groups</span>
     document.getElementById('ce-image-remove-btn').style.display = 'none';
     window.ceImageMarkedForRemoval = false;
     window.ceImageEditedFile = null;
+    // Or a brand-new event would quietly inherit the graphic from
+    // whatever was copied earlier in this page session.
+    window.ceCopyImageUrl = null;
     var ceImageFilenameEl = document.getElementById('ce-image-filename');
     ceImageFilenameEl.setAttribute('data-i18n', 'rc.noFileChosen');
     ceImageFilenameEl.textContent = window.t('rc.noFileChosen');
@@ -20988,32 +21009,81 @@ Groups</span>
     ev.returnValue = '';
   });
 
-  async function editEvent(eventId){
+  // A copy of a recurring event should still repeat -- but the rule
+  // that generated the series was never stored. Only the occurrences
+  // were, sharing a series_id. So the rule is read back off them: the
+  // gap between the first two occurrences, in whole calendar days.
+  //
+  // This is an inference, and it is allowed to be one because it goes
+  // into the dropdown where it can be seen and changed, before
+  // anything is created. A series whose occurrences were moved around
+  // individually may read as a rule nobody chose; the form shows what
+  // it worked out rather than silently generating 26 events from it.
+  async function inferSeriesRepeat(seriesId){
+    if (!seriesId) return null;
+    var { data } = await supabase.from('events').select('start_at')
+      .eq('series_id', seriesId).order('start_at');
+    if (!data || data.length < 2) return null;
+    function dayNum(iso){ var d = new Date(iso); return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000; }
+    var gap = dayNum(data[1].start_at) - dayNum(data[0].start_at);
+    // Months are not a fixed number of days, so monthly is a range.
+    var type = gap === 1 ? 'daily'
+      : gap === 7 ? 'weekly'
+      : gap === 14 ? 'biweekly'
+      : (gap >= 28 && gap <= 31) ? 'monthly'
+      : null;
+    if (!type) return null;
+    return { type: type, until: toLocalDateStr(new Date(data[data.length - 1].start_at)) };
+  }
+
+  // asCopy fills this same form from this same row, but binds nothing
+  // to the original and writes nothing until Publish.
+  //
+  // Sharing the population code is the entire point. The old Copy was
+  // a separate hand-written object that inserted a row immediately,
+  // and it silently dropped the categories, contacts, questions,
+  // rooms, ministries, price, guest settings and recurrence -- a list
+  // that could only ever grow, because every field added to the form
+  // afterwards had to be remembered in a second place.
+  async function editEvent(eventId, asCopy){
     var { data, error } = await supabase.from('events').select('*').eq('id', eventId).limit(1);
     if (error || !data || !data.length) return;
     var ev = data[0];
 
-    ceEditingEventId = eventId;
-    ceEditingSeriesId = ev.series_id || null;
-    ceEditingOriginalStart = ev.start_at;
-    ceEditingOriginalEnd = ev.end_at || null;
-    ceOriginalPriceCents = ev.price_cents || null;
-    window.ceIsEditing = true;
+    clearCeStatus();
+    ceEditingEventId = asCopy ? null : eventId;
+    ceEditingSeriesId = asCopy ? null : (ev.series_id || null);
+    ceEditingOriginalStart = asCopy ? null : ev.start_at;
+    ceEditingOriginalEnd = asCopy ? null : (ev.end_at || null);
+    ceOriginalPriceCents = asCopy ? null : (ev.price_cents || null);
+    window.ceIsEditing = !asCopy;
+    // A copy keeps the original's graphic without re-uploading it:
+    // the submit path only knows how to get a URL out of a newly
+    // chosen file, so the existing one is carried across explicitly.
+    window.ceCopyImageUrl = asCopy ? (ev.image_url || null) : null;
     // Defaults the picker to THIS event's own saved church, not
     // necessarily whatever the dashboard's active church is right
     // now -- those can differ if the active church was switched
     // since this event was created.
     refreshCeChurchScope(ev.church_id);
-    document.getElementById('ce-heading').textContent = window.t('ce.editEvent');
+    document.getElementById('ce-heading').textContent = window.t(asCopy ? 'ce.createAnEvent' : 'ce.editEvent');
     // Opening an event for editing clears any earlier edit state.
     // No setTimeout needed now -- there is no baseline to race,
     // because programmatic population cannot set the flag at all.
     if (window.captureCreateEventSnapshot) window.captureCreateEventSnapshot();
-    document.getElementById('ce-repeats-section').style.display = 'none';
+    // Editing cannot change recurrence -- the occurrences already
+    // exist. Copying can, and should: it is creating new ones.
+    document.getElementById('ce-repeats-section').style.display = asCopy ? 'block' : 'none';
+    if (asCopy) {
+      var inferredRepeat = await inferSeriesRepeat(ev.series_id);
+      document.getElementById('ce-repeats').value = inferredRepeat ? inferredRepeat.type : 'none';
+      document.getElementById('ce-repeat-until').value = inferredRepeat ? inferredRepeat.until : '';
+      document.getElementById('ce-repeat-until-wrap').style.display = inferredRepeat ? 'block' : 'none';
+    }
     updateWritingAssistantAccess();
     updatePaidEventsAccess(!!ev.price_cents);
 
-    document.getElementById('ce-title').value = ev.title || '';
+    document.getElementById('ce-title').value = (ev.title || '') + (asCopy ? ' (Copy)' : '');
     document.getElementById('ce-description').innerHTML = sanitizeRichText(ev.description || '');
     document.getElementById('ce-description-count').textContent = (document.getElementById('ce-description').textContent || '').length + ' / 800';
     // Existing events only ever stored one combined location string --
@@ -21122,7 +21192,10 @@ Groups</span>
     document.getElementById('ce-suggested-donation').value = ev.suggested_donation_cents ? (ev.suggested_donation_cents / 100).toFixed(0) : '';
     document.getElementById(ev.fee_mode === 'absorb' ? 'ce-fee-mode-absorb' : 'ce-fee-mode-pass').checked = true;
     refreshCeFeeDisclosure();
-    if (ev.price_cents) {
+    // Discount codes attach to a saved event by id, so a copy -- which
+    // has no id yet -- gets the section hidden rather than the
+    // original's codes, which would look like they had come along.
+    if (ev.price_cents && !asCopy) {
       document.getElementById('ce-discount-codes-section').style.display = 'block';
       loadDiscountCodesPanel(eventId);
     } else {
@@ -21163,7 +21236,7 @@ Groups</span>
       );
     }
 
-    go('create-event/' + eventId);
+    go('create-event/' + (asCopy ? 'copy-' + eventId : eventId));
   }
   window.editEvent = editEvent;
 
@@ -21700,7 +21773,10 @@ Groups</span>
       var feeModeInput = document.querySelector('input[name="ce-fee-mode"]:checked');
       var feeMode = priceCents ? (feeModeInput ? feeModeInput.value : 'pass') : 'pass';
 
-      var imageUrl = null;
+      // A copy starts with the original's graphic already uploaded, so
+      // it starts from that URL rather than null -- picking a new file
+      // below still wins.
+      var imageUrl = (!ceEditingEventId && window.ceCopyImageUrl) ? window.ceCopyImageUrl : null;
       // Same rule as the church logo: the cropped file wins, and the
       // raw pick is the fallback for a browser that could not crop.
       var imageFile = window.ceImageEditedFile || document.getElementById('ce-image').files[0];
@@ -22006,6 +22082,12 @@ Groups</span>
       if (window.captureCreateEventSnapshot) window.captureCreateEventSnapshot();
       ceTags = []; renderCeTags();
       ceExceptions = []; renderCeExceptions();
+      // Same reason as resetCreateEventForm: whoever stays on this
+      // form to write a second event should not inherit the first
+      // one's recurrence.
+      document.getElementById('ce-repeats').value = 'none';
+      document.getElementById('ce-repeat-until').value = '';
+      document.getElementById('ce-repeat-until-wrap').style.display = 'none';
       loadDashboardEvents();
     } finally {
       btn.disabled = false;
