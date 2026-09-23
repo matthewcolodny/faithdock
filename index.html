@@ -9050,7 +9050,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v226 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v227 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -17332,9 +17332,22 @@ Groups</span>
   window.invalidateMyChurchCache = function(){ window._myChurchCache = null; };
   async function getMyChurch(knownUserId, retriesLeft){
     if (retriesLeft === undefined) {
-      var cacheKey = knownUserId || '__current_user__';
+      // One entry, whether or not the caller happened to know the id.
+      //
+      // The key used to be `knownUserId || '__current_user__'`, so
+      // getMyChurch() and getMyChurch(uid) -- the same person, asked
+      // two ways -- kept SEPARATE cache entries and neither could see
+      // the other's in-flight promise. Measured on a real dashboard
+      // load: two getMyChurch calls starting in the same millisecond,
+      // each doing its own round trips, because the panels call it
+      // one way and the auth handler calls it the other.
+      //
+      // forUserId records who the entry actually resolved for, so a
+      // call naming a DIFFERENT person still bypasses it.
+      var cacheKey = '__current_user__';
       var cached = window._myChurchCache;
-      if (cached && cached.userId === cacheKey && cached.expires > Date.now()) {
+      if (cached && cached.userId === cacheKey && cached.expires > Date.now()
+          && (!knownUserId || !cached.forUserId || cached.forUserId === knownUserId)) {
         return cached.promise;
       }
       // settled/value let a SYNCHRONOUS caller (peekMyChurch, below) ask
@@ -17352,7 +17365,7 @@ Groups</span>
       // edit and plan change all clear it explicitly), so this is a
       // backstop for whatever is still missed rather than the thing
       // holding it together.
-      var cacheEntry = { userId: cacheKey, expires: Date.now() + 20000, promise: null, settled: false, value: undefined };
+      var cacheEntry = { userId: cacheKey, forUserId: knownUserId || null, expires: Date.now() + 20000, promise: null, settled: false, value: undefined };
       var freshPromise = getMyChurchUncached(knownUserId, 3).then(function(v){
         cacheEntry.settled = true;
         cacheEntry.value = v;
@@ -17379,9 +17392,10 @@ Groups</span>
   // reports known:false, since there's nothing to paint synchronously
   // from yet).
   function peekMyChurch(knownUserId){
-    var cacheKey = knownUserId || '__current_user__';
+    var cacheKey = '__current_user__';
     var cached = window._myChurchCache;
-    if (cached && cached.userId === cacheKey && cached.expires > Date.now() && cached.settled) {
+    if (cached && cached.userId === cacheKey && cached.expires > Date.now() && cached.settled
+        && (!knownUserId || !cached.forUserId || cached.forUserId === knownUserId)) {
       return { known: true, value: cached.value };
     }
     return { known: false };
@@ -19278,6 +19292,23 @@ Groups</span>
         console.log('[FaithDock auth] skipping refresh batch — same signed-in identity as last run');
         return;
       }
+      // Whether this is the first settle since the page loaded, which
+      // is decided BEFORE the write below.
+      //
+      // The batch further down exists for one thing: somebody's
+      // account changing underneath a dashboard they are looking at.
+      // On the first settle after a page load nothing has changed --
+      // the panels are loading for this very identity, right now, a
+      // few hundred milliseconds ago.
+      //
+      // Measured on a real dashboard load: get_directory_people ran at
+      // 264ms and took 171ms, and then ran AGAIN at 2216ms and took
+      // 4346ms. loadDirectoryPeople resets its table to "Loading
+      // directory..." at the top of every run -- so the directory
+      // finished, and was then wiped back to a loading message by this
+      // batch and made to fetch itself a second time. That second
+      // wipe is the reported symptom.
+      var isFirstSettleOfPageLoad = (window._lastAuthRefreshUserId === undefined);
       window._lastAuthRefreshUserId = uid;
 
       var thisGeneration = (window.dashboardRefreshGeneration = (window.dashboardRefreshGeneration || 0) + 1);
@@ -19301,7 +19332,16 @@ Groups</span>
       // all nine here on every auth settle no matter what page you were
       // on -- so browsing the public Events page signed in paid for a
       // dashboard you weren't looking at.
-      if (typeof window.dashboardIsCurrentRoute === 'function' && !window.dashboardIsCurrentRoute()) {
+      if (isFirstSettleOfPageLoad) {
+        // Nothing to correct. The panels either already have this
+        // person's data or are in the middle of fetching it, and
+        // re-running them here only throws that work away and starts
+        // it again, slower, against a busier connection.
+        //
+        // Deliberately not resetDashboardPanels() either: marking them
+        // stale would make the next dashboard navigation refetch
+        // everything for an account that never changed.
+      } else if (typeof window.dashboardIsCurrentRoute === 'function' && !window.dashboardIsCurrentRoute()) {
         if (typeof window.resetDashboardPanels === 'function') window.resetDashboardPanels();
       } else {
         if (typeof window.loadDashboardHeader === 'function') window.loadDashboardHeader(uid, thisGeneration);
