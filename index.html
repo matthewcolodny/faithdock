@@ -1338,6 +1338,13 @@
       'ce.graphicUploadFailed': 'Graphic upload failed: {error}',
       'ce.thisTimeOverlapsWith': 'This time overlaps with:', 'ce.thisOverlapsWith': 'This overlaps with:', 'ce.saveAnyway': 'Save anyway?', 'ce.andNMore': '…and {n} more',
       'ce.savedUpdated': 'Saved! "{title}" has been updated.', 'ce.occurrencesCreated': '{n} occurrences created', 'ce.eventIsLive': '"{title}" is live', 'ce.createdUnderChurch': 'Created! {countMsg} under {church}.',
+      'ce.seriesSaved': 'Saved! All {n} events in the series were updated.',
+      'seriesScope.title': 'This event repeats', 'seriesScope.body': 'It is one of {n} events in the same series.', 'seriesScope.past': '{n} of them have already happened.',
+      'seriesScope.timesChange': 'Changing all of them gives every event the new time and length, keeping its own place in the series.',
+      'seriesScope.datesLater': 'Every date also moves {n} days later.', 'seriesScope.datesLaterOne': 'Every date also moves one day later.',
+      'seriesScope.datesEarlier': 'Every date also moves {n} days earlier.', 'seriesScope.datesEarlierOne': 'Every date also moves one day earlier.',
+      'seriesScope.noTimeChange': 'Dates and times stay as they are.',
+      'seriesScope.onlyThis': 'Change only this event', 'seriesScope.allEvents': 'Change all {n} events', 'seriesScope.cancel': 'Cancel',
       'insights.totalGroups': 'TOTAL GROUPS', 'insights.activeGroups': 'ACTIVE GROUPS', 'insights.inactiveGroups': 'INACTIVE GROUPS', 'insights.peopleInAGroup': 'PEOPLE IN A GROUP', 'insights.peopleNotInAGroup': 'PEOPLE NOT IN A GROUP',
       'insights.averageSize': 'AVERAGE SIZE', 'insights.notInAHousehold': 'NOT IN A HOUSEHOLD',
       'insights.involvement': 'Involvement',
@@ -2430,6 +2437,13 @@
       'ce.graphicUploadFailed': 'No se pudo subir la imagen: {error}',
       'ce.thisTimeOverlapsWith': 'Este horario se superpone con:', 'ce.thisOverlapsWith': 'Esto se superpone con:', 'ce.saveAnyway': '¿Guardar de todos modos?', 'ce.andNMore': '…y {n} más',
       'ce.savedUpdated': '¡Guardado! Se actualizó "{title}".', 'ce.occurrencesCreated': '{n} ocurrencias creadas', 'ce.eventIsLive': '"{title}" ya está en línea', 'ce.createdUnderChurch': '¡Creado! {countMsg} bajo {church}.',
+      'ce.seriesSaved': '¡Guardado! Se actualizaron los {n} eventos de la serie.',
+      'seriesScope.title': 'Este evento se repite', 'seriesScope.body': 'Es uno de {n} eventos de la misma serie.', 'seriesScope.past': '{n} de ellos ya ocurrieron.',
+      'seriesScope.timesChange': 'Cambiarlos todos le da a cada evento el nuevo horario y duración, manteniendo su lugar en la serie.',
+      'seriesScope.datesLater': 'Cada fecha también se mueve {n} días después.', 'seriesScope.datesLaterOne': 'Cada fecha también se mueve un día después.',
+      'seriesScope.datesEarlier': 'Cada fecha también se mueve {n} días antes.', 'seriesScope.datesEarlierOne': 'Cada fecha también se mueve un día antes.',
+      'seriesScope.noTimeChange': 'Las fechas y los horarios no cambian.',
+      'seriesScope.onlyThis': 'Cambiar solo este evento', 'seriesScope.allEvents': 'Cambiar los {n} eventos', 'seriesScope.cancel': 'Cancelar',
       'insights.totalGroups': 'TOTAL DE GRUPOS', 'insights.activeGroups': 'GRUPOS ACTIVOS', 'insights.inactiveGroups': 'GRUPOS INACTIVOS', 'insights.peopleInAGroup': 'PERSONAS EN UN GRUPO', 'insights.peopleNotInAGroup': 'PERSONAS SIN GRUPO',
       'insights.averageSize': 'TAMAÑO PROMEDIO', 'insights.notInAHousehold': 'SIN GRUPO FAMILIAR',
       'insights.involvement': 'Participación',
@@ -8681,6 +8695,25 @@ Groups</span>
   </div>
 </div>
 
+<!-- Editing one occurrence of a repeating event is ambiguous, and
+     only the person doing it knows which they meant. This asks, and
+     only appears when the event actually has siblings. -->
+<div id="series-scope-modal" class="modal-overlay">
+  <div class="modal-card" style="max-width:420px;">
+    <h3 style="font-family:'Fraunces';font-size:20px;margin-bottom:6px;" data-i18n="seriesScope.title">This event repeats</h3>
+    <p style="color:var(--ink-mute);font-size:13.5px;margin-bottom:16px;" id="series-scope-body"></p>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <!-- The narrow option first and highlighted. Both are one
+           click, but only one of them rewrites eleven other events,
+           and that should not be the one anybody reaches by
+           reflex. -->
+      <button class="btn-gold" id="series-scope-only" data-i18n="seriesScope.onlyThis">Change only this event</button>
+      <button class="export-btn" id="series-scope-all" style="justify-content:center;">Change all events</button>
+      <button class="export-btn" id="series-scope-cancel" style="justify-content:center;border:none;" data-i18n="seriesScope.cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <div id="email-needed-modal" class="modal-overlay">
   <div class="modal-card" style="max-width:420px;">
     <h3 style="font-family:'Fraunces';font-size:20px;margin-bottom:6px;" data-i18n="emailNeeded.title">We need an email address</h3>
@@ -8867,7 +8900,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v213 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-22-v214 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -20526,6 +20559,13 @@ Groups</span>
   // Tags — free-text chips, press Enter to add.
   var ceTags = [];
   var ceEditingEventId = null;
+  // Set when the event being edited is one occurrence of a repeating
+  // series. The two originals beside it are what makes "apply this to
+  // all of them" answerable: the form only knows the NEW time, and
+  // shifting a series needs to know what moved.
+  var ceEditingSeriesId = null;
+  var ceEditingOriginalStart = null;
+  var ceEditingOriginalEnd = null;
   // Grandfather flag for the paid-events plan gate below — captured
   // by editEvent() so a church that already had a priced event before
   // a downgrade can still save it unchanged, without that check
@@ -20789,6 +20829,9 @@ Groups</span>
     // A reset form has no unsaved work in it by definition.
     if (window.captureCreateEventSnapshot) window.captureCreateEventSnapshot();
     ceEditingEventId = null;
+    ceEditingSeriesId = null;
+    ceEditingOriginalStart = null;
+    ceEditingOriginalEnd = null;
     ceOriginalPriceCents = null;
     window.ceIsEditing = false;
     // Cleared first so refreshCeChurchScope() defaults back to the
@@ -20951,6 +20994,9 @@ Groups</span>
     var ev = data[0];
 
     ceEditingEventId = eventId;
+    ceEditingSeriesId = ev.series_id || null;
+    ceEditingOriginalStart = ev.start_at;
+    ceEditingOriginalEnd = ev.end_at || null;
     ceOriginalPriceCents = ev.price_cents || null;
     window.ceIsEditing = true;
     // Defaults the picker to THIS event's own saved church, not
@@ -21437,6 +21483,66 @@ Groups</span>
     return occurrences;
   }
 
+  // ============================================================
+  // "This event, or all of them?"
+  //
+  // Editing one occurrence of a repeating event is ambiguous and only
+  // the person doing it knows which they meant. Assuming "just this
+  // one" makes fixing a typo a twelve-times job; assuming "all of
+  // them" silently rewrites events somebody may have moved on
+  // purpose. So it asks -- and only when there is something to ask
+  // about, which is why a one-off event never sees this.
+  // ============================================================
+  var seriesScopeResolve = null;
+  function closeSeriesScope(answer){
+    var modal = document.getElementById('series-scope-modal');
+    if (modal) modal.classList.remove('open');
+    var r = seriesScopeResolve; seriesScopeResolve = null;
+    if (r) r(answer);
+  }
+  [['series-scope-only','one'], ['series-scope-all','all'], ['series-scope-cancel','cancel']].forEach(function(pair){
+    var el = document.getElementById(pair[0]);
+    if (el) el.addEventListener('click', function(){ closeSeriesScope(pair[1]); });
+  });
+  // Escape means cancel, not "pick the default" -- a dialog about
+  // rewriting eleven events should not resolve to an action because
+  // somebody dismissed it.
+  document.addEventListener('keydown', function(ev){
+    if (ev.key === 'Escape' && seriesScopeResolve) closeSeriesScope('cancel');
+  });
+
+  function askSeriesScope(total, pastCount, timesChanged, dayDelta){
+    var modal = document.getElementById('series-scope-modal');
+    // No dialog on the page is not a reason to quietly change every
+    // event in the series. Fall back to the narrow, recoverable one.
+    if (!modal) return Promise.resolve('one');
+
+    var lines = [window.t('seriesScope.body').replace('{n}', total)];
+    if (pastCount > 0) lines.push(window.t('seriesScope.past').replace('{n}', pastCount));
+    if (timesChanged) {
+      lines.push(window.t('seriesScope.timesChange'));
+      if (dayDelta !== 0) {
+        // A separate string for one day rather than "1 day(s)", which
+        // is the tell that nobody read the sentence back.
+        var days = Math.abs(dayDelta);
+        var key = (dayDelta > 0 ? 'seriesScope.datesLater' : 'seriesScope.datesEarlier') + (days === 1 ? 'One' : '');
+        lines.push(window.t(key).replace('{n}', days));
+      }
+    } else {
+      lines.push(window.t('seriesScope.noTimeChange'));
+    }
+    var bodyEl = document.getElementById('series-scope-body');
+    if (bodyEl) bodyEl.textContent = lines.join(' ');
+
+    // The count goes on the button itself, so the thing being clicked
+    // says how much it does.
+    var allBtn = document.getElementById('series-scope-all');
+    if (allBtn) allBtn.textContent = window.t('seriesScope.allEvents').replace('{n}', total);
+
+    modal.classList.add('open');
+    return new Promise(function(resolve){ seriesScopeResolve = resolve; });
+  }
+
   document.getElementById('ce-submit-btn').addEventListener('click', async function(){
     var btn = this;
     // "Publish" always means "not a draft" — if the visibility
@@ -21612,11 +21718,87 @@ Groups</span>
       var cleanContacts = ceContacts.filter(function(c){ return (c.name && c.name.trim()) || (c.email && c.email.trim()); });
 
       if (ceEditingEventId) {
-        // Editing a single existing event — no recurrence, and only
-        // touch the image if a new one was actually chosen so we
-        // don't silently wipe out an existing graphic.
+        // Editing an existing event — only touch the image if a new
+        // one was actually chosen so we don't silently wipe out an
+        // existing graphic.
         var editRoomIds = getSelectedCeRoomIds();
-        var editConflicts = await checkRoomConflicts(editRoomIds, startAt, endAt, ceEditingEventId);
+
+        // ---- Is this one of many? ----------------------------------
+        var seriesSiblings = [];
+        if (ceEditingSeriesId) {
+          var { data: seriesRows } = await supabase.from('events')
+            .select('id, start_at, end_at').eq('series_id', ceEditingSeriesId).order('start_at');
+          seriesSiblings = (seriesRows || []).filter(function(r){ return String(r.id) !== String(ceEditingEventId); });
+        }
+
+        // ---- What moved --------------------------------------------
+        //
+        // Days and time-of-day are worked out separately, and in LOCAL
+        // time, because that is how the occurrences were generated:
+        // computeOccurrences steps whole calendar days, not 86,400,000
+        // milliseconds.
+        //
+        // The obvious alternative -- measure the move as one
+        // millisecond delta and add it to every occurrence -- is right
+        // until the edited occurrence happens to sit on the far side
+        // of a clock change from where it lands. Moving a Saturday
+        // event to the Sunday that DST ends is a 25-hour delta, and
+        // adding 25 hours to the rest of the series puts every
+        // remaining occurrence an hour late. Tested: two of three
+        // occurrences land on the wrong wall-clock time that weekend.
+        //
+        // For a pure time-of-day change the two agree, because each
+        // stored timestamp already carries its own UTC offset. It is
+        // only the date shift that needs calendar arithmetic -- which
+        // is the whole reason the day delta is counted in days here
+        // and applied through the local Date constructor below.
+        function localDayNumber(d){ return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000; }
+        var newStartDate = new Date(startAt);
+        var oldStartDate = ceEditingOriginalStart ? new Date(ceEditingOriginalStart) : newStartDate;
+        var seriesDayDelta = localDayNumber(newStartDate) - localDayNumber(oldStartDate);
+        var newDurationMs = endAt ? (new Date(endAt) - newStartDate) : null;
+        var oldDurationMs = ceEditingOriginalEnd ? (new Date(ceEditingOriginalEnd) - oldStartDate) : null;
+        var seriesTimesChanged = seriesDayDelta !== 0
+          || newStartDate.getHours() !== oldStartDate.getHours()
+          || newStartDate.getMinutes() !== oldStartDate.getMinutes()
+          || newDurationMs !== oldDurationMs;
+
+        // Every occurrence keeps its own place in the series and takes
+        // the new time of day and the new length.
+        function shiftedSeriesTimes(oldIso){
+          var d = new Date(oldIso);
+          var moved = new Date(d.getFullYear(), d.getMonth(), d.getDate() + seriesDayDelta,
+                               newStartDate.getHours(), newStartDate.getMinutes(), 0, 0);
+          return {
+            start_at: moved.toISOString(),
+            end_at: newDurationMs === null ? null : new Date(moved.getTime() + newDurationMs).toISOString()
+          };
+        }
+
+        // ---- Ask, before anything is written ------------------------
+        var seriesTargets = null;
+        if (seriesSiblings.length) {
+          var nowIso = new Date().toISOString();
+          var pastCount = seriesSiblings.filter(function(r){ return r.start_at < nowIso; }).length;
+          if (ceEditingOriginalStart && ceEditingOriginalStart < nowIso) pastCount++;
+          var seriesScope = await askSeriesScope(seriesSiblings.length + 1, pastCount, seriesTimesChanged, seriesDayDelta);
+          if (seriesScope === 'cancel') return;
+          if (seriesScope === 'all') seriesTargets = seriesSiblings;
+        }
+
+        // Checked against the times actually about to be written, which
+        // for a whole series is every shifted occurrence -- and the
+        // series is excluded from its own check.
+        var editOccurrences = [{ start: startAt, end: endAt || null }];
+        var editExcludeIds = [ceEditingEventId];
+        if (seriesTargets) {
+          seriesTargets.forEach(function(r){
+            var moved = shiftedSeriesTimes(r.start_at);
+            editOccurrences.push({ start: moved.start_at, end: moved.end_at });
+            editExcludeIds.push(r.id);
+          });
+        }
+        var editConflicts = await checkRoomConflictsForOccurrences(editRoomIds, editOccurrences, editExcludeIds);
         if (editConflicts.length) {
           var editConflictMsg = window.t('ce.thisTimeOverlapsWith') + '\n' + editConflicts.map(function(c){
             return '• ' + c.eventTitle + ' (' + c.roomName + ', ' + c.eventTime + ')';
@@ -21657,11 +21839,40 @@ Groups</span>
 
         var { data, error } = await supabase.from('events').update(updatePayload).eq('id', ceEditingEventId).select();
         if (error) { showCeError(friendlyDbError(error)); return; }
-        await saveEventRooms(ceEditingEventId);
-        await saveEventMinistries(ceEditingEventId);
-        await saveEventQuestions(ceEditingEventId);
+
+        if (seriesTargets) {
+          // Everything except the times is identical across the series,
+          // so it goes out in one statement however long the series is.
+          var sharedPayload = {};
+          Object.keys(updatePayload).forEach(function(k){
+            if (k !== 'start_at' && k !== 'end_at') sharedPayload[k] = updatePayload[k];
+          });
+          var seriesIds = seriesTargets.map(function(r){ return r.id; });
+          var { error: seriesError } = await supabase.from('events').update(sharedPayload).in('id', seriesIds);
+          if (seriesError) { showCeError(friendlyDbError(seriesError)); return; }
+
+          // The times are the only per-row part, and they are skipped
+          // entirely when nothing about the timing moved -- correcting
+          // a typo on a twelve-week series should not rewrite twelve
+          // dates to the values they already hold.
+          if (seriesTimesChanged) {
+            var timeWrites = await Promise.all(seriesTargets.map(function(r){
+              return supabase.from('events').update(shiftedSeriesTimes(r.start_at)).eq('id', r.id);
+            }));
+            var failedTimeWrite = timeWrites.filter(function(w){ return w && w.error; })[0];
+            if (failedTimeWrite) { showCeError(friendlyDbError(failedTimeWrite.error)); return; }
+          }
+
+          await saveEventChildrenForSeries([ceEditingEventId].concat(seriesIds));
+        } else {
+          await saveEventRooms(ceEditingEventId);
+          await saveEventMinistries(ceEditingEventId);
+          await saveEventQuestions(ceEditingEventId);
+        }
         notifyNewEventContacts(cleanContacts, title, updatePayload.start_at, updatePayload.end_at, myChurches[0].name);
-        showCeSuccess(window.t('ce.savedUpdated').replace('{title}', data[0].title));
+        showCeSuccess(seriesTargets
+          ? window.t('ce.seriesSaved').replace('{n}', seriesTargets.length + 1)
+          : window.t('ce.savedUpdated').replace('{title}', data[0].title));
         // Real, reported staleness bug: this save only ever refreshed
         // the Dashboard's own events table (loadDashboardEvents() below)
         // -- the shared `events` array findOrFetchEventById() reads from
@@ -21695,10 +21906,18 @@ Groups</span>
         // genuinely fresh fetch (including the joined church name/plan
         // and the live registration count, neither of which `data` here
         // carries) and re-populates the array from scratch.
-        var staleEventIdx = -1;
-        for (var sei = 0; sei < events.length; sei++) { if (String(events[sei].id) === String(ceEditingEventId)) { staleEventIdx = sei; break; } }
-        if (staleEventIdx !== -1) events.splice(staleEventIdx, 1);
-        delete eventCacheFetchedAt[ceEditingEventId];
+        //
+        // Every event this save touched, not only the one that was on
+        // screen: saving a series leaves the other occurrences exactly
+        // as stale, and they are reachable by the same two direct
+        // lookups. Iterated backwards so splicing does not skip the
+        // entry after each removal.
+        var touchedIds = [String(ceEditingEventId)].concat(
+          seriesTargets ? seriesTargets.map(function(r){ return String(r.id); }) : []);
+        for (var sei = events.length - 1; sei >= 0; sei--) {
+          if (touchedIds.indexOf(String(events[sei].id)) !== -1) events.splice(sei, 1);
+        }
+        touchedIds.forEach(function(id){ delete eventCacheFetchedAt[id]; });
         // Saved successfully, so there is nothing unsaved left to
         // warn about. Without this, publishing and then clicking
         // "Back to my church" prompted about losing changes that
@@ -24623,12 +24842,20 @@ Groups</span>
   // times without twelve trips to the database.
   function conflictsAmong(bookings, startIso, endIso, excludeEventId){
     var data = bookings;
+    // One id or a list of them. Editing a whole series has to exclude
+    // every event in it -- the occurrences share rooms with each
+    // other, so checking one against the rest would report the series
+    // as clashing with itself, every time, forever.
+    var excluded = {};
+    (Array.isArray(excludeEventId) ? excludeEventId : [excludeEventId]).forEach(function(id){
+      if (id) excluded[id] = true;
+    });
     var newStart = new Date(startIso);
     var newEnd = endIso ? new Date(endIso) : new Date(newStart.getTime() + 60 * 60 * 1000);
     var conflicts = [];
     (data || []).forEach(function(row){
       var e = row.events;
-      if (!e || e.id === excludeEventId) return;
+      if (!e || excluded[e.id]) return;
       var eStart = new Date(e.start_at);
       var eEnd = e.end_at ? new Date(e.end_at) : new Date(eStart.getTime() + 60 * 60 * 1000);
       // Standard interval overlap — touching edges (one ending
@@ -24833,24 +25060,39 @@ Groups</span>
   // Every occurrence gets the SAME rooms, ministries and questions,
   // which is what the loop assumed too: a weekly rehearsal is in the
   // same room every week.
-  async function saveEventChildrenBulk(eventIds){
-    if (!eventIds || !eventIds.length) return;
-
+  // The three sets of link rows the form describes, for however many
+  // events. Pure builders, so the create path and the series path
+  // cannot drift about what a row looks like.
+  function ceRoomRowsFor(eventIds){
     var roomIds = getSelectedCeRoomIds();
-    var primaryRoomRadio = document.querySelector('input[name="ce-room-primary"]:checked');
-    var primaryRoomId = primaryRoomRadio ? primaryRoomRadio.value : null;
+    var radio = document.querySelector('input[name="ce-room-primary"]:checked');
+    var primaryId = radio ? radio.value : null;
+    var rows = [];
+    eventIds.forEach(function(eid){
+      roomIds.forEach(function(rid){ rows.push({ event_id: eid, room_id: rid, is_primary: rid === primaryId }); });
+    });
+    return rows;
+  }
 
+  function ceMinistryRowsFor(eventIds){
     var ministryIds = getSelectedCeMinistryIds();
-    var primaryMinRadio = document.querySelector('input[name="ce-ministry-primary"]:checked');
-    var primaryMinId = primaryMinRadio ? primaryMinRadio.value : null;
+    var radio = document.querySelector('input[name="ce-ministry-primary"]:checked');
+    var primaryId = radio ? radio.value : null;
+    var rows = [];
+    eventIds.forEach(function(eid){
+      ministryIds.forEach(function(mid){ rows.push({ event_id: eid, ministry_id: mid, is_primary: mid === primaryId }); });
+    });
+    return rows;
+  }
 
-    function questionRowsFor(eventId){
-      var out = [];
+  function ceQuestionRowsFor(eventIds){
+    var rows = [];
+    eventIds.forEach(function(eid){
       [[ceQuestions, 'participant'], [ceVolunteerQuestions, 'volunteer']].forEach(function(pair){
         (pair[0] || []).forEach(function(q, i){
           if (!q.question_text || !q.question_text.trim()) return;
-          out.push({
-            event_id: eventId,
+          rows.push({
+            event_id: eid,
             question_text: q.question_text,
             question_type: q.question_type,
             options: (q.question_type === 'multiple_choice' && q.optionsText)
@@ -24865,15 +25107,28 @@ Groups</span>
           });
         });
       });
-      return out;
-    }
-
-    var roomRows = [], ministryRows = [], questionRows = [];
-    eventIds.forEach(function(id){
-      roomIds.forEach(function(rid){ roomRows.push({ event_id: id, room_id: rid, is_primary: rid === primaryRoomId }); });
-      ministryIds.forEach(function(mid){ ministryRows.push({ event_id: id, ministry_id: mid, is_primary: mid === primaryMinId }); });
-      questionRows = questionRows.concat(questionRowsFor(id));
     });
+    return rows;
+  }
+
+  // Rooms, ministries and questions for a batch of freshly created
+  // events, in three inserts rather than three per event.
+  //
+  // The per-event functions below exist for EDITING, where an event
+  // already has rows that have to be reconciled -- read what is there,
+  // update what changed, delete what went. That reconciliation is
+  // pointless on rows created a moment ago: there is nothing to
+  // reconcile with.
+  //
+  // Creating a weekly event for a term meant a loop of about eight
+  // sequential round trips per occurrence -- roughly a hundred for a
+  // twelve-week series, which is the ten seconds somebody waited
+  // watching a spinner. It is now three, whatever the length.
+  async function saveEventChildrenBulk(eventIds){
+    if (!eventIds || !eventIds.length) return;
+    var roomRows = ceRoomRowsFor(eventIds);
+    var ministryRows = ceMinistryRowsFor(eventIds);
+    var questionRows = ceQuestionRowsFor(eventIds);
 
     // In parallel: three different tables, no ordering between them.
     // Errors are reported rather than thrown -- the events themselves
@@ -24885,6 +25140,36 @@ Groups</span>
       questionRows.length ? supabase.from('event_questions').insert(questionRows)  : Promise.resolve({ error: null })
     ]);
     results.forEach(function(r){ if (r && r.error) console.error('saveEventChildrenBulk:', r.error); });
+  }
+
+  // One form applied to a whole EXISTING series.
+  //
+  // Rooms and ministries are replaced wholesale: they are link rows
+  // with nothing hanging off them, so two statements cover the series
+  // however long it is.
+  //
+  // Questions are NOT, and must not be. Somebody's answer to "any
+  // allergies?" hangs off the question row by a cascading foreign key,
+  // and deleting the question to re-insert an identical one would take
+  // a real answer with it -- silently, while the organiser was fixing
+  // a typo in the title. Each event reconciles its own the careful
+  // way, and they run concurrently so the series still costs about one
+  // round trip's worth of waiting.
+  async function saveEventChildrenForSeries(eventIds){
+    if (!eventIds || !eventIds.length) return;
+    await Promise.all([
+      supabase.from('event_rooms').delete().in('event_id', eventIds),
+      supabase.from('event_ministries').delete().in('event_id', eventIds)
+    ]);
+    var roomRows = ceRoomRowsFor(eventIds);
+    var ministryRows = ceMinistryRowsFor(eventIds);
+    var results = await Promise.all([
+      roomRows.length     ? supabase.from('event_rooms').insert(roomRows)         : Promise.resolve({ error: null }),
+      ministryRows.length ? supabase.from('event_ministries').insert(ministryRows) : Promise.resolve({ error: null })
+    ].concat(eventIds.map(function(id){
+      return saveEventQuestions(id).then(function(){ return { error: null }; });
+    })));
+    results.forEach(function(r){ if (r && r.error) console.error('saveEventChildrenForSeries:', r.error); });
   }
 
   async function saveEventQuestions(eventId){

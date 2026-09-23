@@ -17,9 +17,50 @@ The distinction between the three files:
 When one is finished, move it to "Done" at the bottom with the date.
 The state it ended in is worth more later than the fact it was on a list.
 
-**Nothing is pending as of 2026-09-22.** Everything below the Done
-heading was closed out; this section is empty until something else
-turns up that lives outside the repository.
+## Migration 085 is unrun, and public event browsing is broken -- URGENT
+
+**State today:** `supabase/migrations/085_fix_anon_event_browsing.sql`
+exists in the repo and has not been run. Verified live on
+faithdock.com: a signed-out visitor sees zero event cards on
+`#events`, with `permission denied for function staff_beyond_checkin`
+and `permission denied for table event_registrations` in the console.
+
+**Why it matters:** the public events page is the front door. It is
+broken for everybody who is not logged in, which is everybody
+arriving for the first time.
+
+**What doing it involves:** paste the file into the Supabase SQL
+Editor and run it. It ends in a `do $verify$` block that raises if
+the grants did not land, and it asserts the money columns did NOT
+come back with them.
+
+The cause is mine and is written up in the migration itself: 081
+revoked `execute` on a function that the events SELECT policy then
+called, and a policy is evaluated as the caller, so a caller without
+that grant gets an error on every query rather than fewer rows. 083
+then revoked `event_registrations` from `anon` while carefully
+re-granting it column by column to `authenticated` only. Neither
+migration tested a signed-out page.
+
+---
+
+## Migration 084 is unrun, so duplicate room names are only refused in the browser
+
+**State today:** `supabase/migrations/084_room_names_unique.sql` is in
+the repo and has not been run. The client refuses a duplicate room
+name (case- and space-insensitively) before it asks the database, and
+that is the only thing stopping one.
+
+**Why it matters:** a second tab holding a stale room list, or
+anything talking to the API directly, walks straight past a check
+that only exists in a browser. Two rooms called "Room 300" are
+indistinguishable in the schedule picker, the event form and the
+colour legend, and the grid shows both as free.
+
+**What doing it involves:** run the file. It refuses to build the
+index if duplicates already exist, and names each one by church and
+room in a `raise warning` first -- so a failure there is a list of
+rooms to rename, not a constraint violation to decode.
 
 ---
 
