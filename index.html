@@ -804,7 +804,7 @@
       'dashEvents.loadingEvents': 'Loading your events...',
       'dashEvents.participantsPlural': 'Participants', 'dashEvents.volunteersPlural': 'Volunteers', 'dashEvents.registrationSingular': 'registration',
       'dashCheckin.searchByName': 'Search by name', 'dashCheckin.tapToCheckIn': 'TAP A ROW TO CHECK SOMEONE IN',
-      'dashCheckin.name': 'Name', 'dashCheckin.registration': 'Registration',
+      'dashCheckin.name': 'Name', 'dashCheckin.registration': 'Register',
       'dashCheckin.selectEvent': 'Select an event...', 'dashCheckin.addWalkIn': 'Add a walk-in', 'dashCheckin.fullName': 'Full name',
       'dashCheckin.selectEventFirst': 'Select an event above to see its check-in list.',
       'dashCheckin.walkInTag': 'Walk-in', 'dashCheckin.noSearchMatch': 'No one matches that search.', 'dashCheckin.noOneRegisteredYet': 'No one has registered for this event yet.',
@@ -862,7 +862,7 @@
       'ce.roomAlreadyBooked': 'Already booked at this time:',
       'checkinLink.sectionTitle': 'Check-in links',
       'checkinLink.sectionHint': 'A link or QR code that lets a volunteer check people in for this event without a FaithDock account. It shows names only, and stops working when it expires or you revoke it.',
-      'dashCheckin.checkInCol': 'Check In',
+      'dashCheckin.checkInCol': 'Here?',
       'checkinLink.labelPlaceholder': 'e.g. Front door tablet',
       'checkinLink.create': 'Create link', 'checkinLink.created': 'Link created.',
       'checkinLink.none': 'No links for this event yet.', 'checkinLink.untitled': 'Untitled link',
@@ -1904,10 +1904,10 @@
       'dashEvents.loadingEvents': 'Cargando tus eventos...',
       'dashEvents.participantsPlural': 'Participantes', 'dashEvents.volunteersPlural': 'Voluntarios', 'dashEvents.registrationSingular': 'inscripción',
       'dashCheckin.searchByName': 'Buscar por nombre', 'dashCheckin.tapToCheckIn': 'TOCA UNA FILA PARA REGISTRAR LA LLEGADA',
-      'dashCheckin.name': 'Nombre', 'dashCheckin.registration': 'Inscripción',
+      'dashCheckin.name': 'Nombre', 'dashCheckin.registration': 'Registro',
       'dashCheckin.selectEvent': 'Selecciona un evento...', 'dashCheckin.addWalkIn': 'Agregar a alguien sin inscripción previa', 'dashCheckin.fullName': 'Nombre completo',
       'dashCheckin.selectEventFirst': 'Selecciona un evento arriba para ver su lista de registro de llegada.',
-      'dashCheckin.walkInTag': 'Sin inscripción', 'dashCheckin.noSearchMatch': 'Nadie coincide con esa búsqueda.', 'dashCheckin.noOneRegisteredYet': 'Aún nadie se ha inscrito en este evento.',
+      'dashCheckin.walkInTag': 'Sin registro', 'dashCheckin.noSearchMatch': 'Nadie coincide con esa búsqueda.', 'dashCheckin.noOneRegisteredYet': 'Aún nadie se ha inscrito en este evento.',
       'dashDir.all': 'Todos', 'dashDir.members': 'Miembros', 'dashDir.staff': 'Personal', 'dashDir.eventSignups': 'Inscripciones a eventos',
       'dashDir.optedOut': 'Dado de baja', 'dashDir.optedOutHint': 'Esta persona pidió no recibir correos de tu iglesia. Se omite automáticamente.',
       'dashMessages.someUnsubscribed': '{n} {personWord} se dieron de baja y se omitirán.', 'dashMessages.person': 'persona', 'dashMessages.people': 'personas',
@@ -1962,7 +1962,7 @@
       'ce.roomAlreadyBooked': 'Ya reservada a esta hora:',
       'checkinLink.sectionTitle': 'Enlaces de registro',
       'checkinLink.sectionHint': 'Un enlace o código QR que permite a un voluntario registrar asistentes a este evento sin tener cuenta de FaithDock. Muestra solo nombres y deja de funcionar cuando caduca o lo revocas.',
-      'dashCheckin.checkInCol': 'Entrada',
+      'dashCheckin.checkInCol': '¿Aquí?',
       'checkinLink.labelPlaceholder': 'p. ej. Tableta de la entrada',
       'checkinLink.create': 'Crear enlace', 'checkinLink.created': 'Enlace creado.',
       'checkinLink.none': 'Aún no hay enlaces para este evento.', 'checkinLink.untitled': 'Enlace sin título',
@@ -4757,9 +4757,16 @@
        it snapped the word in half. Dropping the tracking and half a
        point brings it to about 76px. */
     table.roster.roster-fits td.mono{font-size:11.5px;letter-spacing:0;}
-    #checkin-table.roster-fits th:nth-child(1){width:50%;}
-    #checkin-table.roster-fits th:nth-child(2){width:32%;}
-    #checkin-table.roster-fits th:nth-child(3){width:18%;}
+    /* Sized for SPANISH, which is the longer language in every one of
+       these cells -- Participante against Participant, ¿Aquí? against
+       Here?. Sizing for English and hoping is how a heading ends up on
+       two lines in one language only. */
+    #checkin-table.roster-fits th:nth-child(1),
+    #cl-table.roster-fits th:nth-child(1){width:42%;}
+    #checkin-table.roster-fits th:nth-child(2),
+    #cl-table.roster-fits th:nth-child(2){width:38%;}
+    #checkin-table.roster-fits th:nth-child(3),
+    #cl-table.roster-fits th:nth-child(3){width:20%;}
   }
 
   /* ---- conference ---- */
@@ -7131,8 +7138,11 @@ Groups</span>
         <div class="stat"><div class="num" id="cl-count">— / —</div><div class="lbl" data-i18n="dashCheckin.tapToCheckIn">TAP A ROW TO CHECK SOMEONE IN</div></div>
       </div>
       <input class="field" id="cl-search" type="text" placeholder="Search by name" data-i18n-placeholder="dashCheckin.searchByName" style="margin-bottom:14px;">
-      <table class="roster" id="cl-table">
-        <tr><th data-i18n="dashCheckin.name">Name</th><th data-i18n="dashCheckin.registration">Registration</th><th></th></tr>
+      <!-- The door page is the one most certain to be held in a hand,
+           so it gets the same fitted roster and the same named column
+           as the staff one. Its third heading was empty. -->
+      <table class="roster roster-fits" id="cl-table">
+        <tr><th data-i18n="dashCheckin.name">Name</th><th data-i18n="dashCheckin.registration">Register</th><th data-i18n="dashCheckin.checkInCol">Here?</th></tr>
         <tbody id="cl-tbody"></tbody>
       </table>
       <p style="color:var(--ink-mute);font-size:11.5px;margin-top:16px;" data-i18n="checkinLink.privacyNote">This page shows names only. It works for this one event and stops working when the link expires.</p>
@@ -8065,7 +8075,7 @@ Groups</span>
         </div>
 
         <table class="roster roster-fits" id="checkin-table">
-          <tr><th data-i18n="dashCheckin.name">Name</th><th data-i18n="dashCheckin.registration">Registration</th><th data-i18n="dashCheckin.checkInCol">Check In</th></tr>
+          <tr><th data-i18n="dashCheckin.name">Name</th><th data-i18n="dashCheckin.registration">Registration</th><th data-i18n="dashCheckin.checkInCol">Here?</th></tr>
           <tbody id="checkin-tbody">
             <tr><td colspan="3" style="color:var(--ink-mute);" data-i18n="dashCheckin.selectEventFirst">Select an event above to see its check-in list.</td></tr>
           </tbody>
@@ -9201,7 +9211,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v240 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v241 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -30984,8 +30994,8 @@ Groups</span>
   // works both.
   function checkinBoxSvg(checked){
     return checked
-      ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--sage);" aria-label="' + escAttr(window.t('dashCheckin.checkInCol')) + '"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 12l3 3 5-6" stroke-width="2.5"/></svg>'
-      : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--ink-mute);opacity:.65;"><rect x="3" y="3" width="18" height="18" rx="4"/></svg>';
+      ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--sage);" aria-label="' + escAttr(window.t('dashCheckin.checkInCol')) + '"><rect x="3" y="3" width="18" height="18" rx="6"/><path d="M8 12l3 3 5-6" stroke-width="2.5"/></svg>'
+      : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--ink-mute);opacity:.65;"><rect x="3" y="3" width="18" height="18" rx="6"/></svg>';
   }
 
   async function loadCheckinList(eventId){
