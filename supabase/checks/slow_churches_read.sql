@@ -10,109 +10,117 @@
 -- query taking six and a half seconds.
 --
 -- The same query SHAPE, measured from outside as the `anon` role,
--- returns in 150-220 ms every time:
---
---   select id, name, denomination, plan_type, logo_url,
---          subscription_status
---   from churches where owner_id = <uuid> order by name
---
--- So the difference is not the query and not the table size (1287
--- rows). It is what happens to that query when the caller is
--- `authenticated` rather than `anon` -- which means the row-level
--- security policy.
+-- returns in 150-220 ms every time, against all 1287 rows. So it is
+-- neither the query nor the table size. The difference is what happens
+-- to that query when the caller is `authenticated` rather than `anon`,
+-- which means the row-level security policy.
 --
 -- An RLS policy is a WHERE clause the database adds to every query. If
--- it calls a function, that function runs per row unless the planner
--- can prove otherwise. Over 1287 rows, a policy that is cheap at one
--- row is not cheap here.
+-- it calls a function, that function can run once per row unless the
+-- planner can prove otherwise. Over 1287 rows, a policy that is cheap
+-- at one row is not cheap here.
 --
 -- This script does not assume that. It measures it.
-
--- ---------------------------------------------------------------------
--- 1. What policies are on the tables getMyChurch reads, and what do
---    they actually say? A policy that mentions a function name is the
---    first thing to look at.
--- ---------------------------------------------------------------------
-select
-  tablename,
-  policyname,
-  cmd,
-  roles::text as applies_to,
-  coalesce(qual, '(none)') as using_clause
-from pg_policies
-where schemaname = 'public'
-  and tablename in ('churches', 'church_staff')
-order by tablename, cmd, policyname;
-
--- ---------------------------------------------------------------------
--- 2. Is the column actually indexed? A sequential scan over 1287 rows
---    is fast on its own -- but not once a per-row function is attached
---    to each of those rows.
--- ---------------------------------------------------------------------
-select
-  tablename,
-  indexname,
-  indexdef
-from pg_indexes
-where schemaname = 'public'
-  and tablename in ('churches', 'church_staff')
-order by tablename, indexname;
-
--- ---------------------------------------------------------------------
--- 3. The measurement. Runs the real query as a real signed-in user,
---    with RLS on, and reports where the time goes.
 --
--- Change the email on the first line if you want to test as somebody
--- else. Everything runs inside a transaction that is rolled back, so
--- the role switch and the claims do not outlive this script.
+-- EVERYTHING COMES BACK AS ONE TABLE AT THE END. The editor only shows
+-- the last statement that returns rows -- the previous version of this
+-- script ended in ROLLBACK and therefore showed nothing at all, which
+-- is entirely my fault. Read the `section` column to tell the parts
+-- apart.
+
+create temp table if not exists diag(section text, ord int, detail text);
+truncate diag;
+
+-- ---------------------------------------------------------------------
+-- 1. The policies on the tables getMyChurch reads.
+--    A policy whose USING clause calls a function is the first suspect.
+-- ---------------------------------------------------------------------
+insert into diag
+select '1. policies', row_number() over (order by tablename, cmd, policyname),
+       tablename || '  [' || cmd || ', ' || roles::text || ']  ' || policyname
+         || '  USING ' || coalesce(qual, '(none)')
+from pg_policies
+where schemaname = 'public' and tablename in ('churches', 'church_staff');
+
+-- ---------------------------------------------------------------------
+-- 2. The indexes. A sequential scan over 1287 rows is cheap on its own
+--    -- but not with a per-row function attached to each of them.
+-- ---------------------------------------------------------------------
+insert into diag
+select '2. indexes', row_number() over (order by tablename, indexname),
+       tablename || '  ' || indexdef
+from pg_indexes
+where schemaname = 'public' and tablename in ('churches', 'church_staff');
+
+-- ---------------------------------------------------------------------
+-- 3 and 4. The measurement.
+--
+-- The real query, run twice: once as a real signed-in user with RLS
+-- applied, and once as the table owner with RLS bypassed. The second is
+-- the control. If they are both fast, the policy is not the problem and
+-- the time is going somewhere outside this database. If only the first
+-- is slow, the gap between them IS the policy, measured rather than
+-- argued.
+--
+-- The role switch happens inside the block and is reset before
+-- anything is written, so the plan lines are collected as the role that
+-- owns the temp table.
 -- ---------------------------------------------------------------------
 do $measure$
 declare
   test_email text := 'matthewcolodny@gmail.com';
-  test_uid   uuid;
-  plan_line  text;
+  uid        uuid;
+  line       text;
+  as_user    text[] := '{}';
+  as_owner   text[] := '{}';
+  i          int;
+  q          text;
 begin
-  select id into test_uid from auth.users where email = test_email;
-  if test_uid is null then
-    raise exception 'No auth.users row for %. Edit test_email at the top of section 3.', test_email;
+  select id into uid from auth.users where email = test_email;
+  if uid is null then
+    raise exception 'No auth.users row for %. Edit test_email at the top of this block.', test_email;
   end if;
-  raise notice 'Measuring as % (%)', test_email, test_uid;
+
+  q := format(
+    'explain (analyze, buffers) select id, name, denomination, plan_type, '
+    || 'logo_url, subscription_status from churches where owner_id = %L order by name',
+    uid);
+
+  -- ---- as the signed-in user, RLS on -------------------------------
+  -- Exactly what PostgREST does for a request carrying their JWT: the
+  -- role, plus the claims that auth.uid() reads out of.
+  execute 'set local role authenticated';
+  execute format('set local request.jwt.claims = %L',
+                 json_build_object('role', 'authenticated', 'sub', uid)::text);
+  for line in execute q loop as_user := as_user || line; end loop;
+
+  -- ---- back to the owner, RLS bypassed -----------------------------
+  execute 'reset role';
+  execute 'set local request.jwt.claims = ' || quote_literal('{}');
+  for line in execute q loop as_owner := as_owner || line; end loop;
+
+  insert into diag values ('3. as authenticated (RLS on)', 0, '--- uid ' || uid || ' ---');
+  for i in 1 .. coalesce(array_length(as_user, 1), 0) loop
+    insert into diag values ('3. as authenticated (RLS on)', i, as_user[i]);
+  end loop;
+  for i in 1 .. coalesce(array_length(as_owner, 1), 0) loop
+    insert into diag values ('4. as owner (RLS bypassed)', i, as_owner[i]);
+  end loop;
 end
 $measure$;
 
-begin;
-
--- Become that user, exactly as PostgREST would for a request carrying
--- their JWT: the role plus the claims RLS reads auth.uid() out of.
-set local role authenticated;
-set local request.jwt.claims = '{"role":"authenticated","sub":"REPLACE_WITH_UID"}';
-
--- The query getMyChurch sends, verbatim.
-explain (analyze, buffers, verbose)
-select id, name, denomination, plan_type, logo_url, subscription_status
-from churches
-where owner_id = (current_setting('request.jwt.claims', true)::json ->> 'sub')::uuid
-order by name;
-
-rollback;
-
 -- ---------------------------------------------------------------------
--- HOW TO READ SECTION 3
+-- The one result. Send back section 3's "Execution Time" line, section
+-- 4's, and any line in section 3 containing "Filter" or a function
+-- name.
 --
--- "Execution Time" at the bottom is the answer. If it is a few
--- milliseconds, the slowness is not in this query and the next place to
--- look is the network or the auth service (auth/v1/user was also
--- measured at 1419 ms in the same browser timeline, and that is
--- Supabase's own service rather than anything in this database).
+-- If 3 is slow and 4 is fast, the policy is the cost and the fix is to
+-- make its own lookup indexed, or to wrap it in a STABLE function so
+-- the planner runs it once rather than 1287 times.
 --
--- If it is seconds, look for a line containing "Filter:" or
--- "Subplan" that names a function, and for "rows removed by filter"
--- with a large number. That is the policy running per row, and the fix
--- is to make the policy's own lookup indexed -- or to wrap it in a
--- stable SECURITY DEFINER function so the planner runs it once instead
--- of 1287 times.
---
--- NOTE ON THE PLACEHOLDER: `set local` will not take a variable, so
--- REPLACE_WITH_UID above has to be pasted in by hand. Section 3's first
--- block prints the uuid to copy.
+-- If both are fast, nothing here is slow and the six seconds are being
+-- spent between the browser and the database -- which is where
+-- auth/v1/user at 1419 ms in the same timeline also points, and that is
+-- Supabase's own service rather than anything in this schema.
 -- ---------------------------------------------------------------------
+select section, ord, detail from diag order by section, ord;
