@@ -810,6 +810,17 @@
       'dashCheckin.walkInTag': 'Walk-in', 'dashCheckin.noSearchMatch': 'No one matches that search.', 'dashCheckin.noOneRegisteredYet': 'No one has registered for this event yet.',
       'dashDir.all': 'All', 'dashDir.members': 'Members', 'dashDir.staff': 'Staff', 'dashDir.eventSignups': 'Event sign-ups',
       'dashDir.filterNSelected': '{n} filters',
+      'dashDir.nSelected': '{n} selected', 'dashDir.clearSelection': 'Clear',
+      'dashDir.selectAll': 'Select everyone shown', 'dashDir.selectPerson': 'Select {name}',
+      'dashDir.bulkMessage': 'Message', 'dashDir.bulkRemove': 'Remove from church',
+      'dashDir.bulkRemoveConfirm': 'Remove {n} from this church? This ends their membership and takes them out of any of your groups. Their event registrations and giving history are not touched.',
+      'dashDir.bulkRemoveOne': 'Remove {name} from this church? This ends their membership and takes them out of any of your groups. Their event registrations and giving history are not touched.',
+      'dashDir.bulkRemoved': 'Removed {n}.', 'dashDir.bulkRemovedOne': 'Removed {name}.',
+      'dashDir.bulkRemoveFailed': 'Removed {done} of {total}, then stopped:',
+      'dashDir.bulkNoEmail': '{n} of them have no email address and were skipped.',
+      'dashDir.bulkNoEmailAtAll': 'None of the people you picked have an email address.',
+      'dashDir.bulkSentOne': 'Sent to 1 person.', 'dashDir.bulkSentN': 'Sent to {n} people.',
+      'dashDir.staffNotRemovable': 'Staff and owners are not removable here — change that in Team & Permissions.',
       'dashGroups.ministry': 'Ministry', 'dashGroups.ministryNone': 'No ministry',
       'dashMinistries.editMinistry': 'Edit ministry', 'dashMinistries.rooms': 'Rooms',
       'dashMinistries.nothingAttached': 'Nothing is attached to this ministry yet.',
@@ -1973,6 +1984,17 @@
       'dashCheckin.walkInTag': 'Sin registro', 'dashCheckin.noSearchMatch': 'Nadie coincide con esa búsqueda.', 'dashCheckin.noOneRegisteredYet': 'Aún nadie se ha inscrito en este evento.',
       'dashDir.all': 'Todos', 'dashDir.members': 'Miembros', 'dashDir.staff': 'Personal', 'dashDir.eventSignups': 'Inscripciones a eventos',
       'dashDir.filterNSelected': '{n} filtros',
+      'dashDir.nSelected': '{n} seleccionados', 'dashDir.clearSelection': 'Quitar selección',
+      'dashDir.selectAll': 'Seleccionar a todos los mostrados', 'dashDir.selectPerson': 'Seleccionar a {name}',
+      'dashDir.bulkMessage': 'Mensaje', 'dashDir.bulkRemove': 'Quitar de la iglesia',
+      'dashDir.bulkRemoveConfirm': '¿Quitar a {n} de esta iglesia? Esto termina su membresía y los saca de tus grupos. No se tocan sus inscripciones a eventos ni su historial de donaciones.',
+      'dashDir.bulkRemoveOne': '¿Quitar a {name} de esta iglesia? Esto termina su membresía y lo saca de tus grupos. No se tocan sus inscripciones a eventos ni su historial de donaciones.',
+      'dashDir.bulkRemoved': 'Se quitaron {n}.', 'dashDir.bulkRemovedOne': 'Se quitó a {name}.',
+      'dashDir.bulkRemoveFailed': 'Se quitaron {done} de {total} y se detuvo:',
+      'dashDir.bulkNoEmail': '{n} de ellos no tienen correo electrónico y se omitieron.',
+      'dashDir.bulkNoEmailAtAll': 'Ninguna de las personas que elegiste tiene correo electrónico.',
+      'dashDir.bulkSentOne': 'Enviado a 1 persona.', 'dashDir.bulkSentN': 'Enviado a {n} personas.',
+      'dashDir.staffNotRemovable': 'El personal y los propietarios no se pueden quitar aquí — cámbialo en Equipo y permisos.',
       'dashGroups.ministry': 'Ministerio', 'dashGroups.ministryNone': 'Sin ministerio',
       'dashMinistries.editMinistry': 'Editar ministerio', 'dashMinistries.rooms': 'Salas',
       'dashMinistries.nothingAttached': 'Aún no hay nada asignado a este ministerio.',
@@ -3945,6 +3967,12 @@
      line, relationship dropdown on the next. From a class, the
      fallback is the layout. */
   .household-member-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+
+  /* The directory's tick column. accent-color matches the other
+     checkboxes in the app; the cell is sized to the box so it does not
+     take width from the name. */
+  .dir-col-pick{width:36px;}
+  .dir-col-pick input{accent-color:var(--brand);width:14px;height:14px;cursor:pointer;}
   .filter-check input{accent-color:var(--brand);width:14px;height:14px;flex-shrink:0;}
   /* Filter dropdown: 6 top-level entries, alphabetized, "Other" pinned
      last. 4 of them (Catholic, Nontrinitarian / Other Christian,
@@ -4997,18 +5025,22 @@
     #checkin-table.roster-fits th:nth-child(3),
     #cl-table.roster-fits th:nth-child(3){text-align:center;}
 
-    /* Directory: the photo, who they are, and what they are. Email and
-       phone are on the person's card, one tap away, and between them
-       they were the whole reason this table scrolled sideways. */
+    /* Directory: the tick box, the photo, who they are, and what they
+       are. Email and phone are on the person's card, one tap away, and
+       between them they were the whole reason this table scrolled
+       sideways. */
     .dir-col-contact{display:none;}
-    #directory-table.roster-fits th:nth-child(1){width:15%;}
-    #directory-table.roster-fits th:nth-child(2){width:42%;}
-    #directory-table.roster-fits th:nth-child(3){width:33%;}
-    #directory-table.roster-fits th:nth-child(6){width:10%;}
-    /* The chevron is 15px and needs no side padding; the avatar is
-       32px and does -- at 6px it sat almost against the table's own
-       border, which reads as a mistake rather than a tight layout. */
-    #directory-table.roster-fits td:first-child{padding-left:12px;padding-right:8px;}
+    #directory-table.roster-fits th:nth-child(1){width:9%;}
+    #directory-table.roster-fits th:nth-child(2){width:14%;}
+    #directory-table.roster-fits th:nth-child(3){width:38%;}
+    #directory-table.roster-fits th:nth-child(4){width:30%;}
+    #directory-table.roster-fits th:nth-child(7){width:9%;}
+    /* The chevron is 15px and the tick box 14px, so neither needs the
+       side padding the text columns do; the avatar is 32px and does --
+       at 6px it sat almost against the table's own border, which reads
+       as a mistake rather than a tight layout. */
+    #directory-table.roster-fits td:first-child{padding-left:8px;padding-right:2px;}
+    #directory-table.roster-fits td:nth-child(2){padding-left:4px;padding-right:8px;}
     #directory-table.roster-fits td:last-child{padding-left:4px;padding-right:8px;}
     table.roster.roster-fits th, table.roster.roster-fits td{padding:10px 8px;font-size:13px;overflow-wrap:break-word;}
     /* The uppercase mono headings are the widest thing in these cells
@@ -8498,10 +8530,26 @@ Groups</span>
             <input class="field" type="text" id="directory-search-input" placeholder="Search by name or email" style="width:auto;min-width:220px;" data-i18n-placeholder="dashDir.searchPlaceholder">
           </div>
         </div>
+        <!-- Only on screen when something is picked. A permanently
+             visible bar with nothing to act on is furniture, and it
+             would push the table down by its own height on every
+             page load. -->
+        <div id="dir-bulk-bar" style="display:none;align-items:center;flex-wrap:wrap;gap:8px;padding:10px 12px;margin-bottom:10px;border:1px solid var(--line);border-radius:10px;background:var(--paper);">
+          <span id="dir-bulk-count" style="font-size:13px;font-weight:600;"></span>
+          <button class="export-btn" id="dir-bulk-message-btn" style="padding:6px 12px;font-size:12.5px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;vertical-align:-2px;margin-right:4px;"><path d="M4 4h16v12H7l-3 3z"/></svg><span data-i18n="dashDir.bulkMessage">Message</span></button>
+          <button class="export-btn" id="dir-bulk-remove-btn" style="padding:6px 12px;font-size:12.5px;color:var(--clay);border-color:var(--clay);"><span data-i18n="dashDir.bulkRemove">Remove from church</span></button>
+          <button class="export-btn" id="dir-bulk-clear-btn" style="padding:6px 12px;font-size:12.5px;margin-left:auto;" data-i18n="dashDir.clearSelection">Clear</button>
+          <div id="dir-bulk-status" style="display:none;font-size:12px;width:100%;"></div>
+          <div id="dir-bulk-message-form" style="display:none;width:100%;margin-top:6px;">
+            <input class="field" type="text" id="dir-bulk-subject" placeholder="Subject" data-i18n-placeholder="dashDir.subject" style="font-size:13px;padding:8px 10px;margin:0 0 6px;">
+            <textarea class="field" id="dir-bulk-body" placeholder="Write your message..." data-i18n-placeholder="dashDir.writeMessage" style="font-size:13px;padding:8px 10px;margin:0;min-height:80px;resize:vertical;"></textarea>
+            <button class="btn-gold" id="dir-bulk-send-btn" style="margin-top:8px;padding:8px 16px;font-size:13px;" data-i18n="dashDir.sendMessage">Send message</button>
+          </div>
+        </div>
         <table class="roster roster-fits" id="directory-table">
-          <tr><th></th><th data-i18n="dashCheckin.name">Name</th><th data-i18n="dashDir.role">Role</th><th class="dir-col-contact" data-i18n="dashDir.email">Email</th><th class="dir-col-contact" data-i18n="dashDir.phone">Phone</th><th></th></tr>
+          <tr><th class="dir-col-pick"><input type="checkbox" id="dir-select-all" aria-label="Select everyone shown" data-i18n-title="dashDir.selectAll"></th><th></th><th data-i18n="dashCheckin.name">Name</th><th data-i18n="dashDir.role">Role</th><th class="dir-col-contact" data-i18n="dashDir.email">Email</th><th class="dir-col-contact" data-i18n="dashDir.phone">Phone</th><th></th></tr>
           <tbody id="directory-tbody">
-            <tr><td colspan="6" style="color:var(--ink-mute);" data-i18n="dashDir.loadingDirectory">Loading directory...</td></tr>
+            <tr><td colspan="7" style="color:var(--ink-mute);" data-i18n="dashDir.loadingDirectory">Loading directory...</td></tr>
           </tbody>
         </table>
 
@@ -9638,7 +9686,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-24-v258 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-24-v259 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -29104,6 +29152,13 @@ Groups</span>
   // dirPersonMatchesFilter below.
   var directoryFilters = [];
 
+  // Keyed by user_id, and deliberately NOT read off the checkboxes.
+  // renderDirectoryTable runs again on every keystroke in the search
+  // box, which destroys and rebuilds every row -- so the DOM cannot be
+  // where a selection lives. Ticking three people, typing a fourth
+  // name and ticking them has to end with four selected, not one.
+  var directorySelected = {};
+
   // Which column of the directory row each filter is asking about.
   // Staff covers the owner too: an owner who is not also in
   // church_staff is still staff to anybody reading this list, and the
@@ -29123,6 +29178,42 @@ Groups</span>
     });
   }
 
+  // Everyone currently ticked, as directory rows rather than ids --
+  // every caller wants the name or the email, not the uuid.
+  function directorySelectedPeople(){
+    return directoryPeopleRaw.filter(function(person){ return !!directorySelected[person.user_id]; });
+  }
+
+  function renderDirectoryBulkBar(){
+    var bar = document.getElementById('dir-bulk-bar');
+    if (!bar) return;
+    var picked = directorySelectedPeople();
+    bar.style.display = picked.length ? 'flex' : 'none';
+    var countEl = document.getElementById('dir-bulk-count');
+    if (countEl) countEl.textContent = window.t('dashDir.nSelected').replace('{n}', picked.length);
+
+    // Closing the bar closes the compose form with it. Leaving a
+    // half-written message open above a table with nothing selected
+    // is an invitation to send it to nobody.
+    if (!picked.length) {
+      var form = document.getElementById('dir-bulk-message-form');
+      if (form) form.style.display = 'none';
+      var st = document.getElementById('dir-bulk-status');
+      if (st) st.style.display = 'none';
+    }
+
+    // Indeterminate when some but not all of the pickable rows on
+    // screen are ticked -- the honest third state for a box that
+    // means "everyone shown".
+    var allBox = document.getElementById('dir-select-all');
+    if (allBox) {
+      var boxes = Array.prototype.slice.call(document.querySelectorAll('.dir-pick'));
+      var ticked = boxes.filter(function(b){ return b.checked; }).length;
+      allBox.checked = boxes.length > 0 && ticked === boxes.length;
+      allBox.indeterminate = ticked > 0 && ticked < boxes.length;
+    }
+  }
+
   function renderDirectoryTable(){
     var tbody = document.getElementById('directory-tbody');
     if (!tbody) return;
@@ -29140,7 +29231,7 @@ Groups</span>
     });
 
     if (!filtered.length) {
-      tbody.innerHTML = '<tr><td colspan="6" style="color:var(--ink-mute);">' + window.t('dashDir.noMatchFilter') + '</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" style="color:var(--ink-mute);">' + window.t('dashDir.noMatchFilter') + '</td></tr>';
       return;
     }
 
@@ -29156,7 +29247,18 @@ Groups</span>
       var photoHtml = p.avatar_url
         ? '<img src="' + p.avatar_url + '" alt="" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">'
         : '<div style="width:32px;height:32px;border-radius:50%;background:var(--paper);border:1px solid var(--line);"></div>';
+      // Owner and staff get no checkbox at all rather than a disabled
+      // one: removing a staff member is a Team & Permissions job, and
+      // an owner should not be one stray click from being taken out
+      // of their own church. The cell still exists so the columns line
+      // up.
+      var pickable = !p.is_owner && !p.is_staff;
       return '<tr style="cursor:pointer;" data-view-person-id="' + p.user_id + '">'
+        + '<td class="dir-col-pick">'
+          + (pickable
+              ? '<input type="checkbox" class="dir-pick" value="' + escAttr(p.user_id) + '"' + (directorySelected[p.user_id] ? ' checked' : '') + ' aria-label="' + escAttr(window.t('dashDir.selectPerson').replace('{name}', p.full_name || '')) + '">'
+              : '')
+        + '</td>'
         + '<td>' + photoHtml + '</td>'
         + '<td>' + (p.full_name || '—') + '</td>'
         + '<td><span class="tag ' + roleTag + '">' + roleLabel + '</span>' + optOutTag + '</td>'
@@ -29170,6 +29272,7 @@ Groups</span>
         + '<td><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;color:var(--ink-mute);"><path d="M9 18l6-6-6-6"/></svg></td>'
         + '</tr>';
     }).join('');
+    renderDirectoryBulkBar();
   }
 
   // ============================================================
@@ -29504,10 +29607,10 @@ Groups</span>
   async function loadDirectoryPeople(){
     var tbody = document.getElementById('directory-tbody');
     if (!tbody) return;
-    tbody.innerHTML = '<tr><td colspan="6" style="color:var(--ink-mute);">' + window.t('dashDir.loadingDirectory') + '</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="color:var(--ink-mute);">' + window.t('dashDir.loadingDirectory') + '</td></tr>';
 
     var myChurch = await getMyChurch();
-    if (!myChurch) { tbody.innerHTML = '<tr><td colspan="6" style="color:var(--ink-mute);">' + window.t('dashHeader.registerChurchFirst') + '</td></tr>'; return; }
+    if (!myChurch) { tbody.innerHTML = '<tr><td colspan="7" style="color:var(--ink-mute);">' + window.t('dashHeader.registerChurchFirst') + '</td></tr>'; return; }
 
     var dirResults = await Promise.all([
       supabase.rpc('get_directory_people', { target_church_id: myChurch.id }),
@@ -29515,7 +29618,7 @@ Groups</span>
     ]);
     var data = dirResults[0].data, error = dirResults[0].error;
     var optedOut = dirResults[1];
-    if (error) { tbody.innerHTML = '<tr><td colspan="6" style="color:var(--clay);">' + escapeHtml(error.message) + '</td></tr>'; return; }
+    if (error) { tbody.innerHTML = '<tr><td colspan="7" style="color:var(--clay);">' + escapeHtml(error.message) + '</td></tr>'; return; }
 
     directoryPeopleRaw = (data || []).map(function(person){
       // Flagged on the row rather than looked up during render, which
@@ -30291,7 +30394,17 @@ Groups</span>
     wrap.style.display = 'block';
     var rows = data || [];
     var pending = rows.filter(function(m){ return m.status === 'pending'; });
-    var decided = rows.filter(function(m){ return m.status !== 'pending'; });
+    // Rejected only, where this used to list every decided membership.
+    //
+    // An approved member appeared here as a second copy of their own
+    // directory row -- name, email, MEMBER tag and an x -- directly
+    // under a heading that said "Pending requests". Nothing was
+    // pending about them. The x was the only thing this list offered
+    // that the directory did not, and the directory has its own now.
+    //
+    // Rejected people stay, because their row carries an Approve
+    // button and reversing a rejection has nowhere else to happen.
+    var decided = rows.filter(function(m){ return m.status === 'rejected'; });
 
     pendingEl.innerHTML = '<div style="font-weight:600;font-size:13px;margin-bottom:6px;">' + window.t('members.pendingRequests')
       + (pending.length ? ' (' + pending.length + ')' : '') + '</div>'
@@ -30300,8 +30413,9 @@ Groups</span>
         : '<p style="color:var(--ink-mute);font-size:12.5px;">' + window.t('members.noPending') + '</p>');
 
     listEl.innerHTML = decided.length
-      ? decided.map(function(m){ return membersRowHtml(m, m.status === 'rejected'); }).join('')
-      : '<p style="color:var(--ink-mute);font-size:12.5px;">' + window.t('members.noMembers') + '</p>';
+      ? '<div style="font-weight:600;font-size:13px;margin:12px 0 6px;">' + escapeHtml(window.t('members.rejected')) + '</div>'
+        + decided.map(function(m){ return membersRowHtml(m, true); }).join('')
+      : '';
   }
   window.loadMembersPanel = loadMembersPanel;
   dashPanel(loadMembersPanel);
@@ -31609,6 +31723,183 @@ Groups</span>
   });
   var directorySearchInput = document.getElementById('directory-search-input');
   if (directorySearchInput) directorySearchInput.addEventListener('input', renderDirectoryTable);
+
+  document.addEventListener('change', function(ev){
+    var el = ev.target;
+    if (!el || !el.classList) return;
+
+    if (el.id === 'dir-select-all') {
+      // "Everyone shown", not everyone in the church: if a filter or a
+      // search is narrowing the table, this box can only honestly mean
+      // the rows in front of you. Unticking clears only those too, so
+      // it cannot silently drop somebody scrolled out of view.
+      document.querySelectorAll('.dir-pick').forEach(function(box){
+        box.checked = el.checked;
+        if (el.checked) directorySelected[box.value] = true;
+        else delete directorySelected[box.value];
+      });
+      renderDirectoryBulkBar();
+      return;
+    }
+
+    if (el.classList.contains('dir-pick')) {
+      if (el.checked) directorySelected[el.value] = true;
+      else delete directorySelected[el.value];
+      renderDirectoryBulkBar();
+    }
+  });
+
+  // A tick is not a row click. Without this, checking somebody opens
+  // their card over the table you are picking from.
+  document.addEventListener('click', function(ev){
+    if (ev.target && ev.target.classList && ev.target.classList.contains('dir-pick')) ev.stopPropagation();
+  }, true);
+
+  function dirBulkStatus(text, colour){
+    var el = document.getElementById('dir-bulk-status');
+    if (!el) return;
+    el.textContent = text || '';
+    el.style.color = colour || 'var(--ink-mute)';
+    el.style.display = text ? 'block' : 'none';
+  }
+
+  document.addEventListener('click', async function(ev){
+    if (!ev.target.closest) return;
+
+    if (ev.target.closest('#dir-bulk-clear-btn')) {
+      directorySelected = {};
+      document.querySelectorAll('.dir-pick').forEach(function(b){ b.checked = false; });
+      renderDirectoryBulkBar();
+      return;
+    }
+
+    if (ev.target.closest('#dir-bulk-message-btn')) {
+      var form = document.getElementById('dir-bulk-message-form');
+      if (form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
+      dirBulkStatus('');
+      return;
+    }
+
+    // ---- Send ----
+    if (ev.target.closest('#dir-bulk-send-btn')) {
+      var picked = directorySelectedPeople();
+      if (!picked.length) return;
+      var subject = document.getElementById('dir-bulk-subject').value.trim();
+      var bodyText = document.getElementById('dir-bulk-body').value.trim();
+      if (!subject || !bodyText) { dirBulkStatus(window.t('dashDir.subject') + ' + ' + window.t('dashDir.writeMessage'), 'var(--clay)'); return; }
+
+      // Somebody with no address cannot be emailed, and saying so
+      // beats a send that silently reaches fewer people than were
+      // ticked. A group sign-up imported without an email is exactly
+      // this case.
+      var withEmail = picked.filter(function(person){ return !!person.email; });
+      if (!withEmail.length) { dirBulkStatus(window.t('dashDir.bulkNoEmailAtAll'), 'var(--clay)'); return; }
+
+      var myChurch = await getMyChurch();
+      if (!myChurch) return;
+      var sendBtn = document.getElementById('dir-bulk-send-btn');
+      sendBtn.disabled = true;
+      dirBulkStatus(window.t('dashDir.sending'), 'var(--ink-mute)');
+
+      var bodyHtml = bodyText.split('\n').map(function(line){ return '<p>' + escapeHtml(line) + '</p>'; }).join('');
+      var { data, error } = await supabase.functions.invoke('smooth-action', {
+        body: { type: 'mass_email', recipientEmails: withEmail.map(function(person){ return person.email; }),
+                subject: subject, bodyHtml: bodyHtml, churchName: myChurch.name, churchId: myChurch.id,
+                audienceLabel: window.t('dashDir.nSelected').replace('{n}', withEmail.length) }
+      });
+      sendBtn.disabled = false;
+      if (error || !data || data.error) {
+        var detail = error ? error.message : (data && data.error ? JSON.stringify(data.error) : window.t('common.somethingWrong'));
+        if (error && error.context && typeof error.context.text === 'function') {
+          try { detail = await error.context.text(); } catch (e) {}
+        }
+        dirBulkStatus(detail, 'var(--clay)');
+        return;
+      }
+      var skipped = picked.length - withEmail.length;
+      // Its own string rather than the single-person one with a count
+      // dropped into the name slot, which produced "Sent to 1
+      // selected!" -- a sentence about a checkbox rather than about a
+      // person.
+      dirBulkStatus((withEmail.length === 1
+          ? window.t('dashDir.bulkSentOne')
+          : window.t('dashDir.bulkSentN').replace('{n}', withEmail.length))
+        + (skipped ? ' ' + window.t('dashDir.bulkNoEmail').replace('{n}', skipped) : ''), 'var(--sage)');
+      document.getElementById('dir-bulk-subject').value = '';
+      document.getElementById('dir-bulk-body').value = '';
+      if (typeof window.loadMessageHistory === 'function') window.loadMessageHistory();
+      return;
+    }
+
+    // ---- Remove ----
+    if (ev.target.closest('#dir-bulk-remove-btn')) {
+      var people = directorySelectedPeople();
+      if (!people.length) return;
+      // Belt and braces: the rows offer no checkbox to staff or owners,
+      // but the selection survives re-renders and filters, so this
+      // checks the people rather than trusting that.
+      people = people.filter(function(person){ return !person.is_owner && !person.is_staff; });
+      if (!people.length) { dirBulkStatus(window.t('dashDir.staffNotRemovable'), 'var(--clay)'); return; }
+
+      var question = people.length === 1
+        ? window.t('dashDir.bulkRemoveOne').replace('{name}', people[0].full_name || '')
+        : window.t('dashDir.bulkRemoveConfirm').replace('{n}', people.length);
+      if (!confirm(question)) return;
+
+      var church = await getMyChurch();
+      if (!church) return;
+      var removeBtn = document.getElementById('dir-bulk-remove-btn');
+      removeBtn.disabled = true;
+      dirBulkStatus(window.t('dashTags.working'), 'var(--ink-mute)');
+
+      var done = 0;
+      for (var i = 0; i < people.length; i++) {
+        var uid = people[i].user_id;
+        // Membership first. remove_church_member is a no-op for
+        // somebody who never had one, which is most of why it is safe
+        // to call for every selected person.
+        var { error: memberError } = await supabase.rpc('remove_church_member', {
+          target_church_id: church.id, target_user_id: uid
+        });
+        if (memberError) {
+          removeBtn.disabled = false;
+          dirBulkStatus(window.t('dashDir.bulkRemoveFailed').replace('{done}', done).replace('{total}', people.length) + ' ' + friendlyDbError(memberError), 'var(--clay)');
+          await loadDirectoryPeople();
+          return;
+        }
+
+        // Then this church's groups, or a group-only person would be
+        // removed from nothing and stay in the directory -- which is
+        // how Remove ends up looking broken. Scoped to THIS church's
+        // groups; a group at another church is not ours to touch.
+        var { data: churchGroups } = await supabase.from('groups').select('id').eq('church_id', church.id);
+        var groupIds = (churchGroups || []).map(function(g){ return g.id; });
+        if (groupIds.length) {
+          var { error: groupError } = await supabase.from('group_members')
+            .delete().eq('user_id', uid).in('group_id', groupIds);
+          if (groupError) {
+            removeBtn.disabled = false;
+            dirBulkStatus(window.t('dashDir.bulkRemoveFailed').replace('{done}', done).replace('{total}', people.length) + ' ' + friendlyDbError(groupError), 'var(--clay)');
+            await loadDirectoryPeople();
+            return;
+          }
+        }
+        // Event registrations are deliberately untouched. They can
+        // carry a ticket payment, and deleting one destroys a
+        // financial record the church needs for its books.
+        delete directorySelected[uid];
+        done++;
+      }
+
+      removeBtn.disabled = false;
+      await loadDirectoryPeople();
+      dirBulkStatus(done === 1
+        ? window.t('dashDir.bulkRemovedOne').replace('{name}', people[0].full_name || '')
+        : window.t('dashDir.bulkRemoved').replace('{n}', done), 'var(--sage)');
+      if (typeof window.loadMembersPanel === 'function') window.loadMembersPanel();
+      return;
+    }
+  });
 
   document.addEventListener('click', async function(ev){
     var personRow = ev.target.closest ? ev.target.closest('[data-view-person-id]') : null;
