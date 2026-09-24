@@ -50,7 +50,19 @@
        overscroll colour of the ordinary website otherwise. */
     html{background:#1A2A49;}
     #fd-splash{
-      display:flex;align-items:center;justify-content:center;gap:14px;
+      /* Stacked, not side by side, and that is the whole point.
+         Android's launch screen is drawn by Chrome before a byte of
+         this page runs, and it is always the icon above the app name
+         on background_color. It cannot be turned off. So the only way
+         this does not read as a second, different screen is to hold
+         the same arrangement Chrome just had on screen: same navy,
+         mark on top, name under it, both centred. The handoff then
+         looks like one screen settling rather than two screens.
+
+         The sizes approximate Chrome's, which vary by device density,
+         so they will not line up to the pixel everywhere. Same colour
+         and same arrangement is what stops it reading as a jump. */
+      display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;
       position:fixed;inset:0;z-index:99999;
       /* #1A2A49 sampled from the supplied artwork rather than guessed;
          the icon's own rect is #1B2A4A and the two should not drift. */
@@ -61,10 +73,17 @@
       animation:fdSplashOut .4s ease 6s forwards;
     }
     #fd-splash.fd-splash-done{animation:fdSplashOut .35s ease forwards;}
-    #fd-splash svg{width:52px;height:52px;flex-shrink:0;}
+    /* 124px, not the 52px this was when the mark sat beside the
+       wordmark. Chrome draws its launch icon at roughly an eighth of
+       the screen's shorter side; the mark inside icon-512.png occupies
+       80% of that, and the mark inside this SVG occupies about 77% of
+       its viewBox, so 124px here lands within a few pixels of the mark
+       Chrome has just been showing. A 52px mark would have visibly
+       shrunk at the handoff. */
+    #fd-splash svg{width:124px;height:124px;flex-shrink:0;}
     #fd-splash span{
       font-family:'Fraunces',Georgia,'Times New Roman',serif;
-      font-size:34px;font-weight:600;color:#fff;letter-spacing:-.01em;
+      font-size:28px;font-weight:600;color:#fff;letter-spacing:-.01em;
     }
   }
   @keyframes fdSplashOut{to{opacity:0;visibility:hidden;}}
@@ -9836,7 +9855,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-24-v266 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-24-v267 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
