@@ -971,6 +971,20 @@
       'dirReports.noDepartures': 'Departures are not shown because they are not recorded: removing someone from your membership list deletes the row rather than dating it, so there is no history to chart. Ask and this can start being logged from now on.',
       'dirReports.nothingToExport': 'No one matches, so there is nothing to export.',
       'dirReports.emptyState': 'Nothing needs your attention here right now — no possible duplicates, no unaccepted invites, and nobody newly joined in the last 30 days.',
+      'dirReports.engagementTitle': 'Engagement',
+      'dirReports.engagementHint': 'When each person last did anything — checked in, registered for an event, joined a group, or gave. Whichever is most recent counts, so nobody looks quiet just because their group does not check in at the door.',
+      'dirReports.bandActive': 'Active', 'dirReports.bandActiveWhen': 'in the last 30 days',
+      'dirReports.bandSlowing': 'Slowing', 'dirReports.bandSlowingWhen': '30 to 90 days ago',
+      'dirReports.bandQuiet': 'Quiet', 'dirReports.bandQuietWhen': 'more than 90 days ago',
+      'dirReports.bandNever': 'Nothing on record', 'dirReports.bandNeverWhen': 'no activity of any kind',
+      'dirReports.quietListTitle': 'Quiet, most recently active first',
+      'dirReports.quietListHint': 'The people a check-in call would most likely reach — they were here, and then they were not.',
+      'dirReports.lastSeen': 'Last activity', 'dirReports.whatItWas': 'What it was',
+      'dirReports.viaCheckin': 'Checked in', 'dirReports.viaRegistration': 'Registered', 'dirReports.viaGroup': 'Joined a group', 'dirReports.viaDonation': 'Gave',
+      'dirReports.engagementNeedsMigration': 'This needs migration 091, which has not been run yet.',
+      'dirReports.exportEngagement': 'Export engagement',
+      'dirReports.nobodyQuiet': 'Nobody has gone quiet — everyone connected to your church has done something in the last 90 days.',
+      'dirReports.roleGroup': 'in a group',
       'dashSub.sendMessage': 'Send message', 'dashSub.churchInbox': 'Church inbox',
       'dashSub.messagesInbox': 'Church inbox', 'dashSub.messagesSettings': 'Message settings',
       'dashSub.facilitySchedule': 'Schedule', 'dashSub.facilityRooms': 'Rooms',
@@ -2115,6 +2129,20 @@
       'dirReports.noDepartures': 'Las bajas no se muestran porque no se registran: quitar a alguien de tu lista de membresía borra la fila en lugar de fecharla, así que no hay historial que graficar. Pídelo y se puede empezar a registrar desde ahora.',
       'dirReports.nothingToExport': 'Nadie coincide, así que no hay nada que exportar.',
       'dirReports.emptyState': 'Ahora mismo no hay nada que requiera tu atención — sin posibles duplicados, sin invitaciones pendientes y nadie se unió en los últimos 30 días.',
+      'dirReports.engagementTitle': 'Participación',
+      'dirReports.engagementHint': 'Cuándo hizo algo cada persona por última vez — registró su llegada, se inscribió en un evento, se unió a un grupo o donó. Cuenta lo más reciente, así nadie parece inactivo solo porque su grupo no registra la llegada en la puerta.',
+      'dirReports.bandActive': 'Activas', 'dirReports.bandActiveWhen': 'en los últimos 30 días',
+      'dirReports.bandSlowing': 'Bajando', 'dirReports.bandSlowingWhen': 'hace entre 30 y 90 días',
+      'dirReports.bandQuiet': 'Inactivas', 'dirReports.bandQuietWhen': 'hace más de 90 días',
+      'dirReports.bandNever': 'Sin actividad registrada', 'dirReports.bandNeverWhen': 'ninguna actividad',
+      'dirReports.quietListTitle': 'Inactivas, las más recientes primero',
+      'dirReports.quietListHint': 'Las personas a las que una llamada llegaría con más probabilidad — estuvieron aquí y luego dejaron de estar.',
+      'dirReports.lastSeen': 'Última actividad', 'dirReports.whatItWas': 'Qué fue',
+      'dirReports.viaCheckin': 'Registró su llegada', 'dirReports.viaRegistration': 'Se inscribió', 'dirReports.viaGroup': 'Se unió a un grupo', 'dirReports.viaDonation': 'Donó',
+      'dirReports.engagementNeedsMigration': 'Esto necesita la migración 091, que aún no se ha ejecutado.',
+      'dirReports.exportEngagement': 'Exportar participación',
+      'dirReports.nobodyQuiet': 'Nadie está inactivo — todas las personas conectadas con tu iglesia han hecho algo en los últimos 90 días.',
+      'dirReports.roleGroup': 'en un grupo',
       'dashSub.sendMessage': 'Enviar mensaje', 'dashSub.churchInbox': 'Bandeja de la iglesia',
       'dashSub.messagesInbox': 'Bandeja de la iglesia', 'dashSub.messagesSettings': 'Ajustes de mensajes',
       'dashSub.facilitySchedule': 'Horario', 'dashSub.facilityRooms': 'Salas',
@@ -8294,6 +8322,17 @@ Groups</span>
           </button>
         </div>
 
+        <div class="side-note" id="dir-engagement-wrap" style="max-width:720px;">
+          <h4 data-i18n="dirReports.engagementTitle">Engagement</h4>
+          <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:12px;" data-i18n="dirReports.engagementHint">When each person last did anything.</p>
+          <div id="dir-engagement-bands"></div>
+          <div id="dir-engagement-quiet" style="margin-top:16px;"></div>
+          <button class="export-btn" id="dir-engagement-export" style="margin-top:12px;display:none;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;vertical-align:-2px;margin-right:5px;"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 19h16"/></svg>
+            <span data-i18n="dirReports.exportEngagement">Export engagement</span>
+          </button>
+        </div>
+
         <div class="side-note" id="dir-joins-wrap" style="max-width:720px;">
           <h4 data-i18n="dirReports.joinsTitle">Joins over time</h4>
           <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:12px;" data-i18n="dirReports.joinsHint">When people first became connected to your church.</p>
@@ -9583,7 +9622,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v254 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v255 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -29495,7 +29534,12 @@ Groups</span>
         { v: 'member', l: 'dirReports.roleMember', test: function(p){ return !!p.is_member; } },
         { v: 'staff',  l: 'dirReports.roleStaff',  test: function(p){ return !!p.is_staff; } },
         { v: 'owner',  l: 'dirReports.roleOwner',  test: function(p){ return !!p.is_owner; } },
-        { v: 'event',  l: 'dirReports.roleEvent',  test: function(p){ return !!p.has_registered_event; } }
+        { v: 'event',  l: 'dirReports.roleEvent',  test: function(p){ return !!p.has_registered_event; } },
+        // Works from migration 091 onward. Before it, the flag was
+        // never set by anything and this quietly matched nobody --
+        // which is exactly what the Directory's own Group sign-ups
+        // filter had been doing since it was written.
+        { v: 'group',  l: 'dirReports.roleGroup',  test: function(p){ return !!p.has_group_signup; } }
       ]
     },
     joined: { label: 'dirReports.fieldJoined', ops: ['before', 'after'], input: 'date' },
@@ -29777,6 +29821,154 @@ Groups</span>
     + '<p style="font-size:12px;color:var(--ink-mute);margin-top:8px;">' + escapeHtml(window.t('dirReports.joinsTotal').replace('{n}', total)) + '</p>';
   }
 
+  // ---- Engagement -----------------------------------------------
+  //
+  // Active means ANY of: checked in, registered for an event, joined
+  // a group, gave. Whichever is most recent wins, so a faithful giver
+  // whose group does not check in at the door is not filed as quiet.
+  // The database does the max() across all four (migration 091); this
+  // only buckets the answer.
+  var DIR_ENGAGEMENT_BANDS = [
+    { key: 'active',  maxDays: 30,       label: 'dirReports.bandActive',  when: 'dirReports.bandActiveWhen',  colour: 'var(--sage)' },
+    { key: 'slowing', maxDays: 90,       label: 'dirReports.bandSlowing', when: 'dirReports.bandSlowingWhen', colour: 'var(--gold)' },
+    { key: 'quiet',   maxDays: Infinity, label: 'dirReports.bandQuiet',   when: 'dirReports.bandQuietWhen',   colour: 'var(--clay)' },
+    { key: 'never',   maxDays: null,     label: 'dirReports.bandNever',   when: 'dirReports.bandNeverWhen',   colour: 'var(--ink-mute)' }
+  ];
+  var dirEngagementRows = [];
+
+  function dirEngagementBandFor(lastAt){
+    if (!lastAt) return 'never';
+    var days = (Date.now() - new Date(lastAt).getTime()) / 86400000;
+    if (days <= 30) return 'active';
+    if (days <= 90) return 'slowing';
+    return 'quiet';
+  }
+
+  // Which of the four it was. Ties go to the more meaningful signal:
+  // somebody who registered and then actually turned up on the same
+  // day was, in the end, here.
+  function dirEngagementWhat(row){
+    var pairs = [
+      ['dirReports.viaCheckin', row.last_checkin_at],
+      ['dirReports.viaRegistration', row.last_registration_at],
+      ['dirReports.viaGroup', row.last_group_join_at],
+      ['dirReports.viaDonation', row.last_donation_at]
+    ].filter(function(pair){ return !!pair[1]; });
+    if (!pairs.length) return '';
+    var best = pairs[0];
+    pairs.forEach(function(pair){
+      if (new Date(pair[1]).getTime() > new Date(best[1]).getTime()) best = pair;
+    });
+    return window.t(best[0]);
+  }
+
+  async function loadDirEngagement(){
+    var bandsEl = document.getElementById('dir-engagement-bands');
+    var quietEl = document.getElementById('dir-engagement-quiet');
+    var exportBtn = document.getElementById('dir-engagement-export');
+    if (!bandsEl || !quietEl) return;
+    var myChurch = await getMyChurch();
+    if (!myChurch) { bandsEl.innerHTML = ''; return; }
+
+    var { data, error } = await supabase.rpc('get_people_activity', { target_church_id: myChurch.id });
+    if (error) {
+      // Before migration 091 the function does not exist. Said plainly
+      // rather than shown as everyone having no activity, which is a
+      // very different and very alarming claim.
+      bandsEl.innerHTML = '<p style="color:var(--ink-mute);font-size:12.5px;margin:0;">'
+        + escapeHtml(window.t('dirReports.engagementNeedsMigration')) + '</p>';
+      quietEl.innerHTML = '';
+      if (exportBtn) exportBtn.style.display = 'none';
+      console.error('get_people_activity:', error);
+      return;
+    }
+
+    var byUser = {};
+    (data || []).forEach(function(r){ byUser[r.user_id] = r; });
+
+    // Driven by the directory, not by the activity rows: somebody with
+    // no activity at all has no row to return, and they are precisely
+    // the people this report exists to surface.
+    dirEngagementRows = directoryPeopleRaw.map(function(person){
+      var a = byUser[person.user_id] || {};
+      return {
+        person: person,
+        last: a.last_activity_at || null,
+        what: dirEngagementWhat(a),
+        band: dirEngagementBandFor(a.last_activity_at)
+      };
+    });
+
+    var counts = {};
+    dirEngagementRows.forEach(function(r){ counts[r.band] = (counts[r.band] || 0) + 1; });
+    var total = dirEngagementRows.length || 1;
+
+    bandsEl.innerHTML = DIR_ENGAGEMENT_BANDS.map(function(band){
+      var n = counts[band.key] || 0;
+      var pct = Math.round((n / total) * 100);
+      return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">'
+        + '<span style="width:130px;flex-shrink:0;font-size:12.5px;">' + escapeHtml(window.t(band.label))
+          + '<span style="display:block;font-size:10.5px;color:var(--ink-mute);">' + escapeHtml(window.t(band.when)) + '</span></span>'
+        + '<span style="flex:1;min-width:0;background:var(--paper);border-radius:4px;height:14px;overflow:hidden;">'
+          + '<span style="display:block;height:100%;width:' + (n ? Math.max(3, pct) : 0) + '%;background:' + band.colour + ';border-radius:4px;"></span>'
+        + '</span>'
+        + '<span style="width:52px;flex-shrink:0;text-align:right;font-size:11.5px;font-variant-numeric:tabular-nums;color:' + (n ? 'var(--ink)' : 'var(--ink-mute)') + ';">' + n + '</span>'
+        + '</div>';
+    }).join('');
+
+    // Quiet only, and NOT the never-active. Somebody who has never
+    // done anything was probably imported; somebody who was here every
+    // week until March is the one worth a phone call, and mixing the
+    // two buries them.
+    var quiet = dirEngagementRows.filter(function(r){ return r.band === 'quiet'; })
+      .sort(function(a, b){ return new Date(b.last) - new Date(a.last); });
+
+    if (!quiet.length) {
+      quietEl.innerHTML = '<p style="color:var(--ink-mute);font-size:12.5px;margin:0;">' + escapeHtml(window.t('dirReports.nobodyQuiet')) + '</p>';
+    } else {
+      var SHOW = 15;
+      quietEl.innerHTML = '<div style="font-size:12.5px;font-weight:600;margin-bottom:2px;">' + escapeHtml(window.t('dirReports.quietListTitle')) + '</div>'
+        + '<p style="font-size:11.5px;color:var(--ink-mute);margin:0 0 8px;">' + escapeHtml(window.t('dirReports.quietListHint')) + '</p>'
+        + '<table class="roster roster-fits"><tr>'
+          + '<th>' + escapeHtml(window.t('dashCheckin.name')) + '</th>'
+          + '<th>' + escapeHtml(window.t('dirReports.lastSeen')) + '</th>'
+          + '<th>' + escapeHtml(window.t('dirReports.whatItWas')) + '</th></tr>'
+        + quiet.slice(0, SHOW).map(function(r){
+            return '<tr><td>' + escapeHtml(r.person.full_name || window.t('households.unnamed')) + '</td>'
+              + '<td class="mono" style="font-size:12px;">' + escapeHtml(new Date(r.last).toLocaleDateString(window.appLocale())) + '</td>'
+              + '<td style="font-size:12px;color:var(--ink-soft);">' + escapeHtml(r.what) + '</td></tr>';
+          }).join('')
+        + '</table>'
+        + (quiet.length > SHOW ? '<p style="font-size:11.5px;color:var(--ink-mute);margin-top:6px;">' + escapeHtml(window.t('dirReports.previewNote').replace('{n}', SHOW)) + '</p>' : '');
+    }
+    if (exportBtn) exportBtn.style.display = dirEngagementRows.length ? '' : 'none';
+  }
+
+  document.addEventListener('click', function(ev){
+    if (!ev.target.closest || !ev.target.closest('#dir-engagement-export')) return;
+    if (!dirEngagementRows.length) { alert(window.t('dirReports.nothingToExport')); return; }
+    // Everyone, with their band -- not just the quiet ones. The list on
+    // screen is the shortlist; a spreadsheet is where somebody wants to
+    // sort and split it themselves.
+    var bandLabel = {};
+    DIR_ENGAGEMENT_BANDS.forEach(function(b){ bandLabel[b.key] = window.t(b.label); });
+    var rows = [[window.t('dashCheckin.name'), window.t('dashDir.email'),
+                 window.t('dirReports.engagementTitle'), window.t('dirReports.lastSeen'),
+                 window.t('dirReports.whatItWas')]];
+    dirEngagementRows.slice().sort(function(a, b){
+      // Null last: the never-active sort to the bottom rather than
+      // being read as the longest-absent.
+      if (!a.last && !b.last) return 0;
+      if (!a.last) return 1;
+      if (!b.last) return -1;
+      return new Date(a.last) - new Date(b.last);
+    }).forEach(function(r){
+      rows.push([r.person.full_name || '', r.person.email || '', bandLabel[r.band] || r.band,
+                 r.last ? new Date(r.last).toLocaleDateString(window.appLocale()) : '', r.what]);
+    });
+    downloadCsv('engagement-' + roomSchedFileDate(new Date()) + '.csv', rows);
+  });
+
   // Both sections read directoryPeopleRaw, so they are only correct
   // once the Directory itself has loaded. Opening Reports directly
   // from the menu never touches the Directory page, so this loads the
@@ -29786,6 +29978,7 @@ Groups</span>
     if (!directoryPeopleRaw.length) await loadDirectoryPeople();
     renderDirFind();
     renderDirJoinsChart();
+    await loadDirEngagement();
     // Awaited together, then the empty-state note is decided once.
     // These are declared further down this same scope; function
     // declarations hoist, so calling them from above is fine.
