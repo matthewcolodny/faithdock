@@ -2677,6 +2677,15 @@
     });
     // <optgroup> only renders its `label` attribute, not textContent --
     // same reason data-i18n-placeholder exists alongside plain data-i18n.
+    // .icon-tip draws its bubble from a data-tip attribute, which the
+    // passes above do not touch -- every other icon-tip in the file is
+    // rendered in JS with window.t(), so a STATIC one would have shown
+    // English to a Spanish reader. Generic rather than a one-off, since
+    // the next static icon button will have the same problem.
+    document.querySelectorAll('[data-i18n-tip]').forEach(function(el){
+      var key = el.getAttribute('data-i18n-tip');
+      if (dict[key]) el.setAttribute('data-tip', dict[key]);
+    });
     document.querySelectorAll('[data-i18n-label]').forEach(function(el){
       var key = el.getAttribute('data-i18n-label');
       if (dict[key]) el.setAttribute('label', dict[key]);
@@ -8553,11 +8562,25 @@ Groups</span>
                inside the toolbar would do the same shoving this move
                was meant to stop. It opens below, on a deliberate
                click. -->
+          <!-- Sized to match the All button beside it (9px 16px,
+               13.5px) rather than to each other. The three of them
+               already agreed; it was the filter they were half a head
+               shorter than, which is what made the row look assembled
+               from two different toolbars. -->
           <div id="dir-bulk-actions" style="display:none;align-items:center;gap:6px;flex-wrap:wrap;">
-            <span id="dir-bulk-count" style="font-size:12.5px;font-weight:600;white-space:nowrap;"></span>
-            <button class="export-btn" id="dir-bulk-message-btn" style="padding:6px 12px;font-size:12.5px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;vertical-align:-2px;margin-right:4px;"><path d="M4 4h16v12H7l-3 3z"/></svg><span data-i18n="dashDir.bulkMessage">Message</span></button>
-            <button class="export-btn" id="dir-bulk-remove-btn" style="padding:6px 12px;font-size:12.5px;color:var(--clay);border-color:var(--clay);"><span data-i18n="dashDir.bulkRemove">Remove from church</span></button>
-            <button class="export-btn" id="dir-bulk-clear-btn" style="padding:6px 12px;font-size:12.5px;" data-i18n="dashDir.clearSelection">Clear</button>
+            <span id="dir-bulk-count" style="font-size:13px;font-weight:600;white-space:nowrap;"></span>
+            <button class="export-btn" id="dir-bulk-message-btn" style="display:flex;align-items:center;gap:6px;padding:9px 16px;font-size:13.5px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;flex-shrink:0;"><path d="M4 4h16v12H7l-3 3z"/></svg><span data-i18n="dashDir.bulkMessage">Message</span></button>
+            <button class="export-btn" id="dir-bulk-clear-btn" style="padding:9px 16px;font-size:13.5px;" data-i18n="dashDir.clearSelection">Clear</button>
+            <!-- An icon, and last.
+
+                 "Remove from church" was 144px of the 477 this group
+                 was taking, and it is the one button here that cannot
+                 be undone -- so it loses the width and gains distance
+                 from Message, which sits where a hand goes first. The
+                 words are not lost: the tooltip carries them, the
+                 aria-label carries them, and the confirm spells out
+                 exactly what will happen before anything does. -->
+            <button class="export-btn icon-tip" id="dir-bulk-remove-btn" data-i18n-title="dashDir.bulkRemove" data-i18n-tip="dashDir.bulkRemove" data-tip="Remove from church" aria-label="Remove from church" style="display:flex;align-items:center;justify-content:center;align-self:stretch;padding:9px 12px;color:var(--clay);border-color:var(--clay);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>
           </div>
           </div>
           <div style="display:flex;gap:8px;">
@@ -9735,7 +9758,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-24-v261 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-24-v262 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
