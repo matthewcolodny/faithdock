@@ -4778,6 +4778,26 @@
   .checkin-status{text-align:center;}
   .checkin-status svg{width:20px;height:20px;vertical-align:middle;}
 
+  /* The stacked phone layout pieces for the events table. These sit
+     ABOVE the max-width:860px block on purpose: they are the defaults
+     the media query overrides, and at equal specificity the later rule
+     wins. Written below it first, they beat the phone rules and the
+     date, summary and byline stayed hidden at 375px -- the layout did
+     not appear at all. */
+  .ev-row-main{display:flex;align-items:center;gap:9px;}
+  .ev-when{display:none;flex-direction:column;align-items:flex-end;flex-shrink:0;
+           font-variant-numeric:tabular-nums;line-height:1.25;}
+  .ev-when-date{font-size:11.5px;color:var(--ink);font-weight:600;}
+  .ev-when-time{font-size:10.5px;color:var(--ink-mute);}
+  .ev-title-wrap{min-width:0;flex:1;}
+  .ev-sub{display:none;font-size:11.5px;color:var(--ink-mute);margin-top:2px;}
+  .ev-by{display:none;font-size:11px;color:var(--ink-mute);font-style:italic;margin-top:1px;}
+  /* Qualified with the element, to match the specificity of
+     `.row-menu-dropdown button` above -- which is a class plus an
+     element and therefore beats a bare `.ev-menu-mobile` whatever the
+     source order. Left unqualified, these two items showed on desktop
+     as well, duplicating the buttons beside the menu. */
+  .row-menu-dropdown button.ev-menu-mobile{display:none;}
   /* Rosters that are meant to fit a phone rather than scroll sideways.
      table.roster becomes a nowrap horizontal scroller at 860px, which
      is right for a wide roster and wrong for a three-column one --
@@ -4836,6 +4856,31 @@
     #cl-table.roster-fits th:nth-child(2){width:38%;}
     #checkin-table.roster-fits th:nth-child(3),
     #cl-table.roster-fits th:nth-child(3){width:20%;}
+
+    /* ---- Events, on a phone ----
+
+       Eight columns will not fit 375px and never could; the table
+       scrolled sideways, which on this page means the three-dots menu
+       and the check-in button were off the right edge of an event you
+       were already looking at.
+
+       So six columns are hidden and everything they held is stacked
+       inside the first one: when it is, above the picture; then the
+       title, what is booked and where, and who made it. The row reads
+       top to bottom in the order somebody scanning a list of events
+       actually wants -- and the only control left is the menu, which
+       now contains the two buttons that used to sit beside it. */
+    .ev-col-desk{display:none;}
+    #dash-events-table.roster-fits th:nth-child(1){width:84%;}
+    #dash-events-table.roster-fits th:nth-child(8){width:16%;}
+    #dash-events-table.roster-fits td:last-child{padding-left:0;padding-right:6px;}
+    .ev-when{display:flex;}
+    .ev-sub, .ev-by{display:block;}
+    /* Check-in and Edit move into the menu. Rendered as menu items
+       always and revealed here, rather than built conditionally, so
+       the two paths cannot drift apart. */
+    .ev-btn-desk{display:none;}
+    .row-menu-dropdown button.ev-menu-mobile{display:flex;}
   }
 
   /* ---- conference ---- */
@@ -7652,8 +7697,13 @@ Groups</span>
             <button class="export-btn" id="dash-export-schedule-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> <span data-i18n="dashEvents.exportSchedule">Export schedule</span></button>
           </div>
         </div>
-        <table class="roster" id="dash-events-table">
-          <tr><th data-i18n="dashEvents.event">Event</th><th data-i18n="dashEvents.date">Date</th><th data-i18n="dashEvents.time">Time</th><th data-i18n="dashEvents.location">Location</th><th data-i18n="dashEvents.createdBy">Created by</th><th data-i18n="dashEvents.registrations">Registrations</th><th data-i18n="dashEvents.status">Status</th><th></th></tr>
+        <table class="roster roster-fits" id="dash-events-table">
+          <!-- Six of these eight columns are hidden on a phone and
+               their content reappears, stacked, inside the first one.
+               Marked here rather than skipped in the renderer so the
+               desktop table is untouched and the decision lives in
+               one place, the stylesheet. -->
+          <tr><th data-i18n="dashEvents.event">Event</th><th class="ev-col-desk" data-i18n="dashEvents.date">Date</th><th class="ev-col-desk" data-i18n="dashEvents.time">Time</th><th class="ev-col-desk" data-i18n="dashEvents.location">Location</th><th class="ev-col-desk" data-i18n="dashEvents.createdBy">Created by</th><th class="ev-col-desk" data-i18n="dashEvents.registrations">Registrations</th><th class="ev-col-desk" data-i18n="dashEvents.status">Status</th><th></th></tr>
           <tbody id="dash-events-tbody">
             <tr><td colspan="8" style="color:var(--ink-mute);" data-i18n="dashEvents.loadingEvents">Loading your events...</td></tr>
           </tbody>
@@ -9339,7 +9389,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v249 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v250 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -18794,6 +18844,28 @@ Groups</span>
         ? '<img class="row-thumb" src="' + ev.image_url + '" alt="">'
         : '<div class="row-thumb-empty"></div>';
 
+      // The same numbers the Registrations column shows, on one line,
+      // for the phone layout's sub-heading. Built from formatRegCell
+      // like the column is, so the two cannot disagree about whether
+      // 3 of 10 is '3/10 registrations' or something else.
+      var regShort = '';
+      if (ev.registration_required) {
+        // Branching exactly as the Registrations column does below, and
+        // on the same condition: with volunteers in play the people are
+        // participants, without them they are registrations. Using one
+        // label for both read as "2/120 Registrations · 1/10
+        // Volunteers", which counts the same event two ways.
+        regShort = ev.allow_volunteers
+          ? formatRegCell(participantCount, ev.max_participants, window.t('events.roleParticipant'), window.t('dashEvents.participantsPlural'))
+            + ' · ' + formatRegCell(volunteerCount, ev.max_volunteers, window.t('events.roleVolunteer'), window.t('dashEvents.volunteersPlural'))
+          : formatRegCell(regCount, ev.max_participants, window.t('dashEvents.registrationSingular'), window.t('dashEvents.registrations'));
+      }
+      var placeText = window.eventPlaceText(ev) || '';
+      // Joined with a middle dot, and only between parts that exist --
+      // an event with no location and no sign-ups would otherwise get a
+      // line consisting of a dot.
+      var subLine = [regShort, placeText].filter(Boolean).join(' · ');
+
       var regCell;
       if (!ev.registration_required) {
         regCell = '—';
@@ -18809,13 +18881,40 @@ Groups</span>
         : '';
 
       rowsHtml += '<tr>'
-        + '<td><div style="display:flex;align-items:center;gap:10px;">' + thumbHtml + '<a href="#" data-route="event" data-event-key="' + ev.id + '" style="color:var(--ink);font-weight:500;">' + ev.title + '</a></div></td>'
-        + '<td class="mono">' + dateLabel + '</td>'
-        + '<td class="mono">' + timeLabel + '</td>'
-        + '<td style="font-size:13px;color:var(--ink-soft);">' + (escapeHtml(window.eventPlaceText(ev)) || '—') + '</td>'
-        + '<td style="font-size:13px;color:var(--ink-soft);">' + creatorName + '</td>'
-        + '<td>' + regCell + '</td>'
-        + '<td><span class="tag ' + badge + '">' + badgeLabel + '</span></td>'
+        + '<td><div class="ev-row-main">'
+          // When, to the left of the picture, and only on a phone.
+          // The Date and Time columns are hidden there, and a list of
+          // events whose dates you cannot see is a list of names.
+          + '<span class="ev-when"><span class="ev-when-date">' + escapeHtml(dateLabel) + '</span><span class="ev-when-time">' + escapeHtml(timeLabel) + '</span></span>'
+          + thumbHtml
+          + '<span class="ev-title-wrap">'
+            // escapeHtml on the title, which the old line did not do:
+            // it is church-authored text going straight into innerHTML,
+            // and a title containing a '<' rendered as markup. Every
+            // other field in this row was already escaped; this one was
+            // the exception, on the line being rewritten anyway.
+            + '<a href="#" data-route="event" data-event-key="' + ev.id + '" style="color:var(--ink);font-weight:500;">' + escapeHtml(ev.title) + '</a>'
+            // Status rides along on the sub-line rather than being
+            // dropped with its column. Nothing else on a phone would
+            // say an event is still a draft, and an unpublished event
+            // that looks published is the one mistake this table can
+            // make that somebody finds out about from an empty room.
+            + '<span class="ev-sub">' + escapeHtml(subLine) + (subLine ? ' ' : '') + '<span class="tag ' + badge + '" style="font-size:9.5px;">' + escapeHtml(badgeLabel) + '</span></span>'
+            // No byline at all rather than "Created by —". An event
+            // imported from a calendar file has no profile behind it,
+            // and the em dash the desktop column uses is a placeholder
+            // holding a column open, which a stacked line does not need.
+            + ((ev.profiles && ev.profiles.full_name)
+                ? '<span class="ev-by">' + escapeHtml(window.t('dashEvents.createdBy')) + ' ' + escapeHtml(creatorName) + '</span>'
+                : '')
+          + '</span>'
+        + '</div></td>'
+        + '<td class="mono ev-col-desk">' + dateLabel + '</td>'
+        + '<td class="mono ev-col-desk">' + timeLabel + '</td>'
+        + '<td class="ev-col-desk" style="font-size:13px;color:var(--ink-soft);">' + (escapeHtml(placeText) || '—') + '</td>'
+        + '<td class="ev-col-desk" style="font-size:13px;color:var(--ink-soft);">' + creatorName + '</td>'
+        + '<td class="ev-col-desk">' + regCell + '</td>'
+        + '<td class="ev-col-desk"><span class="tag ' + badge + '">' + badgeLabel + '</span></td>'
         + '<td><div style="display:flex;gap:6px;justify-content:flex-end;align-items:center;">'
         // Check-in straight from the row the person is already looking
         // at, instead of opening Check-In and re-finding the event in a
@@ -18828,12 +18927,20 @@ Groups</span>
         // to an empty screen. Past events keep it deliberately --
         // correcting attendance afterwards is a real thing churches do.
         + (ev.registration_required
-            ? '<button class="qr-btn icon-tip" data-tip="' + window.t('dashEvents.checkInTip') + '" data-checkin-event-id="' + ev.id + '" data-checkin-event-title="' + escapedTitle + '" aria-label="' + window.t('dashEvents.checkInTip') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></button>'
+            ? '<button class="qr-btn icon-tip ev-btn-desk" data-tip="' + window.t('dashEvents.checkInTip') + '" data-checkin-event-id="' + ev.id + '" data-checkin-event-title="' + escapedTitle + '" aria-label="' + window.t('dashEvents.checkInTip') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></button>'
             : '')
-        + '<button class="qr-btn icon-tip" data-tip="' + window.t('dashEvents.editEventTip') + '" data-edit-event-id="' + ev.id + '" aria-label="' + window.t('dashEvents.editEventTip') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>'
+        + '<button class="qr-btn icon-tip ev-btn-desk" data-tip="' + window.t('dashEvents.editEventTip') + '" data-edit-event-id="' + ev.id + '" aria-label="' + window.t('dashEvents.editEventTip') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>'
         + '<div class="row-menu">'
         + '<button class="row-menu-btn icon-tip" data-tip="' + window.t('common.moreActions') + '" data-toggle-row-menu="event-' + ev.id + '" aria-label="' + window.t('common.moreActions') + '"><svg viewBox="0 0 24 24" fill="currentColor" style="width:15px;height:15px;"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></button>'
         + '<div class="row-menu-dropdown" id="row-menu-event-' + ev.id + '">'
+        // The same two actions as the buttons above, same data
+        // attributes, same handlers -- these are what the phone gets
+        // instead, and they are first because at a door Check in is
+        // the only thing anybody wants from this menu.
+        + (ev.registration_required
+            ? '<button class="ev-menu-mobile" data-checkin-event-id="' + ev.id + '" data-checkin-event-title="' + escapedTitle + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> ' + escapeHtml(window.t('dashEvents.checkInTip')) + '</button>'
+            : '')
+        + '<button class="ev-menu-mobile" data-edit-event-id="' + ev.id + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> ' + escapeHtml(window.t('dashEvents.editEventTip')) + '</button>'
         + '<a href="#" data-route="event" data-event-key="' + ev.id + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg> View public page</a>'
         + (ev.visibility === 'draft'
             ? '<button data-publish-event-id="' + ev.id + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5L20 7"/></svg> Publish event</button>'
@@ -19097,7 +19204,23 @@ Groups</span>
         dropdown.classList.toggle('open');
         if (willOpen) {
           var rect = toggleBtn.getBoundingClientRect();
-          var dropdownWidth = 190; // matches min-width plus a little padding room
+          // Measured, not guessed.
+          //
+          // This was the constant 190, "min-width plus a little padding
+          // room". The menu is as wide as its longest item, and adding
+          // "Check in attendees" for the phone layout took it to 233 --
+          // so the right edge landed exactly on the edge of a 375px
+          // screen instead of 8px inside it. A guess that has to be
+          // revisited every time an item is added is the wrong shape of
+          // thing; the box can be asked.
+          //
+          // Pinned left first, for the same reason the height is
+          // measured after .open: a fixed box with no width shrinks to
+          // fit whatever room is left where it currently sits, so
+          // measuring it in its old position reports the squeeze rather
+          // than the width it wants.
+          dropdown.style.left = '0px';
+          var dropdownWidth = dropdown.offsetWidth;
           var left = Math.min(rect.right - dropdownWidth, window.innerWidth - dropdownWidth - 8);
           dropdown.style.left = Math.max(8, left) + 'px';
 
@@ -19123,6 +19246,20 @@ Groups</span>
         }
       }
       return;
+    }
+    // Picking an item closes the menu it came from.
+    //
+    // Every item here is a one-shot action -- it navigates, opens a
+    // form or starts a download -- and the dropdown is position:fixed,
+    // so it stayed floating over whatever the action produced. Found
+    // by moving Check in into this menu for the phone layout (it hung
+    // over the check-in page), but Copy and the calendar items have
+    // always done it too.
+    //
+    // No return and no stopPropagation: the item's own delegated
+    // handler still has to run, and nothing here removes a node.
+    if (ev.target.closest && ev.target.closest('.row-menu-dropdown') && ev.target.closest('button, a')) {
+      document.querySelectorAll('.row-menu-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
     }
     if (!ev.target.closest || !ev.target.closest('.row-menu')) {
       document.querySelectorAll('.row-menu-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
