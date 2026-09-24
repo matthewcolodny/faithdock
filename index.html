@@ -1076,6 +1076,9 @@
       'households.removeHouseholdConfirm': "Remove this household? This only removes the grouping — no one's account or membership is affected.",
       'households.removeHouseholdFailed': 'Could not remove this household:',
       'households.noOneInDirectory': 'No one in your directory yet.', 'households.relationshipEllipsis': 'Relationship...',
+      'households.editHousehold': 'Edit household', 'households.saveFailed': 'Could not save this household:',
+      'households.searchMembers': 'Search people', 'households.nSelected': '{n} selected',
+      'households.noSearchMatch': 'Nobody matches that search.',
       'dashSettings.churchProfile': 'Church profile',
       'dashSettings.facilityRooms': 'Facility rooms',
       'dashSettings.facilityRoomsHint': 'The spaces your church schedules — classrooms, the sanctuary, Rec Center, outdoor areas. These show up as options when creating an event.',
@@ -2188,6 +2191,9 @@
       'households.removeHouseholdConfirm': '¿Eliminar este hogar? Esto solo elimina la agrupación — ninguna cuenta o membresía se ve afectada.',
       'households.removeHouseholdFailed': 'No se pudo eliminar este hogar:',
       'households.noOneInDirectory': 'Aún no hay nadie en tu directorio.', 'households.relationshipEllipsis': 'Relación...',
+      'households.editHousehold': 'Editar hogar', 'households.saveFailed': 'No se pudo guardar este hogar:',
+      'households.searchMembers': 'Buscar personas', 'households.nSelected': '{n} seleccionados',
+      'households.noSearchMatch': 'Nadie coincide con esa búsqueda.',
       'dashSettings.churchProfile': 'Perfil de la iglesia',
       'dashSettings.facilityRooms': 'Espacios de la instalación',
       'dashSettings.facilityRoomsHint': 'Los espacios que tu iglesia programa — aulas, el santuario, el centro recreativo, áreas al aire libre. Aparecen como opciones al crear un evento.',
@@ -2609,6 +2615,17 @@
     if (window.groupFormIsEditing) {
       var groupFormHeadingEl = document.getElementById('group-form-heading');
       if (groupFormHeadingEl && dict['dashGroups.editGroup']) groupFormHeadingEl.textContent = dict['dashGroups.editGroup'];
+    }
+    // Same reasoning again for the household modal, which reuses one
+    // form for New and Edit: its heading and its save button carry the
+    // "New household" wording as their data-i18n default, so the
+    // generic pass above would flip an open edit form back to
+    // "New household" / "Create household" mid-edit.
+    if (window.householdFormIsEditing) {
+      var hhHeadingEl = document.getElementById('household-form-heading');
+      if (hhHeadingEl && dict['households.editHousehold']) hhHeadingEl.textContent = dict['households.editHousehold'];
+      var hhSaveEl = document.getElementById('household-save-btn');
+      if (hhSaveEl && dict['rc.saveChanges']) hhSaveEl.textContent = dict['rc.saveChanges'];
     }
     // The "Church Admin" account-menu link switches to its plural key
     // once loadDashboardHeader() confirms this person owns 2+ churches
@@ -3815,6 +3832,17 @@
   .filter-group{margin-bottom:22px;position:relative;}
   .filter-group h4{font-family:'Fraunces';font-size:14px;color:var(--ink);margin-bottom:12px;}
   .filter-check{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--ink-soft);margin-bottom:9px;cursor:pointer;}
+  /* The household checklist row, as a class rather than an inline
+     style.
+
+     The search hides a row with row.style.display = "none" and shows
+     it again with row.style.display = "" -- and the empty string
+     REMOVES the inline declaration rather than restoring a previous
+     one. With display:flex living inline, the first keystroke in the
+     search box permanently flattened every row it un-hid: name on one
+     line, relationship dropdown on the next. From a class, the
+     fallback is the layout. */
+  .household-member-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
   .filter-check input{accent-color:var(--brand);width:14px;height:14px;flex-shrink:0;}
   /* Filter dropdown: 6 top-level entries, alphabetized, "Other" pinned
      last. 4 of them (Catholic, Nontrinitarian / Other Christian,
@@ -8308,11 +8336,20 @@ Groups</span>
           <button class="modal-close" onclick="document.getElementById('household-modal').classList.remove('open')" aria-label="Close" data-i18n-title="common.close">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
           </button>
-          <h3 style="font-family:'Fraunces';font-size:18px;margin-bottom:14px;" data-i18n="households.newHouseholdTitle">New household</h3>
+          <h3 id="household-form-heading" style="font-family:'Fraunces';font-size:18px;margin-bottom:14px;" data-i18n="households.newHouseholdTitle">New household</h3>
           <label data-i18n="households.householdName">Household name</label>
           <input class="field" type="text" id="household-name-input" placeholder="e.g. The Smith Family" data-i18n-placeholder="households.namePlaceholder">
-          <label style="margin-top:12px;" data-i18n="households.members">Members</label>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-top:12px;">
+            <label style="margin:0;" data-i18n="households.members">Members</label>
+            <!-- How many are ticked, including any the search has
+                 scrolled or filtered out of sight. A checklist you can
+                 only see eight rows of needs to say what it is holding,
+                 or filtering it feels like losing things. -->
+            <span id="household-selected-count" style="font-size:11.5px;color:var(--ink-mute);"></span>
+          </div>
+          <input class="field" type="text" id="household-member-search" placeholder="Search people" data-i18n-placeholder="households.searchMembers" style="font-size:12.5px;padding:7px 9px;margin:6px 0 0;">
           <div id="household-member-checklist" style="max-height:220px;overflow-y:auto;border:1px solid var(--line);border-radius:8px;padding:8px;margin-top:6px;"></div>
+          <div id="household-member-nomatch" style="display:none;font-size:12.5px;color:var(--ink-mute);margin-top:6px;"></div>
           <button class="btn-gold" id="household-save-btn" style="margin-top:14px;width:100%;justify-content:center;" data-i18n="households.createHousehold">Create household</button>
           <div id="household-status" style="display:none;font-size:12px;margin-top:8px;"></div>
         </div>
@@ -9389,7 +9426,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v250 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v251 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -29353,6 +29390,9 @@ Groups</span>
       listEl.innerHTML = '<p style="color:var(--ink-mute);font-size:13px;">' + window.t('households.noneSetUpYet') + '</p>';
       return;
     }
+    // Kept so opening the edit form needs no second query: it already
+    // has each household's name, members and relationships here.
+    window.householdsCache = households;
     var relationshipLabels = { head: window.t('households.headOfHousehold'), spouse: window.t('households.spouse'), child: window.t('households.child'), other: window.t('households.other') };
     listEl.innerHTML = households.map(function(h){
       var members = h.household_members || [];
@@ -29364,9 +29404,16 @@ Groups</span>
           }).join(', ')
         : '<span style="color:var(--ink-mute);">' + window.t('households.noMembersYet') + '</span>';
       return '<div class="info-row" style="display:block;">'
-        + '<div style="display:flex;justify-content:space-between;align-items:flex-start;">'
-        + '<strong>' + h.name.replace(/</g, '&lt;') + '</strong>'
-        + '<button class="qr-btn" data-remove-household-id="' + h.id + '" aria-label="' + window.t('households.removeHousehold') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'
+        + '<div class="room-row-main">'
+        + '<span class="room-row-name" style="cursor:default;"><strong>' + escapeHtml(h.name) + '</strong></span>'
+        // There was no way to change a household once made -- only
+        // create and delete. Reported as renaming not working, which
+        // is right: correcting "The Smth Family" meant deleting the
+        // household and rebuilding its membership from scratch.
+        + '<span class="room-row-actions">'
+        + '<button class="qr-btn" data-edit-household-id="' + escAttr(h.id) + '" aria-label="' + escAttr(window.t('households.editHousehold')) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>'
+        + '<button class="qr-btn" data-remove-household-id="' + escAttr(h.id) + '" aria-label="' + escAttr(window.t('households.removeHousehold')) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'
+        + '</span>'
         + '</div>'
         + '<div style="font-size:12.5px;margin-top:2px;">' + memberLine + '</div>'
         + '</div>';
@@ -29494,34 +29541,137 @@ Groups</span>
     });
   }
 
+  // The household currently being edited, or null for a new one. Also
+  // read by applyTranslations, which has to redo the heading and
+  // button text a language switch would otherwise reset to "New".
+  var editingHousehold = null;
+
+  function householdRowHtml(userId, label, checked, relationship){
+    var rels = [['', window.t('households.relationshipEllipsis')],
+                ['head', window.t('households.headOfHousehold')],
+                ['spouse', window.t('households.spouse')],
+                ['child', window.t('households.child')],
+                ['other', window.t('households.other')]];
+    // The searchable text rides on the row rather than being read back
+    // out of the rendered label: the label also contains a select and
+    // whatever whitespace the markup happens to have, and matching
+    // against that would match on "Spouse" and "Relationship" too.
+    return '<div class="household-member-row" data-search="' + escAttr(String(label).toLowerCase()) + '">'
+      + '<label class="filter-check" style="flex:1;margin:0;"><input type="checkbox" class="household-member-check" value="' + escAttr(userId) + '"' + (checked ? ' checked' : '') + '> ' + escapeHtml(label) + '</label>'
+      + '<select class="field household-member-relationship" data-for-user-id="' + escAttr(userId) + '" style="width:auto;font-size:11.5px;padding:5px;flex-shrink:0;">'
+      + rels.map(function(r){
+          return '<option value="' + r[0] + '"' + (r[0] === (relationship || '') ? ' selected' : '') + '>' + escapeHtml(r[1]) + '</option>';
+        }).join('')
+      + '</select>'
+      + '</div>';
+  }
+
+  function refreshHouseholdSelectedCount(){
+    var el = document.getElementById('household-selected-count');
+    if (!el) return;
+    var n = document.querySelectorAll('.household-member-check:checked').length;
+    el.textContent = n ? window.t('households.nSelected').replace('{n}', n) : '';
+  }
+
+  // Hidden, not removed.
+  //
+  // Save reads .household-member-check:checked straight off the
+  // document, and display:none leaves those in the DOM -- so ticking
+  // three people, searching for a fourth and saving keeps all four.
+  // Re-rendering the list to filter it would have thrown the first
+  // three away, which is the obvious implementation and a data-loss
+  // bug.
+  function filterHouseholdMembers(){
+    var input = document.getElementById('household-member-search');
+    var term = input ? input.value.trim().toLowerCase() : '';
+    var rows = document.querySelectorAll('.household-member-row');
+    var shown = 0;
+    rows.forEach(function(row){
+      var hit = !term || (row.getAttribute('data-search') || '').indexOf(term) !== -1;
+      row.style.display = hit ? '' : 'none';
+      if (hit) shown++;
+    });
+    var nomatch = document.getElementById('household-member-nomatch');
+    if (nomatch) {
+      var none = rows.length > 0 && shown === 0;
+      nomatch.textContent = none ? window.t('households.noSearchMatch') : '';
+      nomatch.style.display = none ? 'block' : 'none';
+    }
+  }
+
+  var householdMemberSearch = document.getElementById('household-member-search');
+  if (householdMemberSearch) householdMemberSearch.addEventListener('input', filterHouseholdMembers);
+
+  document.addEventListener('change', function(ev){
+    if (ev.target && ev.target.classList && ev.target.classList.contains('household-member-check')) {
+      refreshHouseholdSelectedCount();
+    }
+  });
+
+  // One opener for both jobs. household is null to create.
+  function openHouseholdModal(household){
+    editingHousehold = household || null;
+    window.householdFormIsEditing = !!household;
+    document.getElementById('household-name-input').value = household ? (household.name || '') : '';
+    document.getElementById('household-form-heading').textContent =
+      household ? window.t('households.editHousehold') : window.t('households.newHouseholdTitle');
+    document.getElementById('household-save-btn').textContent =
+      household ? window.t('rc.saveChanges') : window.t('households.createHousehold');
+
+    var existing = {};
+    (household && household.household_members ? household.household_members : []).forEach(function(m){
+      existing[m.user_id] = m;
+    });
+
+    // directoryPeopleRaw is already loaded for the main directory
+    // table -- reused here rather than fetching the same people again.
+    var rows = directoryPeopleRaw.map(function(p){
+      var m = existing[p.user_id];
+      return householdRowHtml(p.user_id, p.full_name || p.email || window.t('households.unnamed'), !!m, m ? m.relationship : '');
+    });
+
+    // Anyone already in this household who is NOT in the directory
+    // list -- someone whose membership lapsed, or a directory that
+    // has not been loaded this session. Without this they would be
+    // absent from the form and silently dropped on save, which is
+    // how an edit screen quietly deletes data.
+    var listed = {};
+    directoryPeopleRaw.forEach(function(p){ listed[p.user_id] = true; });
+    Object.keys(existing).forEach(function(uid){
+      if (listed[uid]) return;
+      var m = existing[uid];
+      var name = (m.profiles && m.profiles.full_name) ? m.profiles.full_name : window.t('households.unnamed');
+      rows.push(householdRowHtml(uid, name, true, m.relationship));
+    });
+
+    var checklistEl = document.getElementById('household-member-checklist');
+    checklistEl.innerHTML = rows.length
+      ? rows.join('')
+      : '<p style="color:var(--ink-mute);font-size:12.5px;">' + window.t('households.noOneInDirectory') + '</p>';
+
+    // A fresh form starts unfiltered, or a search left over from the
+    // last household would hide most of the list with no clue why.
+    var searchEl = document.getElementById('household-member-search');
+    if (searchEl) searchEl.value = '';
+    filterHouseholdMembers();
+    refreshHouseholdSelectedCount();
+
+    document.getElementById('household-status').style.display = 'none';
+    document.getElementById('household-modal').classList.add('open');
+  }
+
   var householdAddOpenBtn = document.getElementById('household-add-open-btn');
   if (householdAddOpenBtn) {
-    householdAddOpenBtn.addEventListener('click', function(){
-      document.getElementById('household-name-input').value = '';
-      var checklistEl = document.getElementById('household-member-checklist');
-      // directoryPeopleRaw is already loaded for the main directory
-      // table — reused here rather than fetching the same people
-      // again.
-      if (!directoryPeopleRaw.length) {
-        checklistEl.innerHTML = '<p style="color:var(--ink-mute);font-size:12.5px;">' + window.t('households.noOneInDirectory') + '</p>';
-      } else {
-        checklistEl.innerHTML = directoryPeopleRaw.map(function(p){
-          return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">'
-            + '<label class="filter-check" style="flex:1;margin:0;"><input type="checkbox" class="household-member-check" value="' + p.user_id + '"> ' + (p.full_name || p.email || window.t('households.unnamed')).replace(/</g, '&lt;') + '</label>'
-            + '<select class="field household-member-relationship" data-for-user-id="' + p.user_id + '" style="width:auto;font-size:11.5px;padding:5px;flex-shrink:0;">'
-            + '<option value="">' + window.t('households.relationshipEllipsis') + '</option>'
-            + '<option value="head">' + window.t('households.headOfHousehold') + '</option>'
-            + '<option value="spouse">' + window.t('households.spouse') + '</option>'
-            + '<option value="child">' + window.t('households.child') + '</option>'
-            + '<option value="other">' + window.t('households.other') + '</option>'
-            + '</select>'
-            + '</div>';
-        }).join('');
-      }
-      document.getElementById('household-status').style.display = 'none';
-      document.getElementById('household-modal').classList.add('open');
-    });
+    householdAddOpenBtn.addEventListener('click', function(){ openHouseholdModal(null); });
   }
+
+  document.addEventListener('click', function(ev){
+    var editHouseholdBtn = ev.target.closest ? ev.target.closest('[data-edit-household-id]') : null;
+    if (!editHouseholdBtn) return;
+    var hid = editHouseholdBtn.getAttribute('data-edit-household-id');
+    var h = (window.householdsCache || []).filter(function(x){ return x.id === hid; })[0];
+    if (h) openHouseholdModal(h);
+  });
 
   var householdSaveBtn = document.getElementById('household-save-btn');
   if (householdSaveBtn) {
@@ -29536,28 +29686,75 @@ Groups</span>
         return;
       }
       var memberIds = Array.from(document.querySelectorAll('.household-member-check:checked')).map(function(cb){ return cb.value; });
+      function chosenRelationship(uid){
+        var sel = document.querySelector('.household-member-relationship[data-for-user-id="' + uid + '"]');
+        return (sel && sel.value) ? sel.value : null;
+      }
 
       var myChurch = await getMyChurch();
       if (!myChurch) return;
 
       householdSaveBtn.disabled = true;
-      var { data: householdRow, error } = await supabase.from('households').insert({ church_id: myChurch.id, name: name }).select().limit(1);
-      if (error) {
-        statusEl.textContent = friendlyDbError(error);
+      function fail(err){
+        statusEl.textContent = window.t('households.saveFailed') + ' ' + friendlyDbError(err);
         statusEl.style.color = 'var(--clay)';
         statusEl.style.display = 'block';
         householdSaveBtn.disabled = false;
-        return;
       }
-      if (memberIds.length) {
-        var memberRows = memberIds.map(function(uid){
-          var relationshipSelect = document.querySelector('.household-member-relationship[data-for-user-id="' + uid + '"]');
-          var relationship = relationshipSelect && relationshipSelect.value ? relationshipSelect.value : null;
-          return { household_id: householdRow[0].id, user_id: uid, relationship: relationship };
-        });
-        await supabase.from('household_members').insert(memberRows);
+
+      var householdId;
+      if (editingHousehold) {
+        var { error: renameError } = await supabase.from('households')
+          .update({ name: name }).eq('id', editingHousehold.id);
+        if (renameError) { fail(renameError); return; }
+        householdId = editingHousehold.id;
+      } else {
+        var { data: householdRow, error } = await supabase.from('households').insert({ church_id: myChurch.id, name: name }).select().limit(1);
+        if (error) { fail(error); return; }
+        householdId = householdRow[0].id;
       }
+
+      // A diff rather than delete-everything-then-reinsert.
+      //
+      // The wholesale version is shorter and is what saveEventMinistries
+      // does, but it is wrong here: a failed insert after a successful
+      // delete would leave a household with nobody in it, and the
+      // person who just pressed Save would have no way to know which
+      // five people used to be there. Only what actually changed is
+      // written, so a failure leaves the rest standing.
+      var before = {};
+      (editingHousehold && editingHousehold.household_members ? editingHousehold.household_members : []).forEach(function(m){
+        before[m.user_id] = m.relationship || null;
+      });
+      var after = {};
+      memberIds.forEach(function(uid){ after[uid] = chosenRelationship(uid); });
+
+      var toRemove = Object.keys(before).filter(function(uid){ return !(uid in after); });
+      var toAdd = Object.keys(after).filter(function(uid){ return !(uid in before); });
+      var toUpdate = Object.keys(after).filter(function(uid){
+        return (uid in before) && before[uid] !== after[uid];
+      });
+
+      if (toRemove.length) {
+        var { error: rmError } = await supabase.from('household_members')
+          .delete().eq('household_id', householdId).in('user_id', toRemove);
+        if (rmError) { fail(rmError); return; }
+      }
+      if (toAdd.length) {
+        var { error: addError } = await supabase.from('household_members').insert(
+          toAdd.map(function(uid){ return { household_id: householdId, user_id: uid, relationship: after[uid] }; }));
+        if (addError) { fail(addError); return; }
+      }
+      for (var ui = 0; ui < toUpdate.length; ui++) {
+        var { error: upError } = await supabase.from('household_members')
+          .update({ relationship: after[toUpdate[ui]] })
+          .eq('household_id', householdId).eq('user_id', toUpdate[ui]);
+        if (upError) { fail(upError); return; }
+      }
+
       householdSaveBtn.disabled = false;
+      editingHousehold = null;
+      window.householdFormIsEditing = false;
       document.getElementById('household-modal').classList.remove('open');
       loadHouseholdsPanel();
     });
