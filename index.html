@@ -4190,6 +4190,28 @@
 
   /* ---- dashboard ---- */
   .dash{display:grid;grid-template-columns:196px 1fr;min-height:70vh;}
+
+  /* Desktop: the sidebar is a screen-tall panel that scrolls on its
+     own, which is what the mobile drawer has always been.
+
+     Pinning Sign out to the bottom of the column was not enough on its
+     own: the column is a grid cell, so its height follows whichever
+     page is open, and the button still moved -- just by less. A panel
+     the height of the viewport is the same height on every page, so
+     the button lands in the same place every time.
+
+     The dark column is painted by the GRID rather than by the sidebar,
+     because a sticky sidebar stops at one screen and a page longer
+     than that would otherwise show a pale strip beneath it all the way
+     down. align-self:start is required: a stretched grid item fills
+     the row and has nowhere to stick to. */
+  @media (min-width:861px){
+    .dash{background:linear-gradient(to right, var(--brand) 0 196px, transparent 196px);}
+    .dash-side{
+      align-self:start;position:sticky;top:var(--nav-bottom,72px);
+      height:calc(100vh - var(--nav-bottom,72px));
+    }
+  }
   /* Room schedule: a week of one room, so back-to-back blocks and
      the gaps between them are visible at a glance rather than
      inferred from a list of times. */
@@ -4541,7 +4563,19 @@
      internally. This override is what makes width:100%/overflow-x:
      auto on children actually take effect on narrow screens at all. */
   .dash-side, .dash-main{min-width:0;}
-  .dash-side{background:var(--brand);color:#CBD2DE;padding:32px 20px;}
+  /* A flex column so Sign out can be pushed to the bottom of it.
+
+     Sign out used to be an ordinary sibling after the nav blocks, so
+     its position was whatever the nav happened to be tall enough to
+     put it at. Opening Directory swaps a twelve-item church menu for
+     a three-item sub-menu, the column shortens by nine rows, and Sign
+     out leaps up to sit directly under Reports and Settings -- the
+     two links somebody is reaching for at that exact moment.
+
+     Reported as a mis-click risk, and it is a bad one: the accidental
+     press ends the session. (The same button jumping has caused
+     trouble once before -- see the perms-pending note above.) */
+  .dash-side{background:var(--brand);color:#CBD2DE;padding:32px 20px;display:flex;flex-direction:column;}
   .dash-church{font-family:'Fraunces';color:#fff;font-size:17px;margin-bottom:2px;cursor:default;user-select:none;}
   .dash-tag{font-size:12px;color:var(--gold);font-family:'IBM Plex Mono';margin-bottom:28px;cursor:default;user-select:none;}
   /* Until loadDashboardHeader has decided what this person may see.
@@ -4570,10 +4604,22 @@
   }
   .dash-nav a{display:block;padding:10px 12px;border-radius:8px;font-size:14px;margin-bottom:4px;color:#CBD2DE;cursor:pointer;}
   .dash-nav a.active{background:#223252;color:#fff;}
+  /* The scrolling part. flex:1 takes the space the button does not,
+     and min-height:0 is what actually lets it scroll -- a flex item's
+     default min-height:auto refuses to shrink below its content, so
+     without it the wrapper just grows and the sidebar overflows
+     exactly as before. */
+  .dash-side-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;}
+
+  /* A footer, not the last item in a list. flex-shrink:0 keeps it its
+     full height however long the nav gets, so it cannot be squeezed
+     or scrolled past, and it needs no sticky trick now that it is
+     outside the scroller. */
   #dash-signout-btn{
-    display:block;width:100%;text-align:left;background:none;border:none;cursor:pointer;
+    display:block;width:100%;text-align:left;border:none;cursor:pointer;flex-shrink:0;
     font-family:inherit;font-size:14px;color:#8791A5;padding:10px 12px;border-radius:8px;
-    margin-top:14px;padding-top:18px;border-top:1px solid rgba(255,255,255,0.12);
+    padding-top:18px;margin-top:8px;border-top:1px solid rgba(255,255,255,0.12);
+    background:var(--brand);
   }
   #dash-signout-btn:hover{color:#fff;}
   @media (max-width:860px){ #dash-signout-btn{font-size:15px;padding:12px;padding-top:18px;} }
@@ -7370,6 +7416,14 @@ Groups</span>
          touch screen. -->
     <div class="dash-scrim" id="dash-scrim"></div>
     <div class="dash-side">
+      <!-- Everything above Sign out scrolls; Sign out does not.
+
+           Without this wrapper the sidebar itself was the scroller, so
+           a Sign out pinned to its bottom sat ON TOP of the last two
+           nav links -- 108px of overlap with thirteen links in a 654px
+           column. That is a worse version of the mis-click this was
+           meant to fix: Settings is the link directly underneath. -->
+      <div class="dash-side-scroll">
       <!-- Multi-church owner only: jump back to the Overview grid from a church view -->
       <!-- Multi-church owner only: sidebar heading while on the account-level Overview -->
       <div id="dash-overview-header" style="display:none;">
@@ -7412,6 +7466,7 @@ Groups</span>
         <a id="dash-ov-overview" data-i18n="dash.overview">Overview</a>
         <a id="dash-ov-billing" data-i18n="dash.billing">Billing</a>
         <a id="dash-ov-plans" data-i18n="dash.plans">Plans</a>
+      </div>
       </div>
       <!-- Aligned with the nav items rather than floated below them:
            same padding, same font size, same left edge, so the column
@@ -9528,7 +9583,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v253 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v254 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
