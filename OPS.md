@@ -71,14 +71,23 @@ weekly security check is skipped rather than run — so the invariants
 only run when somebody remembers to run them, which is the problem they
 were written to solve.
 
-**The role is ready.** Migration 097 was run and verified on
-2026-09-24: `ci_invariants` exists, can log in, is not superuser,
-inherits nothing passively, and holds no table grants of its own. It can
-only `SET ROLE` to `anon` or `authenticated`, which is all the checks
-need.
+**The role exists and is deliberately inert.** Migration 097 created
+`ci_invariants` with **NOLOGIN and no password**: correct shape, not
+connectable. It is NOINHERIT, not superuser, holds no table grants of
+its own, and can only `SET ROLE` to `anon` or `authenticated` — which is
+all the checks need, once it is enabled.
 
-**What is left:** build the connection string and paste it into GitHub →
+**Enable it only at the moment you are setting the GitHub secret**, as a
+single statement typed by hand and never committed:
+
+```sql
+alter role ci_invariants login password '<generated>';
+```
+
+Then immediately build the connection string and paste it into GitHub →
 Settings → Secrets and variables → Actions, named `SUPABASE_DB_URL`.
+Leaving the role enabled with the secret unset is the worst of both —
+a live credential doing no work.
 
 ```
 postgresql://ci_invariants.<project-ref>:<password>@aws-0-<region>.pooler.supabase.com:5432/postgres
@@ -109,7 +118,31 @@ real connection as that role tests it.
 
 ## Done
 
-### Migration 097 -- CI-only login role -- verified 2026-09-24
+### Migration 097 -- CI-only role -- verified 2026-09-24, then reworked the same day
+
+**Read this before writing another migration that creates a role.**
+
+The first version shipped a placeholder password with a comment saying
+to replace it before running. It was run as written — reasonably, since
+it looked runnable — which created a login role on the production
+database whose password was published in a **public** repository. A
+placeholder password in a runnable statement is not a placeholder. It
+is a password.
+
+The role is NOINHERIT with no table grants, which sounds contained and
+is not: it can `SET ROLE authenticated` and then set
+`request.jwt.claims` to any user id, which is impersonation of any
+member or church owner. Closed within minutes by
+`alter role ci_invariants nologin;`.
+
+The migration now creates the role **NOLOGIN with no password at all**.
+Run as written it produces something nobody can connect to; enabling it
+is a separate statement typed by hand. Re-running it on an enabled role
+disables it again — the safe direction. `tools/check.js` was also
+guarding the wrong thing (it allowed the placeholder); it now rejects
+any password literal in that file's runnable SQL.
+
+### Migration 097 -- the role's shape, verified 2026-09-24
 
 `ci_invariants`, for the weekly security check, so CI never holds the
 master database password. That mattered more than it first looked:
