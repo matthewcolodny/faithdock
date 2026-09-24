@@ -954,6 +954,23 @@
       'dashSub.ministryList': 'Ministry list', 'dashSub.groupList': 'Group list',
       'dashSub.eventsReports': 'Event reports', 'dashSub.eventsSettings': 'Event settings',
       'dashSub.directoryReports': 'Directory reports', 'dashSub.directorySettings': 'Directory settings',
+      'dirReports.findTitle': 'Find people', 'dirReports.findHint': 'Stack conditions to describe the people you want, then export them. Conditions are combined with AND — every one has to be true.',
+      'dirReports.addCondition': '+ Add condition', 'dirReports.removeCondition': 'Remove condition',
+      'dirReports.noConditions': 'No conditions — this is everyone in your directory.',
+      'dirReports.matchCount': '{n} of {total} people match', 'dirReports.matchOne': '1 of {total} people match',
+      'dirReports.exportMatches': 'Export these people',
+      'dirReports.previewNote': 'Showing the first {n}. The export has all of them.',
+      'dirReports.fieldRole': 'Role', 'dirReports.fieldJoined': 'Joined', 'dirReports.fieldName': 'Name',
+      'dirReports.fieldEmail': 'Email address', 'dirReports.fieldPhone': 'Phone number',
+      'dirReports.opIs': 'is', 'dirReports.opIsNot': 'is not', 'dirReports.opBefore': 'before', 'dirReports.opAfter': 'on or after',
+      'dirReports.opContains': 'contains', 'dirReports.opHas': 'is on file', 'dirReports.opHasNot': 'is missing',
+      'dirReports.roleMember': 'a member', 'dirReports.roleStaff': 'staff', 'dirReports.roleOwner': 'the owner', 'dirReports.roleEvent': 'an event sign-up',
+      'dirReports.joinsTitle': 'Joins over time', 'dirReports.joinsHint': 'When people first became connected to your church — the earlier of their membership date and their first confirmed event registration.',
+      'dirReports.joinsNone': 'Nobody has a join date on record yet.',
+      'dirReports.joinsTotal': '{n} in the last 12 months',
+      'dirReports.noDepartures': 'Departures are not shown because they are not recorded: removing someone from your membership list deletes the row rather than dating it, so there is no history to chart. Ask and this can start being logged from now on.',
+      'dirReports.nothingToExport': 'No one matches, so there is nothing to export.',
+      'dirReports.emptyState': 'Nothing needs your attention here right now — no possible duplicates, no unaccepted invites, and nobody newly joined in the last 30 days.',
       'dashSub.sendMessage': 'Send message', 'dashSub.churchInbox': 'Church inbox',
       'dashSub.messagesInbox': 'Church inbox', 'dashSub.messagesSettings': 'Message settings',
       'dashSub.facilitySchedule': 'Schedule', 'dashSub.facilityRooms': 'Rooms',
@@ -2081,6 +2098,23 @@
       'dashSub.ministryList': 'Lista de ministerios', 'dashSub.groupList': 'Lista de grupos',
       'dashSub.eventsReports': 'Informes de eventos', 'dashSub.eventsSettings': 'Ajustes de eventos',
       'dashSub.directoryReports': 'Informes del directorio', 'dashSub.directorySettings': 'Ajustes del directorio',
+      'dirReports.findTitle': 'Buscar personas', 'dirReports.findHint': 'Combina condiciones para describir a las personas que buscas y luego expórtalas. Las condiciones se unen con Y — todas deben cumplirse.',
+      'dirReports.addCondition': '+ Agregar condición', 'dirReports.removeCondition': 'Quitar condición',
+      'dirReports.noConditions': 'Sin condiciones — estas son todas las personas de tu directorio.',
+      'dirReports.matchCount': '{n} de {total} personas coinciden', 'dirReports.matchOne': '1 de {total} personas coincide',
+      'dirReports.exportMatches': 'Exportar estas personas',
+      'dirReports.previewNote': 'Mostrando las primeras {n}. La exportación las incluye todas.',
+      'dirReports.fieldRole': 'Rol', 'dirReports.fieldJoined': 'Se unió', 'dirReports.fieldName': 'Nombre',
+      'dirReports.fieldEmail': 'Correo electrónico', 'dirReports.fieldPhone': 'Teléfono',
+      'dirReports.opIs': 'es', 'dirReports.opIsNot': 'no es', 'dirReports.opBefore': 'antes de', 'dirReports.opAfter': 'en o después de',
+      'dirReports.opContains': 'contiene', 'dirReports.opHas': 'está registrado', 'dirReports.opHasNot': 'falta',
+      'dirReports.roleMember': 'miembro', 'dirReports.roleStaff': 'personal', 'dirReports.roleOwner': 'el propietario', 'dirReports.roleEvent': 'inscrito en un evento',
+      'dirReports.joinsTitle': 'Incorporaciones en el tiempo', 'dirReports.joinsHint': 'Cuándo se conectó cada persona con tu iglesia por primera vez — la más temprana entre su fecha de membresía y su primera inscripción confirmada a un evento.',
+      'dirReports.joinsNone': 'Todavía nadie tiene una fecha de incorporación registrada.',
+      'dirReports.joinsTotal': '{n} en los últimos 12 meses',
+      'dirReports.noDepartures': 'Las bajas no se muestran porque no se registran: quitar a alguien de tu lista de membresía borra la fila en lugar de fecharla, así que no hay historial que graficar. Pídelo y se puede empezar a registrar desde ahora.',
+      'dirReports.nothingToExport': 'Nadie coincide, así que no hay nada que exportar.',
+      'dirReports.emptyState': 'Ahora mismo no hay nada que requiera tu atención — sin posibles duplicados, sin invitaciones pendientes y nadie se unió en los últimos 30 días.',
       'dashSub.sendMessage': 'Enviar mensaje', 'dashSub.churchInbox': 'Bandeja de la iglesia',
       'dashSub.messagesInbox': 'Bandeja de la iglesia', 'dashSub.messagesSettings': 'Ajustes de mensajes',
       'dashSub.facilitySchedule': 'Horario', 'dashSub.facilityRooms': 'Salas',
@@ -8187,6 +8221,39 @@ Groups</span>
       </div>
       <div class="dash-content" id="dash-directory-reports">
         <h2 style="font-size:24px;margin-bottom:8px;" data-i18n="dashSub.directoryReports">Directory reports</h2>
+
+        <!-- Ad-hoc queries, and the export of whatever they select.
+             One section, not two: "describe the people I want" and
+             "give me that list" are the same job, and an export button
+             somewhere else would export a different set. -->
+        <div class="side-note" id="dir-find-wrap" style="max-width:720px;">
+          <h4 data-i18n="dirReports.findTitle">Find people</h4>
+          <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:12px;" data-i18n="dirReports.findHint">Stack conditions to describe the people you want, then export them.</p>
+          <div id="dir-find-conditions"></div>
+          <button class="export-btn" id="dir-find-add" style="margin-top:8px;" data-i18n="dirReports.addCondition">+ Add condition</button>
+          <div id="dir-find-count" style="font-size:13px;font-weight:600;margin-top:14px;"></div>
+          <div id="dir-find-preview" style="margin-top:10px;"></div>
+          <button class="btn-gold" id="dir-find-export" style="margin-top:12px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;vertical-align:-2px;margin-right:5px;"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 19h16"/></svg>
+            <span data-i18n="dirReports.exportMatches">Export these people</span>
+          </button>
+        </div>
+
+        <div class="side-note" id="dir-joins-wrap" style="max-width:720px;">
+          <h4 data-i18n="dirReports.joinsTitle">Joins over time</h4>
+          <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:12px;" data-i18n="dirReports.joinsHint">When people first became connected to your church.</p>
+          <div id="dir-joins-chart"></div>
+          <!-- Said plainly rather than left as a gap somebody has to
+               notice. A chart with a joins line and no leaves line
+               invites the reading that nobody has left. -->
+          <p style="font-size:11.5px;color:var(--ink-mute);margin-top:12px;line-height:1.5;" data-i18n="dirReports.noDepartures">Departures are not shown because they are not recorded.</p>
+        </div>
+
+        <!-- Only appears when all three housekeeping panels below have
+             nothing. They each hide themselves when empty, which on a
+             tidy church left this page completely blank -- reported as
+             "Reports is blank", and it was. -->
+        <p id="dir-reports-empty" style="display:none;color:var(--ink-mute);font-size:13.5px;max-width:640px;" data-i18n="dirReports.emptyState">Nothing needs your attention here right now.</p>
         <div class="side-note" id="dir-duplicates-wrap" style="display:none;max-width:640px;">
           <h4 data-i18n="households.possibleDuplicates">Possible duplicates</h4>
           <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:12px;" data-i18n="households.possibleDuplicatesHint">People connected to your church who share an email or have very similar names — worth checking whether they're actually the same person under two accounts. This only flags candidates; nothing is merged automatically.</p>
@@ -9461,7 +9528,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v252 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v253 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13425,7 +13492,11 @@ Groups</span>
     'create-event':       [],
     'events-reports':     [],
     'events-settings':    ['loadSectionSettings'],
-    'directory-reports':  ['loadRecentlyJoinedPanel', 'loadPendingInvitesPanel', 'loadDuplicatesPanel'],
+    // One entry, not four. loadDirectoryReports awaits the three
+    // housekeeping panels itself, because the empty-state note can only
+    // be decided once all three have settled -- and a list of loaders
+    // run side by side gives no moment where that is true.
+    'directory-reports':  ['loadDirectoryReports'],
     'directory-settings': ['loadSectionSettings'],
     'messages-inbox':     ['loadContactInbox'],
     // The messaging toggles moved here from the composer page, and
@@ -29346,6 +29417,350 @@ Groups</span>
   }
   window.loadDirectoryPeople = loadDirectoryPeople;
   dashPanel(loadDirectoryPeople);
+
+  // ============================================================
+  // Directory reports — ad-hoc queries over the people already
+  // loaded for the directory, and joins over time.
+  //
+  // Everything here runs against directoryPeopleRaw, which the
+  // Directory page has already fetched. No queries of its own: the
+  // whole point of a filter builder is to answer a dozen questions
+  // in a row, and a round trip per keystroke would make it useless.
+  // ============================================================
+
+  // Each condition is { field, op, value }. What a field can be asked,
+  // and how it answers, lives in one table so the dropdowns and the
+  // matcher cannot disagree -- the failure mode where a UI offers an
+  // operator the filter silently ignores.
+  var DIR_FIND_FIELDS = {
+    role: {
+      label: 'dirReports.fieldRole',
+      ops: ['is', 'isNot'],
+      values: [
+        { v: 'member', l: 'dirReports.roleMember', test: function(p){ return !!p.is_member; } },
+        { v: 'staff',  l: 'dirReports.roleStaff',  test: function(p){ return !!p.is_staff; } },
+        { v: 'owner',  l: 'dirReports.roleOwner',  test: function(p){ return !!p.is_owner; } },
+        { v: 'event',  l: 'dirReports.roleEvent',  test: function(p){ return !!p.has_registered_event; } }
+      ]
+    },
+    joined: { label: 'dirReports.fieldJoined', ops: ['before', 'after'], input: 'date' },
+    name:   { label: 'dirReports.fieldName',   ops: ['contains'],        input: 'text' },
+    email:  { label: 'dirReports.fieldEmail',  ops: ['has', 'hasNot', 'contains'], input: 'text' },
+    phone:  { label: 'dirReports.fieldPhone',  ops: ['has', 'hasNot'] }
+  };
+  var DIR_FIND_OP_LABELS = {
+    is: 'dirReports.opIs', isNot: 'dirReports.opIsNot', before: 'dirReports.opBefore',
+    after: 'dirReports.opAfter', contains: 'dirReports.opContains',
+    has: 'dirReports.opHas', hasNot: 'dirReports.opHasNot'
+  };
+  var dirFindConditions = [];
+
+  function dirFindMatches(person, cond){
+    var spec = DIR_FIND_FIELDS[cond.field];
+    if (!spec) return true;
+
+    if (cond.field === 'role') {
+      var opt = spec.values.filter(function(o){ return o.v === cond.value; })[0];
+      if (!opt) return true;
+      var held = opt.test(person);
+      return cond.op === 'isNot' ? !held : held;
+    }
+
+    if (cond.field === 'joined') {
+      // A blank date is not a filter yet -- the row was just added and
+      // nothing has been typed. Matching nobody until it is filled in
+      // would show a count of zero and look like a bug.
+      if (!cond.value) return true;
+      // Somebody with no join date cannot satisfy either side of a
+      // date comparison, so they fall out of both. That is deliberate:
+      // "joined before 2025" should not quietly include people whose
+      // date is unknown.
+      if (!person.joined_at) return false;
+      // Compared as local dates, because the picker gives a local date
+      // and joined_at is an instant. Comparing the raw ISO strings
+      // would put a 7pm join on the wrong side of its own day for
+      // anyone west of Greenwich.
+      var when = new Date(person.joined_at);
+      var bound = new Date(cond.value + 'T00:00:00');
+      return cond.op === 'before' ? (when < bound) : (when >= bound);
+    }
+
+    if (cond.field === 'name') {
+      if (!cond.value) return true;
+      return String(person.full_name || '').toLowerCase().indexOf(cond.value.toLowerCase()) !== -1;
+    }
+
+    if (cond.field === 'email') {
+      if (cond.op === 'has') return !!person.email;
+      if (cond.op === 'hasNot') return !person.email;
+      if (!cond.value) return true;
+      return String(person.email || '').toLowerCase().indexOf(cond.value.toLowerCase()) !== -1;
+    }
+
+    if (cond.field === 'phone') {
+      return cond.op === 'hasNot' ? !person.phone : !!person.phone;
+    }
+    return true;
+  }
+
+  function dirFindResults(){
+    return directoryPeopleRaw.filter(function(person){
+      return dirFindConditions.every(function(c){ return dirFindMatches(person, c); });
+    });
+  }
+
+  function dirFindConditionHtml(cond, i){
+    var spec = DIR_FIND_FIELDS[cond.field];
+    var fieldSel = '<select class="field dir-find-field" data-i="' + i + '" style="width:auto;font-size:12.5px;padding:6px 8px;margin:0;">'
+      + Object.keys(DIR_FIND_FIELDS).map(function(f){
+          return '<option value="' + f + '"' + (f === cond.field ? ' selected' : '') + '>' + escapeHtml(window.t(DIR_FIND_FIELDS[f].label)) + '</option>';
+        }).join('') + '</select>';
+    var opSel = '<select class="field dir-find-op" data-i="' + i + '" style="width:auto;font-size:12.5px;padding:6px 8px;margin:0;">'
+      + spec.ops.map(function(o){
+          return '<option value="' + o + '"' + (o === cond.op ? ' selected' : '') + '>' + escapeHtml(window.t(DIR_FIND_OP_LABELS[o])) + '</option>';
+        }).join('') + '</select>';
+
+    var valueHtml = '';
+    if (cond.field === 'role') {
+      valueHtml = '<select class="field dir-find-value" data-i="' + i + '" style="width:auto;font-size:12.5px;padding:6px 8px;margin:0;">'
+        + spec.values.map(function(o){
+            return '<option value="' + o.v + '"' + (o.v === cond.value ? ' selected' : '') + '>' + escapeHtml(window.t(o.l)) + '</option>';
+          }).join('') + '</select>';
+    } else if (cond.op === 'has' || cond.op === 'hasNot') {
+      // No value box: "phone is on file" takes no argument, and an
+      // empty input beside it would invite typing into a field that
+      // does nothing.
+      valueHtml = '';
+    } else if (spec.input === 'date' || cond.field === 'joined') {
+      valueHtml = '<input class="field dir-find-value" data-i="' + i + '" type="date" value="' + escAttr(cond.value || '') + '" style="width:auto;font-size:12.5px;padding:6px 8px;margin:0;">';
+    } else {
+      valueHtml = '<input class="field dir-find-value" data-i="' + i + '" type="text" value="' + escAttr(cond.value || '') + '" style="flex:1 1 120px;min-width:0;font-size:12.5px;padding:6px 8px;margin:0;">';
+    }
+
+    return '<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px;">'
+      + fieldSel + opSel + valueHtml
+      + '<button class="qr-btn" data-dir-find-remove="' + i + '" aria-label="' + escAttr(window.t('dirReports.removeCondition')) + '" style="margin-left:auto;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'
+      + '</div>';
+  }
+
+  function renderDirFind(){
+    var condEl = document.getElementById('dir-find-conditions');
+    if (!condEl) return;
+    condEl.innerHTML = dirFindConditions.length
+      ? dirFindConditions.map(dirFindConditionHtml).join('')
+      : '<p style="color:var(--ink-mute);font-size:12.5px;margin:0;">' + escapeHtml(window.t('dirReports.noConditions')) + '</p>';
+
+    dirFindShowResults(dirFindResults());
+  }
+  window.renderDirFind = renderDirFind;
+
+  document.addEventListener('click', function(ev){
+    if (!ev.target.closest) return;
+    if (ev.target.closest('#dir-find-add')) {
+      dirFindConditions.push({ field: 'role', op: 'is', value: 'member' });
+      renderDirFind();
+      return;
+    }
+    var rm = ev.target.closest('[data-dir-find-remove]');
+    if (rm) {
+      dirFindConditions.splice(parseInt(rm.getAttribute('data-dir-find-remove'), 10), 1);
+      renderDirFind();
+      return;
+    }
+    if (ev.target.closest('#dir-find-export')) {
+      var matches = dirFindResults();
+      if (!matches.length) { alert(window.t('dirReports.nothingToExport')); return; }
+      var rows = [[window.t('dashCheckin.name'), window.t('dashDir.email'), window.t('dashDir.phone'),
+                   window.t('dashDir.role'), window.t('reports.joined')]];
+      matches.forEach(function(person){
+        var role = person.is_owner ? window.t('dashSettings.ownerRoleLabel')
+                 : person.is_staff ? window.t('dashDir.staff')
+                 : person.is_member ? window.t('dashGroups.roleMember')
+                 : window.t('dashDir.roleEventSignupTag');
+        rows.push([person.full_name || '', person.email || '', person.phone || '', role,
+                   person.joined_at ? new Date(person.joined_at).toLocaleDateString(window.appLocale()) : '']);
+      });
+      // roomSchedFileDate, not toISOString().slice(0,10): the latter is
+      // UTC, so an export run on a Tuesday evening in Texas would be
+      // named after Wednesday. Same helper the room schedule uses, for
+      // the same reason.
+      downloadCsv('people-' + roomSchedFileDate(new Date()) + '.csv', rows);
+    }
+  });
+
+  // change covers the selects; input covers typing in a text or date
+  // box, so the count moves as you type rather than when you leave
+  // the field.
+  function dirFindEdit(el){
+    var i = parseInt(el.getAttribute('data-i'), 10);
+    var cond = dirFindConditions[i];
+    if (!cond) return false;
+    if (el.classList.contains('dir-find-field')) {
+      // A new field means new operators, and quite possibly a value
+      // that means nothing any more -- 'member' is not a date. Reset
+      // both to the new field's first legal combination rather than
+      // carrying the old ones into a condition that cannot be true.
+      cond.field = el.value;
+      var spec = DIR_FIND_FIELDS[cond.field];
+      cond.op = spec.ops[0];
+      cond.value = spec.values ? spec.values[0].v : '';
+      renderDirFind();
+      return true;
+    }
+    if (el.classList.contains('dir-find-op')) {
+      cond.op = el.value;
+      // has/hasNot take no value box, so the row has to be redrawn.
+      renderDirFind();
+      return true;
+    }
+    if (el.classList.contains('dir-find-value')) {
+      cond.value = el.value;
+      // Only the count and preview change, so the condition rows are
+      // left alone -- redrawing them would blur the box being typed in
+      // after every character.
+      dirFindShowResults(dirFindResults());
+      return true;
+    }
+    return false;
+  }
+
+  // The count and the preview, painted together from one list of
+  // matches -- because they are one answer, and two functions each
+  // recomputing it is how a page ends up saying "14 people match"
+  // above a table of twelve.
+  function dirFindShowResults(matches){
+    var total = directoryPeopleRaw.length;
+    var countEl = document.getElementById('dir-find-count');
+    if (countEl) {
+      countEl.textContent = matches.length === 1
+        ? window.t('dirReports.matchOne').replace('{total}', total)
+        : window.t('dirReports.matchCount').replace('{n}', matches.length).replace('{total}', total);
+    }
+    dirFindRenderPreviewOnly(matches);
+  }
+
+  // A preview, not the whole list: this re-renders on every keystroke,
+  // and painting two thousand rows to do it would make typing a name
+  // feel broken. The export is not capped.
+  function dirFindRenderPreviewOnly(matches){
+    var previewEl = document.getElementById('dir-find-preview');
+    if (!previewEl) return;
+    var PREVIEW = 25;
+    if (!matches.length) { previewEl.innerHTML = ''; return; }
+    previewEl.innerHTML = '<table class="roster roster-fits"><tr>'
+        + '<th>' + escapeHtml(window.t('dashCheckin.name')) + '</th>'
+        + '<th>' + escapeHtml(window.t('dashDir.email')) + '</th>'
+        + '<th>' + escapeHtml(window.t('reports.joined')) + '</th></tr>'
+      + matches.slice(0, PREVIEW).map(function(person){
+          return '<tr><td>' + escapeHtml(person.full_name || window.t('households.unnamed')) + '</td>'
+            + '<td class="mono" style="font-size:12px;">' + escapeHtml(person.email || '—') + '</td>'
+            + '<td class="mono" style="font-size:12px;">' + (person.joined_at ? escapeHtml(new Date(person.joined_at).toLocaleDateString(window.appLocale())) : '—') + '</td></tr>';
+        }).join('')
+      + '</table>'
+      + (matches.length > PREVIEW ? '<p style="font-size:11.5px;color:var(--ink-mute);margin-top:6px;">' + escapeHtml(window.t('dirReports.previewNote').replace('{n}', PREVIEW)) + '</p>' : '');
+  }
+
+  document.addEventListener('change', function(ev){
+    if (ev.target && ev.target.hasAttribute && ev.target.hasAttribute('data-i')) dirFindEdit(ev.target);
+  });
+  document.addEventListener('input', function(ev){
+    if (ev.target && ev.target.classList && ev.target.classList.contains('dir-find-value')) dirFindEdit(ev.target);
+  });
+
+  // ---- Joins over time ------------------------------------------
+  //
+  // Horizontal bars, one row per month. A vertical chart needs room
+  // for twelve rotated month labels along the bottom and gets that
+  // wrong on a phone; a row per month reads the same at any width.
+  function renderDirJoinsChart(){
+    var el = document.getElementById('dir-joins-chart');
+    if (!el) return;
+
+    var now = new Date();
+    var buckets = [];
+    var index = {};
+    for (var back = 11; back >= 0; back--) {
+      var d = new Date(now.getFullYear(), now.getMonth() - back, 1);
+      var key = d.getFullYear() + '-' + d.getMonth();
+      var bucket = { key: key, date: d, count: 0 };
+      index[key] = bucket;
+      buckets.push(bucket);
+    }
+
+    var total = 0;
+    directoryPeopleRaw.forEach(function(person){
+      if (!person.joined_at) return;
+      var when = new Date(person.joined_at);
+      var k = when.getFullYear() + '-' + when.getMonth();
+      // Anyone who joined more than a year ago simply is not in this
+      // window. Folding them into the oldest bar would make that month
+      // look like a recruitment drive.
+      if (!index[k]) return;
+      index[k].count++;
+      total++;
+    });
+
+    if (!total) {
+      el.innerHTML = '<p style="color:var(--ink-mute);font-size:13px;margin:0;">' + escapeHtml(window.t('dirReports.joinsNone')) + '</p>';
+      return;
+    }
+
+    var peak = buckets.reduce(function(m, b){ return Math.max(m, b.count); }, 0);
+    el.innerHTML = buckets.map(function(b){
+      var label = b.date.toLocaleDateString(window.appLocale(), { month: 'short', year: '2-digit' });
+      // Scaled against the busiest month, with a floor so a month with
+      // one join still draws something rather than looking like zero.
+      var pct = b.count ? Math.max(3, Math.round((b.count / peak) * 100)) : 0;
+      return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">'
+        + '<span style="width:58px;flex-shrink:0;font-size:11px;color:var(--ink-mute);font-variant-numeric:tabular-nums;">' + escapeHtml(label) + '</span>'
+        + '<span style="flex:1;min-width:0;background:var(--paper);border-radius:4px;height:14px;overflow:hidden;">'
+          + '<span style="display:block;height:100%;width:' + pct + '%;background:var(--gold);border-radius:4px;"></span>'
+        + '</span>'
+        + '<span style="width:28px;flex-shrink:0;text-align:right;font-size:11.5px;font-variant-numeric:tabular-nums;color:' + (b.count ? 'var(--ink)' : 'var(--ink-mute)') + ';">' + b.count + '</span>'
+        + '</div>';
+    }).join('')
+    + '<p style="font-size:12px;color:var(--ink-mute);margin-top:8px;">' + escapeHtml(window.t('dirReports.joinsTotal').replace('{n}', total)) + '</p>';
+  }
+
+  // Both sections read directoryPeopleRaw, so they are only correct
+  // once the Directory itself has loaded. Opening Reports directly
+  // from the menu never touches the Directory page, so this loads the
+  // people if nothing else has.
+  async function loadDirectoryReports(){
+    if (!document.getElementById('dir-find-conditions')) return;
+    if (!directoryPeopleRaw.length) await loadDirectoryPeople();
+    renderDirFind();
+    renderDirJoinsChart();
+    // Awaited together, then the empty-state note is decided once.
+    // These are declared further down this same scope; function
+    // declarations hoist, so calling them from above is fine.
+    await Promise.all([
+      loadRecentlyJoinedPanel(),
+      loadPendingInvitesPanel(),
+      loadDuplicatesPanel()
+    ]);
+    window.refreshDirReportsEmptyState();
+  }
+
+  // The three housekeeping panels each hide themselves when they have
+  // nothing, which on a tidy church left this page showing a heading
+  // and white space. Reported as "Reports is blank" -- it was.
+  //
+  // Called after each of them finishes rather than on a timer: they
+  // load independently, so the only moment this can be answered is
+  // when one of them has just settled.
+  window.refreshDirReportsEmptyState = function(){
+    var note = document.getElementById('dir-reports-empty');
+    if (!note) return;
+    var anyShown = ['dir-duplicates-wrap', 'dir-pending-invites-wrap', 'dir-recently-joined-wrap']
+      .some(function(id){
+        var el = document.getElementById(id);
+        return el && el.style.display !== 'none';
+      });
+    note.style.display = anyShown ? 'none' : 'block';
+  };
+  window.loadDirectoryReports = loadDirectoryReports;
+  dashPanel(loadDirectoryReports);
 
   // ============================================================
   // Directory housekeeping — pending invites and possible
