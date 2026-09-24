@@ -809,6 +809,7 @@
       'dashCheckin.selectEventFirst': 'Select an event above to see its check-in list.',
       'dashCheckin.walkInTag': 'Walk-in', 'dashCheckin.noSearchMatch': 'No one matches that search.', 'dashCheckin.noOneRegisteredYet': 'No one has registered for this event yet.',
       'dashDir.all': 'All', 'dashDir.members': 'Members', 'dashDir.staff': 'Staff', 'dashDir.eventSignups': 'Event sign-ups',
+      'dashDir.filterNSelected': '{n} filters',
       'dashDir.optedOut': 'Unsubscribed', 'dashDir.optedOutHint': 'This person asked not to receive email from your church. They are skipped automatically.',
       'dashMessages.someUnsubscribed': '{n} {personWord} unsubscribed and will be skipped.', 'dashMessages.person': 'person', 'dashMessages.people': 'people',
       'dashDir.groupSignups': 'Group sign-ups', 'dashDir.importMembers': 'Import members', 'dashDir.searchPlaceholder': 'Search by name or email',
@@ -1911,6 +1912,7 @@
       'dashCheckin.selectEventFirst': 'Selecciona un evento arriba para ver su lista de registro de llegada.',
       'dashCheckin.walkInTag': 'Sin registro', 'dashCheckin.noSearchMatch': 'Nadie coincide con esa búsqueda.', 'dashCheckin.noOneRegisteredYet': 'Aún nadie se ha inscrito en este evento.',
       'dashDir.all': 'Todos', 'dashDir.members': 'Miembros', 'dashDir.staff': 'Personal', 'dashDir.eventSignups': 'Inscripciones a eventos',
+      'dashDir.filterNSelected': '{n} filtros',
       'dashDir.optedOut': 'Dado de baja', 'dashDir.optedOutHint': 'Esta persona pidió no recibir correos de tu iglesia. Se omite automáticamente.',
       'dashMessages.someUnsubscribed': '{n} {personWord} se dieron de baja y se omitirán.', 'dashMessages.person': 'persona', 'dashMessages.people': 'personas',
       'dashDir.groupSignups': 'Inscripciones a grupos', 'dashDir.importMembers': 'Importar miembros', 'dashDir.searchPlaceholder': 'Buscar por nombre o correo electrónico',
@@ -2632,6 +2634,11 @@
     // Same fix, same reason, for the Events page's own denomination
     // dropdown (a separate checkbox set from the Directory's above).
     if (typeof window.updateEventsDenomDropdownLabel === 'function') window.updateEventsDenomDropdownLabel();
+    // And the dashboard Directory's filter button, for the same reason:
+    // its text is written in JS ('All', a filter's name, or '2
+    // filters'), so the generic pass above never touches it and a
+    // switch would leave it sitting in the previous language.
+    if (typeof window.refreshDirectoryFilterLabel === 'function') window.refreshDirectoryFilterLabel();
     // And the three Messages recipient dropdowns, for the same reason
     // squared: their button labels are written entirely in JS with no
     // data-i18n at all, so the generic pass above does not merely reset
@@ -4740,7 +4747,6 @@
 
   .row-thumb{width:44px;height:44px;border-radius:8px;object-fit:cover;flex-shrink:0;background:var(--paper);border:1px solid var(--line);}
   .row-thumb-empty{width:44px;height:44px;border-radius:8px;background:var(--paper);border:1px solid var(--line);flex-shrink:0;}
-  .directory-filter-btn.active{background:var(--brand);color:#fff;border-color:var(--brand);}
   .qr-btn:hover{color:var(--ink);border-color:var(--gold);}
   .qr-btn svg{width:15px;height:15px;display:block;}
   .checkin-row{cursor:pointer;}
@@ -8156,12 +8162,38 @@ Groups</span>
       <div class="dash-content" id="dash-directory">
         <h2 style="font-size:24px;margin-bottom:24px;" data-i18n="dash.directory">Directory</h2>
         <div class="dash-toolbar">
-          <div style="display:flex;gap:8px;">
-            <button class="export-btn directory-filter-btn active" data-filter="all" data-i18n="dashDir.all">All</button>
-            <button class="export-btn directory-filter-btn" data-filter="member" data-i18n="dashDir.members">Members</button>
-            <button class="export-btn directory-filter-btn" data-filter="staff" data-i18n="dashDir.staff">Staff</button>
-            <button class="export-btn directory-filter-btn" data-filter="event" data-i18n="dashDir.eventSignups">Event sign-ups</button>
-            <button class="export-btn directory-filter-btn" data-filter="group" data-i18n="dashDir.groupSignups">Group sign-ups</button>
+          <!-- One dropdown where five mutually-exclusive buttons were.
+
+               Those buttons could only ever ask one question at a time:
+               "members" OR "staff", never "members and staff", which is
+               the combination somebody actually wants when they are
+               looking for everybody attached to the church rather than
+               everybody who once registered for one event. They also
+               wrapped onto three lines on a phone.
+
+               Ticking more than one WIDENS the list -- a person shown is
+               one who matches ANY ticked box. Read as an intersection
+               instead, Members + Event sign-ups would mean "members who
+               have also registered for something", which is a report,
+               not a filter, and would usually come back empty.
+
+               All is a real checkbox rather than a Clear link, because
+               it is the state the list is in when nothing is ticked and
+               a checklist with every box empty otherwise looks broken. -->
+          <div id="dir-filter-wrap" style="position:relative;">
+            <button type="button" class="export-btn" id="dir-filter-btn" aria-expanded="false" style="display:flex;align-items:center;gap:7px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;flex-shrink:0;"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></svg>
+              <span id="dir-filter-label" data-i18n="dashDir.all">All</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;flex-shrink:0;"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+            <div id="dir-filter-panel" style="display:none;position:absolute;left:0;top:100%;min-width:220px;background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,0.16);padding:12px;z-index:200;margin-top:4px;">
+              <label class="filter-check"><input type="checkbox" id="dir-filter-all" checked> <span data-i18n="dashDir.all">All</span></label>
+              <div style="height:1px;background:var(--line);margin:4px 0 9px;"></div>
+              <label class="filter-check"><input type="checkbox" class="dir-filter-check" value="member"> <span data-i18n="dashDir.members">Members</span></label>
+              <label class="filter-check"><input type="checkbox" class="dir-filter-check" value="staff"> <span data-i18n="dashDir.staff">Staff</span></label>
+              <label class="filter-check"><input type="checkbox" class="dir-filter-check" value="event"> <span data-i18n="dashDir.eventSignups">Event sign-ups</span></label>
+              <label class="filter-check" style="margin-bottom:0;"><input type="checkbox" class="dir-filter-check" value="group"> <span data-i18n="dashDir.groupSignups">Group sign-ups</span></label>
+            </div>
           </div>
           <div style="display:flex;gap:8px;">
             <button class="btn-gold" id="import-members-open-btn" style="padding:10px 18px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;vertical-align:-3px;margin-right:4px;"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 19h16"/></svg><span data-i18n="dashDir.importMembers">Import members</span></button>
@@ -9272,7 +9304,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v246 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v247 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -28095,7 +28127,32 @@ Groups</span>
   // Carried from the card to the export, rather than re-fetched: the
   // card already has it and the export is opened from the card.
   var currentDirectoryPersonJoinedAt = null;
-  var directoryCurrentFilter = 'all';
+  // A SET of filters, where there used to be one string.
+  //
+  // Empty is All -- the same list the old 'all' button produced -- so
+  // there is no state in which the table is empty because of the
+  // filter rather than the data. Anything in it is a union: see
+  // dirPersonMatchesFilter below.
+  var directoryFilters = [];
+
+  // Which column of the directory row each filter is asking about.
+  // Staff covers the owner too: an owner who is not also in
+  // church_staff is still staff to anybody reading this list, and the
+  // old Staff button already worked this way.
+  var DIR_FILTER_TESTS = {
+    member: function(p){ return !!p.is_member; },
+    staff:  function(p){ return !!(p.is_staff || p.is_owner); },
+    event:  function(p){ return !!p.has_registered_event; },
+    group:  function(p){ return !!p.has_group_signup; }
+  };
+
+  function dirPersonMatchesFilter(p){
+    if (!directoryFilters.length) return true;
+    return directoryFilters.some(function(f){
+      var test = DIR_FILTER_TESTS[f];
+      return test ? test(p) : false;
+    });
+  }
 
   function renderDirectoryTable(){
     var tbody = document.getElementById('directory-tbody');
@@ -28104,10 +28161,7 @@ Groups</span>
     var searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
 
     var filtered = directoryPeopleRaw.filter(function(p){
-      if (directoryCurrentFilter === 'member' && !p.is_member) return false;
-      if (directoryCurrentFilter === 'staff' && !p.is_staff && !p.is_owner) return false;
-      if (directoryCurrentFilter === 'event' && !p.has_registered_event) return false;
-      if (directoryCurrentFilter === 'group' && !p.has_group_signup) return false;
+      if (!dirPersonMatchesFilter(p)) return false;
       if (searchTerm) {
         var name = (p.full_name || '').toLowerCase();
         var email = (p.email || '').toLowerCase();
@@ -29717,13 +29771,77 @@ Groups</span>
     }).join('');
   }, true);
 
-  document.querySelectorAll('.directory-filter-btn').forEach(function(btn){
-    btn.addEventListener('click', function(){
-      document.querySelectorAll('.directory-filter-btn').forEach(function(b){ b.classList.remove('active'); });
-      btn.classList.add('active');
-      directoryCurrentFilter = btn.getAttribute('data-filter');
-      renderDirectoryTable();
-    });
+  // A closed dropdown has to say what is inside it, or it is a thing
+  // that hides the answer. One filter is named outright -- the common
+  // case, and more useful than '1 filter'. The name is read off the
+  // checkbox's own label rather than from a second lookup table, so
+  // the button cannot disagree with the list it came from.
+  function refreshDirectoryFilterLabel(){
+    var labelEl = document.getElementById('dir-filter-label');
+    if (!labelEl) return;
+    if (!directoryFilters.length) { labelEl.textContent = window.t('dashDir.all'); return; }
+    if (directoryFilters.length === 1) {
+      var box = document.querySelector('.dir-filter-check[value="' + directoryFilters[0] + '"]');
+      var span = box && box.parentNode ? box.parentNode.querySelector('span') : null;
+      if (span) { labelEl.textContent = span.textContent.trim(); return; }
+    }
+    labelEl.textContent = window.t('dashDir.filterNSelected').replace('{n}', directoryFilters.length);
+  }
+  // Called from applyTranslations: this label is written in JS, so a
+  // language switch would otherwise leave it in the old language.
+  window.refreshDirectoryFilterLabel = refreshDirectoryFilterLabel;
+
+  // The checkboxes are the truth and this reads them, rather than each
+  // handler maintaining the array itself -- the All box and the four
+  // others both end up here, so they cannot drift apart.
+  function syncDirectoryFilters(){
+    directoryFilters = Array.prototype.slice.call(document.querySelectorAll('.dir-filter-check'))
+      .filter(function(c){ return c.checked; })
+      .map(function(c){ return c.value; });
+    var allBox = document.getElementById('dir-filter-all');
+    if (allBox) allBox.checked = !directoryFilters.length;
+    refreshDirectoryFilterLabel();
+    renderDirectoryTable();
+  }
+
+  function setDirFilterOpen(open){
+    var panel = document.getElementById('dir-filter-panel');
+    var btn = document.getElementById('dir-filter-btn');
+    if (!panel) return;
+    panel.style.display = open ? 'block' : 'none';
+    if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+
+  document.addEventListener('click', function(ev){
+    if (!ev.target.closest) return;
+    if (ev.target.closest('#dir-filter-btn')) {
+      var panel = document.getElementById('dir-filter-panel');
+      setDirFilterOpen(!panel || panel.style.display === 'none');
+      return;
+    }
+    // Clicks inside are choices, not dismissals -- ticking a second
+    // filter should not close the list you are ticking it from.
+    if (ev.target.closest('#dir-filter-panel')) return;
+    setDirFilterOpen(false);
+  });
+
+  document.addEventListener('keydown', function(ev){
+    if (ev.key === 'Escape') setDirFilterOpen(false);
+  });
+
+  document.addEventListener('change', function(ev){
+    var el = ev.target;
+    if (!el || !el.classList) return;
+    if (el.id === 'dir-filter-all') {
+      // All is a destination, not a toggle. Ticking it clears the
+      // others; unticking it on its own would mean 'show me nothing',
+      // so it stays ticked until one of the four takes over.
+      if (!el.checked) { el.checked = true; return; }
+      document.querySelectorAll('.dir-filter-check').forEach(function(c){ c.checked = false; });
+      syncDirectoryFilters();
+      return;
+    }
+    if (el.classList.contains('dir-filter-check')) syncDirectoryFilters();
   });
   var directorySearchInput = document.getElementById('directory-search-input');
   if (directorySearchInput) directorySearchInput.addEventListener('input', renderDirectoryTable);
