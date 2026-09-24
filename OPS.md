@@ -17,14 +17,59 @@ The distinction between the three files:
 When one is finished, move it to "Done" at the bottom with the date.
 The state it ended in is worth more later than the fact it was on a list.
 
-**Nothing is pending as of 2026-09-23.** Migration 091 has been run
-and verified; it is under Done below.
+### Confirm no other events policy exposes members-only events -- 2026-09-24
+
+**State today:** migration 092 has been run and works. Signed out,
+`events?visibility=eq.private` returned 5 full rows before and returns
+0 after; drafts still 0; public events still visible. That is settled.
+
+**What is not settled:** 092's own output reported **three** SELECT
+policies on `events`, not one. Permissive policies OR together, so the
+loosest wins, and the other two have not been read. Being invisible to
+anon proves neither of them opens private events to a logged-OUT
+visitor -- it proves nothing about a signed-IN one who is not a member
+of that church. If either says something like "authenticated can read
+events", a members-only event is still readable by any account on the
+platform, and accounts are free.
+
+**What doing it involves:** run
+`supabase/checks/events_select_policies.sql` (read-only) and read the
+two other policies. Either they are narrow, and this closes with a
+note, or one of them needs the same treatment 092 gave the first.
 
 ---
 
 ---
 
 ## Done
+
+### Migration 092 run -- members-only events are hidden -- 2026-09-24
+
+The event form's third visibility option says "Members only -- hidden
+from everyone except your members" and stores visibility='private'.
+The SELECT policy read `visibility <> 'draft' or owner or staff`, so
+private fell through the first branch and was visible to the whole
+internet.
+
+Measured on production, signed out, with only the anon key that ships
+in the page:
+
+```
+                    before   after
+visibility=private     5        0
+visibility=draft       0        0
+visibility=public      3        3
+```
+
+11 private events existed at the time of the fix.
+
+The four read paths that had to survive are named in the policy:
+approved members, anyone already registered, check-in volunteers at
+the door, and owner/full staff. Anonymous check-in links never
+consulted this policy -- `checkin_link_open` is SECURITY DEFINER.
+
+Left an open question behind it, now under Pending above: there are
+three SELECT policies on `events` and only one of them has been read.
 
 ### Migration 091 run -- group sign-ups counted, activity dated -- 2026-09-23
 
