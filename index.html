@@ -10215,7 +10215,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-24-v273 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-24-v274 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -17772,8 +17772,26 @@ Groups</span>
     // Same location state feeds the homepage's "near you" heading and
     // search box, so detecting it once (wherever that happens) shows
     // up everywhere rather than needing to be found again per page.
+    // The hero box gets the new location like the other two, instead
+    // of only being filled when it happened to be empty.
+    //
+    // THIS WAS A REAL BUG, not tidying. The Directory and Events boxes
+    // are set unconditionally a few lines up; only this one was
+    // skipped once it held anything. So searching a second address
+    // anywhere else left the hero still showing the first one, and the
+    // hero is not just a display -- goToDirectoryFromHero() reads its
+    // value. Going back to the home page and pressing search then
+    // re-ran the OLD address and the location appeared to revert,
+    // which a refresh "fixed" because the head script restores the
+    // remembered search. Measured: heading, Directory box and
+    // dirUserLat/Lng all on the new city while the hero still read the
+    // old one.
+    //
+    // The focus check keeps the original intent. Not clobbering what
+    // somebody is in the middle of typing is worth protecting; "is
+    // non-empty" was just the wrong test for it.
     var heroInput = document.getElementById('hero-location-input');
-    if (heroInput && !heroInput.value) heroInput.value = label;
+    if (heroInput && document.activeElement !== heroInput) heroInput.value = label;
     // The headings themselves are painted by the shared helper in the
     // head script, not here. Three different things can learn the
     // location -- this function, a value remembered from an earlier
