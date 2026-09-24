@@ -50,10 +50,12 @@
        overscroll colour of the ordinary website otherwise. */
     html{background:#1A2A49;}
     #fd-splash{
-      /* EMPTY ON PURPOSE. It is a plain navy field and must stay that
-         way -- no logo, no wordmark, no spinner. Read the comment on
-         the markup below before putting anything inside it. */
-      display:block;position:fixed;inset:0;z-index:99999;
+      /* NO LOGO AND NO WORDMARK -- read the markup comment below before
+         adding either back. A spinner is fine and there is one: it
+         reads as "loading", not as a second branded screen, which is
+         the distinction that matters here. */
+      display:flex;align-items:center;justify-content:center;
+      position:fixed;inset:0;z-index:99999;
       /* #1A2A49 sampled from the supplied artwork rather than guessed;
          the icon's own rect is #1B2A4A and the two should not drift. */
       background:#1A2A49;
@@ -63,12 +65,35 @@
       animation:fdSplashOut .4s ease 6s forwards;
     }
     #fd-splash.fd-splash-done{animation:fdSplashOut .35s ease forwards;}
+    /* The spinner, drawn with ::after rather than a real element so the
+       markup stays empty and there is nowhere obvious to hang a logo
+       next to it.
+
+       It fades in on a 400ms delay. A launch that finishes faster than
+       that never shows a spinner at all, which is the point -- a
+       spinner that appears and disappears within a couple of frames
+       reads as a glitch rather than as progress. */
+    #fd-splash::after{
+      content:'';width:34px;height:34px;border-radius:50%;
+      border:3px solid rgba(201,162,39,.22);border-top-color:#C9A227;
+      animation:fdSpin .8s linear infinite, fdSpinIn .25s ease .4s both;
+    }
   }
   @keyframes fdSplashOut{to{opacity:0;visibility:hidden;}}
+  @keyframes fdSpin{to{transform:rotate(360deg);}}
+  @keyframes fdSpinIn{from{opacity:0;}to{opacity:1;}}
   /* Somebody who has asked for less motion still wants the splash to
      go away -- it just goes at once instead of fading. */
   @media (prefers-reduced-motion: reduce){
     #fd-splash, #fd-splash.fd-splash-done{animation-duration:.01s;}
+    /* A ring spinning forever is precisely what somebody who asked for
+       less motion asked not to see. Keep an indicator, drop the
+       rotation: the ring goes complete and even rather than sitting
+       there as a lopsided arc, which would just look broken. */
+    #fd-splash::after{
+      border-color:rgba(201,162,39,.45);
+      animation:fdSpinIn .25s ease .4s both;
+    }
   }
 </style>
 <meta name="google-site-verification" content="wjneRJQpRgpt_EfjLRpRWtp8ul3l8tg0p2mWVdfBfT0" />
@@ -5415,8 +5440,9 @@
 <!-- First element in the body so it paints without waiting for the
      rest of the document.
 
-     THIS IS DELIBERATELY EMPTY. No logo, no wordmark, no spinner. Do
-     not put the mark back in it.
+     THIS IS DELIBERATELY EMPTY. Do not put the mark back in it. The
+     only thing it shows is a spinner, and that comes from CSS
+     (#fd-splash::after) so this stays a bare div.
 
      Android draws its own launch screen before a byte of this page
      runs and it cannot be turned off. It shows the app icon on
@@ -5435,6 +5461,10 @@
      Empty navy has nothing to mismatch. The mark appears exactly once
      during a launch, on the system screen, and this just holds the
      colour afterwards. One screen, which is what was asked for.
+
+     A spinner is a different thing and is fine: it reads as progress
+     rather than as branding, so it does not compete with the screen
+     before it. That is the line -- no second logo, indicators welcome.
 
      aria-hidden, not role="status": this is a decorative hold with
      nothing to announce, and role="status" is a live region that
@@ -9846,7 +9876,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-24-v269 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-24-v270 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">

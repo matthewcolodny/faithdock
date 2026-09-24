@@ -70,16 +70,23 @@ It shows the app icon on `background_color`. The in-page layer
 (`#fd-splash`, gated on `display-mode: standalone`) takes over from it
 and covers the time it takes 2.5MB of HTML to become usable.
 
-**`#fd-splash` is deliberately empty — a plain navy field with no logo,
-no wordmark and no spinner.** Three versions tried to blend it into the
-system screen: mark beside a wordmark, mark above a wordmark, then the
-mark alone at a size measured off a screenshot of the real thing. All
-three read as a second screen, and the last one is why: the system's
-copy of the mark is upscaled and soft, ours is drawn from vector data
-and is crisp. A blurry image and a sharp one do not blend no matter how
-carefully they are sized. Empty navy has nothing to mismatch, so the
-mark appears exactly once per launch and this just holds the colour
-afterwards.
+**`#fd-splash` carries no logo and no wordmark** — just navy and a
+spinner. Three versions tried to blend it into the system screen: mark
+beside a wordmark, mark above a wordmark, then the mark alone at a size
+measured off a screenshot of the real thing. All three read as a second
+screen, and the last one is why: the system's copy of the mark is
+upscaled and soft, ours is drawn from vector data and is crisp. A
+blurry image and a sharp one do not blend no matter how carefully they
+are sized. So the mark appears exactly once per launch, on the system
+screen, and this holds the colour afterwards.
+
+A spinner is fine and there is one, drawn with `::after` so the markup
+stays a bare div. It reads as progress rather than as branding, so it
+does not compete with the screen before it — that is the line, no
+second logo, indicators welcome. It fades in on a 400ms delay so a
+launch that beats it never flashes a spinner, and under
+`prefers-reduced-motion` the ring goes complete and stops rotating
+rather than sitting there as a lopsided arc.
 
 It is dismissed on whichever comes first: `load`, or `DOMContentLoaded`
 plus 250ms. Waiting for `load` alone was fine when the layer carried
