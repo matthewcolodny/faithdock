@@ -20,12 +20,14 @@ The state it ended in is worth more later than the fact it was on a list.
 ## Migration 096 -- document and de-duplicate the events manage policy
 
 **State today (verified 2026-09-24, by running
- against production):**
- carries a policy, "owner and permitted staff can manage
- events", calling . Neither the policy
+`supabase/checks/policy_function_sources.sql` against production):**
+`events` carries a policy, "owner and permitted staff can manage
+events", calling `can_manage_church_events(uuid)`. Neither the policy
 nor the function appears in any migration in this repository. Every
-other policy helper does. It duplicates "owner or staff can manage
-events" from migration 082, which writes the same test inline.
+other policy helper does — `staff_beyond_checkin`,
+`is_approved_church_member`, `can_manage_church_members` and the rest.
+It duplicates "owner or staff can manage events" from migration 082,
+which writes the same test inline.
 
 **Why it matters:** not a hole -- the security invariants pass, and the
 two rules were compared over every real (user, church) pair and agree.
@@ -36,11 +38,12 @@ reader has to prove neither is looser, which is the work that let the
 earlier events hole survive review.
 
 **What doing it involves:** run
-
-in the SQL Editor. Its preflight re-measures the equivalence and aborts
-if the two rules disagree anywhere. Then read the verify block: expect
-three SELECT-capable policies and . Afterwards
-re-run .
+`supabase/migrations/096_document_and_dedupe_events_manage_policy.sql`
+in the SQL Editor. Its preflight re-measures the equivalence against
+every real (user, church) pair and aborts if the two rules disagree
+anywhere. Then read the verify block: expect three SELECT-capable
+policies and `duplicate_remaining = 0`. Afterwards re-run
+`supabase/checks/security_invariants.sql`.
 
 **Not yet run.**
 
