@@ -17,26 +17,35 @@ The distinction between the three files:
 When one is finished, move it to "Done" at the bottom with the date.
 The state it ended in is worth more later than the fact it was on a list.
 
-### Confirm no other events policy exposes members-only events -- 2026-09-24
+### Migration 093 -- close the members-only events hole -- 2026-09-24
 
-**State today:** migration 092 has been run and works. Signed out,
-`events?visibility=eq.private` returned 5 full rows before and returns
-0 after; drafts still 0; public events still visible. That is settled.
+**State today:** `supabase/migrations/093_drop_loose_private_events_policy.sql`
+is in the repo and has NOT been run. Migration 092 has, and is not
+enough on its own.
 
-**What is not settled:** 092's own output reported **three** SELECT
-policies on `events`, not one. Permissive policies OR together, so the
-loosest wins, and the other two have not been read. Being invisible to
-anon proves neither of them opens private events to a logged-OUT
-visitor -- it proves nothing about a signed-IN one who is not a member
-of that church. If either says something like "authenticated can read
-events", a members-only event is still readable by any account on the
-platform, and accounts are free.
+**Why it matters:** the policy "private events visible to members"
+tests only that a `church_memberships` ROW EXISTS for the caller and
+that church -- no `is_permanent`, no `status`. Migration 035 lets
+anyone insert their own row for any church; that is what "Request to
+join" does, and the trigger merely forces `status := 'pending'`. So any
+signed-in account can request membership anywhere and immediately read
+every event that church marked "hidden from everyone except your
+members". Being rejected does not help -- a rejected row is still a
+row.
 
-**What doing it involves:** run
-`supabase/checks/events_select_policies.sql` (read-only) and read the
-two other policies. Either they are narrow, and this closes with a
-note, or one of them needs the same treatment 092 gave the first.
+092 could not have caught this. Permissive policies OR together, and
+092 was verified signed OUT, where `auth.uid()` is null and matches no
+membership row. The policy COUNT in its output -- three where one was
+expected -- is what did.
 
+**What doing it involves:** run the file. It drops that one policy and
+nothing replaces it: 092's policy already covers the legitimate case
+and covers it properly, via `is_approved_church_member()` which
+requires `is_permanent AND status = 'approved'`. Its preflight refuses
+to run if 092 is missing, since dropping this without it would hide
+members-only events from actual members. It prints every remaining
+SELECT-capable policy in full -- listed, not counted, because a count
+is what let this hide.
 ---
 
 ---
