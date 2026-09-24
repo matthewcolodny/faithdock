@@ -26,6 +26,47 @@
 <meta name="theme-color" content="#16233F">
 <meta name="apple-mobile-web-app-title" content="FaithDock">
 <meta name="mobile-web-app-capable" content="yes">
+
+<!-- The opening splash. Inline and near the top of the head on
+     purpose: it has to paint before the 2.5MB of app below it, so it
+     cannot live in a stylesheet that is parsed later.
+
+     ONLY IN THE INSTALLED APP. The display-mode media query is the
+     whole gate -- an ordinary browser visit never sees it. A branded
+     hold is right when somebody taps an icon expecting an app; it is
+     just a delay in front of somebody who clicked a link.
+
+     The decision has to be CSS rather than JS, because JS here runs
+     only after the app has parsed, which is exactly the window the
+     splash exists to cover. -->
+<style>
+  #fd-splash{display:none;}
+  @media (display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui){
+    #fd-splash{
+      display:flex;align-items:center;justify-content:center;gap:14px;
+      position:fixed;inset:0;z-index:99999;
+      /* #1A2A49 sampled from the supplied artwork rather than guessed;
+         the icon's own rect is #1B2A4A and the two should not drift. */
+      background:#1A2A49;
+      /* A fallback fade, in case the script below never runs. A splash
+         that can outlive a JS error is a white-screen bug wearing a
+         logo -- this one always ends hidden, script or no script. */
+      animation:fdSplashOut .4s ease 6s forwards;
+    }
+    #fd-splash.fd-splash-done{animation:fdSplashOut .35s ease forwards;}
+    #fd-splash svg{width:52px;height:52px;flex-shrink:0;}
+    #fd-splash span{
+      font-family:'Fraunces',Georgia,'Times New Roman',serif;
+      font-size:34px;font-weight:600;color:#fff;letter-spacing:-.01em;
+    }
+  }
+  @keyframes fdSplashOut{to{opacity:0;visibility:hidden;}}
+  /* Somebody who has asked for less motion still wants the splash to
+     go away -- it just goes at once instead of fading. */
+  @media (prefers-reduced-motion: reduce){
+    #fd-splash, #fd-splash.fd-splash-done{animation-duration:.01s;}
+  }
+</style>
 <meta name="google-site-verification" content="wjneRJQpRgpt_EfjLRpRWtp8ul3l8tg0p2mWVdfBfT0" />
 <title>FaithDock — Find your church home</title>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
@@ -5367,6 +5408,23 @@
 </head>
 <body>
 
+<!-- First element in the body so it paints without waiting for the
+     rest of the document. The mark is the same SVG the header uses;
+     the wordmark is text rather than an image so it needs no second
+     request, and falls back to Georgia for the moment before Fraunces
+     arrives. -->
+<!-- aria-hidden, not role="status": this is a decorative hold with
+     nothing to announce, and role="status" is a live region that
+     would have a screen reader read it out on every launch. The
+     document title already says FaithDock. -->
+<div id="fd-splash" aria-hidden="true">
+  <svg viewBox="0 0 172.84 172.84" fill="none" aria-hidden="true">
+    <path fill-rule="evenodd" fill="#C9A227" d="M35.68,122.45L89.09,17.75l49.11,104.7H35.68ZM81.67,60.71v74.46s12.45,0,12.45,0V60.71s-12.45,0-12.45,0ZM60.93,80.3h53.93s0,11.76,0,11.76h-53.93s0-11.76,0-11.76Z"/>
+    <path fill="#C9A227" d="M20.64,130.74c74.8,31.89,65.48,31.25,132.52,0H20.64Z"/>
+  </svg>
+  <span>FaithDock</span>
+</div>
+
 <div id="waitlist-banner" style="display:none;" data-route="waitlist">
   <span data-i18n="waitlistBanner.text">FaithDock is in private testing — invite-only for now. Click here to request access.</span>
   <button type="button" id="waitlist-banner-close" aria-label="Dismiss" data-i18n-title="common.dismiss"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
@@ -9771,7 +9829,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-24-v263 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-24-v264 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12133,6 +12191,31 @@ Groups</span>
   // hardcoded offset is wrong in one of those two states -- it was
   // wrong at the top of the page, which is where people arrive.
   //
+  // Take the splash down once the app is actually up.
+  //
+  // NO requestAnimationFrame here, though the first version had one to
+  // start the fade on an already-painted frame. rAF does not run in a
+  // hidden tab -- measured, with visibilityState 'hidden' and no
+  // callback in a full second -- so somebody who taps the icon and
+  // switches away while the app loads would come back to a splash
+  // still covering it, waiting on the 6s CSS fallback. By load the page
+  // is painted anyway, so the rAF was buying almost nothing and costing
+  // that.
+  //
+  // The element is removed rather than left hidden, because a
+  // position:fixed layer over the whole viewport is not something to
+  // leave lying around on the strength of visibility:hidden alone.
+  (function dismissSplash(){
+    var splash = document.getElementById('fd-splash');
+    if (!splash) return;
+    function go(){
+      splash.classList.add('fd-splash-done');
+      setTimeout(function(){ if (splash.parentNode) splash.parentNode.removeChild(splash); }, 500);
+    }
+    if (document.readyState === 'complete') go();
+    else window.addEventListener('load', go);
+  })();
+
   // Service worker registration.
   //
   // Deliberately after load, and deliberately failure-tolerant: this
