@@ -12,7 +12,20 @@
 })();
 </script>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+<!-- Installable-to-home-screen bits. None of this changes how the
+     site behaves in an ordinary browser tab. -->
+<link rel="manifest" href="/manifest.webmanifest">
+<!-- iOS ignores the manifest's icons and reads this one, and it will
+     not take an SVG. Without it, "Add to Home Screen" on an iPhone
+     uses a screenshot of the page as the icon. -->
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<!-- Tints the Android status bar and the desktop title bar to match
+     the app header rather than leaving a white strip above it. -->
+<meta name="theme-color" content="#16233F">
+<meta name="apple-mobile-web-app-title" content="FaithDock">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="google-site-verification" content="wjneRJQpRgpt_EfjLRpRWtp8ul3l8tg0p2mWVdfBfT0" />
 <title>FaithDock — Find your church home</title>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
@@ -9758,7 +9771,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-24-v262 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-24-v263 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12120,6 +12133,29 @@ Groups</span>
   // hardcoded offset is wrong in one of those two states -- it was
   // wrong at the top of the page, which is where people arrive.
   //
+  // Service worker registration.
+  //
+  // Deliberately after load, and deliberately failure-tolerant: this
+  // is an enhancement, and a site that will not start because its
+  // offline cache would not register is worse than one that simply
+  // needs a signal. Nothing above depends on it resolving.
+  //
+  // It does NOT make the app faster -- sw.js is network-first, so the
+  // cache is only consulted when the network fails. That is the point:
+  // see the long note at the top of sw.js about build stamps.
+  // localhost counts as a secure context to every browser, so it
+  // belongs here too -- otherwise the one environment where this can
+  // be tested before deploying is the one place it refuses to run.
+  var swSecure = location.protocol === 'https:'
+    || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  if ('serviceWorker' in navigator && swSecure) {
+    window.addEventListener('load', function(){
+      navigator.serviceWorker.register('/sw.js').catch(function(err){
+        console.warn('Service worker did not register:', err);
+      });
+    });
+  }
+
   // rAF-throttled because scroll fires far more often than layout
   // needs to change, and passive so it never delays the scroll itself.
   (function trackNavBottom(){
