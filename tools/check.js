@@ -303,6 +303,36 @@ function checkAssetLinks() {
 }
 
 // ---------------------------------------------------------------------
+// 6c. No credential has been committed into a migration.
+// ---------------------------------------------------------------------
+// 097 creates a login role and therefore contains the word `password`
+// followed by a literal. It ships with a placeholder that has to be
+// filled in before running -- which makes it exactly the kind of file
+// somebody fills in, runs, and then commits without thinking. The
+// placeholder must still be there.
+//
+// Deliberately narrow: it checks the one file known to carry this
+// shape, rather than grepping the repo for anything password-like and
+// producing false alarms on every comment that says the word.
+
+function checkNoCommittedSecrets() {
+  const p = path.join(ROOT, 'supabase', 'migrations', '097_ci_invariants_role.sql');
+  if (!fs.existsSync(p)) return;
+  const src = fs.readFileSync(p, 'utf8');
+  const placeholder = 'REPLACE_WITH_A_GENERATED_PASSWORD';
+  const literals = src.match(/password\s+'([^']*)'/gi) || [];
+  const filled = literals.filter(function (m) { return m.indexOf(placeholder) === -1; });
+  if (filled.length) {
+    fail('supabase/migrations/097_ci_invariants_role.sql',
+      'a real password looks committed here (' + filled.length + ' literal' +
+      (filled.length === 1 ? '' : 's') + ' without the placeholder).\n' +
+      '      Put the placeholder back, and rotate the password -- git history keeps what was pushed.');
+    return;
+  }
+  note('097 still carries its password placeholder (no credential committed)');
+}
+
+// ---------------------------------------------------------------------
 // 7. The build stamp is present and plausible.
 // ---------------------------------------------------------------------
 // People are asked to read it back. A missing or malformed one is worse
@@ -323,6 +353,7 @@ checkManifest();
 checkServiceWorkerShell();
 checkSvgComments();
 checkAssetLinks();
+checkNoCommittedSecrets();
 checkBuildStamp();
 
 for (const n of notes) console.log('  ok    ' + n);
