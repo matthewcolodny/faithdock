@@ -17,8 +17,37 @@ The distinction between the three files:
 When one is finished, move it to "Done" at the bottom with the date.
 The state it ended in is worth more later than the fact it was on a list.
 
-**Nothing is pending as of 2026-09-24.** Migrations 091 through 095
-have all been run and verified; they are under Done below.
+## Migration 096 -- document and de-duplicate the events manage policy
+
+**State today (verified 2026-09-24, by running
+ against production):**
+ carries a policy, "owner and permitted staff can manage
+ events", calling . Neither the policy
+nor the function appears in any migration in this repository. Every
+other policy helper does. It duplicates "owner or staff can manage
+events" from migration 082, which writes the same test inline.
+
+**Why it matters:** not a hole -- the security invariants pass, and the
+two rules were compared over every real (user, church) pair and agree.
+It matters because the repository is not a complete description of the
+database: a rebuild from these migrations would silently lack that
+rule. And two permissive policies saying one thing means the next
+reader has to prove neither is looser, which is the work that let the
+earlier events hole survive review.
+
+**What doing it involves:** run
+
+in the SQL Editor. Its preflight re-measures the equivalence and aborts
+if the two rules disagree anywhere. Then read the verify block: expect
+three SELECT-capable policies and . Afterwards
+re-run .
+
+**Not yet run.**
+
+---
+
+**Otherwise nothing is pending as of 2026-09-24.** Migrations 091
+through 095 have all been run and verified; they are under Done below.
 ---
 ---
 ---
