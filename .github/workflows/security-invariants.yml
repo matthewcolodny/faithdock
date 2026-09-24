@@ -16,17 +16,29 @@
 # not failed, so it will not sit there red.
 #
 #   1. Supabase dashboard -> Project Settings -> Database
-#   2. Copy the CONNECTION STRING (URI). Use the SESSION pooler or the
-#      direct connection; either is fine for one short read.
+#   2. Copy the SESSION POOLER connection string (URI). NOT the direct
+#      connection -- Supabase serves that over IPv6 only unless you pay
+#      for the IPv4 add-on, and GitHub-hosted runners have no IPv6, so
+#      it simply will not connect. The pooler host looks like
+#      aws-0-<region>.pooler.supabase.com and is IPv4.
 #   3. Put your database password into it in place of [YOUR-PASSWORD].
 #   4. GitHub -> this repo -> Settings -> Secrets and variables ->
 #      Actions -> New repository secret
 #        Name:   SUPABASE_DB_URL
 #        Value:  the full postgresql://... string
 #
-# That password is the whole database. Never paste it into a file, a
-# chat, or a commit -- only into the secret box. Rotate it in Supabase
-# if it is ever exposed.
+# That password is the whole database -- unlike the anon key in
+# index.html, which is public by design and fenced in by RLS. Never put
+# it in a file, a chat or a commit; only in the secret box. GitHub
+# encrypts it, will not show it again, and masks it in logs. Rotate it
+# in Supabase if it is ever exposed.
+#
+# A NARROWER OPTION, if handing a CI job the master password is more
+# than you want: create a dedicated login role that is a member of anon
+# and authenticated but owns nothing. The invariants need role-switching
+# (`set local role anon`), which is why a plain read-only role will not
+# do -- but they do not need superuser. Ask and this can be written as a
+# migration.
 # ---------------------------------------------------------------------
 
 name: security invariants
