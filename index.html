@@ -985,6 +985,11 @@
       'dirReports.exportEngagement': 'Export engagement',
       'dirReports.nobodyQuiet': 'Nobody has gone quiet — everyone connected to your church has done something in the last 90 days.',
       'dirReports.roleGroup': 'in a group',
+      'dirReports.joinsAndLeavesTitle': 'Joins and leaves over time',
+      'dirReports.joinedLegend': 'Joined', 'dirReports.leftLegend': 'Left',
+      'dirReports.departuresSince': 'Departures have been recorded since {date}. Earlier months are blank rather than zero — nothing was keeping track before then, and that is not the same as nobody leaving.',
+      'dirReports.joinsLeavesTotal': '{joined} joined, {left} left in the last 12 months',
+      'dirReports.noLeavesYet': 'Nobody has left since records began.',
       'dashSub.sendMessage': 'Send message', 'dashSub.churchInbox': 'Church inbox',
       'dashSub.messagesInbox': 'Church inbox', 'dashSub.messagesSettings': 'Message settings',
       'dashSub.facilitySchedule': 'Schedule', 'dashSub.facilityRooms': 'Rooms',
@@ -2143,6 +2148,11 @@
       'dirReports.exportEngagement': 'Exportar participación',
       'dirReports.nobodyQuiet': 'Nadie está inactivo — todas las personas conectadas con tu iglesia han hecho algo en los últimos 90 días.',
       'dirReports.roleGroup': 'en un grupo',
+      'dirReports.joinsAndLeavesTitle': 'Altas y bajas en el tiempo',
+      'dirReports.joinedLegend': 'Se unieron', 'dirReports.leftLegend': 'Se fueron',
+      'dirReports.departuresSince': 'Las bajas se registran desde el {date}. Los meses anteriores quedan en blanco en lugar de cero — antes no había nada que lo registrara, y eso no es lo mismo que que nadie se fuera.',
+      'dirReports.joinsLeavesTotal': '{joined} altas y {left} bajas en los últimos 12 meses',
+      'dirReports.noLeavesYet': 'Nadie se ha ido desde que empezó el registro.',
       'dashSub.sendMessage': 'Enviar mensaje', 'dashSub.churchInbox': 'Bandeja de la iglesia',
       'dashSub.messagesInbox': 'Bandeja de la iglesia', 'dashSub.messagesSettings': 'Ajustes de mensajes',
       'dashSub.facilitySchedule': 'Horario', 'dashSub.facilityRooms': 'Salas',
@@ -2760,6 +2770,12 @@
     // filters'), so the generic pass above never touches it and a
     // switch would leave it sitting in the previous language.
     if (typeof window.refreshDirectoryFilterLabel === 'function') window.refreshDirectoryFilterLabel();
+    // The joins chart's heading and footnote say one of two things
+    // depending on whether departures are being logged, and both carry
+    // the "not logged" wording as their data-i18n default -- so the
+    // generic pass above would flip a church that IS logging back to
+    // being told it is not. Redrawing the chart resets both.
+    if (typeof window.renderDirJoinsChart === 'function') window.renderDirJoinsChart();
     // And the three Messages recipient dropdowns, for the same reason
     // squared: their button labels are written entirely in JS with no
     // data-i18n at all, so the generic pass above does not merely reset
@@ -8334,13 +8350,13 @@ Groups</span>
         </div>
 
         <div class="side-note" id="dir-joins-wrap" style="max-width:720px;">
-          <h4 data-i18n="dirReports.joinsTitle">Joins over time</h4>
+          <h4 id="dir-joins-heading" data-i18n="dirReports.joinsTitle">Joins over time</h4>
           <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:12px;" data-i18n="dirReports.joinsHint">When people first became connected to your church.</p>
           <div id="dir-joins-chart"></div>
           <!-- Said plainly rather than left as a gap somebody has to
                notice. A chart with a joins line and no leaves line
                invites the reading that nobody has left. -->
-          <p style="font-size:11.5px;color:var(--ink-mute);margin-top:12px;line-height:1.5;" data-i18n="dirReports.noDepartures">Departures are not shown because they are not recorded.</p>
+          <p id="dir-joins-note" style="font-size:11.5px;color:var(--ink-mute);margin-top:12px;line-height:1.5;" data-i18n="dirReports.noDepartures">Departures are not shown because they are not recorded.</p>
         </div>
 
         <!-- Only appears when all three housekeeping panels below have
@@ -9622,7 +9638,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v255 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-24-v256 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -29652,6 +29668,7 @@ Groups</span>
     dirFindShowResults(dirFindResults());
   }
   window.renderDirFind = renderDirFind;
+  window.renderDirJoinsChart = function(){ renderDirJoinsChart(); };
 
   document.addEventListener('click', function(ev){
     if (!ev.target.closest) return;
@@ -29771,6 +29788,32 @@ Groups</span>
   // Horizontal bars, one row per month. A vertical chart needs room
   // for twelve rotated month labels along the bottom and gets that
   // wrong on a phone; a row per month reads the same at any width.
+  // Filled by loadDirDepartures. Null means the log is not there yet
+  // (migration 094 unrun), which is different from an empty log.
+  var dirDepartures = null;
+  var dirDeparturesStart = null;
+
+  async function loadDirDepartures(){
+    dirDepartures = null;
+    dirDeparturesStart = null;
+    var myChurch = await getMyChurch();
+    if (!myChurch) return;
+    var since = new Date();
+    since.setMonth(since.getMonth() - 12);
+    var results = await Promise.all([
+      supabase.from('church_membership_departures').select('left_at')
+        .eq('church_id', myChurch.id).gte('left_at', since.toISOString()),
+      supabase.rpc('departures_logging_started_at')
+    ]);
+    if (results[0].error || results[1].error) {
+      console.error('departures unavailable (migration 094 not run?):',
+        results[0].error || results[1].error);
+      return;
+    }
+    dirDepartures = results[0].data || [];
+    dirDeparturesStart = results[1].data ? new Date(results[1].data) : null;
+  }
+
   function renderDirJoinsChart(){
     var el = document.getElementById('dir-joins-chart');
     if (!el) return;
@@ -29804,21 +29847,108 @@ Groups</span>
       return;
     }
 
-    var peak = buckets.reduce(function(m, b){ return Math.max(m, b.count); }, 0);
-    el.innerHTML = buckets.map(function(b){
+    // Leaves, bucketed the same way. A month EARLIER than the day
+    // logging began gets null rather than 0 -- blank, not zero. There
+    // was nothing keeping track then, and drawing a zero would assert
+    // that nobody left.
+    var haveLeaves = dirDepartures !== null;
+    var leftTotal = 0;
+    // A month is blank only if it ended BEFORE logging began. The month
+    // logging started in is partial, and shows its real count -- which
+    // is what actually happened, and the note says when records began
+    // so a reader can see the first month is short.
+    //
+    // Two earlier versions of this line were wrong in opposite
+    // directions. Requiring the month to START after logging began
+    // dropped the first month entirely: 2 real departures rendered as
+    // "—" and, worse, vanished from the 12-month total, which then read
+    // "0 left" while two people had left. Before that, taking the local
+    // month CONTAINING the start instant marked August as a real zero,
+    // because midnight UTC is the previous month five hours west of
+    // Greenwich.
+    //
+    // Month ends are computed in UTC to match the stored constant.
+    // In local time August ends at 05:00 UTC on 1 September, which
+    // would make it "partially covered" by a five-hour sliver.
+    buckets.forEach(function(b){
+      var monthEndUtc = Date.UTC(b.date.getFullYear(), b.date.getMonth() + 1, 1);
+      b.left = (haveLeaves && dirDeparturesStart && monthEndUtc > dirDeparturesStart.getTime()) ? 0 : null;
+    });
+    if (haveLeaves) {
+      dirDepartures.forEach(function(row){
+        var when = new Date(row.left_at);
+        var k = when.getFullYear() + '-' + when.getMonth();
+        if (!index[k] || index[k].left === null) return;
+        index[k].left++;
+        leftTotal++;
+      });
+    }
+
+    // Both series share one scale, or a month with 1 leaver and 9
+    // joiners would draw two bars the same length.
+    var peak = buckets.reduce(function(m, b){ return Math.max(m, b.count, b.left || 0); }, 0) || 1;
+    function barWidth(n){ return n ? Math.max(3, Math.round((n / peak) * 100)) : 0; }
+
+    el.innerHTML =
+      (haveLeaves
+        ? '<div style="display:flex;gap:14px;font-size:11px;color:var(--ink-mute);margin-bottom:8px;">'
+            + '<span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--gold);vertical-align:-1px;margin-right:4px;"></span>' + escapeHtml(window.t('dirReports.joinedLegend')) + '</span>'
+            + '<span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--clay);vertical-align:-1px;margin-right:4px;"></span>' + escapeHtml(window.t('dirReports.leftLegend')) + '</span>'
+          + '</div>'
+        : '')
+    + buckets.map(function(b){
       var label = b.date.toLocaleDateString(window.appLocale(), { month: 'short', year: '2-digit' });
-      // Scaled against the busiest month, with a floor so a month with
-      // one join still draws something rather than looking like zero.
-      var pct = b.count ? Math.max(3, Math.round((b.count / peak) * 100)) : 0;
-      return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">'
-        + '<span style="width:58px;flex-shrink:0;font-size:11px;color:var(--ink-mute);font-variant-numeric:tabular-nums;">' + escapeHtml(label) + '</span>'
-        + '<span style="flex:1;min-width:0;background:var(--paper);border-radius:4px;height:14px;overflow:hidden;">'
-          + '<span style="display:block;height:100%;width:' + pct + '%;background:var(--gold);border-radius:4px;"></span>'
+      // Two thin bars in one track rather than one row each: twelve
+      // months already fill the panel, and twenty-four would turn a
+      // glance into a scroll.
+      var track = '<span style="flex:1;min-width:0;">'
+        + '<span style="display:block;background:var(--paper);border-radius:3px;height:' + (haveLeaves ? 7 : 14) + 'px;overflow:hidden;">'
+          + '<span style="display:block;height:100%;width:' + barWidth(b.count) + '%;background:var(--gold);border-radius:3px;"></span>'
         + '</span>'
-        + '<span style="width:28px;flex-shrink:0;text-align:right;font-size:11.5px;font-variant-numeric:tabular-nums;color:' + (b.count ? 'var(--ink)' : 'var(--ink-mute)') + ';">' + b.count + '</span>'
+        + (haveLeaves
+            ? '<span style="display:block;background:var(--paper);border-radius:3px;height:7px;overflow:hidden;margin-top:2px;">'
+                + '<span style="display:block;height:100%;width:' + barWidth(b.left || 0) + '%;background:var(--clay);border-radius:3px;"></span>'
+              + '</span>'
+            : '')
+        + '</span>';
+      // An em dash for a month before records began: not zero, and
+      // visibly not zero.
+      var leftText = (b.left === null) ? '—' : ('\u2212' + b.left);
+      return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">'
+        + '<span style="width:58px;flex-shrink:0;font-size:11px;color:var(--ink-mute);font-variant-numeric:tabular-nums;">' + escapeHtml(label) + '</span>'
+        + track
+        + '<span style="width:30px;flex-shrink:0;text-align:right;font-size:11.5px;font-variant-numeric:tabular-nums;color:' + (b.count ? 'var(--ink)' : 'var(--ink-mute)') + ';">+' + b.count + '</span>'
+        + (haveLeaves
+            ? '<span style="width:30px;flex-shrink:0;text-align:right;font-size:11.5px;font-variant-numeric:tabular-nums;color:' + (b.left ? 'var(--clay)' : 'var(--ink-mute)') + ';">' + leftText + '</span>'
+            : '')
         + '</div>';
     }).join('')
-    + '<p style="font-size:12px;color:var(--ink-mute);margin-top:8px;">' + escapeHtml(window.t('dirReports.joinsTotal').replace('{n}', total)) + '</p>';
+    + '<p style="font-size:12px;color:var(--ink-mute);margin-top:8px;">'
+      + escapeHtml(haveLeaves
+          ? window.t('dirReports.joinsLeavesTotal').replace('{joined}', total).replace('{left}', leftTotal)
+          : window.t('dirReports.joinsTotal').replace('{n}', total))
+      + '</p>';
+
+    // The note under the chart answers a different question depending
+    // on whether there is a log at all, so it is written here rather
+    // than left as static text that can only say one of the two.
+    var noteEl = document.getElementById('dir-joins-note');
+    if (noteEl) {
+      noteEl.textContent = haveLeaves
+        // Rendered in UTC, because the stored value is a date picked as
+        // a date (midnight UTC). Shown in local time it reads as the
+        // day before for anyone west of Greenwich -- "recorded since
+        // August 31" for a constant that says September 1.
+        ? window.t('dirReports.departuresSince').replace('{date}',
+            (dirDeparturesStart || new Date()).toLocaleDateString(window.appLocale(), { timeZone: 'UTC', year: 'numeric', month: 'long', day: 'numeric' }))
+        : window.t('dirReports.noDepartures');
+    }
+    var headingEl = document.getElementById('dir-joins-heading');
+    if (headingEl) {
+      headingEl.textContent = haveLeaves
+        ? window.t('dirReports.joinsAndLeavesTitle')
+        : window.t('dirReports.joinsTitle');
+    }
   }
 
   // ---- Engagement -----------------------------------------------
@@ -29977,6 +30107,7 @@ Groups</span>
     if (!document.getElementById('dir-find-conditions')) return;
     if (!directoryPeopleRaw.length) await loadDirectoryPeople();
     renderDirFind();
+    await loadDirDepartures();
     renderDirJoinsChart();
     await loadDirEngagement();
     // Awaited together, then the empty-state note is decided once.
