@@ -816,6 +816,9 @@
       'dashMinistries.nameRequired': 'A ministry needs a name.',
       'dashMinistries.saveFailed': 'Could not save that ministry.',
       'dashMinistries.oneEvent': '1 event', 'dashMinistries.nEvents': '{n} events',
+      'dashFacility.exportSchedule': 'Export schedule', 'dashFacility.room': 'Room',
+      'dashFacility.starts': 'Start', 'dashFacility.ends': 'End',
+      'dashFacility.nothingToExport': 'Nothing is booked in this range.',
       'dashDir.optedOut': 'Unsubscribed', 'dashDir.optedOutHint': 'This person asked not to receive email from your church. They are skipped automatically.',
       'dashMessages.someUnsubscribed': '{n} {personWord} unsubscribed and will be skipped.', 'dashMessages.person': 'person', 'dashMessages.people': 'people',
       'dashDir.groupSignups': 'Group sign-ups', 'dashDir.importMembers': 'Import members', 'dashDir.searchPlaceholder': 'Search by name or email',
@@ -1925,6 +1928,9 @@
       'dashMinistries.nameRequired': 'Un ministerio necesita un nombre.',
       'dashMinistries.saveFailed': 'No se pudo guardar ese ministerio.',
       'dashMinistries.oneEvent': '1 evento', 'dashMinistries.nEvents': '{n} eventos',
+      'dashFacility.exportSchedule': 'Exportar horario', 'dashFacility.room': 'Sala',
+      'dashFacility.starts': 'Inicio', 'dashFacility.ends': 'Fin',
+      'dashFacility.nothingToExport': 'No hay nada reservado en este rango.',
       'dashDir.optedOut': 'Dado de baja', 'dashDir.optedOutHint': 'Esta persona pidió no recibir correos de tu iglesia. Se omite automáticamente.',
       'dashMessages.someUnsubscribed': '{n} {personWord} se dieron de baja y se omitirán.', 'dashMessages.person': 'persona', 'dashMessages.people': 'personas',
       'dashDir.groupSignups': 'Inscripciones a grupos', 'dashDir.importMembers': 'Importar miembros', 'dashDir.searchPlaceholder': 'Buscar por nombre o correo electrónico',
@@ -8936,6 +8942,14 @@ Groups</span>
             <button class="export-btn" id="room-schedule-today" data-i18n="dashFacility.today">Today</button>
           </div>
         </div>
+        <!-- Last in the row, and pushed to the far end of it when
+             there is room: this acts on the whole grid rather than
+             changing what the grid shows, so it does not belong
+             among the controls that do. -->
+        <button class="export-btn" id="room-schedule-export" style="margin-left:auto;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;vertical-align:-2px;margin-right:5px;"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 19h16"/></svg>
+          <span data-i18n="dashFacility.exportSchedule">Export schedule</span>
+        </button>
       </div>
       <div id="room-schedule-grid"></div>
       <div id="room-schedule-agenda" class="rsched-agenda"></div>
@@ -9325,7 +9339,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v248 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v249 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -22452,6 +22466,35 @@ Groups</span>
   }
   window.viewRegistrants = viewRegistrants;
 
+  // One CSV writer for the whole app. Rows in, file out.
+  //
+  // The registrants export had this inline; the facility export would
+  // have been a second copy of the same fifteen lines, and the quoting
+  // rule is the sort of thing that gets fixed in one copy.
+  //
+  // The BOM is not decoration. Without it Excel reads a UTF-8 CSV as
+  // the system codepage, so a Spanish church exporting a room called
+  // "Salón" opens a file that says "SalÃ³n". Every cell is quoted and
+  // internal quotes doubled, which is what keeps a comma in an event
+  // title from becoming a new column.
+  function downloadCsv(filename, rows){
+    var csv = '\ufeff' + rows.map(function(row){
+      return row.map(function(cell){
+        return '"' + String(cell === null || cell === undefined ? '' : cell).replace(/"/g, '""') + '"';
+      }).join(',');
+    }).join('\r\n');
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+  window.downloadCsv = downloadCsv;
+
   function exportRegistrantsCsv(){
     if (!lastRegistrantsData.length) return;
     var rows = [['Name', 'Role', 'Status', 'Registered on']];
@@ -22459,19 +22502,7 @@ Groups</span>
       var name = (r.profiles && r.profiles.full_name) ? r.profiles.full_name : 'Unnamed registrant';
       rows.push([name, r.role || 'participant', r.status, new Date(r.created_at).toLocaleDateString(window.appLocale())]);
     });
-    var csv = rows.map(function(row){
-      return row.map(function(cell){ return '"' + String(cell).replace(/"/g, '""') + '"'; }).join(',');
-    }).join('\n');
-
-    var blob = new Blob([csv], { type: 'text/csv' });
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    a.href = url;
-    a.download = lastRegistrantsTitle.replace(/[^a-z0-9]+/gi, '-').toLowerCase() + '-registrants.csv';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    downloadCsv(lastRegistrantsTitle.replace(/[^a-z0-9]+/gi, '-').toLowerCase() + '-registrants.csv', rows);
   }
   var registrantsExportBtn = document.getElementById('registrants-export-btn');
   if (registrantsExportBtn) {
@@ -24425,8 +24456,86 @@ Groups</span>
     gridEl.classList.toggle('rsched-month', roomSchedView === 'month');
     var labelEl = document.getElementById('room-schedule-label');
     if (labelEl) labelEl.textContent = out.label;
+
+    // What the export downloads: exactly what was just drawn, down to
+    // the range and the week view's room filter. Reading the rendered
+    // state rather than re-querying means the file cannot disagree
+    // with the screen it was asked for -- and costs no request, since
+    // byRoom is already in hand (often from the 30s memo above).
+    lastRoomSchedule = { rooms: rooms, byRoom: byRoom, view: roomSchedView,
+                         roomId: roomSchedRoomId, from: range.from, to: range.to };
   }
   window.loadRoomSchedule = loadRoomSchedule;
+
+  var lastRoomSchedule = null;
+
+  // yyyy-mm-dd in the church's own timezone, for the filename. An ISO
+  // string would be UTC, so a Sunday schedule exported in the evening
+  // west of Greenwich would be named after the Monday.
+  function roomSchedFileDate(d){
+    return d.getFullYear() + '-'
+      + String(d.getMonth() + 1).padStart(2, '0') + '-'
+      + String(d.getDate()).padStart(2, '0');
+  }
+
+  function exportRoomScheduleCsv(){
+    var snap = lastRoomSchedule;
+    if (!snap) return;
+
+    // Week view has a room picker and day and month do not, so the
+    // filter only applies there -- the same condition the renderer
+    // uses. Exporting one room's week while looking at one room's
+    // week is the point; exporting one room from a day view that is
+    // showing all of them would be a file that does not match.
+    var onlyRoom = (snap.view === 'week' && snap.roomId !== ROOM_SCHED_ALL) ? snap.roomId : null;
+
+    var bookings = [];
+    snap.rooms.forEach(function(r){
+      if (onlyRoom && r.id !== onlyRoom) return;
+      (snap.byRoom[r.id] || []).forEach(function(e){
+        bookings.push({ room: r.name, title: e.title,
+                        start: new Date(e.start_at),
+                        end: e.end_at ? new Date(e.end_at) : null });
+      });
+    });
+
+    if (!bookings.length) {
+      alert(window.t('dashFacility.nothingToExport'));
+      return;
+    }
+
+    // Chronological, room as the tie-break. A schedule is read
+    // forwards in time; grouping by room would answer a different
+    // question, and the room is a column anyone can sort on.
+    //
+    // An event booking two rooms is deliberately two rows: this is a
+    // list of room bookings, and a room's own row is what somebody
+    // printing it for a door is looking for.
+    bookings.sort(function(a, b){
+      return (a.start - b.start) || a.room.localeCompare(b.room);
+    });
+
+    var loc = window.appLocale();
+    var timeOpts = { hour: 'numeric', minute: '2-digit' };
+    var rows = [[window.t('dashFacility.room'), window.t('dashEvents.event'),
+                 window.t('dashEvents.date'), window.t('dashFacility.starts'),
+                 window.t('dashFacility.ends')]];
+    bookings.forEach(function(b){
+      rows.push([b.room, b.title,
+                 b.start.toLocaleDateString(loc),
+                 b.start.toLocaleTimeString(loc, timeOpts),
+                 b.end ? b.end.toLocaleTimeString(loc, timeOpts) : '']);
+    });
+
+    // to is exclusive -- the day after the last day shown -- so the
+    // filename steps back one to name the range a person would say.
+    var lastDay = new Date(snap.to.getTime() - 86400000);
+    downloadCsv('room-schedule-' + roomSchedFileDate(snap.from) + '-to-' + roomSchedFileDate(lastDay) + '.csv', rows);
+  }
+  window.exportRoomScheduleCsv = exportRoomScheduleCsv;
+
+  var roomSchedExportBtn = document.getElementById('room-schedule-export');
+  if (roomSchedExportBtn) roomSchedExportBtn.addEventListener('click', exportRoomScheduleCsv);
 
   // ---- Controls ----------------------------------------------------
   ['day','week','month'].forEach(function(v){

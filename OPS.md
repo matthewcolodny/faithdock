@@ -17,33 +17,35 @@ The distinction between the three files:
 When one is finished, move it to "Done" at the bottom with the date.
 The state it ended in is worth more later than the fact it was on a list.
 
-### Migration 090 -- groups can name the ministry that runs them -- 2026-09-23
-
-**State today:** `supabase/migrations/090_groups_ministry.sql` is in the
-repo and has NOT been run. The client change that uses it shipped in
-build 2026-09-23-v248.
-
-**Why it matters:** the Ministries page now shows what is attached to
-each ministry. Events and rooms work today. Groups need
-`groups.ministry_id`, which does not exist yet -- so until this runs,
-the Groups line is left out of the counts and the expanded view
-entirely, and the group form saves a column the database does not
-have. The client handles the missing column deliberately (it omits
-the section rather than showing an empty one), so nothing is broken
-in the meantime; the feature is just half present.
-
-**What doing it involves:** paste the file into the Supabase SQL
-Editor and run it. It is a nullable column plus a partial index, and
-it verifies its own grants before reporting -- the failure mode it is
-checking for is the one migration 085 had to repair, where
-column-level grants leave a new column unreadable by
-`authenticated`. Expect one result row, all four columns true.
-
----
+**Nothing is pending as of 2026-09-23.** Migration 090 has been run
+and verified; it is under Done below.
 
 ---
 
 ## Done
+
+### Migration 090 run -- groups can name the ministry that runs them -- 2026-09-23
+
+Shipped with build 2026-09-23-v248 and run the same day. Verified
+output:
+
+```
+column_name,column_exists,can_select,can_update,index_exists
+groups.ministry_id,true,true,true,true
+```
+
+`can_select` and `can_update` are the two that mattered. Postgres
+extends TABLE-level privileges to a new column automatically but not
+column-level ones, and a table that had ever been granted per-column
+would have produced a column `authenticated` could not read or write
+-- the same failure migration 085 had to repair on
+`event_registrations`, where it silently broke public event browsing.
+The migration checks for it by name rather than assuming, which is
+why those two columns are in the output at all.
+
+The client was written to work before this ran (it omitted the Groups
+section rather than showing an empty one) and needs no change now
+that it has: the section appears on its own.
 
 ### Migrations 084 and 085 run -- public event browsing restored -- 2026-09-22
 
