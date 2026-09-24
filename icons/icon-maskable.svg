@@ -1,16 +1,21 @@
 <!--
   The maskable variant. Android crops an app icon to whatever shape the
-  launcher uses -- circle, squircle, teardrop -- and only the middle 80%
-  is guaranteed to survive. So this one has no rounded corners of its
-  own (the launcher supplies the shape) and the mark is scaled to 62%
-  and centred, which keeps it inside that safe area whatever the crop.
+  launcher uses (circle, squircle, teardrop) and only the middle 80% is
+  guaranteed to survive. So this one has no rounded corners of its own,
+  because the launcher supplies the shape, and the mark is scaled to
+  62% and centred, which keeps it inside that safe area whatever the
+  crop.
 
-  Using icon.svg for this purpose would clip the ark's corners on a
-  circular launcher and put the rounded rectangle inside another
-  rounded rectangle everywhere else.
+  icon.svg is full-bleed too, but its mark runs close to the edges, so
+  a circular launcher would clip the ark. This is the same artwork
+  pulled in far enough to survive any crop.
+
+  NOTE: no double hyphen anywhere in this comment. XML forbids it, and
+  an SVG that is not well formed is silently refused by both img tags
+  and Chrome's manifest icon loader.
 -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 172.84 172.84" role="img" aria-label="FaithDock">
-  <rect width="172.84" height="172.84" fill="#1B2A4A"/>
+  <rect width="172.84" height="172.84" fill="#1A2A49"/>
   <g transform="translate(86.42,86.42) scale(0.62) translate(-86.42,-86.42)">
     <path fill-rule="evenodd" fill="#C9A227" d="M35.68,122.45L89.09,17.75l49.11,104.7H35.68ZM81.67,60.71v74.46s12.45,0,12.45,0V60.71s-12.45,0-12.45,0ZM60.93,80.3h53.93s0,11.76,0,11.76h-53.93s0-11.76,0-11.76Z"/>
     <path fill="#C9A227" d="M20.64,130.74c74.8,31.89,65.48,31.25,132.52,0H20.64Z"/>

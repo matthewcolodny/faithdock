@@ -1,5 +1,23 @@
+<!--
+  Full-bleed, no rounded corners of its own.
+
+  Chrome draws this icon on its generated splash screen, centred on the
+  manifest's background_color. When the icon carried its own rounded
+  rectangle it appeared as a distinctly cornered card floating on the
+  background, which is what was reported as "the logo with rounded
+  corners". Now the icon's navy and the splash's navy are the same
+  value, so its edges are invisible and what shows is the mark on a
+  plain field.
+
+  Every launcher that wants a shape applies one itself; the variant
+  sized for that crop is icon-maskable.svg.
+
+  NOTE: no double hyphen anywhere in this comment. XML forbids it, and
+  an SVG that is not well formed is silently refused by both img tags
+  and Chrome's manifest icon loader.
+-->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 172.84 172.84" role="img" aria-label="FaithDock">
-  <rect width="172.84" height="172.84" rx="21.6" fill="#1B2A4A"/>
+  <rect width="172.84" height="172.84" fill="#1A2A49"/>
   <path fill-rule="evenodd" fill="#C9A227" d="M35.68,122.45L89.09,17.75l49.11,104.7H35.68ZM81.67,60.71v74.46s12.45,0,12.45,0V60.71s-12.45,0-12.45,0ZM60.93,80.3h53.93s0,11.76,0,11.76h-53.93s0-11.76,0-11.76Z"/>
   <path fill="#C9A227" d="M20.64,130.74c74.8,31.89,65.48,31.25,132.52,0H20.64Z"/>
 </svg>
