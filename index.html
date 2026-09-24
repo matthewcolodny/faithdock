@@ -9638,7 +9638,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-24-v257 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-24-v258 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -30267,6 +30267,16 @@ Groups</span>
     // canManageMembers is false for a staffer without the ability and
     // for every non-staff visitor, so this hides rather than showing an
     // empty panel that looks broken.
+    // Import members lives in the Directory toolbar, not in this panel,
+    // but it is the same permission and it was the only member-adding
+    // control that stayed visible without it. The write is blocked
+    // either way -- church_member_invites requires can_manage_members
+    // since migration 082 -- so leaving the button there only bought a
+    // staffer a permission error after filling in a CSV. Hidden here
+    // because this is where the answer is already known.
+    var importBtn = document.getElementById('import-members-open-btn');
+    if (importBtn) importBtn.style.display = (myChurch && myChurch.canManageMembers) ? '' : 'none';
+
     if (!myChurch || !myChurch.canManageMembers) { wrap.style.display = 'none'; return; }
 
     var { data, error } = await supabase.rpc('get_church_membership_requests', { target_church_id: myChurch.id });
