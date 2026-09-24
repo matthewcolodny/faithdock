@@ -258,6 +258,51 @@ function checkSvgComments() {
 }
 
 // ---------------------------------------------------------------------
+// 6b. Digital Asset Links, if present.
+// ---------------------------------------------------------------------
+// This file is what tells Android that faithdock.com and the Play app
+// are the same party. Get it wrong and the app still launches -- with a
+// browser address bar across the top. It fails quietly and looks like a
+// design problem rather than a configuration one, so it is worth a
+// machine reading it.
+//
+// An empty array is the deliberate placeholder state: valid JSON,
+// delegates nothing, and proves the path is being served before any
+// app exists. That is a note, not a failure. A file with entries in it
+// is checked properly, because by then it is load-bearing.
+
+function checkAssetLinks() {
+  const p = path.join(ROOT, '.well-known', 'assetlinks.json');
+  if (!fs.existsSync(p)) { note('no .well-known/assetlinks.json yet (only needed for the Play app)'); return; }
+  let links;
+  try { links = JSON.parse(fs.readFileSync(p, 'utf8')); }
+  catch (e) { fail('.well-known/assetlinks.json', 'is not valid JSON: ' + e.message); return; }
+  if (!Array.isArray(links)) { fail('.well-known/assetlinks.json', 'must be a JSON array'); return; }
+  if (links.length === 0) {
+    note('assetlinks.json is the empty placeholder -- fill in the Play App Signing fingerprint before release');
+    return;
+  }
+  links.forEach(function (entry, i) {
+    const at = '.well-known/assetlinks.json[' + i + ']';
+    const t = entry && entry.target;
+    if (!entry || !Array.isArray(entry.relation) || !entry.relation.length) fail(at, 'missing "relation"');
+    if (!t || t.namespace !== 'android_app') fail(at, 'target.namespace must be "android_app"');
+    if (!t || !t.package_name) fail(at, 'missing target.package_name');
+    const fps = (t && t.sha256_cert_fingerprints) || [];
+    if (!Array.isArray(fps) || fps.length === 0) {
+      fail(at, 'no sha256_cert_fingerprints -- the app will launch with an address bar');
+    }
+    fps.forEach(function (fp) {
+      // 32 colon-separated uppercase hex pairs, as Play Console prints it.
+      if (!/^([0-9A-F]{2}:){31}[0-9A-F]{2}$/i.test(String(fp))) {
+        fail(at, 'fingerprint is not 32 colon-separated hex pairs: ' + String(fp).slice(0, 24) + '...');
+      }
+    });
+  });
+  note('assetlinks.json has ' + links.length + ' entr' + (links.length === 1 ? 'y' : 'ies') + ', fingerprints well-formed');
+}
+
+// ---------------------------------------------------------------------
 // 7. The build stamp is present and plausible.
 // ---------------------------------------------------------------------
 // People are asked to read it back. A missing or malformed one is worse
@@ -277,6 +322,7 @@ checkI18nKeys();
 checkManifest();
 checkServiceWorkerShell();
 checkSvgComments();
+checkAssetLinks();
 checkBuildStamp();
 
 for (const n of notes) console.log('  ok    ' + n);
