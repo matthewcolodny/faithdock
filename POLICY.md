@@ -18,46 +18,47 @@ what has not been decided.
 
 ---
 
-## 1. The pricing page advertises fees that are not charged
+## 1. Whether to charge a platform fee at all
 
-**The most urgent item here, and it is live.**
+**RESOLVED as a contradiction, 2026-09-24 — what is left is a pricing
+decision, not a bug.** This entry used to read "the pricing page
+advertises fees that are not charged" and called itself the most
+urgent item here. That is no longer true, and a stale warning is worse
+than none.
 
-What the pricing page says:
+**Today, verified in the running app:** every fee number comes from one
+constant.
 
-| | Advertised |
-|---|---|
-| Free plan, giving | `1% FaithDock fee applies` |
-| Free plan, tickets | `3% per ticket` |
-| Paid plans | `0% fee` |
+| | value |
+| --- | --- |
+| `window.PLATFORM_FEE` (client) | `{ giving: 0, ticket: 0 }` |
+| `PLATFORM_FEE_PERCENT` in `stripe-create-checkout.ts` | `0` |
+| `PLATFORM_FEE_PERCENT` in `stripe-event-checkout.ts` | `0` |
 
-What the deployed code does: `PLATFORM_FEE_PERCENT = 0` in **both**
-`stripe-create-checkout.ts` and `stripe-event-checkout.ts`, for every
-plan. `application_fee_amount` is therefore `0` on every donation and
-every ticket. FaithDock collects nothing.
+The pricing table renders `{ticketFee}` through `applyFeeTokens()`, so
+it now reads **"0% per ticket"** for Free and **"0% fee"** for every
+paid plan — measured, not inferred. `application_fee_amount` is 0 on
+every donation and every ticket. The page and the code agree.
 
-**And donors are being asked to cover it anyway.** On a Free-plan
-church the Give form shows a checkbox — **ticked by default** — reading
-"Add 1% so the church receives your full gift, covering FaithDock's fee
-on this plan". When ticked, the client charges `amount / 0.99`. Since
-the platform fee is 0, the entire uplifted amount transfers to the
-church.
+The cover-the-fee checkbox is gated on `PLATFORM_FEE.giving > 0`, so it
+is hidden, and the uplift (`amount / (1 - feeRate)`) is skipped for the
+same reason. Nobody is being asked to cover a fee that is not charged.
 
-So a donor typing $100 is charged $101.01, told it covers a FaithDock
-fee, and FaithDock takes none of it. The church receives all of it,
-which is where the donor wanted their money to go — so nobody is out of
-pocket in a way they would object to. But the stated reason is not true,
-and it is opt-out rather than opt-in.
+**The decision that remains:** whether FaithDock ever charges one.
+Turning it on is now editing three constants to the same number, and
+the public copy follows automatically.
 
-**The decision:** start charging what the pricing page says, or change
-the pricing page and remove the cover-fee checkbox. Either is a few
-lines. Shipping neither means the public pricing and the actual
-behaviour keep disagreeing.
+**One thing to fix on the day it is:** `give.coverFee` currently
+renders as *"Add 0% so the church receives your full gift"*. Harmless
+while hidden, correct at 1%, and nonsense at any point where the
+checkbox is shown with the fee still at zero.
 
-**Blocked on this:** any fee claim in customer-facing copy. The About
-page deliberately says nothing about fees for exactly this reason.
-
----
-
+**Also dead, and worth deleting:** `ce.paidEventsLocked` and
+`ce.paidEventsUpgradeNeeded` say paid events need Starter or above.
+Nothing uses either string — `updatePaidEventsAccess()` always shows
+the price field and only sets a flag for the fee disclosure. The
+pricing table does not claim the restriction either, so no page is
+lying; the strings are just leftovers from a gate that was removed.
 ## 2. Refunds
 
 **Today:** none, anywhere. Nothing in the codebase issues one.
