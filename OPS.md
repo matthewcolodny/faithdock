@@ -69,7 +69,38 @@ D-U-N-S wait is the cheaper of the two delays.
 For `.github/workflows/security-invariants.yml`. Until it is added the
 weekly security check is skipped rather than run — so the invariants
 only run when somebody remembers to run them, which is the problem they
-were written to solve. Setup is in the comment at the top of that file.
+were written to solve.
+
+**The role is ready.** Migration 097 was run and verified on
+2026-09-24: `ci_invariants` exists, can log in, is not superuser,
+inherits nothing passively, and holds no table grants of its own. It can
+only `SET ROLE` to `anon` or `authenticated`, which is all the checks
+need.
+
+**What is left:** build the connection string and paste it into GitHub →
+Settings → Secrets and variables → Actions, named `SUPABASE_DB_URL`.
+
+```
+postgresql://ci_invariants.<project-ref>:<password>@aws-0-<region>.pooler.supabase.com:5432/postgres
+```
+
+Take the host and project-ref from the dashboard's **Connect** sheet
+(`O` then `C` — it is no longer under Database Settings), **Session
+pooler** tab. Not the direct connection: Supabase serves that over IPv6
+only without the paid add-on, and GitHub runners have no IPv6. The
+pooler wants `role.project-ref` as the username, which is easy to get
+subtly wrong.
+
+**Then trigger the workflow by hand** from the Actions tab
+(`workflow_dispatch` is enabled) rather than waiting for Monday. That is
+the first real test of the role, and it is worth finding out
+immediately.
+
+Note: testing it with `set role ci_invariants` in the SQL Editor proves
+nothing about the role switching. `SET ROLE` is checked against the
+session user, which would still be `postgres` there, so the nested
+`set role anon` would succeed whatever `ci_invariants` can do. Only a
+real connection as that role tests it.
 ---
 ---
 ---
@@ -77,6 +108,37 @@ were written to solve. Setup is in the comment at the top of that file.
 ---
 
 ## Done
+
+### Migration 097 -- CI-only login role -- verified 2026-09-24
+
+`ci_invariants`, for the weekly security check, so CI never holds the
+master database password. That mattered more than it first looked:
+Supabase does not let you retrieve the database password after project
+creation — the dashboard offers only a reset, which it warns will break
+existing connections. Using the master credential would have meant
+resetting a password other things may depend on, in order to hand a CI
+job the keys to everything.
+
+`NOINHERIT` is the load-bearing word. The checks have to switch roles,
+so the role must be a member of `anon` and `authenticated`; ordinary
+membership would hand it their privileges passively, including writes
+through every permitting RLS policy. `NOINHERIT` grants only the right
+to `SET ROLE`. Anything that does not switch explicitly gets nothing.
+
+```
+can_login              true
+inherits_passively     false     <- the one that mattered
+is_superuser           false
+can_create_db          false
+can_create_role        false
+member_of              anon, authenticated
+reads_tables_as_itself 0
+```
+
+`tools/check.js` fails the build if the migration's password
+placeholder ever goes missing — the file is exactly the kind someone
+fills in, runs, and then commits. Verified against a copy with a
+real-looking password substituted.
 
 ### Migration 096 -- events manage policy documented and de-duplicated -- verified 2026-09-24
 
