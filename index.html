@@ -10215,7 +10215,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-24-v274 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-24-v275 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -17983,6 +17983,55 @@ Groups</span>
     var locationInput = document.getElementById('dir-location-input');
     if (locationInput) locationInput.value = typedLocation;
     go('directory');
+
+    // Register the directory as a surface worth rendering.
+    //
+    // THIS IS THE ROOT CAUSE OF "the results don't change". Every
+    // location change funnels through applyDirLocationCoords, which
+    // only re-renders the surfaces something has asked for -- and the
+    // two places that ask for 'directory' are showRouteFromHash and
+    // the nav-link click handler. Arriving here instead, from the hero
+    // search, goes through go(), which updates history but registers
+    // nothing (showRouteFromHash delegates TO go(), not the other way
+    // round). So the directory was never in wantedSurfaces, every
+    // later setDirLocation skipped rendering it, and the page sat on
+    // whatever loadRealChurches had rendered at startup -- the old
+    // location's results, under the new location's name.
+    //
+    // Measured: wantedSurfaces was {homeChurches, homeEvents} on this
+    // path, and calling renderDirectory() by hand immediately produced
+    // 24 cards and "800 churches found" from the same coordinates. The
+    // data was never the problem; nothing was asking for it.
+    if (typeof window.wantSurface === 'function') window.wantSurface('directory');
+
+    // TYPED TEXT HAS TO BE GEOCODED, not just copied into the box.
+    //
+    // This used to set the location field's text and render, and that
+    // was the whole bug: dirUserLat/Lng were never touched, so typing
+    // "Kansas" and pressing Enter landed on the Directory with
+    // "Kansas" in the box and the previous location's results
+    // underneath it. Reported as the results not changing.
+    //
+    // Picking a suggestion always worked, because the Places widget
+    // fires place_changed with real coordinates and that path calls
+    // setDirLocation. Anyone who typed a place and hit Enter -- which
+    // is most people, and the only option when no suggestion matches
+    // -- got nothing.
+    //
+    // doDirectLocationSearch() is exactly this geocode-then-apply step
+    // and already reads this same input, so it is reused rather than
+    // reimplemented; it also owns the "Searching..." and "could not
+    // find that" messages.
+    var applied = window.fdLocationLabel;
+    var needsGeocode = !!typedLocation && typedLocation !== applied;
+    if (needsGeocode) {
+      // No render here. doDirectLocationSearch's setDirLocation does
+      // it with the RIGHT coordinates a moment later, and rendering
+      // first would just show the old location's results briefly on
+      // the way past.
+      doDirectLocationSearch();
+      return;
+    }
     if (typeof window.renderDirectory === 'function') window.renderDirectory();
   }
   window.searchDirectoryFor = searchDirectoryFor;
