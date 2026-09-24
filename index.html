@@ -3093,6 +3093,48 @@
   };
 
   window.fdLocationLabel = null;
+
+  // Break a location label into the lines a heading should show.
+  //
+  // Google hands back one flat string -- "31 Cellini, San Antonio, TX
+  // 78209, USA" -- and running that on as a single line broke out of
+  // the heading. Wrapping it fixed the overflow but wrapped wherever
+  // the line happened to run out, mid-address, which reads worse than
+  // it looks. An address already has its own structure and a heading
+  // should use it: street on one line, city and state on the next.
+  //
+  // The country goes. At best it repeats what the state already said;
+  // it is only ever in the string because the geocoder returns a full
+  // postal address, not because anyone searched for it.
+  //
+  // A plain place name ("San Antonio") has no structure to use and
+  // comes back as a single part, which the caller keeps inline.
+  var FD_COUNTRY_TAIL = /^(usa|u\.s\.a\.|us|united states|united states of america|canada|mexico|méxico)$/i;
+  // A postal code on the end of the city/state line. US five-digit
+  // (with optional +4) and Canadian six-character forms. Only ever
+  // stripped from the END, so a street number is never touched.
+  var FD_POSTCODE_TAIL = /\s+(\d{5}(-\d{4})?|[A-Za-z]\d[A-Za-z][ -]?\d[A-Za-z]\d)$/;
+  function stripPostcode(s){ return s.replace(FD_POSTCODE_TAIL, ''); }
+
+  window.fdLocationLines = function(label){
+    var parts = String(label).split(',').map(function(s){ return s.trim(); }).filter(Boolean);
+    if (parts.length > 1 && FD_COUNTRY_TAIL.test(parts[parts.length - 1])) parts.pop();
+    if (parts.length <= 1) return parts;
+    // Only break out a first line when there is actually a STREET to
+    // break out. "San Antonio, TX" is a city and its state and belongs
+    // together on one line; splitting it stranded "TX" on a line of
+    // its own. A street shows up either as a third component or as a
+    // first component starting with a house number.
+    var hasStreet = parts.length >= 3 || /^\d/.test(parts[0]);
+    if (!hasStreet) return [parts.join(', ')];
+    // Everything after the street is one line, and the postal code
+    // comes off it. "San Antonio, TX 78209" is too wide for a 28px
+    // heading on a phone, so it wrapped again and left "78209" sitting
+    // alone on a fourth line. The code also adds nothing a reader of a
+    // heading wants -- the city and state already say where this is.
+    return [parts[0], stripPostcode(parts.slice(1).join(', '))];
+  };
+
   window.fdPaintLocationHeadings = function(){
     var label = window.fdLocationLabel;
     if (!label) return;
@@ -3100,15 +3142,34 @@
     // some call sites fall back to whatever was typed into the
     // location box. Same defensive pattern as the church-name link in
     // showRcSuccess().
-    var esc = String(label).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    // nowrap so a two-word city cannot break mid-name and strand "San"
-    // on its own line -- reported with a screenshot. The line may still
-    // wrap before the place name, just never inside it.
-    var html = '<span style="white-space:nowrap;">' + esc + '</span>';
+    var esc = function(s){
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    };
+    var lines = window.fdLocationLines(label);
+    if (!lines.length) return;
+    var tail;
+    if (lines.length > 1) {
+      // An address. Own line each, so it breaks where an address
+      // naturally breaks instead of wherever the text happened to run
+      // out of room. break-word is still there as a backstop for a
+      // single absurdly long token.
+      tail = lines.map(function(l){
+        return '<span style="display:block;overflow-wrap:break-word;">' + esc(l) + '</span>';
+      }).join('\n');
+    } else {
+      // A place name. nowrap so a two-word city cannot break mid-name
+      // and strand "San" on its own line -- reported with a
+      // screenshot. The line may still wrap before the name, just
+      // never inside it. Only while it is short enough to fit: nowrap
+      // on something long is how the overflow happened in the first
+      // place.
+      var one = esc(lines[0]);
+      tail = ' <span style="' + (one.length <= 22 ? 'white-space:nowrap;' : 'overflow-wrap:break-word;') + '">' + one + '</span>';
+    }
     var c = document.getElementById('home-church-heading');
     var e = document.getElementById('home-events-heading');
-    if (c) c.innerHTML = window.t('home.churchesNear') + ' ' + html;
-    if (e) e.innerHTML = window.t('home.upcomingEventsNear') + ' ' + html;
+    if (c) c.innerHTML = window.t('home.churchesNear') + tail;
+    if (e) e.innerHTML = window.t('home.upcomingEventsNear') + tail;
   };
   // toLocaleDateString/toLocaleTimeString called with `undefined` as
   // the locale argument follow the BROWSER's own system locale, not
@@ -3787,8 +3848,20 @@
 
   /* ---- section headings ---- */
   .section-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:24px;}
-  .section-head h2{font-size:28px;}
-  .section-head .see-all{font-size:14px;color:var(--ink);font-weight:600;border-bottom:1px solid var(--gold);padding-bottom:2px;}
+  /* min-width:0 is the structural half of the long-address overflow.
+     A flex item defaults to min-width:auto, which is its content's own
+     min-content width -- so a heading holding an unbreakable string
+     refuses to shrink and runs out past the edge instead. Exactly the
+     same trap the dashboard grid hit with its 1fr track. The JS side
+     stops nowrap being applied to a long label; this stops any future
+     long token doing it again. */
+  .section-head h2{font-size:28px;min-width:0;overflow-wrap:break-word;}
+  /* nowrap and no shrink: once the heading beside it can run to two or
+     three lines, the flex row squeezed this instead, and "View
+     directory" broke into "View" over "directory" with a gold underline
+     under each. It is two words and a link; it keeps its one line and
+     the heading takes the remaining width. */
+  .section-head .see-all{font-size:14px;color:var(--ink);font-weight:600;border-bottom:1px solid var(--gold);padding-bottom:2px;white-space:nowrap;flex-shrink:0;}
 
   /* ---- cards grid ---- */
   .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
@@ -3944,10 +4017,14 @@
   .follow-heart-row:focus:not(:focus-visible){outline:none;}
   /* Light mode: hollow grey outline when empty (no fill at all, unlike
      the card's card-color-blend treatment -- List rows have no single
-     background hue to blend into the way a card's thumb does), solid
-     grey heart when followed. */
+     background hue to blend into the way a card's thumb does), and the
+     same #F0A8C4 pink as the card when followed.
+     It used to go solid grey here, which made "followed" read as
+     "disabled" and meant the same church looked different depending on
+     whether you were in Cards or List. Followed is one state and it is
+     pink everywhere: card and row, light and dark. */
   .follow-heart-row svg{width:17px;height:17px;stroke:#8A8A8A;stroke-width:1.5;fill:none;}
-  .follow-heart-row[data-following="true"] svg{fill:#8A8A8A;stroke:#8A8A8A;}
+  .follow-heart-row[data-following="true"] svg{fill:#F0A8C4;stroke:#F0A8C4;}
   /* Dark mode: same outlined-badge treatment as .follow-heart-card
      above, requested directly for both together -- fill matches
      var(--card), which .church-row itself already uses as its own
@@ -5080,6 +5157,43 @@
   @media (max-width:860px){table.roster{display:block;overflow-x:auto;white-space:nowrap;}}
   table.roster th{text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-mute);font-family:'IBM Plex Mono';padding:12px 16px;border-bottom:1px solid var(--line);font-weight:500;}
   table.roster td{padding:13px 16px;border-bottom:1px solid var(--line);font-size:14px;}
+  /* A table's "still loading" row.
+
+     ONLY THE VERTICAL PADDING IS SET HERE. Horizontal is left to fall
+     through to whichever table rule is in play -- 16px normally, 8px
+     under .roster-fits on a phone -- so the message always starts on
+     the same left edge as the column header above it, at every width,
+     without this having to know the breakpoints.
+
+     The .roster-fits selector is repeated because that rule is later
+     in the file at equal specificity, and would otherwise win the tie
+     and flatten the vertical padding back to 10px.
+
+     Left-aligned, NOT centred: on a phone these tables are
+     display:block with overflow-x:auto, so the table can be wider than
+     the screen, and centring would put the text in the middle of the
+     scrollable width -- that is, off-screen to the right.
+
+     No bottom border: it is the only row, and a divider under it drew
+     a second line just above the table's own rounded edge.
+
+     fdSpin is declared in the head style block alongside the splash
+     spinner; keyframes are document-global, so it is reused here
+     rather than defining a second identical rotation. */
+  table.roster td.roster-loading,
+  table.roster.roster-fits td.roster-loading{
+    padding-top:24px;padding-bottom:24px;
+    color:var(--ink-mute);font-size:13.5px;border-bottom:none;
+  }
+  table.roster td.roster-loading::before{
+    content:'';display:inline-block;vertical-align:-2px;margin-right:9px;
+    width:13px;height:13px;border-radius:50%;
+    border:2px solid var(--line);border-top-color:var(--ink-mute);
+    animation:fdSpin .8s linear infinite;
+  }
+  @media (prefers-reduced-motion: reduce){
+    table.roster td.roster-loading::before{animation:none;border-color:var(--ink-mute);}
+  }
   table.roster tr:last-child td{border-bottom:none;}
   .qr-btn{background:var(--paper);border:1px solid var(--line);border-radius:7px;padding:6px;color:var(--ink-mute);display:inline-flex;}
 
@@ -5378,7 +5492,14 @@
     .ev-col-desk{display:none;}
     #dash-events-table.roster-fits th:nth-child(1){width:84%;}
     #dash-events-table.roster-fits th:nth-child(8){width:16%;}
-    #dash-events-table.roster-fits td:last-child{padding-left:0;padding-right:6px;}
+    /* :not([colspan]) matters. This is meant for the narrow trailing
+       action column of a real event row. A full-width state row --
+       "Loading your events...", an empty state -- is a single
+       colspan="8" cell, which makes it :last-child too, so it was
+       getting padding-left:0 and sitting hard against the border while
+       the "Event" header above it kept its 16px. Reported as the
+       loading text being too close to the edge; that is this rule. */
+    #dash-events-table.roster-fits td:last-child:not([colspan]){padding-left:0;padding-right:6px;}
     .ev-when{display:flex;}
     .ev-sub, .ev-by{display:block;}
     /* Check-in and Edit move into the menu. Rendered as menu items
@@ -8286,7 +8407,7 @@ Groups</span>
                one place, the stylesheet. -->
           <tr><th data-i18n="dashEvents.event">Event</th><th class="ev-col-desk" data-i18n="dashEvents.date">Date</th><th class="ev-col-desk" data-i18n="dashEvents.time">Time</th><th class="ev-col-desk" data-i18n="dashEvents.location">Location</th><th class="ev-col-desk" data-i18n="dashEvents.createdBy">Created by</th><th class="ev-col-desk" data-i18n="dashEvents.registrations">Registrations</th><th class="ev-col-desk" data-i18n="dashEvents.status">Status</th><th></th></tr>
           <tbody id="dash-events-tbody">
-            <tr><td colspan="8" style="color:var(--ink-mute);" data-i18n="dashEvents.loadingEvents">Loading your events...</td></tr>
+            <tr><td colspan="8" class="roster-loading" data-i18n="dashEvents.loadingEvents">Loading your events...</td></tr>
           </tbody>
         </table>
 
@@ -8957,7 +9078,7 @@ Groups</span>
                line. -->
           <tr><th class="dir-col-pick"><label class="dir-pick-hit"><input type="checkbox" id="dir-select-all" aria-label="Select everyone shown" data-i18n-title="dashDir.selectAll"></label></th><th></th><th data-i18n="dashCheckin.name">Name</th><th data-i18n="dashDir.role">Role</th><th class="dir-col-contact" data-i18n="dashDir.email">Email</th><th class="dir-col-contact" data-i18n="dashDir.phone">Phone</th><th></th></tr>
           <tbody id="directory-tbody">
-            <tr><td colspan="7" style="color:var(--ink-mute);" data-i18n="dashDir.loadingDirectory">Loading directory...</td></tr>
+            <tr><td colspan="7" class="roster-loading" data-i18n="dashDir.loadingDirectory">Loading directory...</td></tr>
           </tbody>
         </table>
 
@@ -9300,7 +9421,7 @@ Groups</span>
         <table class="roster">
           <tr><th data-i18n="dashGroups.group">Group</th><th data-i18n="dashGroups.schedule">Schedule</th><th data-i18n="dashDir.members">Members</th><th data-i18n="dashGroups.contactInfoVisible">Contact info visible to leader</th><th></th></tr>
           <tbody id="groups-tbody">
-            <tr><td colspan="5" style="color:var(--ink-mute);" data-i18n="dashGroups.loadingGroups">Loading your groups...</td></tr>
+            <tr><td colspan="5" class="roster-loading" data-i18n="dashGroups.loadingGroups">Loading your groups...</td></tr>
           </tbody>
         </table>
       </div>
@@ -9418,7 +9539,7 @@ Groups</span>
         <table class="roster">
           <tr><th data-i18n="dashGiving.donor">Donor</th><th class="mono" data-i18n="dashGiving.fund">Fund</th><th data-i18n="dashGiving.amount">Amount</th><th data-i18n="dashEvents.date">Date</th></tr>
           <tbody id="giving-history-tbody">
-            <tr><td colspan="4" style="color:var(--ink-mute);" data-i18n="dashGiving.loadingHistory">Loading giving history...</td></tr>
+            <tr><td colspan="4" class="roster-loading" data-i18n="dashGiving.loadingHistory">Loading giving history...</td></tr>
           </tbody>
         </table>
 
@@ -10094,7 +10215,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-24-v272 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-24-v273 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13882,24 +14003,35 @@ Groups</span>
     // what put a lone "Overview" in the sidebar after a refresh.
     if (overviewNav) overviewNav.style.display = 'none';
 
-    // The church name and its switcher belong to the CHURCH level and
-    // nowhere else. At the account level there is no single church in
-    // context, so naming one -- and offering to switch it -- says the
-    // page is about a church when it is about the account.
+    // The church name and its switcher belong to every level that is
+    // ABOUT a church: the church menu itself, and each section below
+    // it (Events, Directory, Facility and so on). They do not belong
+    // at the account level or on the all-churches list, where there is
+    // no single church in context -- naming one there, and offering to
+    // switch it, would say the page is about a church when it is about
+    // the account.
     //
-    // Decided here, by the thing that knows which level is showing,
-    // rather than in updateDashSidebarMode, which was inferring it
-    // from a hand-written list of view names. That list had grown a
-    // gap: 'account-settings' was never added to DASH_OVERVIEW_VIEWS,
-    // so the switcher reappeared on Settings. A list of names that has
-    // to stay in step with a set of levels is the same trap this file
-    // keeps paying for.
+    // It used to be the church menu and nothing else, which meant
+    // somebody three sections deep in one church had to walk all the
+    // way back up to Overview to switch to another and then walk down
+    // again. Reported directly. Since #dash-church-context sits above
+    // #dash-nav-sub in the markup, extending it downward puts the
+    // switcher directly above that level's "< Back" with no layout
+    // change at all.
+    //
+    // Asking DASH_SECTIONS rather than listing the section names: a
+    // hand-written list is what caused the last bug here, where
+    // 'account-settings' was missing from DASH_OVERVIEW_VIEWS and the
+    // switcher reappeared on Settings. A new section now inherits this
+    // by existing.
     //
     // The select inside it stays separately gated on owning more than
     // one church (see loadDashboardHeader) -- there is nothing to
-    // switch between otherwise.
+    // switch between otherwise, so a single-church account still sees
+    // only the name.
     var churchCtxEl = document.getElementById('dash-church-context');
-    if (churchCtxEl) churchCtxEl.style.display = (level === 'church') ? 'block' : 'none';
+    var levelIsAboutAChurch = (level === 'church') || !!DASH_SECTIONS[level];
+    if (churchCtxEl) churchCtxEl.style.display = levelIsAboutAChurch ? 'block' : 'none';
 
     if (level === 'church') {
       el.style.display = 'none';
@@ -18168,7 +18300,19 @@ Groups</span>
   // card on the Overview, Manage on My Churches -- so land on the
   // church's own first page rather than leaving the person where they
   // were with a different church silently selected underneath them.
-  function setActiveChurchAndReload(id, enterChurch){
+  // keepLevel: stay where you are in the sidebar instead of being put
+  // back at the church's main menu.
+  //
+  // It is for the sidebar's own church switcher, which now appears
+  // inside each section rather than only on the church menu. Switching
+  // church from inside Events and landing on the main menu would have
+  // made that pointless -- the whole reason for putting the switcher
+  // down there was not having to go back up to switch. Somebody
+  // comparing two churches' event lists should stay on event lists.
+  //
+  // The other way in -- clicking a church on the Overview list -- is
+  // genuinely an arrival and still enters at the top.
+  function setActiveChurchAndReload(id, enterChurch, keepLevel){
     setActiveChurchId(id);
     window.churchSwitchGeneration++;
 
@@ -18229,7 +18373,10 @@ Groups</span>
     // Arriving inside a church shows that church's whole menu. Set
     // after the loaders above because loadDashboardHeader triggers
     // the render that consumes it.
-    if (typeof window.dashEnterChurchAtTopLevel === 'function') window.dashEnterChurchAtTopLevel();
+    if (!keepLevel && typeof window.dashEnterChurchAtTopLevel === 'function') window.dashEnterChurchAtTopLevel();
+    // With the force-to-main-menu flag left alone, this redraw falls
+    // through to the remembered level (dashUserLevel) and puts the
+    // same section back for the church just switched to.
     if (typeof window.renderDashSubNav === 'function') window.renderDashSubNav(null, null);
 
     // Entering a church changes the SIDEBAR, and on a phone the sidebar
@@ -19124,7 +19271,10 @@ Groups</span>
   var dashChurchSwitcherEl = document.getElementById('dash-church-switcher');
   if (dashChurchSwitcherEl) {
     dashChurchSwitcherEl.addEventListener('change', function(){
-      window.setActiveChurchAndReload(this.value);
+      // keepLevel: this control now sits inside each section as well as
+      // on the church menu, so switching from Events should leave you
+      // on the new church's Events rather than at its main menu.
+      window.setActiveChurchAndReload(this.value, false, true);
     });
   }
 
@@ -19556,7 +19706,7 @@ Groups</span>
     // Cleared only when the church actually changed, so an ordinary
     // refresh (after saving an event, say) does not blink.
     if (window.dashEventsPaintedGen !== myGen) {
-      tbody.innerHTML = '<tr><td colspan="8" style="color:var(--ink-mute);">' + window.t('common.loading') + '</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" class="roster-loading">' + window.t('common.loading') + '</td></tr>';
       var staleCal = document.getElementById('cal-grid');
       if (staleCal) staleCal.innerHTML = '';
     }
@@ -30147,7 +30297,7 @@ Groups</span>
   async function loadDirectoryPeople(){
     var tbody = document.getElementById('directory-tbody');
     if (!tbody) return;
-    tbody.innerHTML = '<tr><td colspan="7" style="color:var(--ink-mute);">' + window.t('dashDir.loadingDirectory') + '</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="roster-loading">' + window.t('dashDir.loadingDirectory') + '</td></tr>';
 
     var myChurch = await getMyChurch();
     if (!myChurch) { tbody.innerHTML = '<tr><td colspan="7" style="color:var(--ink-mute);">' + window.t('dashHeader.registerChurchFirst') + '</td></tr>'; return; }
@@ -33858,7 +34008,7 @@ Groups</span>
       checkinCurrentRows = [];
       return;
     }
-    tbody.innerHTML = '<tr><td colspan="3" style="color:var(--ink-mute);">' + window.t('common.loading') + '</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="3" class="roster-loading">' + window.t('common.loading') + '</td></tr>';
 
     // guest_email is new (migration 055), and a column that does not
     // exist fails the WHOLE select with 42703 rather than returning
