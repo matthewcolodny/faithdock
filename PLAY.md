@@ -83,17 +83,28 @@ a browser address bar across the top: working, but visibly not an app.
 }]
 ```
 
-**Then verify it is actually served.** Cloudflare Pages does not
-reliably publish dot-directories, and this failing is silent — the file
-404s, the asset link check fails, and the only symptom is the address
-bar. After deploying, confirm:
+**Cloudflare Pages does serve dot-directories.** Measured, not assumed —
+an empty `[]` placeholder was deployed and fetched back as
+`content-type: application/json`, 3 bytes. That risk is closed.
+
+**But do not check it by status code.** This site answers **200 to every
+missing path**, because the SPA fallback returns `index.html` for
+anything it does not recognise. A missing `assetlinks.json` therefore
+comes back as 200 with 2.5MB of HTML, which every naive check passes and
+Android's verifier quietly fails. Confirmed: a nonsense path returns
+status 200 with `text/html`.
+
+So verify the **content type**, never the status:
 
 ```bash
-curl -s https://faithdock.com/.well-known/assetlinks.json
+curl -s -o /dev/null -w 'status=%{http_code} type=%{content_type} bytes=%{size_download}\n' \
+  https://faithdock.com/.well-known/assetlinks.json
 ```
 
-If it 404s, the file is in the repo but not in the deploy, and the fix
-is a Cloudflare Pages build setting rather than anything in the code.
+`application/json` and a small byte count means it is really there.
+`text/html` and a large one means it is not, whatever the status says.
+The same trap applies to any "is this file deployed?" check on this
+site.
 
 ## 4. Store listing
 
