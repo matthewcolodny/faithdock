@@ -17,40 +17,54 @@ The distinction between the three files:
 When one is finished, move it to "Done" at the bottom with the date.
 The state it ended in is worth more later than the fact it was on a list.
 
-### Migration 093 -- close the members-only events hole -- 2026-09-24
-
-**State today:** `supabase/migrations/093_drop_loose_private_events_policy.sql`
-is in the repo and has NOT been run. Migration 092 has, and is not
-enough on its own.
-
-**Why it matters:** the policy "private events visible to members"
-tests only that a `church_memberships` ROW EXISTS for the caller and
-that church -- no `is_permanent`, no `status`. Migration 035 lets
-anyone insert their own row for any church; that is what "Request to
-join" does, and the trigger merely forces `status := 'pending'`. So any
-signed-in account can request membership anywhere and immediately read
-every event that church marked "hidden from everyone except your
-members". Being rejected does not help -- a rejected row is still a
-row.
-
-092 could not have caught this. Permissive policies OR together, and
-092 was verified signed OUT, where `auth.uid()` is null and matches no
-membership row. The policy COUNT in its output -- three where one was
-expected -- is what did.
-
-**What doing it involves:** run the file. It drops that one policy and
-nothing replaces it: 092's policy already covers the legitimate case
-and covers it properly, via `is_approved_church_member()` which
-requires `is_permanent AND status = 'approved'`. Its preflight refuses
-to run if 092 is missing, since dropping this without it would hide
-members-only events from actual members. It prints every remaining
-SELECT-capable policy in full -- listed, not counted, because a count
-is what let this hide.
+**Nothing is pending as of 2026-09-24.** Migrations 091, 092 and 093
+have all been run and verified; they are under Done below.
 ---
 
 ---
 
 ## Done
+
+### Migration 093 run -- members-only events hole closed -- 2026-09-24
+
+The policy "private events visible to members" tested only that a
+`church_memberships` row EXISTED for the caller -- no `is_permanent`,
+no `status`. Since migration 035 lets anyone insert their own row for
+any church ("Request to join", trigger forces `status := pending`),
+any signed-in account could request membership anywhere and read that
+church's hidden events immediately. A rejected row still counted.
+
+Dropped. Nothing replaced it -- 092's policy already covers the real
+case through `is_approved_church_member()`.
+
+Four SELECT-capable policies remain on `events`, all narrow:
+
+| policy | grants a read to |
+| --- | --- |
+| Drafts staff-only; members-only needs membership | the intended rule (092) |
+| public events are visible to all | `visibility = 'public'` only |
+| owner and permitted staff can manage events | `can_manage_church_events()` |
+| owner or staff can manage events | owner, or staff with `can_manage_events` |
+
+Verified signed out, after: 0 private, 0 draft, and an unfiltered
+query returns only `public` rows. Ordinary anonymous browsing still
+works (3 events, 200) -- the failure mode that matters most here, and
+the one migration 085 had to repair once already.
+
+**Not directly tested:** the signed-in non-member case, for want of a
+second account. It is closed structurally -- no remaining policy
+grants a private event without approved membership, a registration,
+or staff -- but that is read from the policy text, not measured. The
+measurement that WOULD settle it is a second account requesting
+membership and then querying `events?visibility=eq.private`.
+
+**The lesson, since it cost two migrations:** 092 was verified signed
+OUT, where `auth.uid()` is null and matches no membership row. That
+test was structurally incapable of catching a policy keyed on
+membership. What found it was the policy COUNT in 092's own output --
+three where one was expected. Enumerate the policies on a table BEFORE
+writing one, not after; permissive policies OR together and the
+loosest wins.
 
 ### Migration 092 run -- members-only events are hidden -- 2026-09-24
 
