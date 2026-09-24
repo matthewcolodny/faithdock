@@ -17,40 +17,14 @@ The distinction between the three files:
 When one is finished, move it to "Done" at the bottom with the date.
 The state it ended in is worth more later than the fact it was on a list.
 
-## Migration 096 -- document and de-duplicate the events manage policy
+**Nothing is pending as of 2026-09-24.** Migrations 091 through 096
+have all been run and verified; they are under Done below.
 
-**State today (verified 2026-09-24, by running
-`supabase/checks/policy_function_sources.sql` against production):**
-`events` carries a policy, "owner and permitted staff can manage
-events", calling `can_manage_church_events(uuid)`. Neither the policy
-nor the function appears in any migration in this repository. Every
-other policy helper does — `staff_beyond_checkin`,
-`is_approved_church_member`, `can_manage_church_members` and the rest.
-It duplicates "owner or staff can manage events" from migration 082,
-which writes the same test inline.
-
-**Why it matters:** not a hole -- the security invariants pass, and the
-two rules were compared over every real (user, church) pair and agree.
-It matters because the repository is not a complete description of the
-database: a rebuild from these migrations would silently lack that
-rule. And two permissive policies saying one thing means the next
-reader has to prove neither is looser, which is the work that let the
-earlier events hole survive review.
-
-**What doing it involves:** run
-`supabase/migrations/096_document_and_dedupe_events_manage_policy.sql`
-in the SQL Editor. Its preflight re-measures the equivalence against
-every real (user, church) pair and aborts if the two rules disagree
-anywhere. Then read the verify block: expect three SELECT-capable
-policies and `duplicate_remaining = 0`. Afterwards re-run
-`supabase/checks/security_invariants.sql`.
-
-**Not yet run.**
-
----
-
-**Otherwise nothing is pending as of 2026-09-24.** Migrations 091
-through 095 have all been run and verified; they are under Done below.
+One standing item that is not a migration: the
+`SUPABASE_DB_URL` repository secret for
+`.github/workflows/security-invariants.yml`. Until it is added the
+weekly security check is skipped rather than run. Setup is in the
+comment at the top of that file.
 ---
 ---
 ---
@@ -58,6 +32,53 @@ through 095 have all been run and verified; they are under Done below.
 ---
 
 ## Done
+
+### Migration 096 -- events manage policy documented and de-duplicated -- verified 2026-09-24
+
+`events` carried a policy, "owner and permitted staff can manage
+events", calling `can_manage_church_events(uuid)`. Neither appeared in
+any migration, while all twelve other policy helpers did. It duplicated
+"owner or staff can manage events" from 082, which wrote the same test
+inline.
+
+Not a hole. The two rules were compared by the migration's own preflight
+against every real (user, church) pair and agreed on all of them, so
+neither was looser. The problem was that the repository was not a
+complete description of the database: a rebuild from these migrations
+would have silently lacked the rule.
+
+096 recorded the function with `CREATE OR REPLACE` (byte-identical, so
+no behaviour change and existing grants kept) and dropped 082's inline
+copy. Verified output:
+
+```
+events_select_policies : 3
+duplicate_remaining    : 0
+remaining_policies     : Drafts staff-only; members-only needs membership
+                         | owner and permitted staff can manage events
+                         | public events are visible to all
+auth_can_execute       : true
+```
+
+Dropping a PERMISSIVE policy can only narrow access, never widen it, so
+the exposure invariants could not regress from this — the meaningful
+check was the opposite one, that owners and staff kept event management,
+which the preflight's pair-by-pair comparison established before the
+drop.
+
+Two observations recorded while reading the full policy dump, neither
+acted on:
+
+- `staff_beyond_checkin()` is fail-open for a *new* ability.
+  `is_checkin_only_staff()` works by enumerating every ability flag, so
+  a twelfth ability granted on its own makes someone "not check-in
+  only", which grants broad church-wide read. Worth remembering before
+  the next `can_*` column is added to `church_staff`.
+- Most policy helpers grant `EXECUTE` to `anon`. Harmless today — they
+  are all keyed on `auth.uid()`, which is null for anon — but the
+  `contact_messages` and `event_checkin_links` helpers are restricted to
+  `authenticated`, so the tighter default was clearly intended at some
+  point and never applied generally.
 
 ### Registrant lists and payment reports after 083 -- verified 2026-09-24
 
