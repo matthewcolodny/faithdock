@@ -27,6 +27,33 @@ have all been run and verified; they are under Done below.
 
 ## Done
 
+### Registrant lists and payment reports after 083 -- verified 2026-09-24
+
+Carried for a while as "needs a click-through". It did not; it needed
+reading the grant list against the client.
+
+083 revoked table-level SELECT on `event_registrations` and re-granted
+column by column, and warns in its own header that any column not on
+that list fails closed. So the question was whether the app reads a
+column it was not granted.
+
+Every column the client selects from `event_registrations`:
+
+```
+checked_in_at, event_id, id, payment_status, role, status, user_id
+```
+
+All seven appear in 083's grant to `authenticated` and in 085's
+matching grant to `anon`. Nothing reads a withheld column: the five
+amount columns never appear in a `from('event_registrations')` select
+at all. Amounts reach the client only through `get_ticket_payments`
+(three call sites) and `my_paid_amount_for_event` (one), which is
+exactly the single door 083 built, and the anon side of it was
+measured when 085 ran (`amount_paid_cents` -> 42501 through the
+function, `[]` from the table).
+
+Nothing to click. Closed.
+
 ### Migration 095 run -- anon revoked, deceased permitted -- 2026-09-24
 
 ```
@@ -87,12 +114,14 @@ query returns only `public` rows. Ordinary anonymous browsing still
 works (3 events, 200) -- the failure mode that matters most here, and
 the one migration 085 had to repair once already.
 
-**Not directly tested:** the signed-in non-member case, for want of a
-second account. It is closed structurally -- no remaining policy
-grants a private event without approved membership, a registration,
-or staff -- but that is read from the policy text, not measured. The
-measurement that WOULD settle it is a second account requesting
-membership and then querying `events?visibility=eq.private`.
+**Now measured, 2026-09-24.** The signed-in non-member case was the
+one gap: closed by reading the policy text, not by testing. The user
+requested membership at a church holding a members-only event and
+still could not see the event. That is the exact bypass 093 closed --
+a pending `church_memberships` row no longer unlocks anything -- and
+it is now confirmed from the direction that matters, by somebody
+signed in rather than by an anonymous request that could never have
+matched a membership row in the first place.
 
 **The lesson, since it cost two migrations:** 092 was verified signed
 OUT, where `auth.uid()` is null and matches no membership row. That
