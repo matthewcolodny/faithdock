@@ -810,6 +810,12 @@
       'dashCheckin.walkInTag': 'Walk-in', 'dashCheckin.noSearchMatch': 'No one matches that search.', 'dashCheckin.noOneRegisteredYet': 'No one has registered for this event yet.',
       'dashDir.all': 'All', 'dashDir.members': 'Members', 'dashDir.staff': 'Staff', 'dashDir.eventSignups': 'Event sign-ups',
       'dashDir.filterNSelected': '{n} filters',
+      'dashGroups.ministry': 'Ministry', 'dashGroups.ministryNone': 'No ministry',
+      'dashMinistries.editMinistry': 'Edit ministry', 'dashMinistries.rooms': 'Rooms',
+      'dashMinistries.nothingAttached': 'Nothing is attached to this ministry yet.',
+      'dashMinistries.nameRequired': 'A ministry needs a name.',
+      'dashMinistries.saveFailed': 'Could not save that ministry.',
+      'dashMinistries.oneEvent': '1 event', 'dashMinistries.nEvents': '{n} events',
       'dashDir.optedOut': 'Unsubscribed', 'dashDir.optedOutHint': 'This person asked not to receive email from your church. They are skipped automatically.',
       'dashMessages.someUnsubscribed': '{n} {personWord} unsubscribed and will be skipped.', 'dashMessages.person': 'person', 'dashMessages.people': 'people',
       'dashDir.groupSignups': 'Group sign-ups', 'dashDir.importMembers': 'Import members', 'dashDir.searchPlaceholder': 'Search by name or email',
@@ -1913,6 +1919,12 @@
       'dashCheckin.walkInTag': 'Sin registro', 'dashCheckin.noSearchMatch': 'Nadie coincide con esa búsqueda.', 'dashCheckin.noOneRegisteredYet': 'Aún nadie se ha inscrito en este evento.',
       'dashDir.all': 'Todos', 'dashDir.members': 'Miembros', 'dashDir.staff': 'Personal', 'dashDir.eventSignups': 'Inscripciones a eventos',
       'dashDir.filterNSelected': '{n} filtros',
+      'dashGroups.ministry': 'Ministerio', 'dashGroups.ministryNone': 'Sin ministerio',
+      'dashMinistries.editMinistry': 'Editar ministerio', 'dashMinistries.rooms': 'Salas',
+      'dashMinistries.nothingAttached': 'Aún no hay nada asignado a este ministerio.',
+      'dashMinistries.nameRequired': 'Un ministerio necesita un nombre.',
+      'dashMinistries.saveFailed': 'No se pudo guardar ese ministerio.',
+      'dashMinistries.oneEvent': '1 evento', 'dashMinistries.nEvents': '{n} eventos',
       'dashDir.optedOut': 'Dado de baja', 'dashDir.optedOutHint': 'Esta persona pidió no recibir correos de tu iglesia. Se omite automáticamente.',
       'dashMessages.someUnsubscribed': '{n} {personWord} se dieron de baja y se omitirán.', 'dashMessages.person': 'persona', 'dashMessages.people': 'personas',
       'dashDir.groupSignups': 'Inscripciones a grupos', 'dashDir.importMembers': 'Importar miembros', 'dashDir.searchPlaceholder': 'Buscar por nombre o correo electrónico',
@@ -8448,6 +8460,15 @@ Groups</span>
           <input class="field" type="text" id="group-name" placeholder="Youth Ministry">
           <label data-i18n="dashGroups.description">Description</label>
           <textarea class="field" id="group-description" rows="2" maxlength="400" placeholder="What this group is about" data-i18n-placeholder="dashGroups.descriptionPlaceholder"></textarea>
+          <!-- Which ministry runs this group. One, or none: unlike an
+               event, which can genuinely be co-hosted, a group is run
+               by one ministry, so this is a select and not a checklist
+               (see migration 090). The empty option is first and is
+               what every group that exists today has. -->
+          <label data-i18n="dashGroups.ministry">Ministry</label>
+          <select class="field" id="group-ministry">
+            <option value="" data-i18n="dashGroups.ministryNone">No ministry</option>
+          </select>
           <label data-i18n="dashGroups.meetingSchedule">Meeting schedule</label>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
             <select class="field" id="group-meeting-recurrence">
@@ -9304,7 +9325,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v247 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v248 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -24519,6 +24540,198 @@ Groups</span>
   // of this feature (unlike rooms) is public discoverability -- see
   // loadPublicChurchMinistries() further down for the public side.
   // ============================================================
+  // Which ministry row is open, and which is being edited. Only one
+  // of each: two open edit boxes is two half-finished changes.
+  var ministryExpanded = {};
+  var ministryEditingId = null;
+  // What is attached to each ministry, keyed by ministry id. Filled
+  // by the three bulk queries in loadMinistriesPanel, not per row.
+  var ministryAttribution = {};
+
+  window.cancelMinistryEdit = function(){
+    if (ministryEditingId === null) return;
+    ministryEditingId = null;
+    renderMinistriesList();
+  };
+
+  // Three queries for the whole list, not three per ministry.
+  //
+  // Every row shows its counts, so fetching on expand would mean
+  // either no counts until you click or a request per row -- the
+  // exact shape that made the dashboard slow. These are indexed
+  // lookups returning small rows.
+  async function loadMinistryAttribution(churchId, ministryIds){
+    ministryAttribution = {};
+    ministryIds.forEach(function(id){ ministryAttribution[id] = { events: [], groups: [], rooms: [] }; });
+    if (!ministryIds.length) return;
+
+    var { data: emRows, error: emErr } = await supabase.from('event_ministries')
+      .select('ministry_id, events!inner(id, title, start_at, church_id)')
+      .in('ministry_id', ministryIds)
+      .eq('events.church_id', churchId);
+    if (emErr) console.error('loadMinistryAttribution events:', emErr);
+    var eventOf = {};
+    var datedEvents = [];
+    (emRows || []).forEach(function(r){
+      if (!r.events || !ministryAttribution[r.ministry_id]) return;
+      ministryAttribution[r.ministry_id].events.push(r.events);
+      // An event can be co-hosted (event_ministries has is_primary
+      // for exactly that), so this map keeps the first ministry seen
+      // for a given event. It is only used to decide which ministry
+      // a room booking is credited to, where one answer is needed and
+      // either is defensible.
+      if (!eventOf[r.events.id]) {
+        eventOf[r.events.id] = r.ministry_id;
+        datedEvents.push({ id: r.events.id, at: new Date(r.events.start_at).getTime() });
+      }
+    });
+    ministryIds.forEach(function(id){
+      ministryAttribution[id].events.sort(function(a, b){ return new Date(b.start_at) - new Date(a.start_at); });
+    });
+
+    // groups.ministry_id arrives with migration 090. Until it has
+    // run, this query fails on a column that is not there -- so the
+    // Groups section is left out rather than shown as an empty list,
+    // which would claim an answer this database cannot give yet.
+    var { data: groupRows, error: gErr } = await supabase.from('groups')
+      .select('id, name, ministry_id').eq('church_id', churchId)
+      .not('ministry_id', 'is', null).order('name');
+    window.ministryGroupsAvailable = !gErr;
+    if (gErr) console.error('loadMinistryAttribution groups (migration 090 not run?):', gErr);
+    (groupRows || []).forEach(function(g){
+      if (ministryAttribution[g.ministry_id]) ministryAttribution[g.ministry_id].groups.push(g);
+    });
+
+    // Rooms are derived, not stored: a room belongs to a ministry
+    // because that ministry's events book it. Capped at the 300 most
+    // recent such events -- this list answers "which rooms does this
+    // ministry use", and a room it has not touched in 300 events is
+    // not part of that answer. The cap is on the .in() filter, which
+    // goes in the URL, so it is also what keeps that URL sane.
+    var recentEventIds = datedEvents
+      .sort(function(a, b){ return b.at - a.at; })
+      .slice(0, 300)
+      .map(function(e){ return e.id; });
+    if (!recentEventIds.length) return;
+    var { data: erRows, error: erErr } = await supabase.from('event_rooms')
+      .select('event_id, room_id, church_rooms(name)').in('event_id', recentEventIds);
+    if (erErr) { console.error('loadMinistryAttribution rooms:', erErr); return; }
+    var seen = {};
+    (erRows || []).forEach(function(r){
+      var mid = eventOf[r.event_id];
+      if (!mid || !r.church_rooms || !r.church_rooms.name) return;
+      var key = mid + '|' + r.room_id;
+      if (seen[key]) { seen[key].n++; return; }
+      seen[key] = { name: r.church_rooms.name, n: 1 };
+      ministryAttribution[mid].rooms.push(seen[key]);
+    });
+    ministryIds.forEach(function(id){
+      ministryAttribution[id].rooms.sort(function(a, b){ return b.n - a.n; });
+    });
+  }
+
+  // A named list, capped, with an honest count of what was left off.
+  // Same shape for events, groups and rooms so three sections cannot
+  // drift into three slightly different layouts.
+  function ministrySectionHtml(heading, items){
+    if (!items.length) return '';
+    var shown = items.slice(0, 8);
+    return '<div style="margin-top:10px;">'
+      + '<div style="font-size:11px;letter-spacing:0.04em;text-transform:uppercase;color:var(--ink-mute);margin-bottom:4px;">' + escapeHtml(heading) + ' · ' + items.length + '</div>'
+      + shown.map(function(it){
+          return '<div style="font-size:12.5px;margin-bottom:3px;">' + escapeHtml(it.label)
+            + (it.meta ? '<span style="color:var(--ink-mute);"> — ' + escapeHtml(it.meta) + '</span>' : '')
+            + '</div>';
+        }).join('')
+      + (items.length > shown.length ? '<div style="font-size:12px;color:var(--ink-mute);">' + window.t('ce.andNMore').replace('{n}', items.length - shown.length) + '</div>' : '')
+      + '</div>';
+  }
+
+  // The .room-row-* classes are the facility panel's, reused rather
+  // than copied: they already solve this exact row -- a name that
+  // truncates, a count beside it, buttons pinned right, and all of it
+  // wrapping to two lines on a phone. Copying the CSS under a second
+  // set of names would mean two places to fix the next time a row
+  // like this is wrong on a narrow screen.
+  function ministryRowHtml(m){
+    var att = ministryAttribution[m.id] || { events: [], groups: [], rooms: [] };
+    var open = !!ministryExpanded[m.id];
+
+    if (m.id === ministryEditingId) {
+      return '<div class="info-row" style="display:block;">'
+        + '<input class="field" type="text" id="ministry-edit-name" value="' + escAttr(m.name) + '" style="font-size:13px;padding:6px 8px;margin:0 0 6px;">'
+        + '<textarea class="field" id="ministry-edit-desc" style="font-size:13px;padding:6px 8px;margin:0;min-height:48px;resize:vertical;" placeholder="' + escAttr(window.t('dashSettings.ministryDescPlaceholder')) + '">' + escapeHtml(m.description || '') + '</textarea>'
+        + '<div class="room-row-actions" style="margin-top:8px;justify-content:flex-end;">'
+          + '<button class="qr-btn" data-ministry-save="' + escAttr(m.id) + '" aria-label="' + escAttr(window.t('profile.save')) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></button>'
+          + '<button class="qr-btn" data-remove-ministry-id="' + escAttr(m.id) + '" aria-label="' + escAttr(window.t('dashSettings.removeMinistry')) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'
+        + '</div>'
+        + '<div id="ministry-edit-status" style="display:none;font-size:12px;margin-top:6px;color:var(--clay);"></div>'
+        + '</div>';
+    }
+
+    // Counts, not just a description: the question this page could not
+    // answer was what a ministry actually has attached to it, and a
+    // row that has to be clicked before it says anything is only half
+    // an answer.
+    var counts = [
+      window.t('dash.events') + ' ' + att.events.length,
+      (window.ministryGroupsAvailable === false ? null : window.t('dash.groups') + ' ' + att.groups.length),
+      window.t('dashMinistries.rooms') + ' ' + att.rooms.length
+    ].filter(Boolean).join(' · ');
+
+    var html = '<div class="info-row" style="display:block;">'
+      + '<div class="room-row-main">'
+        + '<span class="room-row-name" data-ministry-toggle="' + escAttr(m.id) + '">'
+          + '<strong>' + escapeHtml(m.name) + '</strong>'
+          + ' <span class="room-row-meta">' + escapeHtml(counts) + '</span>'
+        + '</span>'
+        + '<span class="room-row-actions">'
+          + '<button class="qr-btn" data-edit-ministry-id="' + escAttr(m.id) + '" aria-label="' + escAttr(window.t('dashMinistries.editMinistry')) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>'
+          + '<button class="qr-btn" data-remove-ministry-id="' + escAttr(m.id) + '" aria-label="' + escAttr(window.t('dashSettings.removeMinistry')) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'
+        + '</span>'
+      + '</div>';
+    if (m.description) {
+      html += '<div style="font-size:12.5px;color:var(--ink-mute);margin-top:2px;">' + escapeHtml(m.description) + '</div>';
+    }
+    if (open) {
+      var body = ministrySectionHtml(window.t('dash.events'), att.events.map(function(e){
+            return { label: e.title, meta: new Date(e.start_at).toLocaleDateString(window.appLocale(), { year: 'numeric', month: 'short', day: 'numeric' }) };
+          }))
+        + (window.ministryGroupsAvailable === false ? '' : ministrySectionHtml(window.t('dash.groups'), att.groups.map(function(g){ return { label: g.name }; })))
+        + ministrySectionHtml(window.t('dashMinistries.rooms'), att.rooms.map(function(r){
+            // How many of THIS ministry's events book this room --
+            // not how many are upcoming. dashFacility.nUpcoming was
+            // the nearest existing string and it says the wrong
+            // thing here: a room this ministry used twice last
+            // spring would have read '2 upcoming'.
+            return { label: r.name, meta: r.n === 1 ? window.t('dashMinistries.oneEvent') : window.t('dashMinistries.nEvents').replace('{n}', r.n) };
+          }));
+      html += body || '<div style="font-size:12.5px;color:var(--ink-mute);margin-top:10px;">' + window.t('dashMinistries.nothingAttached') + '</div>';
+    }
+    return html + '</div>';
+  }
+
+  // Paints the list from what has already been fetched. Nothing in
+  // here goes to the network, which is what makes it safe to call on
+  // every expand, collapse and edit-open -- three queries per click
+  // to redraw rows whose data cannot have changed is exactly the
+  // pattern that made this dashboard slow in the first place.
+  function renderMinistriesList(){
+    var listEl = document.getElementById('ministries-list');
+    if (!listEl) return;
+    var ministries = window.churchMinistriesCache || [];
+    if (!ministries.length) {
+      listEl.innerHTML = '<p style="color:var(--ink-mute);font-size:13px;">' + window.t('dashSettings.noMinistriesYet') + '</p>';
+      return;
+    }
+    listEl.innerHTML = ministries.map(ministryRowHtml).join('');
+    // The edit box is opened by a click on a pencil, so the caret
+    // should already be in it -- otherwise every rename starts with a
+    // second click to reach the field the first one just created.
+    var editInput = document.getElementById('ministry-edit-name');
+    if (editInput) { editInput.focus(); editInput.select(); }
+  }
+
   async function loadMinistriesPanel(){
     var listEl = document.getElementById('ministries-list');
     if (!listEl) return;
@@ -24534,12 +24747,8 @@ Groups</span>
       listEl.innerHTML = '<p style="color:var(--ink-mute);font-size:13px;">' + window.t('dashSettings.noMinistriesYet') + '</p>';
       return;
     }
-    listEl.innerHTML = ministries.map(function(m){
-      return '<div class="info-row" style="justify-content:space-between;align-items:flex-start;">'
-        + '<span><strong>' + m.name.replace(/</g, '&lt;') + '</strong>' + (m.description ? '<br><span style="font-size:12.5px;color:var(--ink-mute);">' + m.description.replace(/</g, '&lt;') + '</span>' : '') + '</span>'
-        + '<button class="qr-btn" data-remove-ministry-id="' + m.id + '" aria-label="' + window.t('dashSettings.removeMinistry') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'
-        + '</div>';
-    }).join('');
+    await loadMinistryAttribution(myChurch.id, ministries.map(function(m){ return m.id; }));
+    renderMinistriesList();
   }
   window.loadMinistriesPanel = loadMinistriesPanel;
 
@@ -27017,14 +27226,67 @@ Groups</span>
   }
 
   document.addEventListener('click', async function(ev){
-    var removeMinistryBtn = ev.target.closest ? ev.target.closest('[data-remove-ministry-id]') : null;
+    if (!ev.target.closest) return;
+
+    var ministryToggle = ev.target.closest('[data-ministry-toggle]');
+    if (ministryToggle) {
+      var toggleId = ministryToggle.getAttribute('data-ministry-toggle');
+      ministryExpanded[toggleId] = !ministryExpanded[toggleId];
+      renderMinistriesList();
+      return;
+    }
+
+    var editMinistryBtn = ev.target.closest('[data-edit-ministry-id]');
+    if (editMinistryBtn) {
+      ministryEditingId = editMinistryBtn.getAttribute('data-edit-ministry-id');
+      renderMinistriesList();
+      return;
+    }
+
+    var saveMinistryBtn = ev.target.closest('[data-ministry-save]');
+    if (saveMinistryBtn) {
+      var saveId = saveMinistryBtn.getAttribute('data-ministry-save');
+      var nameEl = document.getElementById('ministry-edit-name');
+      var descEl = document.getElementById('ministry-edit-desc');
+      var statusEl = document.getElementById('ministry-edit-status');
+      var newName = nameEl ? nameEl.value.trim() : '';
+      var newDesc = descEl ? descEl.value.trim() : '';
+      if (!newName) {
+        if (statusEl) { statusEl.textContent = window.t('dashMinistries.nameRequired'); statusEl.style.display = 'block'; }
+        if (nameEl) nameEl.focus();
+        return;
+      }
+      // Empty description means none, not an empty string -- the same
+      // thing the add form writes, so a ministry edited to have no
+      // description matches one created without one.
+      var { error: msErr } = await supabase.from('church_ministries')
+        .update({ name: newName, description: newDesc || null }).eq('id', saveId);
+      if (msErr) {
+        if (statusEl) { statusEl.textContent = window.t('dashMinistries.saveFailed') + ' ' + friendlyDbError(msErr); statusEl.style.display = 'block'; }
+        return;
+      }
+      ministryEditingId = null;
+      loadMinistriesPanel();
+      return;
+    }
+
+    var removeMinistryBtn = ev.target.closest('[data-remove-ministry-id]');
     if (!removeMinistryBtn) return;
     if (!confirm(window.t('dashSettings.removeMinistryConfirm'))) return;
     // Soft-delete: hides it from future use and from the public
     // profile without erasing which ministry past events credit.
     var { error } = await supabase.from('church_ministries').update({ is_active: false }).eq('id', removeMinistryBtn.getAttribute('data-remove-ministry-id'));
     if (error) { alert(window.t('dashSettings.removeMinistryFailed') + ' ' + error.message); return; }
+    ministryEditingId = null;
     loadMinistriesPanel();
+  });
+
+  // Escape backs out of a ministry edit, the same way it backs out of
+  // a room rename -- there is no cancel button, for the same reason:
+  // a third control did not fit the row.
+  document.addEventListener('keydown', function(ev){
+    if (ev.key !== 'Escape') return;
+    if (typeof window.cancelMinistryEdit === 'function') window.cancelMinistryEdit();
   });
 
   // ============================================================
@@ -35661,6 +35923,31 @@ Groups</span>
     if (el) el.addEventListener('input', updateGroupSchedulePreview);
   });
 
+  // Bumped by every call, captured by each one, and checked before
+  // anything is written. Opening the edit form calls resetGroupForm()
+  // -- which repopulates with nothing selected -- and then populates
+  // again with the group's own ministry; without this the first,
+  // slower request could land last and silently clear the selection,
+  // so saving an unchanged group would detach it from its ministry.
+  var groupMinistrySeq = 0;
+  async function populateGroupMinistrySelect(selectedId){
+    var sel = document.getElementById('group-ministry');
+    if (!sel) return;
+    var mySeq = ++groupMinistrySeq;
+    var myChurch = await getMyChurch();
+    if (!myChurch) return;
+    var { data: ministries, error } = await supabase.from('church_ministries')
+      .select('id, name').eq('church_id', myChurch.id).eq('is_active', true).order('name');
+    if (mySeq !== groupMinistrySeq) return;
+    if (error) { console.error('populateGroupMinistrySelect:', error); return; }
+    sel.innerHTML = '<option value="">' + escapeHtml(window.t('dashGroups.ministryNone')) + '</option>'
+      + (ministries || []).map(function(m){
+          return '<option value="' + escAttr(m.id) + '">' + escapeHtml(m.name) + '</option>';
+        }).join('');
+    sel.value = selectedId || '';
+  }
+  window.populateGroupMinistrySelect = populateGroupMinistrySelect;
+
   function resetGroupForm(){
     document.getElementById('group-form-id').value = '';
     document.getElementById('group-name').value = '';
@@ -35673,6 +35960,8 @@ Groups</span>
     groupExceptions = [];
     renderGroupExceptions();
     document.getElementById('group-visibility').value = 'public';
+    document.getElementById('group-ministry').value = '';
+    populateGroupMinistrySelect(null);
     window.groupImageEditedFile = null;
     window.groupImageMarkedForRemoval = false;
     document.getElementById('group-image').value = '';
@@ -35765,6 +36054,10 @@ Groups</span>
         meeting_exceptions: (recurrence === 'once' || !groupExceptions.length) ? null : groupExceptions,
         meeting_schedule: formatGroupSchedule(recurrence, day, meetingDate, time24),
         visibility: document.getElementById('group-visibility').value,
+        // null, not '': the column is a uuid FK, and an empty string
+        // is not a uuid -- Postgres rejects it rather than reading it
+        // as "no ministry".
+        ministry_id: document.getElementById('group-ministry').value || null,
         join_method: document.getElementById('group-join-method').value,
         leader_can_view_contact_info: document.getElementById('group-leader-contact').checked,
         show_member_list: document.getElementById('group-show-members').checked
@@ -35840,6 +36133,10 @@ Groups</span>
         // is actually public would tell a church its group is hidden
         // when everyone can see it.
         document.getElementById('group-visibility').value = g.visibility || 'public';
+        // Awaited: the options have to exist before the value is set,
+        // and resetGroupForm() above has a populate of its own in
+        // flight. groupMinistrySeq settles which one wins.
+        await populateGroupMinistrySelect(g.ministry_id || '');
         window.groupImageEditedFile = null;
         window.groupImageMarkedForRemoval = false;
         var gEditPreview = document.getElementById('group-image-preview');
