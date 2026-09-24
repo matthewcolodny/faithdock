@@ -1,0 +1,33 @@
+# Run the pre-deploy checks on every push and pull request.
+#
+# Cloudflare Pages deploys from this repository directly, so nothing
+# here can stop a bad commit reaching faithdock.com on its own -- Pages
+# does not wait for GitHub Actions. What this does is tell you, within
+# about a minute, that what you just pushed is broken, and mark the
+# commit with a red X so it is obvious in the history and on any PR.
+#
+# If you adopt the branch workflow (push a branch, check its preview
+# URL, then merge), this becomes a real gate: turn on a required status
+# check for "checks" on main and GitHub will refuse the merge.
+#
+# No dependencies and no install step -- tools/check.js uses only Node's
+# standard library, so this is a checkout and one command.
+
+name: checks
+
+on:
+  push:
+  pull_request:
+  # Lets you run it by hand from the Actions tab.
+  workflow_dispatch:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Pre-deploy checks
+        run: node tools/check.js

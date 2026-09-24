@@ -148,7 +148,30 @@
 <meta name="google-site-verification" content="wjneRJQpRgpt_EfjLRpRWtp8ul3l8tg0p2mWVdfBfT0" />
 <title>FaithDock — Find your church home</title>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+<!-- integrity: the browser hashes the downloaded file and refuses to run
+     it unless it matches. This one matters more than most, because
+     DOMPurify IS the XSS defence -- if cdnjs were ever compromised, the
+     swapped file would be the sanitiser, with a free hand over every
+     signed-in session. That is not hypothetical; it is what happened to
+     Polyfill.io in 2024 across a very large number of sites.
+
+     Safe to pin, because sanitizeHtml() below already fails CLOSED: with
+     DOMPurify undefined it returns an empty string rather than raw
+     input. A hash mismatch therefore costs some empty rich text, not a
+     hole.
+
+     crossorigin="anonymous" is required -- without it the response is
+     opaque and the browser cannot hash it, so integrity is ignored.
+
+     THE HASH IS TIED TO THIS EXACT VERSION. Changing the version in the
+     URL without recomputing it will block the script:
+       curl -s <url> | openssl dgst -sha384 -binary | openssl base64 -A
+     Verified by fetching 3.1.6 twice, independently (Node and a
+     browser): 21,496 bytes, matching SHA-256 and SHA-384 both times. -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"
+        integrity="sha384-+VfUPEb0PdtChMwmBcBmykRMDd+v6D/oFmB3rZM/puCMDYcIvF968OimRh4KQY9a"
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer"></script>
 <script src="pure-logic.js"></script>
 <script>
   // ============================================================
@@ -8451,7 +8474,7 @@ Groups</span>
                letting someone type a paragraph and then fail. -->
           <div id="feedback-signin-note" style="display:none;font-size:13px;color:var(--ink-mute);">
             <span data-i18n="profile.feedbackSignIn">Sign in to send feedback, so we can follow up with you.</span>
-            <a href="#signup/login" data-route="signup" style="border-bottom:1px solid var(--gold);margin-left:4px;" data-i18n="nav.logIn">Log in</a>
+            <a href="#signup/login" data-route="signup" style="border-bottom:1px solid var(--gold);margin-left:4px;" data-i18n="nav.login">Log in</a>
           </div>
           <div id="feedback-form-wrap">
             <textarea class="field" id="profile-feedback-input" rows="4" placeholder="What's on your mind?" data-i18n-placeholder="profile.feedbackPlaceholder"></textarea>
@@ -10215,7 +10238,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-24-v275 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-24-v276 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">

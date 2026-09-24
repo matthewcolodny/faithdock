@@ -158,5 +158,88 @@ three comments about skeletons that stayed up when a path forgot to
 clear them. It would also make the wait longer, since nothing is usable
 until the slowest query returns.
 
+## Checks before deploy
+`node tools/check.js` — no dependencies, runs in about a second. It also
+runs automatically on every push via `.github/workflows/check.yml`.
+
+It is not a linter and has no opinions about style. Every check
+corresponds to a way this project has actually broken, or could break
+silently enough that only a user would notice:
+
+- **Every inline `<script>` parses** (`node --check`, so nothing runs).
+- **Every `<style>` block is structurally intact** — unterminated `/*`,
+  a stray `*/`, unbalanced braces. This is the one it was written for: a
+  comment split in two while being edited leaves a tail floating in rule
+  position, which silently voids every rule after it while the page
+  still returns 200.
+- **Every `data-i18n` key exists in both dictionaries.** A key in
+  neither renders as the key; a key in English only falls back silently,
+  so the Spanish side looks translated and isn't. The first run of this
+  check found `nav.logIn` where the dictionary says `nav.login` — the
+  "Log in" link had never translated.
+- **The manifest parses and every icon it names exists.** A manifest is
+  read once at install time, so a bad one sticks until the app is
+  removed and re-added.
+- **Every service-worker shell file exists.** `cache.add` failures are
+  caught individually so one 404 cannot fail the install, which also
+  means they fail quietly.
+- **No `--` inside an SVG comment.** Illegal in XML; the file still
+  serves 200 and still looks fine in an editor, but `<img>` and Chrome's
+  icon loader both refuse it.
+- **The build stamp is present and well-formed.**
+
+Cloudflare Pages does not wait for GitHub Actions, so this reports
+rather than blocks — unless you use the branch workflow below and make
+`checks` a required status check on `main`.
+
+## Deploying and previewing
+Cloudflare Pages builds this repository directly. **`main` is
+production** (faithdock.com); **every other branch gets its own preview
+URL** at `https://<branch>.<project>.pages.dev`, built the same way from
+the same files.
+
+Work on a branch when a change is worth seeing before it is live:
+
+```bash
+git checkout -b some-change
+# ...edit...
+git commit -am "..."
+git push -u origin some-change      # Cloudflare builds a preview
+```
+
+Cloudflare comments the preview URL on the commit, and it is listed
+under Workers & Pages → the project → Deployments. Test there, then
+publish by merging:
+
+```bash
+git checkout main
+git merge some-change
+git push origin main                # this is what goes live
+```
+
+Previews run the real Supabase project, so they are not a sandbox —
+data written from a preview is real data.
+
+## Standing security checks
+`supabase/checks/security_invariants.sql` asserts rather than prints,
+and `.github/workflows/security-invariants.yml` runs it weekly. It
+covers RLS being enabled, members-only events being invisible both
+logged-out *and* to a signed-in account that is a member of nothing,
+and the departures log not being readable by anon.
+
+The second of those is the one that matters: the original hole was
+missed because it was verified while signed out, where `auth.uid()` is
+null — a test structurally incapable of catching a membership-keyed
+bypass.
+
+It needs one repository secret, `SUPABASE_DB_URL`; the workflow is
+skipped rather than failed until that exists. Setup instructions are in
+the comment at the top of the workflow. **Run the SQL by hand in the
+Supabase SQL Editor once before trusting the schedule.**
+
+The other files in `supabase/checks/` are diagnostic probes from
+specific investigations — they print for a person to read and are not
+meant to run unattended.
+
 ## Build stamp
 The footer of `index.html` carries a build version stamp (`build YYYY-MM-DD-vNNN`), bumped by hand after each round of changes. Check it against the latest commit here to confirm what's actually live.

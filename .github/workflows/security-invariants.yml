@@ -1,0 +1,74 @@
+# Run the standing security invariants against the live database.
+#
+# WHAT IT CHECKS: supabase/checks/security_invariants.sql -- that RLS is
+# on, that members-only events are invisible to a logged-out visitor AND
+# to a signed-in account that is a member of nothing, and that the
+# departures log is not readable by anon. It is read-only and rolls back.
+#
+# WHY ON A SCHEDULE: RLS is the only thing protecting the data, because
+# the anon key is public by design. A policy added by hand in the
+# Supabase dashboard, or a migration applied out of order, can widen
+# access with nothing in this repository changing -- so a check that
+# only runs on push would never see it.
+#
+# ---------------------------------------------------------------------
+# SETUP -- one secret, once. Until it is added this workflow is skipped,
+# not failed, so it will not sit there red.
+#
+#   1. Supabase dashboard -> Project Settings -> Database
+#   2. Copy the CONNECTION STRING (URI). Use the SESSION pooler or the
+#      direct connection; either is fine for one short read.
+#   3. Put your database password into it in place of [YOUR-PASSWORD].
+#   4. GitHub -> this repo -> Settings -> Secrets and variables ->
+#      Actions -> New repository secret
+#        Name:   SUPABASE_DB_URL
+#        Value:  the full postgresql://... string
+#
+# That password is the whole database. Never paste it into a file, a
+# chat, or a commit -- only into the secret box. Rotate it in Supabase
+# if it is ever exposed.
+# ---------------------------------------------------------------------
+
+name: security invariants
+
+on:
+  schedule:
+    # 07:00 UTC every Monday. Weekly rather than nightly because it
+    # touches production and nothing here changes hourly.
+    - cron: '0 7 * * 1'
+  workflow_dispatch:
+
+jobs:
+  invariants:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Skip if no database secret is configured
+        id: gate
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          if [ -z "$DB_URL" ]; then
+            echo "SUPABASE_DB_URL is not set. See the comment at the top of this file."
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install psql
+        if: steps.gate.outputs.configured == 'true'
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Run security invariants
+        if: steps.gate.outputs.configured == 'true'
+        env:
+          # Passed as an environment variable, not on the command line:
+          # arguments are visible in the process list.
+          PGPASSWORD_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          # ON_ERROR_STOP turns the RAISE in the SQL into a non-zero exit,
+          # which is what makes a regression fail the job rather than
+          # scroll past in the log.
+          psql "$PGPASSWORD_URL" -v ON_ERROR_STOP=1 -X -q \
+            -f supabase/checks/security_invariants.sql
