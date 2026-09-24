@@ -41,14 +41,25 @@
      splash exists to cover. -->
 <style>
   #fd-splash{display:none;}
+  /* A REFRESH IS NOT A LAUNCH, and this is what tells them apart.
+     Set by the script just below the style block; see the long comment
+     there for why. It has to beat the standalone rule below, and it
+     does on specificity alone -- an id plus a class plus an element
+     against a bare id -- so no !important is needed. */
+  html.fd-no-splash #fd-splash{display:none;}
   @media (display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui){
     /* The page canvas goes navy too, so there is no pale frame between
        the system launch screen and the splash painting. html rather
        than body: when html has a background, body's no longer
        propagates to the canvas, so this is what fills any gap and any
        rubber-band overscroll. Standalone only -- it would change the
-       overscroll colour of the ordinary website otherwise. */
-    html{background:#1A2A49;}
+       overscroll colour of the ordinary website otherwise.
+
+       Not on a refresh, though. There is no launch screen to bridge
+       from there, so a navy canvas is not covering a gap, it IS the
+       blue flash. Dropping it hands the canvas back to body's own
+       background, which propagates again once html has none. */
+    html:not(.fd-no-splash){background:#1A2A49;}
     #fd-splash{
       /* NO LOGO AND NO WORDMARK -- read the markup comment below before
          adding either back. A spinner is fine and there is one: it
@@ -96,6 +107,44 @@
     }
   }
 </style>
+
+<!-- Decide, before anything paints, whether this load is a launch or a
+     refresh. A launch needs the hold: the system launch screen has just
+     gone and 2.5MB of HTML is not usable yet, so without it you would
+     watch the page assemble itself. A refresh needs nothing. Chrome has
+     already put its own spinner over the page you were looking at, so
+     ours adds a full-screen navy interruption on top of a perfectly
+     good interaction.
+
+     WHY THIS SITS IN THE HEAD AND NOT WITH THE REST OF THE SCRIPTS.
+     The splash is the first element in the body and paints the instant
+     the body starts parsing. Hiding it from the script at the bottom
+     of the document would be thousands of lines too late -- the flash
+     would have already happened. The class has to be on <html> before
+     the body exists, which means here, inline, blocking.
+
+     navigation type: 'navigate' is a launch. 'reload' is pull-to-
+     refresh or a reload. 'back_forward' is a history move, where the
+     page was already seen. The old performance.navigation.type is the
+     fallback for anything that does not report the modern entry (1 is
+     reload, 2 is back_forward). -->
+<script>
+  (function () {
+    try {
+      var t = '';
+      var nav = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
+      if (nav && nav.type) t = nav.type;
+      else if (performance.navigation) t = ({ 1: 'reload', 2: 'back_forward' })[performance.navigation.type] || '';
+      if (t === 'reload' || t === 'back_forward') {
+        document.documentElement.classList.add('fd-no-splash');
+      }
+    } catch (e) {
+      // Anything unexpected here means the splash simply behaves as it
+      // did before. Never let this break the page over a flash.
+    }
+  })();
+</script>
+
 <meta name="google-site-verification" content="wjneRJQpRgpt_EfjLRpRWtp8ul3l8tg0p2mWVdfBfT0" />
 <title>FaithDock — Find your church home</title>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
@@ -9876,7 +9925,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-24-v270 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-24-v271 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">

@@ -80,6 +80,22 @@ blurry image and a sharp one do not blend no matter how carefully they
 are sized. So the mark appears exactly once per launch, on the system
 screen, and this holds the colour afterwards.
 
+**It only appears on a launch, never on a refresh.** An inline script
+in the `<head>` reads the navigation type and puts `.fd-no-splash` on
+`<html>` for `reload` and `back_forward`, which switches off both the
+layer and the navy canvas. The script has to be in the head because the
+splash is the first element in the body and paints the moment the body
+starts parsing — hiding it from the script at the bottom of the file
+would be thousands of lines too late.
+
+The reasoning: a launch needs the hold, because the system screen has
+just gone and 2.5MB of HTML is not usable yet. A refresh does not —
+Chrome already draws its own spinner over the page you were looking at,
+so ours just threw a full-screen navy interruption over a working
+interaction. On a refresh the canvas goes back to `body`'s own
+`--paper`, which propagates again once `html` has no background, so
+there is no blue at all.
+
 A spinner is fine and there is one, drawn with `::after` so the markup
 stays a bare div. It reads as progress rather than as branding, so it
 does not compete with the screen before it — that is the line, no
