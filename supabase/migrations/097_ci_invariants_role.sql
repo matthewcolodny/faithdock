@@ -5,14 +5,30 @@
 -- password.
 --
 -- ####################################################################
--- #  BEFORE RUNNING: replace REPLACE_WITH_A_GENERATED_PASSWORD below  #
--- #  with a long random password.                                     #
+-- #  THIS FILE CONTAINS NO PASSWORD AND CREATES NO USABLE LOGIN.      #
 -- #                                                                   #
--- #  DO NOT COMMIT THE FILLED-IN VERSION. Fill it in, run it, then    #
--- #  put the password straight into the GitHub secret and nowhere     #
--- #  else. tools/check.js fails the build if this file is ever        #
--- #  committed without the placeholder still in it.                   #
+-- #  It creates the role with NOLOGIN. Enabling it is a separate,     #
+-- #  deliberate statement you run once, by hand, and never commit:    #
+-- #                                                                   #
+-- #    alter role ci_invariants login password '<generated>';         #
+-- #                                                                   #
+-- #  Put that password straight into the GitHub secret and nowhere    #
+-- #  else. tools/check.js fails the build if a password literal ever  #
+-- #  appears in this file.                                            #
 -- ####################################################################
+--
+-- WHY IT IS BUILT THIS WAY. The first version shipped a placeholder
+-- password and told the reader to replace it before running. Somebody
+-- ran it unchanged -- reasonably, since it looked runnable -- and that
+-- created a login role on the production database whose password was
+-- published in a public repository. The role is NOINHERIT with no table
+-- grants, which sounds contained and is not: it can SET ROLE
+-- authenticated and then set request.jwt.claims to any user id, which
+-- is impersonation of any member or owner.
+--
+-- A migration that produces a working credential when run as written is
+-- the wrong shape, however loud the comment above it. This one is inert
+-- until a human types a password into a separate statement.
 --
 -- WHY THIS EXISTS. The invariants have to answer "what can anon
 -- actually see" and "what can a signed-in non-member actually see",
@@ -42,7 +58,7 @@
 do $preflight$
 begin
   if exists (select 1 from pg_roles where rolname = 'ci_invariants') then
-    raise notice 'Role ci_invariants already exists. This script will update its password and membership rather than create it.';
+    raise notice 'Role ci_invariants already exists. This script will set it to NOLOGIN and refresh its membership rather than create it.';
   end if;
   -- Both must exist or the grants below fail with a confusing message.
   if not exists (select 1 from pg_roles where rolname = 'anon')
@@ -55,12 +71,21 @@ $preflight$;
 -- ---------------------------------------------------------------------
 -- The role
 -- ---------------------------------------------------------------------
+-- NOLOGIN and no password. Re-running this on a role that has already
+-- been given a real password will DISABLE it again, which is the safe
+-- direction: re-enable deliberately rather than leave a credential
+-- alive by accident.
 do $create$
 begin
   if exists (select 1 from pg_roles where rolname = 'ci_invariants') then
-    alter role ci_invariants login noinherit password 'REPLACE_WITH_A_GENERATED_PASSWORD';
+    alter role ci_invariants nologin noinherit;
+    -- Worded without a quoted example on purpose: tools/check.js rejects
+    -- any password literal in this file's runnable SQL, and a sample one
+    -- inside a notice string trips it. The full statement is in the
+    -- header comment.
+    raise notice 'ci_invariants already existed and is now NOLOGIN. Re-enable it with a separate ALTER ROLE ... LOGIN PASSWORD statement (see the header).';
   else
-    create role ci_invariants login noinherit password 'REPLACE_WITH_A_GENERATED_PASSWORD';
+    create role ci_invariants nologin noinherit;
   end if;
 end
 $create$;
@@ -74,13 +99,20 @@ revoke create on schema public from ci_invariants;
 -- ---------------------------------------------------------------------
 -- Verify. Read the output rather than assuming.
 -- ---------------------------------------------------------------------
--- Expect: can_login true, inherits_passively FALSE, is_superuser false,
+-- Expect: can_login FALSE, inherits_passively FALSE, is_superuser false,
 -- can_create_db false, member_of 'anon, authenticated', and
 -- reads_tables_as_itself 0.
 --
--- inherits_passively is the one that matters. If it comes back true,
--- the role carries anon's and authenticated's privileges without asking
--- and this has not achieved what it set out to.
+-- TWO that matter, for different reasons.
+--
+-- can_login false means the role is inert: it exists, it is shaped
+-- correctly, and nobody can connect as it. That is the state to leave
+-- it in until the moment the GitHub secret is being set up.
+--
+-- inherits_passively false means that once it IS enabled, it carries
+-- none of anon's or authenticated's privileges unless it explicitly
+-- switches. If that comes back true, this has not achieved what it set
+-- out to, whatever the other columns say.
 select
   r.rolcanlogin                                    as can_login,
   r.rolinherit                                     as inherits_passively,

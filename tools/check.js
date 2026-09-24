@@ -305,31 +305,43 @@ function checkAssetLinks() {
 // ---------------------------------------------------------------------
 // 6c. No credential has been committed into a migration.
 // ---------------------------------------------------------------------
-// 097 creates a login role and therefore contains the word `password`
-// followed by a literal. It ships with a placeholder that has to be
-// filled in before running -- which makes it exactly the kind of file
-// somebody fills in, runs, and then commits without thinking. The
-// placeholder must still be there.
+// NO PASSWORD LITERAL AT ALL in the role migration, placeholder or
+// otherwise.
+//
+// The first version of this check allowed one, as long as it was the
+// documented placeholder. That was the wrong rule and it cost
+// something real: the migration shipped a placeholder password and a
+// comment saying to replace it, somebody ran it as written, and the
+// result was a login role on the production database whose password
+// was published in a public repository. A placeholder in a runnable
+// statement is not a placeholder, it is a password.
+//
+// So 097 now creates the role NOLOGIN with no password, and enabling it
+// is a separate statement typed by hand and never committed. Any
+// `password '...'` appearing in that file means somebody has gone back
+// to the shape that failed.
 //
 // Deliberately narrow: it checks the one file known to carry this
 // shape, rather than grepping the repo for anything password-like and
 // producing false alarms on every comment that says the word.
 
 function checkNoCommittedSecrets() {
+  const rel = 'supabase/migrations/097_ci_invariants_role.sql';
   const p = path.join(ROOT, 'supabase', 'migrations', '097_ci_invariants_role.sql');
   if (!fs.existsSync(p)) return;
-  const src = fs.readFileSync(p, 'utf8');
-  const placeholder = 'REPLACE_WITH_A_GENERATED_PASSWORD';
-  const literals = src.match(/password\s+'([^']*)'/gi) || [];
-  const filled = literals.filter(function (m) { return m.indexOf(placeholder) === -1; });
-  if (filled.length) {
-    fail('supabase/migrations/097_ci_invariants_role.sql',
-      'a real password looks committed here (' + filled.length + ' literal' +
-      (filled.length === 1 ? '' : 's') + ' without the placeholder).\n' +
-      '      Put the placeholder back, and rotate the password -- git history keeps what was pushed.');
+  // Comments are stripped first, so the documented `alter role ... login
+  // password '<generated>'` example does not trip this.
+  const src = fs.readFileSync(p, 'utf8').split('\n')
+    .filter(function (l) { return l.trim().indexOf('--') !== 0; }).join('\n');
+  const literals = src.match(/password\s+'[^']*'/gi) || [];
+  if (literals.length) {
+    fail(rel, literals.length + ' password literal' + (literals.length === 1 ? '' : 's') +
+      ' in runnable SQL. This file must create the role NOLOGIN with no password;\n' +
+      '      enabling it is a separate statement, typed by hand, never committed.\n' +
+      '      If a real password was pushed, rotate it -- git history keeps what was pushed.');
     return;
   }
-  note('097 still carries its password placeholder (no credential committed)');
+  note('097 contains no password literal (role is inert until enabled by hand)');
 }
 
 // ---------------------------------------------------------------------
