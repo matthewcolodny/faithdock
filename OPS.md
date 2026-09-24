@@ -17,46 +17,41 @@ The distinction between the three files:
 When one is finished, move it to "Done" at the bottom with the date.
 The state it ended in is worth more later than the fact it was on a list.
 
-### Migration 091 -- group sign-ups, and a last-activity date -- 2026-09-23
-
-**State today:** `supabase/migrations/091_group_signups_and_activity.sql`
-is in the repo and has NOT been run. The client changes that use it
-shipped in build 2026-09-23-v255.
-
-**Why it matters, in two parts.**
-
-The first is a live bug, not a new feature. `get_directory_people`
-never returned `has_group_signup`, and the client filters on exactly
-that property -- so the Directory's "Group sign-ups" filter has always
-matched nobody. Its WHERE clause also omits group members entirely, so
-anyone whose only connection to the church is a group is missing from
-the directory altogether. The probe counted **2 such people** today.
-Both are fixed by this migration and by nothing else.
-
-The second is `get_people_activity`, which the new Engagement report
-needs. Until it exists that section says so rather than rendering
-zeroes -- "everyone has no activity" and "the data is not available"
-look identical on a chart and mean opposite things.
-
-**What doing it involves:** paste the file into the Supabase SQL
-Editor and run it. It drops and recreates `get_directory_people`, so
-it re-grants EXECUTE afterwards and checks that anon did NOT keep it
--- the same failure 089 had to guard against. Expect one result row:
-`dir_authenticated` and `activity_authenticated` true, both `_anon`
-columns false, `group_flag_returned` true, and
-`group_only_people_now_visible` showing the 2.
-
-**Its column names came from a probe, not from memory.**
-`supabase/checks/reports_schema_probe.sql` confirmed that
-`group_members` has `joined_at` and no `created_at`, and that
-`donations` uses `donor_id`. Worth keeping as the pattern: 089's first
-draft was written from a remembered schema and got five rules wrong.
+**Nothing is pending as of 2026-09-23.** Migration 091 has been run
+and verified; it is under Done below.
 
 ---
 
 ---
 
 ## Done
+
+### Migration 091 run -- group sign-ups counted, activity dated -- 2026-09-23
+
+Shipped with build 2026-09-23-v255 and run the same day. Verified
+output:
+
+```
+dir_authenticated,dir_anon,activity_authenticated,activity_anon,group_flag_returned,group_only_people_now_visible
+true,false,true,false,true,2
+```
+
+`dir_anon` false is the one that mattered: this migration DROPS and
+recreates `get_directory_people`, and a drop takes every grant with
+it while Postgres hands EXECUTE to PUBLIC on the new function by
+default. Had the revoke not taken, every signed-out visitor would
+have had a church's member list.
+
+`group_only_people_now_visible` = 2 is the live bug this closed: two
+people whose only connection to their church is a group were absent
+from the directory entirely, and the "Group sign-ups" filter had
+never matched anybody because the flag it reads was returned by
+nothing.
+
+Its column names came from `supabase/checks/reports_schema_probe.sql`
+rather than from memory -- which is why it needed no correction,
+unlike 089. `group_members` has `joined_at` and no `created_at`, the
+opposite of the obvious guess, and `donations` uses `donor_id`.
 
 ### Migration 090 run -- groups can name the ministry that runs them -- 2026-09-23
 
