@@ -17,35 +17,8 @@ The distinction between the three files:
 When one is finished, move it to "Done" at the bottom with the date.
 The state it ended in is worth more later than the fact it was on a list.
 
-### Migration 095 -- revoke anon on the departures log, allow deceased -- 2026-09-24
-
-**State today:** `supabase/migrations/095_departures_anon_revoke_and_deceased.sql`
-is in the repo and has NOT been run. 094 has.
-
-**Why it matters.** 094's verify output reported `anon_can_read = true`.
-I predicted false and had not checked it: 094 granted SELECT to
-`authenticated` and revoked nothing, and Supabase's default privileges
-on `public` had already given `anon` SELECT on the new table.
-
-Measured before changing anything -- an anonymous request for
-`church_membership_departures` returns `200 []`, not rows. RLS is
-holding: the only policy is `can_manage_church_members(church_id)`,
-false when `auth.uid()` is null. **Nothing leaked.**
-
-It is still wrong to leave. A table privilege that is harmless only
-because one policy holds is the exact arrangement that failed on
-`events` two days ago, where a second looser policy arrived later and
-the permissive policies ORed together. If that happened here the anon
-grant would be the difference between no rows and every departure
-record in the database.
-
-It also widens the `kind` CHECK to permit `'deceased'` (nothing writes
-it yet) -- see POLICY.md 14.
-
-**What doing it involves:** run the file. Expect `anon_can_read` false,
-`authenticated_can_read` true, the constraint listing all three kinds,
-and `policies_on_log` 1.
-
+**Nothing is pending as of 2026-09-24.** Migrations 091 through 095
+have all been run and verified; they are under Done below.
 ---
 ---
 ---
@@ -53,6 +26,22 @@ and `policies_on_log` 1.
 ---
 
 ## Done
+
+### Migration 095 run -- anon revoked, deceased permitted -- 2026-09-24
+
+```
+anon_can_read,authenticated_can_read,kind_constraint,policies_on_log
+false,true,"CHECK ((kind = ANY (ARRAY[left, removed, deceased])))",1
+```
+
+Closes the grant 094 left open. Nothing had leaked -- RLS returned
+`[]` to anon throughout, measured before and after -- but the table
+privilege is gone now, so the log no longer depends on a single policy
+holding.
+
+`deceased` is a legal kind. Nothing writes it. The joins-and-leaves
+chart already filters to `left` and `removed`, verified with a
+deceased row present: three departures in the data, two on the chart.
 
 ### Migration 094 run -- departures are recorded -- 2026-09-24
 

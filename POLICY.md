@@ -299,6 +299,82 @@ nothing writes it), and the joins-and-leaves chart counts only
 `'left'` and `'removed'` — so when deaths are recorded they will not
 silently become attrition.
 
+### 14a. Telling people about it
+
+**What the site already says.** The principle is disclosed, and
+disclosed well:
+
+- `legal.delWhat2` — *"Two things do not disappear, and we would
+  rather say so than let you find out later."* Then: the church's own
+  record of a gift, and the payment in the church's Stripe account,
+  *"theirs rather than ours to erase"*.
+- `legal.privacyChoices1` — *"...records a church needs to keep for
+  its own legitimate purposes (like a giving record for tax purposes)
+  may be retained by that church separately, the same way a paper
+  receipt would be."*
+
+So the pattern exists. Nothing needs changing **today**, because no
+church-owned person record exists yet and describing one would be
+describing something untrue.
+
+**The trap.** Both existing exceptions are *transactions*: a receipt,
+a payment. The analogy carries its own justification — everyone
+understands that a shop keeps its books. A membership record is not a
+transaction. It is a statement about **who somebody is and what they
+believed**, and "the same way a paper receipt would be" will not
+stretch to cover it. Reusing that sentence would be the cheap move and
+the wrong one.
+
+**Why this is not only a consent question.** A record that says *X was
+a member of Y church* is religious affiliation, which is
+special-category data under UK/EU GDPR and sensitive under several US
+state laws. Telling somebody does not by itself create a lawful basis
+for keeping it. There is a specific provision for not-for-profit
+bodies with a religious aim processing data about their members and
+former members, which is very likely the right basis here — but it has
+conditions attached, and whether FaithDock is the controller or the
+processor for that record changes who owes the duty. **This needs a
+lawyer before it needs copy.** I am not one, and the wording should
+not be written first and reviewed later.
+
+**Three things I would decide before writing a word of it:**
+
+1. **Split what survives.** The defensible version keeps membership
+   *facts* — name, dates, status, departure reason — and lets the
+   account data still delete: email, phone, photo, notes, giving
+   detail beyond the receipt. Then "delete my account" still does
+   something real, and what remains is the minimum a church needs for
+   its own history. A record that keeps everything and merely
+   announces itself is a worse product, not a more honest one.
+2. **Name the controller.** FaithDock is the controller of the
+   platform account and, for a church-owned record, almost certainly
+   the processor acting for the church. That determines who can
+   honour an erasure request — and the site already handles exactly
+   this distinction for Stripe (*"theirs rather than ours to erase"*).
+   "Ask my church to remove its record of me" is a different request
+   to a different party, and should be routed to the church rather
+   than sitting behind a FaithDock button that cannot deliver it.
+3. **Set a retention period.** "Permanently" is a decision, not a
+   default. A church register kept for a hundred years is a real and
+   defensible thing; so is purging after seven years. Picking neither
+   means picking "forever" by accident.
+
+**Where the disclosure should sit,** in order of how much it is worth:
+
+1. **At the moment of joining** — the "Request to join" / "Make this
+   my church home" action, which is where the church-owned record
+   begins. One sentence there is worth more than three paragraphs on a
+   policy page, because it is read.
+2. **At the moment of deleting** — the delete-account screen, where a
+   person actively cares what survives. `legal.delWhat2` already does
+   this for gifts; a third item joins it.
+3. **In the privacy policy** — necessary, and the weakest of the
+   three on its own.
+
+Worth noting the sequencing: this is a reason to decide 14 *before*
+building the CRM, not after. Retro-fitting consent to records already
+collected is the expensive version.
+
 ---
 
 ## Decided
