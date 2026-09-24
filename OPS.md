@@ -17,14 +17,59 @@ The distinction between the three files:
 When one is finished, move it to "Done" at the bottom with the date.
 The state it ended in is worth more later than the fact it was on a list.
 
-**Nothing is pending as of 2026-09-24.** Migrations 091 through 096
-have all been run and verified; they are under Done below.
+No migrations are pending as of 2026-09-24. 091 through 096 have all
+been run and verified; they are under Done below. Two things are.
 
-One standing item that is not a migration: the
-`SUPABASE_DB_URL` repository secret for
-`.github/workflows/security-invariants.yml`. Until it is added the
-weekly security check is skipped rather than run. Setup is in the
-comment at the top of that file.
+## Google Play — blocked on a D-U-N-S number
+
+**State today (2026-09-24):** the code and assets are finished. Waiting
+on a D-U-N-S number from Dun & Bradstreet, which the LLC needs before
+Play Console will accept an **organisation** account. Parked
+deliberately, not forgotten.
+
+**Why the organisation account matters:** individual accounts registered
+since late 2023 must run a closed test with 12 testers for 14 continuous
+days before they can apply for production. Organisations are exempt. The
+D-U-N-S wait is the cheaper of the two delays.
+
+**Done already, nothing more needed:**
+
+- Manifest is TWA-ready; 1024/512 and maskable PNGs exist
+- Play billing compliance is in the code — `window.isAndroidAppShell()`
+  and the gate inside `startPlanCheckout()`. Donations and event tickets
+  are exempt and untouched; church plans cannot be bought in the app
+- `.well-known/` is confirmed served by Cloudflare Pages (measured, with
+  an empty `[]` placeholder still in place)
+- `store/feature-graphic.png`, 1024×500
+- `store/listing.md` — title, short and full descriptions, all within
+  Play's limits
+- [`PLAY.md`](PLAY.md) is the runbook
+
+**What is left, in order:**
+
+1. D-U-N-S arrives → register Play Console **as the organisation**. The
+   LLC's legal name and address must match the D&B record exactly, or
+   verification bounces and the wait restarts.
+2. Screenshots — at least two, taken from the app on a real phone.
+   The only asset not generated.
+3. Build the package (PWABuilder or Bubblewrap). Set the TWA launch URL
+   to `/?shell=android` — **not** the manifest's `start_url`, which is
+   shared with the ordinary installed PWA.
+4. Take the SHA-256 from **Play Console → Setup → App signing**, not the
+   local keystore — Google re-signs the app. Put it in
+   `.well-known/assetlinks.json`; `tools/check.js` validates the shape
+   once it is no longer empty.
+5. Fill in **App content → App access** with working test credentials.
+   The app is invite-gated, so a reviewer cannot exercise it otherwise,
+   and that is a standard rejection.
+6. Data safety form, agreeing with the site's privacy policy.
+
+## `SUPABASE_DB_URL` repository secret
+
+For `.github/workflows/security-invariants.yml`. Until it is added the
+weekly security check is skipped rather than run — so the invariants
+only run when somebody remembers to run them, which is the problem they
+were written to solve. Setup is in the comment at the top of that file.
 ---
 ---
 ---
