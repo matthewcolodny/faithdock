@@ -880,6 +880,12 @@
       'pricing.multiChurch.f1': 'Everything in Premium', 'pricing.multiChurch.f2': 'Unlimited churches',
       'pricing.multiChurch.f3': 'Custom event & group limits per church', 'pricing.multiChurch.f4': 'Negotiated pricing & billing',
       'pricing.multiChurch.cta': 'Contact Sales',
+      // Shown in place of the paid-plan buttons inside the Android app.
+      // Worded as a statement of where plans live, not an instruction to
+      // go and pay somewhere else -- Play's rules on pointing users at
+      // outside payment have been in flux, and a plain fact is the safe
+      // side of that line.
+      'pricing.planWebOnly': 'Plans are managed on the FaithDock website.',
       'events.title': 'Upcoming events near you', 'events.subtitle': 'Public and members-only events across all listed churches',
       'events.locationPlaceholder': 'Enter a city or address', 'events.useMyLocation': 'Use my location', 'events.when': 'When',
       'events.keywordPlaceholder': 'Search events by name or keyword...',
@@ -2060,6 +2066,7 @@
       'pricing.multiChurch.f1': 'Todo lo del plan Avanzado', 'pricing.multiChurch.f2': 'Iglesias ilimitadas',
       'pricing.multiChurch.f3': 'L\u00edmites de eventos y grupos personalizados por iglesia', 'pricing.multiChurch.f4': 'Precios y facturaci\u00f3n negociados',
       'pricing.multiChurch.cta': 'Contactar a Ventas',
+      'pricing.planWebOnly': 'Los planes se administran en el sitio web de FaithDock.',
       'pricing.large.cta': 'Comenzar plan Avanzado', 'pricing.yourCurrentPlan': 'Tu plan actual',
       'events.title': 'Próximos eventos cerca de ti', 'events.subtitle': 'Eventos públicos y solo para miembros en todas las iglesias listadas',
       'events.locationPlaceholder': 'Ingresa una ciudad o dirección', 'events.useMyLocation': 'Usar mi ubicación', 'events.when': 'Cuándo',
@@ -3054,6 +3061,83 @@
   // stays nameless until the person revokes and re-authorises.
   // ============================================================
   window.APPLE_SIGN_IN_ENABLED = false;
+
+  // ============================================================
+  // Running inside the Android app shell (a Trusted Web Activity)?
+  // ============================================================
+  // A TWA is this same site rendered by Chrome with no browser UI,
+  // wrapped in an Android package. Same origin, same code, same
+  // Supabase -- so nothing can tell them apart except how the document
+  // was opened.
+  //
+  // WHY IT HAS TO BE KNOWN AT ALL. Google Play requires its own billing
+  // for digital subscriptions bought inside an app, and takes 15-30%.
+  // Donations and real-world event tickets are exempt -- those keep
+  // using Stripe. A recurring plan subscription is the category they
+  // want, so the app must not sell one. See startPlanCheckout().
+  //
+  // HOW IT IS DETECTED. A TWA launch sets document.referrer to
+  // "android-app://<package>". Two things make that fragile on its own,
+  // and both are handled:
+  //   * a reload inside the app can arrive with an empty referrer, so
+  //     the first answer is remembered in sessionStorage
+  //   * a query flag is honoured as well, because Bubblewrap can set
+  //     the launch URL independently of the manifest's start_url, and
+  //     a flag we control is sturdier than a value the browser sets
+  //
+  // Deliberately NOT display-mode: an installed PWA on a home screen is
+  // also standalone, and that copy is not distributed through Play, so
+  // none of this applies to it.
+  window.isAndroidAppShell = function(){
+    try {
+      if (/[?&]shell=android(&|$)/.test(location.search)) {
+        sessionStorage.setItem('fd_app_shell', '1');
+        return true;
+      }
+      if (document.referrer && document.referrer.indexOf('android-app://') === 0) {
+        sessionStorage.setItem('fd_app_shell', '1');
+        return true;
+      }
+      return sessionStorage.getItem('fd_app_shell') === '1';
+    } catch (e) {
+      // Private mode, storage blocked. Fall back to the referrer alone
+      // rather than failing open -- failing open here would mean
+      // offering a subscription inside the Play app.
+      return !!(document.referrer && document.referrer.indexOf('android-app://') === 0);
+    }
+  };
+
+  // Mark the document so CSS can hide the paid-plan buttons, and drop a
+  // plain note where they were.
+  //
+  // A CLASS, NOT style.display SET BY JS. populatePricingPage() re-runs
+  // on every route change, auth settle and language switch, and relabels
+  // these same three buttons each time. Anything JS hid there would have
+  // to be re-hidden by whichever path ran last -- one more list to keep
+  // in step. A class on <html> is applied once and CSS keeps winning.
+  //
+  // The class goes on immediately so the rule is live before first
+  // paint; only the note waits for a body to insert into.
+  (function markAppShell(){
+    if (!window.isAndroidAppShell()) return;
+    document.documentElement.classList.add('fd-app-shell');
+    function addNotes(){
+      ['pricing-starter-btn', 'pricing-standard-btn', 'pricing-premium-btn'].forEach(function(id){
+        var btn = document.getElementById(id);
+        if (!btn || !btn.parentNode) return;
+        if (btn.parentNode.querySelector('.fd-plan-web-only')) return;
+        var note = document.createElement('div');
+        note.className = 'fd-plan-web-only';
+        // data-i18n so applyTranslations keeps it in step on a language
+        // switch, like every other static string.
+        note.setAttribute('data-i18n', 'pricing.planWebOnly');
+        note.textContent = window.t('pricing.planWebOnly');
+        btn.parentNode.insertBefore(note, btn.nextSibling);
+      });
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', addNotes);
+    else addNotes();
+  })();
 
   window.PLATFORM_FEE = { giving: 0, ticket: 0 };
   function applyFeeTokens(str){
@@ -4491,6 +4575,20 @@
     font-size:14.5px;margin-top:6px;
   }
   .price-card.featured .price-btn{background:var(--gold);color:var(--brand);}
+  /* Inside the Android app (a Play-distributed TWA), the paid plans are
+     shown but cannot be bought. Google requires its own billing for a
+     digital subscription purchased in an app, and takes 15-30%;
+     donations and real-world event tickets are exempt and are
+     untouched. See window.isAndroidAppShell.
+     The plan cards stay visible on purpose -- a church should still be
+     able to see what exists. Only the buy action goes. */
+  html.fd-app-shell #pricing-starter-btn,
+  html.fd-app-shell #pricing-standard-btn,
+  html.fd-app-shell #pricing-premium-btn{display:none;}
+  .fd-plan-web-only{
+    font-size:13px;color:var(--ink-mute);text-align:center;
+    margin-top:6px;padding:13px 4px;line-height:1.4;
+  }
   .price-btn:disabled{background:var(--card);color:var(--ink-mute);border:1px solid var(--line);cursor:default;}
 
   /* ---- profile / detail pages ---- */
@@ -10238,7 +10336,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-24-v276 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-24-v277 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -33745,6 +33843,27 @@ Groups</span>
   // uses FaithDock's own Stripe account, not a connected one.
   // ============================================================
   window.startPlanCheckout = async function(plan){
+    // NOT INSIDE THE PLAY APP. Google requires its own billing for a
+    // digital subscription bought in an app shipped through Play, and
+    // takes 15-30%. Donations and event tickets are exempt and still go
+    // through Stripe untouched -- a plan subscription is exactly the
+    // category that is not.
+    //
+    // The check lives HERE, in the one function every purchase goes
+    // through, rather than on each button. There are seven call sites:
+    // three CTAs on the pricing page, three in the dashboard plans
+    // panel, and the resume-after-login path. Guarding buttons instead
+    // would be another list to keep in step, which is the failure this
+    // file keeps repeating.
+    //
+    // The buttons are hidden as well (see syncAppShellBilling), because
+    // a button that refuses when pressed is worse than no button. This
+    // is the backstop for any route that reaches the function anyway --
+    // notably the pending-plan resume, which fires without a click.
+    if (window.isAndroidAppShell && window.isAndroidAppShell()) {
+      alert(window.t('pricing.planWebOnly'));
+      return;
+    }
     var { data: userData } = await supabase.auth.getUser();
     if (!userData.user) {
       showLoginRequired(window.t('loginRequired.subscribeToPlan'));
