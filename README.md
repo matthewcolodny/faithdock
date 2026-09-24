@@ -115,5 +115,48 @@ manifest is read once, at install time. Testing any icon, colour or
 name change means removing the app from the home screen and adding it
 again.
 
+## Loading, and not seeing it happen
+The homepage used to assemble itself in front of you: the heading read
+"Churches near you" and then rewrote itself to "Churches near San
+Antonio", and the two card grids started at zero height and shoved the
+page down when their data arrived. Three things address that, and a
+full-screen cover until everything loads is deliberately **not** one of
+them — see below.
+
+**Nothing rewrites its own text.** `fd_last_geo` now remembers the place
+*name* next to the coordinates it was resolved from, and an inline
+script right after the headings paints it while the parser is still
+working down the body. `fdPaintLocationHeadings()` is the single
+implementation, called from all three places that can learn a location
+(a remembered search, the cached guess, reverse geocoding finishing) —
+plus `applyTranslations`, which would otherwise reset the headings to
+their `data-i18n` default and undo the whole thing. First-ever visit
+still transitions; nothing is known yet.
+
+**Nothing jumps.** Both home grids ship skeleton cards in the markup, so
+the grid is its full height in the first painted frame. The skeletons
+reuse the real card classes (`.church-card`, `.thumb`, `.card-body`) and
+hold an `&nbsp;` with transparent text, so their height matches by
+construction rather than by hard-coded pixels that would drift.
+`fd_grid_counts` remembers how many cards each grid really had, and
+`fdTrimSkeletons()` trims to it — without that, three placeholders
+standing in for one real event made the grid *shrink* by two card
+heights, a bigger jump than the one being fixed.
+
+**One fade, not five.** `paintGrid()` swaps a grid's contents and fades
+the new set in together.
+
+Measured after: cumulative layout shift **0**, no shift entries at all,
+heading correct in its first frame.
+
+**Why there is no "cover everything until loaded" screen.** There is no
+definable moment when this app is finished loading — panels load per
+route and the dashboard fetches its sections separately — so it would
+mean inventing a completion signal that every panel has to report into,
+and any one that doesn't hangs the cover. This file already carries
+three comments about skeletons that stayed up when a path forgot to
+clear them. It would also make the wait longer, since nothing is usable
+until the slowest query returns.
+
 ## Build stamp
 The footer of `index.html` carries a build version stamp (`build YYYY-MM-DD-vNNN`), bumped by hand after each round of changes. Check it against the latest commit here to confirm what's actually live.

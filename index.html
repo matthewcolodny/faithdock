@@ -2859,6 +2859,18 @@
     if (dashChurchesPanel && dashChurchesPanel.classList.contains('active') && typeof window.loadDashboardChurchesPanel === 'function') {
       window.loadDashboardChurchesPanel();
     }
+    // Same reasoning again for the two home headings that name a
+    // place. They carry "Churches near you" / "Upcoming events" as
+    // their data-i18n default, and the pass above has just reset them
+    // to it — so once a location is known, put it back. Without this,
+    // switching language on the homepage silently dropped the city
+    // from both headings, and (since this now also paints before the
+    // page is interactive) the heading would have visibly rewritten
+    // itself from "near you" to "near San Antonio" on every load,
+    // which is the whole thing this is meant to stop.
+    if (window.fdLocationLabel && typeof window.fdPaintLocationHeadings === 'function') {
+      window.fdPaintLocationHeadings();
+    }
     // Same reasoning as rc-heading above: ce-heading switches to
     // "Edit event" wording via JS once editEvent() loads an existing
     // event — redo that override here too, or a language switch while
@@ -3033,6 +3045,71 @@
     var dict = translations[window.currentLang] || translations.en;
     return applyFeeTokens((dict && dict[key]) || (translations.en && translations.en[key]) || key);
   };
+
+  // The home headings that name a place: "Churches near San Antonio".
+  //
+  // ONE IMPLEMENTATION, THREE CALLERS, and that is the point. The
+  // label arrives from three directions -- a location remembered from
+  // this session, a cached guess from a previous visit, and reverse
+  // geocoding finishing -- and every one of them has to render the
+  // heading identically or the text changes under the reader for no
+  // reason. That is the whole complaint this exists to fix.
+  //
+  // The label is held on window rather than passed in, so a caller
+  // that only wants a repaint (applyTranslations, below) does not have
+  // to know what the current location is.
+  // How many cards each home grid actually had last time.
+  //
+  // WHY THIS IS NEEDED AT ALL. The skeletons in the markup reserve
+  // space for three cards, because three is what those grids ask for.
+  // But if only one event comes back, the grid SHRINKS by two card
+  // heights when the real content lands -- a bigger jump than the one
+  // the skeletons were added to remove, just in the other direction.
+  // Measured exactly that: three skeletons standing in for a single
+  // 419px event card.
+  //
+  // So remember the real count and trim to it next time. First-ever
+  // visit still guesses three, and is wrong by however many are
+  // missing; every visit after that is exact. Clamped to 1..3: zero
+  // would collapse the grid to nothing, which is the original problem
+  // again, and the empty state needs somewhere to appear.
+  window.fdRememberGridCount = function(key, n){
+    try {
+      var all = JSON.parse(localStorage.getItem('fd_grid_counts') || '{}') || {};
+      all[key] = n;
+      localStorage.setItem('fd_grid_counts', JSON.stringify(all));
+    } catch(e) { /* private mode -- next visit just guesses three again */ }
+  };
+  window.fdTrimSkeletons = function(){
+    var all = {};
+    try { all = JSON.parse(localStorage.getItem('fd_grid_counts') || '{}') || {}; } catch(e) { return; }
+    [['home-church-grid', 'churches'], ['home-event-grid', 'events']].forEach(function(pair){
+      var el = document.getElementById(pair[0]);
+      var n = all[pair[1]];
+      if (!el || typeof n !== 'number') return;
+      n = Math.max(1, Math.min(3, n));
+      while (el.children.length > n) el.removeChild(el.lastElementChild);
+    });
+  };
+
+  window.fdLocationLabel = null;
+  window.fdPaintLocationHeadings = function(){
+    var label = window.fdLocationLabel;
+    if (!label) return;
+    // Escaped: label is not always a trusted geocoding result, since
+    // some call sites fall back to whatever was typed into the
+    // location box. Same defensive pattern as the church-name link in
+    // showRcSuccess().
+    var esc = String(label).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    // nowrap so a two-word city cannot break mid-name and strand "San"
+    // on its own line -- reported with a screenshot. The line may still
+    // wrap before the place name, just never inside it.
+    var html = '<span style="white-space:nowrap;">' + esc + '</span>';
+    var c = document.getElementById('home-church-heading');
+    var e = document.getElementById('home-events-heading');
+    if (c) c.innerHTML = window.t('home.churchesNear') + ' ' + html;
+    if (e) e.innerHTML = window.t('home.upcomingEventsNear') + ' ' + html;
+  };
   // toLocaleDateString/toLocaleTimeString called with `undefined` as
   // the locale argument follow the BROWSER's own system locale, not
   // this app's own language toggle -- two different things that only
@@ -3150,6 +3227,12 @@
       var _fdManual = JSON.parse(_fdManualRaw);
       if (_fdManual && typeof _fdManual.lat === 'number' && typeof _fdManual.lng === 'number') {
         window.earlyManualLocation = _fdManual;
+        // Paint the searched city's name in the heading's first frame
+        // too, not just the auto-detected one. The block below is
+        // skipped entirely when a manual location exists, so without
+        // this a refresh after searching "Dallas" would sit on
+        // "Churches near you" until the module script caught up.
+        if (_fdManual.label) window.fdLocationLabel = _fdManual.label;
       }
     }
   } catch(e) { /* sessionStorage unavailable (private mode, etc.) -- falls through to auto-detection below */ }
@@ -3176,6 +3259,13 @@
         if (_fdLastGeo && typeof _fdLastGeo.lat === 'number' && typeof _fdLastGeo.lng === 'number'
             && (Date.now() - _fdLastGeo.ts) < 7 * 24 * 60 * 60 * 1000) {
           window.earlyGeoInstantCoords = { lat: _fdLastGeo.lat, lng: _fdLastGeo.lng };
+          // The place NAME from last time, so the heading can be
+          // right in its first painted frame instead of saying
+          // "Churches near you" and correcting itself once the
+          // geocode lands. Same staleness window as the coords, and
+          // the same self-correcting deal: a real label always
+          // follows and quietly replaces this one.
+          if (_fdLastGeo.label) window.fdLocationLabel = _fdLastGeo.label;
         }
       }
     } catch(e) { /* localStorage unavailable (private mode, etc.) -- just skip the instant guess */ }
@@ -3523,6 +3613,13 @@
        step with another list is the recurring bug in this file, so
        this one asks the bar instead of remembering it. */
     nav.links > a[data-in-quick-bar]{display:none;}
+    /* Dropped from the menu for church staff and owners, on phones
+       only. They have already converted, so the pitch is not doing
+       anything for them, and the phone menu is where every wasted row
+       actually costs something. The page itself is untouched and still
+       reachable -- the footer sitemap links it, and so does the
+       desktop nav, which has the room. */
+    nav.links > a.nav-hide-mobile{display:none;}
     /* The user menu stops being a dropdown inside a dropdown: the
        bubble disappears and its items render inline as part of the
        one panel. No second markup to keep in step -- the same list
@@ -4039,6 +4136,46 @@
   .card-body h3{font-size:18px;margin:10px 0 4px;}
   .meta-row{display:flex;align-items:center;gap:6px;color:var(--ink-mute);font-size:13.5px;margin-top:6px;}
   .meta-row svg{width:14px;height:14px;flex-shrink:0;}
+
+  /* ---- loading skeletons ----------------------------------------
+     These reserve the space a card is about to need, so the grid is
+     already the right height before the data lands and nothing below
+     it gets shoved down when the cards arrive. The jumpiness on load
+     was mostly this: not the waiting, the reflow.
+
+     THE SKELETON REUSES THE REAL CARD'S CLASSES on purpose -- the
+     same .church-card shell, .thumb and .card-body. Height therefore
+     comes out right by construction. Hard-coding pixel heights here
+     would mean this drifting silently out of step the first time
+     anyone changes a card's padding or font size.
+
+     The boxes hold an &nbsp; and paint their text transparent, so
+     each line is exactly as tall as the real line it stands in for,
+     line-height and all, without stating a height at all. */
+  .fd-skel{pointer-events:none;}
+  .fd-skel .fd-skel-box{
+    color:transparent;background:var(--line);border-radius:6px;
+    animation:fdSkelPulse 1.5s ease-in-out infinite;
+  }
+  .fd-skel h3.fd-skel-box{width:72%;}
+  .fd-skel .meta-row.fd-skel-box{width:58%;}
+  .fd-skel .meta-row.fd-skel-box + .meta-row.fd-skel-box{width:44%;}
+  /* .tag but not .tag.sage -- the sage background would win the tie on
+     source order and the pill would come out green. */
+  .fd-skel .tag.fd-skel-box{width:84px;}
+  @keyframes fdSkelPulse{0%,100%{opacity:1;}50%{opacity:.45;}}
+
+  /* One fade for the whole set, once, when real content replaces the
+     skeleton -- see paintGrid(). Cards arriving individually is what
+     reads as jank; the same cards arriving together reads as
+     deliberate. */
+  .fd-grid-in > *{animation:fdGridIn .26s ease both;}
+  @keyframes fdGridIn{from{opacity:0;}to{opacity:1;}}
+
+  @media (prefers-reduced-motion: reduce){
+    .fd-skel .fd-skel-box{animation:none;}
+    .fd-grid-in > *{animation:none;}
+  }
 
   /* ---- directory ---- */
   .location-row{display:flex;align-items:center;gap:12px;margin-top:16px;flex-wrap:wrap;}
@@ -5687,7 +5824,21 @@
       <h2 id="home-church-heading" data-i18n="home.churchesNearYou">Churches near you</h2>
       <a class="see-all" href="#directory" data-route="directory" data-i18n="home.viewDirectory">View directory</a>
     </div>
-    <div class="grid" id="home-church-grid"></div>
+    <!-- Three skeleton cards, in the markup rather than injected, so
+         the grid is already its full height in the very first painted
+         frame. Injecting them from JS would mean the page still starts
+         at zero height and still jumps once.
+
+         They need no cleanup of their own: both branches of
+         renderHomeChurches() assign to this grid's innerHTML, so
+         whether churches are found or not, these are replaced. The one
+         case that leaves them up is an RPC that never returns at all,
+         and a still-loading look is the honest answer to that. -->
+    <div class="grid" id="home-church-grid">
+      <div class="church-card fd-skel" aria-hidden="true"><div class="thumb"></div><div class="card-body"><div class="card-tag-row"><span class="tag fd-skel-box">&nbsp;</span></div><h3 class="fd-skel-box">&nbsp;</h3><div class="meta-row fd-skel-box">&nbsp;</div><div class="meta-row fd-skel-box">&nbsp;</div></div></div>
+      <div class="church-card fd-skel" aria-hidden="true"><div class="thumb"></div><div class="card-body"><div class="card-tag-row"><span class="tag fd-skel-box">&nbsp;</span></div><h3 class="fd-skel-box">&nbsp;</h3><div class="meta-row fd-skel-box">&nbsp;</div><div class="meta-row fd-skel-box">&nbsp;</div></div></div>
+      <div class="church-card fd-skel" aria-hidden="true"><div class="thumb"></div><div class="card-body"><div class="card-tag-row"><span class="tag fd-skel-box">&nbsp;</span></div><h3 class="fd-skel-box">&nbsp;</h3><div class="meta-row fd-skel-box">&nbsp;</div><div class="meta-row fd-skel-box">&nbsp;</div></div></div>
+    </div>
 
     <div class="arch-divider">
       <div class="rule"></div>
@@ -5697,7 +5848,25 @@
       <h2 id="home-events-heading" data-i18n="home.upcomingEvents">Upcoming events</h2>
       <a class="see-all" href="#events" data-route="events" data-i18n="home.viewAllEvents">View all events</a>
     </div>
-    <div class="grid" id="home-event-grid"></div>
+    <!-- Same three placeholders as the church grid above, and the same
+         reasoning. Event cards share the .church-card/.event-card shell
+         so one skeleton shape fits both. -->
+    <div class="grid" id="home-event-grid">
+      <div class="event-card fd-skel" aria-hidden="true"><div class="thumb"></div><div class="card-body"><div class="card-tag-row"><span class="tag fd-skel-box">&nbsp;</span></div><h3 class="fd-skel-box">&nbsp;</h3><div class="meta-row fd-skel-box">&nbsp;</div><div class="meta-row fd-skel-box">&nbsp;</div></div></div>
+      <div class="event-card fd-skel" aria-hidden="true"><div class="thumb"></div><div class="card-body"><div class="card-tag-row"><span class="tag fd-skel-box">&nbsp;</span></div><h3 class="fd-skel-box">&nbsp;</h3><div class="meta-row fd-skel-box">&nbsp;</div><div class="meta-row fd-skel-box">&nbsp;</div></div></div>
+      <div class="event-card fd-skel" aria-hidden="true"><div class="thumb"></div><div class="card-body"><div class="card-tag-row"><span class="tag fd-skel-box">&nbsp;</span></div><h3 class="fd-skel-box">&nbsp;</h3><div class="meta-row fd-skel-box">&nbsp;</div><div class="meta-row fd-skel-box">&nbsp;</div></div></div>
+    </div>
+
+    <!-- Name the place in the headings' FIRST painted frame.
+         Deliberately inline and deliberately right here, immediately
+         after both headings exist and while the parser is still
+         working its way down the body. The module script that used to
+         do this alone lives thousands of lines below, which is long
+         after the browser has drawn "Churches near you" -- so the text
+         visibly rewrote itself on every load, which is exactly the
+         thing being fixed. No-ops on a first-ever visit, when nothing
+         about the location is known yet. -->
+    <script>window.fdPaintLocationHeadings(); window.fdTrimSkeletons();</script>
   </div>
 
   <div class="for-churches">
@@ -9925,7 +10094,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-24-v271 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-24-v272 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -14712,6 +14881,21 @@ Groups</span>
 
   // Homepage's small "Churches near you" preview — same RPC, just 3
   // results, no filters beyond location if we already have it.
+  // Swap a grid's contents and fade the new set in, once, together.
+  //
+  // The class has to come off and go back on or the animation will not
+  // re-run on a second call -- the browser sees the same class already
+  // present and does nothing. Reading offsetWidth in between is the
+  // standard way to force the style change to be committed so the
+  // re-added class counts as a change. Cheap, and only on a repaint of
+  // a three-card grid.
+  function paintGrid(el, html){
+    el.classList.remove('fd-grid-in');
+    el.innerHTML = html;
+    void el.offsetWidth;
+    el.classList.add('fd-grid-in');
+  }
+
   async function renderHomeChurches(){
     var homeGrid = document.getElementById('home-church-grid');
     if (!homeGrid) return;
@@ -14723,7 +14907,8 @@ Groups</span>
       await enrichChurchesWithSchedule(rows);
       rows.forEach(function(c){ var existing = churches.filter(function(x){ return x.id === c.id; })[0]; if (!existing) churches.push(c); });
       window.homeChurchesLastRenderedRows = rows;
-      homeGrid.innerHTML = mapJoin(rows, function(c){ return churchCard(c, true); });
+      window.fdRememberGridCount('churches', rows.length);
+      paintGrid(homeGrid, mapJoin(rows, function(c){ return churchCard(c, true); }));
     } else {
       // null, not [] -- refreshHomeChurchesText() below guards on
       // "!window.homeChurchesLastRenderedRows" to skip re-rendering
@@ -14731,7 +14916,7 @@ Groups</span>
       // pass that guard, wiping this empty-state message back out to
       // a blank grid the next time the page language changes.
       window.homeChurchesLastRenderedRows = null;
-      homeGrid.innerHTML = homeEmptyStateHtml(window.t('home.noChurchesNearby'), '#events', 'events', window.t('home.browseEventsInstead'));
+      paintGrid(homeGrid, homeEmptyStateHtml(window.t('home.noChurchesNearby'), '#events', 'events', window.t('home.browseEventsInstead')));
     }
   }
   window.renderHomeChurches = renderHomeChurches;
@@ -15429,14 +15614,15 @@ Groups</span>
       var rows = data.map(mapSearchEventRow);
       rows.forEach(mergeEventIntoCache);
       window.homeEventsLastRenderedRows = rows;
-      homeGrid.innerHTML = mapJoin(rows, eventCard);
+      window.fdRememberGridCount('events', rows.length);
+      paintGrid(homeGrid, mapJoin(rows, eventCard));
     } else {
       // Reported directly with a screenshot: this grid could end up
       // completely blank between the "Upcoming events" heading and the
       // next section, with nothing pointing anywhere useful. null, not
       // [] -- see the matching comment in renderHomeChurches() above.
       window.homeEventsLastRenderedRows = null;
-      homeGrid.innerHTML = homeEmptyStateHtml(window.t('home.noEventsNearby'), '#directory', 'directory', window.t('home.browseChurchesInstead'));
+      paintGrid(homeGrid, homeEmptyStateHtml(window.t('home.noEventsNearby'), '#directory', 'directory', window.t('home.browseChurchesInstead')));
     }
   }
   window.renderHomeEvents = renderHomeEvents;
@@ -17455,24 +17641,16 @@ Groups</span>
     // search box, so detecting it once (wherever that happens) shows
     // up everywhere rather than needing to be found again per page.
     var heroInput = document.getElementById('hero-location-input');
-    var churchHeading = document.getElementById('home-church-heading');
-    var eventsHeading = document.getElementById('home-events-heading');
     if (heroInput && !heroInput.value) heroInput.value = label;
-    // A multi-word location ("San Antonio") could wrap mid-name on
-    // narrow screens ("San" stranded on its own line) -- reported
-    // directly with a screenshot. Wrapping just the location in its
-    // own nowrap span keeps it atomic: the line break can still fall
-    // before "Churches near ..." wraps, just never inside the place
-    // name itself. innerHTML, not textContent, so this span can
-    // exist -- label isn't always a trusted geocoding result (some
-    // call sites fall back to the raw text someone typed into the
-    // location field when a formatted_address wasn't available), so
-    // it's HTML-escaped first, same defensive pattern already used
-    // for the church-name link in showRcSuccess().
-    var labelEsc = String(label).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    var labelHtml = '<span style="white-space:nowrap;">' + labelEsc + '</span>';
-    if (churchHeading) churchHeading.innerHTML = window.t('home.churchesNear') + ' ' + labelHtml;
-    if (eventsHeading) eventsHeading.innerHTML = window.t('home.upcomingEventsNear') + ' ' + labelHtml;
+    // The headings themselves are painted by the shared helper in the
+    // head script, not here. Three different things can learn the
+    // location -- this function, a value remembered from an earlier
+    // visit, and applyTranslations redoing the text after a language
+    // switch -- and they all have to produce the same markup or the
+    // heading rewrites itself in front of the reader. One
+    // implementation is the only way that stays true.
+    window.fdLocationLabel = label;
+    window.fdPaintLocationHeadings();
   }
   window.applyDirLocationLabel = applyDirLocationLabel;
   // Paint whatever the early head script already knows about --
@@ -17598,6 +17776,22 @@ Groups</span>
         // location field/headings text once it's known, without
         // re-running the same search a second time for no reason.
         applyDirLocationLabel(label);
+        // Remember the NAME next to the coordinates, not just the
+        // coordinates. The head script has always been able to restore
+        // a position instantly from fd_last_geo, but the label was not
+        // in there, so every single load had to wait on this geocode
+        // before the heading could say anything but "Churches near
+        // you" -- and then visibly rewrite itself. Storing it here
+        // means the next load paints "Churches near San Antonio"
+        // before the page is even interactive.
+        //
+        // Written with the coords it was resolved FROM, so the two can
+        // never be read back as a mismatched pair.
+        if (label) {
+          try {
+            localStorage.setItem('fd_last_geo', JSON.stringify({ lat: lat, lng: lng, label: label, ts: Date.now() }));
+          } catch(e) { /* private mode, storage full -- next visit just waits on the geocode as before */ }
+        }
       });
     }
     // Reuse the geolocation fix the head script kicked off before
@@ -20084,6 +20278,18 @@ Groups</span>
     // church →" link). The #dashboard route still works if typed
     // directly.
     if (dashLink) dashLink.style.display = (isSignedIn && window.hasChurchAccess && !window.isPlatformAdmin) ? '' : 'none';
+    // "About FaithDock" comes out of the PHONE menu for anyone who
+    // runs a church -- staff or owner. It is a conversion page and
+    // they have already converted, so on the one layout where menu
+    // rows are scarce it is taking space from things they use. Same
+    // signal the dashboard link above uses.
+    //
+    // A class, not style.display: the hiding is conditional on width
+    // as well as on who is signed in, and only CSS knows the width.
+    // Setting display here would hide it on desktop too. Toggled
+    // rather than only added, so signing out puts it back.
+    var aboutLink = document.getElementById('nav-about-link');
+    if (aboutLink) aboutLink.classList.toggle('nav-hide-mobile', !!(isSignedIn && window.hasChurchAccess));
     if (dashLink && window._dashMultiOwner) { dashLink.setAttribute('data-i18n', 'nav.dashboardPlural'); dashLink.textContent = window.t('nav.dashboardPlural'); }
 
     if (!isSignedIn && typeof window.resolveRouteFromHash === 'function' && window.resolveRouteFromHash(location.hash).base === 'dashboard') {
