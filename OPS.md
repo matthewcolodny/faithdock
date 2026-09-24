@@ -17,41 +17,60 @@ The distinction between the three files:
 When one is finished, move it to "Done" at the bottom with the date.
 The state it ended in is worth more later than the fact it was on a list.
 
-### Migration 094 -- start recording departures -- 2026-09-24
+### Migration 095 -- revoke anon on the departures log, allow deceased -- 2026-09-24
 
-**State today:** `supabase/migrations/094_log_membership_departures.sql`
-is in the repo and has NOT been run. The client changes that use it
-shipped in build 2026-09-24-v256.
+**State today:** `supabase/migrations/095_departures_anon_revoke_and_deceased.sql`
+is in the repo and has NOT been run. 094 has.
 
-**Why it matters:** leaving is not written down anywhere today.
-Removing a member deletes the `church_memberships` row and dropping
-your own church home unsets `is_permanent`; either way the fact of it
-is gone. This adds `church_membership_departures` and a trigger that
-records one row per departure.
+**Why it matters.** 094's verify output reported `anon_can_read = true`.
+I predicted false and had not checked it: 094 granted SELECT to
+`authenticated` and revoked nothing, and Supabase's default privileges
+on `public` had already given `anon` SELECT on the new table.
 
-**It only works going forward.** Past departures cannot be
-reconstructed -- the evidence was deleted. Months before this runs are
-drawn blank rather than zero, because those are different claims.
+Measured before changing anything -- an anonymous request for
+`church_membership_departures` returns `200 []`, not rows. RLS is
+holding: the only policy is `can_manage_church_members(church_id)`,
+false when `auth.uid()` is null. **Nothing leaked.**
 
-**What doing it involves:** run the file. It creates the table with
-RLS (read by whoever can manage that church's members; NO write policy
-at all, since rows arrive only through a SECURITY DEFINER trigger), the
-trigger, and `departures_logging_started_at()`, a constant the chart
-reads so it knows which months it can speak for. Expect one row:
-`rls_on` true, `trigger_present` true, `policies_on_log` 1,
-`authenticated_can_read` true, `anon_can_read` false, and
-`logging_starts` 2026-09-24.
+It is still wrong to leave. A table privilege that is harmless only
+because one policy holds is the exact arrangement that failed on
+`events` two days ago, where a second looser policy arrived later and
+the permissive policies ORed together. If that happened here the anon
+grant would be the difference between no rows and every departure
+record in the database.
 
-**If you re-run it, do not change the date** in
-`departures_logging_started_at()`. It marks when records began; moving
-it later would blank months that do have data.
+It also widens the `kind` CHECK to permit `'deceased'` (nothing writes
+it yet) -- see POLICY.md 14.
 
+**What doing it involves:** run the file. Expect `anon_can_read` false,
+`authenticated_can_read` true, the constraint listing all three kinds,
+and `policies_on_log` 1.
+
+---
 ---
 ---
 
 ---
 
 ## Done
+
+### Migration 094 run -- departures are recorded -- 2026-09-24
+
+```
+rls_on,trigger_present,policies_on_log,authenticated_can_read,anon_can_read,logging_starts
+true,true,1,true,true,2026-09-24
+```
+
+Four of the six as intended. `anon_can_read` came back **true** where I
+had said false -- see migration 095 under Pending, which revokes it.
+No data was exposed (RLS returns `[]` to anon, measured), but the
+prediction was wrong and the verify block had not checked it. Worth
+keeping as the pattern: **assert the grants you expect, do not just
+print them.** A printed column is only caught if somebody reads it.
+
+Departure logging begins 2026-09-24. Months that ended before then are
+drawn blank rather than zero on the joins-and-leaves chart, because
+those are different claims.
 
 ### Migration 093 run -- members-only events hole closed -- 2026-09-24
 

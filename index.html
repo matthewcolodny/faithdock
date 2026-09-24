@@ -9638,7 +9638,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-24-v256 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-24-v257 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -29801,8 +29801,20 @@ Groups</span>
     var since = new Date();
     since.setMonth(since.getMonth() - 12);
     var results = await Promise.all([
+      // An allow-list, not .neq('kind','deceased'). This chart is about
+      // people the church lost to attrition; a death is a departure but
+      // not attrition, and averaging the two produces a retention line
+      // that is quietly false. Listing the kinds that count means a
+      // kind added later has to be consciously classified rather than
+      // silently joining the leaves bar.
+      //
+      // 'deceased' becomes a legal kind in migration 095. Nothing
+      // writes it yet; this filter is in place first so that the day
+      // something does, the chart does not quietly start counting
+      // deaths as people who left.
       supabase.from('church_membership_departures').select('left_at')
-        .eq('church_id', myChurch.id).gte('left_at', since.toISOString()),
+        .eq('church_id', myChurch.id).gte('left_at', since.toISOString())
+        .in('kind', ['left', 'removed']),
       supabase.rpc('departures_logging_started_at')
     ]);
     if (results[0].error || results[1].error) {

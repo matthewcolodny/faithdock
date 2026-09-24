@@ -252,6 +252,55 @@ every member's phone number.
 
 ---
 
+## 14. A person the church keeps a record of, who has no account
+
+**Today:** every person in FaithDock is an `auth.users` row.
+`profiles.id` IS the account id — `get_directory_people` joins
+`auth.users u on u.id = p.id`. Somebody the church knows about but who
+has not signed up exists only as a `church_member_invites` row, which
+is an unaccepted invitation, not a person record.
+
+`church_membership_departures` (migration 094) inherits this: its
+`user_id` references `auth.users` with ON DELETE CASCADE, so deleting
+the account deletes the departure record too.
+
+**Why it matters:** the CRM direction needs a record that outlives the
+account and can exist without one — a profile kept permanently, noted
+as deceased on a date, titled *Former member*. None of that fits what
+is here:
+
+- A deceased member may never have had an account. Churches import
+  people; imports create invites, not profiles. There is nowhere to
+  put them.
+- A permanent record cannot hang off `auth.users` with a cascade. If
+  the family closes the account, the church's record of them
+  disappears.
+- *Former member* is a **status on a person**, answering "who is
+  this". A departure row is an **event**, answering "how many left in
+  March". They are different tables, and the log is not a substitute
+  for the profile.
+
+**The decision:** whether FaithDock grows a church-owned person record
+— one the church creates, that may or may not ever be linked to an
+account. That is the prerequisite for everything else here, and it is
+a large change: the directory, households, registrations and check-in
+all key on `user_id` today.
+
+It also reopens **10. Data retention generally** from the other side.
+Today "delete my account" can mean "erase me", because everything
+about a person hangs off their account. A church-owned record means
+some of what a church holds about somebody would survive their
+deletion request, and which parts is a policy question, not a schema
+one.
+
+**Already done in anticipation:** `kind` in
+`church_membership_departures` permits `'deceased'` (migration 095;
+nothing writes it), and the joins-and-leaves chart counts only
+`'left'` and `'removed'` — so when deaths are recorded they will not
+silently become attrition.
+
+---
+
 ## Decided
 
 *(Move entries here with the date and the reasoning when they are
