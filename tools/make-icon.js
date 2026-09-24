@@ -90,13 +90,16 @@ const hull = {
 // large sample count.
 const SUBY = 8;
 
-function coverage(size, shapes, scale) {
-  const cov = new Float32Array(size * size);
-  // Artwork space to pixel space: fit the viewBox to the canvas, then
-  // scale about the centre by `scale` to leave a margin.
-  const k = (size / VB) * scale;
-  const off = size / 2 - (VB / 2) * k;
-  const map = p => [p[0] * k + off, p[1] * k + off];
+function coverage(w, h, shapes, scale) {
+  const cov = new Float32Array(w * h);
+  // Artwork space to pixel space: fit the viewBox to the SHORTER side so
+  // the mark stays square on a non-square canvas, then scale about the
+  // centre by `scale` to leave a margin. For the square icons w === h,
+  // so this is the same mapping it always was.
+  const k = (Math.min(w, h) / VB) * scale;
+  const offX = w / 2 - (VB / 2) * k;
+  const offY = h / 2 - (VB / 2) * k;
+  const map = p => [p[0] * k + offX, p[1] * k + offY];
 
   for (const shape of shapes) {
     // Flatten every subpath into one edge list. Both fill rules treat
@@ -111,7 +114,7 @@ function coverage(size, shapes, scale) {
       }
     }
 
-    for (let y = 0; y < size; y++) {
+    for (let y = 0; y < h; y++) {
       for (let s = 0; s < SUBY; s++) {
         const sy = y + (s + 0.5) / SUBY;
         // Crossings on this sample line, each carrying a winding
@@ -130,7 +133,7 @@ function coverage(size, shapes, scale) {
         for (let i = 0; i < xs.length - 1; i++) {
           wind += xs[i][1];
           const inside = shape.rule === 'evenodd' ? ((i % 2) === 0) : (wind !== 0);
-          if (inside) addSpan(cov, size, y, xs[i][0], xs[i + 1][0], 1 / SUBY);
+          if (inside) addSpan(cov, w, y, xs[i][0], xs[i + 1][0], 1 / SUBY);
         }
       }
     }
@@ -140,13 +143,13 @@ function coverage(size, shapes, scale) {
 
 // Add `weight` of coverage to row `y` between x0 and x1, splitting the
 // partial pixels at each end by how much of them the span really covers.
-function addSpan(cov, size, y, x0, x1, weight) {
+function addSpan(cov, w, y, x0, x1, weight) {
   if (x1 <= x0) return;
   x0 = Math.max(0, x0);
-  x1 = Math.min(size, x1);
+  x1 = Math.min(w, x1);
   if (x1 <= x0) return;
-  const row = y * size;
-  const last = Math.min(size - 1, Math.ceil(x1) - 1);
+  const row = y * w;
+  const last = Math.min(w - 1, Math.ceil(x1) - 1);
   for (let px = Math.floor(x0); px <= last; px++) {
     const l = Math.max(x0, px), r = Math.min(x1, px + 1);
     if (r > l) cov[row + px] += (r - l) * weight;
@@ -185,20 +188,20 @@ function chunk(type, data) {
   return Buffer.concat([len, body, crc]);
 }
 
-function encodePng(size, rgb) {
+function encodePng(w, h, rgb) {
   // Filter byte 0 (none) in front of every row. The image is two flat
   // colours and the blend between them, so it compresses to almost
   // nothing regardless; choosing better filters per row would save
   // bytes nobody would notice.
-  const stride = size * 3 + 1;
-  const raw = Buffer.alloc(size * stride);
-  for (let y = 0; y < size; y++) {
+  const stride = w * 3 + 1;
+  const raw = Buffer.alloc(h * stride);
+  for (let y = 0; y < h; y++) {
     raw[y * stride] = 0;
-    rgb.copy(raw, y * stride + 1, y * size * 3, (y + 1) * size * 3);
+    rgb.copy(raw, y * stride + 1, y * w * 3, (y + 1) * w * 3);
   }
   const ihdr = Buffer.alloc(13);
-  ihdr.writeUInt32BE(size, 0);
-  ihdr.writeUInt32BE(size, 4);
+  ihdr.writeUInt32BE(w, 0);
+  ihdr.writeUInt32BE(h, 4);
   ihdr[8] = 8;    // bit depth
   ihdr[9] = 2;    // colour type 2 = truecolour, no alpha
   return Buffer.concat([
@@ -211,16 +214,30 @@ function encodePng(size, rgb) {
 
 // ---------------------------------------------------------------------
 
-function render(size, scale) {
-  const cov = coverage(size, [sail, hull], scale);
-  const rgb = Buffer.alloc(size * size * 3);
-  for (let i = 0; i < size * size; i++) {
-    const a = Math.min(1, cov[i]);
-    for (let ch = 0; ch < 3; ch++) {
-      rgb[i * 3 + ch] = Math.round(NAVY[ch] + (GOLD[ch] - NAVY[ch]) * a);
+// opts.gradientTo, when given, fades the navy background down the canvas
+// from NAVY to that colour. Used only by the store's feature graphic: a
+// 1024x500 field of one flat colour looks like a mistake, and the fade
+// is slight enough to stay on brand. The icons pass nothing and get the
+// flat navy they have always had.
+function render(w, h, scale, opts) {
+  opts = opts || {};
+  const cov = coverage(w, h, [sail, hull], scale);
+  const rgb = Buffer.alloc(w * h * 3);
+  for (let y = 0; y < h; y++) {
+    // Background for this row, before the mark is composited over it.
+    const t = opts.gradientTo && h > 1 ? y / (h - 1) : 0;
+    const bg = [0, 1, 2].map(function (ch) {
+      return opts.gradientTo ? NAVY[ch] + (opts.gradientTo[ch] - NAVY[ch]) * t : NAVY[ch];
+    });
+    for (let x = 0; x < w; x++) {
+      const i = y * w + x;
+      const a = Math.min(1, cov[i]);
+      for (let ch = 0; ch < 3; ch++) {
+        rgb[i * 3 + ch] = Math.round(bg[ch] + (GOLD[ch] - bg[ch]) * a);
+      }
     }
   }
-  return encodePng(size, rgb);
+  return encodePng(w, h, rgb);
 }
 
 // The two scales are the same distinction as the two SVGs. 80% keeps a
@@ -244,15 +261,32 @@ function render(size, scale) {
 //
 // The 512s stay for anything that asks for that size specifically.
 const targets = [
-  { file: 'icon-1024.png',          size: 1024, scale: 0.80 },
-  { file: 'icon-1024-maskable.png', size: 1024, scale: 0.62 },
-  { file: 'icon-512.png',           size: 512,  scale: 0.80 },
-  { file: 'icon-512-maskable.png',  size: 512,  scale: 0.62 }
+  { file: 'icons/icon-1024.png',          w: 1024, h: 1024, scale: 0.80 },
+  { file: 'icons/icon-1024-maskable.png', w: 1024, h: 1024, scale: 0.62 },
+  { file: 'icons/icon-512.png',           w: 512,  h: 512,  scale: 0.80 },
+  { file: 'icons/icon-512-maskable.png',  w: 512,  h: 512,  scale: 0.62 },
+
+  // Google Play's feature graphic. Fixed at 1024x500 by Google, opaque,
+  // and shown at the head of the store listing.
+  //
+  // NO TEXT, deliberately. Google's own guidance is to keep words out of
+  // it, because it is cropped to different shapes across the store and
+  // promotional surfaces, and the app name is drawn separately next to
+  // it anyway. It is also the honest option here: this renderer has no
+  // font engine, and a wordmark faked out of rectangles would look it.
+  //
+  // scale 0.62 against the 500px height puts the mark at ~310px, which
+  // leaves more than 90px clear top and bottom. Google crops this
+  // graphic aggressively on some surfaces, and the centre is the only
+  // part guaranteed to survive.
+  { file: 'store/feature-graphic.png', w: 1024, h: 500, scale: 0.80,
+    opts: { gradientTo: [0x11, 0x1D, 0x35] } }
 ];
 
-const dir = path.join(__dirname, '..', 'icons');
 for (const t of targets) {
-  const png = render(t.size, t.scale);
-  fs.writeFileSync(path.join(dir, t.file), png);
-  console.log(t.file + '  ' + t.size + 'x' + t.size + '  ' + png.length + ' bytes');
+  const out = path.join(__dirname, '..', t.file);
+  fs.mkdirSync(path.dirname(out), { recursive: true });
+  const png = render(t.w, t.h, t.scale, t.opts);
+  fs.writeFileSync(out, png);
+  console.log(t.file.padEnd(34) + (t.w + 'x' + t.h).padEnd(11) + png.length + ' bytes');
 }
