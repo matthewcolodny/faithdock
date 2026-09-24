@@ -3968,11 +3968,26 @@
      fallback is the layout. */
   .household-member-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
 
-  /* The directory's tick column. accent-color matches the other
-     checkboxes in the app; the cell is sized to the box so it does not
-     take width from the name. */
-  .dir-col-pick{width:36px;}
-  .dir-col-pick input{accent-color:var(--brand);width:14px;height:14px;cursor:pointer;}
+  /* The directory's tick column.
+
+     The label is the hit area and it fills the cell, so the target is
+     the full 44px rather than the 17px box inside it -- roughly the
+     smallest thing a finger hits reliably, and the reason a near-miss
+     no longer opens the person's card.
+
+     The box itself only went from 14px to 17px. The problem was never
+     that it was hard to SEE. */
+  .dir-col-pick{width:44px;padding:0 !important;}
+  /* min-width, not width:100% alone. A percentage width contributes
+     NOTHING to a column's intrinsic size, so the cell computed to 0px
+     and squashed the box it was meant to enlarge. min-width is counted,
+     so the column can never be narrower than the target. */
+  .dir-pick-hit{
+    display:flex;align-items:center;justify-content:center;
+    width:100%;min-width:40px;min-height:40px;margin:0;cursor:pointer;border-radius:6px;
+  }
+  .dir-pick-hit:hover{background:var(--paper);}
+  .dir-col-pick input{accent-color:var(--brand);width:17px;height:17px;cursor:pointer;}
   .filter-check input{accent-color:var(--brand);width:14px;height:14px;flex-shrink:0;}
   /* Filter dropdown: 6 top-level entries, alphabetized, "Other" pinned
      last. 4 of them (Catholic, Nontrinitarian / Other Christian,
@@ -5030,10 +5045,14 @@
        between them they were the whole reason this table scrolled
        sideways. */
     .dir-col-contact{display:none;}
-    #directory-table.roster-fits th:nth-child(1){width:9%;}
-    #directory-table.roster-fits th:nth-child(2){width:14%;}
-    #directory-table.roster-fits th:nth-child(3){width:38%;}
-    #directory-table.roster-fits th:nth-child(4){width:30%;}
+    /* The tick column needs its 40px target on a phone too, which is
+       ~14% of the 303px the table gets at 375. Taken from the name and
+       role columns rather than from the avatar, which is a fixed 32px
+       and cannot give any back. */
+    #directory-table.roster-fits th:nth-child(1){width:14%;}
+    #directory-table.roster-fits th:nth-child(2){width:13%;}
+    #directory-table.roster-fits th:nth-child(3){width:36%;}
+    #directory-table.roster-fits th:nth-child(4){width:28%;}
     #directory-table.roster-fits th:nth-child(7){width:9%;}
     /* The chevron is 15px and the tick box 14px, so neither needs the
        side padding the text columns do; the avatar is 32px and does --
@@ -9686,7 +9705,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-24-v259 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-24-v260 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -29255,8 +29274,13 @@ Groups</span>
       var pickable = !p.is_owner && !p.is_staff;
       return '<tr style="cursor:pointer;" data-view-person-id="' + p.user_id + '">'
         + '<td class="dir-col-pick">'
+          // A label filling the whole cell, not a bare 14px box.
+          // Reported as easy to miss: a near-miss did not toggle
+          // anything, it opened the person's card over the table you
+          // were picking from. The label's own click target is the
+          // padded area, so the misses land on the checkbox after all.
           + (pickable
-              ? '<input type="checkbox" class="dir-pick" value="' + escAttr(p.user_id) + '"' + (directorySelected[p.user_id] ? ' checked' : '') + ' aria-label="' + escAttr(window.t('dashDir.selectPerson').replace('{name}', p.full_name || '')) + '">'
+              ? '<label class="dir-pick-hit"><input type="checkbox" class="dir-pick" value="' + escAttr(p.user_id) + '"' + (directorySelected[p.user_id] ? ' checked' : '') + ' aria-label="' + escAttr(window.t('dashDir.selectPerson').replace('{name}', p.full_name || '')) + '"></label>'
               : '')
         + '</td>'
         + '<td>' + photoHtml + '</td>'
@@ -31749,11 +31773,6 @@ Groups</span>
     }
   });
 
-  // A tick is not a row click. Without this, checking somebody opens
-  // their card over the table you are picking from.
-  document.addEventListener('click', function(ev){
-    if (ev.target && ev.target.classList && ev.target.classList.contains('dir-pick')) ev.stopPropagation();
-  }, true);
 
   function dirBulkStatus(text, colour){
     var el = document.getElementById('dir-bulk-status');
@@ -31904,6 +31923,16 @@ Groups</span>
   document.addEventListener('click', async function(ev){
     var personRow = ev.target.closest ? ev.target.closest('[data-view-person-id]') : null;
     if (!personRow) return;
+    // The tick column is not part of the row for this purpose.
+    //
+    // This used to be a capture-phase stopPropagation on the checkbox
+    // itself, which worked only because a click landed exactly on the
+    // 14px box. It also could not be widened: stopping the event at
+    // document-capture prevents it reaching the target at all, so a
+    // click on the surrounding label would have toggled nothing.
+    // Ignoring the column here instead lets the label do its ordinary
+    // job.
+    if (ev.target.closest('.dir-col-pick')) return;
     var personId = personRow.getAttribute('data-view-person-id');
     // The Staff page's "view profile" button reuses this exact same
     // handler/modal, but directoryPeopleRaw was only ever populated
