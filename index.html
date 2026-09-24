@@ -50,31 +50,19 @@
        overscroll colour of the ordinary website otherwise. */
     html{background:#1A2A49;}
     #fd-splash{
-      /* THE MARK ALONE, CENTRED. NOTHING ELSE. Read the comment on the
-         markup below before adding anything back to this. */
-      display:flex;align-items:center;justify-content:center;
-      position:fixed;inset:0;z-index:99999;
+      /* EMPTY ON PURPOSE. It is a plain navy field and must stay that
+         way -- no logo, no wordmark, no spinner. Read the comment on
+         the markup below before putting anything inside it. */
+      display:block;position:fixed;inset:0;z-index:99999;
       /* #1A2A49 sampled from the supplied artwork rather than guessed;
          the icon's own rect is #1B2A4A and the two should not drift. */
       background:#1A2A49;
-      /* A fallback fade, in case the script below never runs. A splash
-         that can outlive a JS error is a white-screen bug wearing a
-         logo -- this one always ends hidden, script or no script. */
+      /* A fallback fade, in case the script below never runs. A hold
+         that can outlive a JS error is a blank-screen bug -- this one
+         always ends hidden, script or no script. */
       animation:fdSplashOut .4s ease 6s forwards;
     }
     #fd-splash.fd-splash-done{animation:fdSplashOut .35s ease forwards;}
-    /* SIZED FROM A MEASUREMENT, NOT A GUESS -- twice now a fixed pixel
-       size has been too small and the mark visibly shrank at the
-       handoff. Measured off a screenshot of the system launch screen:
-       the mark lands at almost exactly half the screen's width, which
-       is what Android 12's splash does (it draws the adaptive icon
-       inside a circle 192dp across, and 192 of 375 is 51%).
-
-       Half the screen for the MARK, and the mark is about 77% of this
-       SVG's viewBox, so the SVG itself wants 65vw. The vh term is for
-       landscape and for tablets, where 65vw would run off the top and
-       bottom. */
-    #fd-splash svg{width:min(65vw,55vh);height:min(65vw,55vh);flex-shrink:0;}
   }
   @keyframes fdSplashOut{to{opacity:0;visibility:hidden;}}
   /* Somebody who has asked for less motion still wants the splash to
@@ -5427,30 +5415,32 @@
 <!-- First element in the body so it paints without waiting for the
      rest of the document.
 
-     THERE IS NO WORDMARK HERE, ON PURPOSE. Do not add one back.
+     THIS IS DELIBERATELY EMPTY. No logo, no wordmark, no spinner. Do
+     not put the mark back in it.
 
      Android draws its own launch screen before a byte of this page
-     runs, and it cannot be turned off. It shows the app icon on
-     background_color and nothing else: no name, no text. This layer
-     exists only to cover the gap between that screen vanishing and
-     2.5MB of HTML becoming usable.
+     runs and it cannot be turned off. It shows the app icon on
+     background_color. This layer only exists to cover the gap between
+     that screen going away and 2.5MB of HTML becoming usable.
 
-     So anything this shows that the system screen did not show is a
-     visible second screen. A wordmark was tried and that is exactly
-     what it looked like: the mark shrank and a line of type appeared
-     under it. Mark alone, same navy, same size, and the two read as
-     one screen that holds and then fades.
+     Three attempts were made to make this layer blend into that one:
+     mark beside a wordmark, then mark above a wordmark, then the mark
+     alone at a size measured off the system screen. Each time it read
+     as a second screen, because the system's copy of the mark is
+     upscaled from the icon baked into the installed app and ours is
+     drawn from vector data, so ours is visibly sharper. Matching a
+     blurry image with a crisp one is not a size problem and no amount
+     of sizing fixes it.
+
+     Empty navy has nothing to mismatch. The mark appears exactly once
+     during a launch, on the system screen, and this just holds the
+     colour afterwards. One screen, which is what was asked for.
 
      aria-hidden, not role="status": this is a decorative hold with
      nothing to announce, and role="status" is a live region that
      would have a screen reader read it out on every launch. The
      document title already says FaithDock. -->
-<div id="fd-splash" aria-hidden="true">
-  <svg viewBox="0 0 172.84 172.84" fill="none" aria-hidden="true">
-    <path fill-rule="evenodd" fill="#C9A227" d="M35.68,122.45L89.09,17.75l49.11,104.7H35.68ZM81.67,60.71v74.46s12.45,0,12.45,0V60.71s-12.45,0-12.45,0ZM60.93,80.3h53.93s0,11.76,0,11.76h-53.93s0-11.76,0-11.76Z"/>
-    <path fill="#C9A227" d="M20.64,130.74c74.8,31.89,65.48,31.25,132.52,0H20.64Z"/>
-  </svg>
-</div>
+<div id="fd-splash" aria-hidden="true"></div>
 
 <div id="waitlist-banner" style="display:none;" data-route="waitlist">
   <span data-i18n="waitlistBanner.text">FaithDock is in private testing — invite-only for now. Click here to request access.</span>
@@ -9856,7 +9846,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-24-v268 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-24-v269 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12232,15 +12222,36 @@ Groups</span>
   // The element is removed rather than left hidden, because a
   // position:fixed layer over the whole viewport is not something to
   // leave lying around on the strength of visibility:hidden alone.
+  //
+  // WHICHEVER COMES FIRST: load, or DOMContentLoaded plus a beat. When
+  // this layer still had the logo on it, waiting for load was fine --
+  // it was a brand moment and holding it cost nothing. It is a blank
+  // navy field now, and a blank field that outstays the page underneath
+  // it just looks like the app has hung.
+  //
+  // load waits on every subresource including Turnstile and DOMPurify
+  // from their CDNs, which is a slow third party away from our control.
+  // DOMContentLoaded means the document is parsed and the hero is
+  // ready to show; the extra 250ms lets first paint land so the fade
+  // does not reveal a half-drawn page. Whichever fires first wins, and
+  // `done` makes sure only one of them acts.
   (function dismissSplash(){
     var splash = document.getElementById('fd-splash');
     if (!splash) return;
+    var done = false;
     function go(){
+      if (done) return;
+      done = true;
       splash.classList.add('fd-splash-done');
       setTimeout(function(){ if (splash.parentNode) splash.parentNode.removeChild(splash); }, 500);
     }
+    function soon(){ setTimeout(go, 250); }
     if (document.readyState === 'complete') go();
-    else window.addEventListener('load', go);
+    else {
+      window.addEventListener('load', go);
+      if (document.readyState === 'interactive') soon();
+      else document.addEventListener('DOMContentLoaded', soon);
+    }
   })();
 
   // Service worker registration.

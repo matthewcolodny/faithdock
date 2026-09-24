@@ -53,31 +53,39 @@ the square is shown whole, and the `-maskable` ones at 62% for Android,
 which crops the icon to its launcher's shape and only guarantees the
 middle 80% survives.
 
-**Why 1024 and not 512.** Android 12 and up draw their own launch
-screen from the app icon, at a size measured on a real phone as about
-half the screen's width. Half of a 1080px screen is 540 physical
-pixels, and a 512 icon only carries ~314px of actual mark inside it
-(80% scale × the mark being ~77% of the viewBox). That is a 1.7×
-upscale, and it looked it. 1024 puts ~630px behind the same 540, so it
-is a downscale instead. The 512s stay for anything asking for that
-size by name.
+**Don't expect a bigger icon to sharpen the launch screen.** It was
+tried. The mark on Android's launch screen looked pixelated, so the
+manifest went 192 → 512 → 1024, and it looked the same every time.
+That screen is drawn from the icon baked into the installed app when
+it was added to the home screen, which the system holds at its own
+resolution and scales up; what the manifest offers does not change it.
+The 1024s are kept because they cost a few KB and help any surface
+that renders a manifest icon directly, but **they are not a fix for the
+launch screen and there does not appear to be one from the web side.**
 
 ### The two launch screens
 There are two, and only one is ours. **Android draws its own launch
 screen before a byte of the page runs, and it cannot be turned off.**
-It shows the app icon on `background_color` and nothing else — no name,
-no text. The in-page splash (`#fd-splash`, gated on `display-mode:
-standalone`) takes over from it and covers the time it takes 2.5MB of
-HTML to become usable.
+It shows the app icon on `background_color`. The in-page layer
+(`#fd-splash`, gated on `display-mode: standalone`) takes over from it
+and covers the time it takes 2.5MB of HTML to become usable.
 
-So the in-page splash shows **the mark alone**, at the same size, on
-the same navy. Anything it shows that the system screen did not is a
-visible second screen: a wordmark was tried, and it read exactly that
-way — the mark shrank and a line of type appeared underneath.
+**`#fd-splash` is deliberately empty — a plain navy field with no logo,
+no wordmark and no spinner.** Three versions tried to blend it into the
+system screen: mark beside a wordmark, mark above a wordmark, then the
+mark alone at a size measured off a screenshot of the real thing. All
+three read as a second screen, and the last one is why: the system's
+copy of the mark is upscaled and soft, ours is drawn from vector data
+and is crisp. A blurry image and a sharp one do not blend no matter how
+carefully they are sized. Empty navy has nothing to mismatch, so the
+mark appears exactly once per launch and this just holds the colour
+afterwards.
 
-Its size is a `vw` measurement, not a pixel value, because a fixed
-pixel size was wrong twice. The system draws the mark at ~50% of screen
-width; the mark is ~77% of the SVG's viewBox; hence `65vw`.
+It is dismissed on whichever comes first: `load`, or `DOMContentLoaded`
+plus 250ms. Waiting for `load` alone was fine when the layer carried
+the logo; a blank field that outstays the page under it just looks like
+the app has hung, and `load` waits on Turnstile and DOMPurify from
+their CDNs.
 
 **A manifest change cannot reach an already-installed app.** The
 manifest is read once, at install time. Testing any icon, colour or
