@@ -50,19 +50,9 @@
        overscroll colour of the ordinary website otherwise. */
     html{background:#1A2A49;}
     #fd-splash{
-      /* Stacked, not side by side, and that is the whole point.
-         Android's launch screen is drawn by Chrome before a byte of
-         this page runs, and it is always the icon above the app name
-         on background_color. It cannot be turned off. So the only way
-         this does not read as a second, different screen is to hold
-         the same arrangement Chrome just had on screen: same navy,
-         mark on top, name under it, both centred. The handoff then
-         looks like one screen settling rather than two screens.
-
-         The sizes approximate Chrome's, which vary by device density,
-         so they will not line up to the pixel everywhere. Same colour
-         and same arrangement is what stops it reading as a jump. */
-      display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;
+      /* THE MARK ALONE, CENTRED. NOTHING ELSE. Read the comment on the
+         markup below before adding anything back to this. */
+      display:flex;align-items:center;justify-content:center;
       position:fixed;inset:0;z-index:99999;
       /* #1A2A49 sampled from the supplied artwork rather than guessed;
          the icon's own rect is #1B2A4A and the two should not drift. */
@@ -73,18 +63,18 @@
       animation:fdSplashOut .4s ease 6s forwards;
     }
     #fd-splash.fd-splash-done{animation:fdSplashOut .35s ease forwards;}
-    /* 124px, not the 52px this was when the mark sat beside the
-       wordmark. Chrome draws its launch icon at roughly an eighth of
-       the screen's shorter side; the mark inside icon-512.png occupies
-       80% of that, and the mark inside this SVG occupies about 77% of
-       its viewBox, so 124px here lands within a few pixels of the mark
-       Chrome has just been showing. A 52px mark would have visibly
-       shrunk at the handoff. */
-    #fd-splash svg{width:124px;height:124px;flex-shrink:0;}
-    #fd-splash span{
-      font-family:'Fraunces',Georgia,'Times New Roman',serif;
-      font-size:28px;font-weight:600;color:#fff;letter-spacing:-.01em;
-    }
+    /* SIZED FROM A MEASUREMENT, NOT A GUESS -- twice now a fixed pixel
+       size has been too small and the mark visibly shrank at the
+       handoff. Measured off a screenshot of the system launch screen:
+       the mark lands at almost exactly half the screen's width, which
+       is what Android 12's splash does (it draws the adaptive icon
+       inside a circle 192dp across, and 192 of 375 is 51%).
+
+       Half the screen for the MARK, and the mark is about 77% of this
+       SVG's viewBox, so the SVG itself wants 65vw. The vh term is for
+       landscape and for tablets, where 65vw would run off the top and
+       bottom. */
+    #fd-splash svg{width:min(65vw,55vh);height:min(65vw,55vh);flex-shrink:0;}
   }
   @keyframes fdSplashOut{to{opacity:0;visibility:hidden;}}
   /* Somebody who has asked for less motion still wants the splash to
@@ -5435,11 +5425,23 @@
 <body>
 
 <!-- First element in the body so it paints without waiting for the
-     rest of the document. The mark is the same SVG the header uses;
-     the wordmark is text rather than an image so it needs no second
-     request, and falls back to Georgia for the moment before Fraunces
-     arrives. -->
-<!-- aria-hidden, not role="status": this is a decorative hold with
+     rest of the document.
+
+     THERE IS NO WORDMARK HERE, ON PURPOSE. Do not add one back.
+
+     Android draws its own launch screen before a byte of this page
+     runs, and it cannot be turned off. It shows the app icon on
+     background_color and nothing else: no name, no text. This layer
+     exists only to cover the gap between that screen vanishing and
+     2.5MB of HTML becoming usable.
+
+     So anything this shows that the system screen did not show is a
+     visible second screen. A wordmark was tried and that is exactly
+     what it looked like: the mark shrank and a line of type appeared
+     under it. Mark alone, same navy, same size, and the two read as
+     one screen that holds and then fades.
+
+     aria-hidden, not role="status": this is a decorative hold with
      nothing to announce, and role="status" is a live region that
      would have a screen reader read it out on every launch. The
      document title already says FaithDock. -->
@@ -5448,7 +5450,6 @@
     <path fill-rule="evenodd" fill="#C9A227" d="M35.68,122.45L89.09,17.75l49.11,104.7H35.68ZM81.67,60.71v74.46s12.45,0,12.45,0V60.71s-12.45,0-12.45,0ZM60.93,80.3h53.93s0,11.76,0,11.76h-53.93s0-11.76,0-11.76Z"/>
     <path fill="#C9A227" d="M20.64,130.74c74.8,31.89,65.48,31.25,132.52,0H20.64Z"/>
   </svg>
-  <span>FaithDock</span>
 </div>
 
 <div id="waitlist-banner" style="display:none;" data-route="waitlist">
@@ -9855,7 +9856,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-24-v267 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-24-v268 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">

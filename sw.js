@@ -51,6 +51,8 @@ const SHELL = [
   DOC,
   './pure-logic.js',
   './manifest.webmanifest',
+  './icons/icon-1024.png',
+  './icons/icon-1024-maskable.png',
   './icons/icon-512.png',
   './icons/icon-512-maskable.png',
   './icons/icon-192.png',

@@ -48,30 +48,39 @@ Every icon is **fully opaque**. iOS composites a transparent icon onto
 white, which is how the app first appeared as a navy mark inside a
 white rounded card.
 
-Two scales, matching the two SVGs: `icon-512.png` at 80% for anywhere
-the square is shown whole, and `icon-512-maskable.png` at 62% for
-Android, which crops the icon to its launcher's shape and only
-guarantees the middle 80% survives.
+Two scales, matching the two SVGs: the plain icons at 80% for anywhere
+the square is shown whole, and the `-maskable` ones at 62% for Android,
+which crops the icon to its launcher's shape and only guarantees the
+middle 80% survives.
 
-**512 matters specifically.** Chrome generates the Android launch
-screen from the manifest — `background_color`, the largest icon, and
-`name` — and wants a 512. Offered only a 192 it upscales, which showed
-up as a visibly pixelated mark.
+**Why 1024 and not 512.** Android 12 and up draw their own launch
+screen from the app icon, at a size measured on a real phone as about
+half the screen's width. Half of a 1080px screen is 540 physical
+pixels, and a 512 icon only carries ~314px of actual mark inside it
+(80% scale × the mark being ~77% of the viewBox). That is a 1.7×
+upscale, and it looked it. 1024 puts ~630px behind the same 540, so it
+is a downscale instead. The 512s stay for anything asking for that
+size by name.
 
 ### The two launch screens
-There are two, and only one is ours. Chrome draws its own launch screen
-before a byte of the page runs and it cannot be turned off. The
-in-page splash (`#fd-splash`, gated on `display-mode: standalone`)
-takes over and covers the time it takes 2.5MB of HTML to become
-usable — the gap Chrome's screen leaves behind.
+There are two, and only one is ours. **Android draws its own launch
+screen before a byte of the page runs, and it cannot be turned off.**
+It shows the app icon on `background_color` and nothing else — no name,
+no text. The in-page splash (`#fd-splash`, gated on `display-mode:
+standalone`) takes over from it and covers the time it takes 2.5MB of
+HTML to become usable.
 
-So the in-page splash deliberately copies Chrome's layout: same navy,
-mark above the name, both centred. They cannot be made pixel-identical
-across devices, but matching the arrangement is what keeps the handoff
-from reading as two different screens.
+So the in-page splash shows **the mark alone**, at the same size, on
+the same navy. Anything it shows that the system screen did not is a
+visible second screen: a wordmark was tried, and it read exactly that
+way — the mark shrank and a line of type appeared underneath.
 
-**A manifest change cannot reach an already-installed app.** Chrome
-reads the manifest once, at install time. Testing any icon, colour or
+Its size is a `vw` measurement, not a pixel value, because a fixed
+pixel size was wrong twice. The system draws the mark at ~50% of screen
+width; the mark is ~77% of the SVG's viewBox; hence `65vw`.
+
+**A manifest change cannot reach an already-installed app.** The
+manifest is read once, at install time. Testing any icon, colour or
 name change means removing the app from the home screen and adding it
 again.
 

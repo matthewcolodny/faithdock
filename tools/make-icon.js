@@ -223,19 +223,31 @@ function render(size, scale) {
   return encodePng(size, rgb);
 }
 
-// 512 is the size Chrome wants for the splash screen it generates. Give
-// it only a 192 and it upscales, which is what was reported as the mark
-// looking pixelated on Android.
-//
 // The two scales are the same distinction as the two SVGs. 80% keeps a
 // margin inside a square that is shown whole, matching the 192 and the
 // apple-touch icon already shipping. 62% is for the maskable copy,
 // which Android crops to whatever shape its launcher uses -- only the
 // middle 80% of that is guaranteed to survive, so the mark is pulled in
 // far enough that a circular crop cannot clip the sail.
+//
+// WHY 1024 AND NOT 512. Android 12 and up draw their own launch screen
+// from the app's adaptive icon, which for an installed web app comes
+// from the MASKABLE icon, and they draw it inside a circle 192dp
+// across. Measured on a 375dp-wide phone, the mark lands at about half
+// the screen width.
+//
+// Work that backwards and 512 is not enough. At 62% scale the mark
+// occupies only about 244px of a 512 image, and half the width of a
+// 1080px screen is 540 physical pixels: a 2.2x upscale, which is
+// exactly the jagged mark that was reported. 1024 puts roughly 490px
+// of mark behind the same 540, so it is a slight downscale instead.
+//
+// The 512s stay for anything that asks for that size specifically.
 const targets = [
-  { file: 'icon-512.png',          size: 512, scale: 0.80 },
-  { file: 'icon-512-maskable.png', size: 512, scale: 0.62 }
+  { file: 'icon-1024.png',          size: 1024, scale: 0.80 },
+  { file: 'icon-1024-maskable.png', size: 1024, scale: 0.62 },
+  { file: 'icon-512.png',           size: 512,  scale: 0.80 },
+  { file: 'icon-512-maskable.png',  size: 512,  scale: 0.62 }
 ];
 
 const dir = path.join(__dirname, '..', 'icons');
