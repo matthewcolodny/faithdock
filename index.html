@@ -1078,6 +1078,18 @@
       'households.noOneInDirectory': 'No one in your directory yet.', 'households.relationshipEllipsis': 'Relationship...',
       'households.editHousehold': 'Edit household', 'households.saveFailed': 'Could not save this household:',
       'households.searchMembers': 'Search people', 'households.nSelected': '{n} selected',
+      'dashTags.title': 'Event tags',
+      'dashTags.hint': 'Every tag on your events, and how many use it. Tags are typed on an event, so this is the only place they can be corrected afterwards — renaming one here renames it on every event that carries it.',
+      'dashTags.none': 'None of your events have tags yet.',
+      'dashTags.rename': 'Rename tag', 'dashTags.remove': 'Remove tag',
+      'dashTags.removeConfirm': 'Remove this tag from every event that uses it? Nothing else about those events changes.',
+      'dashTags.nameRequired': 'A tag needs a name.',
+      'dashTags.sameName': 'That is already its name.',
+      'dashTags.updatedN': 'Updated {n} events.', 'dashTags.updatedOne': 'Updated 1 event.',
+      'dashTags.partial': 'Changed {done} of {total} events, then stopped:',
+      'dashTags.builtIn': 'Built-in',
+      'dashTags.builtInHint': 'A built-in tag shows in whichever language the reader has chosen. Renaming it makes it a plain label that always reads the same.',
+      'dashTags.working': 'Working...',
       'households.noSearchMatch': 'Nobody matches that search.',
       'dashSettings.churchProfile': 'Church profile',
       'dashSettings.facilityRooms': 'Facility rooms',
@@ -2193,6 +2205,18 @@
       'households.noOneInDirectory': 'Aún no hay nadie en tu directorio.', 'households.relationshipEllipsis': 'Relación...',
       'households.editHousehold': 'Editar hogar', 'households.saveFailed': 'No se pudo guardar este hogar:',
       'households.searchMembers': 'Buscar personas', 'households.nSelected': '{n} seleccionados',
+      'dashTags.title': 'Etiquetas de eventos',
+      'dashTags.hint': 'Todas las etiquetas de tus eventos y cuántos las usan. Las etiquetas se escriben en el evento, así que este es el único lugar donde se pueden corregir después — cambiar el nombre aquí lo cambia en todos los eventos que la llevan.',
+      'dashTags.none': 'Ninguno de tus eventos tiene etiquetas todavía.',
+      'dashTags.rename': 'Cambiar nombre de la etiqueta', 'dashTags.remove': 'Quitar etiqueta',
+      'dashTags.removeConfirm': '¿Quitar esta etiqueta de todos los eventos que la usan? No cambia nada más de esos eventos.',
+      'dashTags.nameRequired': 'La etiqueta necesita un nombre.',
+      'dashTags.sameName': 'Ese ya es su nombre.',
+      'dashTags.updatedN': 'Se actualizaron {n} eventos.', 'dashTags.updatedOne': 'Se actualizó 1 evento.',
+      'dashTags.partial': 'Se cambiaron {done} de {total} eventos y se detuvo:',
+      'dashTags.builtIn': 'Integrada',
+      'dashTags.builtInHint': 'Una etiqueta integrada se muestra en el idioma de cada lector. Cambiarle el nombre la convierte en texto fijo que siempre se lee igual.',
+      'dashTags.working': 'Trabajando...',
       'households.noSearchMatch': 'Nadie coincide con esa búsqueda.',
       'dashSettings.churchProfile': 'Perfil de la iglesia',
       'dashSettings.facilityRooms': 'Espacios de la instalación',
@@ -9086,6 +9110,17 @@ Groups</span>
             
             
             
+            <!-- Event tags. In Settings rather than on the Events page
+                 because this is not about one event: it edits a label
+                 across all of them at once, which is the same kind of
+                 church-wide housekeeping as ministries and rooms. -->
+            <div class="side-note" id="settings-tags-section">
+              <h4 data-i18n="dashTags.title">Event tags</h4>
+              <p style="font-size:13.5px;color:var(--ink-mute);margin-bottom:14px;" data-i18n="dashTags.hint">Every tag on your events, and how many use it.</p>
+              <div id="event-tags-list"><p style="color:var(--ink-mute);font-size:13px;" data-i18n="common.loading">Loading...</p></div>
+              <div id="event-tags-status" style="display:none;font-size:12px;margin-top:10px;"></div>
+            </div>
+
             <div class="side-note" id="settings-ownership-section" style="display:none;">
               <h4 data-i18n="dashSettings.transferOwnership">Transfer ownership</h4>
               <p style="font-size:13.5px;color:var(--ink-mute);margin-bottom:14px;" data-i18n="dashSettings.transferOwnershipHint">Hand this church off to someone else. Nothing changes until they explicitly accept — this doesn't transfer instantly just because you send it, and you can cancel it anytime before they respond.</p>
@@ -9426,7 +9461,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v251 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-23-v252 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13378,7 +13413,7 @@ Groups</span>
     insights:   ['loadGivingInsights', 'loadAttendanceInsights', 'loadGroupsInsights', 'loadInvolvementPanel'],
     staff:      ['loadTeamPanel'],
     billing:    ['loadBillingPanel'],
-    settings:   ['loadGiveMessageToggles'],
+    settings:   ['loadGiveMessageToggles', 'loadEventTagsPanel'],
     // The four shelled sub-pages have no data yet. Named with an
     // empty list on purpose rather than omitted: this map is meant
     // to be read as the complete set of views, and a view missing
@@ -23514,6 +23549,214 @@ Groups</span>
     });
   }
   window.refreshAllCardRegistrationStates = refreshAllCardRegistrationStates;
+
+  // ============================================================
+  // Event tags — renaming and removing a label across every event
+  // that carries it.
+  //
+  // There is no tags table: tags are a text[] column on events, so
+  // the list here is derived by reading them all. That also means
+  // "rename a tag" really is "rewrite this array on N events", which
+  // is why it reports how many it changed rather than just saying
+  // Saved.
+  // ============================================================
+  var tagEditingName = null;
+  var eventTagsCache = [];
+
+  window.cancelTagEdit = function(){
+    if (tagEditingName === null) return;
+    tagEditingName = null;
+    renderEventTagsList();
+  };
+
+  function tagDisplayLabel(tag){
+    return (window.baselineTagI18nKeyMap && window.baselineTagI18nKeyMap[tag])
+      ? window.t(window.baselineTagI18nKeyMap[tag]) : tag;
+  }
+
+  function renderEventTagsList(){
+    var listEl = document.getElementById('event-tags-list');
+    if (!listEl) return;
+    if (!eventTagsCache.length) {
+      listEl.innerHTML = '<p style="color:var(--ink-mute);font-size:13px;">' + window.t('dashTags.none') + '</p>';
+      return;
+    }
+    listEl.innerHTML = eventTagsCache.map(function(t){
+      var isBuiltIn = !!(window.baselineTagI18nKeyMap && window.baselineTagI18nKeyMap[t.tag]);
+      if (t.tag === tagEditingName) {
+        return '<div class="info-row" style="display:block;">'
+          + '<div class="room-row-main">'
+            + '<input class="field room-row-edit" type="text" id="tag-rename-input" value="' + escAttr(t.tag) + '">'
+            + '<span class="room-row-actions">'
+              + '<button class="qr-btn" data-tag-save="' + escAttr(t.tag) + '" aria-label="' + escAttr(window.t('profile.save')) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></button>'
+            + '</span>'
+          + '</div>'
+          // Said at the moment it matters -- while the box is open --
+          // rather than as a note on a row nobody is editing.
+          + (isBuiltIn ? '<div style="font-size:11.5px;color:var(--ink-mute);margin-top:6px;">' + escapeHtml(window.t('dashTags.builtInHint')) + '</div>' : '')
+          + '<div id="tag-edit-status" style="display:none;font-size:12px;margin-top:6px;"></div>'
+          + '</div>';
+      }
+      return '<div class="info-row" style="display:block;">'
+        + '<div class="room-row-main">'
+          + '<span class="room-row-name" style="cursor:default;">'
+            + '<strong>' + escapeHtml(tagDisplayLabel(t.tag)) + '</strong>'
+            + (isBuiltIn ? ' <span class="tag sage" style="font-size:9.5px;">' + escapeHtml(window.t('dashTags.builtIn')) + '</span>' : '')
+            + ' <span class="room-row-meta">' + escapeHtml(t.count === 1 ? window.t('dashMinistries.oneEvent') : window.t('dashMinistries.nEvents').replace('{n}', t.count)) + '</span>'
+          + '</span>'
+          + '<span class="room-row-actions">'
+            + '<button class="qr-btn" data-rename-tag="' + escAttr(t.tag) + '" aria-label="' + escAttr(window.t('dashTags.rename')) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>'
+            + '<button class="qr-btn" data-delete-tag="' + escAttr(t.tag) + '" aria-label="' + escAttr(window.t('dashTags.remove')) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'
+          + '</span>'
+        + '</div>'
+        + '</div>';
+    }).join('');
+    var input = document.getElementById('tag-rename-input');
+    if (input) { input.focus(); input.select(); }
+  }
+
+  async function loadEventTagsPanel(){
+    var listEl = document.getElementById('event-tags-list');
+    if (!listEl) return;
+    var myChurch = await getMyChurch();
+    if (!myChurch) { listEl.innerHTML = ''; return; }
+
+    var { data: rows, error } = await supabase.from('events')
+      .select('tags').eq('church_id', myChurch.id).not('tags', 'is', null);
+    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:13px;">' + escapeHtml(error.message) + '</p>'; return; }
+
+    var counts = {};
+    (rows || []).forEach(function(r){
+      (r.tags || []).forEach(function(tag){ counts[tag] = (counts[tag] || 0) + 1; });
+    });
+    // Most-used first, then alphabetically -- the tags worth tidying
+    // are the ones actually in circulation, and a church's own
+    // one-off typo sorts to the bottom where it is easy to spot.
+    eventTagsCache = Object.keys(counts).map(function(tag){ return { tag: tag, count: counts[tag] }; })
+      .sort(function(a, b){ return (b.count - a.count) || a.tag.localeCompare(b.tag); });
+    renderEventTagsList();
+  }
+  window.loadEventTagsPanel = loadEventTagsPanel;
+  dashPanel(loadEventTagsPanel);
+
+  // Rewrites the tag on every event carrying it. newTag null deletes.
+  //
+  // One update per event, and the count of how many actually went
+  // through is reported rather than assumed: if the fourth of nine
+  // fails, the church needs to know it is now looking at both the old
+  // and the new tag, not a message saying Saved.
+  // The outcome goes on #event-tags-status, which lives OUTSIDE the
+  // list, and is written after the reload.
+  //
+  // The first version reported a partial failure on the little status
+  // line inside the open edit row -- and then called
+  // loadEventTagsPanel(), which re-renders the list and destroys that
+  // element along with the message. A rename that failed halfway
+  // through showed nothing at all, which is the worst possible
+  // outcome for the one case where the church must be told.
+  function sayTagOutcome(text, colour){
+    var el = document.getElementById('event-tags-status');
+    if (!el) return;
+    el.textContent = text || '';
+    el.style.color = colour || 'var(--ink-mute)';
+    el.style.display = text ? 'block' : 'none';
+  }
+
+  async function applyTagChange(oldTag, newTag, inlineStatusEl){
+    var myChurch = await getMyChurch();
+    if (!myChurch) return;
+    // Cleared first. A leftover "Updated 4 events." sitting in green
+    // beside a failure that just happened is worse than no message.
+    sayTagOutcome('');
+    if (inlineStatusEl) {
+      inlineStatusEl.textContent = window.t('dashTags.working');
+      inlineStatusEl.style.color = 'var(--ink-mute)';
+      inlineStatusEl.style.display = 'block';
+    }
+
+    var { data: rows, error } = await supabase.from('events')
+      .select('id, tags').eq('church_id', myChurch.id).contains('tags', [oldTag]);
+    if (error) { sayTagOutcome(friendlyDbError(error), 'var(--clay)'); return; }
+    var total = (rows || []).length;
+
+    var done = 0;
+    for (var i = 0; i < total; i++) {
+      var next = [];
+      (rows[i].tags || []).forEach(function(t){
+        var v = (t === oldTag) ? newTag : t;
+        // Deduped: renaming Music to Worship on an event that already
+        // has Worship must leave one Worship, not two.
+        if (v !== null && next.indexOf(v) === -1) next.push(v);
+      });
+      var { error: upError } = await supabase.from('events')
+        .update({ tags: next.length ? next : null }).eq('id', rows[i].id);
+      if (upError) {
+        // The list is reloaded FIRST so it shows the half-done truth --
+        // both spellings, with their real counts -- and the message
+        // written after, so the reload cannot wipe it.
+        tagEditingName = null;
+        await loadEventTagsPanel();
+        sayTagOutcome(window.t('dashTags.partial').replace('{done}', done).replace('{total}', total) + ' ' + friendlyDbError(upError), 'var(--clay)');
+        return;
+      }
+      done++;
+    }
+
+    tagEditingName = null;
+    await loadEventTagsPanel();
+    // Refetched, because the tag suggestion chips on the event form
+    // are built from this same column and would otherwise keep
+    // offering the old spelling.
+    if (typeof window.loadChurchTagSuggestions === 'function') window.loadChurchTagSuggestions(myChurch.id);
+    if (typeof window.loadDashboardEvents === 'function') window.loadDashboardEvents();
+    sayTagOutcome(done === 1 ? window.t('dashTags.updatedOne')
+                             : window.t('dashTags.updatedN').replace('{n}', done),
+                  'var(--sage)');
+  }
+
+  document.addEventListener('click', async function(ev){
+    if (!ev.target.closest) return;
+
+    var renameBtn = ev.target.closest('[data-rename-tag]');
+    if (renameBtn) {
+      tagEditingName = renameBtn.getAttribute('data-rename-tag');
+      renderEventTagsList();
+      return;
+    }
+
+    var saveBtn = ev.target.closest('[data-tag-save]');
+    if (saveBtn) {
+      var oldTag = saveBtn.getAttribute('data-tag-save');
+      var input = document.getElementById('tag-rename-input');
+      var statusEl = document.getElementById('tag-edit-status');
+      var newTag = input ? input.value.trim() : '';
+      if (!newTag) {
+        if (statusEl) { statusEl.textContent = window.t('dashTags.nameRequired'); statusEl.style.color = 'var(--clay)'; statusEl.style.display = 'block'; }
+        if (input) input.focus();
+        return;
+      }
+      if (newTag === oldTag) {
+        tagEditingName = null;
+        renderEventTagsList();
+        return;
+      }
+      await applyTagChange(oldTag, newTag, statusEl);
+      return;
+    }
+
+    var deleteBtn = ev.target.closest('[data-delete-tag]');
+    if (deleteBtn) {
+      if (!confirm(window.t('dashTags.removeConfirm'))) return;
+      // No inline element to write to -- a delete has no open edit
+      // row. The outcome goes to #event-tags-status either way.
+      await applyTagChange(deleteBtn.getAttribute('data-delete-tag'), null, null);
+      return;
+    }
+  });
+
+  document.addEventListener('keydown', function(ev){
+    if (ev.key === 'Escape') window.cancelTagEdit();
+  });
 
   var baselineTagI18nKeyMap = {
     'Volunteer': 'ce.tagVolunteer', 'Book Club': 'ce.tagBookClub', 'Social': 'ce.tagSocial',
