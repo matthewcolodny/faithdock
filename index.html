@@ -8528,6 +8528,11 @@ Groups</span>
                All is a real checkbox rather than a Clear link, because
                it is the state the list is in when nothing is ticked and
                a checklist with every box empty otherwise looks broken. -->
+          <!-- The filter and the selection actions share one row, so
+               ticking the first person does not shove the whole table
+               down by the height of a bar that was not there a moment
+               ago. -->
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
           <div id="dir-filter-wrap" style="position:relative;">
             <button type="button" class="export-btn" id="dir-filter-btn" aria-expanded="false" style="display:flex;align-items:center;gap:7px;">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;flex-shrink:0;"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></svg>
@@ -8543,30 +8548,55 @@ Groups</span>
               <label class="filter-check" style="margin-bottom:0;"><input type="checkbox" class="dir-filter-check" value="group"> <span data-i18n="dashDir.groupSignups">Group sign-ups</span></label>
             </div>
           </div>
+          <!-- Inline, and only while something is picked. The compose
+               box is NOT here: it is tall, and a textarea appearing
+               inside the toolbar would do the same shoving this move
+               was meant to stop. It opens below, on a deliberate
+               click. -->
+          <div id="dir-bulk-actions" style="display:none;align-items:center;gap:6px;flex-wrap:wrap;">
+            <span id="dir-bulk-count" style="font-size:12.5px;font-weight:600;white-space:nowrap;"></span>
+            <button class="export-btn" id="dir-bulk-message-btn" style="padding:6px 12px;font-size:12.5px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;vertical-align:-2px;margin-right:4px;"><path d="M4 4h16v12H7l-3 3z"/></svg><span data-i18n="dashDir.bulkMessage">Message</span></button>
+            <button class="export-btn" id="dir-bulk-remove-btn" style="padding:6px 12px;font-size:12.5px;color:var(--clay);border-color:var(--clay);"><span data-i18n="dashDir.bulkRemove">Remove from church</span></button>
+            <button class="export-btn" id="dir-bulk-clear-btn" style="padding:6px 12px;font-size:12.5px;" data-i18n="dashDir.clearSelection">Clear</button>
+          </div>
+          </div>
           <div style="display:flex;gap:8px;">
-            <button class="btn-gold" id="import-members-open-btn" style="padding:10px 18px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;vertical-align:-3px;margin-right:4px;"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 19h16"/></svg><span data-i18n="dashDir.importMembers">Import members</span></button>
-            <button class="export-btn" id="import-groups-open-btn" style="padding:10px 18px;" data-i18n="dashDir.importGroupsBtn">Import groups</button>
+            <!-- Stood down while a selection is live. The two groups
+                 together are wider than the toolbar, so without this the
+                 right-hand set wrapped to a second line and pushed the
+                 table down 50px -- the exact jump moving the actions up
+                 here was meant to prevent.
+
+                 Importing is not something anybody is doing mid-
+                 selection. The SEARCH stays, because ticking a few
+                 people, searching for another and ticking them too is a
+                 real way to build a list. -->
+            <span id="dir-import-group" style="display:flex;gap:8px;">
+              <button class="btn-gold" id="import-members-open-btn" style="padding:10px 18px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;vertical-align:-3px;margin-right:4px;"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 19h16"/></svg><span data-i18n="dashDir.importMembers">Import members</span></button>
+              <button class="export-btn" id="import-groups-open-btn" style="padding:10px 18px;" data-i18n="dashDir.importGroupsBtn">Import groups</button>
+            </span>
             <input class="field" type="text" id="directory-search-input" placeholder="Search by name or email" style="width:auto;min-width:220px;" data-i18n-placeholder="dashDir.searchPlaceholder">
           </div>
         </div>
-        <!-- Only on screen when something is picked. A permanently
-             visible bar with nothing to act on is furniture, and it
-             would push the table down by its own height on every
-             page load. -->
-        <div id="dir-bulk-bar" style="display:none;align-items:center;flex-wrap:wrap;gap:8px;padding:10px 12px;margin-bottom:10px;border:1px solid var(--line);border-radius:10px;background:var(--paper);">
-          <span id="dir-bulk-count" style="font-size:13px;font-weight:600;"></span>
-          <button class="export-btn" id="dir-bulk-message-btn" style="padding:6px 12px;font-size:12.5px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;vertical-align:-2px;margin-right:4px;"><path d="M4 4h16v12H7l-3 3z"/></svg><span data-i18n="dashDir.bulkMessage">Message</span></button>
-          <button class="export-btn" id="dir-bulk-remove-btn" style="padding:6px 12px;font-size:12.5px;color:var(--clay);border-color:var(--clay);"><span data-i18n="dashDir.bulkRemove">Remove from church</span></button>
-          <button class="export-btn" id="dir-bulk-clear-btn" style="padding:6px 12px;font-size:12.5px;margin-left:auto;" data-i18n="dashDir.clearSelection">Clear</button>
-          <div id="dir-bulk-status" style="display:none;font-size:12px;width:100%;"></div>
-          <div id="dir-bulk-message-form" style="display:none;width:100%;margin-top:6px;">
+        <!-- What could not go in the toolbar: the outcome line and the
+             compose box. Both appear only after a deliberate click, so
+             the table moving at that moment is expected rather than a
+             surprise. -->
+        <div id="dir-bulk-panel" style="display:none;padding:10px 12px;margin-bottom:10px;border:1px solid var(--line);border-radius:10px;background:var(--paper);">
+          <div id="dir-bulk-status" style="display:none;font-size:12px;"></div>
+          <div id="dir-bulk-message-form" style="display:none;margin-top:6px;">
             <input class="field" type="text" id="dir-bulk-subject" placeholder="Subject" data-i18n-placeholder="dashDir.subject" style="font-size:13px;padding:8px 10px;margin:0 0 6px;">
             <textarea class="field" id="dir-bulk-body" placeholder="Write your message..." data-i18n-placeholder="dashDir.writeMessage" style="font-size:13px;padding:8px 10px;margin:0;min-height:80px;resize:vertical;"></textarea>
             <button class="btn-gold" id="dir-bulk-send-btn" style="margin-top:8px;padding:8px 16px;font-size:13px;" data-i18n="dashDir.sendMessage">Send message</button>
           </div>
         </div>
         <table class="roster roster-fits" id="directory-table">
-          <tr><th class="dir-col-pick"><input type="checkbox" id="dir-select-all" aria-label="Select everyone shown" data-i18n-title="dashDir.selectAll"></th><th></th><th data-i18n="dashCheckin.name">Name</th><th data-i18n="dashDir.role">Role</th><th class="dir-col-contact" data-i18n="dashDir.email">Email</th><th class="dir-col-contact" data-i18n="dashDir.phone">Phone</th><th></th></tr>
+          <!-- The header box wears the same .dir-pick-hit label as the
+               rows. Without it the cell's padding is 0 and the box sits
+               hard against the left edge while every row below centres
+               its own -- a column of ticks with the top one out of
+               line. -->
+          <tr><th class="dir-col-pick"><label class="dir-pick-hit"><input type="checkbox" id="dir-select-all" aria-label="Select everyone shown" data-i18n-title="dashDir.selectAll"></label></th><th></th><th data-i18n="dashCheckin.name">Name</th><th data-i18n="dashDir.role">Role</th><th class="dir-col-contact" data-i18n="dashDir.email">Email</th><th class="dir-col-contact" data-i18n="dashDir.phone">Phone</th><th></th></tr>
           <tbody id="directory-tbody">
             <tr><td colspan="7" style="color:var(--ink-mute);" data-i18n="dashDir.loadingDirectory">Loading directory...</td></tr>
           </tbody>
@@ -9705,7 +9735,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-24-v260 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-24-v261 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -29203,15 +29233,35 @@ Groups</span>
     return directoryPeopleRaw.filter(function(person){ return !!directorySelected[person.user_id]; });
   }
 
+  // The panel below the toolbar exists only to hold things too tall
+  // for it -- the outcome line and the compose box -- so it is on
+  // screen exactly when one of them has something to say.
+  function syncDirBulkPanel(){
+    var panel = document.getElementById('dir-bulk-panel');
+    if (!panel) return;
+    var form = document.getElementById('dir-bulk-message-form');
+    var st = document.getElementById('dir-bulk-status');
+    var formOpen = form && form.style.display !== 'none';
+    var hasStatus = st && st.style.display !== 'none' && st.textContent;
+    panel.style.display = (formOpen || hasStatus) ? 'block' : 'none';
+  }
+
   function renderDirectoryBulkBar(){
-    var bar = document.getElementById('dir-bulk-bar');
-    if (!bar) return;
+    var actions = document.getElementById('dir-bulk-actions');
+    if (!actions) return;
     var picked = directorySelectedPeople();
-    bar.style.display = picked.length ? 'flex' : 'none';
+    // Inline beside the filter, so the table does not jump down the
+    // moment the first person is ticked.
+    actions.style.display = picked.length ? 'flex' : 'none';
+    // Its own element, so the per-permission hiding of Import members
+    // (loadMembersPanel) and this per-selection hiding cannot overwrite
+    // each other.
+    var importGroup = document.getElementById('dir-import-group');
+    if (importGroup) importGroup.style.display = picked.length ? 'none' : 'flex';
     var countEl = document.getElementById('dir-bulk-count');
     if (countEl) countEl.textContent = window.t('dashDir.nSelected').replace('{n}', picked.length);
 
-    // Closing the bar closes the compose form with it. Leaving a
+    // Losing the selection closes the compose form with it. Leaving a
     // half-written message open above a table with nothing selected
     // is an invitation to send it to nobody.
     if (!picked.length) {
@@ -29220,6 +29270,7 @@ Groups</span>
       var st = document.getElementById('dir-bulk-status');
       if (st) st.style.display = 'none';
     }
+    syncDirBulkPanel();
 
     // Indeterminate when some but not all of the pickable rows on
     // screen are ticked -- the honest third state for a box that
@@ -31780,6 +31831,7 @@ Groups</span>
     el.textContent = text || '';
     el.style.color = colour || 'var(--ink-mute)';
     el.style.display = text ? 'block' : 'none';
+    syncDirBulkPanel();
   }
 
   document.addEventListener('click', async function(ev){
@@ -31796,6 +31848,8 @@ Groups</span>
       var form = document.getElementById('dir-bulk-message-form');
       if (form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
       dirBulkStatus('');
+      syncDirBulkPanel();
+      if (form && form.style.display === 'block') document.getElementById('dir-bulk-subject').focus();
       return;
     }
 
