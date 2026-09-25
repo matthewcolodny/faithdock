@@ -1236,6 +1236,16 @@
       'dashGroups.addByEmailHint': 'Works for any congregation member or staff who already has a FaithDock account.',
       'dashGroups.roleMember': 'Member', 'dashGroups.roleLeader': 'Leader', 'dashGroups.addToGroup': 'Add to group',
       'dashGroups.couldntLoad': "Couldn't load groups: ", 'dashGroups.noGroupsYet': 'No groups yet — click New group to add your first one.', 'dashGroups.pendingBadge': 'pending',
+      // The group detail card, opened from a row. Groups have no tag
+      // column, so what it shows are the real fields: who made it,
+      // which ministry runs it, how people join, and who can see what.
+      'dashGroups.detailTitle': 'Group details',
+      'dashGroups.createdBy': 'Created by', 'dashGroups.createdOn': 'Created',
+      'dashGroups.ministryLabel': 'Ministry', 'dashGroups.noMinistry': 'No ministry',
+      'dashGroups.joinMethodLabel': 'How people join', 'dashGroups.visibilityLabel': 'Visibility',
+      'dashGroups.memberListShown': 'Member list shown publicly',
+      'dashGroups.viewDetails': 'View details', 'dashGroups.unknownPerson': 'Unknown',
+      'dashGroups.noDescription': 'No description yet.',
       'dashGiving.connectBank': 'Connect your bank account',
       'dashGiving.connectBankHint': 'Donations go straight to your account — FaithDock never holds the funds.',
       'dashGiving.connectBankBody': 'Connect a bank account to accept donations.',
@@ -2413,6 +2423,13 @@
       'dashGroups.addByEmailHint': 'Funciona para cualquier miembro de la congregación o personal que ya tenga una cuenta de FaithDock.',
       'dashGroups.roleMember': 'Miembro', 'dashGroups.roleLeader': 'Líder', 'dashGroups.addToGroup': 'Agregar al grupo',
       'dashGroups.couldntLoad': 'No se pudieron cargar los grupos: ', 'dashGroups.noGroupsYet': 'Aún no hay grupos — haz clic en Nuevo grupo para agregar el primero.', 'dashGroups.pendingBadge': 'pendiente',
+      'dashGroups.detailTitle': 'Detalles del grupo',
+      'dashGroups.createdBy': 'Creado por', 'dashGroups.createdOn': 'Creado',
+      'dashGroups.ministryLabel': 'Ministerio', 'dashGroups.noMinistry': 'Sin ministerio',
+      'dashGroups.joinMethodLabel': 'Cómo se unen', 'dashGroups.visibilityLabel': 'Visibilidad',
+      'dashGroups.memberListShown': 'Lista de miembros visible públicamente',
+      'dashGroups.viewDetails': 'Ver detalles', 'dashGroups.unknownPerson': 'Desconocido',
+      'dashGroups.noDescription': 'Aún no hay descripción.',
       'dashGiving.connectBank': 'Conectar tu cuenta bancaria',
       'dashGiving.connectBankHint': 'Las donaciones van directamente a tu cuenta — FaithDock nunca retiene los fondos.',
       'dashGiving.connectBankBody': 'Conecta una cuenta bancaria para aceptar donaciones.',
@@ -5550,6 +5567,36 @@
      source order. Left unqualified, these two items showed on desktop
      as well, duplicating the buttons beside the menu. */
   .row-menu-dropdown button.ev-menu-mobile{display:none;}
+
+  /* The same stacked phone treatment for the groups table, and here
+     for the same reason: five columns of which four are short values
+     made a row far wider than a phone, so the whole table scrolled
+     sideways and the actions lived off the right-hand edge.
+     Above the media query, like the .ev- rules, because these are the
+     defaults it overrides and at equal specificity the later rule
+     wins. */
+  .gr-row-main{display:flex;align-items:center;gap:9px;}
+  .gr-when{display:none;flex-direction:column;align-items:flex-end;flex-shrink:0;
+           font-variant-numeric:tabular-nums;line-height:1.25;max-width:45%;text-align:right;}
+  .gr-when-day{font-size:11.5px;color:var(--ink);font-weight:600;}
+  .gr-when-time{font-size:10.5px;color:var(--ink-mute);}
+  .gr-name-wrap{min-width:0;flex:1;}
+  .gr-sub{display:none;font-size:11.5px;color:var(--ink-mute);margin-top:3px;align-items:center;gap:7px;flex-wrap:wrap;}
+  /* Qualified with the element for the same specificity reason as
+     .ev-menu-mobile: `.row-menu-dropdown button` is a class plus an
+     element and beats a bare class whatever the source order. Left
+     unqualified these showed on desktop too, duplicating the buttons
+     sitting beside the menu. */
+  .row-menu-dropdown button.gr-menu-mobile,
+  .row-menu-dropdown a.gr-menu-mobile{display:none;}
+  /* The group name opens its detail card. A button rather than the
+     whole row, because the row also holds real controls and a click
+     target wrapping them would swallow taps meant for those. */
+  .gr-name-btn{
+    background:none;border:none;padding:0;text-align:left;font:inherit;color:var(--ink);
+    cursor:pointer;border-bottom:1px solid var(--line);
+  }
+  .gr-name-btn:hover{border-bottom-color:var(--gold);}
   /* Rosters that are meant to fit a phone rather than scroll sideways.
      table.roster becomes a nowrap horizontal scroller at 860px, which
      is right for a wide roster and wrong for a three-column one --
@@ -5648,6 +5695,23 @@
        the two paths cannot drift apart. */
     .ev-btn-desk{display:none;}
     .row-menu-dropdown button.ev-menu-mobile{display:flex;}
+
+    /* Groups, same shape as events above: schedule to the right of the
+       name, everything else stacked beneath it, and all five actions
+       folded into the row menu so nothing sits off the edge. */
+    .gr-col-desk{display:none;}
+    #dash-groups-table.roster-fits th:nth-child(1){width:84%;}
+    #dash-groups-table.roster-fits th:nth-child(5){width:16%;}
+    /* :not([colspan]) for the same reason as the events table -- a
+       full-width "Loading your groups..." row is a single colspan cell
+       and therefore also :last-child, and would otherwise lose its
+       left padding and sit against the border. */
+    #dash-groups-table.roster-fits td:last-child:not([colspan]){padding-left:0;padding-right:6px;}
+    .gr-when{display:flex;}
+    .gr-sub{display:flex;}
+    .gr-btn-desk{display:none;}
+    .row-menu-dropdown button.gr-menu-mobile,
+    .row-menu-dropdown a.gr-menu-mobile{display:flex;}
   }
 
   /* ---- conference ---- */
@@ -9345,6 +9409,23 @@ Groups</span>
         </div>
       </div>
 
+      <!-- The group detail card. Opened by the group name in the table
+           and by "View details" in the row menu. It exists because the
+           phone layout hides three of the five columns to fit, and
+           "fits on a phone" should not mean "that information is gone"
+           -- so everything the row cannot show lives here, along with
+           the fields the table never had room for on any screen. -->
+      <div class="modal-overlay" id="group-detail-modal">
+        <div class="modal-card" style="max-width:520px;max-height:85vh;overflow-y:auto;">
+          <button class="modal-close" onclick="document.getElementById('group-detail-modal').classList.remove('open')" aria-label="Close" data-i18n-title="common.close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
+          <div class="eyebrow" data-i18n="dashGroups.detailTitle">Group details</div>
+          <h3 id="group-detail-name" style="font-family:'Fraunces';font-size:20px;margin:6px 0 14px;"></h3>
+          <div id="group-detail-body"></div>
+        </div>
+      </div>
+
       <div class="modal-overlay" id="import-groups-modal">
         <div class="modal-card" style="max-width:560px;max-height:85vh;overflow-y:auto;">
           <button class="modal-close" onclick="document.getElementById('import-groups-modal').classList.remove('open')" aria-label="Close" data-i18n-title="common.close">
@@ -9561,8 +9642,13 @@ Groups</span>
           <div id="group-form-status" style="display:none;font-size:12.5px;margin-top:10px;"></div>
         </div>
 
-        <table class="roster">
-          <tr><th data-i18n="dashGroups.group">Group</th><th data-i18n="dashGroups.schedule">Schedule</th><th data-i18n="dashDir.members">Members</th><th data-i18n="dashGroups.contactInfoVisible">Contact info visible to leader</th><th></th></tr>
+        <!-- roster-fits: four of these five columns hold short
+             values, so the row was far wider than a phone and the
+             actions sat off the right edge. Marked here rather than
+             skipped in the renderer, so the desktop table is untouched
+             and the decision lives in the stylesheet. -->
+        <table class="roster roster-fits" id="dash-groups-table">
+          <tr><th data-i18n="dashGroups.group">Group</th><th class="gr-col-desk" data-i18n="dashGroups.schedule">Schedule</th><th class="gr-col-desk" data-i18n="dashDir.members">Members</th><th class="gr-col-desk" data-i18n="dashGroups.contactInfoVisible">Contact info visible to leader</th><th></th></tr>
           <tbody id="groups-tbody">
             <tr><td colspan="5" class="roster-loading" data-i18n="dashGroups.loadingGroups">Loading your groups...</td></tr>
           </tbody>
@@ -10358,7 +10444,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-24-v278 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-24-v279 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -33167,6 +33253,26 @@ Groups</span>
   // (not just hidden UI) via the "owner or staff can manage groups"
   // policy from the groups migration.
   // ============================================================
+  // "Every Sunday, 7:00 PM" -> { day: 'Every Sunday', time: '7:00 PM' }
+  //
+  // Splits the stored meeting_schedule string rather than re-deriving
+  // from meeting_recurrence/day/time, which would mean a second copy of
+  // formatGroupSchedule's rules and two places to fix a wording change.
+  // Only the LAST comma is treated as the boundary, because a
+  // recurrence can itself contain one ("2nd and 4th Tuesday, 7:00 PM").
+  // Anything that does not parse falls back to one line, which is the
+  // right answer for a one-off date or a hand-entered string.
+  function splitGroupSchedule(str){
+    if (!str) return { day: '—', time: '' };
+    var at = str.lastIndexOf(', ');
+    if (at < 0) return { day: str, time: '' };
+    var tail = str.slice(at + 2);
+    // A time, not the tail of a date. Requires digits and a colon or an
+    // am/pm marker, so "Sunday, October 5" keeps its comma.
+    if (!/\d/.test(tail) || !(/:/.test(tail) || /[ap]\.?m\.?/i.test(tail))) return { day: str, time: '' };
+    return { day: str.slice(0, at), time: tail };
+  }
+
   async function loadDashboardGroups(){
     var tbody = document.getElementById('groups-tbody');
     var countLabel = document.getElementById('groups-count-label');
@@ -33198,6 +33304,9 @@ Groups</span>
     // splitting them server-side would double the requests to save
     // nothing.
     var groupCounts = {};
+    // Exposed for the detail card, which shows the same two numbers and
+    // should not run the query a second time to get them.
+    window.dashGroupCounts = groupCounts;
     var groupIdList = myGroups.map(function(g){ return g.id; });
     if (groupIdList.length) {
       try {
@@ -33212,6 +33321,11 @@ Groups</span>
       }
     }
 
+    // Keyed for the detail card, which opens from a row and should not
+    // have to re-fetch a group already in hand.
+    window.dashGroupsById = {};
+    myGroups.forEach(function(g){ window.dashGroupsById[g.id] = g; });
+
     var rowsHtml = '';
     var totalPending = 0;
     for (var i = 0; i < myGroups.length; i++) {
@@ -33221,17 +33335,58 @@ Groups</span>
       var pendingCount = gCounts.pending;
       totalPending += (pendingCount || 0);
       var pendingBadge = pendingCount ? ' <span class="tag clay" style="font-size:9px;padding:2px 5px;">' + pendingCount + ' ' + window.t('dashGroups.pendingBadge') + '</span>' : '';
+      // ESCAPED. This was '<td>' + g.name + '</td>' -- a group name is
+      // typed by church staff and went into innerHTML raw. Same class of
+      // hole as the event title fixed earlier, found while restructuring
+      // rather than reported.
+      var gName = escapeHtml(g.name);
+      var sched = splitGroupSchedule(g.meeting_schedule);
+      // Sub-lines under the name, phone only. They carry what the
+      // hidden columns held: how many members, and whether the leader
+      // can see contact details.
+      var contactTag = '<span class="tag ' + (g.leader_can_view_contact_info ? 'sage' : 'clay') + '" style="font-size:9px;padding:2px 6px;">'
+        + escapeHtml(window.t('dashGroups.contactInfoVisible')) + ': '
+        + escapeHtml(g.leader_can_view_contact_info ? window.t('common.on') : window.t('common.off')) + '</span>';
       rowsHtml += '<tr>'
-        + '<td>' + g.name + '</td>'
-        + '<td class="mono">' + (g.meeting_schedule || '—') + '</td>'
-        + '<td><button class="qr-btn" data-view-group-members="' + g.id + '" data-view-group-title="' + escapeHtml(g.name) + '" style="width:auto;padding:6px 10px;" aria-label="' + window.t('dashGroups.viewMembers') + '">' + (count || 0) + ' <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;margin-left:4px;"><circle cx="9" cy="8" r="3"/><path d="M2 20c0-3 3-5 7-5s7 2 7 5"/></svg></button>' + pendingBadge + '</td>'
-        + '<td><span class="tag ' + (g.leader_can_view_contact_info ? 'sage' : 'clay') + '">' + (g.leader_can_view_contact_info ? window.t('common.on') : window.t('common.off')) + '</span></td>'
+        + '<td>'
+          + '<div class="gr-row-main">'
+            + '<div class="gr-name-wrap">'
+              + '<button class="gr-name-btn" data-group-detail="' + escapeHtml(g.id) + '">' + gName + '</button>'
+              + '<div class="gr-sub">' + (count || 0) + ' ' + escapeHtml(count === 1 ? window.t('dashDir.member') : window.t('dashDir.members')) + pendingBadge + contactTag + '</div>'
+            + '</div>'
+            // The schedule moves here on a phone, stacked, mirroring the
+            // events table's date column.
+            + '<div class="gr-when">'
+              + '<span class="gr-when-day">' + escapeHtml(sched.day) + '</span>'
+              + (sched.time ? '<span class="gr-when-time">' + escapeHtml(sched.time) + '</span>' : '')
+            + '</div>'
+          + '</div>'
+        + '</td>'
+        + '<td class="mono gr-col-desk">' + escapeHtml(g.meeting_schedule || '—') + '</td>'
+        + '<td class="gr-col-desk"><button class="qr-btn" data-view-group-members="' + g.id + '" data-view-group-title="' + escapeHtml(g.name) + '" style="width:auto;padding:6px 10px;" aria-label="' + window.t('dashGroups.viewMembers') + '">' + (count || 0) + ' <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;margin-left:4px;"><circle cx="9" cy="8" r="3"/><path d="M2 20c0-3 3-5 7-5s7 2 7 5"/></svg></button>' + pendingBadge + '</td>'
+        + '<td class="gr-col-desk"><span class="tag ' + (g.leader_can_view_contact_info ? 'sage' : 'clay') + '">' + (g.leader_can_view_contact_info ? window.t('common.on') : window.t('common.off')) + '</span></td>'
         + '<td><div style="display:flex;gap:6px;justify-content:flex-end;align-items:center;">'
-        + '<button class="qr-btn icon-tip" data-tip="' + window.t('dashGroups.takeAttendance') + '" data-take-attendance-id="' + g.id + '" data-take-attendance-name="' + escapeHtml(g.name) + '" aria-label="' + window.t('dashGroups.takeAttendance') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></button>'
-        + '<a class="qr-btn icon-tip" data-tip="' + window.t('dashGroups.viewPublicPage') + '" data-route="group" data-group-id="' + g.id + '" href="#" aria-label="' + window.t('dashGroups.viewPublicPage') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg></a>'
-        + '<button class="qr-btn icon-tip" data-tip="' + window.t('dashGroups.editGroupTip') + '" data-edit-group-id="' + g.id + '" aria-label="' + window.t('dashGroups.editGroupTip') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>'
-        + '<button class="qr-btn icon-tip" data-tip="' + window.t('dashGroups.duplicateGroup') + '" data-copy-group-id="' + g.id + '" aria-label="' + window.t('dashGroups.duplicateGroup') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>'
-        + '<button class="qr-btn icon-tip" data-tip="' + window.t('dashGroups.deleteGroupTip') + '" data-delete-group-id="' + g.id + '" data-delete-group-title="' + escapeHtml(g.name) + '" aria-label="' + window.t('dashGroups.deleteGroupTip') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>'
+        + '<button class="qr-btn icon-tip gr-btn-desk" data-tip="' + window.t('dashGroups.takeAttendance') + '" data-take-attendance-id="' + g.id + '" data-take-attendance-name="' + escapeHtml(g.name) + '" aria-label="' + window.t('dashGroups.takeAttendance') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></button>'
+        + '<a class="qr-btn icon-tip gr-btn-desk" data-tip="' + window.t('dashGroups.viewPublicPage') + '" data-route="group" data-group-id="' + g.id + '" href="#" aria-label="' + window.t('dashGroups.viewPublicPage') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg></a>'
+        + '<button class="qr-btn icon-tip gr-btn-desk" data-tip="' + window.t('dashGroups.editGroupTip') + '" data-edit-group-id="' + g.id + '" aria-label="' + window.t('dashGroups.editGroupTip') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>'
+        + '<button class="qr-btn icon-tip gr-btn-desk" data-tip="' + window.t('dashGroups.duplicateGroup') + '" data-copy-group-id="' + g.id + '" aria-label="' + window.t('dashGroups.duplicateGroup') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>'
+        + '<button class="qr-btn icon-tip gr-btn-desk" data-tip="' + window.t('dashGroups.deleteGroupTip') + '" data-delete-group-id="' + g.id + '" data-delete-group-title="' + escapeHtml(g.name) + '" aria-label="' + window.t('dashGroups.deleteGroupTip') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>'
+        // The row menu. On desktop it holds only what has no button of
+        // its own; on a phone the .gr-menu-mobile items appear too and
+        // are the only way to reach those five actions, since the
+        // buttons beside it are hidden. Same data attributes as the
+        // buttons, so one set of listeners serves both.
+        + '<div class="row-menu">'
+        + '<button class="row-menu-btn icon-tip" data-tip="' + window.t('common.moreActions') + '" data-toggle-row-menu="group-' + g.id + '" aria-label="' + window.t('common.moreActions') + '"><svg viewBox="0 0 24 24" fill="currentColor" style="width:15px;height:15px;"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></button>'
+        + '<div class="row-menu-dropdown" id="row-menu-group-' + g.id + '">'
+        + '<button data-group-detail="' + escapeHtml(g.id) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/></svg> ' + escapeHtml(window.t('dashGroups.viewDetails')) + '</button>'
+        + '<button class="gr-menu-mobile" data-view-group-members="' + g.id + '" data-view-group-title="' + gName + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3"/><path d="M2 20c0-3 3-5 7-5s7 2 7 5"/></svg> ' + escapeHtml(window.t('dashGroups.viewMembers')) + '</button>'
+        + '<button class="gr-menu-mobile" data-take-attendance-id="' + g.id + '" data-take-attendance-name="' + gName + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> ' + escapeHtml(window.t('dashGroups.takeAttendance')) + '</button>'
+        + '<a class="gr-menu-mobile" href="#" data-route="group" data-group-id="' + g.id + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg> ' + escapeHtml(window.t('dashGroups.viewPublicPage')) + '</a>'
+        + '<button class="gr-menu-mobile" data-edit-group-id="' + g.id + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> ' + escapeHtml(window.t('dashGroups.editGroupTip')) + '</button>'
+        + '<button class="gr-menu-mobile" data-copy-group-id="' + g.id + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> ' + escapeHtml(window.t('dashGroups.duplicateGroup')) + '</button>'
+        + '<button class="gr-menu-mobile danger" data-delete-group-id="' + g.id + '" data-delete-group-title="' + gName + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg> ' + escapeHtml(window.t('dashGroups.deleteGroupTip')) + '</button>'
+        + '</div></div>'
         + '</div></td></tr>';
     }
     tbody.innerHTML = rowsHtml;
@@ -33242,6 +33397,106 @@ Groups</span>
       else { navBadge.style.display = 'none'; }
     }
   }
+  // ============================================================
+  // The group detail card
+  // ============================================================
+  // Opened from a row. The phone layout hides three of the five
+  // columns to fit, and losing the data is not an acceptable price for
+  // fitting -- so this holds what the row cannot show, plus the fields
+  // the table never had room for on any width.
+  //
+  // Groups have no tag column. What reads as tags here are the real
+  // fields that describe one: how people join, who can see it, whether
+  // the leader gets contact details, whether the member list is
+  // public. Inventing a tags row would have shown an empty box.
+  //
+  // The group itself comes from the cache the table already built, so
+  // opening this costs nothing. Only the two NAMES behind foreign keys
+  // -- who created it, which ministry runs it -- need asking for, and
+  // only when they exist.
+  var groupDetailSeq = 0;
+
+  function groupDetailRow(label, value){
+    if (value === null || value === undefined || value === '') return '';
+    return '<div style="display:flex;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13.5px;">'
+      + '<div style="color:var(--ink-mute);flex:0 0 42%;min-width:0;">' + escapeHtml(label) + '</div>'
+      + '<div style="min-width:0;flex:1;">' + value + '</div>'
+      + '</div>';
+  }
+
+  window.openGroupDetail = async function(groupId){
+    var modal = document.getElementById('group-detail-modal');
+    var nameEl = document.getElementById('group-detail-name');
+    var bodyEl = document.getElementById('group-detail-body');
+    var g = (window.dashGroupsById || {})[groupId];
+    if (!modal || !nameEl || !bodyEl || !g) return;
+
+    // A later open must win. Without this, opening one group, closing
+    // it and opening another leaves two lookups in flight and whichever
+    // server reply lands last paints -- which can be the group that is
+    // no longer on screen.
+    var seq = ++groupDetailSeq;
+
+    nameEl.textContent = g.name;
+    var counts = (window.dashGroupCounts || {})[groupId] || { active: 0, pending: 0 };
+
+    function tag(on, text){
+      return '<span class="tag ' + (on ? 'sage' : 'clay') + '" style="font-size:10px;padding:2px 7px;margin-right:5px;">' + escapeHtml(text) + '</span>';
+    }
+
+    function paint(creatorName, ministryName){
+      if (seq !== groupDetailSeq) return;
+      bodyEl.innerHTML = ''
+        + '<p style="color:var(--ink-mute);font-size:13.5px;line-height:1.55;margin-bottom:14px;">'
+          + escapeHtml(g.description || window.t('dashGroups.noDescription')) + '</p>'
+        + groupDetailRow(window.t('dashGroups.schedule'), escapeHtml(g.meeting_schedule || '—'))
+        + groupDetailRow(window.t('dashDir.members'),
+            counts.active + (counts.pending ? ' <span class="tag clay" style="font-size:9px;padding:2px 5px;">' + counts.pending + ' ' + escapeHtml(window.t('dashGroups.pendingBadge')) + '</span>' : ''))
+        + groupDetailRow(window.t('dashGroups.ministryLabel'), escapeHtml(ministryName || window.t('dashGroups.noMinistry')))
+        + groupDetailRow(window.t('dashGroups.createdBy'), escapeHtml(creatorName || window.t('dashGroups.unknownPerson')))
+        + groupDetailRow(window.t('dashGroups.createdOn'),
+            g.created_at ? escapeHtml(new Date(g.created_at).toLocaleDateString(window.appLocale(), { year: 'numeric', month: 'long', day: 'numeric' })) : '')
+        + groupDetailRow(window.t('dashGroups.visibilityLabel'), escapeHtml(g.visibility || '—'))
+        + groupDetailRow(window.t('dashGroups.joinMethodLabel'), escapeHtml(g.join_method || '—'))
+        + groupDetailRow(window.t('dashGroups.contactInfoVisible'),
+            tag(g.leader_can_view_contact_info, g.leader_can_view_contact_info ? window.t('common.on') : window.t('common.off')))
+        + groupDetailRow(window.t('dashGroups.memberListShown'),
+            tag(g.show_member_list, g.show_member_list ? window.t('common.on') : window.t('common.off')));
+    }
+
+    // Painted once with what is already known, so the card opens
+    // immediately rather than after a round trip, then repainted if the
+    // two names arrive. Same reasoning as the rest of this file: show
+    // what you have, correct it when you know more.
+    paint(null, null);
+    modal.classList.add('open');
+
+    var creatorName = null, ministryName = null;
+    try {
+      if (g.created_by) {
+        var { data: prof } = await supabase.from('profiles').select('full_name').eq('id', g.created_by).limit(1);
+        if (prof && prof.length) creatorName = prof[0].full_name;
+      }
+      if (g.ministry_id) {
+        var { data: min } = await supabase.from('ministries').select('name').eq('id', g.ministry_id).limit(1);
+        if (min && min.length) ministryName = min[0].name;
+      }
+    } catch (e) {
+      // A name that will not load is not worth failing the card over --
+      // everything else in it is already on screen.
+      console.warn('Group detail lookups unavailable:', e);
+    }
+    paint(creatorName, ministryName);
+  };
+
+  // Delegated, because rows are rebuilt on every load.
+  document.addEventListener('click', function(ev){
+    var hit = ev.target.closest && ev.target.closest('[data-group-detail]');
+    if (!hit) return;
+    ev.preventDefault();
+    window.openGroupDetail(hit.getAttribute('data-group-detail'));
+  });
+
   window.loadDashboardGroups = loadDashboardGroups;
   dashPanel(loadDashboardGroups);
 
