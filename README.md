@@ -18,7 +18,8 @@ Visual concept / prototype for FaithDock — a single-file frontend deployed as 
   referrer-restricted and will refuse). One billable call per church, so
   start any batch with `--limit 5`, and use `--dry-run` to exercise it
   for free. Results are cached as they land, so an interrupted run
-  resumes without paying twice.
+  resumes without paying twice. `--cached-only` re-scores what is
+  already cached and buys nothing, for when the matching rules change.
 
 ## Deploying
 All of the above must be deployed together, at the same root level — `index.html` loads `pure-logic.js` via a relative `<script src="pure-logic.js">` tag, and the manifest, service worker and icons are referenced from the root (`/sw.js`, `/manifest.webmanifest`, `/icons/...`). On Cloudflare Pages, connecting this repo directly (rather than manual zip uploads) avoids them ever drifting out of sync on the live site.

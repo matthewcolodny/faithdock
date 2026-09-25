@@ -74,6 +74,11 @@ function arg(n, d) { const i = args.indexOf('--' + n); return i !== -1 && args[i
 const FILE = arg('file', '');
 const LIMIT = parseInt(arg('limit', '0'), 10) || 0;
 const DRY = has('dry-run');
+// Re-score what is already cached and buy nothing. The rules for
+// deciding a match changed once already after seeing real results, and
+// re-running a batch to apply a new rule should not cost what the
+// lookups cost.
+const CACHED_ONLY = has('cached-only');
 const KEY = process.env.GOOGLE_PLACES_KEY || '';
 const PAUSE_MS = parseInt(arg('pause', '120'), 10);
 
@@ -82,7 +87,7 @@ if (!FILE) {
   process.exit(1);
 }
 if (!fs.existsSync(FILE)) { console.error('No such file: ' + FILE); process.exit(1); }
-if (!KEY && !DRY) {
+if (!KEY && !DRY && !CACHED_ONLY) {
   console.error('GOOGLE_PLACES_KEY is not set.\n' +
     '  PowerShell:  $env:GOOGLE_PLACES_KEY="..."\n' +
     '  bash:        export GOOGLE_PLACES_KEY=...\n' +
@@ -191,11 +196,52 @@ async function lookup(row) {
   const label = (p.displayName && p.displayName.text) || row.name;
   return {
     matched: 'yes',
+    formatted: p.formattedAddress || '',
     detail: label + ' — ' + (p.formattedAddress || ''),
     phone: p.nationalPhoneNumber || '',
     website: p.websiteUri || '',
     types: (p.types || []).join('; ')
   };
+}
+
+// DOES THE PLACE GOOGLE RETURNED SIT AT THE ADDRESS WE ASKED ABOUT?
+//
+// Text Search always answers. It has no concept of "nothing here" -- it
+// returns its best guess and a confident-looking name, so treating any
+// response as a match is treating "Google replied" as "we found the
+// church". Measured on the first five real lookups: 5 of 5 came back
+// "found", and only 2 were right. "Big Bend Tabernacle, HC 65 Box 151"
+// came back as Big Bend Telephone Company, with the phone company's
+// number and website; "Christian Catholic Church, 1710 Banker Rd" came
+// back as Immaculate Heart of Mary Mission on a different street.
+// Importing that would have put a telephone company's number on a
+// church. San Antonio's 53% match rate was the honest number; 100% was
+// the tell.
+//
+// The check costs nothing extra -- no second call, just comparing the
+// address Google echoed against the one we sent.
+//
+// THE STREET NUMBER IS REQUIRED. City alone is not enough: Immaculate
+// Heart of Mary is in the right city and the right ZIP and is still the
+// wrong building. A matching number plus either the city or the ZIP is
+// the weakest test that rejects all three bad rows and keeps both good
+// ones.
+function verifyAddress(asked, got) {
+  if (!got) return 'no';
+  const street = (asked.split(',')[0] || '').trim();
+  const numMatch = street.match(/^(\d+)/);
+  // Rural routes and highway contracts -- "HC 65 BOX 151", "RR 2 BOX 40"
+  // -- have no street number to check, so nothing here can be confirmed
+  // either way. Said out loud rather than guessed at.
+  if (!numMatch) return 'unverifiable';
+  const num = numMatch[1];
+  if (!new RegExp('(^|[^0-9])' + num + '([^0-9]|$)').test(got)) return 'no';
+  const city = (asked.split(',')[1] || '').trim().toLowerCase();
+  const zip = (asked.match(/\b(\d{5})(?:-\d{4})?\s*$/) || [])[1];
+  const g = got.toLowerCase();
+  if (city && g.indexOf(city) !== -1) return 'yes';
+  if (zip && g.indexOf(zip) !== -1) return 'yes';
+  return 'no';
 }
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -222,7 +268,7 @@ const WORSHIP = /\b(church|place_of_worship|synagogue|mosque|hindu_temple)\b/;
 
 (async function main() {
   const base = FILE.replace(/\.csv$/i, '') + (DRY ? '.dryrun' : '');
-  const enriched = [], yes = [], no = [], mismatch = [];
+  const enriched = [], yes = [], no = [], check = [], mismatch = [];
   let calls = 0, cached = 0, unknown = 0, done = 0;
 
   for (const row of rows) {
@@ -230,6 +276,7 @@ const WORSHIP = /\b(church|place_of_worship|synagogue|mosque|hindu_temple)\b/;
     let r = cache.get(k);
     if (r) cached++;
     else {
+      if (CACHED_ONLY) continue;
       if (LIMIT && calls >= LIMIT) break;
       r = await lookupWithRetry(row);
       calls++;
@@ -240,12 +287,26 @@ const WORSHIP = /\b(church|place_of_worship|synagogue|mosque|hindu_temple)\b/;
     done++;
     if (done % 100 === 0) process.stdout.write('  ' + done + '/' + rows.length + ' (' + calls + ' calls)\r');
 
-    enriched.push([row.name, row.denomination, row.address, r.phone, r.website, r.matched, r.detail, r.types]);
-    if (r.matched === 'yes') {
+    // Cache entries written before the address check existed have no
+    // formatted field; the detail line is "Name — Address", so the
+    // address is recoverable rather than needing to be bought again.
+    const got = r.formatted || (r.detail || '').split('—').slice(1).join('—').trim();
+    const agrees = r.matched === 'yes' ? verifyAddress(row.address, got) : 'no';
+    const verdict = r.matched === 'yes' ? agrees : r.matched;
+
+    enriched.push([row.name, row.denomination, row.address, r.phone, r.website, verdict, r.detail, r.types]);
+
+    if (verdict === 'yes') {
       yes.push([row.name, row.denomination, row.address, r.phone, r.website]);
       if (!WORSHIP.test(r.types || '')) {
-        mismatch.push([row.name, row.denomination, row.address, r.phone, r.website, r.matched, r.detail, r.types]);
+        mismatch.push([row.name, row.denomination, row.address, r.phone, r.website, verdict, r.detail, r.types]);
       }
+    } else if (r.matched === 'yes') {
+      // Google answered, but not about this address. Never silently
+      // dropped and never silently imported -- the name is often right
+      // and the building wrong, which is the one case a human has to
+      // look at.
+      check.push([row.name, row.denomination, row.address, r.phone, r.website, agrees, r.detail, r.types]);
     } else if (r.matched === 'no') {
       no.push([row.name, row.denomination, row.address]);
     }
@@ -257,6 +318,7 @@ const WORSHIP = /\b(church|place_of_worship|synagogue|mosque|hindu_temple)\b/;
   write('.enriched.csv', 'name,denomination,address,phone,website,matched,match_detail,place_types', enriched);
   write('.yes.csv', 'name,denomination,address,phone,website', yes);
   write('.no.csv', 'name,denomination,address', no);
+  write('.check.csv', 'name,denomination,address,phone,website,why,match_detail,place_types', check);
   write('.type-mismatch.csv', 'name,denomination,address,phone,website,matched,match_detail,place_types', mismatch);
 
   const pct = n => (enriched.length ? Math.round((n / enriched.length) * 100) : 0) + '%';
@@ -267,8 +329,9 @@ const WORSHIP = /\b(church|place_of_worship|synagogue|mosque|hindu_temple)\b/;
   console.log('  from cache      ' + cached.toLocaleString());
   if (unknown) console.log('  lookup failed   ' + unknown.toLocaleString() + '   not cached -- re-run to retry these');
   console.log('');
-  console.log('  found           ' + yes.length.toLocaleString() + '  ' + pct(yes.length) + '  -> ' + path.basename(base) + '.yes.csv  (import this)');
-  console.log('  not found       ' + no.length.toLocaleString() + '  ' + pct(no.length) + '  -> ' + path.basename(base) + '.no.csv');
+  console.log('  confirmed       ' + yes.length.toLocaleString() + '  ' + pct(yes.length) + '  -> ' + path.basename(base) + '.yes.csv  (import this)');
+  console.log('  wrong address   ' + check.length.toLocaleString() + '  ' + pct(check.length) + '  -> ' + path.basename(base) + '.check.csv  (read these)');
+  console.log('  nothing found   ' + no.length.toLocaleString() + '  ' + pct(no.length) + '  -> ' + path.basename(base) + '.no.csv');
   console.log('  found, but not a place of worship by type: ' + mismatch.length.toLocaleString() + '  -> ' + path.basename(base) + '.type-mismatch.csv');
   const withPhone = enriched.filter(r => r[3]).length, withSite = enriched.filter(r => r[4]).length;
   console.log('  phone           ' + withPhone.toLocaleString() + '  ' + pct(withPhone));
