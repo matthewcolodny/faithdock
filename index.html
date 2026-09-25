@@ -1602,6 +1602,10 @@
       'admin.coverageGeocoding': 'Locating towns: {done} of {total} ({plotted} placed, {rows} rows covered)...',
       'admin.coverageDone': '{towns} towns, {rows} rows. {fresh} are somewhere we hold nothing yet.',
       'admin.coverageNoAddress': 'That CSV has no address column, so there is nothing to place.',
+      'admin.needsMigration099': "This list needs migration 099 -- run supabase/migrations/099_admin_churches_import_columns.sql in the SQL Editor, then reload.",
+      'admin.sortNewest': 'Newest first', 'admin.sortName': 'Name', 'admin.sortOldest': 'Oldest first',
+      'admin.allImports': 'All imports', 'admin.addedIndividually': 'Added individually',
+      'admin.importedOn': 'Imported {date}', 'admin.addedOn': 'Added {date}',
       'admin.pendingVerifications': 'Pending church verifications', 'admin.allChurches': 'All churches', 'admin.importChurches': 'Import churches',
       'admin.searchByName': 'Search by name...', 'admin.allStatuses': 'All statuses', 'admin.verified': 'Verified', 'admin.pending': 'Pending', 'admin.rejected': 'Rejected', 'admin.unclaimed': 'Unclaimed',
       'admin.pendingClaims': 'Pending church claims', 'admin.searchByChurchNameEmail': 'Search by church, name, or email...',
@@ -2839,6 +2843,10 @@
       'admin.coverageGeocoding': 'Ubicando localidades: {done} de {total} ({plotted} ubicadas, {rows} filas cubiertas)...',
       'admin.coverageDone': '{towns} localidades, {rows} filas. {fresh} están donde aún no tenemos nada.',
       'admin.coverageNoAddress': 'Ese CSV no tiene columna de dirección, así que no hay nada que ubicar.',
+      'admin.needsMigration099': 'Esta lista necesita la migración 099 -- ejecuta supabase/migrations/099_admin_churches_import_columns.sql en el Editor SQL y recarga.',
+      'admin.sortNewest': 'Más recientes primero', 'admin.sortName': 'Nombre', 'admin.sortOldest': 'Más antiguas primero',
+      'admin.allImports': 'Todas las importaciones', 'admin.addedIndividually': 'Añadidas individualmente',
+      'admin.importedOn': 'Importada el {date}', 'admin.addedOn': 'Añadida el {date}',
       'admin.pendingVerifications': 'Verificaciones de iglesias pendientes', 'admin.allChurches': 'Todas las iglesias', 'admin.importChurches': 'Importar iglesias',
       'admin.searchByName': 'Buscar por nombre...', 'admin.allStatuses': 'Todos los estados', 'admin.verified': 'Verificada', 'admin.pending': 'Pendiente', 'admin.rejected': 'Rechazada', 'admin.unclaimed': 'Sin reclamar',
       'admin.pendingClaims': 'Reclamos de iglesias pendientes', 'admin.searchByChurchNameEmail': 'Buscar por iglesia, nombre o correo...',
@@ -7438,6 +7446,18 @@ Groups</span>
         <option value="pending" data-i18n="admin.pending">Pending</option>
         <option value="rejected" data-i18n="admin.rejected">Rejected</option>
         <option value="unclaimed" data-i18n="admin.unclaimed">Unclaimed</option>
+        <option value="hidden" data-i18n="admin.hiddenTag">Hidden</option>
+      </select>
+      <select class="field" id="admin-churches-sort" style="max-width:170px;">
+        <option value="newest" data-i18n="admin.sortNewest">Newest first</option>
+        <option value="name" data-i18n="admin.sortName">Name</option>
+        <option value="oldest" data-i18n="admin.sortOldest">Oldest first</option>
+      </select>
+      <!-- Filled from admin_list_import_batches, so the list of imports
+           here and the Import batches section below can never disagree
+           about what exists. -->
+      <select class="field" id="admin-churches-batch-filter" style="max-width:240px;">
+        <option value="" data-i18n="admin.allImports">All imports</option>
       </select>
     </div>
     <div id="admin-churches-count" style="font-size:12.5px;color:var(--ink-mute);margin-bottom:8px;"></div>
@@ -11002,7 +11022,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-25-v295 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-25-v296 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -37898,6 +37918,7 @@ Groups</span>
     loadAdminWaitlistList();
     loadAdminChurchesList();
     loadAdminImportBatchesList();
+    fillAdminBatchFilter();
     loadAdminCoverageMap();
     loadAdminClaimsList();
     loadAdminClaimsHistoryList();
@@ -38490,6 +38511,39 @@ Groups</span>
   }
   window.loadAdminImportBatchesList = loadAdminImportBatchesList;
 
+  // "Imported 25 Sep 2026 · 782-san-antonio.yes.csv". The batch id is a
+  // timestamp joined to the filename; only the filename half means
+  // anything to a person, and the timestamp is already being shown as a
+  // formatted date beside it.
+  function adminChurchOrigin(c){
+    if (!c.created_at) return '';
+    var when = new Date(c.created_at).toLocaleDateString(window.appLocale(),
+      { day: 'numeric', month: 'short', year: 'numeric' });
+    var file = c.import_source_filename ||
+      (c.import_batch_id ? c.import_batch_id.split('_').slice(1).join('_') : '');
+    var line = window.t(c.import_batch_id ? 'admin.importedOn' : 'admin.addedOn').replace('{date}', when);
+    if (file) line += ' · ' + file;
+    return '<div class="registrant-date" style="font-size:11.5px;color:var(--ink-mute);">' + escapeHtml(line) + '</div>';
+  }
+
+  // Populated once, from the same RPC the Import batches section uses,
+  // so the two cannot list different imports.
+  async function fillAdminBatchFilter(){
+    var sel = document.getElementById('admin-churches-batch-filter');
+    if (!sel || sel.dataset.filled) return;
+    var { data, error } = await supabase.rpc('admin_list_import_batches');
+    if (error || !data) return;
+    sel.dataset.filled = '1';
+    data.forEach(function(b){
+      var opt = document.createElement('option');
+      opt.value = b.import_batch_id;
+      var when = new Date(b.batch_date).toLocaleDateString(window.appLocale(), { day: 'numeric', month: 'short' });
+      opt.textContent = (b.source_filename || b.import_batch_id) + '  (' + b.row_count + ', ' + when + ')';
+      sel.appendChild(opt);
+    });
+  }
+  window.fillAdminBatchFilter = fillAdminBatchFilter;
+
   async function loadAdminChurchesList(append){
     var listEl = document.getElementById('admin-all-churches-list');
     var countEl = document.getElementById('admin-churches-count');
@@ -38499,33 +38553,40 @@ Groups</span>
 
     var keyword = document.getElementById('admin-churches-search').value.trim();
     var status = document.getElementById('admin-churches-status-filter').value;
+    var sortEl = document.getElementById('admin-churches-sort');
+    var batchEl = document.getElementById('admin-churches-batch-filter');
 
     var { data, error } = await supabase.rpc('search_all_churches_admin', {
       p_keyword: keyword || null, p_status: status || null,
-      p_limit: ADMIN_LIST_PAGE_SIZE, p_offset: adminChurchesOffset
+      p_limit: ADMIN_LIST_PAGE_SIZE, p_offset: adminChurchesOffset,
+      p_sort: (sortEl && sortEl.value) || 'newest',
+      p_batch: (batchEl && batchEl.value) || null
     });
 
-    if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:14px;padding:12px;">' + escapeHtml(error.message) + '</p>'; loadMoreBtn.style.display = 'none'; return; }
+    if (error) {
+      // The two new arguments do not exist until 099 runs, and
+      // PostgREST's own wording for that is a schema-cache miss that
+      // reads like a bug rather than a pending migration.
+      var needs099 = /p_sort|p_batch|schema cache|does not exist/i.test(error.message || '');
+      listEl.innerHTML = '<p style="color:var(--clay);font-size:14px;padding:12px;">' +
+        escapeHtml(needs099 ? window.t('admin.needsMigration099') : error.message) + '</p>';
+      loadMoreBtn.style.display = 'none';
+      return;
+    }
 
     var rows = data || [];
     var totalCount = rows.length ? rows[0].total_count : 0;
 
-    // search_all_churches_admin doesn't carry is_hidden -- pull it for
-    // this page of rows so each can show its visibility state and the
-    // right Hide/Show label. (is_hidden is column-granted to
-    // authenticated by migration 018; churches SELECT is public.)
-    var hiddenById = {};
-    if (rows.length) {
-      var { data: hiddenRows } = await supabase.from('churches').select('id, is_hidden').in('id', rows.map(function(c){ return c.id; }));
-      (hiddenRows || []).forEach(function(h){ hiddenById[h.id] = !!h.is_hidden; });
-    }
+    // is_hidden now arrives with the row. It used to need a SECOND
+    // query against churches for every page, purely because the RPC did
+    // not carry it -- migration 099 folds it in.
 
     var html = rows.map(function(c){
       var st = c.verification_status || 'unverified';
       var statusLabel = st === 'verified' ? window.t('admin.verified') : st === 'pending' ? window.t('admin.pending') : st === 'rejected' ? window.t('admin.rejected') : window.t('admin.notVerified');
       var statusColor = st === 'verified' ? 'var(--gold)' : st === 'pending' ? 'var(--ink-mute)' : 'var(--clay)';
       var unclaimedTag = !c.owner_id ? ' · <span style="color:var(--clay);font-weight:600;">' + window.t('admin.unclaimed') + '</span>' : '';
-      var isHidden = !!hiddenById[c.id];
+      var isHidden = !!c.is_hidden;
       var hiddenTag = isHidden ? ' · <span style="color:var(--ink-mute);font-weight:600;">' + window.t('admin.hiddenTag') + '</span>' : '';
       // Actions in a fixed-order right-anchored group so Hide/Show
       // sits in the same spot on every row regardless of which other
@@ -38543,6 +38604,7 @@ Groups</span>
         + '<div class="registrant-name"><a href="#admin-church/' + c.id + '" data-route="admin-church" data-admin-church-id="' + c.id + '" style="color:inherit;border-bottom:1px solid var(--line);">' + escapeHtml(displayChurchName(c.name)) + '</a></div>'
         + '<div class="registrant-date">' + (c.denomination || '—') + ' · <span style="color:' + statusColor + ';font-weight:600;">' + statusLabel + '</span>' + unclaimedTag + hiddenTag + '</div>'
         + (c.address ? '<div class="registrant-date" style="font-size:11.5px;">' + titleCaseAddress(c.address) + '</div>' : '')
+        + adminChurchOrigin(c)
         + '</div>'
         + actions
         + '</div>';
@@ -38781,6 +38843,13 @@ Groups</span>
   if (adminChurchesSearchEl) adminChurchesSearchEl.addEventListener('input', debounce(function(){ loadAdminChurchesList(false); }, 350));
   var adminChurchesStatusEl = document.getElementById('admin-churches-status-filter');
   if (adminChurchesStatusEl) adminChurchesStatusEl.addEventListener('change', function(){ loadAdminChurchesList(false); });
+  // Both reload from offset 0, not append -- a sort or a batch filter
+  // changes which rows come first, so keeping the already-loaded page
+  // on screen and adding to it would interleave two different queries.
+  ['admin-churches-sort', 'admin-churches-batch-filter'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.addEventListener('change', function(){ loadAdminChurchesList(false); });
+  });
   var adminChurchesLoadMoreEl = document.getElementById('admin-churches-load-more-btn');
   if (adminChurchesLoadMoreEl) adminChurchesLoadMoreEl.addEventListener('click', function(){ loadAdminChurchesList(true); });
 

@@ -17,9 +17,36 @@ The distinction between the three files:
 When one is finished, move it to "Done" at the bottom with the date.
 The state it ended in is worth more later than the fact it was on a list.
 
-No migrations are pending as of 2026-09-25. 091 through 096 and 098
-have all been run and verified and are under Done below; 097 is run
-and deliberately inert.
+**One migration is pending as of 2026-09-25: 099.** 091-096 and 098
+are run and verified and are under Done below; 097 is run and
+deliberately inert.
+
+## Migration 099 -- the church list cannot show what was just imported
+
+**State today (2026-09-25):**
+`supabase/migrations/099_admin_churches_import_columns.sql` is written
+and committed. It has **not** been run. Until it does, the All churches
+list says "needs migration 099" and names the file rather than showing
+PostgREST's schema-cache wording. Verified in a local preview.
+
+**Why it matters:** 22 rows were imported into 1,309 and there was no
+way to find them again. The list returned no dates and no batch, sorted
+by name, so a fresh import scattered alphabetically through the whole
+table.
+
+**What it involves:** paste the file into the SQL Editor and run it. It
+replaces `search_all_churches_admin` -- adding `created_at`,
+`import_batch_id`, `import_source_filename` and `is_hidden` to the
+result, and `p_sort` / `p_batch` arguments. It DROPS the old
+four-argument signature first, deliberately: CREATE OR REPLACE cannot
+change an argument list, so without the drop there would be two
+overloads live and PostgREST would pick one at random. Migration 020
+hit exactly that with `admin_import_churches`.
+
+Read the assertion block at the bottom: it fails if more than one
+`search_all_churches_admin` exists afterwards, which is the specific
+thing that goes wrong here. Like 098, it cannot call the function --
+admin RPCs are unreachable from the SQL Editor.
 
 ## The Maps API key rejects localhost, so the map cannot be tested locally
 
