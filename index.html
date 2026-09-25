@@ -964,6 +964,9 @@
       'dashEvents.audienceLabel': 'Audience', 'dashEvents.membersOnlyLabel': 'Members only',
       'dashEvents.publicLabel': 'Public', 'dashEvents.noSignupLabel': 'No signup',
       'dashEvents.contactsLabel': 'Event contacts',
+      'dashMinistries.detailTitle': 'Ministry', 'dashMinistries.addTitle': 'Add a ministry',
+      'dashMinistries.upcomingEvents': 'Upcoming events',
+      'dashMinistries.noUpcoming': 'No upcoming events for this ministry.',
       'dashEvents.shareFacebook': 'Share to Facebook', 'dashEvents.shareMore': 'Share to Instagram, WhatsApp…',
       'dashEvents.linkCopied': 'Link copied',
       'dashEvents.detailTitle': 'Event details', 'dashEvents.viewDetails': 'View details',
@@ -2165,6 +2168,9 @@
       'dashEvents.audienceLabel': 'Público', 'dashEvents.membersOnlyLabel': 'Solo miembros',
       'dashEvents.publicLabel': 'Público', 'dashEvents.noSignupLabel': 'Sin inscripción',
       'dashEvents.contactsLabel': 'Contactos del evento',
+      'dashMinistries.detailTitle': 'Ministerio', 'dashMinistries.addTitle': 'Agregar un ministerio',
+      'dashMinistries.upcomingEvents': 'Próximos eventos',
+      'dashMinistries.noUpcoming': 'No hay próximos eventos para este ministerio.',
       'dashEvents.shareFacebook': 'Compartir en Facebook', 'dashEvents.shareMore': 'Compartir en Instagram, WhatsApp…',
       'dashEvents.linkCopied': 'Enlace copiado',
       'dashEvents.detailTitle': 'Detalles del evento', 'dashEvents.viewDetails': 'Ver detalles',
@@ -3722,7 +3728,15 @@
     display:flex;align-items:center;justify-content:space-between;
     height:72px;
   }
-  .brand{display:flex;align-items:center;gap:12px;}
+  /* -webkit-tap-highlight-color: without it Android paints a grey box
+     over the whole link on every tap -- and this link is the logo plus
+     the wordmark, so the flash is the width of both. Reported as the
+     logo "flashing the box". The same fix the card and heart buttons
+     already carry; the header was missed.
+     Focus is untouched: a keyboard user still gets the outline, since
+     that is a different state and the only way of seeing where you
+     are. */
+  .brand{display:flex;align-items:center;gap:12px;-webkit-tap-highlight-color:transparent;}
   .brand-mark{width:36px;height:36px;background:transparent;
     display:flex;align-items:center;justify-content:center;flex-shrink:0;}
   .brand-mark svg{width:106%;height:106%;}
@@ -9508,6 +9522,21 @@ Groups</span>
            directory's profile pictures alike. Both were rendered small
            enough to be unreadable -- a 32px avatar and a 44px event
            thumb -- with the full image already on the server. -->
+      <!-- Ministry detail. Replaces an expand-in-place that pushed the
+           rest of the list down; a card is also where the upcoming
+           events belong, since they are the reason to open one. -->
+      <div class="modal-overlay" id="ministry-detail-modal">
+        <div class="modal-card" style="max-width:520px;max-height:85vh;overflow-y:auto;">
+          <button class="modal-close" onclick="document.getElementById('ministry-detail-modal').classList.remove('open')" aria-label="Close" data-i18n-title="common.close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
+          <div class="eyebrow" data-i18n="dashMinistries.detailTitle">Ministry</div>
+          <h3 id="ministry-detail-name" style="font-family:'Fraunces';font-size:20px;margin:6px 0 6px;"></h3>
+          <p id="ministry-detail-desc" style="color:var(--ink-mute);font-size:13.5px;line-height:1.55;margin-bottom:14px;"></p>
+          <div id="ministry-detail-body"></div>
+        </div>
+      </div>
+
       <div class="modal-overlay" id="image-lightbox" style="cursor:zoom-out;">
         <div class="modal-card" style="max-width:min(92vw,720px);padding:10px;background:transparent;border:none;box-shadow:none;">
           <img id="image-lightbox-img" alt="" style="display:block;width:100%;height:auto;max-height:82vh;object-fit:contain;border-radius:12px;">
@@ -10175,8 +10204,15 @@ Groups</span>
 
               <h4 data-i18n="dashSettings.ministries">Ministries</h4>
               <p style="font-size:13.5px;color:var(--ink-mute);margin-bottom:14px;" data-i18n="dashSettings.ministriesHint">The programs your church runs — a food pantry, a youth group, a recovery meeting. These show up on your public profile and can be attached to events.</p>
-              <div id="ministries-list" style="margin-bottom:12px;"><p style="color:var(--ink-mute);font-size:13px;" data-i18n="common.loading">Loading...</p></div>
-              <div style="display:flex;flex-direction:column;gap:8px;">
+              <div id="ministries-list"><p style="color:var(--ink-mute);font-size:13px;" data-i18n="common.loading">Loading...</p></div>
+            </div>
+            <!-- Its own box. Reading the list and adding to it are two
+                 different jobs, and sharing one card meant the form sat
+                 under however many ministries there were -- on a church
+                 with a dozen, out of sight entirely. -->
+            <div class="side-note">
+              <h4 data-i18n="dashMinistries.addTitle">Add a ministry</h4>
+              <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px;">
                 <input class="field" type="text" id="ministry-add-name" placeholder="e.g. Food Pantry" data-i18n-placeholder="dashSettings.ministryNamePlaceholder" style="font-size:13px;padding:9px 10px;">
                 <textarea class="field" id="ministry-add-desc" placeholder="What it is, in a sentence (shown publicly)" data-i18n-placeholder="dashSettings.ministryDescPlaceholder" style="font-size:13px;padding:9px 10px;min-height:52px;resize:vertical;"></textarea>
                 <button class="export-btn" id="ministry-add-btn" style="align-self:flex-start;" data-i18n="dashSettings.add">Add</button>
@@ -10559,7 +10595,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-25-v283 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-25-v284 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -26640,7 +26676,6 @@ Groups</span>
   // ============================================================
   // Which ministry row is open, and which is being edited. Only one
   // of each: two open edit boxes is two half-finished changes.
-  var ministryExpanded = {};
   var ministryEditingId = null;
   // What is attached to each ministry, keyed by ministry id. Filled
   // by the three bulk queries in loadMinistriesPanel, not per row.
@@ -26753,7 +26788,6 @@ Groups</span>
   // like this is wrong on a narrow screen.
   function ministryRowHtml(m){
     var att = ministryAttribution[m.id] || { events: [], groups: [], rooms: [] };
-    var open = !!ministryExpanded[m.id];
 
     if (m.id === ministryEditingId) {
       return '<div class="info-row" style="display:block;">'
@@ -26779,7 +26813,7 @@ Groups</span>
 
     var html = '<div class="info-row" style="display:block;">'
       + '<div class="room-row-main">'
-        + '<span class="room-row-name" data-ministry-toggle="' + escAttr(m.id) + '">'
+        + '<span class="room-row-name" style="cursor:pointer;" data-ministry-detail="' + escAttr(m.id) + '">'
           + '<strong>' + escapeHtml(m.name) + '</strong>'
           + ' <span class="room-row-meta">' + escapeHtml(counts) + '</span>'
         + '</span>'
@@ -26791,21 +26825,8 @@ Groups</span>
     if (m.description) {
       html += '<div style="font-size:12.5px;color:var(--ink-mute);margin-top:2px;">' + escapeHtml(m.description) + '</div>';
     }
-    if (open) {
-      var body = ministrySectionHtml(window.t('dash.events'), att.events.map(function(e){
-            return { label: e.title, meta: new Date(e.start_at).toLocaleDateString(window.appLocale(), { year: 'numeric', month: 'short', day: 'numeric' }) };
-          }))
-        + (window.ministryGroupsAvailable === false ? '' : ministrySectionHtml(window.t('dash.groups'), att.groups.map(function(g){ return { label: g.name }; })))
-        + ministrySectionHtml(window.t('dashMinistries.rooms'), att.rooms.map(function(r){
-            // How many of THIS ministry's events book this room --
-            // not how many are upcoming. dashFacility.nUpcoming was
-            // the nearest existing string and it says the wrong
-            // thing here: a room this ministry used twice last
-            // spring would have read '2 upcoming'.
-            return { label: r.name, meta: r.n === 1 ? window.t('dashMinistries.oneEvent') : window.t('dashMinistries.nEvents').replace('{n}', r.n) };
-          }));
-      html += body || '<div style="font-size:12.5px;color:var(--ink-mute);margin-top:10px;">' + window.t('dashMinistries.nothingAttached') + '</div>';
-    }
+    // The attributed events, groups and rooms used to expand inline
+    // here. They live in the detail card now -- see openMinistryDetail.
     return html + '</div>';
   }
 
@@ -26848,6 +26869,53 @@ Groups</span>
     await loadMinistryAttribution(myChurch.id, ministries.map(function(m){ return m.id; }));
     renderMinistriesList();
   }
+  // The card. Everything here is already loaded -- the ministries
+  // cache and the attribution loadMinistriesPanel fetched -- so opening
+  // one costs nothing.
+  //
+  // Events are filtered to UPCOMING. The expand-in-place this replaces
+  // listed every attributed event ever, which for a ministry running a
+  // weekly meeting is a wall of history above the two dates anybody
+  // opened it to find.
+  window.openMinistryDetail = function(ministryId){
+    var modal = document.getElementById('ministry-detail-modal');
+    var nameEl = document.getElementById('ministry-detail-name');
+    var descEl = document.getElementById('ministry-detail-desc');
+    var bodyEl = document.getElementById('ministry-detail-body');
+    if (!modal || !nameEl || !bodyEl) return;
+    var m = (window.churchMinistriesCache || []).filter(function(x){ return x.id === ministryId; })[0];
+    if (!m) return;
+    var att = (window.ministryAttribution || {})[ministryId] || { events: [], groups: [], rooms: [] };
+
+    nameEl.textContent = m.name;
+    descEl.textContent = m.description || '';
+    descEl.style.display = m.description ? '' : 'none';
+
+    var now = Date.now();
+    var upcoming = (att.events || [])
+      .filter(function(e){ return new Date(e.start_at).getTime() >= now; })
+      .sort(function(a, b){ return new Date(a.start_at) - new Date(b.start_at); });
+
+    var body = ministrySectionHtml(window.t('dashMinistries.upcomingEvents'), upcoming.map(function(e){
+          return { label: e.title, meta: new Date(e.start_at).toLocaleDateString(window.appLocale(), { year: 'numeric', month: 'short', day: 'numeric' }) };
+        }))
+      + (window.ministryGroupsAvailable === false ? '' : ministrySectionHtml(window.t('dash.groups'), (att.groups || []).map(function(g){ return { label: g.name }; })))
+      + ministrySectionHtml(window.t('dashMinistries.rooms'), (att.rooms || []).map(function(r){
+          return { label: r.name, meta: r.n === 1 ? window.t('dashMinistries.oneEvent') : window.t('dashMinistries.nEvents').replace('{n}', r.n) };
+        }));
+
+    // An empty body is two different facts: nothing attached at all, or
+    // things attached but none of them still ahead. Saying "no upcoming
+    // events" when a ministry has groups and rooms would be wrong.
+    if (!body) {
+      body = '<div style="font-size:12.5px;color:var(--ink-mute);">' + escapeHtml(window.t('dashMinistries.nothingAttached')) + '</div>';
+    } else if (!upcoming.length) {
+      body = '<div style="font-size:12.5px;color:var(--ink-mute);margin-bottom:10px;">' + escapeHtml(window.t('dashMinistries.noUpcoming')) + '</div>' + body;
+    }
+    bodyEl.innerHTML = body;
+    modal.classList.add('open');
+  };
+
   window.loadMinistriesPanel = loadMinistriesPanel;
 
   // ============================================================
@@ -29330,11 +29398,9 @@ Groups</span>
   document.addEventListener('click', async function(ev){
     if (!ev.target.closest) return;
 
-    var ministryToggle = ev.target.closest('[data-ministry-toggle]');
+    var ministryToggle = ev.target.closest('[data-ministry-detail]');
     if (ministryToggle) {
-      var toggleId = ministryToggle.getAttribute('data-ministry-toggle');
-      ministryExpanded[toggleId] = !ministryExpanded[toggleId];
-      renderMinistriesList();
+      window.openMinistryDetail(ministryToggle.getAttribute('data-ministry-detail'));
       return;
     }
 
