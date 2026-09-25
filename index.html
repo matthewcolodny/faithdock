@@ -1593,7 +1593,10 @@
       'admin.coverageAddedIndividually': 'Added individually',
       'admin.coverageNeedsMigration': "The coverage map needs migration 098 -- run supabase/migrations/098_admin_coverage_map.sql in the SQL Editor, then reload.",
       'admin.coverageMapsLoading': 'Waiting for Google Maps to load...',
+      'admin.coverageCountHidden': 'Count hidden churches',
       'admin.coverageSummary': '{n} churches on the map across {cells} areas.',
+      'admin.coverageHiddenNote': '{n} of them are hidden from the directory.',
+      'admin.coverageHiddenExcluded': 'Hidden churches are not counted ({n} left out).',
       'admin.coverageUnmapped': '{n} could not be placed (no coordinates).',
       'admin.coverageNoRows': 'No geocoded churches yet.',
       'admin.coverageGeocoding': 'Locating towns: {done} of {total} ({plotted} placed, {rows} rows covered)...',
@@ -2827,7 +2830,10 @@
       'admin.coverageAddedIndividually': 'Añadidas individualmente',
       'admin.coverageNeedsMigration': 'El mapa de cobertura necesita la migración 098 -- ejecuta supabase/migrations/098_admin_coverage_map.sql en el Editor SQL y recarga.',
       'admin.coverageMapsLoading': 'Esperando a que cargue Google Maps...',
+      'admin.coverageCountHidden': 'Contar iglesias ocultas',
       'admin.coverageSummary': '{n} iglesias en el mapa en {cells} zonas.',
+      'admin.coverageHiddenNote': '{n} de ellas están ocultas del directorio.',
+      'admin.coverageHiddenExcluded': 'Las iglesias ocultas no se cuentan ({n} excluidas).',
       'admin.coverageUnmapped': '{n} no se pudieron ubicar (sin coordenadas).',
       'admin.coverageNoRows': 'Aún no hay iglesias geocodificadas.',
       'admin.coverageGeocoding': 'Ubicando localidades: {done} de {total} ({plotted} ubicadas, {rows} filas cubiertas)...',
@@ -7444,6 +7450,7 @@ Groups</span>
     <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:12px;max-width:600px;" data-i18n="admin.coverageMapHint">Every geocoded church, grouped into cells and coloured by the import batch it came from. Zoom in for finer cells. Pick a CSV below to see where a new batch would land before importing it.</p>
     <div id="admin-coverage-status" style="display:none;font-size:12.5px;margin-bottom:8px;"></div>
     <div id="admin-coverage-map"></div>
+    <label class="filter-check" style="margin-top:10px;"><input type="checkbox" id="admin-coverage-count-hidden" checked> <span data-i18n="admin.coverageCountHidden">Count hidden churches</span></label>
     <div id="admin-coverage-legend" class="fd-cov-legend"></div>
 
     <label style="margin-top:18px;" data-i18n="admin.coveragePreview">Preview a CSV before importing</label>
@@ -10995,7 +11002,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-25-v293 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-25-v294 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -38057,6 +38064,11 @@ Groups</span>
     try { localStorage.setItem('fd_city_coords', JSON.stringify(fdCovCityCache)); } catch (e) {}
   }
 
+  function fdCovCountHidden(){
+    var el = document.getElementById('admin-coverage-count-hidden');
+    return !el || el.checked;
+  }
+
   function fdCovColour(batchId){
     if (!batchId) return '#8A8578';   // added individually, not by a batch
     var h = 0;
@@ -38102,20 +38114,30 @@ Groups</span>
     // One circle per cell, coloured by whichever batch contributed most
     // of it -- two batches rarely overlap inside one cell, and stacking
     // translucent circles to show a split made both unreadable.
+    // Hidden churches are 38% of this table today -- the non-Christian
+    // and zero-signal ministries that were filtered out after the San
+    // Antonio import. Counting them makes the map overstate what a
+    // visitor can actually find, which is the opposite of what a
+    // coverage map is for; not counting them hides work already done.
+    // Both readings are wanted, so it is a toggle rather than a choice
+    // made here.
+    var countHidden = fdCovCountHidden();
     var byCell = {};
     rows.forEach(function(r){
       if (fdCovBatchOff[r.import_batch_id || '']) return;
+      var shown = Number(r.n) - (countHidden ? 0 : Number(r.hidden));
+      if (shown <= 0) return;
       var key = r.cell_lat + ',' + r.cell_lng;
-      var cell = byCell[key] || (byCell[key] = { lat: r.cell_lat, lng: r.cell_lng, total: 0, top: null, topN: 0, claimed: 0 });
-      cell.total += Number(r.n);
-      cell.claimed += Number(r.claimed);
-      if (Number(r.n) > cell.topN) { cell.topN = Number(r.n); cell.top = r.import_batch_id || ''; }
+      var cell = byCell[key] || (byCell[key] = { lat: r.cell_lat, lng: r.cell_lng, total: 0, top: null, topN: 0, hidden: 0 });
+      cell.total += shown;
+      cell.hidden += Number(r.hidden);
+      if (shown > cell.topN) { cell.topN = shown; cell.top = r.import_batch_id || ''; }
     });
 
-    var total = 0, cells = 0;
+    var total = 0, cells = 0, hidden = 0;
     Object.keys(byCell).forEach(function(k){
       var c = byCell[k];
-      total += c.total; cells++;
+      total += c.total; cells++; hidden += c.hidden;
       var colour = fdCovColour(c.top);
       var circle = new google.maps.Circle({
         map: fdCovMap, center: { lat: c.lat, lng: c.lng },
@@ -38125,7 +38147,7 @@ Groups</span>
       });
       fdCovCircles.push(circle);
     });
-    return { total: total, cells: cells };
+    return { total: total, cells: cells, hidden: hidden };
   }
 
   async function fdCovLoadCells(){
@@ -38152,6 +38174,10 @@ Groups</span>
     var line = window.t('admin.coverageSummary')
       .replace('{n}', summary.total.toLocaleString())
       .replace('{cells}', summary.cells.toLocaleString());
+    if (summary.hidden > 0) {
+      line += ' ' + window.t(fdCovCountHidden() ? 'admin.coverageHiddenNote' : 'admin.coverageHiddenExcluded')
+        .replace('{n}', summary.hidden.toLocaleString());
+    }
     var un = await supabase.rpc('admin_coverage_unmapped_count');
     if (!un.error && Number(un.data) > 0) {
       line += ' ' + window.t('admin.coverageUnmapped').replace('{n}', Number(un.data).toLocaleString());
@@ -38162,10 +38188,13 @@ Groups</span>
   function fdCovRenderLegend(rows){
     var el = document.getElementById('admin-coverage-legend');
     if (!el) return;
+    // Same arithmetic as the circles, or the chip would claim a number
+    // the map is not drawing.
+    var countHidden = fdCovCountHidden();
     var byBatch = {};
     rows.forEach(function(r){
       var id = r.import_batch_id || '';
-      byBatch[id] = (byBatch[id] || 0) + Number(r.n);
+      byBatch[id] = (byBatch[id] || 0) + Number(r.n) - (countHidden ? 0 : Number(r.hidden));
     });
     var ids = Object.keys(byBatch).sort(function(a, b){ return byBatch[b] - byBatch[a]; });
     el.innerHTML = ids.map(function(id){
@@ -38192,6 +38221,27 @@ Groups</span>
     fdCovDrawCells(rows, fdCovPrecision);
     fdCovRenderLegend(rows);
   });
+
+  var fdCovHiddenToggle = document.getElementById('admin-coverage-count-hidden');
+  if (fdCovHiddenToggle) {
+    fdCovHiddenToggle.addEventListener('change', function(){
+      // No refetch. n and hidden both come back in the same row, so
+      // switching between them is arithmetic on data already held.
+      var el = document.getElementById('admin-coverage-legend');
+      var rows = (el && el._rows) || [];
+      if (!rows.length) return;
+      var summary = fdCovDrawCells(rows, fdCovPrecision);
+      fdCovRenderLegend(rows);
+      var line = window.t('admin.coverageSummary')
+        .replace('{n}', summary.total.toLocaleString())
+        .replace('{cells}', summary.cells.toLocaleString());
+      if (summary.hidden > 0) {
+        line += ' ' + window.t(fdCovCountHidden() ? 'admin.coverageHiddenNote' : 'admin.coverageHiddenExcluded')
+          .replace('{n}', summary.hidden.toLocaleString());
+      }
+      fdCovStatus(line);
+    });
+  }
 
   window.loadAdminCoverageMap = function(){
     var host = document.getElementById('admin-coverage-map');

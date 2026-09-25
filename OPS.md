@@ -17,46 +17,9 @@ The distinction between the three files:
 When one is finished, move it to "Done" at the bottom with the date.
 The state it ended in is worth more later than the fact it was on a list.
 
-**One migration is pending as of 2026-09-25: 098.** 091 through 096
-have been run and verified and are under Done below; 097 is run and
-deliberately inert.
-
-## Migration 098 — the coverage map has nothing to draw until it runs
-
-**State today (2026-09-25):** `supabase/migrations/098_admin_coverage_map.sql`
-is written and committed. It has **not** been run. The admin Coverage
-map section is live in the app and, until the migration runs, says so
-in as many words -- "needs migration 098 -- run
-supabase/migrations/098_admin_coverage_map.sql" -- rather than showing
-Postgres's own "function does not exist". Verified in a local preview.
-
-**Why it matters:** it is the thing that answers "which metros do we
-already hold" before the statewide Texas CSV goes in. Without it the
-map is an empty box.
-
-**First attempt failed, 2026-09-25, and the file has been corrected.**
-It ended with `select * from admin_church_coverage_cells(0)`, which
-raised "You do not have permission to view the coverage map." That was
-the gate working. `is_platform_admin()` reads
-`profiles.is_platform_admin where id = auth.uid()`, and the SQL Editor
-carries no JWT -- so `auth.uid()` is null and it returns false for
-everyone, always, whoever is logged into the dashboard. **No admin RPC
-in this database can be called from the SQL Editor.** They are meant to
-be called from the app, signed in. The editor also wraps the script in
-one transaction, so that error rolled back the functions created above
-it: nothing was left behind, and re-running the corrected file is the
-whole fix. The verify block now asserts the grants from `pg_proc` and
-runs the grouping directly against `churches`, neither of which needs
-an admin identity.
-
-**What it involves:** paste the file into the SQL Editor and run it. It
-creates two SECURITY DEFINER functions, `admin_church_coverage_cells`
-and `admin_coverage_unmapped_count`, both gated on
-`is_platform_admin()`. Read the two verify queries at the bottom --
-the first asserts anon cannot execute either, which matters because
-they read every church including hidden ones and bypass RLS by design.
-It has a preflight that aborts if `is_platform_admin`,
-`churches.import_batch_id` or `churches.is_hidden` is missing.
+No migrations are pending as of 2026-09-25. 091 through 096 and 098
+have all been run and verified and are under Done below; 097 is run
+and deliberately inert.
 
 ## The Maps API key rejects localhost, so the map cannot be tested locally
 
@@ -174,6 +137,45 @@ real connection as that role tests it.
 ---
 
 ## Done
+
+### Migration 098 run -- the coverage map has data -- 2026-09-25
+
+```
+unmapped,mappable,total
+0,1287,1287
+```
+
+Every church in the table is geocoded. Nothing is missing from the map.
+
+**1,287 in the table against 800 that `search_churches` returns to an
+anonymous visitor.** The difference is 487 hidden rows -- the
+non-Christian and zero-signal ministries filtered out after the San
+Antonio import. Worth knowing before reading the map: 38% of what it
+draws is not in the directory, so counting it overstates coverage. The
+map has a "Count hidden churches" toggle for exactly this, on by
+default, and the summary line names the number either way.
+
+**It took two runs.** The first ended with
+`select * from admin_church_coverage_cells(0)`, which raised "You do
+not have permission to view the coverage map." That was the gate
+working. `is_platform_admin()` reads
+`profiles.is_platform_admin where id = auth.uid()`, and the SQL Editor
+carries no JWT -- so it returns false for everyone, always, whoever is
+logged into the dashboard. **No admin RPC in this database can be
+called from the SQL Editor**; they are only reachable from the app,
+signed in. The editor also wraps the script in one transaction, so that
+error rolled back the functions created above it and nothing was left
+half-applied.
+
+The verify block now asserts from `pg_proc` -- both functions exist,
+are SECURITY DEFINER, executable by `authenticated` and not by `anon`
+-- and raises rather than printing a column nobody reads. The data
+check runs the function's own grouping directly against `churches`.
+
+Third time a verify step has been the thing that was wrong here: 092
+verified signed out against a membership policy, 094 printed a grant it
+had predicted incorrectly. **A check that cannot fail for the right
+reason is not a check.**
 
 ### Migration 097 -- CI-only role -- verified 2026-09-24, then reworked the same day
 
