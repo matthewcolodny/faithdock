@@ -17,9 +17,36 @@ The distinction between the three files:
 When one is finished, move it to "Done" at the bottom with the date.
 The state it ended in is worth more later than the fact it was on a list.
 
-**One migration is pending as of 2026-09-25: 099.** 091-096 and 098
-are run and verified and are under Done below; 097 is run and
-deliberately inert.
+**One migration is pending as of 2026-09-25: 100.** 091-096, 098 and
+099 are run and verified; 097 is run and deliberately inert.
+
+## Migration 100 -- churches that name their own tradition show none
+
+**State today (2026-09-25):**
+`supabase/migrations/100_fill_blank_denomination.sql` is written and
+committed. It has **not** been run.
+
+**Why it matters:** "San Antonio Assembly Hall of Jehovahs Witnesses"
+and "Triumphant Lutheran Church" both display no denomination.
+`denomination_tags` (derived by a trigger, drives filtering) and
+`denomination` (the text a person reads) are different columns, and
+only the first was ever filled automatically. Every bulk import leaves
+the second blank, so 1,285 of 1,309 rows carry whatever the CSV
+happened to have -- which for these was nothing.
+
+**What it involves:** paste the file into the SQL Editor and run it. It
+extends the existing `churches_set_denomination_tags` trigger by one
+line -- fill `denomination` from the tags it has just computed, but
+only when it is blank -- and backfills existing rows the same way. It
+deliberately does not add a second keyword list anywhere; the answer
+comes from `compute_denomination_tags()`, which stays the only place
+that decides what a name means. A denomination somebody typed is never
+overwritten.
+
+Read the assertion: it fails if any row still has tags and a blank
+denomination. Then read the last query, a count by denomination -- a
+label that looks wrong there is a pattern to fix in
+`compute_denomination_tags`, not a row to edit by hand.
 
 ## Migration 099 -- the church list cannot show what was just imported
 

@@ -43,12 +43,23 @@
 // ---------------------------------------------------------------------
 // WHAT IS DELIBERATELY NOT DONE HERE
 //
-// denomination is left BLANK. The database already derives tags from
-// the name -- compute_denomination_tags(), migrations 023/026/027, with
-// word-boundary patterns for messianic, LDS, apostolic, methodist,
-// baptist and the rest. Re-implementing that keyword list in Node would
-// create a second source of truth that drifts from the first. San
-// Antonio's CSV left it blank for the same reason.
+// denomination is left BLANK, and the database fills it. The mapping
+// from a name to a tradition lives in compute_denomination_tags()
+// (migrations 023/026/027), twenty-odd word-boundary patterns covering
+// messianic, LDS, apostolic, methodist, baptist and the rest.
+// Re-implementing that list in Node would be a second source of truth
+// that drifts -- the next pattern added there would silently not apply
+// to imports.
+//
+// A CORRECTION TO WHAT THIS COMMENT USED TO SAY. It claimed the
+// database "already derives" the denomination, which was only half
+// true: the trigger derived denomination_TAGS, which drive filtering,
+// and left the plain `denomination` text -- the thing a person actually
+// reads -- untouched. So the San Antonio import produced rows like
+// "Triumphant Lutheran Church" displaying no denomination at all.
+// Migration 100 extends that same trigger to fill the blank from the
+// tags it has just computed, which keeps one source of truth and fixes
+// every path, not just this script's.
 //
 // address is left in the IRS's raw ALL CAPS. titleCaseAddress() in
 // index.html fixes it at RENDER time, which covers rows imported a year
