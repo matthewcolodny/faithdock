@@ -356,7 +356,32 @@ const WORSHIP = /\b(church|place_of_worship|synagogue|mosque|hindu_temple)\b/;
 
     enriched.push([row.name, row.denomination, row.address, r.phone, r.website, verdict, r.detail, r.types]);
 
-    if (verdict === 'yes') {
+    // A CONFIRMED ADDRESS IS NOT A CONFIRMED CHURCH. The address check
+    // asks "is this the right building"; it cannot ask "is this the
+    // right occupant". "Mission Vineyard, 1107 Austin Hwy Unit 90086"
+    // came back United States Postal Service at 1107 Austin Hwy -- the
+    // street number matched, so it passed -- carrying an 800 number and
+    // a usps.com link that would have gone into the directory as a
+    // church's contact details. "Ministerio Del Reino Poder Y
+    // Autoridad" came back Swaying Oaks Apartments the same way.
+    //
+    // The tell is narrow: a result that CARRIES CONTACT DETAILS, is
+    // named nothing like the church, and is not typed as a place of
+    // worship. That is a different occupant of the same building.
+    // Results typed street_address or premise are Google confirming the
+    // address with no business attached -- they carry no phone or
+    // website, so they are harmless and stay confirmed.
+    const resultName = (r.detail || '').split('—')[0].trim();
+    const nameScore = similarity(row.name, resultName);
+    const hasContacts = !!(r.phone || r.website);
+    const otherOccupant = verdict === 'yes' && hasContacts && nameScore < 40 && !WORSHIP.test(r.types || '');
+
+    if (otherOccupant) {
+      // Contacts dropped, not carried across -- they belong to whoever
+      // else is at this address.
+      check.push([row.name, row.denomination, row.address, '', '',
+                  'different occupant at this address', nameScore, 'yes', '', r.detail, r.types]);
+    } else if (verdict === 'yes') {
       yes.push([row.name, row.denomination, row.address, r.phone, r.website]);
       if (!WORSHIP.test(r.types || '')) {
         mismatch.push([row.name, row.denomination, row.address, r.phone, r.website, verdict, r.detail, r.types]);
