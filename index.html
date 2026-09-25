@@ -1141,6 +1141,13 @@
       'upload.heicTooLarge': 'That photo is too large to convert in the browser. Take a screenshot of it and upload that instead, or use a smaller copy.',
       'upload.converterOffline': 'Couldn\'t load the photo converter \u2014 check your connection and try again. If it keeps failing, take a screenshot of the photo and upload that instead.',
       'upload.heicNotSupported': 'That photo couldn\'t be converted. Open it and take a screenshot, then upload the screenshot \u2014 that works from any phone.',
+      // One message per failure. They were all showing the same line,
+      // which made the difference between "your phone ran out of
+      // memory" and "this file is a format we cannot read" invisible
+      // to the person and undiagnosable afterwards.
+      'upload.heicTooManyPixels': 'That photo is too big for this phone to convert ({mp} megapixels). Take a screenshot of it and upload that, or use a smaller copy.',
+      'upload.heicUnreadable': 'That photo could not be read \u2014 it may use a newer HEIC variant this browser cannot decode. A screenshot of it will upload fine.',
+      'upload.heicEncodeFailed': 'This phone ran out of memory converting that photo. A screenshot of it will upload fine.',
       'cropper.hint': 'Drag to move, and use the slider to zoom. What you see is what gets saved.',
       'accountSettings.ownershipTitle': 'Transfer a church to someone else',
       'accountSettings.send': 'Send',
@@ -2359,6 +2366,9 @@
       'upload.heicTooLarge': 'Esa foto es demasiado grande para convertirla en el navegador. Haz una captura de pantalla y sube esa, o usa una copia más pequeña.',
       'upload.converterOffline': 'No se pudo cargar el conversor de fotos \u2014 revisa tu conexión e inténtalo de nuevo. Si sigue fallando, haz una captura de pantalla de la foto y sube esa.',
       'upload.heicNotSupported': 'No se pudo convertir esa foto. \u00c1brela, haz una captura de pantalla y sube la captura \u2014 eso funciona desde cualquier teléfono.',
+      'upload.heicTooManyPixels': 'Esa foto es demasiado grande para convertirla en este teléfono ({mp} megapíxeles). Haz una captura de pantalla y sube esa, o usa una copia más pequeña.',
+      'upload.heicUnreadable': 'No se pudo leer esa foto \u2014 puede usar una variante de HEIC que este navegador no sabe descodificar. Una captura de pantalla se subirá sin problema.',
+      'upload.heicEncodeFailed': 'Este teléfono se quedó sin memoria al convertir esa foto. Una captura de pantalla se subirá sin problema.',
       'cropper.hint': 'Arrastra para mover y usa el control para acercar. Lo que ves es lo que se guarda.',
       'accountSettings.ownershipTitle': 'Transferir una iglesia a otra persona',
       'accountSettings.send': 'Enviar',
@@ -10703,7 +10713,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-25-v286 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-25-v287 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13217,6 +13227,12 @@ Groups</span>
   // will kill the tab rather than allocate it. Refusing with a message
   // beats a browser that simply dies mid-upload.
   var HEIC_MAX_BYTES = 40 * 1024 * 1024;
+  // ~24MP. Above this the RGBA buffer alone is 96MB and a phone will
+  // refuse or be killed; saying so beats dying mid-upload.
+  var HEIC_MAX_PIXELS = 24 * 1000 * 1000;
+  // Nothing in this app displays an image wider than about 1200px, so
+  // there is no reason to encode a 4032px one.
+  var HEIC_MAX_EDGE = 2400;
   var HEIC_DECODER_SRI = 'sha384-nQUZdDFWgLagdiaBisdhAfLYGk6dNHPJYUAgI1H4GTP76YCXjJtloXsRUut3AFAg';
   var heicDecoderPromise = null;
 
@@ -13273,17 +13289,59 @@ Groups</span>
 
       var w = img.get_width(), h = img.get_height();
       if (!w || !h) throw new Error('heic-no-dimensions');
+
+      // THE SIZE GUARD ABOVE IS ON THE WRONG NUMBER, and this is the
+      // second half of it. HEIC_MAX_BYTES checks the COMPRESSED file,
+      // but what a phone has to allocate is width x height x 4 --
+      // decided by pixel count, not by how well the file compressed. A
+      // 2MB HEIC of a 12MP photo still needs 48MB of RGBA, sails past
+      // a 40MB byte limit, and dies here instead.
+      var mp = (w * h) / 1000000;
+      if (w * h > HEIC_MAX_PIXELS) {
+        var tooBig = new Error('heic-too-many-pixels');
+        tooBig.mp = Math.round(mp);
+        throw tooBig;
+      }
+
       var canvas = document.createElement('canvas');
       canvas.width = w; canvas.height = h;
       var ctx = canvas.getContext('2d');
-      var imageData = ctx.createImageData(w, h);
+      var imageData;
+      try {
+        imageData = ctx.createImageData(w, h);
+      } catch (e) {
+        // Allocation refused outright rather than the tab being killed.
+        var oom = new Error('heic-encode-failed');
+        oom.cause = e;
+        throw oom;
+      }
       await new Promise(function(resolve, reject){
         img.display(imageData, function(result){
           if (result) resolve(); else reject(new Error('heic-display-failed'));
         });
       });
       ctx.putImageData(imageData, 0, 0);
-      var blob = await new Promise(function(resolve){ canvas.toBlob(resolve, 'image/jpeg', 0.9); });
+
+      // Encode from a SMALLER canvas when the photo is bigger than
+      // anything this app displays. The card wants about 1200px, and
+      // encoding 12MP to JPEG is both the slowest step and the one
+      // most likely to return null on a phone. Nothing is lost that
+      // was ever going to be shown.
+      var encodeFrom = canvas;
+      if (Math.max(w, h) > HEIC_MAX_EDGE) {
+        var scale = HEIC_MAX_EDGE / Math.max(w, h);
+        var small = document.createElement('canvas');
+        small.width = Math.round(w * scale);
+        small.height = Math.round(h * scale);
+        small.getContext('2d').drawImage(canvas, 0, 0, small.width, small.height);
+        // Release the full-size backing store before asking for a
+        // second large allocation.
+        canvas.width = canvas.height = 1;
+        encodeFrom = small;
+      }
+      var blob = await new Promise(function(resolve){ encodeFrom.toBlob(resolve, 'image/jpeg', 0.9); });
+      // toBlob resolves with null rather than throwing when it cannot
+      // allocate, which is exactly how this failed silently before.
       if (!blob) throw new Error('heic-encode-failed');
       // JPEG, not PNG: a camera photo has no transparency to protect
       // and a PNG of one is several times the size. The name has to
@@ -13318,7 +13376,20 @@ Groups</span>
   // out loud -- "too big" is actionable, "could not convert" is not.
   window.uploadFailureMessage = function(err){
     var code = (err && err.message) || '';
+    // Logged as well as shown. The five failures below were one
+    // message for a long time, which meant a report of "it couldn't be
+    // converted" carried no information at all -- there was nothing to
+    // look up afterwards and no way to tell a memory problem from an
+    // unreadable file.
+    try { console.error('[upload] conversion failed:', code, err); } catch (e) {}
     if (code === 'heic-too-large') return window.t('upload.heicTooLarge');
+    if (code === 'heic-too-many-pixels') {
+      return window.t('upload.heicTooManyPixels').replace('{mp}', (err && err.mp) || '?');
+    }
+    if (code === 'heic-encode-failed') return window.t('upload.heicEncodeFailed');
+    if (code === 'heic-no-images' || code === 'heic-no-dimensions' || code === 'heic-display-failed') {
+      return window.t('upload.heicUnreadable');
+    }
     if (code === 'decoder download failed') return window.t('upload.converterOffline');
     return window.t('upload.heicNotSupported');
   };
