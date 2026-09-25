@@ -1659,7 +1659,9 @@
       'ce.writingAssistantLocked': 'Writing Assistant (grammar check, tone rewrites, and more) is available on Medium, Large, and Multi-Church plans.',
       'ce.keywordsPrompt': 'A few keywords to build a description from (e.g. "fall festival, pumpkins, hayride, free for families")',
       'ce.writeDescriptionFirst': 'Write a description first.', 'ce.thinking': 'Thinking...', 'ce.updatedKeepEditing': 'Updated — you can keep editing below.',
-      'ce.starts': 'Starts', 'ce.ends': 'Ends', 'ce.multiDayHint': 'For a multi-day event like a summer camp, just set the end date a few days after the start.',
+      'ce.starts': 'Starts', 'ce.ends': 'Ends',
+      'ce.timeTypePlaceholder': 'Or type 6:45 PM', 'ce.timeSet': 'Set',
+      'ce.timeInvalid': "That isn't a time — try something like 6:45 PM, 645pm or 18:45.", 'ce.multiDayHint': 'For a multi-day event like a summer camp, just set the end date a few days after the start.',
       'ce.location': 'Location', 'ce.locationPlaceholder': 'Church lawn, or an address',
       'ce.venueName': 'Venue name (optional)', 'ce.venueNamePlaceholder': 'e.g. Fellowship Hall, Church lawn', 'ce.locationAddressPlaceholder': 'Start typing an address...', 'ce.useChurchAddress': "Use my church's address",
       'ce.roomsNoneSelected': 'No rooms selected', 'ce.roomsNSelected': '{n} rooms selected', 'ce.roomsUsed': 'Rooms used', 'ce.roomsHint': 'Select every room this event uses — mark one as primary if it uses more than one. Managed in Settings → Facility rooms.', 'ce.primary': 'Primary', 'ce.noRoomsSetUpYet': 'No rooms set up yet — add some in Settings → Facility rooms.', 'ce.aRoom': 'a room',
@@ -2875,7 +2877,9 @@
       'ce.writingAssistantLocked': 'El Asistente de escritura (revisión gramatical, cambios de tono y más) está disponible en los planes Estándar, Avanzado y Multi-Iglesia.',
       'ce.keywordsPrompt': 'Algunas palabras clave para armar una descripción (p. ej. "festival de otoño, calabazas, paseo en carreta, gratis para familias")',
       'ce.writeDescriptionFirst': 'Escribe una descripción primero.', 'ce.thinking': 'Pensando...', 'ce.updatedKeepEditing': 'Actualizado — puedes seguir editando abajo.',
-      'ce.starts': 'Comienza', 'ce.ends': 'Termina', 'ce.multiDayHint': 'Para un evento de varios días, como un campamento de verano, solo establece la fecha de fin unos días después del inicio.',
+      'ce.starts': 'Comienza', 'ce.ends': 'Termina',
+      'ce.timeTypePlaceholder': 'O escribe 6:45 PM', 'ce.timeSet': 'Usar',
+      'ce.timeInvalid': 'Eso no es una hora — prueba algo como 6:45 PM, 645pm o 18:45.', 'ce.multiDayHint': 'Para un evento de varios días, como un campamento de verano, solo establece la fecha de fin unos días después del inicio.',
       'ce.location': 'Ubicación', 'ce.locationPlaceholder': 'El jardín de la iglesia, o una dirección',
       'ce.venueName': 'Nombre del lugar (opcional)', 'ce.venueNamePlaceholder': 'p. ej. Salón de comunión, jardín de la iglesia', 'ce.locationAddressPlaceholder': 'Empieza a escribir una dirección...', 'ce.useChurchAddress': 'Usar la dirección de mi iglesia',
       'ce.roomsNoneSelected': 'Ningún salón seleccionado', 'ce.roomsNSelected': '{n} salones seleccionados', 'ce.roomsUsed': 'Salones usados', 'ce.roomsHint': 'Selecciona cada salón que use este evento — marca uno como principal si usa más de uno. Se gestionan en Configuración → Salones de la instalación.', 'ce.primary': 'Principal', 'ce.noRoomsSetUpYet': 'Aún no hay salones configurados — agrega algunos en Configuración → Salones de la instalación.', 'ce.aRoom': 'un salón',
@@ -4638,6 +4642,17 @@
        filled-in text box. */
     background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%2316233F' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
     background-repeat:no-repeat;background-position:right 10px center;background-size:10px 7px;
+    /* Android paints its own translucent box over a tapped control,
+       independent of :active, outline and focus -- this is the only
+       property that turns it off. Same fix as .brand and
+       .follow-heart-card; without it the field flashes grey on every
+       tap before the panel opens. */
+    -webkit-tap-highlight-color:transparent;
+  }
+  .fd-time-set{
+    flex:0 0 auto;padding:9px 14px;border:1px solid var(--line);border-radius:8px;
+    background:var(--paper);color:var(--ink);font-family:inherit;font-size:14px;cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
   }
   html[data-theme="dark"] .fd-time-btn{
     background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%23F5F4EE' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
@@ -4651,10 +4666,11 @@
      half out of view sits directly under the title with nothing
      between them, and reads as a clipped row rather than as a list
      that scrolls under a heading. */
-  #time-picker-list{max-height:44vh;overflow-y:auto;-webkit-overflow-scrolling:touch;border-top:1px solid var(--line);}
+  #time-picker-list{max-height:40vh;overflow-y:auto;-webkit-overflow-scrolling:touch;border-top:1px solid var(--line);}
   .fd-time-opt{
     display:block;width:100%;text-align:left;background:none;border:none;
     padding:11px 20px;font-size:15px;color:var(--ink);cursor:pointer;font-family:inherit;
+    -webkit-tap-highlight-color:transparent;
   }
   .fd-time-opt:hover{background:var(--paper);}
   .fd-time-opt[aria-selected="true"]{background:var(--gold-bg);color:var(--gold-ink);font-weight:600;}
@@ -9751,6 +9767,18 @@ Groups</span>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
           </button>
           <div id="time-picker-title" style="font-family:'Fraunces';font-size:16px;padding:0 20px 12px;"></div>
+          <!-- The escape hatch the quarter-hour list cannot give you.
+               Deliberately NOT autofocused: focusing it on open would
+               raise the phone keyboard over the list every time, which
+               would punish the common case (pick 7:00 PM) to serve the
+               rare one (type 6:47). -->
+          <form id="time-picker-typed-form" style="display:flex;gap:8px;padding:0 20px 12px;">
+            <input class="field" type="text" id="time-picker-typed" autocomplete="off"
+                   data-i18n-placeholder="ce.timeTypePlaceholder" placeholder="Or type 6:45 PM"
+                   style="flex:1 1 auto;min-width:0;padding:9px 10px;font-size:14px;">
+            <button type="submit" class="fd-time-set" id="time-picker-set" data-i18n="ce.timeSet">Set</button>
+          </form>
+          <div id="time-picker-error" style="display:none;padding:0 20px 10px;font-size:12.5px;color:var(--clay);"></div>
           <div id="time-picker-list" role="listbox" tabindex="-1"></div>
         </div>
       </div>
@@ -10813,7 +10841,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-25-v290 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-25-v291 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -23931,18 +23959,10 @@ Groups</span>
     document.getElementById('ce-' + which + '-date').value = toLocalDateStr(d);
     var sel = document.getElementById('ce-' + which + '-time');
     var hhmm = toLocalTimeStr(d);
-    // An event already saved at a time that is not on the quarter --
-    // imported from a calendar file, or created before this list
-    // existed -- has no option to select, and the field would silently
-    // show the wrong time. Give it one rather than losing it.
-    if (sel && !Array.prototype.some.call(sel.options, function(o){ return o.value === hhmm; })) {
-      var parts = hhmm.split(':');
-      var hr = parseInt(parts[0], 10);
-      var opt = document.createElement('option');
-      opt.value = hhmm;
-      opt.textContent = ((hr % 12) === 0 ? 12 : (hr % 12)) + ':' + parts[1] + ' ' + (hr < 12 ? 'AM' : 'PM');
-      sel.appendChild(opt);
-    }
+    // An event saved off the quarter -- typed in here, or imported from
+    // a calendar file -- has no option to select, and the field would
+    // silently show the wrong time. Give it one rather than losing it.
+    window.fdEnsureTimeOption(sel, hhmm);
     if (sel) { sel.value = hhmm; window.fdSyncTimeButton(sel); }
   }
 
@@ -23968,6 +23988,57 @@ Groups</span>
     btn.textContent = opt ? opt.textContent : '';
   };
 
+  // Anything a person might reasonably type, back to "HH:mm", or '' if
+  // it is not a time at all. Forgiving on purpose -- the only reason to
+  // offer typing alongside a list is to accept what the list cannot:
+  //   "6:45 PM"  "6:45pm"  "645pm"  "18:45"  "1845"  "6 pm"  "7"
+  function parseTimeInput(raw){
+    if (!raw) return '';
+    var t = String(raw).trim().toLowerCase().replace(/\./g, '');
+    var pm = /p\s*m?$/.test(t), am = /a\s*m?$/.test(t);
+    t = t.replace(/[ap]\s*m?$/, '').trim();
+    var h, m;
+    var colon = t.match(/^(\d{1,2})\s*:\s*(\d{1,2})$/);
+    if (colon) { h = +colon[1]; m = +colon[2]; }
+    else if (/^\d{3,4}$/.test(t)) { h = +t.slice(0, t.length - 2); m = +t.slice(-2); }
+    else if (/^\d{1,2}$/.test(t)) { h = +t; m = 0; }
+    else return '';
+    if (isNaN(h) || isNaN(m) || m > 59) return '';
+    // 12-hour only when a marker was actually given. "13" stays 13:00
+    // rather than being guessed into 1pm.
+    if (pm && h < 12) h += 12;
+    if (am && h === 12) h = 0;
+    if (h > 23) return '';
+    return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+  }
+
+  // "HH:mm" -> "6:47 AM", matching how buildTimeOptions labels the list
+  // so a typed time and a picked one read identically on the button.
+  function fdTimeLabel(hhmm){
+    var parts = String(hhmm).split(':');
+    var hr = parseInt(parts[0], 10);
+    return ((hr % 12) === 0 ? 12 : (hr % 12)) + ':' + parts[1] + ' ' + (hr < 12 ? 'AM' : 'PM');
+  }
+
+  // Puts a time on a select that has no option for it, so an arbitrary
+  // typed time survives being stored and read back. Inserted in order
+  // rather than appended, or 6:47 AM would sit after 11:45 PM the next
+  // time the list is opened.
+  window.fdEnsureTimeOption = function(sel, hhmm){
+    if (!sel) return;
+    for (var i = 0; i < sel.options.length; i++) {
+      if (sel.options[i].value === hhmm) return;
+    }
+    var opt = document.createElement('option');
+    opt.value = hhmm;
+    opt.textContent = fdTimeLabel(hhmm);
+    var before = null;
+    for (var j = 0; j < sel.options.length; j++) {
+      if (sel.options[j].value > hhmm) { before = sel.options[j]; break; }
+    }
+    sel.insertBefore(opt, before);
+  };
+
   var fdTimeTarget = null;   // the select the open panel is editing
 
   function fdCloseTimePicker(){
@@ -23982,6 +24053,24 @@ Groups</span>
     fdTimeTarget = null;
   }
 
+  // The one place a time is committed, whichever way it was chosen.
+  // Both routes have to add the option when it is missing, sync the
+  // button, close, and fire change -- three call sites drifting apart
+  // is how the button ends up showing a different time from the value
+  // underneath it.
+  function fdApplyTime(hhmm){
+    var sel = fdTimeTarget;
+    if (!sel || !hhmm) return;
+    window.fdEnsureTimeOption(sel, hhmm);
+    sel.value = hhmm;
+    window.fdSyncTimeButton(sel);
+    fdCloseTimePicker();
+    // The same event the native select fired. ceAdjustEndFromStart and
+    // refreshCeRoomConflicts both listen for it, so replacing the
+    // control must not stop them hearing about a change.
+    sel.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
   function fdOpenTimePicker(btn){
     var sel = document.getElementById(btn.getAttribute('data-time-for'));
     var modal = document.getElementById('time-picker-modal');
@@ -23990,6 +24079,12 @@ Groups</span>
     if (!sel || !modal || !list) return;
     fdTimeTarget = sel;
     title.textContent = window.t(btn.getAttribute('data-time-title') || 'ce.starts');
+    // Blank each time. A leftover "645pm" from the previous open reads
+    // as the current value and is not one.
+    var typed = document.getElementById('time-picker-typed');
+    if (typed) typed.value = '';
+    var errEl = document.getElementById('time-picker-error');
+    if (errEl) errEl.style.display = 'none';
 
     var html = '';
     for (var i = 0; i < sel.options.length; i++) {
@@ -24015,17 +24110,7 @@ Groups</span>
     if (ev.target.closest && ev.target.closest('#time-picker-close')) { fdCloseTimePicker(); return; }
 
     var opt = ev.target.closest && ev.target.closest('.fd-time-opt');
-    if (opt && fdTimeTarget) {
-      var sel = fdTimeTarget;
-      sel.value = opt.getAttribute('data-time-value');
-      window.fdSyncTimeButton(sel);
-      fdCloseTimePicker();
-      // The same event the native select fired. ceAdjustEndFromStart
-      // and refreshCeRoomConflicts both listen for it, so replacing
-      // the control must not stop them hearing about a change.
-      sel.dispatchEvent(new Event('change', { bubbles: true }));
-      return;
-    }
+    if (opt && fdTimeTarget) { fdApplyTime(opt.getAttribute('data-time-value')); return; }
 
     // Anywhere on the backdrop. The panel is short on purpose so there
     // is always a generous target above and below it.
@@ -24035,6 +24120,27 @@ Groups</span>
       fdCloseTimePicker();
     }
   });
+
+  // A form, not a click handler, so Enter on the phone keyboard
+  // submits it the way every other single-field form does.
+  var fdTypedForm = document.getElementById('time-picker-typed-form');
+  if (fdTypedForm) {
+    fdTypedForm.addEventListener('submit', function(ev){
+      ev.preventDefault();
+      var input = document.getElementById('time-picker-typed');
+      var errEl = document.getElementById('time-picker-error');
+      var hhmm = parseTimeInput(input.value);
+      if (!hhmm) {
+        // Says what WOULD work rather than only that this did not.
+        errEl.textContent = window.t('ce.timeInvalid');
+        errEl.style.display = 'block';
+        try { input.focus(); input.select(); } catch (e) {}
+        return;
+      }
+      errEl.style.display = 'none';
+      fdApplyTime(hhmm);
+    });
+  }
 
   document.addEventListener('keydown', function(ev){
     if (ev.key !== 'Escape') return;
