@@ -953,6 +953,13 @@
       'dashEvents.noUpcomingEvents': 'No upcoming events yet — click Create event to add your first one.',
       'dashEvents.viewPast': 'View past events', 'dashEvents.createEvent': 'Create event', 
       'dashEvents.importIcs': 'Import from calendar file',
+      // The short label the phone toolbar uses, so Export and Import fit
+      // on one line instead of wrapping.
+      'dashEvents.exportShort': 'Export',
+      'dashEvents.detailTitle': 'Event details', 'dashEvents.viewDetails': 'View details',
+      'dashEvents.whenLabel': 'When', 'dashEvents.whereLabel': 'Where',
+      'dashEvents.noDescription': 'No description yet.', 'dashEvents.priceLabel': 'Price',
+      'dashEvents.freeLabel': 'Free',
       'ics.title': 'Import from a calendar file',
       'ics.found': 'Found {n} events to import. Skipped {skipped} (cancelled, or no date).',
       'ics.truncated': 'A repeating event was cut off at three months ahead. Import again later for the rest.',
@@ -1598,7 +1605,7 @@
       'rte.linkUrlPrompt': 'Link URL (include https://)', 'rte.linksMustStartWith': 'Links must start with https:// or mailto:',
       'audience.preschool': 'Preschool', 'audience.children': 'Children', 'audience.teens': 'Teens', 'audience.adults': 'Adults', 'audience.seniors': 'Seniors', 'audience.parents': 'Parents',
       'ce.unsavedChangesConfirm': 'You have unsaved changes to this event. Leave without saving?',
-      'ce.backToDashboard': '← Back to events', 'ce.newEvent': 'New event', 'ce.createAnEvent': 'Create an event', 'ce.editEvent': 'Edit event', 'ce.postsUnderChurchName': 'Posts under {church}.', 'ce.postingAs': 'Posting as',
+      'ce.backToDashboard': '← Back to events', 'ce.newEvent': 'New event', 'ce.eventEyebrow': 'Event', 'ce.createAnEvent': 'Create an event', 'ce.editEvent': 'Edit event', 'ce.postsUnderChurchName': 'Posts under {church}.', 'ce.postingAs': 'Posting as',
       'ce.advancedOptions': 'Advanced options', 'ce.advancedOptionsSub': 'registration, tickets, recurrence, and more',
       'ce.eventTitle': 'Event title', 'ce.eventTitlePlaceholder': 'Fall Community Picnic', 'ce.description': 'Description', 'ce.descriptionPlaceholder': "What's happening, who it's for",
       'ce.writingAssistant': 'Writing Assistant', 'ce.checkSpellingGrammar': 'Check Spelling and Grammar', 'ce.makeItFormal': 'Make it Formal', 'ce.makeItFriendly': 'Make it Friendly', 'ce.makeItInviting': 'Make it Inviting', 'ce.writeFromKeywords': 'Write from Keywords',
@@ -2143,6 +2150,11 @@
       'dashEvents.noUpcomingEvents': 'Aún no hay próximos eventos — haz clic en Crear evento para agregar el primero.',
       'dashEvents.viewPast': 'Ver eventos pasados', 'dashEvents.createEvent': 'Crear evento', 
       'dashEvents.importIcs': 'Importar de un archivo de calendario',
+      'dashEvents.exportShort': 'Exportar',
+      'dashEvents.detailTitle': 'Detalles del evento', 'dashEvents.viewDetails': 'Ver detalles',
+      'dashEvents.whenLabel': 'Cuándo', 'dashEvents.whereLabel': 'Dónde',
+      'dashEvents.noDescription': 'Aún no hay descripción.', 'dashEvents.priceLabel': 'Precio',
+      'dashEvents.freeLabel': 'Gratis',
       'ics.title': 'Importar de un archivo de calendario',
       'ics.found': 'Encontramos {n} eventos para importar. Se omitieron {skipped} (canceladas o sin fecha).',
       'ics.truncated': 'Un evento repetido se cortó a los tres meses. Vuelve a importar más adelante para el resto.',
@@ -2782,7 +2794,7 @@
       'rte.linkUrlPrompt': 'URL del enlace (incluye https://)', 'rte.linksMustStartWith': 'Los enlaces deben comenzar con https:// o mailto:',
       'audience.preschool': 'Preescolar', 'audience.children': 'Niños', 'audience.teens': 'Adolescentes', 'audience.adults': 'Adultos', 'audience.seniors': 'Adultos mayores', 'audience.parents': 'Padres',
       'ce.unsavedChangesConfirm': 'Tienes cambios sin guardar en este evento. ¿Salir sin guardar?',
-      'ce.backToDashboard': '← Volver a eventos', 'ce.newEvent': 'Nuevo evento', 'ce.createAnEvent': 'Crear un evento', 'ce.editEvent': 'Editar evento', 'ce.postsUnderChurchName': 'Se publica bajo {church}.', 'ce.postingAs': 'Publicando como',
+      'ce.backToDashboard': '← Volver a eventos', 'ce.newEvent': 'Nuevo evento', 'ce.eventEyebrow': 'Evento', 'ce.createAnEvent': 'Crear un evento', 'ce.editEvent': 'Editar evento', 'ce.postsUnderChurchName': 'Se publica bajo {church}.', 'ce.postingAs': 'Publicando como',
       'ce.advancedOptions': 'Opciones avanzadas', 'ce.advancedOptionsSub': 'inscripción, entradas, repetición y más',
       'ce.eventTitle': 'Título del evento', 'ce.eventTitlePlaceholder': 'Picnic comunitario de otoño', 'ce.description': 'Descripción', 'ce.descriptionPlaceholder': 'Qué va a pasar, para quién es',
       'ce.writingAssistant': 'Asistente de escritura', 'ce.checkSpellingGrammar': 'Revisar ortografía y gramática', 'ce.makeItFormal': 'Hacerlo formal', 'ce.makeItFriendly': 'Hacerlo amigable', 'ce.makeItInviting': 'Hacerlo atractivo', 'ce.writeFromKeywords': 'Escribir a partir de palabras clave',
@@ -2936,6 +2948,11 @@
     if (window.ceIsEditing) {
       var ceHeadingEl = document.getElementById('ce-heading');
       if (ceHeadingEl && dict['ce.editEvent']) ceHeadingEl.textContent = dict['ce.editEvent'];
+      // The eyebrow carries 'New event' as its data-i18n default, so the
+      // generic pass above has just put that back over an event being
+      // edited. Same redo as the heading beside it.
+      var ceEyebrowT = document.getElementById('ce-eyebrow');
+      if (ceEyebrowT && dict['ce.eventEyebrow']) ceEyebrowT.textContent = dict['ce.eventEyebrow'];
     }
     // Same reasoning as ce-heading/rc-heading above: group-form-heading
     // switches to "Edit group" wording via JS once the edit-group
@@ -5299,6 +5316,16 @@
   .dash-toolbar > div{flex-wrap:wrap;}
   .export-btn{background:transparent;border:1px solid var(--line);padding:9px 16px;border-radius:8px;font-size:13.5px;font-weight:500;color:var(--ink);display:inline-flex;align-items:center;gap:6px;}
   .export-btn svg{width:14px;height:14px;}
+  /* "Export schedule" is the longest label in the events toolbar, and
+     on a phone it was enough to push Import from calendar file onto a
+     line of its own. Both labels ship and CSS picks one, so the
+     shorter phone wording still goes through applyTranslations rather
+     than being swapped in by script. */
+  .ev-export-short{display:none;}
+  @media (max-width:860px){
+    .ev-export-long{display:none;}
+    .ev-export-short{display:inline;}
+  }
   table.roster{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;}
   /* Every dashboard roster table (events, giving, rosters, etc. --
      confirmed 5 usages of this one class) has more columns than fit a
@@ -5566,7 +5593,8 @@
      element and therefore beats a bare `.ev-menu-mobile` whatever the
      source order. Left unqualified, these two items showed on desktop
      as well, duplicating the buttons beside the menu. */
-  .row-menu-dropdown button.ev-menu-mobile{display:none;}
+  .row-menu-dropdown button.ev-menu-mobile,
+  .row-menu-dropdown a.ev-menu-mobile{display:none;}
 
   /* The same stacked phone treatment for the groups table, and here
      for the same reason: five columns of which four are short values
@@ -5694,7 +5722,8 @@
        always and revealed here, rather than built conditionally, so
        the two paths cannot drift apart. */
     .ev-btn-desk{display:none;}
-    .row-menu-dropdown button.ev-menu-mobile{display:flex;}
+    .row-menu-dropdown button.ev-menu-mobile,
+    .row-menu-dropdown a.ev-menu-mobile{display:flex;}
 
     /* Groups, same shape as events above: schedule to the right of the
        name, everything else stacked beneath it, and all five actions
@@ -8272,7 +8301,10 @@ Groups</span>
            are unchanged; only where it renders moved. -->
       <div class="dash-content" id="dash-create-event">
         <div style="max-width:560px;">
-      <div class="eyebrow" data-i18n="ce.newEvent">New event</div>
+      <!-- id, because this is not always "New event". Editing an
+           existing event left this eyebrow untouched, so the page read
+           "New event" above a heading saying "Edit event". -->
+      <div class="eyebrow" id="ce-eyebrow" data-i18n="ce.newEvent">New event</div>
       <h2 style="font-family:'Fraunces';font-size:22px;margin-bottom:6px;" id="ce-heading" data-i18n="ce.createAnEvent">Create an event</h2>
       <div id="ce-church-picker-wrap" style="display:none;margin-bottom:8px;">
         <label style="font-size:12.5px;" data-i18n="ce.postingAs">Posting as</label>
@@ -8283,15 +8315,24 @@ Groups</span>
       <label data-i18n="ce.eventTitle">Event title</label>
       <input class="field" type="text" id="ce-title" placeholder="Fall Community Picnic" data-i18n-placeholder="ce.eventTitlePlaceholder">
 
-      <label data-i18n="ce.starts">Starts</label>
-      <div style="display:flex;gap:10px;">
-        <input class="field" type="date" id="ce-start-date" style="flex:1;">
-        <select class="field" id="ce-start-time" style="flex:1;"></select>
-      </div>
-      <label style="margin-top:14px;" data-i18n="ce.ends">Ends</label>
-      <div style="display:flex;gap:10px;">
-        <input class="field" type="date" id="ce-end-date" style="flex:1;">
-        <select class="field" id="ce-end-time" style="flex:1;"></select>
+      <!-- One datetime-local per end, rather than a date input beside a
+           dropdown of times.
+           The browser's own picker puts the time under the calendar and
+           lets it be TYPED, which the dropdown could not: it offered
+           fixed steps, so an event at 6:45 was unrepresentable.
+           It also halves the controls, which is what lets Starts and
+           Ends share a line. They wrap on a narrow phone rather than
+           being squeezed -- min-width is what forces that, since flex
+           items would otherwise shrink past legibility. -->
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <div style="flex:1 1 200px;min-width:200px;">
+          <label data-i18n="ce.starts">Starts</label>
+          <input class="field" type="datetime-local" id="ce-start-at" style="width:100%;">
+        </div>
+        <div style="flex:1 1 200px;min-width:200px;">
+          <label data-i18n="ce.ends">Ends</label>
+          <input class="field" type="datetime-local" id="ce-end-at" style="width:100%;">
+        </div>
       </div>
       <div style="font-size:12px;color:var(--ink-mute);margin-top:4px;" data-i18n="ce.multiDayHint">For a multi-day event like a summer camp, just set the end date a few days after the start.</div>
 
@@ -8595,7 +8636,12 @@ Groups</span>
           </div>
           <div style="display:flex;gap:10px;">
             <button class="export-btn" id="dash-events-toggle-past-btn" data-i18n="dashEvents.viewPast">View past events</button>
-            <button class="btn-gold" id="dash-create-event-btn" style="padding:10px 18px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;vertical-align:-3px;margin-right:4px;"><path d="M12 5v14M5 12h14"/></svg><span data-i18n="dashEvents.createEvent">Create event</span></button>
+            <!-- inline-flex, not a vertical-align nudge. .btn-gold is a plain
+                 block button, so the icon sat on the text baseline and was
+                 corrected by hand with vertical-align:-3px -- a figure that
+                 only lines up at one font size and drifted visibly on a
+                 phone. Centring the row has no such number in it. -->
+            <button class="btn-gold" id="dash-create-event-btn" style="padding:10px 18px;display:inline-flex;align-items:center;gap:6px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;flex-shrink:0;"><path d="M12 5v14M5 12h14"/></svg><span data-i18n="dashEvents.createEvent">Create event</span></button>
             <button class="export-btn" id="dash-import-ics-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15V3m0 12l-4-4m4 4l4-4"/><path d="M4 19h16"/></svg> <span data-i18n="dashEvents.importIcs">Import from calendar file</span></button>
             <input type="file" id="dash-import-ics-input" accept=".ics,text/calendar" multiple style="position:absolute;width:1px;height:1px;opacity:0;">
             <!-- "Export to spreadsheet" sat here: a button with no id and
@@ -8603,7 +8649,7 @@ Groups</span>
                  covers the job. Removed rather than wired up, since nobody
                  asked for a second export and a dead control teaches people
                  not to trust the others. -->
-            <button class="export-btn" id="dash-export-schedule-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> <span data-i18n="dashEvents.exportSchedule">Export schedule</span></button>
+            <button class="export-btn" id="dash-export-schedule-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> <span class="ev-export-long" data-i18n="dashEvents.exportSchedule">Export schedule</span><span class="ev-export-short" data-i18n="dashEvents.exportShort">Export</span></button>
           </div>
         </div>
         <table class="roster roster-fits" id="dash-events-table">
@@ -9415,6 +9461,20 @@ Groups</span>
            "fits on a phone" should not mean "that information is gone"
            -- so everything the row cannot show lives here, along with
            the fields the table never had room for on any screen. -->
+      <!-- The event detail card. Same job as the group one: the phone
+           layout hides six of the eight columns to fit, and fitting
+           must not mean losing the data. -->
+      <div class="modal-overlay" id="event-detail-modal">
+        <div class="modal-card" style="max-width:520px;max-height:85vh;overflow-y:auto;">
+          <button class="modal-close" onclick="document.getElementById('event-detail-modal').classList.remove('open')" aria-label="Close" data-i18n-title="common.close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
+          <div class="eyebrow" data-i18n="dashEvents.detailTitle">Event details</div>
+          <h3 id="event-detail-name" style="font-family:'Fraunces';font-size:20px;margin:6px 0 14px;"></h3>
+          <div id="event-detail-body"></div>
+        </div>
+      </div>
+
       <div class="modal-overlay" id="group-detail-modal">
         <div class="modal-card" style="max-width:520px;max-height:85vh;overflow-y:auto;">
           <button class="modal-close" onclick="document.getElementById('group-detail-modal').classList.remove('open')" aria-label="Close" data-i18n-title="common.close">
@@ -10444,7 +10504,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-24-v280 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-25-v281 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -20028,6 +20088,10 @@ Groups</span>
 
     var churchId = myChurch.id;
     var { data: allEvents, error: eventsError } = await supabase.from('events').select('*, profiles(full_name)').eq('church_id', churchId).order('start_at', { ascending: true });
+    // Keyed for the detail card. The select already pulls every column
+    // plus the creator's name, so opening a card needs no second query.
+    window.dashEventsById = {};
+    (allEvents || []).forEach(function(e){ window.dashEventsById[e.id] = e; });
     if (!stillCurrent()) return;
     // Whatever is painted below belongs to this church from here on.
     window.dashEventsPaintedGen = myGen;
@@ -20157,7 +20221,12 @@ Groups</span>
             // and a title containing a '<' rendered as markup. Every
             // other field in this row was already escaped; this one was
             // the exception, on the line being rewritten anyway.
-            + '<a href="#" data-route="event" data-event-key="' + ev.id + '" style="color:var(--ink);font-weight:500;">' + escapeHtml(ev.title) + '</a>'
+            // Opens the detail card rather than navigating to the public
+            // page. The public page is still one tap away -- an icon on
+            // desktop, a row-menu item on a phone -- but the thing
+            // somebody wants from a row in their own dashboard is the
+            // event's own detail, not how a visitor sees it.
+            + '<button class="gr-name-btn" data-event-detail="' + escapeHtml(ev.id) + '" style="font-weight:500;">' + escapeHtml(ev.title) + '</button>'
             // Status rides along on the sub-line rather than being
             // dropped with its column. Nothing else on a phone would
             // say an event is still a draft, and an unpublished event
@@ -20193,6 +20262,7 @@ Groups</span>
         + (ev.registration_required
             ? '<button class="qr-btn icon-tip ev-btn-desk" data-tip="' + window.t('dashEvents.checkInTip') + '" data-checkin-event-id="' + ev.id + '" data-checkin-event-title="' + escapedTitle + '" aria-label="' + window.t('dashEvents.checkInTip') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></button>'
             : '')
+        + '<a class="qr-btn icon-tip ev-btn-desk" data-tip="' + window.t('dashEvents.viewPublicPage') + '" href="#" data-route="event" data-event-key="' + ev.id + '" aria-label="' + window.t('dashEvents.viewPublicPage') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg></a>'
         + '<button class="qr-btn icon-tip ev-btn-desk" data-tip="' + window.t('dashEvents.editEventTip') + '" data-edit-event-id="' + ev.id + '" aria-label="' + window.t('dashEvents.editEventTip') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>'
         + '<div class="row-menu">'
         + '<button class="row-menu-btn icon-tip" data-tip="' + window.t('common.moreActions') + '" data-toggle-row-menu="event-' + ev.id + '" aria-label="' + window.t('common.moreActions') + '"><svg viewBox="0 0 24 24" fill="currentColor" style="width:15px;height:15px;"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></button>'
@@ -20205,7 +20275,11 @@ Groups</span>
             ? '<button class="ev-menu-mobile" data-checkin-event-id="' + ev.id + '" data-checkin-event-title="' + escapedTitle + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> ' + escapeHtml(window.t('dashEvents.checkInTip')) + '</button>'
             : '')
         + '<button class="ev-menu-mobile" data-edit-event-id="' + ev.id + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> ' + escapeHtml(window.t('dashEvents.editEventTip')) + '</button>'
-        + '<a href="#" data-route="event" data-event-key="' + ev.id + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg> View public page</a>'
+        // ev-menu-mobile: there is an icon for this on desktop now, and
+        // without this the menu would repeat it right beside its own
+        // button.
+        + '<a class="ev-menu-mobile" href="#" data-route="event" data-event-key="' + ev.id + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg> ' + escapeHtml(window.t('dashEvents.viewPublicPage')) + '</a>'
+        + '<button data-event-detail="' + escapeHtml(ev.id) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/></svg> ' + escapeHtml(window.t('dashEvents.viewDetails')) + '</button>'
         + (ev.visibility === 'draft'
             ? '<button data-publish-event-id="' + ev.id + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5L20 7"/></svg> Publish event</button>'
             : '<button data-unpublish-event-id="' + ev.id + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.6 18.6 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><path d="M1 1l22 22"/></svg> Unpublish (make draft)</button>')
@@ -20226,6 +20300,85 @@ Groups</span>
     if (window.calViewActive && typeof window.renderEventsCalendar === 'function') { window.renderEventsCalendar(); }
   }
   dashPanel(loadDashboardEvents);
+  // ============================================================
+  // The event detail card
+  // ============================================================
+  // Opened by the title in a row, and by "View details" in the row
+  // menu. Six of the eight columns are hidden on a phone to make the
+  // table fit; this is where that information went, along with the
+  // description, which never had a column at any width.
+  //
+  // Everything comes from the row the table already loaded. The only
+  // reason this is async at all is that it is not -- it is deliberately
+  // synchronous, unlike the group card, because 'profiles(full_name)'
+  // is already joined into the events query.
+  var eventDetailSeq = 0;
+
+  window.openEventDetail = function(eventId){
+    var modal = document.getElementById('event-detail-modal');
+    var nameEl = document.getElementById('event-detail-name');
+    var bodyEl = document.getElementById('event-detail-body');
+    var ev = (window.dashEventsById || {})[eventId];
+    if (!modal || !nameEl || !bodyEl || !ev) return;
+    eventDetailSeq++;
+
+    nameEl.textContent = ev.title;
+
+    var startD = ev.start_at ? new Date(ev.start_at) : null;
+    var endD = ev.end_at ? new Date(ev.end_at) : null;
+    var dateOpts = { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric' };
+    var timeOpts = { hour: 'numeric', minute: '2-digit' };
+    var when = '';
+    if (startD) {
+      when = startD.toLocaleDateString(window.appLocale(), dateOpts)
+           + ', ' + startD.toLocaleTimeString(window.appLocale(), timeOpts);
+      if (endD) {
+        // A same-day end shows only its time; a multi-day one shows the
+        // date too, because "7:00 PM - 2:00 PM" reads as a mistake.
+        var sameDay = startD.toDateString() === endD.toDateString();
+        when += ' – ' + (sameDay ? '' : endD.toLocaleDateString(window.appLocale(), dateOpts) + ', ')
+             + endD.toLocaleTimeString(window.appLocale(), timeOpts);
+      }
+    }
+
+    var statusTag = '<span class="tag ' + (ev.visibility === 'draft' ? 'clay' : 'sage') + '" style="font-size:10px;padding:2px 7px;">'
+      + escapeHtml(ev.visibility || 'public') + '</span>';
+
+    var price = '';
+    if (ev.price_cents) price = '$' + (ev.price_cents / 100).toFixed(2);
+    else if (ev.registration_required) price = window.t('dashEvents.freeLabel');
+
+    // The description is rich text the church authored, so it goes
+    // through the same sanitiser every other rendering of it uses
+    // rather than being trusted or flattened.
+    var descHtml = ev.description
+      ? sanitizeRichText(ev.description)
+      : escapeHtml(window.t('dashEvents.noDescription'));
+
+    bodyEl.innerHTML = ''
+      + '<div style="color:var(--ink-mute);font-size:13.5px;line-height:1.55;margin-bottom:14px;">' + descHtml + '</div>'
+      + fdDetailRow(window.t('dashEvents.whenLabel'), escapeHtml(when))
+      + fdDetailRow(window.t('dashEvents.whereLabel'), escapeHtml((window.eventPlaceText && window.eventPlaceText(ev)) || ''))
+      + fdDetailRow(window.t('dashEvents.status'), statusTag)
+      + fdDetailRow(window.t('dashEvents.registrations'),
+          ev.registration_required ? escapeHtml(window.t('common.on')) : '—')
+      + fdDetailRow(window.t('dashEvents.priceLabel'), escapeHtml(price))
+      + fdDetailRow(window.t('dashEvents.createdBy'),
+          escapeHtml((ev.profiles && ev.profiles.full_name) || ''))
+      + fdDetailRow(window.t('dashGroups.createdOn'),
+          ev.created_at ? escapeHtml(new Date(ev.created_at).toLocaleDateString(window.appLocale(), { year: 'numeric', month: 'long', day: 'numeric' })) : '');
+
+    modal.classList.add('open');
+  };
+
+  // Delegated: rows are rebuilt on every load.
+  document.addEventListener('click', function(ev){
+    var hit = ev.target.closest && ev.target.closest('[data-event-detail]');
+    if (!hit) return;
+    ev.preventDefault();
+    window.openEventDetail(hit.getAttribute('data-event-detail'));
+  });
+
   window.loadDashboardEvents = loadDashboardEvents;
 
   // Registration counts otherwise only ever reflected whatever was
@@ -22942,18 +23095,14 @@ Groups</span>
   }
   function toLocalDateStr(d){ return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
   function toLocalTimeStr(d){ return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0'); }
-  function combineDateTime(dateStr, timeStr){ return (dateStr && timeStr) ? (dateStr + 'T' + timeStr) : ''; }
+  // What a datetime-local input wants, and hands back: local wall time,
+  // no zone. Exactly the shape combineDateTime used to assemble from two
+  // fields, so everything downstream of it is unchanged.
+  function toLocalDateTimeStr(d){ return toLocalDateStr(d) + 'T' + toLocalTimeStr(d); }
 
-  var ceStartTimeSelect = document.getElementById('ce-start-time');
-  var ceEndTimeSelect = document.getElementById('ce-end-time');
-  if (ceStartTimeSelect && ceEndTimeSelect) {
-    var timeOptionsHtml = buildTimeOptions();
-    ceStartTimeSelect.innerHTML = timeOptionsHtml;
-    ceEndTimeSelect.innerHTML = timeOptionsHtml;
-    ceStartTimeSelect.value = '09:00';
-    ceEndTimeSelect.value = '10:00';
-  }
-
+  // buildTimeOptions still exists for the GROUP form's meeting time,
+  // which is a recurring slot rather than a moment and is still best
+  // picked from a list. The event form no longer needs it.
   var groupMeetingTimeSelect = document.getElementById('group-meeting-time');
   if (groupMeetingTimeSelect) {
     groupMeetingTimeSelect.innerHTML = buildTimeOptions();
@@ -22962,27 +23111,30 @@ Groups</span>
 
   // End always follows start — if the end is empty or now falls
   // before the new start, bump it forward by an hour automatically.
+  // This now carries the default the two dropdowns used to hold. They
+  // were pre-set to 09:00 and 10:00 with the dates left blank, which a
+  // single field cannot do -- a datetime-local is complete or it is
+  // empty. Filling the end an hour after the start the moment a start
+  // is chosen gives the same help at the point it is actually useful.
   function ceAdjustEndFromStart(){
-    var startDateStr = document.getElementById('ce-start-date').value;
-    var startTimeStr = document.getElementById('ce-start-time').value;
-    if (!startDateStr || !startTimeStr) return;
-    var startDate = new Date(startDateStr + 'T' + startTimeStr);
+    var startStr = document.getElementById('ce-start-at').value;
+    if (!startStr) return;
+    var startDate = new Date(startStr);
+    if (isNaN(startDate)) return;
 
-    var endDateStr = document.getElementById('ce-end-date').value;
-    var endTimeStr = document.getElementById('ce-end-time').value;
-    var endDate = (endDateStr && endTimeStr) ? new Date(endDateStr + 'T' + endTimeStr) : null;
+    var endStr = document.getElementById('ce-end-at').value;
+    var endDate = endStr ? new Date(endStr) : null;
+    if (endDate && isNaN(endDate)) endDate = null;
 
     if (!endDate || endDate <= startDate) {
-      var newEnd = new Date(startDate.getTime() + 60 * 60 * 1000);
-      document.getElementById('ce-end-date').value = toLocalDateStr(newEnd);
-      document.getElementById('ce-end-time').value = toLocalTimeStr(newEnd);
+      document.getElementById('ce-end-at').value =
+        toLocalDateTimeStr(new Date(startDate.getTime() + 60 * 60 * 1000));
     }
   }
-  var ceStartDateInput = document.getElementById('ce-start-date');
-  if (ceStartDateInput) {
-    ceStartDateInput.addEventListener('change', ceAdjustEndFromStart);
-    ceStartTimeSelect.addEventListener('change', ceAdjustEndFromStart);
-  }
+  var ceStartAtInput = document.getElementById('ce-start-at');
+  // One listener now, not two. A datetime-local fires 'change' for the
+  // date half and the time half alike.
+  if (ceStartAtInput) ceStartAtInput.addEventListener('change', ceAdjustEndFromStart);
 
   // Warn (don't block) if the chosen image is smaller than what the
   // card needs to render sharp on a retina/high-DPI screen — the
@@ -23407,6 +23559,11 @@ Groups</span>
     refreshCeChurchScope();
     clearCeStatus();
     document.getElementById('ce-heading').textContent = window.t('ce.createAnEvent');
+    // The eyebrow too. Reset here as well as set below, because this
+    // form is reused: arriving fresh after having edited something must
+    // not leave 'Event' sitting above 'Create an event'.
+    var ceEyebrowNew = document.getElementById('ce-eyebrow');
+    if (ceEyebrowNew) ceEyebrowNew.textContent = window.t('ce.newEvent');
     document.getElementById('ce-repeats-section').style.display = 'block';
     // Recurrence was the one section this never cleared. Reported: a
     // new event picked up the previous one's weekly repeat and its
@@ -23423,10 +23580,11 @@ Groups</span>
     document.getElementById('ce-title').value = '';
     document.getElementById('ce-description').innerHTML = '';
     document.getElementById('ce-description-count').textContent = '0 / 800';
-    document.getElementById('ce-start-date').value = '';
-    document.getElementById('ce-end-date').value = '';
-    document.getElementById('ce-start-time').value = '09:00';
-    document.getElementById('ce-end-time').value = '10:00';
+    // Both blank. The old 09:00/10:00 defaults lived on the time
+    // dropdowns, which could hold a time with no date; one field cannot.
+    // ceAdjustEndFromStart fills the end as soon as a start is picked.
+    document.getElementById('ce-start-at').value = '';
+    document.getElementById('ce-end-at').value = '';
     document.getElementById('ce-venue-name').value = '';
     document.getElementById('ce-location').value = '';
     document.getElementById('ce-location').disabled = false;
@@ -23624,6 +23782,10 @@ Groups</span>
     // since this event was created.
     refreshCeChurchScope(ev.church_id);
     document.getElementById('ce-heading').textContent = window.t(asCopy ? 'ce.createAnEvent' : 'ce.editEvent');
+    // A copy is a NEW event, so it keeps the new-event eyebrow; only a
+    // real edit changes it.
+    var ceEyebrowEl = document.getElementById('ce-eyebrow');
+    if (ceEyebrowEl) ceEyebrowEl.textContent = window.t(asCopy ? 'ce.newEvent' : 'ce.eventEyebrow');
     // Opening an event for editing clears any earlier edit state.
     // No setTimeout needed now -- there is no baseline to race,
     // because programmatic population cannot set the flag at all.
@@ -23662,12 +23824,9 @@ Groups</span>
     document.getElementById('ce-location').value = ev.location || '';
 
     var startD = new Date(ev.start_at);
-    document.getElementById('ce-start-date').value = toLocalDateStr(startD);
-    document.getElementById('ce-start-time').value = toLocalTimeStr(startD);
+    document.getElementById('ce-start-at').value = toLocalDateTimeStr(startD);
     if (ev.end_at) {
-      var endD = new Date(ev.end_at);
-      document.getElementById('ce-end-date').value = toLocalDateStr(endD);
-      document.getElementById('ce-end-time').value = toLocalTimeStr(endD);
+      document.getElementById('ce-end-at').value = toLocalDateTimeStr(new Date(ev.end_at));
     }
 
     // Cleared unconditionally first -- editing event B right after
@@ -24276,8 +24435,10 @@ Groups</span>
       // that might land in this field some other way (pasted
       // content, browser extensions, a future editing path).
       var description = sanitizeRichText(document.getElementById('ce-description').innerHTML);
-      var startAt = combineDateTime(document.getElementById('ce-start-date').value, document.getElementById('ce-start-time').value);
-      var endAt = combineDateTime(document.getElementById('ce-end-date').value, document.getElementById('ce-end-time').value);
+      // Already 'YYYY-MM-DDTHH:mm' -- the same string combineDateTime
+      // used to build out of two fields.
+      var startAt = document.getElementById('ce-start-at').value;
+      var endAt = document.getElementById('ce-end-at').value;
       var ceVenueName = document.getElementById('ce-venue-name').value.trim();
       var ceAddressValue = document.getElementById('ce-location').value.trim();
       // Stored apart since migration 075. They used to be joined with a
@@ -28334,8 +28495,8 @@ Groups</span>
     var warnEl = document.getElementById('ce-room-conflict-warning');
     if (!warnEl) return;
     var roomIds = getSelectedCeRoomIds();
-    var startAt = combineDateTime(document.getElementById('ce-start-date').value, document.getElementById('ce-start-time').value);
-    var endAt = combineDateTime(document.getElementById('ce-end-date').value, document.getElementById('ce-end-time').value);
+    var startAt = document.getElementById('ce-start-at').value;
+    var endAt = document.getElementById('ce-end-at').value;
     if (!roomIds.length || !startAt) { warnEl.style.display = 'none'; warnEl.innerHTML = ''; return; }
 
     // Each run claims an id and only paints if it is still the latest.
@@ -28370,7 +28531,11 @@ Groups</span>
       var t = ev.target;
       if (!t) return;
       if (t.classList && t.classList.contains('ce-room-check')) { refreshCeRoomConflicts(); refreshCeRoomsLabel(); return; }
-      if (['ce-start-date', 'ce-start-time', 'ce-end-date', 'ce-end-time'].indexOf(t.id) !== -1) refreshCeRoomConflicts();
+      // The two datetime-local fields that replaced the four date/time
+      // controls. Missing this rename would have left double-booking
+      // warnings frozen on whatever times the form was opened with --
+      // silently, since nothing errors when a listener matches nothing.
+      if (['ce-start-at', 'ce-end-at'].indexOf(t.id) !== -1) refreshCeRoomConflicts();
     });
   })();
 
@@ -33419,7 +33584,10 @@ Groups</span>
   // only when they exist.
   var groupDetailSeq = 0;
 
-  function groupDetailRow(label, value){
+  // Shared by the group and event cards. One implementation, because a
+  // second copy is a second thing to keep in step -- the failure this
+  // file keeps paying for.
+  function fdDetailRow(label, value){
     if (value === null || value === undefined || value === '') return '';
     return '<div style="display:flex;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13.5px;">'
       + '<div style="color:var(--ink-mute);flex:0 0 42%;min-width:0;">' + escapeHtml(label) + '</div>'
@@ -33452,18 +33620,18 @@ Groups</span>
       bodyEl.innerHTML = ''
         + '<p style="color:var(--ink-mute);font-size:13.5px;line-height:1.55;margin-bottom:14px;">'
           + escapeHtml(g.description || window.t('dashGroups.noDescription')) + '</p>'
-        + groupDetailRow(window.t('dashGroups.schedule'), escapeHtml(g.meeting_schedule || '—'))
-        + groupDetailRow(window.t('dashDir.members'),
+        + fdDetailRow(window.t('dashGroups.schedule'), escapeHtml(g.meeting_schedule || '—'))
+        + fdDetailRow(window.t('dashDir.members'),
             counts.active + (counts.pending ? ' <span class="tag clay" style="font-size:9px;padding:2px 5px;">' + counts.pending + ' ' + escapeHtml(window.t('dashGroups.pendingBadge')) + '</span>' : ''))
-        + groupDetailRow(window.t('dashGroups.ministryLabel'), escapeHtml(ministryName || window.t('dashGroups.noMinistry')))
-        + groupDetailRow(window.t('dashGroups.createdBy'), escapeHtml(creatorName || window.t('dashGroups.unknownPerson')))
-        + groupDetailRow(window.t('dashGroups.createdOn'),
+        + fdDetailRow(window.t('dashGroups.ministryLabel'), escapeHtml(ministryName || window.t('dashGroups.noMinistry')))
+        + fdDetailRow(window.t('dashGroups.createdBy'), escapeHtml(creatorName || window.t('dashGroups.unknownPerson')))
+        + fdDetailRow(window.t('dashGroups.createdOn'),
             g.created_at ? escapeHtml(new Date(g.created_at).toLocaleDateString(window.appLocale(), { year: 'numeric', month: 'long', day: 'numeric' })) : '')
-        + groupDetailRow(window.t('dashGroups.visibilityLabel'), escapeHtml(g.visibility || '—'))
-        + groupDetailRow(window.t('dashGroups.joinMethodLabel'), escapeHtml(g.join_method || '—'))
-        + groupDetailRow(window.t('dashGroups.contactInfoVisible'),
+        + fdDetailRow(window.t('dashGroups.visibilityLabel'), escapeHtml(g.visibility || '—'))
+        + fdDetailRow(window.t('dashGroups.joinMethodLabel'), escapeHtml(g.join_method || '—'))
+        + fdDetailRow(window.t('dashGroups.contactInfoVisible'),
             tag(g.leader_can_view_contact_info, g.leader_can_view_contact_info ? window.t('common.on') : window.t('common.off')))
-        + groupDetailRow(window.t('dashGroups.memberListShown'),
+        + fdDetailRow(window.t('dashGroups.memberListShown'),
             tag(g.show_member_list, g.show_member_list ? window.t('common.on') : window.t('common.off')));
     }
 
