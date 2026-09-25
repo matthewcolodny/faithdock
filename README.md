@@ -7,6 +7,10 @@ Visual concept / prototype for FaithDock — a single-file frontend deployed as 
 - `pure-logic.js` — a small shared logic module loaded by `index.html`, kept separate so it can be unit-tested independently (see the "Shared with pure-logic.js" comments in index.html)
 - `manifest.webmanifest`, `sw.js`, `icons/` — what makes the site installable to a home screen and able to open without a signal. See "Installable app" below.
 - `tools/make-icon.js` — regenerates the icon PNGs from the mark. No dependencies; not part of the deploy.
+- `tools/prep-texas.js` — turns the IRS Exempt Organizations Business
+  Master File for Texas into import-ready batches. No dependencies; not
+  part of the deploy. See its header for why FOUNDATION=10 is the church
+  test and why denomination and address are deliberately left alone.
 
 ## Deploying
 All of the above must be deployed together, at the same root level — `index.html` loads `pure-logic.js` via a relative `<script src="pure-logic.js">` tag, and the manifest, service worker and icons are referenced from the root (`/sw.js`, `/manifest.webmanifest`, `/icons/...`). On Cloudflare Pages, connecting this repo directly (rather than manual zip uploads) avoids them ever drifting out of sync on the live site.
