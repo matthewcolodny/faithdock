@@ -961,6 +961,10 @@
       // about 110px, which with the gap does not fit, so Export still
       // landed on its own line.
       'dashEvents.importShort': 'Import',
+      // Used by the row's public-page icon and menu item. It was called
+      // for and never defined, so window.t() fell back to printing the
+      // key -- "dashEvents.viewPublicPage" -- in the menu.
+      'dashEvents.viewPublicPage': 'View public page',
       'dashEvents.audienceLabel': 'Audience', 'dashEvents.membersOnlyLabel': 'Members only',
       'dashEvents.publicLabel': 'Public', 'dashEvents.noSignupLabel': 'No signup',
       'dashEvents.contactsLabel': 'Event contacts',
@@ -1619,7 +1623,7 @@
       'audience.preschool': 'Preschool', 'audience.children': 'Children', 'audience.teens': 'Teens', 'audience.adults': 'Adults', 'audience.seniors': 'Seniors', 'audience.parents': 'Parents',
       'ce.unsavedChangesConfirm': 'You have unsaved changes to this event. Leave without saving?',
       'ce.backToDashboard': '← Back to events', 'ce.newEvent': 'New event', 'ce.eventEyebrow': 'Event', 'ce.createAnEvent': 'Create an event', 'ce.editEvent': 'Edit event', 'ce.postsUnderChurchName': 'Posts under {church}.', 'ce.postingAs': 'Posting as',
-      'ce.advancedOptions': 'Advanced options', 'ce.advancedOptionsSub': 'registration, tickets, recurrence, and more',
+      'ce.advancedOptions': 'Advanced options', 'ce.advancedOptionsSub': 'Registration, tickets, recurrence, and more',
       'ce.eventTitle': 'Event title', 'ce.eventTitlePlaceholder': 'Fall Community Picnic', 'ce.description': 'Description', 'ce.descriptionPlaceholder': "What's happening, who it's for",
       'ce.writingAssistant': 'Writing Assistant', 'ce.checkSpellingGrammar': 'Check Spelling and Grammar', 'ce.makeItFormal': 'Make it Formal', 'ce.makeItFriendly': 'Make it Friendly', 'ce.makeItInviting': 'Make it Inviting', 'ce.writeFromKeywords': 'Write from Keywords',
       'ce.writingAssistantTeaser': 'Create better event announcements in seconds with the Writing Assistant below.',
@@ -2165,6 +2169,7 @@
       'dashEvents.importIcs': 'Importar de un archivo de calendario',
       'dashEvents.exportShort': 'Exportar',
       'dashEvents.importShort': 'Importar',
+      'dashEvents.viewPublicPage': 'Ver página pública',
       'dashEvents.audienceLabel': 'Público', 'dashEvents.membersOnlyLabel': 'Solo miembros',
       'dashEvents.publicLabel': 'Público', 'dashEvents.noSignupLabel': 'Sin inscripción',
       'dashEvents.contactsLabel': 'Contactos del evento',
@@ -2817,7 +2822,7 @@
       'audience.preschool': 'Preescolar', 'audience.children': 'Niños', 'audience.teens': 'Adolescentes', 'audience.adults': 'Adultos', 'audience.seniors': 'Adultos mayores', 'audience.parents': 'Padres',
       'ce.unsavedChangesConfirm': 'Tienes cambios sin guardar en este evento. ¿Salir sin guardar?',
       'ce.backToDashboard': '← Volver a eventos', 'ce.newEvent': 'Nuevo evento', 'ce.eventEyebrow': 'Evento', 'ce.createAnEvent': 'Crear un evento', 'ce.editEvent': 'Editar evento', 'ce.postsUnderChurchName': 'Se publica bajo {church}.', 'ce.postingAs': 'Publicando como',
-      'ce.advancedOptions': 'Opciones avanzadas', 'ce.advancedOptionsSub': 'inscripción, entradas, repetición y más',
+      'ce.advancedOptions': 'Opciones avanzadas', 'ce.advancedOptionsSub': 'Inscripción, entradas, repetición y más',
       'ce.eventTitle': 'Título del evento', 'ce.eventTitlePlaceholder': 'Picnic comunitario de otoño', 'ce.description': 'Descripción', 'ce.descriptionPlaceholder': 'Qué va a pasar, para quién es',
       'ce.writingAssistant': 'Asistente de escritura', 'ce.checkSpellingGrammar': 'Revisar ortografía y gramática', 'ce.makeItFormal': 'Hacerlo formal', 'ce.makeItFriendly': 'Hacerlo amigable', 'ce.makeItInviting': 'Hacerlo atractivo', 'ce.writeFromKeywords': 'Escribir a partir de palabras clave',
       'ce.writingAssistantTeaser': 'Crea mejores anuncios de eventos en segundos con el Asistente de escritura de abajo.',
@@ -5365,10 +5370,20 @@
        is left, so a header reading "EVENT" above it labels nothing --
        it is a row of chrome above the first real row. */
     .ev-head-row{display:none;}
-    /* Facility: the export button keeps its row and loses its words.
-       margin-left:auto still pins it right, beside the view toggle. */
+    /* Facility: export joins the Day/Week/Month line.
+       ORDER, not markup. In the DOM the date navigation sits between
+       the view toggle and this button, so on a phone that block took a
+       full line and pushed export onto a third one -- hiding its label
+       did nothing about where it sat. Reordering moves it up without
+       disturbing the desktop row, where all four already fit as
+       written.
+       The nav and the room picker are given a full basis so they each
+       start a new line rather than trying to squeeze onto the first. */
+    #room-schedule-controls > .seg-toggle{order:1;}
+    #room-schedule-export{order:2;padding:9px 11px;}
+    #room-schedule-controls > #room-schedule-room-wrap{order:3;flex-basis:100%;}
+    #room-schedule-controls > .rsched-nav{order:4;flex-basis:100%;}
     .rsched-export-label{display:none;}
-    #room-schedule-export{padding:9px 11px;}
   }
   table.roster{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;}
   /* Every dashboard roster table (events, giving, rosters, etc. --
@@ -5756,8 +5771,26 @@
        actually wants -- and the only control left is the menu, which
        now contains the two buttons that used to sit beside it. */
     .ev-col-desk{display:none;}
-    #dash-events-table.roster-fits th:nth-child(1){width:84%;}
-    #dash-events-table.roster-fits th:nth-child(8){width:16%;}
+    /* ON THE CELLS, not the header. These were on th:nth-child, and
+       hiding the header row took the column widths with them -- a
+       display:none row contributes nothing to table layout. The table
+       then auto-sized from content and squeezed the title column to
+       about 90px, which is why titles broke one word per line and
+       addresses broke mid-word.
+       Stated on the body cells instead, so the widths survive the
+       header being hidden. */
+    #dash-events-table.roster-fits td:nth-child(1){width:86%;}
+    #dash-events-table.roster-fits td:last-child{width:14%;}
+    /* Measured, not guessed: the table is 303px inside the dashboard
+       card on a 375px phone, and the date column plus a 44px thumbnail
+       and two 9px gaps took 108px of it -- leaving the title 129px,
+       which is where long church names started breaking badly. A
+       smaller thumbnail and tighter gaps give it about 150px. The
+       picture is a cue at this size, not something you read; tapping
+       it opens the full one. */
+    #dash-events-table .ev-row-main{gap:7px;}
+    #dash-events-table .row-thumb,
+    #dash-events-table .row-thumb-empty{width:36px;height:36px;}
     /* :not([colspan]) matters. This is meant for the narrow trailing
        action column of a real event row. A full-width state row --
        "Loading your events...", an empty state -- is a single
@@ -10143,7 +10176,7 @@ Groups</span>
     <div class="side-note" id="room-schedule-section" style="display:none;">
       <h4 data-i18n="dashFacility.scheduleTitle">Room schedule</h4>
       <p style="font-size:13.5px;color:var(--ink-mute);margin-bottom:14px;" data-i18n="dashFacility.scheduleHint">Day shows every room side by side. Two blocks on top of each other are the same double-booking the event form warns about.</p>
-      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px;">
+      <div id="room-schedule-controls" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px;">
         <!-- Day first and default: "what is happening on Sunday" is a
              question about the building, not about one room. -->
         <div class="seg-toggle">
@@ -10595,7 +10628,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-25-v284 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-25-v285 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -20392,13 +20425,11 @@ Groups</span>
         + '<button data-gcal-event-id="' + ev.id + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M9 14l2 2 4-4"/></svg> Add to Google Calendar</button>'
         + '<button data-ics-event-id="' + ev.id + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M12 14v4M10 16h4"/></svg> Download .ics (Apple/Outlook)</button>'
         + '<button data-share-fb="' + escapeHtml(ev.id) + '"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 9h3l.5-3H14V4.5c0-.9.3-1.5 1.6-1.5H17V.3A22 22 0 0 0 14.8 0C12.3 0 10.6 1.5 10.6 4.2V6H8v3h2.6v8H14V9Z"/></svg> ' + escapeHtml(window.t('dashEvents.shareFacebook')) + '</button>'
-        // Instagram has no share-to URL -- nothing on the web can
-        // pre-fill an Instagram post. The OS share sheet DOES list it,
-        // so this is the only route that actually reaches Instagram,
-        // and it reaches WhatsApp, Messages and the rest with it.
-        // Hidden where navigator.share does not exist, which is most
-        // desktop browsers, rather than offering a dead item.
-        + '<button class="ev-share-native" data-share-native="' + escapeHtml(ev.id) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg> ' + escapeHtml(window.t('dashEvents.shareMore')) + '</button>'
+        // An Instagram item was here and is gone. It could only open the
+        // OS share sheet, and Instagram accepts nothing from it but a
+        // bare link -- no title, no image, no caption. A menu entry
+        // that promises sharing and delivers a pasted URL is worse than
+        // not offering it.
         + '<button onclick="openShareModal(\'' + ev.title.replace(/'/g, "\\'") + '\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM19 14h2v2h-2zM14 19h2v2h-2zM19 19h2v2h-2z"/></svg> Share QR code</button>'
         + registrantsMenuItem
         + '<button class="danger" data-delete-event-id="' + ev.id + '" data-delete-event-title="' + escapedTitle + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg> Delete</button>'
@@ -20510,6 +20541,11 @@ Groups</span>
           '<span class="tag ' + (membersOnly ? 'clay' : 'sage') + '" style="font-size:10px;padding:2px 7px;">'
           + escapeHtml(membersOnly ? window.t('dashEvents.membersOnlyLabel') : window.t('dashEvents.publicLabel')) + '</span>')
       + fdDetailRow(window.t('dashEvents.registrations'), signupText)
+      // Who it is FOR -- the ce-audience checkboxes (Preschool,
+      // Children, Teens, Adults...). Distinct from Audience above,
+      // which is who may SEE it. Both were called "audience" in my
+      // head and only one of them was on the card.
+      + fdDetailRow(window.t('ce.whoIsThisFor'), tagList(ev.audience))
       + fdDetailRow(window.t('ce.categories'), tagList(ev.category_tags))
       + fdDetailRow(window.t('ce.tags'), tagList(ev.tags))
       + fdDetailRow(window.t('dashEvents.contactsLabel'), contactsHtml)
@@ -20524,6 +20560,11 @@ Groups</span>
 
   // Delegated: rows are rebuilt on every load.
   document.addEventListener('click', function(ev){
+    // A picture opens the lightbox and nothing else. Listener ORDER
+    // decides whether stopImmediatePropagation above is enough, and
+    // order depends on which block of this file ran first -- not
+    // something to leave a user-visible behaviour resting on.
+    if (ev.target.closest && ev.target.closest('[data-expand-image]')) return;
     var hit = ev.target.closest && ev.target.closest('[data-event-detail]');
     if (!hit) return;
     ev.preventDefault();
@@ -20549,9 +20590,12 @@ Groups</span>
     var pic = ev.target.closest && ev.target.closest('[data-expand-image]');
     if (pic) {
       ev.preventDefault();
-      // stopPropagation: an event thumbnail sits inside the row, and
-      // without this the row's own handlers run too.
-      ev.stopPropagation();
+      // stopImmediatePropagation, not stopPropagation. Both this and
+      // the detail-card handler are bound to document, and
+      // stopPropagation only stops an event reaching OTHER nodes -- it
+      // does nothing about a second listener on the same one. So
+      // tapping a thumbnail opened the lightbox AND the card behind it.
+      ev.stopImmediatePropagation();
       window.openImageLightbox(pic.getAttribute('data-expand-image'), pic.getAttribute('alt'));
       return;
     }
@@ -20626,6 +20670,16 @@ Groups</span>
     if (!onDashboard) return;
     var panel = document.getElementById('dash-events');
     if (!panel || !panel.classList.contains('active')) return;
+    // NOT WHILE A ROW MENU IS OPEN. This poll rebuilds the tbody, which
+    // destroys the menu along with it -- so a menu left open for twenty
+    // seconds closed itself while being read. Reported exactly that
+    // way. Refreshing a list under somebody's finger is the wrong
+    // trade: the poll exists to pick up registrations made elsewhere,
+    // and those can wait the few seconds it takes to choose an item.
+    if (document.querySelector('.row-menu-dropdown.open')) return;
+    // Same for an open detail card or lightbox: both read from
+    // dashEventsById, which this replaces underneath them.
+    if (document.querySelector('#event-detail-modal.open, #image-lightbox.open')) return;
     loadDashboardEvents();
   }, 20000);
 

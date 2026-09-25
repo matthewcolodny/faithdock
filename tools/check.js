@@ -189,7 +189,39 @@ function checkI18nKeys() {
     if (!(key in dict.en)) { fail('index.html:' + line, 'data-i18n key "' + key + '" is not in the English dictionary'); missingEn++; }
     else if (!(key in dict.es)) { fail('index.html:' + line, 'data-i18n key "' + key + '" is missing from Spanish (would silently show English)'); missingEs++; }
   }
-  note(used.size + ' data-i18n keys checked against ' +
+  // ------------------------------------------------------------------
+  // window.t('literal') calls, not just data-i18n attributes.
+  //
+  // THIS CHECK EXISTS BECAUSE THE FIRST VERSION MISSED A REAL BUG. A
+  // row menu called window.t('dashEvents.viewPublicPage') for a key
+  // that was never defined, so t() fell back to returning the key and
+  // the menu read "dashEvents.viewPublicPage" to the user. The checker
+  // passed, because it only looked at markup attributes -- and most of
+  // this app's strings are rendered from JavaScript.
+  //
+  // Only literal single-quoted keys are checked. A computed key
+  // (window.t(someVar)) cannot be resolved here, and those paths are
+  // visible anyway: an unknown key renders as itself.
+  const tUsed = new Map();
+  const tRe = /\bwindow\.t\('([^']+)'\)|(?<![\w.])\bt\('([A-Za-z][\w]*\.[\w.]+)'\)/g;
+  let tm;
+  while ((tm = tRe.exec(html)) !== null) {
+    const key = tm[1] || tm[2];
+    // A real key is word characters and dots, nothing else. This also
+    // skips prose: the file discusses its own calls in comments, and
+    // "window.t('days.*')" in one of them is not a lookup.
+    if (!key || !/^[A-Za-z]\w*(\.\w+)+$/.test(key)) continue;
+    if (!tUsed.has(key)) tUsed.set(key, lineAt(tm.index));
+  }
+  for (const [key, line] of tUsed) {
+    if (!(key in dict.en)) {
+      fail('index.html:' + line, 'window.t("' + key + '") is not in the English dictionary -- it will render as the key itself');
+    } else if (!(key in dict.es)) {
+      fail('index.html:' + line, 'window.t("' + key + '") is missing from Spanish (would silently show English)');
+    }
+  }
+
+  note(used.size + ' data-i18n keys and ' + tUsed.size + ' t() calls checked against ' +
        Object.keys(dict.en).length + ' en / ' + Object.keys(dict.es).length + ' es entries');
 }
 
