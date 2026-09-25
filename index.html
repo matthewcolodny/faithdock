@@ -11002,7 +11002,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-25-v294 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-25-v295 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12534,7 +12534,28 @@ Groups</span>
   // one side, but the last character consumed there is a period, not a
   // letter. Confirmed by testing "Grace Church L.L.C." specifically
   // before shipping this, not just reasoned through.
-  var CORPORATE_SUFFIX_RE = /,?\s*\b(?:l\.l\.c\.|(?:incorporated|incorporation|corporation|inc|corp|llc|ltd|limited)\b).*$/i;
+  // THE NON-PROFIT QUALIFIER HAS TO START THE MATCH, not the legal
+  // token after it. "290 Community Church a Texas Non-Profit
+  // Corporation" matched at "Corporation" and left "290 Community
+  // Church a Texas Non-Profit" on screen -- the suffix was truncated
+  // and the boilerplate introducing it was not.
+  //
+  // Counted in the statewide IRS file, over 24,704 church rows: 4,807
+  // carry "Inc" as a word, 254 "Incorporated", 35 "Corporation", and 15
+  // some non-profit phrasing. The last group is small and is the whole
+  // reason for this edit, because it is the one the list never covered:
+  // "A Texas Nonprofit Corporation", "A Domestic Nonprofit Corp",
+  // "A Non-Profit Co", and -- with no legal token at all to match on --
+  // "The First Christian Church of Paducah Texas a Texas Nonprofit".
+  //
+  // "Company" is deliberately NOT a suffix token. It reads like one and
+  // is not: Gods Company Chapel, Zion House Company, Cup & Table
+  // Company, The Light Company Church are all real names in the same
+  // file. Nor is a bare trailing "Co" -- Well Texoma Co and Yah Tap Co
+  // are churches whose names simply end that way. Only "Co" ALREADY
+  // introduced by a non-profit qualifier is consumed, and it is
+  // consumed by the qualifier's own .*$ rather than by matching "Co".
+  var CORPORATE_SUFFIX_RE = /,?\s*\b(?:(?:an?\s+)?(?:(?:domestic|texas|state\s+of\s+texas)\s+)*non[\s-]?profit\b|l\.l\.c\.|(?:incorporated|incorporation|corporation|inc|corp|llc|ltd|limited)\b).*$/i;
   function displayChurchName(name){
     if (!name) return name;
     var stripped = name.replace(CORPORATE_SUFFIX_RE, '');

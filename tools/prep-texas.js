@@ -113,6 +113,75 @@ const ACRONYMS = new Set([
   'II', 'III', 'IV', 'VI', 'VII', 'VIII', 'IX', 'XI', 'XII', 'JR', 'SR'
 ]);
 
+// KEEP IN SYNC with CORPORATE_SUFFIX_RE in index.html. It is the same
+// expression, and the duplication is deliberate: this script is
+// standalone and cannot import from a 2.5MB HTML file.
+//
+// Why strip here as well as at render time, when index.html already
+// does it? Because render-time stripping only fixes what is SHOWN. The
+// stored name is also the dedupe key, the URL slug (#church/<name>),
+// what search matches, and what a message to the church is addressed
+// to. 4,807 of the 24,704 church rows in this file carry "Inc" as a
+// word; leaving that in the database means 4,807 URLs with Inc in them.
+//
+// "Company" is deliberately not a suffix token -- Gods Company Chapel,
+// Zion House Company and Cup & Table Company are real names in this
+// same file. Neither is a bare trailing "Co": Well Texoma Co and Yah
+// Tap Co are churches. Only a "Co" already introduced by a non-profit
+// qualifier goes, and the qualifier's own .*$ is what takes it.
+const CORPORATE_SUFFIX_RE = /,?\s*\b(?:(?:an?\s+)?(?:(?:domestic|texas|state\s+of\s+texas)\s+)*non[\s-]?profit\b|l\.l\.c\.|(?:incorporated|incorporation|corporation|inc|corp|llc|ltd|limited)\b).*$/i;
+
+function stripCorporateSuffix(name) {
+  const out = String(name || '').replace(CORPORATE_SUFFIX_RE, '').replace(/[\s,]+$/, '');
+  // Never return nothing. A name that was somehow only "Inc" keeps its
+  // original rather than becoming a blank row.
+  return out || String(name || '');
+}
+
+// The IRS truncates CITY to fit a fixed-width field, and does it
+// inconsistently, so one city arrives under several spellings. Counted
+// in this file: Corpus Christi is CORP CHRISTI (113), CRP CHRISTI (54)
+// and CORPUS CHRISTI (9); Fort Worth is FORT WORTH (518), FT WORTH
+// (60), FORTH WORTH (1) and FT FORTH (1).
+//
+// It matters twice over. Batches are labelled by their dominant city,
+// so a split spelling can mislabel a batch or hide it; and "N RICHLND
+// HLS" is a worse geocoder input than the real name.
+//
+// Only the CITY is touched. Street abbreviations (ST, AVE, BLVD, STE)
+// are standard postal forms that geocode perfectly well and mean
+// something -- rewriting those would be change for its own sake.
+const CITY_WORD = {
+  HLS: 'HILLS', SPGS: 'SPRINGS', SPG: 'SPRING', HTS: 'HEIGHTS', CTY: 'CITY',
+  VLG: 'VILLAGE', VLY: 'VALLEY', STA: 'STATION', BRNCH: 'BRANCH', BRCH: 'BRANCH',
+  RNCH: 'RANCH', LK: 'LAKE', CRK: 'CREEK', GRV: 'GROVE', MDWS: 'MEADOWS',
+  JCT: 'JUNCTION', PRK: 'PARK', FLS: 'FALLS', BCH: 'BEACH', CTR: 'CENTER',
+  RICHLND: 'RICHLAND', PROVIDNCE: 'PROVIDENCE',
+  N: 'NORTH', S: 'SOUTH', E: 'EAST', W: 'WEST', FT: 'FORT', MT: 'MOUNT'
+};
+// Whole-string fixes, for the ones a word-by-word pass cannot reach.
+const CITY_WHOLE = {
+  'CORP CHRISTI': 'CORPUS CHRISTI', 'CRP CHRISTI': 'CORPUS CHRISTI',
+  'FORTH WORTH': 'FORT WORTH', 'FT FORTH': 'FORT WORTH',
+  'N RICHLANDS HILLS': 'NORTH RICHLAND HILLS'
+};
+
+function normaliseCity(city) {
+  let c = String(city || '').toUpperCase().replace(/\s+/g, ' ').trim();
+  if (CITY_WHOLE[c]) return CITY_WHOLE[c];
+  c = c.split(' ').map(function (w, i, arr) {
+    // A directional or FT/MT is only an abbreviation when it LEADS the
+    // name. "Lake Worth" must not become "Lake Fort", and a trailing
+    // "W" is not "West".
+    if ((CITY_WORD[w] === 'NORTH' || CITY_WORD[w] === 'SOUTH' || CITY_WORD[w] === 'EAST' ||
+         CITY_WORD[w] === 'WEST' || CITY_WORD[w] === 'FORT' || CITY_WORD[w] === 'MOUNT')) {
+      return i === 0 && arr.length > 1 ? CITY_WORD[w] : w;
+    }
+    return CITY_WORD[w] || w;
+  }).join(' ');
+  return CITY_WHOLE[c] || c;
+}
+
 function capWord(w) {
   return w.toLowerCase().replace(/(^|['-])([a-z])/g, (m, sep, ch) => sep + ch.toUpperCase());
 }
@@ -211,7 +280,11 @@ EXCLUDE_FILES.forEach(function(f){
     if (!ls[i]) continue;
     const c = splitCsvLine(ls[i]);
     if (!c[ni] || !c[ai]) continue;
-    alreadyHave.add(c[ni].trim().toLowerCase() + '|' + c[ai].trim().toLowerCase());
+    // Normalised the SAME way as the rows below. The San Antonio file
+    // was prepared before suffixes were stripped, so a raw comparison
+    // would stop matching the moment this script began stripping them
+    // -- and every one of those rows would be geocoded again.
+    alreadyHave.add(stripCorporateSuffix(c[ni].trim()).toLowerCase() + '|' + c[ai].trim().toLowerCase());
     added++;
   }
   console.log('  excluding ' + added.toLocaleString() + ' already-imported rows from ' + f);
@@ -219,7 +292,7 @@ EXCLUDE_FILES.forEach(function(f){
 
 const clean = [], review = [], excluded = [], poBox = [];
 const seen = new Set();
-let total = 0, notChurch = 0, notActive = 0, dupes = 0, already = 0;
+let total = 0, notChurch = 0, notActive = 0, dupes = 0, already = 0, stripped = 0;
 
 for (let i = 1; i < lines.length; i++) {
   if (!lines[i]) continue;
@@ -233,11 +306,12 @@ for (let i = 1; i < lines.length; i++) {
 
   const rawName = g('NAME');
   const street = g('STREET');
-  const city = g('CITY');
+  const city = normaliseCity(g('CITY'));
   const zip = g('ZIP');
   if (!rawName || !city) continue;
 
-  const name = titleCaseName(rawName);
+  const name = stripCorporateSuffix(titleCaseName(rawName));
+  if (name !== titleCaseName(rawName)) stripped++;
   const address = [street, city, (g('STATE') || 'TX') + ' ' + zip].filter(Boolean).join(', ');
 
   // Dedupe on the same key the database uses conceptually: name plus
@@ -249,7 +323,7 @@ for (let i = 1; i < lines.length; i++) {
   if (alreadyHave.has(key)) { already++; continue; }
 
   const v = verdict(rawName);
-  const row = { name, address, city: city.toUpperCase(), zip3: (zip.match(/^\d{3}/) || [''])[0], reason: v.reason };
+  const row = { name, address, city: city, zip3: (zip.match(/^\d{3}/) || [''])[0], reason: v.reason };
 
   if (v.bucket === 'excluded') { excluded.push(row); continue; }
   if (v.bucket === 'review') { review.push(row); continue; }
@@ -326,6 +400,7 @@ console.log('  not a church    ' + notChurch.toLocaleString() + '  (FOUNDATION <
 console.log('  not active      ' + notActive.toLocaleString() + '  (STATUS <> 01)');
 console.log('  duplicate rows  ' + dupes.toLocaleString());
 if (alreadyHave.size) console.log('  already imported ' + already.toLocaleString());
+console.log('\nCorporate suffix stripped from ' + stripped.toLocaleString() + ' names (Inc, Incorporated, a Non-Profit Co, ...)');
 const churches = clean.length + review.length + excluded.length + poBox.length;
 console.log('\nChurches          ' + churches.toLocaleString());
 console.log('  ready to import ' + clean.length.toLocaleString() + '  ' + pct(clean.length, churches) + '  in ' + batches.length + ' batches');
