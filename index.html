@@ -1140,7 +1140,6 @@
       'upload.converting': 'Converting your photo \u2014 this can take a few seconds the first time.',
       'upload.heicTooLarge': 'That photo is too large to convert in the browser. Take a screenshot of it and upload that instead, or use a smaller copy.',
       'upload.converterOffline': 'Couldn\'t load the photo converter \u2014 check your connection and try again. If it keeps failing, take a screenshot of the photo and upload that instead.',
-      'upload.heicNotSupported': 'That photo couldn\'t be converted. Open it and take a screenshot, then upload the screenshot \u2014 that works from any phone.',
       // One message per failure. They were all showing the same line,
       // which made the difference between "your phone ran out of
       // memory" and "this file is a format we cannot read" invisible
@@ -1148,6 +1147,11 @@
       'upload.heicTooManyPixels': 'That photo is too big for this phone to convert ({mp} megapixels). Take a screenshot of it and upload that, or use a smaller copy.',
       'upload.heicUnreadable': 'That photo could not be read \u2014 it may use a newer HEIC variant this browser cannot decode. A screenshot of it will upload fine.',
       'upload.heicEncodeFailed': 'This phone ran out of memory converting that photo. A screenshot of it will upload fine.',
+      // The catch-all, and the only one that quotes the machine. Every
+      // named failure above was added by reasoning about what COULD go
+      // wrong; the one actually being hit is none of them, so the
+      // guessing stops here and the message carries the real text.
+      'upload.heicUnknownFailure': 'That photo couldn\'t be converted — a screenshot of it will upload fine. If you can, send this line so it can be fixed: {detail}',
       'cropper.hint': 'Drag to move, and use the slider to zoom. What you see is what gets saved.',
       'accountSettings.ownershipTitle': 'Transfer a church to someone else',
       'accountSettings.send': 'Send',
@@ -2365,10 +2369,10 @@
       'upload.converting': 'Convirtiendo tu foto \u2014 la primera vez puede tardar unos segundos.',
       'upload.heicTooLarge': 'Esa foto es demasiado grande para convertirla en el navegador. Haz una captura de pantalla y sube esa, o usa una copia más pequeña.',
       'upload.converterOffline': 'No se pudo cargar el conversor de fotos \u2014 revisa tu conexión e inténtalo de nuevo. Si sigue fallando, haz una captura de pantalla de la foto y sube esa.',
-      'upload.heicNotSupported': 'No se pudo convertir esa foto. \u00c1brela, haz una captura de pantalla y sube la captura \u2014 eso funciona desde cualquier teléfono.',
       'upload.heicTooManyPixels': 'Esa foto es demasiado grande para convertirla en este teléfono ({mp} megapíxeles). Haz una captura de pantalla y sube esa, o usa una copia más pequeña.',
       'upload.heicUnreadable': 'No se pudo leer esa foto \u2014 puede usar una variante de HEIC que este navegador no sabe descodificar. Una captura de pantalla se subirá sin problema.',
       'upload.heicEncodeFailed': 'Este teléfono se quedó sin memoria al convertir esa foto. Una captura de pantalla se subirá sin problema.',
+      'upload.heicUnknownFailure': 'No se pudo convertir esa foto — una captura de pantalla se subirá sin problema. Si puedes, envía esta línea para que se pueda corregir: {detail}',
       'cropper.hint': 'Arrastra para mover y usa el control para acercar. Lo que ves es lo que se guarda.',
       'accountSettings.ownershipTitle': 'Transferir una iglesia a otra persona',
       'accountSettings.send': 'Enviar',
@@ -10726,7 +10730,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-25-v288 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-25-v289 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -11686,6 +11690,9 @@ Groups</span>
       var file = this.files[0];
       var filenameEl = document.getElementById('group-image-filename');
       var removeBtn = document.getElementById('group-image-remove-btn');
+      // Clear the error styling from a previous attempt, so a second
+      // pick that works does not stay red.
+      filenameEl.style.color = '';
       if (!file) {
         filenameEl.setAttribute('data-i18n', 'rc.noFileChosen');
         filenameEl.textContent = window.t('rc.noFileChosen');
@@ -11700,8 +11707,16 @@ Groups</span>
       } catch (convErr) {
         groupImageInput.value = '';
         window.groupImageEditedFile = null;
-        filenameEl.setAttribute('data-i18n', 'rc.noFileChosen');
+        // NOT data-i18n here. This element normally holds the chosen
+        // filename and carries data-i18n="rc.noFileChosen", and setting
+        // that attribute alongside an error message means the next
+        // applyTranslations() -- a language switch, or any re-render
+        // that calls it -- silently replaces the error with "No file
+        // chosen". The attribute is removed instead, and put back the
+        // next time a file is picked.
+        filenameEl.removeAttribute('data-i18n');
         filenameEl.textContent = window.uploadFailureMessage(convErr);
+        filenameEl.style.color = 'var(--clay)';
         return;
       }
       // 16:9 at 1600, matching the event graphic -- a group card shows
@@ -13281,12 +13296,39 @@ Groups</span>
     return heicDecoderPromise;
   }
 
+  // Runs one step and, if it throws, re-throws something that says
+  // WHICH step and WHAT the runtime said.
+  //
+  // Everything below used to throw bare. Three named failures were
+  // added by reasoning about what could plausibly go wrong, and the
+  // real one turned out to be none of them -- it fell through to the
+  // catch-all, which named no step and quoted nothing, so two rounds
+  // of reports carried no information at all. A WASM abort inside
+  // decode() and a TypeError from a missing export are the same
+  // sentence to the person holding the phone, and there is no console
+  // to open on a phone.
+  function heicStep(step, fn){
+    try { return fn(); }
+    catch (e) {
+      var detail = (e && (e.name ? e.name + ': ' : '') + (e.message || String(e))) || 'no message';
+      var wrapped = new Error('heic-step-' + step + ' | ' + String(detail).slice(0, 180));
+      wrapped.cause = e;
+      throw wrapped;
+    }
+  }
+
   async function convertHeicToJpeg(file){
     if (file.size > HEIC_MAX_BYTES) throw new Error('heic-too-large');
     var factory = await loadHeifDecoder();
-    var lib = factory();
-    var bytes = new Uint8Array(await file.arrayBuffer());
-    var images = new lib.HeifDecoder().decode(bytes);
+    var lib = heicStep('init', function(){ return factory(); });
+    if (!lib || typeof lib.HeifDecoder !== 'function') {
+      throw new Error('heic-step-init | HeifDecoder missing, got ' + (lib ? Object.prototype.toString.call(lib) : String(lib)));
+    }
+    var buf;
+    try { buf = await file.arrayBuffer(); }
+    catch (e) { throw new Error('heic-step-read | ' + ((e && e.message) || String(e)).slice(0, 180)); }
+    var bytes = new Uint8Array(buf);
+    var images = heicStep('decode', function(){ return new lib.HeifDecoder().decode(bytes); });
     if (!images || !images.length) throw new Error('heic-no-images');
     try {
       // The PRIMARY image, not images[0]. A HEIC routinely holds more
@@ -13328,12 +13370,19 @@ Groups</span>
         oom.cause = e;
         throw oom;
       }
+      // display() can also throw synchronously -- a WASM abort surfaces
+      // that way rather than through the callback -- so the call itself
+      // is inside the executor and the rejection carries the reason.
       await new Promise(function(resolve, reject){
-        img.display(imageData, function(result){
-          if (result) resolve(); else reject(new Error('heic-display-failed'));
-        });
+        try {
+          img.display(imageData, function(result){
+            if (result) resolve(); else reject(new Error('heic-display-failed'));
+          });
+        } catch (e) {
+          reject(new Error('heic-step-display | ' + ((e && e.message) || String(e)).slice(0, 180)));
+        }
       });
-      ctx.putImageData(imageData, 0, 0);
+      heicStep('paint', function(){ ctx.putImageData(imageData, 0, 0); });
 
       // Encode from a SMALLER canvas when the photo is bigger than
       // anything this app displays. The card wants about 1200px, and
@@ -13352,7 +13401,10 @@ Groups</span>
         canvas.width = canvas.height = 1;
         encodeFrom = small;
       }
-      var blob = await new Promise(function(resolve){ encodeFrom.toBlob(resolve, 'image/jpeg', 0.9); });
+      var blob = await new Promise(function(resolve, reject){
+        try { encodeFrom.toBlob(resolve, 'image/jpeg', 0.9); }
+        catch (e) { reject(new Error('heic-step-encode | ' + ((e && e.message) || String(e)).slice(0, 180))); }
+      });
       // toBlob resolves with null rather than throwing when it cannot
       // allocate, which is exactly how this failed silently before.
       if (!blob) throw new Error('heic-encode-failed');
@@ -13404,7 +13456,15 @@ Groups</span>
       return window.t('upload.heicUnreadable');
     }
     if (code === 'decoder download failed') return window.t('upload.converterOffline');
-    return window.t('upload.heicNotSupported');
+    // Anything else quotes itself. heicStep tags the stage, so a report
+    // now says "heic-step-decode | RuntimeError: ..." rather than
+    // "couldn't be converted" -- which is the difference between a fix
+    // and another round of guessing.
+    var detail = code || (err && err.name) || 'unknown';
+    if (err && err.cause && err.cause.message && code.indexOf(err.cause.message.slice(0, 20)) === -1) {
+      detail += ' / ' + String(err.cause.message).slice(0, 120);
+    }
+    return window.t('upload.heicUnknownFailure').replace('{detail}', detail);
   };
   var cropperState = null;
 
