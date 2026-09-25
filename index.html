@@ -961,6 +961,11 @@
       // about 110px, which with the gap does not fit, so Export still
       // landed on its own line.
       'dashEvents.importShort': 'Import',
+      'dashEvents.audienceLabel': 'Audience', 'dashEvents.membersOnlyLabel': 'Members only',
+      'dashEvents.publicLabel': 'Public', 'dashEvents.noSignupLabel': 'No signup',
+      'dashEvents.contactsLabel': 'Event contacts',
+      'dashEvents.shareFacebook': 'Share to Facebook', 'dashEvents.shareMore': 'Share to Instagram, WhatsApp…',
+      'dashEvents.linkCopied': 'Link copied',
       'dashEvents.detailTitle': 'Event details', 'dashEvents.viewDetails': 'View details',
       'dashEvents.whenLabel': 'When', 'dashEvents.whereLabel': 'Where',
       'dashEvents.noDescription': 'No description yet.', 'dashEvents.priceLabel': 'Price',
@@ -2157,6 +2162,11 @@
       'dashEvents.importIcs': 'Importar de un archivo de calendario',
       'dashEvents.exportShort': 'Exportar',
       'dashEvents.importShort': 'Importar',
+      'dashEvents.audienceLabel': 'Público', 'dashEvents.membersOnlyLabel': 'Solo miembros',
+      'dashEvents.publicLabel': 'Público', 'dashEvents.noSignupLabel': 'Sin inscripción',
+      'dashEvents.contactsLabel': 'Contactos del evento',
+      'dashEvents.shareFacebook': 'Compartir en Facebook', 'dashEvents.shareMore': 'Compartir en Instagram, WhatsApp…',
+      'dashEvents.linkCopied': 'Enlace copiado',
       'dashEvents.detailTitle': 'Detalles del evento', 'dashEvents.viewDetails': 'Ver detalles',
       'dashEvents.whenLabel': 'Cuándo', 'dashEvents.whereLabel': 'Dónde',
       'dashEvents.noDescription': 'Aún no hay descripción.', 'dashEvents.priceLabel': 'Precio',
@@ -3189,6 +3199,12 @@
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', addNotes);
     else addNotes();
   })();
+
+  // Does this browser have an OS share sheet? Instagram cannot be
+  // shared to from the web by URL -- no such endpoint exists -- so the
+  // share sheet is the only route that reaches it, and the menu item
+  // offering it is hidden where there is none.
+  try { if (navigator.share) document.documentElement.classList.add('fd-can-share'); } catch (e) {}
 
   window.PLATFORM_FEE = { giving: 0, ticket: 0 };
   function applyFeeTokens(str){
@@ -5609,6 +5625,12 @@
      as well, duplicating the buttons beside the menu. */
   .row-menu-dropdown button.ev-menu-mobile,
   .row-menu-dropdown a.ev-menu-mobile{display:none;}
+  /* Set on <html> at startup when navigator.share exists. Without it
+     the item is hidden, because most desktop browsers have no share
+     sheet and a menu entry that silently copies a link instead is not
+     what it says it is. */
+  .row-menu-dropdown button.ev-share-native{display:none;}
+  html.fd-can-share .row-menu-dropdown button.ev-share-native{display:flex;}
 
   /* The same stacked phone treatment for the groups table, and here
      for the same reason: five columns of which four are short values
@@ -9482,6 +9504,16 @@ Groups</span>
       <!-- The event detail card. Same job as the group one: the phone
            layout hides six of the eight columns to fit, and fitting
            must not mean losing the data. -->
+      <!-- One lightbox, used by the event row thumbnails and the
+           directory's profile pictures alike. Both were rendered small
+           enough to be unreadable -- a 32px avatar and a 44px event
+           thumb -- with the full image already on the server. -->
+      <div class="modal-overlay" id="image-lightbox" style="cursor:zoom-out;">
+        <div class="modal-card" style="max-width:min(92vw,720px);padding:10px;background:transparent;border:none;box-shadow:none;">
+          <img id="image-lightbox-img" alt="" style="display:block;width:100%;height:auto;max-height:82vh;object-fit:contain;border-radius:12px;">
+        </div>
+      </div>
+
       <div class="modal-overlay" id="event-detail-modal">
         <div class="modal-card" style="max-width:520px;max-height:85vh;overflow-y:auto;">
           <button class="modal-close" onclick="document.getElementById('event-detail-modal').classList.remove('open')" aria-label="Close" data-i18n-title="common.close">
@@ -10527,7 +10559,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-25-v282 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-25-v283 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -20202,8 +20234,11 @@ Groups</span>
       var timeLabel = new Date(ev.start_at).toLocaleTimeString(window.appLocale(), { hour: 'numeric', minute: '2-digit' });
       var creatorName = (ev.profiles && ev.profiles.full_name) ? ev.profiles.full_name : '—';
       var escapedTitle = ev.title.replace(/"/g, '&quot;');
+      // data-expand-image, so the row thumbnail opens the full picture.
+      // At 44px the graphic is decoration; the real one is already
+      // uploaded and there was no way to see it from here.
       var thumbHtml = ev.image_url
-        ? '<img class="row-thumb" src="' + ev.image_url + '" alt="">'
+        ? '<img class="row-thumb" src="' + escapeHtml(ev.image_url) + '" alt="" data-expand-image="' + escapeHtml(ev.image_url) + '" style="cursor:zoom-in;">'
         : '<div class="row-thumb-empty"></div>';
 
       // The same numbers the Registrations column shows, on one line,
@@ -20320,6 +20355,14 @@ Groups</span>
         + '<button data-copy-event-id="' + ev.id + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy</button>'
         + '<button data-gcal-event-id="' + ev.id + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M9 14l2 2 4-4"/></svg> Add to Google Calendar</button>'
         + '<button data-ics-event-id="' + ev.id + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M12 14v4M10 16h4"/></svg> Download .ics (Apple/Outlook)</button>'
+        + '<button data-share-fb="' + escapeHtml(ev.id) + '"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 9h3l.5-3H14V4.5c0-.9.3-1.5 1.6-1.5H17V.3A22 22 0 0 0 14.8 0C12.3 0 10.6 1.5 10.6 4.2V6H8v3h2.6v8H14V9Z"/></svg> ' + escapeHtml(window.t('dashEvents.shareFacebook')) + '</button>'
+        // Instagram has no share-to URL -- nothing on the web can
+        // pre-fill an Instagram post. The OS share sheet DOES list it,
+        // so this is the only route that actually reaches Instagram,
+        // and it reaches WhatsApp, Messages and the rest with it.
+        // Hidden where navigator.share does not exist, which is most
+        // desktop browsers, rather than offering a dead item.
+        + '<button class="ev-share-native" data-share-native="' + escapeHtml(ev.id) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg> ' + escapeHtml(window.t('dashEvents.shareMore')) + '</button>'
         + '<button onclick="openShareModal(\'' + ev.title.replace(/'/g, "\\'") + '\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM19 14h2v2h-2zM14 19h2v2h-2zM19 19h2v2h-2z"/></svg> Share QR code</button>'
         + registrantsMenuItem
         + '<button class="danger" data-delete-event-id="' + ev.id + '" data-delete-event-title="' + escapedTitle + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg> Delete</button>'
@@ -20382,6 +20425,36 @@ Groups</span>
     if (ev.price_cents) price = '$' + (ev.price_cents / 100).toFixed(2);
     else if (ev.registration_required) price = window.t('dashEvents.freeLabel');
 
+    // Same rule as the row badge: private visibility OR members-only
+    // registration both mean members only.
+    var membersOnly = !!(ev.members_only_registration || ev.visibility === 'private');
+
+    // "No signup" is a real state worth naming, not a blank. An event
+    // nobody can register for looks identical to one whose count has
+    // not loaded if this is left empty.
+    var signupText = ev.registration_required
+      ? escapeHtml((ev.confirmed_participant_count != null ? ev.confirmed_participant_count : 0)
+          + (ev.max_participants ? '/' + ev.max_participants : ''))
+      : '<span class="tag" style="font-size:10px;padding:2px 7px;">' + escapeHtml(window.t('dashEvents.noSignupLabel')) + '</span>';
+
+    // Arrays on the row; rendered as tags, omitted when empty so the
+    // card does not grow empty rows for events that use neither.
+    function tagList(arr){
+      if (!arr || !arr.length) return '';
+      return arr.map(function(t){
+        return '<span class="tag sage" style="font-size:10px;padding:2px 7px;margin:0 4px 4px 0;display:inline-block;">' + escapeHtml(t) + '</span>';
+      }).join('');
+    }
+
+    var contactsHtml = (ev.contacts && ev.contacts.length)
+      ? ev.contacts.map(function(c){
+          var nm = escapeHtml(c.name || '');
+          return c.email
+            ? '<div>' + nm + ' <a href="mailto:' + escapeHtml(c.email) + '" style="color:var(--ink-mute);">' + escapeHtml(c.email) + '</a></div>'
+            : '<div>' + nm + '</div>';
+        }).join('')
+      : '';
+
     // The description is rich text the church authored, so it goes
     // through the same sanitiser every other rendering of it uses
     // rather than being trusted or flattened.
@@ -20394,8 +20467,16 @@ Groups</span>
       + fdDetailRow(window.t('dashEvents.whenLabel'), escapeHtml(when))
       + fdDetailRow(window.t('dashEvents.whereLabel'), escapeHtml((window.eventPlaceText && window.eventPlaceText(ev)) || ''))
       + fdDetailRow(window.t('dashEvents.status'), statusTag)
-      + fdDetailRow(window.t('dashEvents.registrations'),
-          ev.registration_required ? escapeHtml(window.t('common.on')) : '—')
+      // Audience, from the same pair the row's badge uses: a private
+      // event and one whose REGISTRATION is members-only both read as
+      // members-only to somebody looking at this list.
+      + fdDetailRow(window.t('dashEvents.audienceLabel'),
+          '<span class="tag ' + (membersOnly ? 'clay' : 'sage') + '" style="font-size:10px;padding:2px 7px;">'
+          + escapeHtml(membersOnly ? window.t('dashEvents.membersOnlyLabel') : window.t('dashEvents.publicLabel')) + '</span>')
+      + fdDetailRow(window.t('dashEvents.registrations'), signupText)
+      + fdDetailRow(window.t('ce.categories'), tagList(ev.category_tags))
+      + fdDetailRow(window.t('ce.tags'), tagList(ev.tags))
+      + fdDetailRow(window.t('dashEvents.contactsLabel'), contactsHtml)
       + fdDetailRow(window.t('dashEvents.priceLabel'), escapeHtml(price))
       + fdDetailRow(window.t('dashEvents.createdBy'),
           escapeHtml((ev.profiles && ev.profiles.full_name) || ''))
@@ -20411,6 +20492,79 @@ Groups</span>
     if (!hit) return;
     ev.preventDefault();
     window.openEventDetail(hit.getAttribute('data-event-detail'));
+  });
+
+  // ============================================================
+  // Image lightbox, and the two share routes
+  // ============================================================
+  // One handler for every [data-expand-image] on the page: event row
+  // thumbnails and directory profile pictures today, anything else
+  // that marks itself up the same way later.
+  window.openImageLightbox = function(src, alt){
+    var box = document.getElementById('image-lightbox');
+    var img = document.getElementById('image-lightbox-img');
+    if (!box || !img || !src) return;
+    img.src = src;
+    img.alt = alt || '';
+    box.classList.add('open');
+  };
+
+  document.addEventListener('click', function(ev){
+    var pic = ev.target.closest && ev.target.closest('[data-expand-image]');
+    if (pic) {
+      ev.preventDefault();
+      // stopPropagation: an event thumbnail sits inside the row, and
+      // without this the row's own handlers run too.
+      ev.stopPropagation();
+      window.openImageLightbox(pic.getAttribute('data-expand-image'), pic.getAttribute('alt'));
+      return;
+    }
+    // Clicking the backdrop OR the picture closes it. A lightbox with
+    // only a corner X to dismiss is the thing everyone taps around.
+    var box = document.getElementById('image-lightbox');
+    if (box && box.classList.contains('open') && ev.target.closest('#image-lightbox')) {
+      box.classList.remove('open');
+    }
+  });
+  document.addEventListener('keydown', function(ev){
+    if (ev.key !== 'Escape') return;
+    var box = document.getElementById('image-lightbox');
+    if (box) box.classList.remove('open');
+  });
+
+  // The public URL an event is shared by. Same shape openShareModal
+  // builds its QR code from, so a shared link and a scanned one land
+  // in the same place.
+  function eventShareUrl(ev){
+    return 'https://faithdock.com/e/' + slugify(ev.title || '');
+  }
+
+  document.addEventListener('click', async function(evt){
+    var fb = evt.target.closest && evt.target.closest('[data-share-fb]');
+    if (fb) {
+      evt.preventDefault();
+      var e1 = (window.dashEventsById || {})[fb.getAttribute('data-share-fb')];
+      if (!e1) return;
+      // Facebook reads the page's own Open Graph tags, so there is
+      // nothing to pass but the URL.
+      window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(eventShareUrl(e1)),
+                  '_blank', 'noopener,noreferrer');
+      return;
+    }
+    var nat = evt.target.closest && evt.target.closest('[data-share-native]');
+    if (!nat) return;
+    evt.preventDefault();
+    var e2 = (window.dashEventsById || {})[nat.getAttribute('data-share-native')];
+    if (!e2) return;
+    var url = eventShareUrl(e2);
+    try {
+      if (navigator.share) { await navigator.share({ title: e2.title, url: url }); return; }
+    } catch (err) {
+      // A cancelled share sheet rejects. That is not an error and must
+      // not fall through to copying a link nobody asked for.
+      return;
+    }
+    try { await navigator.clipboard.writeText(url); alert(window.t('dashEvents.linkCopied')); } catch (err) {}
   });
 
   window.loadDashboardEvents = loadDashboardEvents;
@@ -30459,7 +30613,7 @@ Groups</span>
         ? '<span class="tag clay" style="font-size:10px;margin-left:4px;" title="' + escapeHtml(window.t('dashDir.optedOutHint')) + '">' + escapeHtml(window.t('dashDir.optedOut')) + '</span>'
         : '';
       var photoHtml = p.avatar_url
-        ? '<img src="' + p.avatar_url + '" alt="" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">'
+        ? '<img src="' + escAttr(p.avatar_url) + '" alt="" data-expand-image="' + escAttr(p.avatar_url) + '" style="width:32px;height:32px;border-radius:50%;object-fit:cover;cursor:zoom-in;">'
         : '<div style="width:32px;height:32px;border-radius:50%;background:var(--paper);border:1px solid var(--line);"></div>';
       // Owner and staff get no checkbox at all rather than a disabled
       // one: removing a staff member is a Team & Permissions job, and
