@@ -11,6 +11,14 @@ Visual concept / prototype for FaithDock — a single-file frontend deployed as 
   Master File for Texas into import-ready batches. No dependencies; not
   part of the deploy. See its header for why FOUNDATION=10 is the church
   test and why denomination and address are deliberately left alone.
+- `tools/enrich-batch.js` — looks one prepared batch up against Google
+  Places and splits it into found / not found / found-but-not-a-place-
+  of-worship, adding phone and website. Run BEFORE importing. Needs a
+  SERVER API key in `GOOGLE_PLACES_KEY` (the key in index.html is
+  referrer-restricted and will refuse). One billable call per church, so
+  start any batch with `--limit 5`, and use `--dry-run` to exercise it
+  for free. Results are cached as they land, so an interrupted run
+  resumes without paying twice.
 
 ## Deploying
 All of the above must be deployed together, at the same root level — `index.html` loads `pure-logic.js` via a relative `<script src="pure-logic.js">` tag, and the manifest, service worker and icons are referenced from the root (`/sw.js`, `/manifest.webmanifest`, `/icons/...`). On Cloudflare Pages, connecting this repo directly (rather than manual zip uploads) avoids them ever drifting out of sync on the live site.
