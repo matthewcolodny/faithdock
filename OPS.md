@@ -34,6 +34,21 @@ Postgres's own "function does not exist". Verified in a local preview.
 already hold" before the statewide Texas CSV goes in. Without it the
 map is an empty box.
 
+**First attempt failed, 2026-09-25, and the file has been corrected.**
+It ended with `select * from admin_church_coverage_cells(0)`, which
+raised "You do not have permission to view the coverage map." That was
+the gate working. `is_platform_admin()` reads
+`profiles.is_platform_admin where id = auth.uid()`, and the SQL Editor
+carries no JWT -- so `auth.uid()` is null and it returns false for
+everyone, always, whoever is logged into the dashboard. **No admin RPC
+in this database can be called from the SQL Editor.** They are meant to
+be called from the app, signed in. The editor also wraps the script in
+one transaction, so that error rolled back the functions created above
+it: nothing was left behind, and re-running the corrected file is the
+whole fix. The verify block now asserts the grants from `pg_proc` and
+runs the grouping directly against `churches`, neither of which needs
+an admin identity.
+
 **What it involves:** paste the file into the SQL Editor and run it. It
 creates two SECURITY DEFINER functions, `admin_church_coverage_cells`
 and `admin_coverage_unmapped_count`, both gated on

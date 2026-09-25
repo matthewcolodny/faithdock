@@ -127,31 +127,111 @@ revoke all on function admin_coverage_unmapped_count() from public, anon;
 grant execute on function admin_coverage_unmapped_count() to authenticated;
 
 -- ---------------------------------------------------------------------
--- Verify. Read the output rather than assuming it worked.
+-- Verify
 -- ---------------------------------------------------------------------
--- Expect: anon_can_execute false for BOTH, and both definers.
+-- NOTHING BELOW CALLS THE FUNCTIONS, AND IT CANNOT.
 --
--- The grant is the part worth checking, not the result. These read
--- every church in the table, including hidden ones, and they are
--- SECURITY DEFINER -- so if anon can execute them, RLS is bypassed for
--- the whole table. Migration 094 predicted a grant and was wrong about
--- it; assert it, do not print it and move on.
-select
-  p.proname                                            as fn,
-  p.prosecdef                                          as is_security_definer,
-  has_function_privilege('anon', p.oid, 'EXECUTE')     as anon_can_execute,
-  has_function_privilege('authenticated', p.oid, 'EXECUTE') as authenticated_can_execute
-from pg_proc p
-join pg_namespace n on n.oid = p.pronamespace
-where n.nspname = 'public'
-  and p.proname in ('admin_church_coverage_cells', 'admin_coverage_unmapped_count')
-order by p.proname;
+-- The first version of this block ended with
+--   select * from admin_church_coverage_cells(0);
+-- which failed with "You do not have permission to view the coverage
+-- map." That was not the gate misbehaving -- it was the gate working,
+-- and the verify query being impossible.
+--
+--   is_platform_admin()
+--     -> select coalesce((select is_platform_admin
+--                           from profiles where id = auth.uid()), false)
+--
+-- The SQL Editor carries no JWT, so auth.uid() is NULL, no profile row
+-- matches, and it returns false for everybody, every time, no matter
+-- whose account is logged into the dashboard. Every admin RPC in this
+-- database is unreachable from the SQL Editor by design. They are
+-- meant to be called from the app, signed in.
+--
+-- It also cost a re-run: the editor wraps the whole script in one
+-- transaction, so an error in the last statement rolled back the
+-- functions created above it.
+--
+-- The lesson is the same one migration 094 taught and 092 taught before
+-- it -- a verify step has to be capable of failing for the right
+-- reason. This one now checks the two things that are actually true
+-- from here: the grants, and the data.
 
--- And the shape of the data, at state level. Expect one row per
--- (cell, batch) -- with the San Antonio import only, a handful of rows
--- around lat 29, lng -98.
-select cell_lat, cell_lng, n, claimed, hidden,
-       coalesce(import_batch_id, '(added individually)') as batch
-from admin_church_coverage_cells(0)
+-- ---------------------------------------------------------------------
+-- 1. The grants, asserted rather than printed
+-- ---------------------------------------------------------------------
+-- This is the part that matters. Both functions are SECURITY DEFINER
+-- and read every church including hidden ones, so an EXECUTE grant to
+-- anon would hand the whole table to anybody with the key that ships in
+-- the page. 094 printed a grant it had predicted wrongly and nobody
+-- read the column; this raises instead.
+do $verify_grants$
+declare
+  r record;
+  problems text[] := '{}';
+begin
+  for r in
+    select p.proname,
+           p.prosecdef                                        as secdef,
+           has_function_privilege('anon', p.oid, 'EXECUTE')    as anon_exec,
+           has_function_privilege('authenticated', p.oid, 'EXECUTE') as auth_exec
+      from pg_proc p
+      join pg_namespace n on n.oid = p.pronamespace
+     where n.nspname = 'public'
+       and p.proname in ('admin_church_coverage_cells', 'admin_coverage_unmapped_count')
+  loop
+    if r.anon_exec then
+      problems := problems || (r.proname || ': anon CAN execute -- RLS is bypassed for churches');
+    end if;
+    if not r.auth_exec then
+      problems := problems || (r.proname || ': authenticated CANNOT execute -- the app will not be able to call it');
+    end if;
+    if not r.secdef then
+      problems := problems || (r.proname || ': not SECURITY DEFINER -- it will read only what the caller can, which is nothing');
+    end if;
+  end loop;
+
+  -- Both must exist. An empty loop would otherwise pass silently, which
+  -- is the failure mode worth guarding: it looks identical to success.
+  if (select count(*) from pg_proc p
+        join pg_namespace n on n.oid = p.pronamespace
+       where n.nspname = 'public'
+         and p.proname in ('admin_church_coverage_cells', 'admin_coverage_unmapped_count')) <> 2 then
+    problems := problems || 'expected both functions to exist, found a different number';
+  end if;
+
+  if array_length(problems, 1) > 0 then
+    raise exception E'INVARIANT FAILED:\n  %', array_to_string(problems, E'\n  ');
+  end if;
+  raise notice 'Grants OK: both functions exist, are SECURITY DEFINER, executable by authenticated, not by anon.';
+end
+$verify_grants$;
+
+-- ---------------------------------------------------------------------
+-- 2. The data the map will draw
+-- ---------------------------------------------------------------------
+-- The same grouping the function does, run directly against the table
+-- so it works from here. If this returns sensible rows, the function
+-- will return the same ones to a signed-in admin -- its body is this
+-- query.
+--
+-- Expect, with the San Antonio import only: a small number of rows
+-- around lat 29, lng -98, summing to the number of geocoded churches.
+select
+  round(c.lat::numeric, 0)::double precision as cell_lat,
+  round(c.lng::numeric, 0)::double precision as cell_lng,
+  coalesce(c.import_batch_id, '(added individually)') as batch,
+  count(*)                                       as n,
+  count(*) filter (where c.owner_id is not null) as claimed,
+  count(*) filter (where c.is_hidden)            as hidden
+from churches c
+where c.lat is not null and c.lng is not null
+group by 1, 2, 3
 order by n desc
 limit 10;
+
+-- And what the map will say it cannot show.
+select
+  count(*) filter (where lat is null or lng is null) as unmapped,
+  count(*) filter (where lat is not null and lng is not null) as mappable,
+  count(*)                                                    as total
+from churches;
