@@ -17,8 +17,50 @@ The distinction between the three files:
 When one is finished, move it to "Done" at the bottom with the date.
 The state it ended in is worth more later than the fact it was on a list.
 
-No migrations are pending as of 2026-09-24. 091 through 096 have all
-been run and verified; they are under Done below. Two things are.
+**One migration is pending as of 2026-09-25: 098.** 091 through 096
+have been run and verified and are under Done below; 097 is run and
+deliberately inert.
+
+## Migration 098 — the coverage map has nothing to draw until it runs
+
+**State today (2026-09-25):** `supabase/migrations/098_admin_coverage_map.sql`
+is written and committed. It has **not** been run. The admin Coverage
+map section is live in the app and, until the migration runs, says so
+in as many words -- "needs migration 098 -- run
+supabase/migrations/098_admin_coverage_map.sql" -- rather than showing
+Postgres's own "function does not exist". Verified in a local preview.
+
+**Why it matters:** it is the thing that answers "which metros do we
+already hold" before the statewide Texas CSV goes in. Without it the
+map is an empty box.
+
+**What it involves:** paste the file into the SQL Editor and run it. It
+creates two SECURITY DEFINER functions, `admin_church_coverage_cells`
+and `admin_coverage_unmapped_count`, both gated on
+`is_platform_admin()`. Read the two verify queries at the bottom --
+the first asserts anon cannot execute either, which matters because
+they read every church including hidden ones and bypass RLS by design.
+It has a preflight that aborts if `is_platform_admin`,
+`churches.import_batch_id` or `churches.is_hidden` is missing.
+
+## The Maps API key rejects localhost, so the map cannot be tested locally
+
+**State today (2026-09-25):** measured, not assumed. Loading the app
+from `http://localhost:5173` gives
+`Google Maps JavaScript API error: RefererNotAllowedMapError`, and the
+console names the URL it wants authorising. Everything that goes
+through Google -- the coverage map, the church page map, address
+autocomplete, and geocoding during a CSV import -- is dead locally.
+
+**Why it matters:** it is the right default, and it also means map work
+can only be verified on a deployed preview or in production. Anything
+"verified locally" that involves Maps was not.
+
+**What it involves, if wanted:** Google Cloud Console → the Maps
+JavaScript API key → Website restrictions → add
+`http://localhost:5173/*`. Worth weighing: it widens where the key can
+be used from, and the key ships in the page anyway, so the restriction
+list is the only thing limiting it. Leaving it alone is defensible.
 
 ## Google Play — blocked on a D-U-N-S number
 

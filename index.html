@@ -1585,6 +1585,20 @@
       'dashSettings.removeFromTeam': 'Remove from team', 'dashSettings.cancelInvite': 'Cancel invite',
       'dashEvents.checkInTip': 'Check in attendees', 'dashEvents.editEventTip': 'Edit event',
       'admin.eyebrow': 'Platform admin', 'admin.heading': 'Admin', 'admin.myChurchDashboard': 'Manage my church →',
+      'admin.coverageMap': 'Coverage map',
+      'admin.coverageMapHint': 'Every geocoded church, grouped into cells and coloured by the import batch it came from. Zoom in for finer cells. Pick a CSV below to see where a new batch would land before importing it.',
+      'admin.coveragePreview': 'Preview a CSV before importing',
+      'admin.coveragePreviewHint': 'Reads the addresses and plots one ring per town, biggest first, so you can see the shape of a batch without geocoding every row. Nothing is imported.',
+      'admin.coverageStop': 'Stop', 'admin.coverageClearPreview': 'Clear preview',
+      'admin.coverageAddedIndividually': 'Added individually',
+      'admin.coverageNeedsMigration': "The coverage map needs migration 098 -- run supabase/migrations/098_admin_coverage_map.sql in the SQL Editor, then reload.",
+      'admin.coverageMapsLoading': 'Waiting for Google Maps to load...',
+      'admin.coverageSummary': '{n} churches on the map across {cells} areas.',
+      'admin.coverageUnmapped': '{n} could not be placed (no coordinates).',
+      'admin.coverageNoRows': 'No geocoded churches yet.',
+      'admin.coverageGeocoding': 'Locating towns: {done} of {total} ({plotted} placed, {rows} rows covered)...',
+      'admin.coverageDone': '{towns} towns, {rows} rows. {fresh} are somewhere we hold nothing yet.',
+      'admin.coverageNoAddress': 'That CSV has no address column, so there is nothing to place.',
       'admin.pendingVerifications': 'Pending church verifications', 'admin.allChurches': 'All churches', 'admin.importChurches': 'Import churches',
       'admin.searchByName': 'Search by name...', 'admin.allStatuses': 'All statuses', 'admin.verified': 'Verified', 'admin.pending': 'Pending', 'admin.rejected': 'Rejected', 'admin.unclaimed': 'Unclaimed',
       'admin.pendingClaims': 'Pending church claims', 'admin.searchByChurchNameEmail': 'Search by church, name, or email...',
@@ -2805,6 +2819,20 @@
       'dashSettings.removeFromTeam': 'Quitar del equipo', 'dashSettings.cancelInvite': 'Cancelar invitación',
       'dashEvents.checkInTip': 'Registrar asistentes', 'dashEvents.editEventTip': 'Editar evento',
       'admin.eyebrow': 'Administración de la plataforma', 'admin.heading': 'Administración', 'admin.myChurchDashboard': 'Administrar mi iglesia →',
+      'admin.coverageMap': 'Mapa de cobertura',
+      'admin.coverageMapHint': 'Todas las iglesias geocodificadas, agrupadas en celdas y coloreadas según el lote de importación del que provienen. Acerca para ver celdas más finas. Elige un CSV abajo para ver dónde caería un lote nuevo antes de importarlo.',
+      'admin.coveragePreview': 'Previsualizar un CSV antes de importar',
+      'admin.coveragePreviewHint': 'Lee las direcciones y dibuja un anillo por localidad, de mayor a menor, para ver la forma de un lote sin geocodificar cada fila. No se importa nada.',
+      'admin.coverageStop': 'Detener', 'admin.coverageClearPreview': 'Borrar vista previa',
+      'admin.coverageAddedIndividually': 'Añadidas individualmente',
+      'admin.coverageNeedsMigration': 'El mapa de cobertura necesita la migración 098 -- ejecuta supabase/migrations/098_admin_coverage_map.sql en el Editor SQL y recarga.',
+      'admin.coverageMapsLoading': 'Esperando a que cargue Google Maps...',
+      'admin.coverageSummary': '{n} iglesias en el mapa en {cells} zonas.',
+      'admin.coverageUnmapped': '{n} no se pudieron ubicar (sin coordenadas).',
+      'admin.coverageNoRows': 'Aún no hay iglesias geocodificadas.',
+      'admin.coverageGeocoding': 'Ubicando localidades: {done} de {total} ({plotted} ubicadas, {rows} filas cubiertas)...',
+      'admin.coverageDone': '{towns} localidades, {rows} filas. {fresh} están donde aún no tenemos nada.',
+      'admin.coverageNoAddress': 'Ese CSV no tiene columna de dirección, así que no hay nada que ubicar.',
       'admin.pendingVerifications': 'Verificaciones de iglesias pendientes', 'admin.allChurches': 'Todas las iglesias', 'admin.importChurches': 'Importar iglesias',
       'admin.searchByName': 'Buscar por nombre...', 'admin.allStatuses': 'Todos los estados', 'admin.verified': 'Verificada', 'admin.pending': 'Pendiente', 'admin.rejected': 'Rechazada', 'admin.unclaimed': 'Sin reclamar',
       'admin.pendingClaims': 'Reclamos de iglesias pendientes', 'admin.searchByChurchNameEmail': 'Buscar por iglesia, nombre o correo...',
@@ -4733,6 +4761,22 @@
   .fd-dp-day.today{box-shadow:inset 0 0 0 1.5px var(--gold);}
   .fd-dp-day[aria-selected="true"]{background:var(--gold-bg);color:var(--gold-ink);font-weight:600;}
   .fd-dp-foot{display:flex;gap:8px;padding:12px 14px 2px;border-top:1px solid var(--line);margin-top:10px;}
+  /* ---- Admin coverage map ---- */
+  #admin-coverage-map{
+    width:100%;aspect-ratio:16/11;max-height:520px;border-radius:var(--radius);
+    overflow:hidden;border:1px solid var(--line);background:var(--paper);
+  }
+  .fd-cov-legend{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+  .fd-cov-chip{
+    display:flex;align-items:center;gap:7px;padding:6px 10px;border:1px solid var(--line);
+    border-radius:999px;background:var(--card);font-size:12.5px;color:var(--ink);cursor:pointer;
+    font-family:inherit;-webkit-tap-highlight-color:transparent;max-width:100%;
+  }
+  .fd-cov-chip[aria-pressed="false"]{opacity:.42;}
+  .fd-cov-dot{width:11px;height:11px;border-radius:50%;flex:0 0 auto;}
+  .fd-cov-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:190px;}
+  .fd-cov-n{color:var(--ink-mute);flex:0 0 auto;}
+
   .fd-dp-foot button{
     flex:1 1 0;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);
     color:var(--ink);font-family:inherit;font-size:13.5px;cursor:pointer;
@@ -7395,6 +7439,21 @@ Groups</span>
       <p style="color:var(--ink-mute);font-size:14px;padding:12px;" data-i18n="common.loading">Loading...</p>
     </div>
     <button class="export-btn" id="admin-churches-load-more-btn" style="display:none;margin-top:10px;" data-i18n="common.loadMore">Load more</button>
+
+    <h2 style="font-size:20px;margin-top:44px;margin-bottom:16px;" data-i18n="admin.coverageMap">Coverage map</h2>
+    <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:12px;max-width:600px;" data-i18n="admin.coverageMapHint">Every geocoded church, grouped into cells and coloured by the import batch it came from. Zoom in for finer cells. Pick a CSV below to see where a new batch would land before importing it.</p>
+    <div id="admin-coverage-status" style="display:none;font-size:12.5px;margin-bottom:8px;"></div>
+    <div id="admin-coverage-map"></div>
+    <div id="admin-coverage-legend" class="fd-cov-legend"></div>
+
+    <label style="margin-top:18px;" data-i18n="admin.coveragePreview">Preview a CSV before importing</label>
+    <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:8px;max-width:600px;" data-i18n="admin.coveragePreviewHint">Reads the addresses and plots one ring per town, biggest first, so you can see the shape of a batch without geocoding every row. Nothing is imported.</p>
+    <input type="file" id="admin-coverage-csv" accept=".csv" class="field">
+    <div style="display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap;">
+      <button class="export-btn" id="admin-coverage-stop-btn" style="display:none;" data-i18n="admin.coverageStop">Stop</button>
+      <button class="export-btn" id="admin-coverage-clear-btn" style="display:none;" data-i18n="admin.coverageClearPreview">Clear preview</button>
+      <span id="admin-coverage-preview-status" style="font-size:12.5px;color:var(--ink-mute);"></span>
+    </div>
 
     <h2 style="font-size:20px;margin-top:44px;margin-bottom:16px;" data-i18n="admin.importBatches">Import batches</h2>
     <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:12px;max-width:600px;" data-i18n="admin.importBatchesHint">Recent CSV imports, most recent first. "Hide all" and "Delete all" only affect churches from that batch that are still unclaimed — anything already claimed by a real owner is left alone.</p>
@@ -10936,7 +10995,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-25-v292 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-25-v293 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -37811,6 +37870,7 @@ Groups</span>
     loadAdminWaitlistList();
     loadAdminChurchesList();
     loadAdminImportBatchesList();
+    loadAdminCoverageMap();
     loadAdminClaimsList();
     loadAdminClaimsHistoryList();
     loadAdminUsersList();
@@ -37959,6 +38019,366 @@ Groups</span>
       setTimeout(function(){ adminWaitlistCopyBtn.textContent = original; }, 1800);
     });
   }
+
+
+  // ---- Admin coverage map ------------------------------------------
+  // Answers one question before a statewide import: what do we already
+  // hold, where, and would this new file extend it or land on top of
+  // it.
+  //
+  // Cells rather than pins. 800 churches would draw fine as markers;
+  // the Texas file this was built for is tens of thousands, which is
+  // more than a browser will draw and more than anyone can read. The
+  // RPC groups server-side (see migration 098) and this draws one
+  // circle per cell with its area proportional to the count, so the
+  // picture stays honest at any size.
+
+  var FD_COV_COLOURS = [
+    '#C9A227', '#3F6152', '#A8503A', '#4A6FA5', '#7B5EA7',
+    '#2F7F76', '#B4713D', '#8A6B14', '#5C7148', '#96456B'
+  ];
+  var fdCovMap = null;
+  var fdCovCircles = [];        // existing churches
+  var fdCovPreview = [];        // the CSV being previewed
+  var fdCovBatchOff = {};       // batch id -> hidden in the legend
+  var fdCovPrecision = null;
+  var fdCovLoading = false;
+  var fdCovStop = false;
+  var fdCovCityCache = {};      // "CITY, ST" -> {lat,lng} | null
+
+  try {
+    var cached = localStorage.getItem('fd_city_coords');
+    if (cached) fdCovCityCache = JSON.parse(cached) || {};
+  } catch (e) { fdCovCityCache = {}; }
+
+  function fdCovSaveCache(){
+    // Wrapped: a private window, blocked site data or a full quota all
+    // throw here, and none of them should stop the map working.
+    try { localStorage.setItem('fd_city_coords', JSON.stringify(fdCovCityCache)); } catch (e) {}
+  }
+
+  function fdCovColour(batchId){
+    if (!batchId) return '#8A8578';   // added individually, not by a batch
+    var h = 0;
+    for (var i = 0; i < batchId.length; i++) h = (h * 31 + batchId.charCodeAt(i)) >>> 0;
+    return FD_COV_COLOURS[h % FD_COV_COLOURS.length];
+  }
+
+  // Decimal places to ask the RPC for, from the current zoom. The
+  // breakpoints match the comment in migration 098: whole state, metro,
+  // neighbourhood, individual.
+  function fdCovPrecisionForZoom(z){
+    if (z <= 6) return 0;
+    if (z <= 9) return 1;
+    if (z <= 12) return 2;
+    return 3;
+  }
+
+  function fdCovClear(list){
+    for (var i = 0; i < list.length; i++) list[i].setMap(null);
+    list.length = 0;
+  }
+
+  function fdCovStatus(msg, bad){
+    var el = document.getElementById('admin-coverage-status');
+    if (!el) return;
+    el.textContent = msg || '';
+    el.style.color = bad ? 'var(--clay)' : 'var(--ink-mute)';
+    el.style.display = msg ? 'block' : 'none';
+  }
+
+  // Radius in metres so that AREA is proportional to the count -- a
+  // cell with four times as many churches reads as four times as much
+  // ink, which a radius proportional to count would not. Capped to the
+  // cell itself so circles do not swallow their neighbours.
+  function fdCovRadius(count, precision){
+    var cellMetres = 111000 * Math.pow(10, -precision);
+    var r = Math.sqrt(count) * cellMetres * 0.22;
+    return Math.max(cellMetres * 0.08, Math.min(cellMetres * 0.62, r));
+  }
+
+  function fdCovDrawCells(rows, precision){
+    fdCovClear(fdCovCircles);
+    // One circle per cell, coloured by whichever batch contributed most
+    // of it -- two batches rarely overlap inside one cell, and stacking
+    // translucent circles to show a split made both unreadable.
+    var byCell = {};
+    rows.forEach(function(r){
+      if (fdCovBatchOff[r.import_batch_id || '']) return;
+      var key = r.cell_lat + ',' + r.cell_lng;
+      var cell = byCell[key] || (byCell[key] = { lat: r.cell_lat, lng: r.cell_lng, total: 0, top: null, topN: 0, claimed: 0 });
+      cell.total += Number(r.n);
+      cell.claimed += Number(r.claimed);
+      if (Number(r.n) > cell.topN) { cell.topN = Number(r.n); cell.top = r.import_batch_id || ''; }
+    });
+
+    var total = 0, cells = 0;
+    Object.keys(byCell).forEach(function(k){
+      var c = byCell[k];
+      total += c.total; cells++;
+      var colour = fdCovColour(c.top);
+      var circle = new google.maps.Circle({
+        map: fdCovMap, center: { lat: c.lat, lng: c.lng },
+        radius: fdCovRadius(c.total, precision),
+        strokeColor: colour, strokeOpacity: 0.85, strokeWeight: 1,
+        fillColor: colour, fillOpacity: 0.32, clickable: false
+      });
+      fdCovCircles.push(circle);
+    });
+    return { total: total, cells: cells };
+  }
+
+  async function fdCovLoadCells(){
+    if (!fdCovMap || fdCovLoading) return;
+    var precision = fdCovPrecisionForZoom(fdCovMap.getZoom());
+    if (precision === fdCovPrecision && fdCovCircles.length) return;
+    fdCovLoading = true;
+    var { data, error } = await supabase.rpc('admin_church_coverage_cells', { p_precision: precision });
+    fdCovLoading = false;
+    if (error) {
+      // A missing function is the expected first-run state, and telling
+      // somebody to run a named file is more use than Postgres's own
+      // "function does not exist" wording.
+      var missing = /does not exist|schema cache/i.test(error.message || '');
+      fdCovStatus(missing ? window.t('admin.coverageNeedsMigration') : error.message, true);
+      return;
+    }
+    fdCovPrecision = precision;
+    var rows = data || [];
+    if (!rows.length) { fdCovStatus(window.t('admin.coverageNoRows')); fdCovRenderLegend([]); return; }
+    var summary = fdCovDrawCells(rows, precision);
+    fdCovRenderLegend(rows);
+
+    var line = window.t('admin.coverageSummary')
+      .replace('{n}', summary.total.toLocaleString())
+      .replace('{cells}', summary.cells.toLocaleString());
+    var un = await supabase.rpc('admin_coverage_unmapped_count');
+    if (!un.error && Number(un.data) > 0) {
+      line += ' ' + window.t('admin.coverageUnmapped').replace('{n}', Number(un.data).toLocaleString());
+    }
+    fdCovStatus(line);
+  }
+
+  function fdCovRenderLegend(rows){
+    var el = document.getElementById('admin-coverage-legend');
+    if (!el) return;
+    var byBatch = {};
+    rows.forEach(function(r){
+      var id = r.import_batch_id || '';
+      byBatch[id] = (byBatch[id] || 0) + Number(r.n);
+    });
+    var ids = Object.keys(byBatch).sort(function(a, b){ return byBatch[b] - byBatch[a]; });
+    el.innerHTML = ids.map(function(id){
+      // The id is a timestamp joined to the filename; the filename is
+      // the half a person recognises.
+      var label = id ? (id.split('_').slice(1).join('_') || id) : window.t('admin.coverageAddedIndividually');
+      return '<button type="button" class="fd-cov-chip" data-cov-batch="' + escAttr(id) + '"'
+        + ' aria-pressed="' + (fdCovBatchOff[id] ? 'false' : 'true') + '">'
+        + '<span class="fd-cov-dot" style="background:' + fdCovColour(id) + ';"></span>'
+        + '<span class="fd-cov-name">' + escapeHtml(label) + '</span>'
+        + '<span class="fd-cov-n">' + byBatch[id].toLocaleString() + '</span>'
+        + '</button>';
+    }).join('');
+    el._rows = rows;
+  }
+
+  document.addEventListener('click', function(ev){
+    var chip = ev.target.closest && ev.target.closest('.fd-cov-chip');
+    if (!chip) return;
+    var id = chip.getAttribute('data-cov-batch');
+    fdCovBatchOff[id] = !fdCovBatchOff[id];
+    var el = document.getElementById('admin-coverage-legend');
+    var rows = (el && el._rows) || [];
+    fdCovDrawCells(rows, fdCovPrecision);
+    fdCovRenderLegend(rows);
+  });
+
+  window.loadAdminCoverageMap = function(){
+    var host = document.getElementById('admin-coverage-map');
+    if (!host) return;
+    if (!(window.google && google.maps)) {
+      // Google's script is async and may not have landed yet. Retried
+      // rather than given up on, because the admin page is often the
+      // first thing opened after a reload.
+      fdCovStatus(window.t('admin.coverageMapsLoading'));
+      setTimeout(window.loadAdminCoverageMap, 600);
+      return;
+    }
+    if (!fdCovMap) {
+      fdCovMap = new google.maps.Map(host, {
+        center: { lat: 31.0, lng: -99.0 },   // Texas, where the data is
+        zoom: 6,
+        mapTypeControl: false, streetViewControl: false, fullscreenControl: false,
+        clickableIcons: false
+      });
+      // Debounced: a pinch fires dozens of zoom events and each one
+      // would otherwise be its own round trip.
+      var t = null;
+      fdCovMap.addListener('zoom_changed', function(){
+        clearTimeout(t);
+        t = setTimeout(fdCovLoadCells, 260);
+      });
+    } else {
+      // Created while the admin page was hidden, or resized since --
+      // a Map that was laid out at zero size renders grey until told.
+      google.maps.event.trigger(fdCovMap, 'resize');
+    }
+    fdCovPrecision = null;
+    fdCovLoadCells();
+  };
+
+  // ---- Previewing a CSV before importing ---------------------------
+  // Towns, not rows. A statewide file is tens of thousands of
+  // addresses and geocoding each one would cost a full import's worth
+  // of Google calls just to look at a picture -- and the import itself
+  // is about to do exactly that work again. The same file collapses to
+  // a few hundred towns, which is the resolution the question "where
+  // would this land" is actually asked at.
+  //
+  // Biggest towns first and drawn as they resolve, so the shape of the
+  // batch is visible within seconds and can be stopped once it is
+  // clear.
+  var FD_COV_CITY_RE = /,\s*([^,]+),\s*([A-Za-z]{2})\s*\d{0,5}(-\d{4})?\s*$/;
+
+  function fdCovTownOf(address){
+    var m = FD_COV_CITY_RE.exec(String(address || '').trim());
+    if (!m) return null;
+    return m[1].trim().toUpperCase() + ', ' + m[2].toUpperCase();
+  }
+
+  // geocodeAddressGoogle resolves from a callback, and a callback that
+  // never fires leaves the promise pending for good -- which is what an
+  // unauthorised key does, and would hang the whole run on its first
+  // town with no way out but a reload. Treated as "could not place it"
+  // after ten seconds so the rest of the batch still draws.
+  function fdCovGeocodeTown(town){
+    return Promise.race([
+      geocodeAddressGoogle(town).catch(function(){ return null; }),
+      new Promise(function(resolve){ setTimeout(function(){ resolve(null); }, 10000); })
+    ]);
+  }
+
+  function fdCovPreviewStatus(msg){
+    var el = document.getElementById('admin-coverage-preview-status');
+    if (el) el.textContent = msg || '';
+  }
+
+  function fdCovClearPreview(){
+    fdCovStop = true;
+    fdCovClear(fdCovPreview);
+    fdCovPreviewStatus('');
+    document.getElementById('admin-coverage-stop-btn').style.display = 'none';
+    document.getElementById('admin-coverage-clear-btn').style.display = 'none';
+  }
+
+  var fdCovCsvInput = document.getElementById('admin-coverage-csv');
+  if (fdCovCsvInput) {
+    fdCovCsvInput.addEventListener('change', function(){
+      var file = this.files[0];
+      if (!file) return;
+      fdCovClear(fdCovPreview);
+      var reader = new FileReader();
+      reader.onload = function(){
+        var rows = parseCsv(String(reader.result));
+        if (!rows.length) { fdCovPreviewStatus(window.t('dashDir.couldNotReadRows')); return; }
+        var header = rows[0].map(function(h){ return h.trim().toLowerCase(); });
+        var addressIdx = header.indexOf('address');
+        if (addressIdx === -1) { fdCovPreviewStatus(window.t('admin.coverageNoAddress')); return; }
+
+        var towns = {};
+        for (var i = 1; i < rows.length; i++) {
+          var town = fdCovTownOf(rows[i][addressIdx]);
+          if (town) towns[town] = (towns[town] || 0) + 1;
+        }
+        var ordered = Object.keys(towns).sort(function(a, b){ return towns[b] - towns[a]; });
+        if (!ordered.length) { fdCovPreviewStatus(window.t('admin.coverageNoAddress')); return; }
+        fdCovPlotTowns(ordered, towns);
+      };
+      reader.readAsText(file);
+    });
+  }
+
+  async function fdCovPlotTowns(ordered, counts){
+    fdCovStop = false;
+    document.getElementById('admin-coverage-stop-btn').style.display = '';
+    document.getElementById('admin-coverage-clear-btn').style.display = '';
+    var totalRows = 0;
+    ordered.forEach(function(t){ totalRows += counts[t]; });
+
+    var done = 0, plotted = 0, rowsCovered = 0, fresh = 0;
+    var bounds = new google.maps.LatLngBounds();
+
+    for (var i = 0; i < ordered.length; i++) {
+      if (fdCovStop) break;
+      var town = ordered[i];
+      // Progress BEFORE the lookup, not after. Written after, the first
+      // line only appears once the first town has resolved -- so a slow
+      // or hanging geocoder looks like nothing happening at all, which
+      // is exactly how this read during testing.
+      fdCovPreviewStatus(window.t('admin.coverageGeocoding')
+        .replace('{done}', done).replace('{total}', ordered.length)
+        .replace('{plotted}', plotted).replace('{rows}', rowsCovered.toLocaleString()));
+      // Only HITS are cached, and a stored null counts as a miss.
+      // Caching failures looked like an optimisation and is a trap: a
+      // timeout, a network blip or a key restriction all produce null,
+      // and none of them mean the town does not exist. Testing against
+      // a key that rejected localhost wrote null for every town, which
+      // would have permanently poisoned the cache for towns that
+      // resolve perfectly well in production.
+      var coords = fdCovCityCache[town] || undefined;
+      if (coords === undefined) {
+        coords = await fdCovGeocodeTown(town);
+        if (coords) { fdCovCityCache[town] = coords; fdCovSaveCache(); }
+      }
+      done++;
+      if (coords) {
+        plotted++;
+        rowsCovered += counts[town];
+        // A ring, not a disc. It has to be legible ON TOP of the filled
+        // circles already there -- a second filled layer just muddies
+        // the colour underneath and hides what it is being compared to.
+        var here = fdCovCirclesNear(coords.lat, coords.lng);
+        if (!here) fresh++;
+        var ring = new google.maps.Circle({
+          map: fdCovMap, center: coords,
+          radius: Math.max(3000, Math.sqrt(counts[town]) * 2600),
+          strokeColor: here ? '#16233F' : '#A8503A',
+          strokeOpacity: 0.95, strokeWeight: 2,
+          fillOpacity: 0, clickable: false
+        });
+        fdCovPreview.push(ring);
+        bounds.extend(coords);
+      }
+      fdCovPreviewStatus(window.t('admin.coverageGeocoding')
+        .replace('{done}', done).replace('{total}', ordered.length)
+        .replace('{plotted}', plotted).replace('{rows}', rowsCovered.toLocaleString()));
+      // Yield, so the map paints each ring as it lands instead of
+      // freezing and then showing all of them at the end.
+      await new Promise(function(r){ setTimeout(r, 0); });
+    }
+
+    if (plotted && !fdCovStop) fdCovMap.fitBounds(bounds);
+    document.getElementById('admin-coverage-stop-btn').style.display = 'none';
+    fdCovPreviewStatus(window.t('admin.coverageDone')
+      .replace('{towns}', plotted).replace('{rows}', rowsCovered.toLocaleString())
+      .replace('{fresh}', fresh));
+  }
+
+  // Is there already a cell drawn near this point? Decides whether a
+  // town reads as "extends what we hold" or "lands on top of it", which
+  // is the whole reason for previewing.
+  function fdCovCirclesNear(lat, lng){
+    for (var i = 0; i < fdCovCircles.length; i++) {
+      var c = fdCovCircles[i].getCenter();
+      if (Math.abs(c.lat() - lat) < 0.25 && Math.abs(c.lng() - lng) < 0.25) return true;
+    }
+    return false;
+  }
+
+  var fdCovStopBtn = document.getElementById('admin-coverage-stop-btn');
+  if (fdCovStopBtn) fdCovStopBtn.addEventListener('click', function(){ fdCovStop = true; });
+  var fdCovClearBtn = document.getElementById('admin-coverage-clear-btn');
+  if (fdCovClearBtn) fdCovClearBtn.addEventListener('click', fdCovClearPreview);
 
   // Recent CSV import runs, most recent first, with bulk Hide/Delete per
   // batch. No pagination -- admin_list_import_batches caps at 100, and
