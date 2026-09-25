@@ -1154,6 +1154,19 @@
       'accountSettings.ownershipHint': 'Churches move one at a time, each to whoever you name. Nothing changes until that person accepts, and you can cancel any time before they do.',
       'dashSub.ministryList': 'Ministry list', 'dashSub.groupList': 'Group list',
       'dashSub.eventsReports': 'Event reports', 'dashSub.eventsSettings': 'Event settings',
+      'evReports.attendanceTitle': 'Attendance over time',
+      'evReports.attendanceHint': 'People checked in, by month. Only events that took registrations can be checked into, so events without signup never appear here.',
+      'evReports.gapTitle': 'Registered vs. attended',
+      'evReports.gapHint': 'How many people who signed up actually came. The gap is what to plan catering and seating against.',
+      'evReports.registered': 'Registered', 'evReports.attended': 'Attended',
+      'evReports.noShowRate': 'No-show rate', 'evReports.turnout': 'Turnout',
+      'evReports.tableTitle': 'Event performance',
+      'evReports.tableHint': 'Past events, newest first. Capacity is only shown where a limit was set.',
+      'evReports.capacity': 'Capacity used', 'evReports.revenue': 'Revenue',
+      'evReports.exportCsv': 'Export to CSV',
+      'evReports.noPastEvents': 'No past events yet — this fills in once an event has happened.',
+      'evReports.noCheckins': 'No check-ins recorded yet.',
+      'evReports.revenueHidden': 'Revenue is hidden because your role cannot view it.',
       'dashSub.directoryReports': 'Directory reports', 'dashSub.directorySettings': 'Directory settings',
       'dirReports.findTitle': 'Find people', 'dirReports.findHint': 'Stack conditions to describe the people you want, then export them. Conditions are combined with AND — every one has to be true.',
       'dirReports.addCondition': '+ Add condition', 'dirReports.removeCondition': 'Remove condition',
@@ -2359,6 +2372,19 @@
       'accountSettings.ownershipHint': 'Las iglesias se transfieren de una en una, cada una a quien indiques. Nada cambia hasta que esa persona acepte, y puedes cancelar antes de que lo haga.',
       'dashSub.ministryList': 'Lista de ministerios', 'dashSub.groupList': 'Lista de grupos',
       'dashSub.eventsReports': 'Informes de eventos', 'dashSub.eventsSettings': 'Ajustes de eventos',
+      'evReports.attendanceTitle': 'Asistencia a lo largo del tiempo',
+      'evReports.attendanceHint': 'Personas registradas en la entrada, por mes. Solo los eventos con inscripción pueden registrar entradas, así que los eventos sin inscripción no aparecen aquí.',
+      'evReports.gapTitle': 'Inscritos frente a asistentes',
+      'evReports.gapHint': 'Cuántos de los que se inscribieron realmente vinieron. Esa diferencia es lo que conviene usar para planear comida y asientos.',
+      'evReports.registered': 'Inscritos', 'evReports.attended': 'Asistieron',
+      'evReports.noShowRate': 'Tasa de ausencias', 'evReports.turnout': 'Asistencia',
+      'evReports.tableTitle': 'Rendimiento de los eventos',
+      'evReports.tableHint': 'Eventos pasados, del más reciente al más antiguo. La capacidad solo se muestra si se fijó un límite.',
+      'evReports.capacity': 'Capacidad usada', 'evReports.revenue': 'Ingresos',
+      'evReports.exportCsv': 'Exportar a CSV',
+      'evReports.noPastEvents': 'Aún no hay eventos pasados — esto se llena cuando haya ocurrido un evento.',
+      'evReports.noCheckins': 'Aún no se han registrado entradas.',
+      'evReports.revenueHidden': 'Los ingresos están ocultos porque tu rol no puede verlos.',
       'dashSub.directoryReports': 'Informes del directorio', 'dashSub.directorySettings': 'Ajustes del directorio',
       'dirReports.findTitle': 'Buscar personas', 'dirReports.findHint': 'Combina condiciones para describir a las personas que buscas y luego expórtalas. Las condiciones se unen con Y — todas deben cumplirse.',
       'dirReports.addCondition': '+ Agregar condición', 'dirReports.removeCondition': 'Quitar condición',
@@ -8407,20 +8433,39 @@ Groups</span>
            Ends share a line. They wrap on a narrow phone rather than
            being squeezed -- min-width is what forces that, since flex
            items would otherwise shrink past legibility. -->
+      <!-- A date input with a TYPEABLE time beside it, not one
+           datetime-local.
+           datetime-local was the obvious answer and it does not work on
+           Android: the OS dialog owns the minute wheel and ignores
+           step, offering every minute whatever the markup says.
+           Confirmed from a screenshot of the real dialog showing 38,
+           39, 40. Nothing in the page can change that -- step is a
+           request the platform is free to decline, and Android does.
+           So the time is a text field with a datalist of quarter
+           hours: the dropdown offers 9:00, 9:15, 9:30, 9:45, and
+           typing is unrestricted and parsed leniently, so 6:47 and
+           "645p" are both accepted. That is the pair asked for --
+           fifteen-minute choices, any time typeable -- and it is the
+           only shape that delivers both on a phone. -->
       <div style="display:flex;gap:10px;flex-wrap:wrap;">
-        <div style="flex:1 1 200px;min-width:200px;">
+        <div style="flex:1 1 220px;min-width:220px;">
           <label data-i18n="ce.starts">Starts</label>
-          <!-- step 900 = 15 minutes. It only changes what the picker's
-               own scroller offers and what the arrow keys step by; any
-               time can still be TYPED, which is the reason this stopped
-               being a dropdown in the first place. -->
-          <input class="field" type="datetime-local" id="ce-start-at" step="900" style="width:100%;">
+          <div style="display:flex;gap:8px;">
+            <input class="field" type="date" id="ce-start-date" style="flex:1 1 55%;min-width:0;">
+            <input class="field" type="text" id="ce-start-time" list="fd-quarter-hours"
+                   autocomplete="off" placeholder="9:00 AM" style="flex:1 1 45%;min-width:0;">
+          </div>
         </div>
-        <div style="flex:1 1 200px;min-width:200px;">
+        <div style="flex:1 1 220px;min-width:220px;">
           <label data-i18n="ce.ends">Ends</label>
-          <input class="field" type="datetime-local" id="ce-end-at" step="900" style="width:100%;">
+          <div style="display:flex;gap:8px;">
+            <input class="field" type="date" id="ce-end-date" style="flex:1 1 55%;min-width:0;">
+            <input class="field" type="text" id="ce-end-time" list="fd-quarter-hours"
+                   autocomplete="off" placeholder="10:00 AM" style="flex:1 1 45%;min-width:0;">
+          </div>
         </div>
       </div>
+      <datalist id="fd-quarter-hours"></datalist>
       <div style="font-size:12px;color:var(--ink-mute);margin-top:4px;" data-i18n="ce.multiDayHint">For a multi-day event like a summer camp, just set the end date a few days after the start.</div>
 
       <label style="margin-top:14px;" data-i18n="ce.venueName">Venue name (optional)</label>
@@ -8588,7 +8633,12 @@ Groups</span>
         <div style="display:flex;align-items:flex-start;gap:12px;">
           <input type="checkbox" id="ce-registration-required" style="margin-top:3px;width:18px;height:18px;accent-color:var(--brand);flex-shrink:0;cursor:pointer;">
           <div>
-            <label for="ce-registration-required" style="font-weight:600;color:var(--ink);font-size:14.5px;cursor:pointer;display:block;" data-i18n="ce.requireRegistration">Require registration</label>
+            <!-- margin:0 is load-bearing. The global label rule is
+                 `margin:16px 0 6px`, written for labels that sit ABOVE
+                 their field -- so here it pushed the wording 16px down
+                 while the checkbox stayed at the top of the row, and
+                 the two stopped lining up. -->
+            <label for="ce-registration-required" style="font-weight:600;color:var(--ink);font-size:14.5px;cursor:pointer;display:block;margin:0;" data-i18n="ce.requireRegistration">Require registration</label>
             <div style="font-size:12.5px;color:var(--ink-mute);margin-top:2px;" data-i18n="ce.requireRegistrationHint">Off means anyone can just show up — no signup needed.</div>
           </div>
         </div>
@@ -9153,7 +9203,33 @@ Groups</span>
       </div>
       <div class="dash-content" id="dash-events-reports">
         <h2 style="font-size:24px;margin-bottom:8px;" data-i18n="dashSub.eventsReports">Event reports</h2>
-        <p style="color:var(--ink-mute);font-size:13.5px;max-width:560px;" data-i18n="dashSub.placeholder">This page is being built. Nothing has moved yet — everything still works where it did before.</p>
+
+        <!-- 1. Attendance over time. Check-ins are the only attendance
+             this app actually records, so this is the one number that
+             is not an estimate. -->
+        <div class="side-note" id="ev-reports-attendance-wrap" style="max-width:720px;">
+          <h4 data-i18n="evReports.attendanceTitle">Attendance over time</h4>
+          <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:12px;" data-i18n="evReports.attendanceHint">People checked in, by month. Only events that took registrations can be checked into, so events without signup never appear here.</p>
+          <div class="mini-chart" id="ev-reports-attendance-chart"></div>
+        </div>
+
+        <!-- 2. The gap. Two numbers side by side and the rate between
+             them, because the rate on its own hides how big a sample
+             it came from. -->
+        <div class="side-note" id="ev-reports-gap-wrap" style="max-width:720px;">
+          <h4 data-i18n="evReports.gapTitle">Registered vs. attended</h4>
+          <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:12px;" data-i18n="evReports.gapHint">How many people who signed up actually came. The gap is what to plan catering and seating against.</p>
+          <div id="ev-reports-gap-stats" style="display:flex;gap:26px;flex-wrap:wrap;margin-bottom:14px;"></div>
+          <div class="mini-chart" id="ev-reports-gap-chart"></div>
+        </div>
+
+        <!-- 3. The table, and its export. -->
+        <div class="side-note" id="ev-reports-table-wrap" style="max-width:940px;">
+          <h4 data-i18n="evReports.tableTitle">Event performance</h4>
+          <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:12px;" data-i18n="evReports.tableHint">Past events, newest first. Capacity is only shown where a limit was set.</p>
+          <div id="ev-reports-table"></div>
+          <button class="export-btn" id="ev-reports-export" style="margin-top:12px;" data-i18n="evReports.exportCsv">Export to CSV</button>
+        </div>
       </div>
       <div class="dash-content" id="dash-events-settings">
         <h2 style="font-size:24px;margin-bottom:18px;" data-i18n="dashSub.eventsSettings">Event settings</h2>
@@ -9393,7 +9469,6 @@ Groups</span>
                  real way to build a list. -->
             <span id="dir-import-group" style="display:flex;gap:8px;">
               <button class="btn-gold" id="import-members-open-btn" style="padding:10px 18px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;vertical-align:-3px;margin-right:4px;"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 19h16"/></svg><span data-i18n="dashDir.importMembers">Import members</span></button>
-              <button class="export-btn" id="import-groups-open-btn" style="padding:10px 18px;" data-i18n="dashDir.importGroupsBtn">Import groups</button>
             </span>
             <input class="field" type="text" id="directory-search-input" placeholder="Search by name or email" style="width:auto;min-width:220px;" data-i18n-placeholder="dashDir.searchPlaceholder">
           </div>
@@ -10628,7 +10703,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-25-v285 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-25-v286 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -14696,7 +14771,7 @@ Groups</span>
     // cannot be called from this map. resetCreateEventForm runs them
     // for the button, showRouteFromHash for a direct URL.
     'create-event':       [],
-    'events-reports':     [],
+    'events-reports':     ['loadEventsReports'],
     'events-settings':    ['loadSectionSettings'],
     // One entry, not four. loadDirectoryReports awaits the three
     // housekeeping panels itself, because the empty-state note can only
@@ -20684,6 +20759,199 @@ Groups</span>
   }, 20000);
 
   // ============================================================
+  // Event reports
+  // ============================================================
+  // Three questions a church actually asks about its events: how many
+  // people are turning up over time, how many of the people who said
+  // they would come did, and which events did well.
+  //
+  // CHECK-INS ARE THE ONLY ATTENDANCE THIS APP RECORDS. Everything
+  // here rests on event_registrations.checked_in_at, which means an
+  // event with no registration cannot appear -- there is no roster to
+  // check anyone in against. That is stated on the page rather than
+  // left for somebody to infer from a gap in a chart.
+  //
+  // Revenue comes from get_ticket_payments, the same RPC the Revenue
+  // page uses, rather than multiplying price_cents by a count: a
+  // registration can be discounted, refunded or unpaid, and the count
+  // knows none of that. It is also the reason revenue is gated -- that
+  // function is revoked from anon and the column-level ability is
+  // canViewRevenue, so a staff member without it sees the table
+  // without that column rather than a zero.
+  var evReportsRows = [];
+
+  function evReportsStat(label, value, sub){
+    return '<div><div style="font-size:11.5px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.04em;">'
+      + escapeHtml(label) + '</div>'
+      + '<div style="font-family:\'Fraunces\';font-size:26px;line-height:1.2;">' + escapeHtml(String(value)) + '</div>'
+      + (sub ? '<div style="font-size:11.5px;color:var(--ink-mute);">' + escapeHtml(sub) + '</div>' : '')
+      + '</div>';
+  }
+
+  async function loadEventsReports(){
+    var tableEl = document.getElementById('ev-reports-table');
+    if (!tableEl) return;
+    var myChurch = await getMyChurch();
+    if (!myChurch) return;
+
+    var nowIso = new Date().toISOString();
+    var { data: evs, error } = await supabase.from('events')
+      .select('id, title, start_at, max_participants, registration_required, price_cents')
+      .eq('church_id', myChurch.id)
+      .lt('start_at', nowIso)
+      .order('start_at', { ascending: false });
+    if (error) {
+      tableEl.innerHTML = '<p style="color:var(--clay);font-size:13px;">' + escapeHtml(error.message) + '</p>';
+      return;
+    }
+    var pastEvents = evs || [];
+    if (!pastEvents.length) {
+      tableEl.innerHTML = '<p style="color:var(--ink-mute);font-size:13px;">' + escapeHtml(window.t('evReports.noPastEvents')) + '</p>';
+      renderMiniBarChart('ev-reports-attendance-chart', []);
+      renderMiniBarChart('ev-reports-gap-chart', []);
+      return;
+    }
+
+    // One chunked pass for every registration, rather than a query per
+    // event -- the same fix the events table and the groups table both
+    // needed. Only the three columns 083 grants.
+    var ids = pastEvents.map(function(e){ return e.id; });
+    var regs = [];
+    try {
+      regs = await fetchByIdsChunked('event_registrations', 'event_id, status, checked_in_at', 'event_id', ids);
+    } catch (e) {
+      console.error('loadEventsReports registrations:', e);
+    }
+
+    var perEvent = {};
+    pastEvents.forEach(function(e){ perEvent[e.id] = { registered: 0, attended: 0, revenueCents: 0 }; });
+    regs.forEach(function(r){
+      var bucket = perEvent[r.event_id];
+      if (!bucket) return;
+      // Cancelled registrations are not a promise anybody broke, so
+      // they are out of both halves of the comparison.
+      if (r.status === 'cancelled') return;
+      bucket.registered++;
+      if (r.checked_in_at) bucket.attended++;
+    });
+
+    // Revenue, only for roles allowed to see it.
+    var canSeeRevenue = !!(myChurch.canViewRevenue);
+    if (canSeeRevenue) {
+      try {
+        var { data: pays } = await supabase.rpc('get_ticket_payments', {
+          target_church_id: myChurch.id, p_from: null, p_to: null
+        });
+        (pays || []).forEach(function(t){
+          if (t.payment_status !== 'succeeded' || t.amount_paid_cents == null) return;
+          var b = perEvent[t.event_id];
+          if (b) b.revenueCents += t.amount_paid_cents;
+        });
+      } catch (e) {
+        console.error('loadEventsReports revenue:', e);
+      }
+    }
+
+    // ---- 1. Attendance by month -------------------------------------
+    // Twelve months back, including months with nothing, so a quiet
+    // spell reads as a quiet spell rather than being squeezed out of
+    // the axis entirely.
+    var months = [];
+    var cursor = new Date();
+    cursor.setDate(1);
+    for (var i = 11; i >= 0; i--) {
+      var d = new Date(cursor.getFullYear(), cursor.getMonth() - i, 1);
+      months.push({ year: d.getFullYear(), month: d.getMonth(), value: 0,
+        label: d.toLocaleDateString(window.appLocale(), { month: 'short' }) });
+    }
+    pastEvents.forEach(function(e){
+      var d = new Date(e.start_at);
+      var m = months.filter(function(x){ return x.year === d.getFullYear() && x.month === d.getMonth(); })[0];
+      if (m) m.value += perEvent[e.id].attended;
+    });
+    var anyCheckins = months.some(function(m){ return m.value > 0; });
+    renderMiniBarChart('ev-reports-attendance-chart', anyCheckins ? months : []);
+
+    // ---- 2. Registered vs attended ----------------------------------
+    var totalReg = 0, totalAtt = 0;
+    pastEvents.forEach(function(e){ totalReg += perEvent[e.id].registered; totalAtt += perEvent[e.id].attended; });
+    var statsEl = document.getElementById('ev-reports-gap-stats');
+    if (statsEl) {
+      if (!totalReg) {
+        statsEl.innerHTML = '<p style="color:var(--ink-mute);font-size:13px;">' + escapeHtml(window.t('evReports.noCheckins')) + '</p>';
+      } else {
+        var turnout = Math.round((totalAtt / totalReg) * 100);
+        statsEl.innerHTML = evReportsStat(window.t('evReports.registered'), totalReg)
+          + evReportsStat(window.t('evReports.attended'), totalAtt)
+          + evReportsStat(window.t('evReports.turnout'), turnout + '%')
+          + evReportsStat(window.t('evReports.noShowRate'), (100 - turnout) + '%');
+      }
+    }
+    // The ten most recent events that took registrations, so the chart
+    // compares like with like. Oldest on the left, which is the
+    // direction every other chart in this app reads.
+    var gapEvents = pastEvents.filter(function(e){ return perEvent[e.id].registered > 0; }).slice(0, 10).reverse();
+    renderMiniBarChart('ev-reports-gap-chart', gapEvents.map(function(e){
+      return { label: e.title.length > 10 ? e.title.slice(0, 9) + '…' : e.title,
+               value: perEvent[e.id].attended };
+    }));
+
+    // ---- 3. The table ------------------------------------------------
+    evReportsRows = pastEvents.map(function(e){
+      var b = perEvent[e.id];
+      return {
+        title: e.title,
+        date: new Date(e.start_at).toLocaleDateString(window.appLocale(), { year: 'numeric', month: 'short', day: 'numeric' }),
+        registered: b.registered,
+        attended: b.attended,
+        capacity: e.max_participants ? Math.round((b.registered / e.max_participants) * 100) + '%' : '—',
+        revenue: canSeeRevenue ? '$' + (b.revenueCents / 100).toFixed(2) : null
+      };
+    });
+
+    tableEl.innerHTML = '<table class="roster roster-fits" style="margin-top:4px;">'
+      + '<tr><th data-i18n="dashEvents.event">' + escapeHtml(window.t('dashEvents.event')) + '</th>'
+      + '<th class="ev-col-desk">' + escapeHtml(window.t('dashEvents.date')) + '</th>'
+      + '<th>' + escapeHtml(window.t('evReports.registered')) + '</th>'
+      + '<th>' + escapeHtml(window.t('evReports.attended')) + '</th>'
+      + '<th class="ev-col-desk">' + escapeHtml(window.t('evReports.capacity')) + '</th>'
+      + (canSeeRevenue ? '<th class="ev-col-desk">' + escapeHtml(window.t('evReports.revenue')) + '</th>' : '')
+      + '</tr><tbody>'
+      + evReportsRows.map(function(r){
+          return '<tr><td>' + escapeHtml(r.title) + '</td>'
+            + '<td class="mono ev-col-desk">' + escapeHtml(r.date) + '</td>'
+            + '<td class="mono">' + r.registered + '</td>'
+            + '<td class="mono">' + r.attended + '</td>'
+            + '<td class="mono ev-col-desk">' + escapeHtml(r.capacity) + '</td>'
+            + (canSeeRevenue ? '<td class="mono ev-col-desk">' + escapeHtml(r.revenue) + '</td>' : '')
+            + '</tr>';
+        }).join('')
+      + '</tbody></table>'
+      + (canSeeRevenue ? '' : '<p style="font-size:12px;color:var(--ink-mute);margin-top:8px;">' + escapeHtml(window.t('evReports.revenueHidden')) + '</p>');
+  }
+  window.loadEventsReports = loadEventsReports;
+
+  var evReportsExportBtn = document.getElementById('ev-reports-export');
+  if (evReportsExportBtn) {
+    evReportsExportBtn.addEventListener('click', function(){
+      if (!evReportsRows.length) return;
+      // Built from the same rows the table renders, so an export can
+      // never disagree with what is on screen.
+      var head = [window.t('dashEvents.event'), window.t('dashEvents.date'),
+                  window.t('evReports.registered'), window.t('evReports.attended'),
+                  window.t('evReports.capacity')];
+      var withRevenue = evReportsRows[0].revenue !== null;
+      if (withRevenue) head.push(window.t('evReports.revenue'));
+      var rows = [head].concat(evReportsRows.map(function(r){
+        var line = [r.title, r.date, r.registered, r.attended, r.capacity];
+        if (withRevenue) line.push(r.revenue);
+        return line;
+      }));
+      downloadCsv('event-performance.csv', rows);
+    });
+  }
+
+  // ============================================================
   // Events calendar view — an alternative to the table, for
   // churches with enough event volume that a month grid actually
   // helps spot patterns (gaps, overlapping days) the table doesn't
@@ -23373,10 +23641,62 @@ Groups</span>
   }
   function toLocalDateStr(d){ return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
   function toLocalTimeStr(d){ return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0'); }
-  // What a datetime-local input wants, and hands back: local wall time,
-  // no zone. Exactly the shape combineDateTime used to assemble from two
-  // fields, so everything downstream of it is unchanged.
-  function toLocalDateTimeStr(d){ return toLocalDateStr(d) + 'T' + toLocalTimeStr(d); }
+  // "HH:mm" -> "9:00 AM", for display in the time field and its list.
+  function fmtTimeLabel(hhmm){
+    var parts = String(hhmm).split(':');
+    var h = parseInt(parts[0], 10), m = parseInt(parts[1], 10) || 0;
+    var d = new Date(2000, 0, 1, h, m);
+    return d.toLocaleTimeString(window.appLocale(), { hour: 'numeric', minute: '2-digit' });
+  }
+
+  // Anything a person might type, back to "HH:mm", or '' if it is not a
+  // time at all. Deliberately forgiving: the whole point of a text
+  // field here is that it accepts what a dropdown could not.
+  //   "6:45 PM"  "6:45pm"  "18:45"  "645pm"  "6 pm"  "1845"
+  function parseTimeInput(raw){
+    if (!raw) return '';
+    var t = String(raw).trim().toLowerCase().replace(/\./g, '');
+    var pm = /p\s*m?$/.test(t), am = /a\s*m?$/.test(t);
+    t = t.replace(/[ap]\s*m?$/, '').trim();
+    var h, m;
+    var colon = t.match(/^(\d{1,2})\s*:\s*(\d{1,2})$/);
+    if (colon) { h = +colon[1]; m = +colon[2]; }
+    else if (/^\d{3,4}$/.test(t)) { h = +t.slice(0, t.length - 2); m = +t.slice(-2); }
+    else if (/^\d{1,2}$/.test(t)) { h = +t; m = 0; }
+    else return '';
+    if (isNaN(h) || isNaN(m) || m > 59) return '';
+    // 12-hour only when a marker was actually given. "13" stays 13:00
+    // rather than becoming 1pm by guesswork.
+    if (pm && h < 12) h += 12;
+    if (am && h === 12) h = 0;
+    if (h > 23) return '';
+    return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+  }
+
+  // The quarter-hour suggestions. A datalist rather than a select, so
+  // the list is a suggestion and not a constraint.
+  (function fillQuarterHours(){
+    var dl = document.getElementById('fd-quarter-hours');
+    if (!dl) return;
+    var out = '';
+    for (var mins = 0; mins < 24 * 60; mins += 15) {
+      var hhmm = String(Math.floor(mins / 60)).padStart(2, '0') + ':' + String(mins % 60).padStart(2, '0');
+      out += '<option value="' + fmtTimeLabel(hhmm) + '"></option>';
+    }
+    dl.innerHTML = out;
+  })();
+
+  // Reads one end of the form as "YYYY-MM-DDTHH:mm", or '' when either
+  // half is missing or the time will not parse.
+  function ceReadDateTime(which){
+    var dateStr = (document.getElementById('ce-' + which + '-date') || {}).value || '';
+    var timeStr = parseTimeInput((document.getElementById('ce-' + which + '-time') || {}).value);
+    return (dateStr && timeStr) ? (dateStr + 'T' + timeStr) : '';
+  }
+  function ceWriteDateTime(which, d){
+    document.getElementById('ce-' + which + '-date').value = toLocalDateStr(d);
+    document.getElementById('ce-' + which + '-time').value = fmtTimeLabel(toLocalTimeStr(d));
+  }
 
   // buildTimeOptions still exists for the GROUP form's meeting time,
   // which is a recurring slot rather than a moment and is still best
@@ -23395,24 +23715,35 @@ Groups</span>
   // empty. Filling the end an hour after the start the moment a start
   // is chosen gives the same help at the point it is actually useful.
   function ceAdjustEndFromStart(){
-    var startStr = document.getElementById('ce-start-at').value;
+    var startStr = ceReadDateTime('start');
     if (!startStr) return;
     var startDate = new Date(startStr);
     if (isNaN(startDate)) return;
 
-    var endStr = document.getElementById('ce-end-at').value;
+    var endStr = ceReadDateTime('end');
     var endDate = endStr ? new Date(endStr) : null;
     if (endDate && isNaN(endDate)) endDate = null;
 
     if (!endDate || endDate <= startDate) {
-      document.getElementById('ce-end-at').value =
-        toLocalDateTimeStr(new Date(startDate.getTime() + 60 * 60 * 1000));
+      ceWriteDateTime('end', new Date(startDate.getTime() + 60 * 60 * 1000));
     }
   }
-  var ceStartAtInput = document.getElementById('ce-start-at');
-  // One listener now, not two. A datetime-local fires 'change' for the
-  // date half and the time half alike.
-  if (ceStartAtInput) ceStartAtInput.addEventListener('change', ceAdjustEndFromStart);
+  // Both halves of the start, and the time fields normalise themselves
+  // on blur so "645p" becomes "6:45 PM" while it is still on screen --
+  // silently reinterpreting what somebody typed without showing them is
+  // how a form loses trust.
+  ['ce-start-date', 'ce-start-time'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.addEventListener('change', ceAdjustEndFromStart);
+  });
+  ['ce-start-time', 'ce-end-time'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('blur', function(){
+      var hhmm = parseTimeInput(el.value);
+      if (hhmm) el.value = fmtTimeLabel(hhmm);
+    });
+  });
 
   // Warn (don't block) if the chosen image is smaller than what the
   // card needs to render sharp on a retina/high-DPI screen — the
@@ -23858,11 +24189,12 @@ Groups</span>
     document.getElementById('ce-title').value = '';
     document.getElementById('ce-description').innerHTML = '';
     document.getElementById('ce-description-count').textContent = '0 / 800';
-    // Both blank. The old 09:00/10:00 defaults lived on the time
-    // dropdowns, which could hold a time with no date; one field cannot.
-    // ceAdjustEndFromStart fills the end as soon as a start is picked.
-    document.getElementById('ce-start-at').value = '';
-    document.getElementById('ce-end-at').value = '';
+    // Dates blank, times defaulted -- two fields can hold a time with
+    // no date, which is what made 9:00/10:00 useful before.
+    document.getElementById('ce-start-date').value = '';
+    document.getElementById('ce-end-date').value = '';
+    document.getElementById('ce-start-time').value = fmtTimeLabel('09:00');
+    document.getElementById('ce-end-time').value = fmtTimeLabel('10:00');
     document.getElementById('ce-venue-name').value = '';
     document.getElementById('ce-location').value = '';
     document.getElementById('ce-location').disabled = false;
@@ -24101,11 +24433,8 @@ Groups</span>
     document.getElementById('ce-use-church-address').checked = false;
     document.getElementById('ce-location').value = ev.location || '';
 
-    var startD = new Date(ev.start_at);
-    document.getElementById('ce-start-at').value = toLocalDateTimeStr(startD);
-    if (ev.end_at) {
-      document.getElementById('ce-end-at').value = toLocalDateTimeStr(new Date(ev.end_at));
-    }
+    ceWriteDateTime('start', new Date(ev.start_at));
+    if (ev.end_at) ceWriteDateTime('end', new Date(ev.end_at));
 
     // Cleared unconditionally first -- editing event B right after
     // event A (A had an image, B doesn't) would otherwise leave A's
@@ -24713,10 +25042,8 @@ Groups</span>
       // that might land in this field some other way (pasted
       // content, browser extensions, a future editing path).
       var description = sanitizeRichText(document.getElementById('ce-description').innerHTML);
-      // Already 'YYYY-MM-DDTHH:mm' -- the same string combineDateTime
-      // used to build out of two fields.
-      var startAt = document.getElementById('ce-start-at').value;
-      var endAt = document.getElementById('ce-end-at').value;
+      var startAt = ceReadDateTime('start');
+      var endAt = ceReadDateTime('end');
       var ceVenueName = document.getElementById('ce-venue-name').value.trim();
       var ceAddressValue = document.getElementById('ce-location').value.trim();
       // Stored apart since migration 075. They used to be joined with a
@@ -28805,8 +29132,8 @@ Groups</span>
     var warnEl = document.getElementById('ce-room-conflict-warning');
     if (!warnEl) return;
     var roomIds = getSelectedCeRoomIds();
-    var startAt = document.getElementById('ce-start-at').value;
-    var endAt = document.getElementById('ce-end-at').value;
+    var startAt = ceReadDateTime('start');
+    var endAt = ceReadDateTime('end');
     if (!roomIds.length || !startAt) { warnEl.style.display = 'none'; warnEl.innerHTML = ''; return; }
 
     // Each run claims an id and only paints if it is still the latest.
@@ -28845,7 +29172,7 @@ Groups</span>
       // controls. Missing this rename would have left double-booking
       // warnings frozen on whatever times the form was opened with --
       // silently, since nothing errors when a listener matches nothing.
-      if (['ce-start-at', 'ce-end-at'].indexOf(t.id) !== -1) refreshCeRoomConflicts();
+      if (['ce-start-date', 'ce-start-time', 'ce-end-date', 'ce-end-time'].indexOf(t.id) !== -1) refreshCeRoomConflicts();
     });
   })();
 
