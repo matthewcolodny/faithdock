@@ -79,6 +79,11 @@ const DRY = has('dry-run');
 // re-running a batch to apply a new rule should not cost what the
 // lookups cost.
 const CACHED_ONLY = has('cached-only');
+// Promote rows whose name scores at least this AND sit in the same
+// postal area, using GOOGLE'S address rather than the IRS one. Off by
+// default and meant to be set after reading a sorted .check.csv, not
+// before. 0 means never.
+const ACCEPT_SIMILAR = parseInt(arg('accept-similar', '0'), 10) || 0;
 const KEY = process.env.GOOGLE_PLACES_KEY || '';
 const PAUSE_MS = parseInt(arg('pause', '120'), 10);
 
@@ -204,6 +209,61 @@ async function lookup(row) {
   };
 }
 
+// HOW ALIKE ARE THE TWO NAMES?
+//
+// Used to SORT the rows a person has to read, and deliberately not to
+// decide anything. Scored across 23 real mismatches from the San
+// Antonio batch, the boundary is not separable:
+//
+//   79  New Testament Christian Mission Intl | ...Intl - San Antonio   SAME
+//   78  Centro Cristiano De Restauracion     | Centro Familiar de Rest DIFFERENT
+//   76  Ministerios Amistad Cristiana USA    | Iglesia Amistad Crist.  SAME
+//
+// A true match sits on either side of a false one. Any cut-off picked
+// here would be a number fitted to 23 rows, and picking numbers that
+// happen to work on a small sample is how a rule that fails on ten
+// thousand gets written. So the score is printed, the file is sorted by
+// it, and the judgement stays with the person -- who can then set
+// --accept-similar to whatever they concluded, on evidence.
+//
+// Accents are folded because the IRS file has none and Google's answers
+// do: "Mision Cristiana" and "Misión Cristiana" are the same name and
+// score 0 against each other without it.
+function fold(x) {
+  return String(x || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
+}
+const NAME_STOP = new Set(['the', 'of', 'de', 'del', 'la', 'el', 'los', 'las', 'a', 'an', 'and', 'y', 'en', 'tx', 'texas', 'inc']);
+function nameTokens(x) { return fold(x).split(' ').filter(w => w && !NAME_STOP.has(w)); }
+
+function similarity(a, b) {
+  const A = new Set(nameTokens(a)), B = new Set(nameTokens(b));
+  let jaccard = 0;
+  if (A.size && B.size) {
+    let hit = 0; A.forEach(t => { if (B.has(t)) hit++; });
+    jaccard = hit / (A.size + B.size - hit);
+  }
+  // Token overlap alone scores a one-letter typo as a total miss --
+  // "Capilla Del Pueblo" against "Capillo Del Pueblo" shares no token
+  // for the word that matters. The edit distance catches that; the
+  // token score catches reordering and added words. Whichever is
+  // kinder is the honest reading of "are these the same name".
+  const x = fold(a), y = fold(b);
+  const d = [];
+  for (let i = 0; i <= y.length; i++) d[i] = [i];
+  for (let j = 0; j <= x.length; j++) d[0][j] = j;
+  for (let i = 1; i <= y.length; i++) {
+    for (let j = 1; j <= x.length; j++) {
+      d[i][j] = y[i - 1] === x[j - 1] ? d[i - 1][j - 1]
+        : Math.min(d[i - 1][j - 1] + 1, d[i][j - 1] + 1, d[i - 1][j] + 1);
+    }
+  }
+  const edit = 1 - d[y.length][x.length] / Math.max(x.length, y.length, 1);
+  return Math.round(Math.max(jaccard, edit) * 100);
+}
+
+const zip3of = a => ((String(a).match(/\b(\d{5})(?:-\d{4})?\s*$/) || [])[1] || '').slice(0, 3);
+
 // DOES THE PLACE GOOGLE RETURNED SIT AT THE ADDRESS WE ASKED ABOUT?
 //
 // Text Search always answers. It has no concept of "nothing here" -- it
@@ -269,7 +329,7 @@ const WORSHIP = /\b(church|place_of_worship|synagogue|mosque|hindu_temple)\b/;
 (async function main() {
   const base = FILE.replace(/\.csv$/i, '') + (DRY ? '.dryrun' : '');
   const enriched = [], yes = [], no = [], check = [], mismatch = [];
-  let calls = 0, cached = 0, unknown = 0, done = 0;
+  let calls = 0, cached = 0, unknown = 0, done = 0, promoted = 0;
 
   for (const row of rows) {
     const k = keyOf(row);
@@ -304,9 +364,24 @@ const WORSHIP = /\b(church|place_of_worship|synagogue|mosque|hindu_temple)\b/;
     } else if (r.matched === 'yes') {
       // Google answered, but not about this address. Never silently
       // dropped and never silently imported -- the name is often right
-      // and the building wrong, which is the one case a human has to
+      // and the building wrong, which is the one case a person has to
       // look at.
-      check.push([row.name, row.denomination, row.address, r.phone, r.website, agrees, r.detail, r.types]);
+      //
+      // The IRS address is frequently a MAILING address: a treasurer's
+      // home, a trailer, a PO drop. Google usually has where people
+      // actually meet. So when one of these is accepted, it is accepted
+      // with Google's address, not the IRS one -- that is the whole
+      // value of recovering it for a directory with a map on it.
+      const gotName = (r.detail || '').split('\u2014')[0].trim();
+      const score = similarity(row.name, gotName);
+      const sameArea = zip3of(row.address) && zip3of(got) && zip3of(row.address) === zip3of(got);
+      if (ACCEPT_SIMILAR && score >= ACCEPT_SIMILAR && sameArea) {
+        yes.push([row.name, row.denomination, got || row.address, r.phone, r.website]);
+        promoted++;
+      } else {
+        check.push([row.name, row.denomination, row.address, r.phone, r.website,
+                    agrees, score, sameArea ? 'yes' : 'no', got, r.detail, r.types]);
+      }
     } else if (r.matched === 'no') {
       no.push([row.name, row.denomination, row.address]);
     }
@@ -318,7 +393,10 @@ const WORSHIP = /\b(church|place_of_worship|synagogue|mosque|hindu_temple)\b/;
   write('.enriched.csv', 'name,denomination,address,phone,website,matched,match_detail,place_types', enriched);
   write('.yes.csv', 'name,denomination,address,phone,website', yes);
   write('.no.csv', 'name,denomination,address', no);
-  write('.check.csv', 'name,denomination,address,phone,website,why,match_detail,place_types', check);
+  // Best-looking first, so the decision boundary is in one place
+  // instead of scattered down the file.
+  check.sort((a, b) => b[6] - a[6]);
+  write('.check.csv', 'name,denomination,address,phone,website,why,name_match,same_area,suggested_address,match_detail,place_types', check);
   write('.type-mismatch.csv', 'name,denomination,address,phone,website,matched,match_detail,place_types', mismatch);
 
   const pct = n => (enriched.length ? Math.round((n / enriched.length) * 100) : 0) + '%';
@@ -330,7 +408,8 @@ const WORSHIP = /\b(church|place_of_worship|synagogue|mosque|hindu_temple)\b/;
   if (unknown) console.log('  lookup failed   ' + unknown.toLocaleString() + '   not cached -- re-run to retry these');
   console.log('');
   console.log('  confirmed       ' + yes.length.toLocaleString() + '  ' + pct(yes.length) + '  -> ' + path.basename(base) + '.yes.csv  (import this)');
-  console.log('  wrong address   ' + check.length.toLocaleString() + '  ' + pct(check.length) + '  -> ' + path.basename(base) + '.check.csv  (read these)');
+  console.log('  wrong address   ' + check.length.toLocaleString() + '  ' + pct(check.length) + '  -> ' + path.basename(base) + '.check.csv  (read these, best first)');
+  if (ACCEPT_SIMILAR) console.log('  of which promoted by --accept-similar ' + ACCEPT_SIMILAR + ': ' + promoted.toLocaleString() + '  (using Google\'s address)');
   console.log('  nothing found   ' + no.length.toLocaleString() + '  ' + pct(no.length) + '  -> ' + path.basename(base) + '.no.csv');
   console.log('  found, but not a place of worship by type: ' + mismatch.length.toLocaleString() + '  -> ' + path.basename(base) + '.type-mismatch.csv');
   const withPhone = enriched.filter(r => r[3]).length, withSite = enriched.filter(r => r[4]).length;

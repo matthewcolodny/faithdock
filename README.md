@@ -20,6 +20,10 @@ Visual concept / prototype for FaithDock — a single-file frontend deployed as 
   for free. Results are cached as they land, so an interrupted run
   resumes without paying twice. `--cached-only` re-scores what is
   already cached and buys nothing, for when the matching rules change.
+  `.check.csv` is sorted by a name-similarity score; `--accept-similar N`
+  promotes rows at or above N that are also in the same postal area,
+  using Google's address rather than the IRS one. Off by default — set it
+  after reading the sorted file, not before.
 
 ## Deploying
 All of the above must be deployed together, at the same root level — `index.html` loads `pure-logic.js` via a relative `<script src="pure-logic.js">` tag, and the manifest, service worker and icons are referenced from the root (`/sw.js`, `/manifest.webmanifest`, `/icons/...`). On Cloudflare Pages, connecting this repo directly (rather than manual zip uploads) avoids them ever drifting out of sync on the live site.
