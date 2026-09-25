@@ -166,8 +166,13 @@ function checkI18nKeys() {
   }
   if (!dict || !dict.en || !dict.es) { fail('index.html', 'translations is missing en or es'); return; }
 
+  // data-fd-time-title is in this list for the same reason the t()
+  // literals are checked: it names a translation key, it is read at
+  // runtime with window.t(), and a typo in one renders the key itself
+  // to the user. That is exactly how dashEvents.viewPublicPage shipped.
   const ATTRS = ['data-i18n', 'data-i18n-placeholder', 'data-i18n-title',
-                 'data-i18n-tip', 'data-i18n-label', 'data-i18n-data-placeholder'];
+                 'data-i18n-tip', 'data-i18n-label', 'data-i18n-data-placeholder',
+                 'data-fd-time-title'];
   const used = new Map();
   for (const attr of ATTRS) {
     const re = new RegExp(attr + '="([^"]+)"', 'g');
