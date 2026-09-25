@@ -10444,7 +10444,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-24-v279 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-24-v280 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -33341,18 +33341,21 @@ Groups</span>
       // rather than reported.
       var gName = escapeHtml(g.name);
       var sched = splitGroupSchedule(g.meeting_schedule);
-      // Sub-lines under the name, phone only. They carry what the
-      // hidden columns held: how many members, and whether the leader
-      // can see contact details.
-      var contactTag = '<span class="tag ' + (g.leader_can_view_contact_info ? 'sage' : 'clay') + '" style="font-size:9px;padding:2px 6px;">'
-        + escapeHtml(window.t('dashGroups.contactInfoVisible')) + ': '
-        + escapeHtml(g.leader_can_view_contact_info ? window.t('common.on') : window.t('common.off')) + '</span>';
+      // The sub-line under the name, phone only: the member count and
+      // nothing else.
+      //
+      // The contact-info state was here too and came out. It is a
+      // setting rather than something you scan a list for, and as a tag
+      // carrying its own label it was the longest thing in the row --
+      // it wrapped, and pushed the count away from the name it belongs
+      // to. It is still on the desktop column and in the detail card,
+      // which is where somebody actually goes to check it.
       rowsHtml += '<tr>'
         + '<td>'
           + '<div class="gr-row-main">'
             + '<div class="gr-name-wrap">'
               + '<button class="gr-name-btn" data-group-detail="' + escapeHtml(g.id) + '">' + gName + '</button>'
-              + '<div class="gr-sub">' + (count || 0) + ' ' + escapeHtml(count === 1 ? window.t('dashDir.member') : window.t('dashDir.members')) + pendingBadge + contactTag + '</div>'
+              + '<div class="gr-sub">' + (count || 0) + ' ' + escapeHtml(count === 1 ? window.t('dashDir.member') : window.t('dashDir.members')) + pendingBadge + '</div>'
             + '</div>'
             // The schedule moves here on a phone, stacked, mirroring the
             // events table's date column.
