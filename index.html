@@ -534,6 +534,11 @@
       'filters.keywordPlaceholder': 'Search by church name or keyword...', 'filters.denomination': 'Denomination',
       'filters.selectAll': 'Select all', 'filters.uncheckAll': 'Uncheck all',
       'filters.searchDenomination': 'Search denomination...', 'filters.distance': 'Distance', 'filters.anyDistance': 'Any distance',
+      // Labels the denominations dropdown, the way "Distance" labels the
+      // one below it. It used to read "Filter searches", which is the
+      // panel's own title, so the control had no label of its own and
+      // the two groups did not match.
+      'filters.denominationsEtc': 'Denominations, etc.',
       'filters.within1': 'Within 1 mile', 'filters.within2': 'Within 2 miles', 'filters.within5': 'Within 5 miles',
       'filters.within10': 'Within 10 miles', 'filters.within25': 'Within 25 miles', 'filters.hasEvents': 'Has events',
       'filters.anyTime': 'Any time', 'filters.next7': 'Next 7 days', 'filters.next14': 'Next 14 days', 'filters.next30': 'Next 30 days',
@@ -1202,6 +1207,10 @@
       'dashMsg.sentMessages': 'Sent messages', 'dashMsg.noSentMessages': 'No messages sent yet.',
       'dashGroups.newGroup': 'New group', 'dashGroups.groupName': 'Group name', 'dashGroups.description': 'Description',
       'dashGroups.descriptionPlaceholder': 'What this group is about', 'dashGroups.meetingSchedule': 'Meeting schedule',
+      // Not 'Youth Ministry'. There is a Ministry select three fields
+      // below this one, so a ministry name as the example for a GROUP
+      // name blurred the two things the form is asking to keep apart.
+      'dashGroups.groupNamePlaceholder': 'Prayer Group',
       'dashGroups.onSpecificDate': 'On a specific date', 'dashGroups.everyWeek': 'Every week', 'dashGroups.every1st': 'Every 1st',
       'dashGroups.every2nd': 'Every 2nd', 'dashGroups.every3rd': 'Every 3rd', 'dashGroups.every4th': 'Every 4th', 'dashGroups.everyLast': 'Every last',
       'days.sunday': 'Sunday', 'days.monday': 'Monday', 'days.tuesday': 'Tuesday', 'days.wednesday': 'Wednesday',
@@ -1721,6 +1730,7 @@
       'filters.keywordPlaceholder': 'Buscar por nombre de iglesia o palabra clave...', 'filters.denomination': 'Denominación',
       'filters.selectAll': 'Seleccionar todo', 'filters.uncheckAll': 'Desmarcar todo',
       'filters.searchDenomination': 'Buscar denominación...', 'filters.distance': 'Distancia', 'filters.anyDistance': 'Cualquier distancia',
+      'filters.denominationsEtc': 'Denominaciones, etc.',
       'filters.within1': 'A menos de 1 milla', 'filters.within2': 'A menos de 2 millas', 'filters.within5': 'A menos de 5 millas',
       'filters.within10': 'A menos de 10 millas', 'filters.within25': 'A menos de 25 millas', 'filters.hasEvents': 'Con eventos',
       'filters.anyTime': 'Cualquier momento', 'filters.next7': 'Próximos 7 días', 'filters.next14': 'Próximos 14 días', 'filters.next30': 'Próximos 30 días',
@@ -2377,6 +2387,7 @@
       'dashMsg.sentMessages': 'Mensajes enviados', 'dashMsg.noSentMessages': 'Aún no se han enviado mensajes.',
       'dashGroups.newGroup': 'Nuevo grupo', 'dashGroups.groupName': 'Nombre del grupo', 'dashGroups.description': 'Descripción',
       'dashGroups.descriptionPlaceholder': 'De qué trata este grupo', 'dashGroups.meetingSchedule': 'Horario de reunión',
+      'dashGroups.groupNamePlaceholder': 'Grupo de oración',
       'dashGroups.onSpecificDate': 'En una fecha específica', 'dashGroups.everyWeek': 'Cada semana', 'dashGroups.every1st': 'Cada 1.º',
       'dashGroups.every2nd': 'Cada 2.º', 'dashGroups.every3rd': 'Cada 3.º', 'dashGroups.every4th': 'Cada 4.º', 'dashGroups.everyLast': 'Cada último',
       'days.sunday': 'Domingo', 'days.monday': 'Lunes', 'days.tuesday': 'Martes', 'days.wednesday': 'Miércoles',
@@ -4485,6 +4496,17 @@
      page-specific IDs) so any panel using this markup gets the same
      collapse behavior for free. */
   .filter-panel-toggle{display:none;}
+  /* The panel's title on DESKTOP only. Mobile has the toggle above,
+     which carries the same words and is the thing you tap.
+     It exists because the denominations group's own heading used to
+     say "Filter searches" and so doubled as the panel title -- which
+     left that dropdown with no label of its own while Distance below
+     it had one. The heading now names its control, and the title is
+     its own element. */
+  .filter-panel-title{
+    font-family:'Fraunces';font-size:15px;font-weight:600;color:var(--ink);
+    margin:0 0 16px;
+  }
   @media (max-width:860px){
     .directory-layout{grid-template-columns:1fr;}
     .filter-panel{position:static;}
@@ -4497,11 +4519,9 @@
     .filter-panel-toggle[aria-expanded="true"] svg{transform:rotate(180deg);}
     .filter-panel-body{display:none;margin-top:18px;}
     .filter-panel-body.open{display:block;}
-    /* The Tradition/Denomination section's own heading duplicates the
-       .filter-panel-toggle above it once expanded on mobile -- both
-       read "Filter searches". Desktop has no toggle at all, so it
-       still needs this heading; mobile doesn't. */
-    .filter-tradition-heading{display:none;}
+    /* The panel title is the toggle here, so the separate desktop one
+       would be a second copy of the same words. */
+    .filter-panel-title{display:none;}
   }
   /* Generic default — auto-fit so the unrelated Conference-page ticket
      grid (3 cards, also .pricing-grid/.price-card) still lays out
@@ -6167,13 +6187,14 @@
 
     <div class="directory-layout">
       <aside class="filter-panel">
+        <h3 class="filter-panel-title" data-i18n="filters.filterSearches">Filter searches</h3>
         <button type="button" class="filter-panel-toggle" id="dir-filter-toggle" aria-expanded="false" aria-controls="dir-filter-body">
           <span data-i18n="filters.filterSearches">Filter searches</span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
         </button>
         <div class="filter-panel-body" id="dir-filter-body">
         <div class="filter-group">
-          <h4 class="filter-tradition-heading" data-i18n="filters.filterSearches">Filter searches</h4>
+          <h4 class="filter-tradition-heading" data-i18n="filters.denominationsEtc">Denominations, etc.</h4>
           <button type="button" id="denom-dropdown-btn" style="width:100%;padding:9px 10px;font-size:13.5px;color:var(--ink);border:1px solid var(--line);border-radius:8px;background:var(--card);display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
             <span id="denom-dropdown-label" data-i18n="filters.allSelected">All selected</span>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;flex-shrink:0;"><path d="M6 9l6 6 6-6"/></svg>
@@ -6416,13 +6437,14 @@ Groups</span>
 
     <div class="directory-layout">
       <aside class="filter-panel">
+        <h3 class="filter-panel-title" data-i18n="filters.filterSearches">Filter searches</h3>
         <button type="button" class="filter-panel-toggle" id="events-filter-toggle" aria-expanded="false" aria-controls="events-filter-body">
           <span data-i18n="filters.filterSearches">Filter searches</span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
         </button>
         <div class="filter-panel-body" id="events-filter-body">
         <div class="filter-group">
-          <h4 class="filter-tradition-heading" data-i18n="filters.filterSearches">Filter searches</h4>
+          <h4 class="filter-tradition-heading" data-i18n="filters.denominationsEtc">Denominations, etc.</h4>
           <button type="button" id="events-denom-dropdown-btn" style="width:100%;padding:9px 10px;font-size:13.5px;color:var(--ink);border:1px solid var(--line);border-radius:8px;background:var(--card);display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
             <span id="events-denom-dropdown-label" data-i18n="filters.allSelected">All selected</span>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;flex-shrink:0;"><path d="M6 9l6 6 6-6"/></svg>
@@ -9449,7 +9471,7 @@ Groups</span>
           <h4 id="group-form-heading" style="font-family:'Fraunces';font-size:17px;margin-bottom:16px;" data-i18n="dashGroups.newGroup">New group</h4>
           <input type="hidden" id="group-form-id">
           <label data-i18n="dashGroups.groupName">Group name</label>
-          <input class="field" type="text" id="group-name" placeholder="Youth Ministry">
+          <input class="field" type="text" id="group-name" placeholder="Prayer Group" data-i18n-placeholder="dashGroups.groupNamePlaceholder">
           <label data-i18n="dashGroups.description">Description</label>
           <textarea class="field" id="group-description" rows="2" maxlength="400" placeholder="What this group is about" data-i18n-placeholder="dashGroups.descriptionPlaceholder"></textarea>
           <!-- Which ministry runs this group. One, or none: unlike an
@@ -10336,7 +10358,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-24-v277 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-24-v278 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13198,7 +13220,22 @@ Groups</span>
     // A section with pages behind it keeps the drawer open: the tap
     // opened a menu, and closing it would hide what was just opened.
     // A page closes it, because you have arrived.
-    var opensSubMenu = !!(window.DASH_SECTIONS && window.DASH_SECTIONS[pickedView]);
+    //
+    // WHERE THE TAP CAME FROM DECIDES IT, not the name. Every one of
+    // the nine sections shares its key with its own first view --
+    // section 'events' has a view 'events', 'giving' has 'giving', and
+    // so on for all of them. So asking DASH_SECTIONS alone said "this
+    // opens a sub-menu" for the first item of every branch, and the
+    // drawer stayed open on top of the page it had just opened.
+    // Reported for Event list and, correctly, for the top item of
+    // every other branch too.
+    //
+    // #dash-nav-sub only ever holds a rendered level, where every
+    // [data-dash] is a page. Only the static church menu can open a
+    // section. That is the same rule the sub-nav click handler already
+    // works by; this one was going by name instead.
+    var fromChurchMenu = !picked.closest('#dash-nav-sub');
+    var opensSubMenu = fromChurchMenu && !!(window.DASH_SECTIONS && window.DASH_SECTIONS[pickedView]);
     if (!opensSubMenu) setDashMenu(false);
   });
 
@@ -25572,13 +25609,23 @@ Groups</span>
     }).join('');
   }
 
-  function roomSchedAgenda(groups){
+  function roomSchedAgenda(groups, showRoom){
     // groups: [{ label, events }] -- the phone view for day and week
     // alike. Same events, no geometry.
     //
-    // No room name on the row: day groups BY room so the heading is
-    // already the room, and week is one room picked in the control
-    // above. Printing it again per row said the same thing twice.
+    // showRoom mirrors the `showAll` the desktop week grid already
+    // passes to roomSchedColumn. It used to be left out entirely, on
+    // the reasoning that day groups BY room so the heading names it,
+    // and week is one room picked in the dropdown above.
+    //
+    // That second half was wrong: the dropdown has an "All rooms"
+    // option, and it is the default. So the whole week could be on
+    // screen on a phone with nothing anywhere saying which room any of
+    // it was in. Reported from exactly that state.
+    //
+    // Its own line under the title, not inline, for the same reason
+    // roomSchedDayList puts it there: a long room name run in after
+    // the title reads as one run-on sentence with no boundary.
     var html = groups.map(function(g){
       if (!g.events.length) return '';
       var sorted = g.events.slice().sort(function(a, b){ return new Date(a.start_at) - new Date(b.start_at); });
@@ -25586,9 +25633,16 @@ Groups</span>
         + '<div style="font-size:12px;color:var(--ink-mute);margin-bottom:4px;">' + escapeHtml(g.label) + '</div>'
         + sorted.map(function(e){
             var st = new Date(e.start_at);
-            return '<div style="font-size:12.5px;margin-bottom:3px;">'
+            // __roomName is set by the week renderer when every room is
+            // showing; a single-room week leaves it undefined, and then
+            // naming the room would just repeat the dropdown.
+            var roomLine = (showRoom && e.__roomName)
+              ? '<div style="color:var(--ink-mute);font-size:11.5px;margin-top:1px;">' + escapeHtml(e.__roomName) + '</div>'
+              : '';
+            return '<div style="font-size:12.5px;margin-bottom:' + (roomLine ? '7px' : '3px') + ';">'
               + escapeHtml(st.toLocaleTimeString(window.appLocale(), { hour: 'numeric', minute: '2-digit' })) + ' — '
               + '<a style="border-bottom:1px solid var(--line);cursor:pointer;" data-room-event="' + escapeHtml(e.id) + '">' + escapeHtml(e.title) + '</a>'
+              + roomLine
               + '</div>';
           }).join('')
         + '</div>';
@@ -25746,7 +25800,9 @@ Groups</span>
 
     return { grid: '<div class="rsched" style="grid-template-columns:52px repeat(7,minmax(0,1fr));">' + head
              + roomSchedTimeGutter(range, RSCHED_PX_PER_HOUR) + cols + '</div>',
-             agenda: roomSchedAgenda(days.map(function(d){ return { label: d.label, events: d.events }; })),
+             // showAll, the same flag the grid above uses to decide
+             // whether its blocks name their room.
+             agenda: roomSchedAgenda(days.map(function(d){ return { label: d.label, events: d.events }; }), showAll),
              label: weekStart.toLocaleDateString(window.appLocale(), { month: 'short', day: 'numeric' })
                     + ' – ' + addDays(weekStart, 6).toLocaleDateString(window.appLocale(), { month: 'short', day: 'numeric' }) };
   }
