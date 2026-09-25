@@ -222,7 +222,22 @@ serve(async (req) => {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${resendApiKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          from: 'FaithDock <invites@faithdock.com>', to: recipientEmails, reply_to: senderEmail,
+          // messages@, not invites@. The local part is free to choose:
+          // Resend authorises the whole verified DOMAIN, and both
+          // authentication checks are domain-scoped -- DKIM signs with
+          // d=faithdock.com (key at resend._domainkey), and SPF is
+          // evaluated against the MAIL FROM subdomain
+          // send.faithdock.com, which DMARC accepts because the record
+          // carries aspf=r. Nothing here is per-mailbox, so this needed
+          // no DNS change and cannot fail verification.
+          //
+          // No mailbox exists at messages@ (MX for faithdock.com points
+          // at Google Workspace, not at Cloudflare Email Routing), but
+          // nothing needs one: reply_to sends every reply to the
+          // visitor who wrote in, which is the whole point of this
+          // branch. A church replying normally never touches this
+          // address.
+          from: 'FaithDock <messages@faithdock.com>', to: recipientEmails, reply_to: senderEmail,
           subject: `[${churchRow.name}] ${subject}`, html: html,
         }),
       });

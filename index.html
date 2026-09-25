@@ -8457,25 +8457,38 @@ Groups</span>
            "645p" are both accepted. That is the pair asked for --
            fifteen-minute choices, any time typeable -- and it is the
            only shape that delivers both on a phone. -->
+      <!-- A date input and a SELECT of quarter hours.
+           This is where it started, and it was right. buildTimeOptions
+           has always produced fifteen-minute steps, so the original
+           control already answered the question; what it could not do
+           was accept an arbitrary typed time.
+           Chasing that broke it twice. datetime-local hands the minute
+           wheel to Android, which ignores step and offers every
+           minute. A text input with a datalist puts Android's
+           suggestions in a sideways strip above the keyboard, starting
+           at 12:00 AM and collapsing to a single entry once anything
+           is typed. Both were worse than a native select, which on a
+           phone is a proper scrolling list.
+           Typing an arbitrary time is not supported here. If it is
+           wanted, the shape is an "Other time..." entry at the end of
+           this list that swaps in a text field -- deliberately not
+           built on a guess. -->
       <div style="display:flex;gap:10px;flex-wrap:wrap;">
         <div style="flex:1 1 220px;min-width:220px;">
           <label data-i18n="ce.starts">Starts</label>
           <div style="display:flex;gap:8px;">
-            <input class="field" type="date" id="ce-start-date" style="flex:1 1 55%;min-width:0;">
-            <input class="field" type="text" id="ce-start-time" list="fd-quarter-hours"
-                   autocomplete="off" placeholder="9:00 AM" style="flex:1 1 45%;min-width:0;">
+            <input class="field" type="date" id="ce-start-date" style="flex:1 1 52%;min-width:0;">
+            <select class="field" id="ce-start-time" style="flex:1 1 48%;min-width:0;"></select>
           </div>
         </div>
         <div style="flex:1 1 220px;min-width:220px;">
           <label data-i18n="ce.ends">Ends</label>
           <div style="display:flex;gap:8px;">
-            <input class="field" type="date" id="ce-end-date" style="flex:1 1 55%;min-width:0;">
-            <input class="field" type="text" id="ce-end-time" list="fd-quarter-hours"
-                   autocomplete="off" placeholder="10:00 AM" style="flex:1 1 45%;min-width:0;">
+            <input class="field" type="date" id="ce-end-date" style="flex:1 1 52%;min-width:0;">
+            <select class="field" id="ce-end-time" style="flex:1 1 48%;min-width:0;"></select>
           </div>
         </div>
       </div>
-      <datalist id="fd-quarter-hours"></datalist>
       <div style="font-size:12px;color:var(--ink-mute);margin-top:4px;" data-i18n="ce.multiDayHint">For a multi-day event like a summer camp, just set the end date a few days after the start.</div>
 
       <label style="margin-top:14px;" data-i18n="ce.venueName">Venue name (optional)</label>
@@ -10713,7 +10726,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-25-v287 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-25-v288 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -23712,66 +23725,42 @@ Groups</span>
   }
   function toLocalDateStr(d){ return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
   function toLocalTimeStr(d){ return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0'); }
-  // "HH:mm" -> "9:00 AM", for display in the time field and its list.
-  function fmtTimeLabel(hhmm){
-    var parts = String(hhmm).split(':');
-    var h = parseInt(parts[0], 10), m = parseInt(parts[1], 10) || 0;
-    var d = new Date(2000, 0, 1, h, m);
-    return d.toLocaleTimeString(window.appLocale(), { hour: 'numeric', minute: '2-digit' });
-  }
-
-  // Anything a person might type, back to "HH:mm", or '' if it is not a
-  // time at all. Deliberately forgiving: the whole point of a text
-  // field here is that it accepts what a dropdown could not.
-  //   "6:45 PM"  "6:45pm"  "18:45"  "645pm"  "6 pm"  "1845"
-  function parseTimeInput(raw){
-    if (!raw) return '';
-    var t = String(raw).trim().toLowerCase().replace(/\./g, '');
-    var pm = /p\s*m?$/.test(t), am = /a\s*m?$/.test(t);
-    t = t.replace(/[ap]\s*m?$/, '').trim();
-    var h, m;
-    var colon = t.match(/^(\d{1,2})\s*:\s*(\d{1,2})$/);
-    if (colon) { h = +colon[1]; m = +colon[2]; }
-    else if (/^\d{3,4}$/.test(t)) { h = +t.slice(0, t.length - 2); m = +t.slice(-2); }
-    else if (/^\d{1,2}$/.test(t)) { h = +t; m = 0; }
-    else return '';
-    if (isNaN(h) || isNaN(m) || m > 59) return '';
-    // 12-hour only when a marker was actually given. "13" stays 13:00
-    // rather than becoming 1pm by guesswork.
-    if (pm && h < 12) h += 12;
-    if (am && h === 12) h = 0;
-    if (h > 23) return '';
-    return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
-  }
-
-  // The quarter-hour suggestions. A datalist rather than a select, so
-  // the list is a suggestion and not a constraint.
-  (function fillQuarterHours(){
-    var dl = document.getElementById('fd-quarter-hours');
-    if (!dl) return;
-    var out = '';
-    for (var mins = 0; mins < 24 * 60; mins += 15) {
-      var hhmm = String(Math.floor(mins / 60)).padStart(2, '0') + ':' + String(mins % 60).padStart(2, '0');
-      out += '<option value="' + fmtTimeLabel(hhmm) + '"></option>';
-    }
-    dl.innerHTML = out;
-  })();
-
   // Reads one end of the form as "YYYY-MM-DDTHH:mm", or '' when either
-  // half is missing or the time will not parse.
+  // half is missing. The select's value is already "HH:mm".
   function ceReadDateTime(which){
     var dateStr = (document.getElementById('ce-' + which + '-date') || {}).value || '';
-    var timeStr = parseTimeInput((document.getElementById('ce-' + which + '-time') || {}).value);
+    var timeStr = (document.getElementById('ce-' + which + '-time') || {}).value || '';
     return (dateStr && timeStr) ? (dateStr + 'T' + timeStr) : '';
   }
   function ceWriteDateTime(which, d){
     document.getElementById('ce-' + which + '-date').value = toLocalDateStr(d);
-    document.getElementById('ce-' + which + '-time').value = fmtTimeLabel(toLocalTimeStr(d));
+    var sel = document.getElementById('ce-' + which + '-time');
+    var hhmm = toLocalTimeStr(d);
+    // An event already saved at a time that is not on the quarter --
+    // imported from a calendar file, or created before this list
+    // existed -- has no option to select, and the field would silently
+    // show the wrong time. Give it one rather than losing it.
+    if (sel && !Array.prototype.some.call(sel.options, function(o){ return o.value === hhmm; })) {
+      var parts = hhmm.split(':');
+      var hr = parseInt(parts[0], 10);
+      var opt = document.createElement('option');
+      opt.value = hhmm;
+      opt.textContent = ((hr % 12) === 0 ? 12 : (hr % 12)) + ':' + parts[1] + ' ' + (hr < 12 ? 'AM' : 'PM');
+      sel.appendChild(opt);
+    }
+    if (sel) sel.value = hhmm;
   }
 
-  // buildTimeOptions still exists for the GROUP form's meeting time,
-  // which is a recurring slot rather than a moment and is still best
-  // picked from a list. The event form no longer needs it.
+  var ceStartTimeSelect = document.getElementById('ce-start-time');
+  var ceEndTimeSelect = document.getElementById('ce-end-time');
+  if (ceStartTimeSelect && ceEndTimeSelect) {
+    var timeOptionsHtml = buildTimeOptions();
+    ceStartTimeSelect.innerHTML = timeOptionsHtml;
+    ceEndTimeSelect.innerHTML = timeOptionsHtml;
+    ceStartTimeSelect.value = '09:00';
+    ceEndTimeSelect.value = '10:00';
+  }
+
   var groupMeetingTimeSelect = document.getElementById('group-meeting-time');
   if (groupMeetingTimeSelect) {
     groupMeetingTimeSelect.innerHTML = buildTimeOptions();
@@ -23780,11 +23769,9 @@ Groups</span>
 
   // End always follows start — if the end is empty or now falls
   // before the new start, bump it forward by an hour automatically.
-  // This now carries the default the two dropdowns used to hold. They
-  // were pre-set to 09:00 and 10:00 with the dates left blank, which a
-  // single field cannot do -- a datetime-local is complete or it is
-  // empty. Filling the end an hour after the start the moment a start
-  // is chosen gives the same help at the point it is actually useful.
+  // The times default to 09:00 and 10:00 with both dates blank, so
+  // picking a start date is the first moment there is anything to
+  // carry across to the end.
   function ceAdjustEndFromStart(){
     var startStr = ceReadDateTime('start');
     if (!startStr) return;
@@ -23799,21 +23786,9 @@ Groups</span>
       ceWriteDateTime('end', new Date(startDate.getTime() + 60 * 60 * 1000));
     }
   }
-  // Both halves of the start, and the time fields normalise themselves
-  // on blur so "645p" becomes "6:45 PM" while it is still on screen --
-  // silently reinterpreting what somebody typed without showing them is
-  // how a form loses trust.
   ['ce-start-date', 'ce-start-time'].forEach(function(id){
     var el = document.getElementById(id);
     if (el) el.addEventListener('change', ceAdjustEndFromStart);
-  });
-  ['ce-start-time', 'ce-end-time'].forEach(function(id){
-    var el = document.getElementById(id);
-    if (!el) return;
-    el.addEventListener('blur', function(){
-      var hhmm = parseTimeInput(el.value);
-      if (hhmm) el.value = fmtTimeLabel(hhmm);
-    });
   });
 
   // Warn (don't block) if the chosen image is smaller than what the
@@ -24264,8 +24239,8 @@ Groups</span>
     // no date, which is what made 9:00/10:00 useful before.
     document.getElementById('ce-start-date').value = '';
     document.getElementById('ce-end-date').value = '';
-    document.getElementById('ce-start-time').value = fmtTimeLabel('09:00');
-    document.getElementById('ce-end-time').value = fmtTimeLabel('10:00');
+    document.getElementById('ce-start-time').value = '09:00';
+    document.getElementById('ce-end-time').value = '10:00';
     document.getElementById('ce-venue-name').value = '';
     document.getElementById('ce-location').value = '';
     document.getElementById('ce-location').disabled = false;
