@@ -1151,6 +1151,10 @@
       // named failure above was added by reasoning about what COULD go
       // wrong; the one actually being hit is none of them, so the
       // guessing stops here and the message carries the real text.
+      // Android withdrew the file grant. Says what to actually do,
+      // because the commonest cause is a photo that lives in Google
+      // Photos and was never downloaded to the phone.
+      'upload.heicFileUnreadable': 'Your phone wouldn\'t let the page read that photo. If it\'s stored in Google Photos rather than on the phone, open it there first so it downloads, then try again — or take a screenshot and upload that.',
       'upload.heicUnknownFailure': 'That photo couldn\'t be converted — a screenshot of it will upload fine. If you can, send this line so it can be fixed: {detail}',
       'cropper.hint': 'Drag to move, and use the slider to zoom. What you see is what gets saved.',
       'accountSettings.ownershipTitle': 'Transfer a church to someone else',
@@ -2372,6 +2376,7 @@
       'upload.heicTooManyPixels': 'Esa foto es demasiado grande para convertirla en este teléfono ({mp} megapíxeles). Haz una captura de pantalla y sube esa, o usa una copia más pequeña.',
       'upload.heicUnreadable': 'No se pudo leer esa foto \u2014 puede usar una variante de HEIC que este navegador no sabe descodificar. Una captura de pantalla se subirá sin problema.',
       'upload.heicEncodeFailed': 'Este teléfono se quedó sin memoria al convertir esa foto. Una captura de pantalla se subirá sin problema.',
+      'upload.heicFileUnreadable': 'Tu teléfono no permitió que la página leyera esa foto. Si está guardada en Google Fotos y no en el teléfono, ábrela allí primero para que se descargue y vuelve a intentarlo — o haz una captura de pantalla y sube esa.',
       'upload.heicUnknownFailure': 'No se pudo convertir esa foto — una captura de pantalla se subirá sin problema. Si puedes, envía esta línea para que se pueda corregir: {detail}',
       'cropper.hint': 'Arrastra para mover y usa el control para acercar. Lo que ves es lo que se guarda.',
       'accountSettings.ownershipTitle': 'Transferir una iglesia a otra persona',
@@ -4604,6 +4609,55 @@
   .filter-tradition-details summary{cursor:pointer;font-size:12px;color:var(--ink-mute);padding:2px 0;list-style:revert;}
   .filter-tradition-details[open] summary{margin-bottom:2px;}
   select.field{width:100%;padding:9px 10px;font-size:13.5px;}
+
+  /* ---- Time picker -------------------------------------------------
+     The <select> stays in the form as the value, and is taken out of
+     the layout and out of the tab order rather than display:none'd --
+     a display:none control is still submitted but cannot be focused
+     or scrolled into view, and keeping it laid out at zero size keeps
+     browser behaviour (validation focus, autofill) ordinary. */
+  /* display:flex so the button stretches to the row's height. The row
+     is a flex container with the default align-items:stretch, which
+     stretches this WRAPPER; without it being a flex parent too, the
+     button keeps its own content height and sits 2px shorter than the
+     date input next to it. */
+  .fd-timewrap{position:relative;display:flex;}
+  .fd-time-native{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;bottom:0;left:0;}
+  /* The .field recipe is written as `input.field, textarea.field`, so a
+     <button class="field"> inherits none of it and renders as a grey
+     OS button. These are the same declarations, applied by class, and
+     they follow input.field rather than select.field because the thing
+     this sits beside is the date INPUT -- matching the select's
+     smaller padding would leave the two halves of one row at
+     different heights. */
+  .fd-time-btn{
+    width:100%;padding:12px 26px 12px 14px;border:1px solid var(--line);border-radius:8px;
+    font-family:inherit;font-size:14.5px;background-color:var(--card);color:var(--ink);
+    text-align:left;cursor:pointer;
+    /* A caret, so it reads as something that opens rather than as a
+       filled-in text box. */
+    background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%2316233F' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 10px center;background-size:10px 7px;
+  }
+  html[data-theme="dark"] .fd-time-btn{
+    background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%23F5F4EE' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  }
+  /* Deliberately short. The whole reason this exists is that the OS
+     popup filled the screen and left nothing to tap outside it, so the
+     panel is capped well below the viewport and the overlay centres
+     it, leaving backdrop above and below at any height. */
+  #time-picker-card{max-width:290px;padding:16px 0 8px;}
+  /* The rule matters more than it looks. Without it the row scrolled
+     half out of view sits directly under the title with nothing
+     between them, and reads as a clipped row rather than as a list
+     that scrolls under a heading. */
+  #time-picker-list{max-height:44vh;overflow-y:auto;-webkit-overflow-scrolling:touch;border-top:1px solid var(--line);}
+  .fd-time-opt{
+    display:block;width:100%;text-align:left;background:none;border:none;
+    padding:11px 20px;font-size:15px;color:var(--ink);cursor:pointer;font-family:inherit;
+  }
+  .fd-time-opt:hover{background:var(--paper);}
+  .fd-time-opt[aria-selected="true"]{background:var(--gold-bg);color:var(--gold-ink);font-weight:600;}
   /* Mobile-only "Filter searches" collapse, shared by the Directory
      (Churches) and Events page filter panels — hidden on desktop,
      where the panel stays permanently expanded as before. Keyed off
@@ -8473,23 +8527,37 @@ Groups</span>
            at 12:00 AM and collapsing to a single entry once anything
            is typed. Both were worse than a native select, which on a
            phone is a proper scrolling list.
-           Typing an arbitrary time is not supported here. If it is
-           wanted, the shape is an "Other time..." entry at the end of
-           this list that swaps in a text field -- deliberately not
-           built on a guess. -->
+           The native select was still wrong in one way that no
+           attribute fixes: with 96 options Android draws the popup at
+           full screen height, leaving nowhere to tap outside it to
+           back out. That popup is drawn by the OS, not by the page, so
+           no CSS reaches it -- which is why the select now sits here
+           hidden, holding the value, while a button in front of it
+           opens a panel this page draws and can therefore size.
+           The select is kept rather than replaced so that .value,
+           change events, the room-conflict listener and the form reset
+           all keep working untouched. -->
       <div style="display:flex;gap:10px;flex-wrap:wrap;">
         <div style="flex:1 1 220px;min-width:220px;">
           <label data-i18n="ce.starts">Starts</label>
           <div style="display:flex;gap:8px;">
             <input class="field" type="date" id="ce-start-date" style="flex:1 1 52%;min-width:0;">
-            <select class="field" id="ce-start-time" style="flex:1 1 48%;min-width:0;"></select>
+            <div class="fd-timewrap" style="flex:1 1 48%;min-width:0;">
+              <select id="ce-start-time" class="fd-time-native" tabindex="-1" aria-hidden="true"></select>
+              <button type="button" class="fd-time-btn" data-time-for="ce-start-time"
+                      data-time-title="ce.starts" aria-haspopup="listbox"></button>
+            </div>
           </div>
         </div>
         <div style="flex:1 1 220px;min-width:220px;">
           <label data-i18n="ce.ends">Ends</label>
           <div style="display:flex;gap:8px;">
             <input class="field" type="date" id="ce-end-date" style="flex:1 1 52%;min-width:0;">
-            <select class="field" id="ce-end-time" style="flex:1 1 48%;min-width:0;"></select>
+            <div class="fd-timewrap" style="flex:1 1 48%;min-width:0;">
+              <select id="ce-end-time" class="fd-time-native" tabindex="-1" aria-hidden="true"></select>
+              <button type="button" class="fd-time-btn" data-time-for="ce-end-time"
+                      data-time-title="ce.ends" aria-haspopup="listbox"></button>
+            </div>
           </div>
         </div>
       </div>
@@ -9672,6 +9740,21 @@ Groups</span>
         </div>
       </div>
 
+      <!-- The time picker's panel. Sized by this page rather than by
+           the OS, which is the entire point: a native select's popup
+           is drawn by Android at full screen height with 96 options
+           and no CSS can reach it, so there was nowhere to tap outside
+           to dismiss. -->
+      <div class="modal-overlay" id="time-picker-modal">
+        <div class="modal-card" id="time-picker-card">
+          <button class="modal-close" id="time-picker-close" aria-label="Close" data-i18n-title="common.close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
+          <div id="time-picker-title" style="font-family:'Fraunces';font-size:16px;padding:0 20px 12px;"></div>
+          <div id="time-picker-list" role="listbox" tabindex="-1"></div>
+        </div>
+      </div>
+
       <div class="modal-overlay" id="image-lightbox" style="cursor:zoom-out;">
         <div class="modal-card" style="max-width:min(92vw,720px);padding:10px;background:transparent;border:none;box-shadow:none;">
           <img id="image-lightbox-img" alt="" style="display:block;width:100%;height:auto;max-height:82vh;object-fit:contain;border-radius:12px;">
@@ -10730,7 +10813,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-25-v289 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-25-v290 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13317,17 +13400,65 @@ Groups</span>
     }
   }
 
+  // Two ways to pull the bytes out of a File, because on Android the
+  // first one is not reliable.
+  //
+  // A File from an <input type="file"> is a REFERENCE, not data --
+  // on Android a content:// URI owned by the photo picker. The grant
+  // on that URI can be withdrawn while the page still holds the
+  // object, and the read then fails with NotReadableError: "the
+  // requested file could not be read, typically due to permission
+  // problems that have occurred after a reference to a file was
+  // acquired." That is the exact failure this hit.
+  //
+  // FileReader goes through a different path and sometimes still
+  // succeeds where arrayBuffer() has failed, so it is worth one
+  // attempt before giving up.
+  function readFileBytes(file){
+    return Promise.resolve()
+      .then(function(){ return file.arrayBuffer(); })
+      .catch(function(){
+        return new Promise(function(resolve, reject){
+          var fr = new FileReader();
+          fr.onload = function(){ resolve(fr.result); };
+          fr.onerror = function(){ reject(fr.error || new Error('FileReader failed')); };
+          try { fr.readAsArrayBuffer(file); } catch (e) { reject(e); }
+        });
+      });
+  }
+
   async function convertHeicToJpeg(file){
     if (file.size > HEIC_MAX_BYTES) throw new Error('heic-too-large');
+
+    // THE BYTES COME FIRST, BEFORE THE DECODER. This ordering is the
+    // whole fix, and the old order is why this failed on a phone and
+    // never on a desktop.
+    //
+    // loadHeifDecoder downloads 1.9MB of WASM. Doing that first left
+    // several seconds -- longer on a phone, longer again on a slow
+    // connection -- between Android handing over the file reference
+    // and anything trying to read it, and Android is entitled to
+    // revoke the grant inside that window. Desktop browsers hold a
+    // real path and never expire it, which is precisely why no amount
+    // of testing here would have found this.
+    //
+    // Reading first shrinks that window to nothing: the bytes are in
+    // an ArrayBuffer this page owns before the network is touched.
+    // Nothing can be revoked afterwards.
+    var buf;
+    try { buf = await readFileBytes(file); }
+    catch (e) {
+      var readErr = new Error('heic-step-read | ' + ((e && e.message) || String(e)).slice(0, 180));
+      readErr.notReadable = true;
+      throw readErr;
+    }
+    var bytes = new Uint8Array(buf);
+
     var factory = await loadHeifDecoder();
     var lib = heicStep('init', function(){ return factory(); });
     if (!lib || typeof lib.HeifDecoder !== 'function') {
       throw new Error('heic-step-init | HeifDecoder missing, got ' + (lib ? Object.prototype.toString.call(lib) : String(lib)));
     }
-    var buf;
-    try { buf = await file.arrayBuffer(); }
-    catch (e) { throw new Error('heic-step-read | ' + ((e && e.message) || String(e)).slice(0, 180)); }
-    var bytes = new Uint8Array(buf);
     var images = heicStep('decode', function(){ return new lib.HeifDecoder().decode(bytes); });
     if (!images || !images.length) throw new Error('heic-no-images');
     try {
@@ -13456,6 +13587,10 @@ Groups</span>
       return window.t('upload.heicUnreadable');
     }
     if (code === 'decoder download failed') return window.t('upload.converterOffline');
+    // Both reads refused. Not a conversion problem at all -- the page
+    // never got the bytes -- so the advice is about the photo's
+    // whereabouts rather than its format.
+    if (err && err.notReadable) return window.t('upload.heicFileUnreadable');
     // Anything else quotes itself. heicStep tags the stage, so a report
     // now says "heic-step-decode | RuntimeError: ..." rather than
     // "couldn't be converted" -- which is the difference between a fix
@@ -23808,8 +23943,104 @@ Groups</span>
       opt.textContent = ((hr % 12) === 0 ? 12 : (hr % 12)) + ':' + parts[1] + ' ' + (hr < 12 ? 'AM' : 'PM');
       sel.appendChild(opt);
     }
-    if (sel) sel.value = hhmm;
+    if (sel) { sel.value = hhmm; window.fdSyncTimeButton(sel); }
   }
+
+  // ---- The time picker ------------------------------------------
+  // A panel this page draws, because the one Android draws for a
+  // <select> cannot be sized: with 96 options it fills the screen and
+  // leaves nowhere to tap outside it to back out, and no CSS reaches
+  // it because the OS renders it, not the page.
+  //
+  // The <select> is still the value. It is hidden and a button sits in
+  // front of it, so .value, the change event, the room-conflict
+  // listener and the form reset all carry on working against exactly
+  // the element they always did. Nothing downstream knows this exists.
+
+  // Puts the selected option's label on the button. Every place that
+  // writes a time goes through here, because a select whose value
+  // changes silently would leave the button showing the old one.
+  window.fdSyncTimeButton = function(sel){
+    if (!sel) return;
+    var btn = sel.parentNode && sel.parentNode.querySelector('.fd-time-btn');
+    if (!btn) return;
+    var opt = sel.options[sel.selectedIndex];
+    btn.textContent = opt ? opt.textContent : '';
+  };
+
+  var fdTimeTarget = null;   // the select the open panel is editing
+
+  function fdCloseTimePicker(){
+    var modal = document.getElementById('time-picker-modal');
+    if (modal) modal.classList.remove('open');
+    // Focus goes back to the button that opened it, or a keyboard user
+    // is dropped at the top of the document.
+    if (fdTimeTarget) {
+      var btn = fdTimeTarget.parentNode && fdTimeTarget.parentNode.querySelector('.fd-time-btn');
+      if (btn) { try { btn.focus(); } catch (e) {} }
+    }
+    fdTimeTarget = null;
+  }
+
+  function fdOpenTimePicker(btn){
+    var sel = document.getElementById(btn.getAttribute('data-time-for'));
+    var modal = document.getElementById('time-picker-modal');
+    var list = document.getElementById('time-picker-list');
+    var title = document.getElementById('time-picker-title');
+    if (!sel || !modal || !list) return;
+    fdTimeTarget = sel;
+    title.textContent = window.t(btn.getAttribute('data-time-title') || 'ce.starts');
+
+    var html = '';
+    for (var i = 0; i < sel.options.length; i++) {
+      var o = sel.options[i];
+      var on = (i === sel.selectedIndex);
+      html += '<button type="button" class="fd-time-opt" role="option" aria-selected="' + (on ? 'true' : 'false') +
+              '" data-time-value="' + escapeHtml(o.value) + '">' + escapeHtml(o.textContent) + '</button>';
+    }
+    list.innerHTML = html;
+    modal.classList.add('open');
+
+    // Open ON the current time rather than at midnight. Scrolled by
+    // arithmetic rather than scrollIntoView, which scrolls the PAGE
+    // behind the overlay as well and lands the form somewhere else.
+    var current = list.querySelector('[aria-selected="true"]');
+    if (current) list.scrollTop = Math.max(0, current.offsetTop - (list.clientHeight / 2) + (current.offsetHeight / 2));
+  }
+
+  document.addEventListener('click', function(ev){
+    var btn = ev.target.closest && ev.target.closest('.fd-time-btn');
+    if (btn) { ev.preventDefault(); fdOpenTimePicker(btn); return; }
+
+    if (ev.target.closest && ev.target.closest('#time-picker-close')) { fdCloseTimePicker(); return; }
+
+    var opt = ev.target.closest && ev.target.closest('.fd-time-opt');
+    if (opt && fdTimeTarget) {
+      var sel = fdTimeTarget;
+      sel.value = opt.getAttribute('data-time-value');
+      window.fdSyncTimeButton(sel);
+      fdCloseTimePicker();
+      // The same event the native select fired. ceAdjustEndFromStart
+      // and refreshCeRoomConflicts both listen for it, so replacing
+      // the control must not stop them hearing about a change.
+      sel.dispatchEvent(new Event('change', { bubbles: true }));
+      return;
+    }
+
+    // Anywhere on the backdrop. The panel is short on purpose so there
+    // is always a generous target above and below it.
+    var modal = document.getElementById('time-picker-modal');
+    if (modal && modal.classList.contains('open') &&
+        ev.target.closest('#time-picker-modal') && !ev.target.closest('#time-picker-card')) {
+      fdCloseTimePicker();
+    }
+  });
+
+  document.addEventListener('keydown', function(ev){
+    if (ev.key !== 'Escape') return;
+    var modal = document.getElementById('time-picker-modal');
+    if (modal && modal.classList.contains('open')) fdCloseTimePicker();
+  });
 
   var ceStartTimeSelect = document.getElementById('ce-start-time');
   var ceEndTimeSelect = document.getElementById('ce-end-time');
@@ -23819,6 +24050,8 @@ Groups</span>
     ceEndTimeSelect.innerHTML = timeOptionsHtml;
     ceStartTimeSelect.value = '09:00';
     ceEndTimeSelect.value = '10:00';
+    window.fdSyncTimeButton(ceStartTimeSelect);
+    window.fdSyncTimeButton(ceEndTimeSelect);
   }
 
   var groupMeetingTimeSelect = document.getElementById('group-meeting-time');
@@ -24301,6 +24534,8 @@ Groups</span>
     document.getElementById('ce-end-date').value = '';
     document.getElementById('ce-start-time').value = '09:00';
     document.getElementById('ce-end-time').value = '10:00';
+    window.fdSyncTimeButton(document.getElementById('ce-start-time'));
+    window.fdSyncTimeButton(document.getElementById('ce-end-time'));
     document.getElementById('ce-venue-name').value = '';
     document.getElementById('ce-location').value = '';
     document.getElementById('ce-location').disabled = false;
