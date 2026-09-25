@@ -443,6 +443,59 @@ done half a job.
 
 Done
 
+### Cloudflare Email Routing says "Misconfigured". Leave it. -- 2026-09-25
+
+The Email Routing page shows faithdock.com as Enabled / DNS records
+**Misconfigured** / 0 emails received. That is the correct state, and
+the one thing not to do is click whatever button offers to fix it.
+
+Measured, not assumed:
+
+```
+faithdock.com   MX   1   smtp.google.com
+```
+
+Cloudflare Email Routing receives mail by owning the domain's MX and
+pointing it at route1/2/3.mx.cloudflare.net. Ours points at Google
+Workspace, because mcolodny@faithdock.com is a real Workspace mailbox.
+Two services cannot both hold the MX for one domain. "Misconfigured"
+means only "Email Routing is switched on and is not the one receiving
+mail" -- accepting Cloudflare's fix would replace the Workspace MX and
+stop all inbound mail to the domain.
+
+Routing was presumably enabled to explore it and never turned off.
+Turning it off is the tidy-up; it changes nothing either way, since it
+has never handled a message. It does contribute the Cloudflare rua
+address now sitting in the DMARC record alongside Postmark's, which is
+harmless.
+
+**Outbound is unaffected and always was.** Sending is Resend, which
+never touches MX -- MX is inbound only.
+
+### Sending addresses are not mailboxes -- 2026-09-25
+
+`invites@faithdock.com`, and now `messages@faithdock.com`, are string
+literals in `supabase/functions/smooth-action.ts`. Neither has a
+mailbox anywhere. Resend authorises the whole verified DOMAIN, so any
+local part sends without a DNS change:
+
+- DKIM signs with `d=faithdock.com`, key at `resend._domainkey`
+- SPF is evaluated against the MAIL FROM subdomain
+  `send.faithdock.com`, which carries its own
+  `include:dc-fd741b8612._spfm.send.faithdock.com`
+- DMARC has `aspf=r`, so that subdomain aligns with the root
+
+The root domain's own SPF is `include:_spf.google.com ~all` and does
+**not** list Resend. It does not need to: SPF authenticates MAIL FROM,
+not the From header.
+
+Changing a sending address is therefore a one-line code change. What
+it cannot do is create somewhere for mail to arrive. Anything sent to
+either address depends on Google Workspace having an alias or
+catch-all for it -- unverified, and worth checking before any address
+is printed somewhere a human might write to it. The contact-church
+branch does not depend on this, because `reply_to` is the visitor.
+
 ### Production email is no longer behind one personal login -- 2026-09-22
 
 Resend was reachable only through a personal Gmail account. One
