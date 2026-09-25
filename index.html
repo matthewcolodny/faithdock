@@ -956,6 +956,11 @@
       // The short label the phone toolbar uses, so Export and Import fit
       // on one line instead of wrapping.
       'dashEvents.exportShort': 'Export',
+      // Import shortens as well. "Export" alone was not enough: at
+      // 375px "Import from calendar file" is about 230px and Export
+      // about 110px, which with the gap does not fit, so Export still
+      // landed on its own line.
+      'dashEvents.importShort': 'Import',
       'dashEvents.detailTitle': 'Event details', 'dashEvents.viewDetails': 'View details',
       'dashEvents.whenLabel': 'When', 'dashEvents.whereLabel': 'Where',
       'dashEvents.noDescription': 'No description yet.', 'dashEvents.priceLabel': 'Price',
@@ -2151,6 +2156,7 @@
       'dashEvents.viewPast': 'Ver eventos pasados', 'dashEvents.createEvent': 'Crear evento', 
       'dashEvents.importIcs': 'Importar de un archivo de calendario',
       'dashEvents.exportShort': 'Exportar',
+      'dashEvents.importShort': 'Importar',
       'dashEvents.detailTitle': 'Detalles del evento', 'dashEvents.viewDetails': 'Ver detalles',
       'dashEvents.whenLabel': 'Cuándo', 'dashEvents.whereLabel': 'Dónde',
       'dashEvents.noDescription': 'Aún no hay descripción.', 'dashEvents.priceLabel': 'Precio',
@@ -5325,6 +5331,14 @@
   @media (max-width:860px){
     .ev-export-long{display:none;}
     .ev-export-short{display:inline;}
+    /* The header row of the events table. On a phone only one column
+       is left, so a header reading "EVENT" above it labels nothing --
+       it is a row of chrome above the first real row. */
+    .ev-head-row{display:none;}
+    /* Facility: the export button keeps its row and loses its words.
+       margin-left:auto still pins it right, beside the view toggle. */
+    .rsched-export-label{display:none;}
+    #room-schedule-export{padding:9px 11px;}
   }
   table.roster{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;}
   /* Every dashboard roster table (events, giving, rosters, etc. --
@@ -8327,11 +8341,15 @@ Groups</span>
       <div style="display:flex;gap:10px;flex-wrap:wrap;">
         <div style="flex:1 1 200px;min-width:200px;">
           <label data-i18n="ce.starts">Starts</label>
-          <input class="field" type="datetime-local" id="ce-start-at" style="width:100%;">
+          <!-- step 900 = 15 minutes. It only changes what the picker's
+               own scroller offers and what the arrow keys step by; any
+               time can still be TYPED, which is the reason this stopped
+               being a dropdown in the first place. -->
+          <input class="field" type="datetime-local" id="ce-start-at" step="900" style="width:100%;">
         </div>
         <div style="flex:1 1 200px;min-width:200px;">
           <label data-i18n="ce.ends">Ends</label>
-          <input class="field" type="datetime-local" id="ce-end-at" style="width:100%;">
+          <input class="field" type="datetime-local" id="ce-end-at" step="900" style="width:100%;">
         </div>
       </div>
       <div style="font-size:12px;color:var(--ink-mute);margin-top:4px;" data-i18n="ce.multiDayHint">For a multi-day event like a summer camp, just set the end date a few days after the start.</div>
@@ -8642,7 +8660,7 @@ Groups</span>
                  only lines up at one font size and drifted visibly on a
                  phone. Centring the row has no such number in it. -->
             <button class="btn-gold" id="dash-create-event-btn" style="padding:10px 18px;display:inline-flex;align-items:center;gap:6px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;flex-shrink:0;"><path d="M12 5v14M5 12h14"/></svg><span data-i18n="dashEvents.createEvent">Create event</span></button>
-            <button class="export-btn" id="dash-import-ics-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15V3m0 12l-4-4m4 4l4-4"/><path d="M4 19h16"/></svg> <span data-i18n="dashEvents.importIcs">Import from calendar file</span></button>
+            <button class="export-btn" id="dash-import-ics-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15V3m0 12l-4-4m4 4l4-4"/><path d="M4 19h16"/></svg> <span class="ev-export-long" data-i18n="dashEvents.importIcs">Import from calendar file</span><span class="ev-export-short" data-i18n="dashEvents.importShort">Import</span></button>
             <input type="file" id="dash-import-ics-input" accept=".ics,text/calendar" multiple style="position:absolute;width:1px;height:1px;opacity:0;">
             <!-- "Export to spreadsheet" sat here: a button with no id and
                  no handler, so it did nothing at all. Export schedule already
@@ -8658,7 +8676,7 @@ Groups</span>
                Marked here rather than skipped in the renderer so the
                desktop table is untouched and the decision lives in
                one place, the stylesheet. -->
-          <tr><th data-i18n="dashEvents.event">Event</th><th class="ev-col-desk" data-i18n="dashEvents.date">Date</th><th class="ev-col-desk" data-i18n="dashEvents.time">Time</th><th class="ev-col-desk" data-i18n="dashEvents.location">Location</th><th class="ev-col-desk" data-i18n="dashEvents.createdBy">Created by</th><th class="ev-col-desk" data-i18n="dashEvents.registrations">Registrations</th><th class="ev-col-desk" data-i18n="dashEvents.status">Status</th><th></th></tr>
+          <tr class="ev-head-row"><th data-i18n="dashEvents.event">Event</th><th class="ev-col-desk" data-i18n="dashEvents.date">Date</th><th class="ev-col-desk" data-i18n="dashEvents.time">Time</th><th class="ev-col-desk" data-i18n="dashEvents.location">Location</th><th class="ev-col-desk" data-i18n="dashEvents.createdBy">Created by</th><th class="ev-col-desk" data-i18n="dashEvents.registrations">Registrations</th><th class="ev-col-desk" data-i18n="dashEvents.status">Status</th><th></th></tr>
           <tbody id="dash-events-tbody">
             <tr><td colspan="8" class="roster-loading" data-i18n="dashEvents.loadingEvents">Loading your events...</td></tr>
           </tbody>
@@ -10100,9 +10118,14 @@ Groups</span>
              there is room: this acts on the whole grid rather than
              changing what the grid shows, so it does not belong
              among the controls that do. -->
-        <button class="export-btn" id="room-schedule-export" style="margin-left:auto;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;vertical-align:-2px;margin-right:5px;"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 19h16"/></svg>
-          <span data-i18n="dashFacility.exportSchedule">Export schedule</span>
+        <!-- On a phone this keeps its place beside Day/Week/Month and
+             drops to the icon alone: the words are the only reason it
+             did not fit there, and a download arrow is not ambiguous
+             next to a schedule. aria-label rather than nothing, so it
+             is still announced when the text is hidden. -->
+        <button class="export-btn" id="room-schedule-export" style="margin-left:auto;" aria-label="Export schedule" data-i18n-title="dashFacility.exportSchedule">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;flex-shrink:0;"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 19h16"/></svg>
+          <span class="rsched-export-label" data-i18n="dashFacility.exportSchedule">Export schedule</span>
         </button>
       </div>
       <div id="room-schedule-grid"></div>
@@ -10504,7 +10527,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-25-v281 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-25-v282 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -14544,7 +14567,18 @@ Groups</span>
     facility:   ['loadRoomsPanel'],
     ministries: ['loadMinistriesPanel'],
     groups:     ['loadDashboardGroups'],
-    giving:     ['loadGivingStatus'],
+    // loadGivingHistoryPanel as well, and this was the whole of the
+    // "Loading giving history..." spinner that never stopped. The
+    // trend chart, the fund breakdown, the three stat tiles and the
+    // history table all live in #dash-giving -- but the only loader
+    // that fills them was registered under 'revenue', so opening
+    // Giving ran loadGivingStatus and nothing else. The markup's
+    // loading row is therefore never replaced, and a spinner with no
+    // loader behind it spins for ever.
+    //
+    // Exactly the failure this map's own comment below warns about:
+    // a view missing a loader. It was missing a second one.
+    giving:     ['loadGivingStatus', 'loadGivingHistoryPanel'],
     revenue:    ['loadRevenuePanel'],
     // loadSavedReportsList moved to insights-saved with the panel
     // it fills. The dashboard keeps the four figure panels.
