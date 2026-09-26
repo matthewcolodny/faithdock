@@ -581,6 +581,7 @@
       'dir.mapNoCoords': 'None of these have a location on file yet.',
       'dir.mapResize': 'Make the map taller or shorter',
       'dir.mapResizeDrag': 'Drag to resize the map, or use the arrow keys',
+      'filters.more': 'More filters',
       'dir.mapSomeMissing': '{n} of these have no location on file and are not pinned.',
       'dir.mapOneMissing': 'One of these has no location on file and is not pinned.',
       'filters.noChurchesMatch': 'No churches match these filters. Try widening your search.',
@@ -1865,6 +1866,7 @@
       'dir.mapNoCoords': 'Ninguna de estas tiene ubicación registrada todavía.',
       'dir.mapResize': 'Hacer el mapa más alto o más bajo',
       'dir.mapResizeDrag': 'Arrastra para cambiar el tamaño del mapa, o usa las flechas',
+      'filters.more': 'Más filtros',
       'dir.mapSomeMissing': '{n} de estas no tienen ubicación registrada y no aparecen en el mapa.',
       'dir.mapOneMissing': 'Una de estas no tiene ubicación registrada y no aparece en el mapa.',
       'filters.noChurchesMatch': 'Ninguna iglesia coincide con estos filtros. Intenta ampliar tu búsqueda.',
@@ -4602,6 +4604,10 @@
     #dir-use-location-btn, #events-use-location-btn{padding:9px 12px;flex-shrink:0;}
   }
   .directory-layout{display:grid;grid-template-columns:220px 1fr;gap:36px;margin-top:32px;align-items:start;}
+  /* In the split, the filters live in pills over the map, so the column
+     that held them collapses and the results take the full width. */
+  .dir-results-col .directory-layout{grid-template-columns:1fr;margin-top:0;}
+  @media (min-width:981px){ .dir-results-col > .directory-layout > .filter-panel{display:none;} }
   .filter-panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px;position:sticky;top:92px;}
 
   /* ---- Directory results map -------------------------------------
@@ -4664,6 +4670,67 @@
     position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;
     clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0;
   }
+  /* ---- Split view ------------------------------------------------
+     Results left, map right and held still. The map column is sticky
+     rather than a scroller of its own: the page keeps one scrollbar,
+     the browser's find-in-page still reaches every card, and there is
+     no inner pane to get stranded at the wrong scroll position. */
+  .dir-split{
+    display:grid;grid-template-columns:minmax(380px,34%) 1fr;
+    align-items:start;gap:0;
+  }
+  .dir-results-col{padding:22px 24px 0 28px;min-width:0;}
+  .dir-map-col{
+    position:sticky;top:var(--dir-split-top,150px);
+    height:calc(100vh - var(--dir-split-top,150px));
+    min-width:0;
+  }
+  /* The map fills its column; the banner-era sizing does not apply. */
+  .dir-map-col #directory-map-wrap{position:static;height:100%;display:flex;flex-direction:column;margin:0;}
+  .dir-map-col #directory-map-holder{flex:1;min-height:0;}
+  .dir-map-col #directory-map{height:100%;border:0;border-left:1px solid var(--line);}
+  .dir-map-col #directory-map-note{max-width:none;margin:0;padding:6px 14px;}
+  /* The grip resized a banner. In a full-height column the map simply
+     fills what is there, so there is nothing to drag. */
+  .dir-map-col #directory-map-grip,
+  .dir-map-col #directory-map-size{display:none;}
+
+  /* Filter pills, floating over the top of the map. */
+  #dir-filter-pills{
+    position:absolute;z-index:5;top:12px;left:14px;right:14px;
+    display:flex;gap:8px;flex-wrap:wrap;pointer-events:none;
+  }
+  #dir-filter-pills > *{pointer-events:auto;}
+  .dir-pill-wrap{position:relative;}
+  .dir-pill{
+    display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 13px;
+    border:1px solid var(--line);border-radius:999px;background:var(--card);
+    color:var(--ink);font-family:inherit;font-size:13px;cursor:pointer;
+    box-shadow:0 1px 4px rgba(0,0,0,.18);-webkit-tap-highlight-color:transparent;
+  }
+  .dir-pill:hover{background:var(--paper);}
+  .dir-pill[aria-expanded="true"]{background:var(--gold-bg);border-color:var(--gold);color:var(--gold-ink);}
+  .dir-pill svg{width:12px;height:12px;}
+  .dir-pill-panel{
+    display:none;position:absolute;top:calc(100% + 6px);left:0;z-index:6;
+    width:270px;max-height:min(60vh,420px);overflow:auto;
+    background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:14px 16px;box-shadow:0 8px 28px rgba(0,0,0,.22);
+  }
+  .dir-pill-panel.open{display:block;}
+  .dir-pill-panel .filter-group{margin-bottom:0;}
+  /* The map column is the positioning context for the pills. */
+  .dir-map-col{position:sticky;}
+
+  /* Below 980px the split collapses: a 380px results column beside a
+     map leaves neither enough room. Everything returns to the stacked
+     layout, filters back in their sidebar. */
+  @media (max-width:980px){
+    .dir-split{display:block;}
+    .dir-results-col{padding:0;}
+    .dir-map-col{display:none;}
+  }
+
   /* Tight, now that the heading is not drawn -- the search row sits
      just under the map. */
   #directory-head{
@@ -4676,7 +4743,6 @@
   .dir-search-row .dir-view-toggle{margin-left:auto;}
   #directory-map{
     width:100%;height:300px;background:var(--card);
-    border-bottom:1px solid var(--line);
   }
   /* The map is edge to edge; its caption should still line up with the
      page text, so it carries .wrap's own max-width and padding. */
@@ -6669,33 +6735,6 @@
 
 <!-- ================= DIRECTORY ================= -->
 <section class="page" id="page-directory">
-  <!-- Edge to edge, and ABOVE the heading, so it reads as a banner for
-       the whole page rather than a widget belonging to the results
-       column. Outside .wrap on purpose -- .wrap is max-width 1080 with
-       28px padding, and the map is meant to run the full viewport.
-       Drawn from window.directoryLastRenderedRows, the page of results
-       already in memory: search_churches returns lat and lng on every
-       row, so the map costs no extra query. -->
-  <div id="directory-map-wrap">
-    <div id="directory-map-holder">
-    <div id="directory-map"></div>
-    <!-- Sizing. Buttons rather than a drag handle: the height feeds the
-         sticky offsets of everything below, so it has to land on known
-         values, and a drag that ends mid-pixel mid-scroll is a lot of
-         failure modes for a control used a handful of times. -->
-    <div id="directory-map-size" role="group" data-i18n-title="dir.mapResize" title="Map size">
-      <button type="button" id="dir-map-shorter" aria-label="Shorter map">&minus;</button>
-      <button type="button" id="dir-map-taller" aria-label="Taller map">+</button>
-    </div>
-    </div>
-    <!-- Below the map rather than over it: Google puts its own zoom,
-         Terms and "Keyboard shortcuts" chrome along the bottom edge,
-         and a full-width grab strip on top of those would swallow
-         clicks meant for them. -->
-    <div id="directory-map-grip" role="separator" aria-orientation="horizontal"
-         tabindex="0" aria-label="Resize map" data-i18n-title="dir.mapResizeDrag"><span></span></div>
-    <div id="directory-map-note"></div>
-  </div>
   <!-- Heading, both searches and the view toggle, pinned under the map.
        One row instead of two stacked ones, and the toggle moved up from
        the results header so everything a search touches is on the same
@@ -6738,8 +6777,12 @@
       <span id="dir-location-status" style="font-size:13px;color:var(--ink-mute);"></span>
     </div>
   </div>
-  <div class="wrap" style="padding-top:22px;">
-
+  <!-- Split view: the results scroll on the left, the map holds the
+       right and stays put. Deliberately NOT inside .wrap -- that is
+       max-width 1080, and a split needs the whole window or the map
+       ends up narrower than the cards beside it. -->
+  <div class="dir-split">
+    <div class="dir-results-col">
     <div class="directory-layout">
       <aside class="filter-panel">
         <h3 class="filter-panel-title" data-i18n="filters.filterSearches">Filter searches</h3>
@@ -6833,6 +6876,34 @@
         <div id="directory-empty" style="display:none;color:var(--ink-mute);font-size:14.5px;padding:40px 0;text-align:center;" data-i18n="filters.noChurchesMatch">No churches match these filters. Try widening your search.</div>
         <nav id="directory-pager" class="dir-pager" aria-label="Pagination" style="justify-content:center;margin-top:28px;"></nav>
       </div>
+    </div>
+    </div>
+    <div class="dir-map-col">
+      <!-- Filters ride over the top of the map as dropdown pills.
+           Filled by moveFiltersIntoPills() -- the existing filter
+           groups are MOVED here rather than rebuilt, so every control
+           keeps the listeners it was wired with. -->
+      <div id="dir-filter-pills"></div>
+    <div id="directory-map-wrap">
+      <div id="directory-map-holder">
+      <div id="directory-map"></div>
+      <!-- Sizing. Buttons rather than a drag handle: the height feeds the
+           sticky offsets of everything below, so it has to land on known
+           values, and a drag that ends mid-pixel mid-scroll is a lot of
+           failure modes for a control used a handful of times. -->
+      <div id="directory-map-size" role="group" data-i18n-title="dir.mapResize" title="Map size">
+        <button type="button" id="dir-map-shorter" aria-label="Shorter map">&minus;</button>
+        <button type="button" id="dir-map-taller" aria-label="Taller map">+</button>
+      </div>
+      </div>
+      <!-- Below the map rather than over it: Google puts its own zoom,
+           Terms and "Keyboard shortcuts" chrome along the bottom edge,
+           and a full-width grab strip on top of those would swallow
+           clicks meant for them. -->
+      <div id="directory-map-grip" role="separator" aria-orientation="horizontal"
+           tabindex="0" aria-label="Resize map" data-i18n-title="dir.mapResizeDrag"><span></span></div>
+      <div id="directory-map-note"></div>
+    </div>
     </div>
   </div>
 </section>
@@ -11158,7 +11229,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-26-v303 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-26-v304 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -11981,8 +12052,11 @@ Groups</span>
     var page = document.getElementById('page-directory');
     if (!page) return;
     var navH = siteHeader ? Math.round(siteHeader.getBoundingClientRect().height) : 72;
-    var bandH = (band && band.offsetParent) ? Math.round(band.getBoundingClientRect().height) : 0;
+    var bandH = 0;   // the map is a column now, not a band above the page
     var headH = Math.round(head.getBoundingClientRect().height);
+    // Where the map column starts and how tall it can be: everything
+    // under the sticky header and the sticky search row.
+    page.style.setProperty('--dir-split-top', (navH + headH) + 'px');
     // Written as variables the stylesheet consumes, so the max-width
     // rules still win below 860px without anything having to be
     // cleared here.
@@ -12121,6 +12195,10 @@ Groups</span>
       // pin being pointed at is often behind three others.
       marker.setZIndex(9999);
       openDirInfo(marker, marker._fdChurch);
+      // Bring the pin into view. panTo animates only when the target is
+      // close, so running down a list slides rather than teleports, and
+      // a pin already on screen barely moves.
+      dirMap.panTo(marker.getPosition());
     }
     function clear(){
       dirHoveredName = null;
@@ -12142,6 +12220,70 @@ Groups</span>
     // tell us the pointer has gone.
     grid.addEventListener('mouseleave', clear);
   })();
+
+  // ---- Filters as pills over the map -------------------------------
+  // The existing .filter-group nodes are MOVED, not rebuilt. Moving a
+  // node keeps every listener already bound to it and to its children,
+  // so the denomination dropdown, the distance select and the
+  // checkboxes go on working without being rewired -- and there is no
+  // second copy of that markup to drift.
+  function moveFiltersIntoPills(){
+    var bar = document.getElementById('dir-filter-pills');
+    var body = document.getElementById('dir-filter-body');
+    if (!bar || !body || bar.dataset.filled) return;
+    var groups = [].slice.call(body.querySelectorAll('.filter-group'));
+    if (!groups.length) return;
+    bar.dataset.filled = '1';
+
+    // Denominations and Distance get their own pill because they are
+    // the two people reach for; the rest share one, the way an "All
+    // filters" button does.
+    var plan = [
+      { label: window.t('filters.denominationsEtc'), take: [groups[0]] },
+      { label: window.t('filters.distance'), take: [groups[1]] },
+      { label: window.t('filters.more'), take: groups.slice(2).concat(
+          [document.getElementById('filter-reset')].filter(Boolean)) }
+    ];
+
+    plan.forEach(function(item){
+      var take = item.take.filter(Boolean);
+      if (!take.length) return;
+      var wrap = document.createElement('div');
+      wrap.className = 'dir-pill-wrap';
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'dir-pill';
+      btn.setAttribute('aria-expanded', 'false');
+      btn.innerHTML = escapeHtml(item.label) +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>';
+      var panel = document.createElement('div');
+      panel.className = 'dir-pill-panel';
+      take.forEach(function(el){ panel.appendChild(el); });
+      btn.addEventListener('click', function(ev){
+        ev.stopPropagation();
+        var open = panel.classList.contains('open');
+        closeAllPills();
+        if (!open) { panel.classList.add('open'); btn.setAttribute('aria-expanded', 'true'); }
+      });
+      // Clicks inside a panel are filter interactions, not a reason to
+      // close it -- ticking three denominations should take one open.
+      panel.addEventListener('click', function(ev){ ev.stopPropagation(); });
+      wrap.appendChild(btn);
+      wrap.appendChild(panel);
+      bar.appendChild(wrap);
+    });
+
+    document.addEventListener('click', closeAllPills);
+    document.addEventListener('keydown', function(ev){ if (ev.key === 'Escape') closeAllPills(); });
+    syncDirectoryOffsets();
+  }
+  function closeAllPills(){
+    [].forEach.call(document.querySelectorAll('.dir-pill-panel.open'), function(el){ el.classList.remove('open'); });
+    [].forEach.call(document.querySelectorAll('.dir-pill[aria-expanded="true"]'), function(el){ el.setAttribute('aria-expanded', 'false'); });
+  }
+  // Only in the split. Below 980px the sidebar is the right shape and
+  // the map is hidden, so there is nothing to float pills over.
+  if (window.innerWidth > 980) moveFiltersIntoPills();
 
   window.addEventListener('resize', syncDirectoryOffsets);
 
