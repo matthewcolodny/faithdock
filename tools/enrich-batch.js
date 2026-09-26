@@ -326,9 +326,70 @@ async function lookupWithRetry(row) {
 // ----------------------------------------------------------------- run
 const WORSHIP = /\b(church|place_of_worship|synagogue|mosque|hindu_temple)\b/;
 
+// ---- Congregations of another faith --------------------------------
+//
+// The IRS classifies a Hindu temple, a mosque and a synagogue as
+// churches for tax purposes -- FOUNDATION=10 is a tax status, not a
+// theology -- so they arrive in these batches. FaithDock is a Christian
+// directory, and after the San Antonio import they had to be found and
+// hidden BY HAND. This catches them before they go in.
+//
+// Routed to a file to read, never dropped. A false positive costs a
+// glance; a row deleted on a pattern is gone.
+//
+// PATTERNS MEASURED AGAINST ALL 15,759 PREPARED NAMES, because the
+// obvious ones are wrong:
+//
+//   "temple" alone hits 363 names and most are Christian -- Glory
+//   Temple Holiness Church, Victory Temple Free Will Baptist Church.
+//   Only "Temple Beth ..." and "Temple Shalom" are used.
+//
+//   "synagogue" hits 2 names and BOTH are Messianic -- Texoma Messianic
+//   Synagogue, Sar Shalom Synagogue. Messianic Judaism is Protestant in
+//   this app's own taxonomy (compute_denomination_tags returns
+//   {'Protestant','Messianic Judaism'}), so sweeping it up would be
+//   wrong twice over.
+//
+//   "shalom" and "beth" alone hit Christian names too -- Jehovah Shalom
+//   Community Bible Fellowship, Beth Eden Baptist Church -- so they
+//   only count behind "Congregation" or "Temple".
+//
+// The result is 109 of 15,759 flagged, 0.7%.
+const OTHER_FAITH = [
+  [/\bhindu\b|\bmandir\b|\bswaminarayan\b/i, 'Hindu'],
+  [/\bbuddhis(t|m)\b|\bdharma\b|\bsangha\b|\bzen cent/i, 'Buddhist'],
+  [/\bsikh\b|\bguru?dwara\b/i, 'Sikh'],
+  [/\bislam(ic)?\b|\bmasjid\b|\bmosque\b|\bmuslim\b/i, 'Islamic'],
+  [/\bscientolog/i, 'Scientology'],
+  [/\bunitarian\b|\buniversalist\b/i, 'Unitarian Universalist'],
+  [/\bjain\b|\bzoroastrian\b|\bbaha.?i\b|\beckankar\b|\bkrishna\b|\bvedanta\b/i, 'Other faith'],
+  [/\bsynagogue\b|\bjewish\b|\btorah\b|\bchabad\b|\bb.?nai\b|congregation\s+beth\b|congregation\s+\S+\s+shalom\b|congregation\s+ohev\b|congregation\s+anshai\b|temple\s+beth\b|temple\s+shalom\b/i, 'Jewish']
+];
+
+// Applies to the JEWISH patterns ONLY, and that limit is the whole
+// point. Those patterns key on Hebrew words that Messianic
+// congregations also use -- Congregation Beth Messiah, Congregation
+// Beth Yeshua Texas, Bnai-El Ministries are all Christian and all match
+// them -- so a Christian word has to be able to overrule them.
+//
+// Applied to every category it was WRONG, and measurably so: Church of
+// Scientology of Texas and Wildflower Church a Unitarian both contain
+// "Church" and both sailed into the import file. Scientology and
+// Unitarian Universalism use "Church" in their own names; "Hindu",
+// "Buddhist", "Masjid" and "Sikh" are not words a Christian
+// congregation applies to itself, so nothing needs to overrule them.
+const CHRISTIAN_SIGNAL = /\bmessianic\b|\bmessiah\b|\byeshua\b|\bchurch\b|\bministr(y|ies)\b|\bchrist\b/i;
+
+function otherFaith(name) {
+  const hit = OTHER_FAITH.find(function (e) { return e[0].test(name); });
+  if (!hit) return '';
+  if (hit[1] === 'Jewish' && CHRISTIAN_SIGNAL.test(name)) return '';
+  return hit[1];
+}
+
 (async function main() {
   const base = FILE.replace(/\.csv$/i, '') + (DRY ? '.dryrun' : '');
-  const enriched = [], yes = [], no = [], check = [], mismatch = [];
+  const enriched = [], yes = [], no = [], check = [], mismatch = [], otherFaithRows = [];
   let calls = 0, cached = 0, unknown = 0, done = 0, promoted = 0;
   const accepted = [];
 
@@ -377,7 +438,14 @@ const WORSHIP = /\b(church|place_of_worship|synagogue|mosque|hindu_temple)\b/;
     const hasContacts = !!(r.phone || r.website);
     const otherOccupant = verdict === 'yes' && hasContacts && nameScore < 40 && !WORSHIP.test(r.types || '');
 
-    if (otherOccupant) {
+    // Checked before anything else can accept the row: a mosque at a
+    // correctly matched address is still not going in a Christian
+    // directory, and the address being right is exactly why the other
+    // gates would pass it.
+    const faith = otherFaith(row.name);
+    if (faith && verdict === 'yes') {
+      otherFaithRows.push([row.name, row.denomination, row.address, r.phone, r.website, faith, r.detail]);
+    } else if (otherOccupant) {
       // Contacts dropped, not carried across -- they belong to whoever
       // else is at this address.
       check.push([row.name, row.denomination, row.address, '', '',
@@ -493,6 +561,7 @@ const WORSHIP = /\b(church|place_of_worship|synagogue|mosque|hindu_temple)\b/;
   // instead of scattered down the file.
   check.sort((a, b) => b[6] - a[6]);
   write('.check.csv', 'name,denomination,address,phone,website,why,name_match,same_area,suggested_address,match_detail,place_types', check);
+  write('.other-faith.csv', 'name,denomination,address,phone,website,likely,match_detail', otherFaithRows);
   write('.type-mismatch.csv', 'name,denomination,address,phone,website,matched,match_detail,place_types', mismatch);
 
   const pct = n => (enriched.length ? Math.round((n / enriched.length) * 100) : 0) + '%';
@@ -508,6 +577,7 @@ const WORSHIP = /\b(church|place_of_worship|synagogue|mosque|hindu_temple)\b/;
   if (ACCEPT_SIMILAR) console.log('  of which promoted by --accept-similar ' + ACCEPT_SIMILAR + ': ' + promoted.toLocaleString() + '  (using Google\'s address)');
   console.log('  nothing found   ' + no.length.toLocaleString() + '  ' + pct(no.length) + '  -> ' + path.basename(base) + '.no.csv');
   if (demoted.size) console.log('  of the confirmed, ' + demoted.size + ' shared a Google place with another church and were moved to check');
+  if (otherFaithRows.length) console.log('  another faith  ' + otherFaithRows.length + '  -> ' + path.basename(base) + '.other-faith.csv  (not a Christian congregation -- read before importing)');
   console.log('  found, but not a place of worship by type: ' + mismatch.length.toLocaleString() + '  -> ' + path.basename(base) + '.type-mismatch.csv');
   const withPhone = enriched.filter(r => r[3]).length, withSite = enriched.filter(r => r[4]).length;
   console.log('  phone           ' + withPhone.toLocaleString() + '  ' + pct(withPhone));
