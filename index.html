@@ -580,6 +580,7 @@
       'filters.oneChurchFound': 'church found', 'filters.manyChurchesFound': 'churches found',
       'dir.mapNoCoords': 'None of these have a location on file yet.',
       'dir.mapResize': 'Make the map taller or shorter',
+      'dir.mapResizeDrag': 'Drag to resize the map, or use the arrow keys',
       'dir.mapSomeMissing': '{n} of these have no location on file and are not pinned.',
       'dir.mapOneMissing': 'One of these has no location on file and is not pinned.',
       'filters.noChurchesMatch': 'No churches match these filters. Try widening your search.',
@@ -1863,6 +1864,7 @@
       'filters.oneChurchFound': 'iglesia encontrada', 'filters.manyChurchesFound': 'iglesias encontradas',
       'dir.mapNoCoords': 'Ninguna de estas tiene ubicación registrada todavía.',
       'dir.mapResize': 'Hacer el mapa más alto o más bajo',
+      'dir.mapResizeDrag': 'Arrastra para cambiar el tamaño del mapa, o usa las flechas',
       'dir.mapSomeMissing': '{n} de estas no tienen ubicación registrada y no aparecen en el mapa.',
       'dir.mapOneMissing': 'Una de estas no tiene ubicación registrada y no aparece en el mapa.',
       'filters.noChurchesMatch': 'Ninguna iglesia coincide con estos filtros. Intenta ampliar tu búsqueda.',
@@ -4635,6 +4637,21 @@
   #directory-map-size button + button{border-left:1px solid #dcdcdc;}
   #directory-map-size button:hover{background:#f1f1f1;}
 
+  #directory-map-grip{
+    height:14px;display:flex;align-items:center;justify-content:center;
+    cursor:ns-resize;background:var(--paper);
+    border-bottom:1px solid var(--line);
+    -webkit-tap-highlight-color:transparent;touch-action:none;
+  }
+  #directory-map-grip span{
+    display:block;width:44px;height:4px;border-radius:2px;background:var(--line);
+  }
+  #directory-map-grip:hover span,#directory-map-grip:focus-visible span{background:var(--gold);}
+  #directory-map-grip:focus-visible{outline:2px solid var(--gold);outline-offset:-2px;}
+  /* While dragging, stop the pointer selecting the heading and cards it
+     passes over, and keep the resize cursor even off the grip. */
+  body.fd-map-resizing{user-select:none;cursor:ns-resize;}
+
   /* The heading, both searches and the view toggle, pinned under the map.
      top is set in JS, because it depends on the map's current height. */
   /* The offsets come from JS as CUSTOM PROPERTIES, not as inline top
@@ -6665,6 +6682,12 @@
       <button type="button" id="dir-map-taller" aria-label="Taller map">+</button>
     </div>
     </div>
+    <!-- Below the map rather than over it: Google puts its own zoom,
+         Terms and "Keyboard shortcuts" chrome along the bottom edge,
+         and a full-width grab strip on top of those would swallow
+         clicks meant for them. -->
+    <div id="directory-map-grip" role="separator" aria-orientation="horizontal"
+         tabindex="0" aria-label="Resize map" data-i18n-title="dir.mapResizeDrag"><span></span></div>
     <div id="directory-map-note"></div>
   </div>
   <!-- Heading, both searches and the view toggle, pinned under the map.
@@ -11125,7 +11148,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-26-v300 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-26-v301 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -11940,16 +11963,21 @@ Groups</span>
   }
   window.syncDirectoryOffsets = syncDirectoryOffsets;
 
-  function setDirectoryMapHeight(px){
+  // live=true during a drag: move the edge and keep the sticky offsets
+  // honest, but skip the two costly parts -- telling Google to re-tile
+  // and writing to localStorage -- until the pointer is released.
+  function setDirectoryMapHeight(px, live){
     px = Math.max(DIR_MAP_MIN, Math.min(DIR_MAP_MAX, Math.round(px)));
     var page = document.getElementById('page-directory');
     if (page) page.style.setProperty('--dir-map-h', px + 'px');
     var host = document.getElementById('directory-map');
     if (host) host.style.height = px + 'px';
-    // Google needs telling, or the tiles keep the old size and leave a
-    // grey strip where the map grew.
-    if (dirMap && window.google && google.maps) google.maps.event.trigger(dirMap, 'resize');
-    try { localStorage.setItem('fd_dir_map_h', String(px)); } catch (e) {}
+    if (!live) {
+      // Google needs telling, or the tiles keep the old size and leave
+      // a grey strip where the map grew.
+      if (dirMap && window.google && google.maps) google.maps.event.trigger(dirMap, 'resize');
+      try { localStorage.setItem('fd_dir_map_h', String(px)); } catch (e) {}
+    }
     syncDirectoryOffsets();
     return px;
   }
@@ -11973,6 +12001,77 @@ Groups</span>
     var saved = null;
     try { saved = localStorage.getItem('fd_dir_map_h'); } catch (e) {}
     if (saved && !isNaN(parseInt(saved, 10))) setDirectoryMapHeight(parseInt(saved, 10));
+  })();
+
+  // ---- Dragging the map's bottom edge ------------------------------
+  // Pointer events, so one code path covers mouse, touch and pen, and
+  // setPointerCapture keeps the drag alive when the cursor leaves the
+  // strip -- which it immediately does, because the thing being dragged
+  // is moving under it.
+  //
+  // The height is taken from a REMEMBERED START, not from where the
+  // pointer is now. The map sits in a sticky band, so it moves while
+  // being resized; reading its live position each frame makes it chase
+  // the cursor and run away.
+  (function wireDirectoryMapDrag(){
+    var grip = document.getElementById('directory-map-grip');
+    if (!grip) return;
+    var startY = 0, startH = 0, dragging = false, frame = null, nextPx = null;
+
+    // Coalesced to one write per frame: a pointermove fires far more
+    // often than the screen redraws, and each write relays out the whole
+    // page below it.
+    //
+    // The LATEST height is kept in nextPx rather than captured per call,
+    // and the frame id is cleared when a drag starts. The first version
+    // bailed out whenever a frame was already booked, which is correct
+    // until a booked frame never runs -- requestAnimationFrame does not
+    // fire in a background tab -- and then the flag stayed set and every
+    // later drag silently did nothing. Found exactly that way: the grip
+    // reported dragging, the offsets updated, and the map never moved.
+    function apply(px){
+      nextPx = px;
+      if (frame !== null) return;
+      frame = requestAnimationFrame(function(){
+        frame = null;
+        if (nextPx !== null) setDirectoryMapHeight(nextPx, true);
+      });
+    }
+
+    grip.addEventListener('pointerdown', function(ev){
+      dragging = true;
+      frame = null; nextPx = null;   // never inherit a stale booked frame
+      startY = ev.clientY;
+      startH = currentDirectoryMapHeight();
+      grip.setPointerCapture(ev.pointerId);
+      document.body.classList.add('fd-map-resizing');
+      ev.preventDefault();
+    });
+    grip.addEventListener('pointermove', function(ev){
+      if (!dragging) return;
+      apply(startH + (ev.clientY - startY));
+    });
+    function end(ev){
+      if (!dragging) return;
+      dragging = false;
+      if (frame !== null) { cancelAnimationFrame(frame); frame = null; }
+      nextPx = null;
+      document.body.classList.remove('fd-map-resizing');
+      try { grip.releasePointerCapture(ev.pointerId); } catch (e) {}
+      // Persist and tell Google once, at the end -- doing either on
+      // every frame is wasted work.
+      setDirectoryMapHeight(currentDirectoryMapHeight());
+    }
+    grip.addEventListener('pointerup', end);
+    grip.addEventListener('pointercancel', end);
+
+    // Keyboard, because a drag handle that only takes a pointer is
+    // unreachable for anyone not using one.
+    grip.addEventListener('keydown', function(ev){
+      var step = ev.shiftKey ? DIR_MAP_STEP : 20;
+      if (ev.key === 'ArrowDown') { setDirectoryMapHeight(currentDirectoryMapHeight() + step); ev.preventDefault(); }
+      else if (ev.key === 'ArrowUp') { setDirectoryMapHeight(currentDirectoryMapHeight() - step); ev.preventDefault(); }
+    });
   })();
 
   window.addEventListener('resize', syncDirectoryOffsets);
