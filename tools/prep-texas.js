@@ -41,6 +41,44 @@
 // STATUS = 01 as well: 1,381 rows are revoked or otherwise not active.
 //
 // ---------------------------------------------------------------------
+// THIS FILE IS NOT A LIST OF CHURCHES. READ THIS BEFORE TRUSTING IT.
+//
+// Churches are automatically tax-exempt under IRC 508(c)(1)(A). They
+// are NOT required to apply for recognition, and many never do, so they
+// never enter the Business Master File at all. What this reads is the
+// set of churches that CHOSE to file.
+//
+// Found by asking after one specific church. Westlake Hills
+// Presbyterian, a large, long-established Austin congregation, is
+// absent. Present in its place: WEST LAKE HILLS PRESBYTERIAN CHURCH
+// FOUNDATION (FOUNDATION=17, correctly filtered out), a preschool
+// booster club, and AUSTIN PRESBYTERIAN PILGRIMAGE INC listed care of
+// the church. The church itself has no record.
+//
+// Measured against an independent source, churchfinder.com's 746 San
+// Antonio churches:
+//
+//   clear match in the IRS data   144   19%
+//   partial match                 359   48%
+//   no match at all               243   33%
+//
+// About a third of one metro's churches are missing. Approximate --
+// the scrape has its own junk and the fuzzy threshold is a judgement --
+// but two different matching methods agreed on the order of magnitude.
+// An exact-name pass first said 85%, which was too strict to believe,
+// and is why it was measured twice.
+//
+// It is not a random third. The churches least likely to have filed
+// are small, immigrant, Spanish-language and storefront congregations
+// -- Vietnamese Martyrs Catholic Center, Templo Bautista Getsemani,
+// Shepherd's Fellowship -- which are exactly the listings a directory
+// is most useful for.
+//
+// So: working through all 50 batches gets roughly two thirds of Texas,
+// skewed away from the churches that most need finding. See
+// tools/prep-churchfinder.js for the second source that fills it.
+//
+// ---------------------------------------------------------------------
 // WHAT IS DELIBERATELY NOT DONE HERE
 //
 // denomination is left BLANK, and the database fills it. The mapping

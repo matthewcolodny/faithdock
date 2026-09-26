@@ -13,3 +13,5 @@ node_modules/
 # downloadable files on faithdock.com. Regenerate them instead.
 /texas-batches/
 /backups/
+/churchfinder-batches/
+/manual-adds/

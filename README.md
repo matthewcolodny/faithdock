@@ -11,6 +11,13 @@ Visual concept / prototype for FaithDock — a single-file frontend deployed as 
   Master File for Texas into import-ready batches. No dependencies; not
   part of the deploy. See its header for why FOUNDATION=10 is the church
   test and why denomination and address are deliberately left alone.
+- `tools/prep-churchfinder.js` — the second source. The IRS file is
+  only the churches that chose to file; measured against a
+  churchfinder.com scrape, about a third of one metro's churches are
+  missing from it, skewed toward small, immigrant and Spanish-language
+  congregations. Emits the same batch shape, so `enrich-batch.js` takes
+  it unchanged. Carries denomination and phone, which the IRS file does
+  not.
 - `tools/enrich-batch.js` — looks one prepared batch up against Google
   Places and splits it into found / not found / found-but-not-a-place-
   of-worship, adding phone and website. Run BEFORE importing. Needs a
