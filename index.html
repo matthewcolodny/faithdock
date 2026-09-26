@@ -578,6 +578,9 @@
       'denom.body.anabaptist': 'Anabaptist',
       'denom.body.messianicJudaism': 'Messianic Judaism',
       'filters.oneChurchFound': 'church found', 'filters.manyChurchesFound': 'churches found',
+      'dir.mapNoCoords': 'None of these have a location on file yet.',
+      'dir.mapSomeMissing': '{n} of these have no location on file and are not pinned.',
+      'dir.mapOneMissing': 'One of these has no location on file and is not pinned.',
       'filters.noChurchesMatch': 'No churches match these filters. Try widening your search.',
       'rc.churchName': 'Church name', 'rc.denomination': 'Denomination', 'rc.selectOne': 'Select one', 'rc.other': 'Other',
       'rc.enterDenomination': 'Enter your denomination', 'rc.address': 'Address', 'rc.addressPlaceholder': 'Start typing an address...',
@@ -1857,6 +1860,9 @@
       'denom.body.anabaptist': 'Anabautista',
       'denom.body.messianicJudaism': 'Judaísmo Mesiánico',
       'filters.oneChurchFound': 'iglesia encontrada', 'filters.manyChurchesFound': 'iglesias encontradas',
+      'dir.mapNoCoords': 'Ninguna de estas tiene ubicación registrada todavía.',
+      'dir.mapSomeMissing': '{n} de estas no tienen ubicación registrada y no aparecen en el mapa.',
+      'dir.mapOneMissing': 'Una de estas no tiene ubicación registrada y no aparece en el mapa.',
       'filters.noChurchesMatch': 'Ninguna iglesia coincide con estos filtros. Intenta ampliar tu búsqueda.',
       'rc.churchName': 'Nombre de la iglesia', 'rc.denomination': 'Denominación', 'rc.selectOne': 'Selecciona una', 'rc.other': 'Otra',
       'rc.enterDenomination': 'Ingresa tu denominación', 'rc.address': 'Dirección', 'rc.addressPlaceholder': 'Empieza a escribir una dirección...',
@@ -4593,6 +4599,25 @@
   }
   .directory-layout{display:grid;grid-template-columns:220px 1fr;gap:36px;margin-top:32px;align-items:start;}
   .filter-panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px;position:sticky;top:92px;}
+
+  /* ---- Directory results map -------------------------------------
+     Sticky at the same offset as the filter panel, so the two pin
+     together and the cards scroll between them. Opaque background and
+     a z-index, because sticky alone would let cards show through as
+     they slide underneath. */
+  #directory-map-wrap{
+    position:sticky;top:92px;z-index:2;margin-bottom:22px;
+    background:var(--paper);padding-bottom:10px;
+  }
+  #directory-map{
+    width:100%;height:320px;border-radius:var(--radius);overflow:hidden;
+    border:1px solid var(--line);background:var(--card);
+  }
+  #directory-map-note{font-size:12px;color:var(--ink-mute);margin-top:6px;}
+  /* Desktop only, as asked. On a phone a 320px map above the results
+     would push the first card below the fold, and the cards ARE the
+     page there. */
+  @media (max-width:860px){ #directory-map-wrap{display:none;} }
   /* position:relative so the denomination dropdown panel (position:
      absolute) anchors to this element rather than the viewport -- see
      the panel's own comment below for why that matters. */
@@ -6680,6 +6705,13 @@
       </aside>
 
       <div>
+        <!-- Drawn from window.directoryLastRenderedRows, the page of
+             results already in memory -- search_churches returns lat and
+             lng with every row, so the map costs no extra query. -->
+        <div id="directory-map-wrap">
+          <div id="directory-map"></div>
+          <div id="directory-map-note"></div>
+        </div>
         <div class="dir-results-head">
           <div id="directory-count" style="font-size:13.5px;color:var(--ink-mute);"></div>
           <div class="dir-view-toggle" role="group" data-i18n-title="directory.viewToggleLabel" title="View">
@@ -11022,7 +11054,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-25-v296 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-26-v297 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -11700,8 +11732,96 @@ Groups</span>
     grid.innerHTML = mapJoin(rows, (view === 'list')
       ? function(c){ return churchRow(c); }
       : function(c){ return churchCard(c, true); });
+    if (window.paintDirectoryMap) window.paintDirectoryMap();
   }
   window.paintDirectoryGrid = paintDirectoryGrid;
+
+  // ---- The results map --------------------------------------------
+  // One pin per church on the page being shown, which is why the page
+  // size came down to 15: a map with 24 pins in one metro is a cluster
+  // of overlapping teardrops, and the point of it is to see WHERE the
+  // results are.
+  //
+  // No query of its own. search_churches already returns lat and lng on
+  // every row, and the rows are in window.directoryLastRenderedRows, so
+  // this redraws from memory -- including on a language switch or a
+  // cards/list toggle, both of which call paintDirectoryGrid without
+  // going to the network.
+  var dirMap = null, dirMarkers = [], dirInfo = null;
+
+  function paintDirectoryMap(){
+    var wrap = document.getElementById('directory-map-wrap');
+    var host = document.getElementById('directory-map');
+    var note = document.getElementById('directory-map-note');
+    if (!wrap || !host) return;
+    // Hidden by CSS below 860px; building a map into a display:none
+    // element gives a grey box that never recovers, so don't.
+    if (!wrap.offsetParent) return;
+
+    if (!(window.google && google.maps)) {
+      // Google's script is async. Retried rather than abandoned,
+      // because the directory is often the first page opened.
+      setTimeout(paintDirectoryMap, 600);
+      return;
+    }
+
+    var rows = window.directoryLastRenderedRows || [];
+    var placed = rows.filter(function(c){ return c.lat != null && c.lng != null; });
+
+    if (!rows.length) { wrap.style.visibility = 'hidden'; return; }
+    wrap.style.visibility = '';
+
+    if (!dirMap) {
+      dirMap = new google.maps.Map(host, {
+        center: { lat: 29.42, lng: -98.49 }, zoom: 10,
+        mapTypeControl: false, streetViewControl: false, fullscreenControl: false,
+        clickableIcons: false
+      });
+      dirInfo = new google.maps.InfoWindow();
+    }
+
+    dirMarkers.forEach(function(m){ m.setMap(null); });
+    dirMarkers = [];
+    if (dirInfo) dirInfo.close();
+
+    var bounds = new google.maps.LatLngBounds();
+    placed.forEach(function(c){
+      var pos = { lat: Number(c.lat), lng: Number(c.lng) };
+      var marker = new google.maps.Marker({
+        position: pos, map: dirMap, title: displayChurchName(c.name)
+      });
+      marker.addListener('click', function(){
+        // The name, and a link to the same place the card goes. Built
+        // with escapeHtml because a church name is user-supplied.
+        dirInfo.setContent(
+          '<div style="font-family:inherit;font-size:13px;max-width:200px;">' +
+          '<a href="#church/' + encodeURIComponent(c.name) + '" data-route="church" ' +
+          'style="font-weight:600;color:#16233F;">' + escapeHtml(displayChurchName(c.name)) + '</a>' +
+          (c.address ? '<div style="color:#6b6b6b;margin-top:3px;">' + escapeHtml(titleCaseAddress(c.address)) + '</div>' : '') +
+          '</div>');
+        dirInfo.open({ map: dirMap, anchor: marker });
+      });
+      dirMarkers.push(marker);
+      bounds.extend(pos);
+    });
+
+    if (placed.length === 1) {
+      dirMap.setCenter(bounds.getCenter());
+      dirMap.setZoom(14);
+    } else if (placed.length > 1) {
+      dirMap.fitBounds(bounds, 40);
+    }
+    // Created or resized while the tab was hidden renders grey until
+    // told; harmless when it was already visible.
+    google.maps.event.trigger(dirMap, 'resize');
+
+    var missing = rows.length - placed.length;
+    if (!placed.length) note.textContent = window.t('dir.mapNoCoords');
+    else if (missing === 1) note.textContent = window.t('dir.mapOneMissing');
+    else if (missing > 0) note.textContent = window.t('dir.mapSomeMissing').replace('{n}', missing);
+    else note.textContent = '';
+  }
+  window.paintDirectoryMap = paintDirectoryMap;
 
   // Fetches a specific church's events directly rather than filtering
   // the shared in-memory events array, which now only ever holds
@@ -15731,7 +15851,11 @@ Groups</span>
   }
   window.enrichChurchesWithSchedule = enrichChurchesWithSchedule;
 
-  var DIRECTORY_PAGE_SIZE = 24;
+  // 15, not 24, since the results map arrived. Two dozen pins in one
+  // metro overlap into a blob and stop answering the question the map
+  // is there for -- where are these. Fewer per page also means fewer
+  // cards to paint on each filter change.
+  var DIRECTORY_PAGE_SIZE = 15;
   window.directoryPage = 1;
   window.directoryLastFilters = null;
 
