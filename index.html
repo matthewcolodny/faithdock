@@ -4482,8 +4482,6 @@
   .dir-pager-gap{padding:0 2px;color:var(--ink-mute);}
   /* Directory Card / List view toggle */
   .dir-results-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px;}
-  /* Moved out of the search row and into the results column, where the
-     thing it switches actually is. */
   .dir-results-head .dir-view-toggle{margin-left:auto;}
   .dir-view-toggle{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;flex-shrink:0;}
   .dir-view-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;font-size:12.5px;background:var(--card);color:var(--ink-mute);border:none;cursor:pointer;line-height:1;}
@@ -4705,7 +4703,7 @@
      and brings up the footer, which would otherwise be unreachable now
      that both columns are exactly a viewport tall. */
   .dir-results-col{
-    padding:22px 24px 0 28px;min-width:0;
+    padding:22px 24px 28px 28px;min-width:0;
     position:sticky;top:var(--dir-split-top,150px);
     height:var(--dir-split-h, calc(100vh - var(--dir-split-top,150px)));
     overflow-y:auto;
@@ -4822,6 +4820,7 @@
   .dir-search-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
   /* Pushes the view toggle to the far right of the row. */
   .dir-search-row .dir-view-toggle{margin-left:auto;}
+  .dir-search-row .dir-view-toggle.dir-view-first{margin-left:0;margin-right:2px;}
   #directory-map{
     width:100%;height:300px;background:var(--card);
   }
@@ -11315,7 +11314,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-26-v307 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-26-v308 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12440,10 +12439,15 @@ Groups</span>
     [].forEach.call(document.querySelectorAll('.dir-pill-panel.open'), function(el){ el.classList.remove('open'); });
     [].forEach.call(document.querySelectorAll('.dir-pill[aria-expanded="true"]'), function(el){ el.setAttribute('aria-expanded', 'false'); });
   }
+  // To the front of the search row, left of the keyword field. Moved,
+  // not rebuilt, so the two buttons keep the view listeners bound to
+  // them at startup.
   function moveViewToggleIntoResults(){
-    var head = document.querySelector('.dir-results-head');
-    var toggle = document.querySelector('#directory-head .dir-view-toggle');
-    if (head && toggle) head.appendChild(toggle);
+    var row = document.querySelector('#directory-head .dir-search-row');
+    var toggle = document.querySelector('#page-directory .dir-view-toggle');
+    if (!row || !toggle) return;
+    toggle.classList.add('dir-view-first');
+    row.insertBefore(toggle, row.firstElementChild);
   }
 
   // Only in the split. Below 980px the sidebar is the right shape and
