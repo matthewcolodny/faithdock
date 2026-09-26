@@ -17,7 +17,38 @@ The distinction between the three files:
 When one is finished, move it to "Done" at the bottom with the date.
 The state it ended in is worth more later than the fact it was on a list.
 
-**One migration is pending as of 2026-09-25: 100.** 091-096, 098 and
+**One migration is pending as of 2026-09-25: 101.** 100 is run, and
+101 corrects it.
+
+## Migration 101 -- 100 wrote filter categories into a display column
+
+**State today (2026-09-25):**
+`supabase/migrations/101_denomination_display_vocabulary.sql` is
+written and committed. It has **not** been run.
+
+**Why it matters:** Westlake Hills Presbyterian Church displays
+"Presbyterian & Reformed". Nothing decided that about the church --
+that is the name of a Tradition FILTER CATEGORY, and migration 100
+wrote it into the field a person reads and an owner edits.
+
+There are two vocabularies. `denomination_tags` uses combined
+categories, which read correctly on a filter checkbox covering a
+family. `denomination` uses the church form's dropdown -- Baptist,
+Episcopal, Methodist, Presbyterian, Pentecostal, Apostolic, Church of
+God and the rest. 100 used the first where it needed the second.
+
+**Also corrects a claim made here earlier.** The 133 rows carrying
+"Methodist", "Presbyterian", "Episcopal", "Church of God" were reported
+as non-canonical. They were not -- they are exactly the dropdown
+vocabulary and were right all along. They were compared against the tag
+list, which is the wrong list for that column. 101 does not touch them.
+
+**What it involves:** paste the file into the SQL Editor and run it. It
+adds `denomination_display_for_tag()`, has the trigger write through
+it, and repairs the rows 100 wrote. The assertion fails if any church
+still displays a combined category.
+
+## Migration 100 -- done, see 101 091-096, 098 and
 099 are run and verified; 097 is run and deliberately inert.
 
 ## Migration 100 -- churches that name their own tradition show none
