@@ -4601,12 +4601,21 @@
   .filter-panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px;position:sticky;top:92px;}
 
   /* ---- Directory results map -------------------------------------
-     A full-bleed banner under the nav, above the page heading.
-     NOT sticky: it was, pinned beside the filter panel, and at
-     280-320px tall a permanently pinned band eats a third of a laptop
-     screen for the whole scroll. As a banner it scrolls away like any
-     other header, which is what the mockup showed. */
-  #directory-map-wrap{ margin-bottom:0; }
+     Full-bleed, above the page heading, and pinned under the nav so it
+     stays put while the cards scroll past it.
+
+     top:72px is header.site's own height -- it is position:sticky
+     top:0 with z-index 50, so the map sits directly beneath it at a
+     lower z-index. Reading those two numbers off the live header
+     rather than guessing is the difference between the band tucking
+     under the nav and covering it.
+     
+     Opaque, because a sticky element with no background lets the cards
+     show through as they slide underneath. */
+  #directory-map-wrap{
+    position:sticky;top:72px;z-index:40;
+    background:var(--paper);margin-bottom:0;
+  }
   #directory-map{
     width:100%;height:300px;background:var(--card);
     border-bottom:1px solid var(--line);
@@ -4617,10 +4626,20 @@
     max-width:1080px;margin:8px auto 0;padding:0 28px;
     font-size:12px;color:var(--ink-mute);
   }
-  /* Desktop only, as asked. On a phone a 320px map above the results
+  /* The filter panel is ALSO sticky, at top:92px, which is underneath
+     the pinned map -- it would spend the whole scroll hidden behind it.
+     Pushed below the band instead: 72 nav + 300 map + 26 note + 16
+     breathing room. Scoped to this page, because the events page has
+     the same panel and no map above it. */
+  #page-directory .filter-panel{ top:414px; }
+
+  /* Desktop only, as asked. On a phone a 300px map above the results
      would push the first card below the fold, and the cards ARE the
-     page there. */
-  @media (max-width:860px){ #directory-map-wrap{display:none;} }
+     page there -- so the panel goes back to its normal offset too. */
+  @media (max-width:860px){
+    #directory-map-wrap{display:none;}
+    #page-directory .filter-panel{ top:92px; }
+  }
   /* position:relative so the denomination dropdown panel (position:
      absolute) anchors to this element rather than the viewport -- see
      the panel's own comment below for why that matters. */
@@ -11061,7 +11080,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-26-v298 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-26-v299 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
