@@ -4482,6 +4482,9 @@
   .dir-pager-gap{padding:0 2px;color:var(--ink-mute);}
   /* Directory Card / List view toggle */
   .dir-results-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px;}
+  /* Moved out of the search row and into the results column, where the
+     thing it switches actually is. */
+  .dir-results-head .dir-view-toggle{margin-left:auto;}
   .dir-view-toggle{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;flex-shrink:0;}
   .dir-view-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;font-size:12.5px;background:var(--card);color:var(--ink-mute);border:none;cursor:pointer;line-height:1;}
   .dir-view-btn svg{width:14px;height:14px;flex-shrink:0;}
@@ -4704,7 +4707,7 @@
   .dir-results-col{
     padding:22px 24px 0 28px;min-width:0;
     position:sticky;top:var(--dir-split-top,150px);
-    height:calc(100vh - var(--dir-split-top,150px));
+    height:var(--dir-split-h, calc(100vh - var(--dir-split-top,150px)));
     overflow-y:auto;
   }
   /* The page-wide .grid is a hard repeat(3,1fr), which inside a column
@@ -4717,7 +4720,7 @@
   }
   .dir-map-col{
     position:sticky;top:var(--dir-split-top,150px);
-    height:calc(100vh - var(--dir-split-top,150px));
+    height:var(--dir-split-h, calc(100vh - var(--dir-split-top,150px)));
     min-width:0;
   }
   /* The map fills its column; the banner-era sizing does not apply. */
@@ -4748,14 +4751,55 @@
   .dir-pill svg{width:12px;height:12px;}
   .dir-pill-panel{
     display:none;position:absolute;top:calc(100% + 6px);left:0;z-index:6;
-    width:270px;max-height:min(60vh,420px);overflow:auto;
+    width:280px;max-height:min(72vh,560px);overflow:auto;
     background:var(--card);border:1px solid var(--line);border-radius:12px;
     padding:14px 16px;box-shadow:0 8px 28px rgba(0,0,0,.22);
   }
   .dir-pill-panel.open{display:block;}
   .dir-pill-panel .filter-group{margin-bottom:0;}
+  /* The pill already names the group; repeating it inside is the same
+     word twice, six pixels apart. */
+  .dir-pill-panel .filter-tradition-heading{display:none;}
+  /* Denominations was a button that opened a 440px absolutely-positioned
+     dropdown INSIDE this 119px scroller, so the list was clipped to a
+     sliver with its own scrollbar. The pill is already the dropdown, so
+     the button goes and the list sits directly in the panel -- one
+     scroller instead of a tall box nested in a short one. */
+  /* Every one of these is !important because the button and the panel
+     both carry the property inline, and an inline style beats a
+     stylesheet rule that does not say so. */
+  .dir-pill-panel #denom-dropdown-btn{display:none !important;}
+  .dir-pill-panel #denom-dropdown-panel{
+    display:block !important;position:static !important;width:auto !important;
+    max-height:none !important;overflow:visible !important;
+    border:0 !important;box-shadow:none !important;padding:0 !important;
+  }
   /* The map column is the positioning context for the pills. */
   .dir-map-col{position:sticky;}
+
+  /* With the columns sized to the window there is nothing below them to
+     scroll to, so the page's own scroll goes and the footer is pinned
+     instead of buried under a screenful of nothing. The results column
+     keeps its scroll -- it is the only thing here with more content than
+     room. The sitemap block is a scrolling-page feature and has no place
+     on a screen that does not scroll. */
+  @media (min-width:981px){
+    body.dir-fullscreen{overflow:hidden;}
+    /* Bottom padding meant for a page that ends in a footer. Here it is
+       just 56px of clipped nothing below the columns. */
+    body.dir-fullscreen #page-directory{padding-bottom:0;}
+    body.dir-fullscreen .sitemap{display:none;}
+    body.dir-fullscreen > footer{
+      position:fixed;left:0;right:0;bottom:0;z-index:40;
+      padding:11px 0;                       /* 36px suits a page you scroll to */
+      border-top:1px solid rgba(255,255,255,.08);
+    }
+  }
+
+  /* The pin being pointed at, in the list. */
+  .church-card.dir-card-hot,.church-row.dir-card-hot{
+    outline:2px solid var(--gold);outline-offset:2px;
+  }
 
   /* Below 980px the split collapses: a 380px results column beside a
      map leaves neither enough room. Everything returns to the stacked
@@ -11271,7 +11315,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-26-v306 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-26-v307 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -11969,6 +12013,38 @@ Groups</span>
   // lowercased name because that is what the cards carry in
   // data-church-name; there is no id on the card to key on.
   var dirMarkerByName = Object.create(null);
+  // The reverse of the card-to-pin index. Built by scanning rather than
+  // stored, because the grid is re-rendered on every filter, sort and
+  // page change and a stored index would go stale silently; there are
+  // fifteen cards on screen, so the scan costs nothing.
+  function dirCardForName(name){
+    var grid = document.getElementById('directory-grid');
+    if (!grid || !name) return null;
+    var els = grid.querySelectorAll('[data-church-name]');
+    for (var i = 0; i < els.length; i++) {
+      if (String(els[i].getAttribute('data-church-name') || '').toLowerCase() === name) return els[i];
+    }
+    return null;
+  }
+  function dirClearHotCard(){
+    var hot = document.querySelectorAll('.dir-card-hot');
+    for (var i = 0; i < hot.length; i++) hot[i].classList.remove('dir-card-hot');
+  }
+  // Scrolls the results column and nothing else. scrollIntoView would
+  // also scroll any other scrollable ancestor, and on a page where the
+  // window scroll still exists that drags the whole layout.
+  function dirRevealCard(name){
+    dirClearHotCard();
+    var el = dirCardForName(name);
+    var col = document.querySelector('.dir-results-col');
+    if (!el) return false;
+    el.classList.add('dir-card-hot');
+    if (!col || getComputedStyle(col).overflowY !== 'auto') return true;
+    var cr = col.getBoundingClientRect(), er = el.getBoundingClientRect();
+    if (er.top < cr.top + 8) col.scrollTop += er.top - cr.top - 8;
+    else if (er.bottom > cr.bottom - 8) col.scrollTop += er.bottom - cr.bottom + 8;
+    return true;
+  }
   var dirHoveredName = null;
 
   // The name, and a link to the same place the card goes. Built with
@@ -12042,8 +12118,21 @@ Groups</span>
         position: pos, map: dirMap, title: displayChurchName(c.name)
       });
       marker.addListener('click', function(){ openDirInfo(marker, c); });
+      var key = String(c.name).toLowerCase();
+      // The mirror of hovering a card. Deliberately no mouseout handler:
+      // the info window is an overlay that sits over its own pin, so
+      // moving onto it fires mouseout and closing there would flicker.
+      // The highlight clears when the next thing is hovered, or when the
+      // pointer enters the results column.
+      marker.addListener('mouseover', function(){
+        if (dirHoveredName === key) return;
+        dirHoveredName = key;
+        marker.setZIndex(9999);
+        openDirInfo(marker, c);
+        dirRevealCard(key);
+      });
       marker._fdChurch = c;
-      dirMarkerByName[String(c.name).toLowerCase()] = marker;
+      dirMarkerByName[key] = marker;
       dirMarkers.push(marker);
       bounds.extend(pos);
     });
@@ -12106,6 +12195,20 @@ Groups</span>
     // Where the map column starts and how tall it can be: everything
     // under the sticky header and the sticky search row.
     page.style.setProperty('--dir-split-top', (navH + headH) + 'px');
+    // The columns are sized to what is left of the window rather than to
+    // 100vh minus a guess: the waitlist banner is 42px when it shows and
+    // nothing when it does not, and the pinned footer takes its own
+    // height off the bottom. Measured with the page unscrolled -- which
+    // it always is here, since dir-fullscreen removes the page's scroll.
+    var split = document.querySelector('.dir-split');
+    var foot = document.querySelector('body > footer');
+    if (split) {
+      var pinned = inDirectorySplit() && document.body.classList.contains('dir-fullscreen');
+      var footH = (pinned && foot) ? Math.round(foot.getBoundingClientRect().height) : 0;
+      var splitTop = Math.round(split.getBoundingClientRect().top + window.scrollY);
+      page.style.setProperty('--dir-split-h',
+        Math.max(320, window.innerHeight - splitTop - footH) + 'px');
+    }
     // Written as variables the stylesheet consumes, so the max-width
     // rules still win below 860px without anything having to be
     // cleared here.
@@ -12258,6 +12361,7 @@ Groups</span>
     function clear(){
       dirHoveredName = null;
       if (dirInfo) dirInfo.close();
+      dirClearHotCard();
       dirMarkers.forEach(function(m){ m.setZIndex(null); });
     }
 
@@ -12336,9 +12440,15 @@ Groups</span>
     [].forEach.call(document.querySelectorAll('.dir-pill-panel.open'), function(el){ el.classList.remove('open'); });
     [].forEach.call(document.querySelectorAll('.dir-pill[aria-expanded="true"]'), function(el){ el.setAttribute('aria-expanded', 'false'); });
   }
+  function moveViewToggleIntoResults(){
+    var head = document.querySelector('.dir-results-head');
+    var toggle = document.querySelector('#directory-head .dir-view-toggle');
+    if (head && toggle) head.appendChild(toggle);
+  }
+
   // Only in the split. Below 980px the sidebar is the right shape and
   // the map is hidden, so there is nothing to float pills over.
-  if (window.innerWidth > 980) moveFiltersIntoPills();
+  if (window.innerWidth > 980) { moveFiltersIntoPills(); moveViewToggleIntoResults(); }
 
   // ---- Dragging the divider ----------------------------------------
   // Same shape as the map's own grip: pointer capture so the drag
@@ -14000,6 +14110,11 @@ Groups</span>
     for(var i=0;i<pages.length;i++){ pages[i].classList.remove('active'); }
     var target = document.getElementById('page-'+pageRoute);
     if(target) target.classList.add('active');
+    // Only the directory removes the window's scroll and pins the
+    // footer, so the class goes on the body rather than the page: it has
+    // to reach the footer and the sitemap, which are the body's children.
+    document.body.classList.toggle('dir-fullscreen', pageRoute === 'directory');
+    if (typeof syncDirectoryOffsets === 'function') syncDirectoryOffsets();
     // Third argument: leave history alone. goDash normally writes
     // #dashboard/<view>, which here would overwrite the entry go() is
     // about to write and leave Back pointing at a URL nobody visited.
