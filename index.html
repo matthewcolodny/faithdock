@@ -4601,19 +4601,22 @@
   .filter-panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px;position:sticky;top:92px;}
 
   /* ---- Directory results map -------------------------------------
-     Sticky at the same offset as the filter panel, so the two pin
-     together and the cards scroll between them. Opaque background and
-     a z-index, because sticky alone would let cards show through as
-     they slide underneath. */
-  #directory-map-wrap{
-    position:sticky;top:92px;z-index:2;margin-bottom:22px;
-    background:var(--paper);padding-bottom:10px;
-  }
+     A full-bleed banner under the nav, above the page heading.
+     NOT sticky: it was, pinned beside the filter panel, and at
+     280-320px tall a permanently pinned band eats a third of a laptop
+     screen for the whole scroll. As a banner it scrolls away like any
+     other header, which is what the mockup showed. */
+  #directory-map-wrap{ margin-bottom:0; }
   #directory-map{
-    width:100%;height:320px;border-radius:var(--radius);overflow:hidden;
-    border:1px solid var(--line);background:var(--card);
+    width:100%;height:300px;background:var(--card);
+    border-bottom:1px solid var(--line);
   }
-  #directory-map-note{font-size:12px;color:var(--ink-mute);margin-top:6px;}
+  /* The map is edge to edge; its caption should still line up with the
+     page text, so it carries .wrap's own max-width and padding. */
+  #directory-map-note{
+    max-width:1080px;margin:8px auto 0;padding:0 28px;
+    font-size:12px;color:var(--ink-mute);
+  }
   /* Desktop only, as asked. On a phone a 320px map above the results
      would push the first card below the fold, and the cards ARE the
      page there. */
@@ -6593,6 +6596,17 @@
 
 <!-- ================= DIRECTORY ================= -->
 <section class="page" id="page-directory">
+  <!-- Edge to edge, and ABOVE the heading, so it reads as a banner for
+       the whole page rather than a widget belonging to the results
+       column. Outside .wrap on purpose -- .wrap is max-width 1080 with
+       28px padding, and the map is meant to run the full viewport.
+       Drawn from window.directoryLastRenderedRows, the page of results
+       already in memory: search_churches returns lat and lng on every
+       row, so the map costs no extra query. -->
+  <div id="directory-map-wrap">
+    <div id="directory-map"></div>
+    <div id="directory-map-note"></div>
+  </div>
   <div class="wrap" style="padding-top:44px;">
     <div class="eyebrow" data-i18n="dir.churchesEyebrow">Churches</div>
     <h1 style="font-size:34px;" data-i18n="home.churchesNearYou">Churches near you</h1>
@@ -6705,13 +6719,6 @@
       </aside>
 
       <div>
-        <!-- Drawn from window.directoryLastRenderedRows, the page of
-             results already in memory -- search_churches returns lat and
-             lng with every row, so the map costs no extra query. -->
-        <div id="directory-map-wrap">
-          <div id="directory-map"></div>
-          <div id="directory-map-note"></div>
-        </div>
         <div class="dir-results-head">
           <div id="directory-count" style="font-size:13.5px;color:var(--ink-mute);"></div>
           <div class="dir-view-toggle" role="group" data-i18n-title="directory.viewToggleLabel" title="View">
@@ -11054,7 +11061,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-26-v297 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-26-v298 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -11747,7 +11754,7 @@ Groups</span>
   // this redraws from memory -- including on a language switch or a
   // cards/list toggle, both of which call paintDirectoryGrid without
   // going to the network.
-  var dirMap = null, dirMarkers = [], dirInfo = null;
+  var dirMap = null, dirMarkers = [], dirInfo = null, dirMapTries = 0;
 
   function paintDirectoryMap(){
     var wrap = document.getElementById('directory-map-wrap');
@@ -11759,11 +11766,19 @@ Groups</span>
     if (!wrap.offsetParent) return;
 
     if (!(window.google && google.maps)) {
-      // Google's script is async. Retried rather than abandoned,
-      // because the directory is often the first page opened.
+      // Google's script is async, so a first paint usually arrives
+      // before it. Retried -- but NOT forever. This band is 300px of
+      // full-width page; if Maps never loads (blocked, quota, outage)
+      // an endless retry leaves a blank slab above the results with no
+      // way for it to ever go away. After about twelve seconds it
+      // removes itself and the page reads as it did before the map
+      // existed.
+      dirMapTries++;
+      if (dirMapTries > 20) { wrap.style.display = 'none'; return; }
       setTimeout(paintDirectoryMap, 600);
       return;
     }
+    dirMapTries = 0;
 
     var rows = window.directoryLastRenderedRows || [];
     var placed = rows.filter(function(c){ return c.lat != null && c.lng != null; });
