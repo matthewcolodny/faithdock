@@ -4659,12 +4659,18 @@
      directly left the filter panel pinned at a desktop offset on a
      375px screen -- measured, 532px on a phone. A variable lets the
      stylesheet keep the last word at every breakpoint. */
+  /* Visually gone, still read out and still indexed. */
+  .sr-only{
+    position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;
+    clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0;
+  }
+  /* Tight, now that the heading is not drawn -- the search row sits
+     just under the map. */
   #directory-head{
     position:sticky;top:var(--dir-head-top,0px);z-index:39;background:var(--paper);
-    border-bottom:1px solid var(--line);padding:18px 0 14px;
+    border-bottom:1px solid var(--line);padding:12px 0;
   }
   #page-directory .filter-panel{ top:var(--dir-panel-top,92px); }
-  #directory-head h1{font-size:30px;margin-bottom:12px;}
   .dir-search-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
   /* Pushes the view toggle to the far right of the row. */
   .dir-search-row .dir-view-toggle{margin-left:auto;}
@@ -4684,7 +4690,7 @@
      sticky bands on a 812px screen leaves no room for results. */
   @media (max-width:860px){
     #directory-map-wrap{display:none;}
-    #directory-head{position:static;border-bottom:0;padding-top:28px;}
+    #directory-head{position:static;border-bottom:0;padding-top:24px;}
     #page-directory .filter-panel{ top:92px; }
   }
 
@@ -6697,7 +6703,11 @@
        inner .wrap keeps the content aligned with the page. -->
   <div id="directory-head">
     <div class="wrap">
-      <h1 style="font-size:34px;" data-i18n="home.churchesNearYou">Churches near you</h1>
+      <!-- Hidden, not deleted. It is the only h1 on the page, and a
+           page with no heading is worse for a screen reader and for
+           search than one whose heading is not drawn. The map above it
+           says where you are far better than a line of text did. -->
+      <h1 class="sr-only" data-i18n="home.churchesNearYou">Churches near you</h1>
       <div class="dir-search-row">
       <div class="search-field-wrap search-clear-wrap" style="max-width:340px;">
         <span class="search-field-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></span>
@@ -11148,7 +11158,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-26-v301 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-26-v302 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
