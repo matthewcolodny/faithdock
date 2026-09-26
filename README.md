@@ -18,6 +18,13 @@ Visual concept / prototype for FaithDock — a single-file frontend deployed as 
   congregations. Emits the same batch shape, so `enrich-batch.js` takes
   it unchanged. Carries denomination and phone, which the IRS file does
   not.
+- `tools/dedupe-against-live.js` — run on a `.yes.csv` before importing
+  it. The importer dedupes on exact name+address, which cannot see the
+  same church under two names ("Cathedral of Faith" vs "Cathedral of
+  Faith of San Antonio"); this fuzzy-matches against the live directory
+  and writes a `.import.csv` with those removed. Requires the same
+  street number, so two churches sharing a generic name in different
+  cities are kept apart.
 - `tools/enrich-batch.js` — looks one prepared batch up against Google
   Places and splits it into found / not found / found-but-not-a-place-
   of-worship, adding phone and website. Run BEFORE importing. Needs a
