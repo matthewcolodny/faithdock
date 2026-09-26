@@ -11158,7 +11158,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-26-v302 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-26-v303 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -11852,6 +11852,26 @@ Groups</span>
   // cards/list toggle, both of which call paintDirectoryGrid without
   // going to the network.
   var dirMap = null, dirMarkers = [], dirInfo = null, dirMapTries = 0;
+  // name -> marker, so hovering a card can find its pin. Keyed on the
+  // lowercased name because that is what the cards carry in
+  // data-church-name; there is no id on the card to key on.
+  var dirMarkerByName = Object.create(null);
+  var dirHoveredName = null;
+
+  // The name, and a link to the same place the card goes. Built with
+  // escapeHtml because a church name is user-supplied. Shared by the
+  // pin's own click and by hovering a card, so the two can never drift
+  // into showing different things.
+  function openDirInfo(marker, c){
+    if (!dirInfo || !dirMap) return;
+    dirInfo.setContent(
+      '<div style="font-family:inherit;font-size:13px;max-width:200px;">' +
+      '<a href="#church/' + encodeURIComponent(c.name) + '" data-route="church" ' +
+      'style="font-weight:600;color:#16233F;">' + escapeHtml(displayChurchName(c.name)) + '</a>' +
+      (c.address ? '<div style="color:#6b6b6b;margin-top:3px;">' + escapeHtml(titleCaseAddress(c.address)) + '</div>' : '') +
+      '</div>');
+    dirInfo.open({ map: dirMap, anchor: marker });
+  }
 
   function paintDirectoryMap(){
     var wrap = document.getElementById('directory-map-wrap');
@@ -11889,11 +11909,17 @@ Groups</span>
         mapTypeControl: false, streetViewControl: false, fullscreenControl: false,
         clickableIcons: false
       });
-      dirInfo = new google.maps.InfoWindow();
+      // disableAutoPan, because this window now opens on HOVER. Left
+      // on, Google recentres the map every time the pointer crosses a
+      // card, and running down a list of fifteen throws the map around
+      // fifteen times.
+      dirInfo = new google.maps.InfoWindow({ disableAutoPan: true });
     }
 
     dirMarkers.forEach(function(m){ m.setMap(null); });
     dirMarkers = [];
+    dirMarkerByName = Object.create(null);
+    dirHoveredName = null;
     if (dirInfo) dirInfo.close();
 
     var bounds = new google.maps.LatLngBounds();
@@ -11902,17 +11928,9 @@ Groups</span>
       var marker = new google.maps.Marker({
         position: pos, map: dirMap, title: displayChurchName(c.name)
       });
-      marker.addListener('click', function(){
-        // The name, and a link to the same place the card goes. Built
-        // with escapeHtml because a church name is user-supplied.
-        dirInfo.setContent(
-          '<div style="font-family:inherit;font-size:13px;max-width:200px;">' +
-          '<a href="#church/' + encodeURIComponent(c.name) + '" data-route="church" ' +
-          'style="font-weight:600;color:#16233F;">' + escapeHtml(displayChurchName(c.name)) + '</a>' +
-          (c.address ? '<div style="color:#6b6b6b;margin-top:3px;">' + escapeHtml(titleCaseAddress(c.address)) + '</div>' : '') +
-          '</div>');
-        dirInfo.open({ map: dirMap, anchor: marker });
-      });
+      marker.addListener('click', function(){ openDirInfo(marker, c); });
+      marker._fdChurch = c;
+      dirMarkerByName[String(c.name).toLowerCase()] = marker;
       dirMarkers.push(marker);
       bounds.extend(pos);
     });
@@ -12082,6 +12100,47 @@ Groups</span>
       if (ev.key === 'ArrowDown') { setDirectoryMapHeight(currentDirectoryMapHeight() + step); ev.preventDefault(); }
       else if (ev.key === 'ArrowUp') { setDirectoryMapHeight(currentDirectoryMapHeight() - step); ev.preventDefault(); }
     });
+  })();
+
+  // ---- Hovering a result lights up its pin -------------------------
+  // One delegated pair on the grid rather than a listener per card: the
+  // grid's innerHTML is replaced on every search, view toggle and
+  // language switch, and per-card listeners would have to be rebound
+  // each time. The grid element itself survives all of it.
+  //
+  // Covers the list view for free, because .church-row carries the same
+  // data-church-name as .church-card and lives in the same container.
+  (function wireDirectoryHover(){
+    var grid = document.getElementById('directory-grid');
+    if (!grid) return;
+
+    function show(name){
+      var marker = name ? dirMarkerByName[name] : null;
+      if (!marker) { if (dirInfo) dirInfo.close(); return; }
+      // Above its neighbours while highlighted -- in a dense metro the
+      // pin being pointed at is often behind three others.
+      marker.setZIndex(9999);
+      openDirInfo(marker, marker._fdChurch);
+    }
+    function clear(){
+      dirHoveredName = null;
+      if (dirInfo) dirInfo.close();
+      dirMarkers.forEach(function(m){ m.setZIndex(null); });
+    }
+
+    grid.addEventListener('mouseover', function(ev){
+      // Nothing to point at when the map is hidden (below 860px) or has
+      // not been built.
+      if (!dirMap) return;
+      var el = ev.target.closest && ev.target.closest('[data-church-name]');
+      var name = el ? String(el.getAttribute('data-church-name') || '').toLowerCase() : null;
+      if (name === dirHoveredName) return;   // moving within the same card
+      dirHoveredName = name;
+      if (name) show(name); else clear();
+    });
+    // Leaving the grid entirely -- mouseover alone never fires again to
+    // tell us the pointer has gone.
+    grid.addEventListener('mouseleave', clear);
   })();
 
   window.addEventListener('resize', syncDirectoryOffsets);
