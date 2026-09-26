@@ -53,6 +53,34 @@
 // icon, so the column is 96% noise.
 //
 // ---------------------------------------------------------------------
+// USE --accept-similar WITH THIS SOURCE. The two sources fail in
+// opposite directions, and the enricher has to be run differently for
+// each.
+//
+// The IRS file has good ADDRESSES -- filed with the government, kept
+// current for tax purposes -- and awkward legal NAMES.
+// churchfinder has good human NAMES and stale ADDRESSES, because
+// churches self-report and do not come back to update them.
+//
+// So a batch from here fails the address check far more often. Measured
+// on the first 20 San Antonio rows: 25% confirmed, against 41-49% for
+// the IRS batches. But the failures are mostly the same church at a
+// better address --
+//
+//   St Agnes Catholic Church    asked 814 Ruiz St, got 804 Ruiz St
+//   Town East Baptist Church    name matched 100, moved across town
+//
+// -- and the names are good enough to say so. --accept-similar 90 took
+// the same 20 rows from 25% to 40%, importing Google's address instead
+// of the scrape's. That is the right way to run this source, and the
+// wrong way to run the IRS one.
+//
+// A prediction worth recording as wrong: this source was expected to
+// confirm at a HIGHER rate than the IRS file because it already carries
+// phone and denomination. It confirms lower, for a reason that has
+// nothing to do with either.
+//
+// ---------------------------------------------------------------------
 // DENOMINATION IS PASSED THROUGH, unlike prep-texas.js which leaves it
 // blank. It is real information here and better input than the name
 // alone -- compute_denomination_tags() reads (denomination, name), so
