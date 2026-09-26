@@ -330,6 +330,7 @@ const WORSHIP = /\b(church|place_of_worship|synagogue|mosque|hindu_temple)\b/;
   const base = FILE.replace(/\.csv$/i, '') + (DRY ? '.dryrun' : '');
   const enriched = [], yes = [], no = [], check = [], mismatch = [];
   let calls = 0, cached = 0, unknown = 0, done = 0, promoted = 0;
+  const accepted = [];
 
   for (const row of rows) {
     const k = keyOf(row);
@@ -383,6 +384,10 @@ const WORSHIP = /\b(church|place_of_worship|synagogue|mosque|hindu_temple)\b/;
                   'different occupant at this address', nameScore, 'yes', '', r.detail, r.types]);
     } else if (verdict === 'yes') {
       yes.push([row.name, row.denomination, row.address, r.phone, r.website]);
+      // Kept alongside, for the shared-place pass below. Index into
+      // yes so the row can be pulled back out by position.
+      accepted.push({ i: yes.length - 1, place: r.detail || '', score: nameScore,
+                      row: row, r: r, types: r.types || '' });
       if (!WORSHIP.test(r.types || '')) {
         mismatch.push([row.name, row.denomination, row.address, r.phone, r.website, verdict, r.detail, r.types]);
       }
@@ -412,6 +417,72 @@ const WORSHIP = /\b(church|place_of_worship|synagogue|mosque|hindu_temple)\b/;
     }
   }
 
+  // ---- ONE GOOGLE PLACE CANNOT BE TWO CHURCHES --------------------
+  //
+  // Text Search answers every query, so when it cannot find a church it
+  // returns the nearest plausible one instead -- and several different
+  // churches in a batch then resolve to the SAME place. Measured on
+  // Austin's 411: 17 places came back more than once in the rejected
+  // pile, one of them four times, and 12 rows in the ACCEPTED pile --
+  // the file that gets imported -- shared six places between them.
+  //
+  //   Church in Austin          <- "The Church in Tulsa"
+  //   Faith Lutheran (ELCA)     <- "Oriental Mission Church at Austin"
+  //                             <- "Grace Korean Church"
+  //   Hill Country Bible Church <- itself, and "Association of Hill
+  //                                Country Churches"
+  //
+  // The second and third are the common shape: a congregation that
+  // RENTS SPACE in another church's building. The address check cannot
+  // catch it, because the address is genuinely right -- it is the
+  // building. What is wrong is the phone number and website, which
+  // belong to the host.
+  //
+  // At most one row can be the place. The best name match keeps it; the
+  // rest go to .check.csv with their contacts dropped. A tie means
+  // neither is clearly the occupant, so all of them go.
+  const byPlace = new Map();
+  accepted.forEach(a => {
+    if (!a.place) return;
+    if (!byPlace.has(a.place)) byPlace.set(a.place, []);
+    byPlace.get(a.place).push(a);
+  });
+  const demoted = new Set();
+  byPlace.forEach((group, place) => {
+    if (group.length < 2) return;
+    const best = Math.max.apply(null, group.map(a => a.score));
+    const winners = group.filter(a => a.score === best);
+    // Strictly one winner, or nobody wins. Two rows scoring identically
+    // against the same place is exactly the case where guessing is
+    // worse than asking.
+    // ...and the winner has to actually look like the place. Both
+    // "Grace Korean Church" and "Oriental Mission Church at Austin"
+    // resolved to Faith Lutheran Church (ELCA) -- two congregations
+    // renting the same building, neither of them the host. Keeping the
+    // higher of two wrong answers is still a wrong answer.
+    //
+    // 60 is a floor, not a fitted cut-off. Across the six real groups
+    // in Austin the genuine winners scored 65, 67, 75, 100 and 100, and
+    // the false one 42; anywhere in that gap behaves the same. It also
+    // fails in the safe direction -- too high only sends more rows to a
+    // person, and can never put one in the import file.
+    const WINNER_FLOOR = 60;
+    const keep = (winners.length === 1 && winners[0].score >= WINNER_FLOOR) ? winners[0] : null;
+    group.forEach(a => {
+      if (a === keep) return;
+      demoted.add(a.i);
+      check.push([a.row.name, a.row.denomination, a.row.address, '', '',
+                  'another church resolved to this same place', a.score, 'yes', '',
+                  a.r.detail, a.types]);
+    });
+  });
+  if (demoted.size) {
+    // Rebuild rather than splice, so the surviving indices stay valid.
+    const kept = yes.filter((_, i) => !demoted.has(i));
+    yes.length = 0;
+    kept.forEach(rw => yes.push(rw));
+  }
+
   function write(suffix, head, data) {
     fs.writeFileSync(base + suffix, head + '\n' + data.map(csvLine).join('\n') + (data.length ? '\n' : ''));
   }
@@ -436,6 +507,7 @@ const WORSHIP = /\b(church|place_of_worship|synagogue|mosque|hindu_temple)\b/;
   console.log('  wrong address   ' + check.length.toLocaleString() + '  ' + pct(check.length) + '  -> ' + path.basename(base) + '.check.csv  (read these, best first)');
   if (ACCEPT_SIMILAR) console.log('  of which promoted by --accept-similar ' + ACCEPT_SIMILAR + ': ' + promoted.toLocaleString() + '  (using Google\'s address)');
   console.log('  nothing found   ' + no.length.toLocaleString() + '  ' + pct(no.length) + '  -> ' + path.basename(base) + '.no.csv');
+  if (demoted.size) console.log('  of the confirmed, ' + demoted.size + ' shared a Google place with another church and were moved to check');
   console.log('  found, but not a place of worship by type: ' + mismatch.length.toLocaleString() + '  -> ' + path.basename(base) + '.type-mismatch.csv');
   const withPhone = enriched.filter(r => r[3]).length, withSite = enriched.filter(r => r[4]).length;
   console.log('  phone           ' + withPhone.toLocaleString() + '  ' + pct(withPhone));
