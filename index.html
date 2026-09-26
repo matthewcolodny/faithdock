@@ -510,7 +510,7 @@
       'dir.showingDistancesYourLocation': 'Showing distances from your location.', 'dir.showingDistancesThisLocation': 'Showing distances from this location.',
       'dir.couldNotGetLocation': 'Could not get your location — try typing it instead.', 'dir.mapServiceLoading': 'Map service still loading — try again in a moment.',
       'dir.searching': 'Searching...', 'dir.couldNotFindLocation': "Couldn't find that location — try a different search.",
-      'dir.enterCityOrAddress': 'Enter a city or address', 'dir.churchesEyebrow': 'Churches',
+      'dir.enterCityOrAddress': 'Enter a city or address',
       'auth.signupTab': 'Sign up', 'auth.loginTab': 'Log in', 'auth.fullName': 'Full name', 'auth.email': 'Email',
       'auth.namePlaceholder': 'Jamie Rivera', 'auth.emailPlaceholder': 'jamie@email.com',
       'auth.password': 'Password', 'auth.passwordPlaceholder': 'At least 10 characters', 'auth.confirmPassword': 'Confirm password',
@@ -579,6 +579,7 @@
       'denom.body.messianicJudaism': 'Messianic Judaism',
       'filters.oneChurchFound': 'church found', 'filters.manyChurchesFound': 'churches found',
       'dir.mapNoCoords': 'None of these have a location on file yet.',
+      'dir.mapResize': 'Make the map taller or shorter',
       'dir.mapSomeMissing': '{n} of these have no location on file and are not pinned.',
       'dir.mapOneMissing': 'One of these has no location on file and is not pinned.',
       'filters.noChurchesMatch': 'No churches match these filters. Try widening your search.',
@@ -1796,7 +1797,7 @@
       'dir.showingDistancesYourLocation': 'Mostrando distancias desde tu ubicación.', 'dir.showingDistancesThisLocation': 'Mostrando distancias desde esta ubicación.',
       'dir.couldNotGetLocation': 'No pudimos obtener tu ubicación — intenta escribirla.', 'dir.mapServiceLoading': 'El servicio de mapas aún se está cargando — intenta de nuevo en un momento.',
       'dir.searching': 'Buscando...', 'dir.couldNotFindLocation': 'No pudimos encontrar esa ubicación — intenta con otra búsqueda.',
-      'dir.enterCityOrAddress': 'Ingresa una ciudad o dirección', 'dir.churchesEyebrow': 'Iglesias',
+      'dir.enterCityOrAddress': 'Ingresa una ciudad o dirección',
       'auth.signupTab': 'Registrarse', 'auth.loginTab': 'Iniciar sesión', 'auth.fullName': 'Nombre completo', 'auth.email': 'Correo electrónico',
       'auth.namePlaceholder': 'María López', 'auth.emailPlaceholder': 'maria@email.com',
       'auth.password': 'Contraseña', 'auth.passwordPlaceholder': 'Al menos 10 caracteres', 'auth.confirmPassword': 'Confirmar contraseña',
@@ -1861,6 +1862,7 @@
       'denom.body.messianicJudaism': 'Judaísmo Mesiánico',
       'filters.oneChurchFound': 'iglesia encontrada', 'filters.manyChurchesFound': 'iglesias encontradas',
       'dir.mapNoCoords': 'Ninguna de estas tiene ubicación registrada todavía.',
+      'dir.mapResize': 'Hacer el mapa más alto o más bajo',
       'dir.mapSomeMissing': '{n} de estas no tienen ubicación registrada y no aparecen en el mapa.',
       'dir.mapOneMissing': 'Una de estas no tiene ubicación registrada y no aparece en el mapa.',
       'filters.noChurchesMatch': 'Ninguna iglesia coincide con estos filtros. Intenta ampliar tu búsqueda.',
@@ -4616,6 +4618,39 @@
     position:sticky;top:72px;z-index:40;
     background:var(--paper);margin-bottom:0;
   }
+  /* Height is a variable because the sticky offsets of the head and the
+     filter panel are all measured from it -- see syncDirectoryOffsets. */
+  #page-directory{ --dir-map-h:300px; }
+  /* The buttons anchor to the MAP, not the band: the band also holds
+     the note, and bottom:14px there floats them over the caption. */
+  #directory-map-holder{position:relative;}
+  #directory-map-size{
+    position:absolute;right:14px;bottom:14px;display:flex;
+    border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.3);
+  }
+  #directory-map-size button{
+    width:30px;height:30px;border:none;background:#fff;color:#16233F;
+    font-size:17px;line-height:1;cursor:pointer;-webkit-tap-highlight-color:transparent;
+  }
+  #directory-map-size button + button{border-left:1px solid #dcdcdc;}
+  #directory-map-size button:hover{background:#f1f1f1;}
+
+  /* The heading, both searches and the view toggle, pinned under the map.
+     top is set in JS, because it depends on the map's current height. */
+  /* The offsets come from JS as CUSTOM PROPERTIES, not as inline top
+     values. An inline style beats a media query, so writing top
+     directly left the filter panel pinned at a desktop offset on a
+     375px screen -- measured, 532px on a phone. A variable lets the
+     stylesheet keep the last word at every breakpoint. */
+  #directory-head{
+    position:sticky;top:var(--dir-head-top,0px);z-index:39;background:var(--paper);
+    border-bottom:1px solid var(--line);padding:18px 0 14px;
+  }
+  #page-directory .filter-panel{ top:var(--dir-panel-top,92px); }
+  #directory-head h1{font-size:30px;margin-bottom:12px;}
+  .dir-search-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+  /* Pushes the view toggle to the far right of the row. */
+  .dir-search-row .dir-view-toggle{margin-left:auto;}
   #directory-map{
     width:100%;height:300px;background:var(--card);
     border-bottom:1px solid var(--line);
@@ -4626,20 +4661,16 @@
     max-width:1080px;margin:8px auto 0;padding:0 28px;
     font-size:12px;color:var(--ink-mute);
   }
-  /* The filter panel is ALSO sticky, at top:92px, which is underneath
-     the pinned map -- it would spend the whole scroll hidden behind it.
-     Pushed below the band instead: 72 nav + 300 map + 26 note + 16
-     breathing room. Scoped to this page, because the events page has
-     the same panel and no map above it. */
-  #page-directory .filter-panel{ top:414px; }
-
   /* Desktop only, as asked. On a phone a 300px map above the results
      would push the first card below the fold, and the cards ARE the
-     page there -- so the panel goes back to its normal offset too. */
+     page there. The head stops being sticky too -- three stacked
+     sticky bands on a 812px screen leaves no room for results. */
   @media (max-width:860px){
     #directory-map-wrap{display:none;}
+    #directory-head{position:static;border-bottom:0;padding-top:28px;}
     #page-directory .filter-panel{ top:92px; }
   }
+
   /* position:relative so the denomination dropdown panel (position:
      absolute) anchors to this element rather than the viewport -- see
      the panel's own comment below for why that matters. */
@@ -6623,22 +6654,33 @@
        already in memory: search_churches returns lat and lng on every
        row, so the map costs no extra query. -->
   <div id="directory-map-wrap">
+    <div id="directory-map-holder">
     <div id="directory-map"></div>
+    <!-- Sizing. Buttons rather than a drag handle: the height feeds the
+         sticky offsets of everything below, so it has to land on known
+         values, and a drag that ends mid-pixel mid-scroll is a lot of
+         failure modes for a control used a handful of times. -->
+    <div id="directory-map-size" role="group" data-i18n-title="dir.mapResize" title="Map size">
+      <button type="button" id="dir-map-shorter" aria-label="Shorter map">&minus;</button>
+      <button type="button" id="dir-map-taller" aria-label="Taller map">+</button>
+    </div>
+    </div>
     <div id="directory-map-note"></div>
   </div>
-  <div class="wrap" style="padding-top:44px;">
-    <div class="eyebrow" data-i18n="dir.churchesEyebrow">Churches</div>
-    <h1 style="font-size:34px;" data-i18n="home.churchesNearYou">Churches near you</h1>
-
-    <div class="location-row">
+  <!-- Heading, both searches and the view toggle, pinned under the map.
+       One row instead of two stacked ones, and the toggle moved up from
+       the results header so everything a search touches is on the same
+       line. Outside .wrap so the sticky band spans the full width; the
+       inner .wrap keeps the content aligned with the page. -->
+  <div id="directory-head">
+    <div class="wrap">
+      <h1 style="font-size:34px;" data-i18n="home.churchesNearYou">Churches near you</h1>
+      <div class="dir-search-row">
       <div class="search-field-wrap search-clear-wrap" style="max-width:340px;">
         <span class="search-field-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></span>
         <input class="field" type="search" id="dir-keyword-input" placeholder="Search by church name or keyword..." data-i18n-placeholder="filters.keywordPlaceholder" autocomplete="off">
         <button type="button" class="search-clear-btn" id="dir-keyword-clear-btn" aria-label="Clear search" data-i18n-title="common.clearSearch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       </div>
-    </div>
-
-    <div class="location-row" style="margin-top:10px;">
       <div class="autocomplete-wrap search-field-wrap" style="max-width:340px;display:flex;">
         <span class="search-field-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
         <div class="search-clear-wrap" style="flex:1;min-width:0;">
@@ -6647,10 +6689,23 @@
         </div>
         <button id="dir-location-search-btn" style="background:var(--gold);color:var(--brand);border:none;padding:0 16px;border-radius:0 8px 8px 0;cursor:pointer;" aria-label="Search location" data-i18n-title="common.searchLocation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;display:block;"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></button>
         <div class="autocomplete-list" id="dir-location-list"></div>
-      </div>
+        </div>
       <button class="export-btn" id="dir-use-location-btn" data-i18n-title="events.useMyLocation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg> <span class="btn-label-text" data-i18n="events.useMyLocation">Use my location</span></button>
+        <div class="dir-view-toggle" role="group" data-i18n-title="directory.viewToggleLabel" title="View">
+          <button type="button" class="dir-view-btn" data-dir-view="cards" aria-pressed="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            <span data-i18n="directory.viewCards">Cards</span>
+          </button>
+          <button type="button" class="dir-view-btn" data-dir-view="list" aria-pressed="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3.5" y1="6" x2="3.51" y2="6"/><line x1="3.5" y1="12" x2="3.51" y2="12"/><line x1="3.5" y1="18" x2="3.51" y2="18"/></svg>
+            <span data-i18n="directory.viewList">List</span>
+          </button>
+        </div>
+      </div>
       <span id="dir-location-status" style="font-size:13px;color:var(--ink-mute);"></span>
     </div>
+  </div>
+  <div class="wrap" style="padding-top:22px;">
 
     <div class="directory-layout">
       <aside class="filter-panel">
@@ -6740,16 +6795,6 @@
       <div>
         <div class="dir-results-head">
           <div id="directory-count" style="font-size:13.5px;color:var(--ink-mute);"></div>
-          <div class="dir-view-toggle" role="group" data-i18n-title="directory.viewToggleLabel" title="View">
-            <button type="button" class="dir-view-btn" data-dir-view="cards" aria-pressed="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-              <span data-i18n="directory.viewCards">Cards</span>
-            </button>
-            <button type="button" class="dir-view-btn" data-dir-view="list" aria-pressed="false">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3.5" y1="6" x2="3.51" y2="6"/><line x1="3.5" y1="12" x2="3.51" y2="12"/><line x1="3.5" y1="18" x2="3.51" y2="18"/></svg>
-              <span data-i18n="directory.viewList">List</span>
-            </button>
-          </div>
         </div>
         <div class="grid" id="directory-grid"></div>
         <div id="directory-empty" style="display:none;color:var(--ink-mute);font-size:14.5px;padding:40px 0;text-align:center;" data-i18n="filters.noChurchesMatch">No churches match these filters. Try widening your search.</div>
@@ -11080,7 +11125,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-26-v299 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-26-v300 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -11850,12 +11895,87 @@ Groups</span>
     google.maps.event.trigger(dirMap, 'resize');
 
     var missing = rows.length - placed.length;
+    var noteBefore = note.textContent;
     if (!placed.length) note.textContent = window.t('dir.mapNoCoords');
     else if (missing === 1) note.textContent = window.t('dir.mapOneMissing');
     else if (missing > 0) note.textContent = window.t('dir.mapSomeMissing').replace('{n}', missing);
     else note.textContent = '';
+    // The note changes the band's height, which every offset below is
+    // measured from.
+    // Unconditionally, not just when the note changed: on a first paint
+    // with no note the text is '' before and after, and the offsets
+    // would never be written at all.
+    syncDirectoryOffsets();
   }
   window.paintDirectoryMap = paintDirectoryMap;
+
+  // ---- Where the sticky things sit --------------------------------
+  // Three bands pin under one another: the site header, the map, then
+  // the heading-and-search row. The filter panel pins below all three.
+  //
+  // None of those offsets can be a constant in the stylesheet, because
+  // the map's height is now something the reader chooses and the note
+  // under it appears and disappears with the results. So they are
+  // measured and written as inline top values. Measuring the header
+  // too, rather than hardcoding the 72px it happens to be today.
+  var DIR_MAP_MIN = 160, DIR_MAP_MAX = 560, DIR_MAP_STEP = 60;
+
+  function syncDirectoryOffsets(){
+    var band = document.getElementById('directory-map-wrap');
+    var head = document.getElementById('directory-head');
+    var panel = document.querySelector('#page-directory .filter-panel');
+    var siteHeader = document.querySelector('header.site');
+    if (!head) return;
+
+    var page = document.getElementById('page-directory');
+    if (!page) return;
+    var navH = siteHeader ? Math.round(siteHeader.getBoundingClientRect().height) : 72;
+    var bandH = (band && band.offsetParent) ? Math.round(band.getBoundingClientRect().height) : 0;
+    var headH = Math.round(head.getBoundingClientRect().height);
+    // Written as variables the stylesheet consumes, so the max-width
+    // rules still win below 860px without anything having to be
+    // cleared here.
+    page.style.setProperty('--dir-head-top', (navH + bandH) + 'px');
+    page.style.setProperty('--dir-panel-top', (navH + bandH + headH + 16) + 'px');
+  }
+  window.syncDirectoryOffsets = syncDirectoryOffsets;
+
+  function setDirectoryMapHeight(px){
+    px = Math.max(DIR_MAP_MIN, Math.min(DIR_MAP_MAX, Math.round(px)));
+    var page = document.getElementById('page-directory');
+    if (page) page.style.setProperty('--dir-map-h', px + 'px');
+    var host = document.getElementById('directory-map');
+    if (host) host.style.height = px + 'px';
+    // Google needs telling, or the tiles keep the old size and leave a
+    // grey strip where the map grew.
+    if (dirMap && window.google && google.maps) google.maps.event.trigger(dirMap, 'resize');
+    try { localStorage.setItem('fd_dir_map_h', String(px)); } catch (e) {}
+    syncDirectoryOffsets();
+    return px;
+  }
+
+  function currentDirectoryMapHeight(){
+    var host = document.getElementById('directory-map');
+    return host ? Math.round(host.getBoundingClientRect().height) || 300 : 300;
+  }
+
+  (function wireDirectoryMapSize(){
+    var shorter = document.getElementById('dir-map-shorter');
+    var taller = document.getElementById('dir-map-taller');
+    if (shorter) shorter.addEventListener('click', function(){
+      setDirectoryMapHeight(currentDirectoryMapHeight() - DIR_MAP_STEP);
+    });
+    if (taller) taller.addEventListener('click', function(){
+      setDirectoryMapHeight(currentDirectoryMapHeight() + DIR_MAP_STEP);
+    });
+    // Remembered per browser. Wrapped, because a private window or
+    // blocked site data throws on read.
+    var saved = null;
+    try { saved = localStorage.getItem('fd_dir_map_h'); } catch (e) {}
+    if (saved && !isNaN(parseInt(saved, 10))) setDirectoryMapHeight(parseInt(saved, 10));
+  })();
+
+  window.addEventListener('resize', syncDirectoryOffsets);
 
   // Fetches a specific church's events directly rather than filtering
   // the shared in-memory events array, which now only ever holds
