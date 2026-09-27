@@ -1654,6 +1654,7 @@
       'admin.batchChurchesCount': '{n} churches, {unclaimed} unclaimed', 'admin.batchNoUnclaimedLeft': 'All claimed — nothing left to hide or delete.',
       'admin.hideAll': 'Hide all', 'admin.showAll': 'Show all', 'admin.deleteAll': 'Delete all',
       'admin.batchHiddenCount': '{n} hidden',
+      'admin.showBatchLegacyConfirm': 'This batch was hidden before FaithDock started recording which churches a bulk hide was responsible for, so there is no way to tell those apart from any you hid one at a time.\n\nShow all {n} hidden churches in this batch?',
       'admin.batchHiddenByHand': '({n} of them one at a time)',
       'admin.batchShownSummary': '{n} shown again. Churches hidden one at a time were left hidden.',
       'admin.deleteBatchConfirm': 'Permanently delete {n} unclaimed churches from this batch? This can’t be undone.',
@@ -2929,6 +2930,7 @@
       'admin.batchChurchesCount': '{n} iglesias, {unclaimed} sin reclamar', 'admin.batchNoUnclaimedLeft': 'Todas reclamadas — no queda nada que ocultar ni eliminar.',
       'admin.hideAll': 'Ocultar todas', 'admin.showAll': 'Mostrar todas', 'admin.deleteAll': 'Eliminar todas',
       'admin.batchHiddenCount': '{n} ocultas',
+      'admin.showBatchLegacyConfirm': 'Este lote se ocultó antes de que FaithDock registrara qué iglesias ocultó una acción masiva, así que no hay forma de distinguirlas de las que ocultaste una por una.\n\n¿Mostrar las {n} iglesias ocultas de este lote?',
       'admin.batchHiddenByHand': '({n} de ellas una por una)',
       'admin.batchShownSummary': '{n} vueltas a mostrar. Las iglesias ocultadas una por una siguen ocultas.',
       'admin.deleteBatchConfirm': '¿Eliminar permanentemente {n} iglesias sin reclamar de este lote? Esto no se puede deshacer.',
@@ -11633,7 +11635,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-27-v327 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-27-v328 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12801,7 +12803,7 @@ Groups</span>
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-27-v327',
+      'build 2026-09-27-v328',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -40315,11 +40317,17 @@ Groups</span>
       var nHidden = Number(b.hidden_count || 0);
       var nBatchHidden = Number(b.batch_hidden_count || 0);
       var canHide = b.unclaimed_count > 0 && nHidden < Number(b.row_count);
-      var canShow = nBatchHidden > 0;
+      var canShow = nHidden > 0;
+      // Nothing marked, but rows are hidden: this batch was hidden
+      // before the mark existed, so showing it needs a confirmation.
+      var showIsLegacy = nHidden > 0 && nBatchHidden === 0;
       var actions = b.unclaimed_count > 0
         ? '<div class="registrant-actions">'
           + (canHide ? '<button class="export-btn" data-hide-batch-id="' + batchIdAttr + '" style="padding:6px 14px;">' + window.t('admin.hideAll') + '</button>' : '')
-          + (canShow ? '<button class="export-btn" data-show-batch-id="' + batchIdAttr + '" style="padding:6px 14px;">' + window.t('admin.showAll') + '</button>' : '')
+          + (canShow ? '<button class="export-btn" data-show-batch-id="' + batchIdAttr + '"'
+              + ' data-show-batch-legacy="' + (showIsLegacy ? 'true' : 'false') + '"'
+              + ' data-show-batch-count="' + nHidden + '" style="padding:6px 14px;">'
+              + window.t('admin.showAll') + '</button>' : '')
           + '<button class="export-btn" data-delete-batch-id="' + batchIdAttr + '" data-delete-batch-count="' + b.unclaimed_count + '" style="padding:6px 14px;color:var(--clay);">' + window.t('admin.deleteAll') + '</button>'
           + '</div>'
         : '<div class="registrant-actions"><span style="font-size:12px;color:var(--ink-mute);">' + window.t('admin.batchNoUnclaimedLeft') + '</span></div>';
@@ -41200,7 +41208,15 @@ Groups</span>
     var showBatchBtn = ev.target.closest ? ev.target.closest('[data-show-batch-id]') : null;
     if (showBatchBtn) {
       var showBatchStatusEl = document.getElementById('admin-import-batches-status');
-      var { data: shownCount, error: showBatchError } = await supabase.rpc('admin_show_import_batch', { p_batch_id: showBatchBtn.getAttribute('data-show-batch-id') });
+      // A batch hidden before hidden_by_batch existed carries no mark,
+      // so nothing here can tell a bulk hide from a deliberate one. Say
+      // that plainly rather than quietly picking one of the two.
+      var showIsLegacyBatch = showBatchBtn.getAttribute('data-show-batch-legacy') === 'true';
+      if (showIsLegacyBatch && !confirm(window.t('admin.showBatchLegacyConfirm')
+            .replace('{n}', showBatchBtn.getAttribute('data-show-batch-count')))) return;
+      var showRpcArgs = { p_batch_id: showBatchBtn.getAttribute('data-show-batch-id') };
+      if (showIsLegacyBatch) showRpcArgs.p_include_unmarked = true;
+      var { data: shownCount, error: showBatchError } = await supabase.rpc('admin_show_import_batch', showRpcArgs);
       if (showBatchStatusEl) {
         showBatchStatusEl.style.display = 'block';
         showBatchStatusEl.style.color = showBatchError ? 'var(--clay)' : 'var(--sage)';
