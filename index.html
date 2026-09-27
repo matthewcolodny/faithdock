@@ -11472,7 +11472,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-26-v313 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-26-v314 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12402,7 +12402,7 @@ Groups</span>
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-26-v313',
+      'build 2026-09-26-v314',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -12707,7 +12707,8 @@ Groups</span>
   // Only in the split. Below 980px the phone layout takes over, with one
   // filter button instead of a row of pills.
   if (window.innerWidth > 980) { moveFiltersIntoPills(); moveViewToggleIntoResults(); }
-  else { wireMobileDirectory(); }
+  // The phone wiring is dispatched at the BOTTOM of this section, after
+  // the values it reads have actually been assigned. See there.
 
   // ---- Phone: the card points at the map ---------------------------
   // The card stays an <a> so it is still a link to keyboard and screen
@@ -12782,7 +12783,16 @@ Groups</span>
     var page = document.getElementById('page-directory');
     if (!page) return;
     var box = Math.round(page.getBoundingClientRect().height) || window.innerHeight;
-    px = Math.max(DIR_SHEET_MIN, Math.min(box - 150, Math.round(px)));
+    px = Math.max(DIR_SHEET_MIN || 140, Math.min(box - 150, Math.round(Number(px))));
+    // A NaN here is not a slightly-wrong sheet, it is no layout at all:
+    // top:NaNpx is invalid, so the sheet falls back to its static
+    // position and stops being a scroller. Drop the stored value too --
+    // otherwise a single bad write repeats on every load forever.
+    if (!isFinite(px)) {
+      page.style.removeProperty('--dir-sheet-top');
+      try { localStorage.removeItem('fd_dir_sheet_top'); } catch (e) {}
+      return;
+    }
     page.style.setProperty('--dir-sheet-top', px + 'px');
     if (!live) {
       // Google keeps the old tile size until told, which on a map that
@@ -12839,6 +12849,12 @@ Groups</span>
     try { saved = localStorage.getItem('fd_dir_sheet_top'); } catch (e) {}
     if (saved && !isNaN(parseInt(saved, 10))) setDirectorySheetTop(parseInt(saved, 10), true);
   }
+
+  // Dispatched here, not up beside the desktop branch. Everything above
+  // it -- DIR_SHEET_MIN, setDirectorySheetTop, the grip wiring -- has
+  // run by this point. Called from higher up, the function declarations
+  // hoisted but the plain vars did not, and the restore computed NaN.
+  if (window.innerWidth <= 980) wireMobileDirectory();
 
   // ---- Dragging the divider ----------------------------------------
   // Same shape as the map's own grip: pointer capture so the drag
