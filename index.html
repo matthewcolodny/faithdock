@@ -11485,7 +11485,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-26-v315 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-26-v316 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12415,7 +12415,7 @@ Groups</span>
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-26-v315',
+      'build 2026-09-26-v316',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -12493,12 +12493,19 @@ Groups</span>
   // and writing to localStorage -- until the pointer is released.
   function setDirectoryMapHeight(px, live){
     var host = document.getElementById('directory-map');
-    // In the split the map fills a full-height column and there is
-    // nothing to size. An inline height here would beat the
-    // stylesheet's height:100% and leave the map stopping short of the
-    // bottom -- which is exactly what a height saved from the banner
-    // era did on a browser that still had one in localStorage.
-    if (inDirectorySplit()) { if (host) host.style.height = ''; return; }
+    // Dead, and kept only so its callers need no guarding. The map was
+    // once a resizable banner across the top of the page; it is now a
+    // column on the desktop and the top 40% on a phone, and in both it
+    // fills what it is given. An inline height here beats the
+    // stylesheet's height:100% and leaves the map stopping short --
+    // first seen on a desktop that still had a banner height saved,
+    // then again on a phone, because the guard tested for the split
+    // and the phone is not the split. There is no layout left that
+    // wants this, so it clears and returns at every width.
+    if (host) host.style.height = '';
+    try { localStorage.removeItem('fd_dir_map_h'); } catch (e) {}
+    return;
+    /* eslint-disable no-unreachable */
     px = Math.max(DIR_MAP_MIN, Math.min(DIR_MAP_MAX, Math.round(px)));
     var page = document.getElementById('page-directory');
     if (page) page.style.setProperty('--dir-map-h', px + 'px');
@@ -12511,6 +12518,7 @@ Groups</span>
     }
     syncDirectoryOffsets();
     return px;
+    /* eslint-enable no-unreachable */
   }
 
   function currentDirectoryMapHeight(){
