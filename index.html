@@ -4897,6 +4897,21 @@
     #page-directory.active .dir-results-col #directory-grid.grid{
       grid-template-columns:1fr;gap:10px;
     }
+    /* Prev 1 2 3 4 5 ... 98 Next is eleven controls, and past page 2 the
+       set widens enough that Next wraps onto a line of its own. Tighter
+       buttons and a smaller gap keep it to one row; nowrap so that when
+       it genuinely cannot fit it scrolls sideways rather than breaking
+       a single button onto its own line. */
+    #page-directory.active .dir-pager{
+      flex-wrap:nowrap;gap:4px;overflow-x:auto;
+      justify-content:flex-start !important;
+      scrollbar-width:none;margin-top:20px !important;
+    }
+    #page-directory.active .dir-pager::-webkit-scrollbar{display:none;}
+    #page-directory.active .dir-pager-btn{
+      min-width:30px;height:32px;padding:0 7px;font-size:12.5px;flex-shrink:0;
+    }
+    #page-directory.active .dir-pager-gap{flex-shrink:0;}
     /* Graphic beside the copy instead of a 16/9 band above it. A logo
        that fills the card's width is most of a phone screen per church;
        at 64px square, four or five fit where one did. */
@@ -11485,7 +11500,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-26-v317 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-26-v318 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12212,19 +12227,43 @@ Groups</span>
     var hot = document.querySelectorAll('.dir-card-hot');
     for (var i = 0; i < hot.length; i++) hot[i].classList.remove('dir-card-hot');
   }
-  // Scrolls the results column and nothing else. scrollIntoView would
-  // also scroll any other scrollable ancestor, and on a page where the
-  // window scroll still exists that drags the whole layout.
+  // Brings a card fully into view inside the results column, and only
+  // that column -- scrollIntoView would also scroll every other
+  // scrollable ancestor, which on a page that still has a window scroll
+  // drags the whole layout.
+  //
+  // On a phone the column's top edge is ours to move, so a card taller
+  // than the sheet is not a scrolling problem: the sheet is given the
+  // room by taking it from the map, down to the map's minimum. Without
+  // that, tapping a half-covered card scrolled it to the top and left
+  // it half-covered, because there was nowhere for the rest to go.
+  function dirFitCardInSheet(el){
+    var col = document.querySelector('.dir-results-col');
+    if (!el || !col || getComputedStyle(col).overflowY !== 'auto') return;
+    var grip = document.getElementById('dir-sheet-grip');
+    // The handle is sticky at the top of the sheet and sits over the
+    // first card, so "visible" starts below it.
+    var lip = (grip && grip.getBoundingClientRect().height) || 0;
+    var pad = 8;
+    if (!inDirectorySplit()) {
+      var mapCol = document.querySelector('.dir-map-col');
+      var need = Math.ceil(el.getBoundingClientRect().height) + lip + pad * 2;
+      var have = col.clientHeight;
+      if (need > have && mapCol) {
+        setDirectorySheetTop(Math.round(mapCol.getBoundingClientRect().height) - (need - have));
+      }
+    }
+    // Re-measured, because the line above may have just moved the edge.
+    var cr = col.getBoundingClientRect(), er = el.getBoundingClientRect();
+    if (er.top < cr.top + lip + pad) col.scrollTop += er.top - cr.top - lip - pad;
+    else if (er.bottom > cr.bottom - pad) col.scrollTop += er.bottom - cr.bottom + pad;
+  }
   function dirRevealCard(name){
     dirClearHotCard();
     var el = dirCardForName(name);
-    var col = document.querySelector('.dir-results-col');
     if (!el) return false;
     el.classList.add('dir-card-hot');
-    if (!col || getComputedStyle(col).overflowY !== 'auto') return true;
-    var cr = col.getBoundingClientRect(), er = el.getBoundingClientRect();
-    if (er.top < cr.top + 8) col.scrollTop += er.top - cr.top - 8;
-    else if (er.bottom > cr.bottom - 8) col.scrollTop += er.bottom - cr.bottom + 8;
+    dirFitCardInSheet(el);
     return true;
   }
   var dirHoveredName = null;
@@ -12415,7 +12454,7 @@ Groups</span>
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-26-v317',
+      'build 2026-09-26-v318',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -12772,6 +12811,10 @@ Groups</span>
       dirClearHotCard();
       card.classList.add('dir-card-hot');
       dirFocusMarker(name);
+      // Tapping a card that is half under the sheet's edge should end
+      // with the whole card readable, not with the map moved and the
+      // card still clipped.
+      dirFitCardInSheet(card);
     }, true);
   }
 
