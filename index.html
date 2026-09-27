@@ -11627,7 +11627,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-27-v325 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-27-v326 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12795,7 +12795,7 @@ Groups</span>
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-27-v325',
+      'build 2026-09-27-v326',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -24760,13 +24760,40 @@ Groups</span>
 
   // Promise wrapper around Google's callback-based Geocoder, so it
   // can be used with await in the submit handler.
-  function geocodeAddressGoogle(address){
+  // opts.precise -- for a STREET address, where landing on the middle of
+  // the town is not a slightly-worse answer but a wrong one.
+  //
+  // A geocoder always answers. Give it a street it cannot find and it
+  // returns the centre of the town with status OK, and nothing in the
+  // reply objects. One row looks fine; a thousand imported rows put
+  // every church in that town on the same pin. location_type is the only
+  // thing that tells them apart:
+  //
+  //   ROOFTOP / RANGE_INTERPOLATED / GEOMETRIC_CENTER   a real place
+  //   APPROXIMATE                                       the town centre
+  //
+  // partial_match is the same problem stated differently -- Google
+  // matched part of the address and guessed the rest.
+  //
+  // Off by default because the other callers want the loose behaviour:
+  // the coverage map geocodes a TOWN NAME, and the town centre is the
+  // correct answer there.
+  var GEOCODE_PRECISE_TYPES = { ROOFTOP: 1, RANGE_INTERPOLATED: 1, GEOMETRIC_CENTER: 1 };
+  function geocodeAddressGoogle(address, opts){
     return new Promise(function(resolve, reject){
       if (!(window.google && google.maps)) { reject(new Error('Maps not loaded')); return; }
       var geocoder = new google.maps.Geocoder();
       geocoder.geocode({ address: address }, function(results, status){
         if (status === 'OK' && results && results.length) {
-          resolve({ lat: results[0].geometry.location.lat(), lng: results[0].geometry.location.lng() });
+          var r = results[0];
+          if (opts && opts.precise) {
+            var t = r.geometry && r.geometry.location_type;
+            // No coordinates is a church with no pin, which the import
+            // already counts and reports. A wrong pin is worse: it looks
+            // right and nothing ever flags it.
+            if (!GEOCODE_PRECISE_TYPES[t] || r.partial_match) { resolve(null); return; }
+          }
+          resolve({ lat: r.geometry.location.lat(), lng: r.geometry.location.lng() });
         } else {
           resolve(null);
         }
@@ -40807,7 +40834,9 @@ Groups</span>
           statusEl.textContent = window.t('admin.batchGeocoding').replace('{n}', chunkNum).replace('{total}', totalChunks).replace('{cur}', i + 1).replace('{count}', toImport.length);
           var lat = null, lng = null;
           if (c.address) {
-            var geoResult = await geocodeAddressGoogle(c.address);
+            // precise: a bulk import is exactly where a town-centre
+            // fallback does its damage, a thousand pins at a time.
+            var geoResult = await geocodeAddressGoogle(c.address, { precise: true });
             if (geoResult) { lat = geoResult.lat; lng = geoResult.lng; }
           }
           rows.push({ name: c.name, denomination: c.denomination, address: c.address, phone: c.phone, website: c.website, logo_url: c.logo_url, lat: lat, lng: lng, owner_id: null });
