@@ -4835,7 +4835,7 @@
     }
     /* Everything below is positioned against this box, which is exactly
        the room between the sticky header and the pinned footer. */
-    body.dir-fullscreen #page-directory{
+    #page-directory.active{
       position:relative;height:var(--dir-screen-h, calc(100vh - 210px));
       padding:0;overflow:hidden;
     }
@@ -11468,7 +11468,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-26-v311 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-26-v312 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12261,7 +12261,11 @@ Groups</span>
       dirMap = new google.maps.Map(host, {
         center: { lat: 29.42, lng: -98.49 }, zoom: 10,
         mapTypeControl: false, streetViewControl: false, fullscreenControl: false,
-        clickableIcons: false
+        clickableIcons: false,
+        // Optional, and it is a button nobody taps on a phone. The
+        // attribution and Terms beside it are required by Google's terms
+        // and stay.
+        keyboardShortcuts: false
       });
       // disableAutoPan, because this window now opens on HOVER. Left
       // on, Google recentres the map every time the pointer crosses a
@@ -12349,6 +12353,21 @@ Groups</span>
   function inDirectorySplit(){
     return window.matchMedia('(min-width:981px)').matches;
   }
+
+  // Reads what is on screen rather than what a route string said. go()
+  // is not the only way a page gets shown -- the initial load and
+  // showRouteFromHash have their own paths -- and a class that only one
+  // of them sets is a class that is sometimes missing. Wired to
+  // hashchange as well, so it cannot drift.
+  function syncDirFullscreenClass(){
+    var page = document.getElementById('page-directory');
+    document.body.classList.toggle('dir-fullscreen', !!(page && page.classList.contains('active')));
+  }
+  window.addEventListener('hashchange', function(){
+    // After the router has swapped .active, not before it.
+    setTimeout(syncDirFullscreenClass, 0);
+  });
+  window.addEventListener('load', syncDirFullscreenClass);
 
   function syncDirectoryOffsets(){
     var band = document.getElementById('directory-map-wrap');
@@ -14426,7 +14445,7 @@ Groups</span>
     // Only the directory removes the window's scroll and pins the
     // footer, so the class goes on the body rather than the page: it has
     // to reach the footer and the sitemap, which are the body's children.
-    document.body.classList.toggle('dir-fullscreen', pageRoute === 'directory');
+    syncDirFullscreenClass();
     if (typeof syncDirectoryOffsets === 'function') syncDirectoryOffsets();
     // Third argument: leave history alone. goDash normally writes
     // #dashboard/<view>, which here would overwrite the entry go() is
