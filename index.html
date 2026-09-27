@@ -11500,7 +11500,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-26-v318 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-26-v319 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12232,38 +12232,47 @@ Groups</span>
   // scrollable ancestor, which on a page that still has a window scroll
   // drags the whole layout.
   //
-  // On a phone the column's top edge is ours to move, so a card taller
-  // than the sheet is not a scrolling problem: the sheet is given the
-  // room by taking it from the map, down to the map's minimum. Without
-  // that, tapping a half-covered card scrolled it to the top and left
-  // it half-covered, because there was nowhere for the rest to go.
-  function dirFitCardInSheet(el){
+  // centre=true puts the card in the middle of the visible list rather
+  // than nudging it just inside the edge. Picking something is a
+  // deliberate act and the answer should land where the eye already is,
+  // not flush against the bottom rail. Hovering is not deliberate, so it
+  // still does the smallest scroll that works -- centring on hover would
+  // haul the list around under the pointer on the way down it.
+  //
+  // The sheet's own height is left alone. A card taller than the visible
+  // area is shown from its top instead, so the name is what you see.
+  function dirScrollCardIntoView(el, centre){
     var col = document.querySelector('.dir-results-col');
     if (!el || !col || getComputedStyle(col).overflowY !== 'auto') return;
-    var grip = document.getElementById('dir-sheet-grip');
     // The handle is sticky at the top of the sheet and sits over the
-    // first card, so "visible" starts below it.
-    var lip = (grip && grip.getBoundingClientRect().height) || 0;
+    // list, so the usable area starts below it. On the desktop it is
+    // display:none and this is zero.
+    var grip = document.getElementById('dir-sheet-grip');
+    var lip = (grip && grip.offsetParent) ? Math.round(grip.getBoundingClientRect().height) : 0;
     var pad = 8;
-    if (!inDirectorySplit()) {
-      var mapCol = document.querySelector('.dir-map-col');
-      var need = Math.ceil(el.getBoundingClientRect().height) + lip + pad * 2;
-      var have = col.clientHeight;
-      if (need > have && mapCol) {
-        setDirectorySheetTop(Math.round(mapCol.getBoundingClientRect().height) - (need - have));
-      }
-    }
-    // Re-measured, because the line above may have just moved the edge.
     var cr = col.getBoundingClientRect(), er = el.getBoundingClientRect();
-    if (er.top < cr.top + lip + pad) col.scrollTop += er.top - cr.top - lip - pad;
-    else if (er.bottom > cr.bottom - pad) col.scrollTop += er.bottom - cr.bottom + pad;
+    var top = (er.top - cr.top) + col.scrollTop;   // the card, in content space
+    var viewH = col.clientHeight - lip;
+    var want;
+    if (centre) {
+      want = er.height >= viewH ? top - lip - pad
+                                : top - lip - (viewH - er.height) / 2;
+    } else if (er.top < cr.top + lip + pad) {
+      want = top - lip - pad;
+    } else if (er.bottom > cr.bottom - pad) {
+      want = col.scrollTop + (er.bottom - cr.bottom) + pad;
+    } else {
+      return;                                      // already fully in view
+    }
+    col.scrollTop = Math.max(0,
+      Math.min(col.scrollHeight - col.clientHeight, Math.round(want)));
   }
-  function dirRevealCard(name){
+  function dirRevealCard(name, centre){
     dirClearHotCard();
     var el = dirCardForName(name);
     if (!el) return false;
     el.classList.add('dir-card-hot');
-    dirFitCardInSheet(el);
+    dirScrollCardIntoView(el, centre);
     return true;
   }
   var dirHoveredName = null;
@@ -12348,7 +12357,7 @@ Groups</span>
       marker.addListener('click', function(){
         dirHoveredName = key;
         openDirInfo(marker, c);
-        dirRevealCard(key);
+        dirRevealCard(key, true);
       });
       // The mirror of hovering a card. Deliberately no mouseout handler:
       // the info window is an overlay that sits over its own pin, so
@@ -12454,7 +12463,7 @@ Groups</span>
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-26-v318',
+      'build 2026-09-26-v319',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -12811,10 +12820,10 @@ Groups</span>
       dirClearHotCard();
       card.classList.add('dir-card-hot');
       dirFocusMarker(name);
-      // Tapping a card that is half under the sheet's edge should end
-      // with the whole card readable, not with the map moved and the
-      // card still clipped.
-      dirFitCardInSheet(card);
+      // Tapping a half-covered card should end with the whole card
+      // readable and sitting in the middle of the list, not shoved just
+      // inside whichever edge it came from.
+      dirScrollCardIntoView(card, true);
     }, true);
   }
 
