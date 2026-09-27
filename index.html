@@ -4844,6 +4844,10 @@
     #page-directory.active .dir-map-col{
       display:block;position:absolute;top:0;left:0;right:0;bottom:auto;
       height:var(--dir-sheet-top,40%);
+      /* Explicit, because the map column is a positioned element that
+         comes AFTER the search row in the DOM. Left on auto it paints
+         over the row on top of it. */
+      z-index:1;
     }
     #page-directory.active #directory-map{border:0;}
     #page-directory.active #directory-map-note{display:none;}
@@ -4852,7 +4856,7 @@
 
     /* The search row, floating over the map rather than pushing it down. */
     #page-directory.active #directory-head{
-      position:absolute;top:0;left:0;right:0;z-index:6;
+      position:absolute;top:0;left:0;right:0;z-index:20;
       background:transparent;border-bottom:0;padding:10px 0 0;
     }
     #page-directory.active #directory-head .wrap{padding:0 12px;}
@@ -11468,7 +11472,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-26-v312 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-26-v313 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12368,6 +12372,60 @@ Groups</span>
     setTimeout(syncDirFullscreenClass, 0);
   });
   window.addEventListener('load', syncDirFullscreenClass);
+
+  // ---- On-device readout -------------------------------------------
+  // Three guesses at a phone-only layout fault have missed, because the
+  // layout is correct on every width and route path reachable from a
+  // desktop browser. Rather than guess a fourth time, ?fdiag=1 makes
+  // the phone state what it actually computed. Costs nothing unless
+  // the flag is in the URL.
+  function fdDirDiag(){
+    if (location.search.indexOf('fdiag=1') === -1) return;
+    var box = document.getElementById('fd-diag') || (function(){
+      var d = document.createElement('pre');
+      d.id = 'fd-diag';
+      d.style.cssText = 'position:fixed;left:0;right:0;top:0;z-index:99999;margin:0;'
+        + 'padding:8px 10px;background:#000;color:#0f0;font:11px/1.35 monospace;'
+        + 'white-space:pre-wrap;max-height:62vh;overflow:auto;';
+      d.addEventListener('click', function(){ d.remove(); });
+      document.body.appendChild(d);
+      return d;
+    })();
+    function q(sel){ return document.querySelector(sel); }
+    function pos(el){ return el ? getComputedStyle(el).position : 'NO ELEMENT'; }
+    function box2(el){
+      if (!el) return 'none';
+      var r = el.getBoundingClientRect();
+      return Math.round(r.top) + '/' + Math.round(r.height) + ' w' + Math.round(r.width);
+    }
+    var page = document.getElementById('page-directory');
+    var sheet = q('.dir-results-col');
+    var head = document.getElementById('directory-head');
+    var lines = [
+      'build 2026-09-26-v313',
+      'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
+      'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
+      'body.cls ' + (document.body.className || '(none)'),
+      'page.active ' + (page ? page.classList.contains('active') : 'NO PAGE'),
+      'page ' + pos(page) + ' ' + box2(page),
+      '  --screen-h ' + (page ? (page.style.getPropertyValue('--dir-screen-h') || '(unset)') : '-'),
+      '  --sheet-top ' + (page ? (page.style.getPropertyValue('--dir-sheet-top') || '(unset)') : '-'),
+      '  overflow ' + (page ? getComputedStyle(page).overflow : '-'),
+      'head ' + pos(head) + ' ' + box2(head) + ' z' + (head ? getComputedStyle(head).zIndex : '-'),
+      'mapcol ' + pos(q('.dir-map-col')) + ' ' + box2(q('.dir-map-col')),
+      'sheet ' + pos(sheet) + ' ' + box2(sheet),
+      '  ovf ' + (sheet ? getComputedStyle(sheet).overflowY : '-')
+        + ' scrollH ' + (sheet ? sheet.scrollHeight : '-')
+        + ' clientH ' + (sheet ? sheet.clientHeight : '-'),
+      'grip ' + box2(document.getElementById('dir-sheet-grip')),
+      'fbtn ' + box2(document.getElementById('dir-filter-icon-btn')),
+      'docScroll ' + (document.documentElement.scrollHeight - window.innerHeight),
+      'sw ' + (navigator.serviceWorker && navigator.serviceWorker.controller ? 'CONTROLLING' : 'none')
+    ];
+    box.textContent = lines.join('\n');
+  }
+  window.addEventListener('load', function(){ setTimeout(fdDirDiag, 2500); });
+  window.addEventListener('hashchange', function(){ setTimeout(fdDirDiag, 2500); });
 
   function syncDirectoryOffsets(){
     var band = document.getElementById('directory-map-wrap');
