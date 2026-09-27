@@ -605,6 +605,8 @@
       'dir.splitResize': 'Drag to widen or narrow the results, or use the arrow keys',
       'dir.sheetResize': 'Drag to raise or lower the list, or use the arrow keys',
       'dir.viewProfile': 'View Church Profile',
+      'dir.searchThisArea': 'Search this area',
+      'dir.thisMapArea': 'Map area',
       'dir.mapSomeMissing': '{n} of these have no location on file and are not pinned.',
       'dir.mapOneMissing': 'One of these has no location on file and is not pinned.',
       'filters.noChurchesMatch': 'No churches match these filters. Try widening your search.',
@@ -1913,6 +1915,8 @@
       'dir.splitResize': 'Arrastra para ensanchar o estrechar los resultados, o usa las flechas',
       'dir.sheetResize': 'Arrastra para subir o bajar la lista, o usa las flechas',
       'dir.viewProfile': 'Ver el perfil de la iglesia',
+      'dir.searchThisArea': 'Buscar en esta zona',
+      'dir.thisMapArea': 'Zona del mapa',
       'dir.mapSomeMissing': '{n} de estas no tienen ubicación registrada y no aparecen en el mapa.',
       'dir.mapOneMissing': 'Una de estas no tiene ubicación registrada y no aparece en el mapa.',
       'filters.noChurchesMatch': 'Ninguna iglesia coincide con estos filtros. Intenta ampliar tu búsqueda.',
@@ -4550,7 +4554,12 @@
   .church-row-name{font-family:'Fraunces';font-size:15.5px;font-weight:600;color:var(--ink);}
   .church-row-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;color:var(--ink-mute);font-size:12.5px;margin-top:4px;}
   .church-row-sep{opacity:.5;}
-  .church-row-chev{width:16px;height:16px;flex-shrink:0;color:var(--ink-mute);}
+  /* .church-row-chev is gone from the markup -- the row says "View
+     Church Profile" in words now. */
+  .church-row .dir-card-profile-link{
+    display:inline-block;margin-top:5px;font-size:12.5px;font-weight:600;
+    color:var(--gold-ink);border-bottom:1px solid var(--gold);padding-bottom:1px;
+  }
   .card-body{padding:18px;}
   .tag{
     display:inline-block;font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.05em;
@@ -4861,11 +4870,30 @@
   .gm-style .gm-style-iw-c{padding:0 !important;}
   .gm-style .gm-style-iw-chr{height:0 !important;min-height:0 !important;}
   .gm-style .gm-style-iw-chr > button{
-    position:absolute !important;top:0 !important;right:0 !important;
+    position:absolute !important;top:3px !important;right:3px !important;
     width:30px !important;height:30px !important;z-index:2;
   }
   .gm-style .gm-style-iw-d{
     overflow:hidden !important;padding:11px 34px 11px 13px !important;
+  }
+
+  /* Floats over the map, clear of Google's own controls: the zoom pair
+     sits bottom-right and the attribution along the bottom edge, so this
+     goes top-centre on a phone and bottom-centre where there is room. */
+  #dir-search-area{
+    position:absolute;z-index:7;left:50%;transform:translateX(-50%);
+    bottom:34px;display:inline-flex;align-items:center;gap:7px;
+    height:36px;padding:0 16px;border-radius:999px;cursor:pointer;
+    border:1px solid var(--line);background:var(--card);color:var(--ink);
+    font-family:inherit;font-size:13.5px;font-weight:600;
+    box-shadow:0 3px 12px rgba(0,0,0,.28);-webkit-tap-highlight-color:transparent;
+  }
+  #dir-search-area[hidden]{display:none;}
+  #dir-search-area:hover{background:var(--paper);}
+  #dir-search-area:disabled{opacity:.6;cursor:default;}
+  @media (max-width:980px){
+    /* Under the floating search row, not over the attribution. */
+    #dir-search-area{bottom:auto;top:calc(var(--dir-head-h,96px) + 4px);height:34px;font-size:13px;}
   }
 
   /* The pin being pointed at, in the list. */
@@ -7232,6 +7260,10 @@
            scroll past for thousands of pixels. -->
       <div id="dir-split-grip" role="separator" aria-orientation="vertical" tabindex="0"
            data-i18n-title="dir.splitResize" title="Drag to resize"></div>
+      <!-- Shown only after the reader has moved the map themselves.
+           Re-runs the search from wherever they have panned to. -->
+      <button type="button" id="dir-search-area" hidden
+              data-i18n="dir.searchThisArea">Search this area</button>
       <!-- Filters ride over the top of the map as dropdown pills.
            Filled by moveFiltersIntoPills() -- the existing filter
            groups are MOVED here rather than rebuilt, so every control
@@ -11582,7 +11614,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-27-v321 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-27-v322 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12228,9 +12260,13 @@ Groups</span>
       + '<span class="tag sage">' + escapeHtml(translateDenomination(c.tag)) + '</span>'
       + '</div>'
       + (bits.length ? '<div class="church-row-meta">' + bits.join('<span class="church-row-sep">&middot;</span>') + '</div>' : '')
+      // Same span, same rules as the card: a <span> because the row is
+      // already an <a> and a nested anchor is invalid, and the phone
+      // handler lets this one through so it still reaches the row's href.
+      + '<span class="dir-card-profile-link" data-i18n="dir.viewProfile">'
+      + escapeHtml(window.t('dir.viewProfile')) + '</span>'
       + '</div>'
-      + followHeartRow(c)
-      + '<svg class="church-row-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>';
+      + followHeartRow(c);
     return '<a class="church-row" style="--thumb-hue:' + denomHue(c.tag) + ';" href="#church/' + encodeURIComponent(c.name) + '" data-route="church" data-church-name="' + escapeHtml(c.name) + '">' + inner + '</a>';
   }
   window.churchRow = churchRow;
@@ -12304,6 +12340,10 @@ Groups</span>
   // view leaves the room the bubble needs above it.
   function dirPanToMarker(marker){
     if (!dirMap || !marker) return;
+    dirMapProgrammaticMove++;
+    setTimeout(function(){
+      dirMapProgrammaticMove = Math.max(0, dirMapProgrammaticMove - 1);
+    }, 900);
     dirMap.panTo(marker.getPosition());
     var host = document.getElementById('directory-map');
     var h = host ? Math.round(host.getBoundingClientRect().height) : 0;
@@ -12361,8 +12401,25 @@ Groups</span>
     } else {
       return;                                      // already fully in view
     }
-    col.scrollTop = Math.max(0,
+    var top = Math.max(0,
       Math.min(col.scrollHeight - col.clientHeight, Math.round(want)));
+    // Sliding rather than jumping: picking a church moves the list under
+    // you, and an instant jump reads as the page having changed rather
+    // than scrolled.
+    var from = col.scrollTop;
+    if (Math.abs(top - from) < 1) return;
+    if (typeof col.scrollTo === 'function') {
+      try { col.scrollTo({ top: top, behavior: 'smooth' }); } catch (e) {}
+    }
+    // scrollTo's object form can be accepted and then quietly do nothing
+    // -- a try/catch only sees a throw, not a no-op, and returning on the
+    // strength of the call left the list exactly where it was. If no
+    // movement has started shortly after, jump instead. setTimeout and
+    // not rAF: a frame callback never runs in a background tab, which is
+    // the case where this is most likely to be needed.
+    setTimeout(function(){
+      if (Math.abs(col.scrollTop - from) < 1) col.scrollTop = top;
+    }, 140);
   }
   function dirRevealCard(name, centre){
     dirClearHotCard();
@@ -12423,6 +12480,49 @@ Groups</span>
       window.churchMapInstance.setOptions({ styles: dirMapStyles() });
     }
   };
+
+  // ---- "Search this area" ------------------------------------------
+  // Appears only once the reader has moved the map themselves. Every
+  // pan this code does -- fitBounds on a new result set, panTo on a
+  // hovered card -- would otherwise raise it immediately and it would
+  // never be off. dirMapProgrammaticMove is held up around those.
+  var dirMapProgrammaticMove = 0;
+  function dirMapQuiet(fn){
+    dirMapProgrammaticMove++;
+    try { fn(); } finally {
+      // Released after the move settles, not on the next line: panTo and
+      // fitBounds animate, and their idle event arrives later.
+      setTimeout(function(){
+        dirMapProgrammaticMove = Math.max(0, dirMapProgrammaticMove - 1);
+      }, 900);
+    }
+  }
+  function showDirSearchArea(on){
+    var btn = document.getElementById('dir-search-area');
+    if (btn) btn.hidden = !on;
+  }
+  function wireDirSearchArea(){
+    var btn = document.getElementById('dir-search-area');
+    if (!btn || !dirMap || btn.dataset.wired) return;
+    btn.dataset.wired = '1';
+    // dragend and zoom_changed only -- both are things a person does.
+    // The generic 'idle' fires for our own pans as well.
+    dirMap.addListener('dragend', function(){
+      if (!dirMapProgrammaticMove) showDirSearchArea(true);
+    });
+    dirMap.addListener('zoom_changed', function(){
+      if (!dirMapProgrammaticMove) showDirSearchArea(true);
+    });
+    btn.addEventListener('click', function(){
+      var c = dirMap.getCenter();
+      if (!c) return;
+      showDirSearchArea(false);
+      // Goes through setDirLocation like every other way of choosing a
+      // place, so the label, the pagination reset and the
+      // remember-this-choice behaviour are all the ones already there.
+      setDirLocation(c.lat(), c.lng(), window.t('dir.thisMapArea'));
+    });
+  }
 
   function paintDirectoryMap(){
     var wrap = document.getElementById('directory-map-wrap');
@@ -12510,12 +12610,18 @@ Groups</span>
       bounds.extend(pos);
     });
 
-    if (placed.length === 1) {
-      dirMap.setCenter(bounds.getCenter());
-      dirMap.setZoom(14);
-    } else if (placed.length > 1) {
-      dirMap.fitBounds(bounds, 40);
-    }
+    dirMapQuiet(function(){
+      if (placed.length === 1) {
+        dirMap.setCenter(bounds.getCenter());
+        dirMap.setZoom(14);
+      } else if (placed.length > 1) {
+        dirMap.fitBounds(bounds, 40);
+      }
+    });
+    // A fresh result set is the answer to wherever they just searched,
+    // so the offer to search here again starts hidden.
+    showDirSearchArea(false);
+    wireDirSearchArea();
     // Created or resized while the tab was hidden renders grey until
     // told; harmless when it was already visible.
     google.maps.event.trigger(dirMap, 'resize');
@@ -12597,7 +12703,7 @@ Groups</span>
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-27-v321',
+      'build 2026-09-27-v322',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -12939,7 +13045,12 @@ Groups</span>
       // Returning here lets the click carry on to the delegate, which
       // is how the profile link navigates at all.
       if (ev.target.closest('.dir-card-profile-link')) return;
-      if (ev.target.closest('.follow-heart-card')) return;
+      // [data-follow-church-id], not a class: the card's heart and the
+      // list row's heart are .follow-heart-card and .follow-heart-row,
+      // and naming one of them silently broke the other. The attribute
+      // is on both, and is what the route delegate matches on too.
+      if (ev.target.closest('[data-follow-church-id]')) return;
+      if (ev.target.closest('[data-follow-event-id]')) return;
       ev.preventDefault();
       ev.stopPropagation();
       // The filter overlay closes on a document click, which this has
