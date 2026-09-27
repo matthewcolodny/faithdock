@@ -4708,6 +4708,13 @@
      is left on: running off the end of the list carries on to the page
      and brings up the footer, which would otherwise be unreachable now
      that both columns are exactly a viewport tall. */
+  /* Inside min-width:981px on purpose. These used to be unconditional,
+     which meant a phone that for any reason did not get the
+     dir-fullscreen class still got a sticky, viewport-tall,
+     self-scrolling results column and a sticky map -- the desktop split
+     applied to a phone. The breakpoint is part of the rule, not
+     something a class elsewhere is trusted to stand in for. */
+  @media (min-width:981px){
   .dir-results-col{
     padding:22px 24px 28px 28px;min-width:0;
     position:sticky;top:var(--dir-split-top,150px);
@@ -4773,15 +4780,16 @@
      both carry the property inline, and an inline style beats a
      stylesheet rule that does not say so. */
   .dir-pill-panel #denom-dropdown-btn,
-  body.dir-fullscreen #page-directory > .filter-panel #denom-dropdown-btn{display:none !important;}
+  #page-directory.active > .filter-panel #denom-dropdown-btn{display:none !important;}
   .dir-pill-panel #denom-dropdown-panel,
-  body.dir-fullscreen #page-directory > .filter-panel #denom-dropdown-panel{
+  #page-directory.active > .filter-panel #denom-dropdown-panel{
     display:block !important;position:static !important;width:auto !important;
     max-height:none !important;overflow:visible !important;
     border:0 !important;box-shadow:none !important;padding:0 !important;
   }
   /* The map column is the positioning context for the pills. */
   .dir-map-col{position:sticky;}
+  }
 
   /* With the columns sized to the window there is nothing below them to
      scroll to, so the page's own scroll goes and the footer is pinned
@@ -4831,74 +4839,74 @@
       position:relative;height:var(--dir-screen-h, calc(100vh - 210px));
       padding:0;overflow:hidden;
     }
-    body.dir-fullscreen #page-directory .dir-split{position:absolute;inset:0;}
+    #page-directory.active .dir-split{position:absolute;inset:0;}
 
-    body.dir-fullscreen #page-directory .dir-map-col{
+    #page-directory.active .dir-map-col{
       display:block;position:absolute;top:0;left:0;right:0;bottom:auto;
       height:var(--dir-sheet-top,40%);
     }
-    body.dir-fullscreen #page-directory #directory-map{border:0;}
-    body.dir-fullscreen #page-directory #directory-map-note{display:none;}
+    #page-directory.active #directory-map{border:0;}
+    #page-directory.active #directory-map-note{display:none;}
     /* The pills are a desktop device; the phone has one filter button. */
-    body.dir-fullscreen #page-directory #dir-filter-pills{display:none;}
+    #page-directory.active #dir-filter-pills{display:none;}
 
     /* The search row, floating over the map rather than pushing it down. */
-    body.dir-fullscreen #page-directory #directory-head{
+    #page-directory.active #directory-head{
       position:absolute;top:0;left:0;right:0;z-index:6;
       background:transparent;border-bottom:0;padding:10px 0 0;
     }
-    body.dir-fullscreen #page-directory #directory-head .wrap{padding:0 12px;}
-    body.dir-fullscreen #page-directory .dir-search-row{gap:8px;}
+    #page-directory.active #directory-head .wrap{padding:0 12px;}
+    #page-directory.active .dir-search-row{gap:8px;}
     /* Opaque, because what is behind them is a map and not a page. */
-    body.dir-fullscreen #page-directory .dir-search-row .field,
-    body.dir-fullscreen #page-directory .dir-search-row .export-btn,
-    body.dir-fullscreen #page-directory .dir-search-row .dir-view-toggle,
-    body.dir-fullscreen #page-directory #dir-filter-icon-btn{
+    #page-directory.active .dir-search-row .field,
+    #page-directory.active .dir-search-row .export-btn,
+    #page-directory.active .dir-search-row .dir-view-toggle,
+    #page-directory.active #dir-filter-icon-btn{
       background:var(--card);box-shadow:0 2px 8px rgba(0,0,0,.18);
     }
 
     /* ---- the sheet ---- */
-    body.dir-fullscreen #page-directory .dir-results-col{
+    #page-directory.active .dir-results-col{
       position:absolute;left:0;right:0;top:var(--dir-sheet-top,40%);bottom:0;
       height:auto;padding:0 14px 16px;overflow-y:auto;overscroll-behavior:contain;
       background:var(--paper);border-top:1px solid var(--line);
       border-radius:16px 16px 0 0;box-shadow:0 -6px 20px rgba(0,0,0,.16);
       z-index:4;
     }
-    body.dir-fullscreen #page-directory .dir-results-col > .directory-layout{
+    #page-directory.active .dir-results-col > .directory-layout{
       margin-top:0;grid-template-columns:1fr;
     }
     /* One card per row, whatever the phone's width. */
-    body.dir-fullscreen #page-directory .dir-results-col #directory-grid.grid{
+    #page-directory.active .dir-results-col #directory-grid.grid{
       grid-template-columns:1fr;gap:10px;
     }
     /* Graphic beside the copy instead of a 16/9 band above it. A logo
        that fills the card's width is most of a phone screen per church;
        at 64px square, four or five fit where one did. */
-    body.dir-fullscreen #directory-grid .church-card{
+    #page-directory.active #directory-grid .church-card{
       display:grid;grid-template-columns:64px 1fr;gap:12px;
       align-items:start;padding:12px;
     }
-    body.dir-fullscreen #directory-grid .church-card .thumb{
+    #page-directory.active #directory-grid .church-card .thumb{
       width:64px;height:64px;aspect-ratio:auto;border-radius:10px;
       /* !important because the logo variant sets padding inline, and an
          inline style beats a stylesheet rule that does not say so. */
       padding:6px !important;
     }
-    body.dir-fullscreen #directory-grid .church-card .thumb svg{width:26px;height:26px;}
-    body.dir-fullscreen #directory-grid .church-card .card-body{padding:0;min-width:0;}
-    body.dir-fullscreen #directory-grid .church-card h3{font-size:16px;margin:4px 0 5px;}
-    body.dir-fullscreen #directory-grid .church-card .meta-row{margin-bottom:3px;}
+    #page-directory.active #directory-grid .church-card .thumb svg{width:26px;height:26px;}
+    #page-directory.active #directory-grid .church-card .card-body{padding:0;min-width:0;}
+    #page-directory.active #directory-grid .church-card h3{font-size:16px;margin:4px 0 5px;}
+    #page-directory.active #directory-grid .church-card .meta-row{margin-bottom:3px;}
     /* The tap target for the profile, now that the card itself is not
        one. Inline-block so it is only as wide as its own text. */
-    body.dir-fullscreen #directory-grid .dir-card-profile-link{
+    #page-directory.active #directory-grid .dir-card-profile-link{
       display:inline-block;margin-top:7px;font-size:13px;font-weight:600;
       color:var(--gold-ink);border-bottom:1px solid var(--gold);
       padding:2px 0;
     }
     /* No lift on tap -- there is no hover on a phone, and the transform
        fires on tap and leaves the card shifted. */
-    body.dir-fullscreen #directory-grid .church-card:hover{transform:none;}
+    #page-directory.active #directory-grid .church-card:hover{transform:none;}
     /* Stays put while the sheet scrolls, so the handle is always there
        to drag. */
     #dir-sheet-grip{
@@ -4915,15 +4923,15 @@
     body.fd-sheet-resizing{user-select:none;}
 
     /* ---- the filter panel, as an overlay under the search row ---- */
-    body.dir-fullscreen #page-directory > .filter-panel{
+    #page-directory.active > .filter-panel{
       position:absolute;top:var(--dir-head-h,96px);left:12px;right:12px;z-index:8;
       display:none;max-height:calc(100% - var(--dir-head-h,96px) - 16px);
       overflow-y:auto;box-shadow:0 14px 34px rgba(0,0,0,.28);
     }
-    body.dir-fullscreen #page-directory > .filter-panel.open{display:block;}
-    body.dir-fullscreen #page-directory > .filter-panel .filter-panel-toggle{display:none;}
-    body.dir-fullscreen #page-directory > .filter-panel .filter-panel-body{display:block;}
-    body.dir-fullscreen #page-directory > .filter-panel .filter-panel-title{display:block;}
+    #page-directory.active > .filter-panel.open{display:block;}
+    #page-directory.active > .filter-panel .filter-panel-toggle{display:none;}
+    #page-directory.active > .filter-panel .filter-panel-body{display:block;}
+    #page-directory.active > .filter-panel .filter-panel-title{display:block;}
     #dir-filter-icon-btn{
       display:inline-flex;align-items:center;justify-content:center;
       width:42px;height:42px;flex-shrink:0;padding:0;cursor:pointer;
@@ -11460,7 +11468,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-26-v310 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-26-v311 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
