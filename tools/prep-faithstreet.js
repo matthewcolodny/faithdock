@@ -278,6 +278,7 @@ const DENOM_MAP = new Map(Object.entries({
   'Church of Christ': 'Church of Christ',
   'Orthodox Christian': 'Orthodox',
   'Evangelical Bible Church': 'Bible Church',
+  'Full Gospel Assemblies': 'Pentecostal',
   'Progressive Church': 'Christian / General'
 }));
 
