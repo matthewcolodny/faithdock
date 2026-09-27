@@ -67,17 +67,28 @@ grant execute on function admin_show_import_batch(text, boolean) to authenticate
 do $$
 declare
   n_legacy integer;
+  n_args2  integer;
+  n_total  integer;
+  sigs     text;
 begin
-  if not exists (
-    select 1 from pg_proc p join pg_namespace ns on ns.oid = p.pronamespace
-    where ns.nspname = 'public' and p.proname = 'admin_show_import_batch'
-      and pg_get_function_identity_arguments(p.oid) = 'text, boolean') then
-    raise exception 'VERIFY FAILED: admin_show_import_batch(text, boolean) was not created.';
+  -- Counted by argument count, not by comparing the formatted signature
+  -- string. The first version of this check matched
+  -- pg_get_function_identity_arguments against the literal 'text,
+  -- boolean' and failed on a function that was sitting right there,
+  -- taking the whole migration down with it. pronargs cannot be tripped
+  -- by spacing, argument names or how the server chooses to print a type.
+  select count(*) filter (where p.pronargs = 2), count(*),
+         string_agg(p.proname || '(' || pg_get_function_identity_arguments(p.oid) || ')', ', ')
+    into n_args2, n_total, sigs
+    from pg_proc p join pg_namespace ns on ns.oid = p.pronamespace
+   where ns.nspname = 'public' and p.proname = 'admin_show_import_batch';
+
+  if n_args2 <> 1 then
+    raise exception 'VERIFY FAILED: no two-argument admin_show_import_batch. Found: %', coalesce(sigs, 'nothing');
   end if;
   -- Both forms are meant to be live: the client picks by argument count.
-  if (select count(*) from pg_proc p join pg_namespace ns on ns.oid = p.pronamespace
-      where ns.nspname = 'public' and p.proname = 'admin_show_import_batch') <> 2 then
-    raise exception 'VERIFY FAILED: expected exactly 2 admin_show_import_batch signatures.';
+  if n_total <> 2 then
+    raise exception 'VERIFY FAILED: expected 2 admin_show_import_batch signatures, found %. %', n_total, coalesce(sigs, '');
   end if;
 
   select count(*) into n_legacy
