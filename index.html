@@ -549,6 +549,26 @@
       'filters.noneSelected': 'None selected', 'filters.allSelected': 'All selected', 'filters.nSelected': 'selected',
       'denom.baptist': 'Baptist', 'denom.catholic': 'Catholic', 'denom.episcopal': 'Episcopal', 'denom.lutheran': 'Lutheran',
       'denom.methodist': 'Methodist', 'denom.nonDenominational': 'Non-denominational', 'denom.pentecostal': 'Pentecostal',
+      'denom.interdenominational': 'Interdenominational',
+      'denom.evangelical': 'Evangelical',
+      'denom.southernBaptist': 'Southern Baptist',
+      'denom.cooperativeBaptist': 'Cooperative Baptist Fellowship',
+      'denom.assembliesOfGod': 'Assemblies of God',
+      'denom.nazarene2': 'Church of the Nazarene',
+      'denom.seventhDay': 'Seventh-day Adventist',
+      'denom.disciplesOfChrist': 'Disciples of Christ',
+      'denom.unitedMethodist': 'United Methodist',
+      'denom.reformed': 'Reformed',
+      'denom.charismatic': 'Charismatic',
+      'denom.foursquare': 'Foursquare',
+      'denom.bibleChurch': 'Bible Church',
+      'denom.communityChurch': 'Community Church',
+      'denom.calvaryChapel': 'Calvary Chapel',
+      'denom.unitedChurchOfChrist': 'United Church of Christ',
+      'denom.congregational': 'Congregational',
+      'denom.quaker': 'Quaker',
+      'denom.mennonite': 'Mennonite',
+      'denom.salvationArmy': 'The Salvation Army',
       'denom.presbyterian': 'Presbyterian', 'denom.christianGeneral': 'Christian / General', 'denom.other': 'Other',
       'denom.churchOfGod': 'Church of God', 'denom.churchOfChrist': 'Church of Christ', 'denom.apostolic': 'Apostolic',
       'denom.orthodox': 'Orthodox', 'denom.protestantEvangelical': 'Protestant / Evangelical', 'denom.nazarene': 'Nazarene',
@@ -1837,6 +1857,26 @@
       'filters.noneSelected': 'Ninguna seleccionada', 'filters.allSelected': 'Todas seleccionadas', 'filters.nSelected': 'seleccionadas',
       'denom.baptist': 'Bautista', 'denom.catholic': 'Católica', 'denom.episcopal': 'Episcopal', 'denom.lutheran': 'Luterana',
       'denom.methodist': 'Metodista', 'denom.nonDenominational': 'No denominacional', 'denom.pentecostal': 'Pentecostal',
+      'denom.interdenominational': 'Interdenominacional',
+      'denom.evangelical': 'Evangélica',
+      'denom.southernBaptist': 'Bautista del Sur',
+      'denom.cooperativeBaptist': 'Comunión Bautista Cooperativa',
+      'denom.assembliesOfGod': 'Asambleas de Dios',
+      'denom.nazarene2': 'Iglesia del Nazareno',
+      'denom.seventhDay': 'Adventista del Séptimo Día',
+      'denom.disciplesOfChrist': 'Discípulos de Cristo',
+      'denom.unitedMethodist': 'Metodista Unida',
+      'denom.reformed': 'Reformada',
+      'denom.charismatic': 'Carismática',
+      'denom.foursquare': 'Cuadrangular',
+      'denom.bibleChurch': 'Iglesia Bíblica',
+      'denom.communityChurch': 'Iglesia Comunitaria',
+      'denom.calvaryChapel': 'Calvary Chapel',
+      'denom.unitedChurchOfChrist': 'Iglesia Unida de Cristo',
+      'denom.congregational': 'Congregacional',
+      'denom.quaker': 'Cuáquera',
+      'denom.mennonite': 'Menonita',
+      'denom.salvationArmy': 'El Ejército de Salvación',
       'denom.presbyterian': 'Presbiteriana', 'denom.christianGeneral': 'Cristiana / General', 'denom.other': 'Otra',
       'denom.churchOfGod': 'Iglesia de Dios', 'denom.churchOfChrist': 'Iglesia de Cristo', 'denom.apostolic': 'Apostólica',
       'denom.orthodox': 'Ortodoxa', 'denom.protestantEvangelical': 'Protestante / Evangélica', 'denom.nazarene': 'Nazarena',
@@ -3733,7 +3773,9 @@
   html[data-theme="dark"]{
     --ink:#EDEBE2;
     --paper:#101826;
-    --card:#182338;
+    /* Was #182338, which measured 1.12:1 against the page behind it --
+       no edge at all on a phone in daylight. This is 1.42:1. */
+    --card:#26344F;
     --gold:#D9B646;
     --room-block-s:40%; --room-block-l:68%;
     --room-chip-bg-s:27%; --room-chip-bg-l:16%;
@@ -11540,7 +11582,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-26-v320 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-27-v321 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12145,7 +12187,8 @@ Groups</span>
       // church card -- second-hand user data, and easy to miss when
       // thinking only about "this church's own fields".
       + (c.nextEvent ? '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>' + escapeHtml(formatChurchNextEventText(c.nextEvent)) + '</div>' : '')
-      + '<span class="dir-card-profile-link" data-i18n="dir.viewProfile">View Church Profile</span>'
+      + '<span class="dir-card-profile-link" data-i18n="dir.viewProfile">'
+      + escapeHtml(window.t('dir.viewProfile')) + '</span>'
       + '</div>';
     if(clickable){
       // The href is encodeURIComponent'd (already safe), but
@@ -12346,6 +12389,41 @@ Groups</span>
     dirInfo.open({ map: dirMap, anchor: marker });
   }
 
+  // Google's own night palette, trimmed to the features this map draws.
+  // Applied as styles rather than a cloud mapId so it needs no console
+  // configuration and no second API key.
+  var DIR_MAP_NIGHT = [
+    { elementType: 'geometry', stylers: [{ color: '#242f3e' }] },
+    { elementType: 'labels.text.stroke', stylers: [{ color: '#242f3e' }] },
+    { elementType: 'labels.text.fill', stylers: [{ color: '#a9b4c7' }] },
+    { featureType: 'administrative.locality', elementType: 'labels.text.fill',
+      stylers: [{ color: '#d0d6e0' }] },
+    { featureType: 'poi', elementType: 'labels.text.fill', stylers: [{ color: '#9aa7bd' }] },
+    { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#1f3b2c' }] },
+    { featureType: 'poi.park', elementType: 'labels.text.fill', stylers: [{ color: '#6b9a7c' }] },
+    { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#38414e' }] },
+    { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#212a37' }] },
+    { featureType: 'road', elementType: 'labels.text.fill', stylers: [{ color: '#9ca5b3' }] },
+    { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#746855' }] },
+    { featureType: 'road.highway', elementType: 'geometry.stroke', stylers: [{ color: '#1f2835' }] },
+    { featureType: 'road.highway', elementType: 'labels.text.fill', stylers: [{ color: '#f3d19c' }] },
+    { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#2f3948' }] },
+    { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#17263c' }] },
+    { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#515c6d' }] }
+  ];
+  function fdIsDark(){
+    return document.documentElement.getAttribute('data-theme') === 'dark';
+  }
+  function dirMapStyles(){ return fdIsDark() ? DIR_MAP_NIGHT : []; }
+  // Called by the theme toggle. An empty array is how you say "back to
+  // the default palette" -- passing null leaves the night styles on.
+  window.fdSyncMapTheme = function(){
+    if (dirMap && dirMap.setOptions) dirMap.setOptions({ styles: dirMapStyles() });
+    if (window.churchMapInstance && window.churchMapInstance.setOptions) {
+      window.churchMapInstance.setOptions({ styles: dirMapStyles() });
+    }
+  };
+
   function paintDirectoryMap(){
     var wrap = document.getElementById('directory-map-wrap');
     var host = document.getElementById('directory-map');
@@ -12384,7 +12462,8 @@ Groups</span>
         // Optional, and it is a button nobody taps on a phone. The
         // attribution and Terms beside it are required by Google's terms
         // and stay.
-        keyboardShortcuts: false
+        keyboardShortcuts: false,
+        styles: dirMapStyles()
       });
       // disableAutoPan, because this window now opens on HOVER. Left
       // on, Google recentres the map every time the pointer crosses a
@@ -12518,7 +12597,7 @@ Groups</span>
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-26-v320',
+      'build 2026-09-27-v321',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -13813,13 +13892,48 @@ Groups</span>
   var denomI18nKeyMap = {
     'Baptist': 'denom.baptist', 'Catholic': 'denom.catholic', 'Episcopal': 'denom.episcopal', 'Lutheran': 'denom.lutheran',
     'Methodist': 'denom.methodist', 'Non-denominational': 'denom.nonDenominational', 'Pentecostal': 'denom.pentecostal',
+    'Interdenominational': 'denom.interdenominational',
+    'Evangelical': 'denom.evangelical',
+    'Southern Baptist': 'denom.southernBaptist',
+    'Cooperative Baptist Fellowship': 'denom.cooperativeBaptist',
+    'Assemblies of God': 'denom.assembliesOfGod',
+    'Church of the Nazarene': 'denom.nazarene2',
+    'Seventh-day Adventist': 'denom.seventhDay',
+    'Disciples of Christ': 'denom.disciplesOfChrist',
+    'United Methodist': 'denom.unitedMethodist',
+    'Reformed': 'denom.reformed',
+    'Charismatic': 'denom.charismatic',
+    'Foursquare': 'denom.foursquare',
+    'Bible Church': 'denom.bibleChurch',
+    'Community Church': 'denom.communityChurch',
+    'Calvary Chapel': 'denom.calvaryChapel',
+    'United Church of Christ': 'denom.unitedChurchOfChrist',
+    'Congregational': 'denom.congregational',
+    'Quaker': 'denom.quaker',
+    'Mennonite': 'denom.mennonite',
+    'The Salvation Army': 'denom.salvationArmy',
     'Presbyterian': 'denom.presbyterian', 'Christian / General': 'denom.christianGeneral', 'Other': 'denom.other',
     'Church of God': 'denom.churchOfGod', 'Church of Christ': 'denom.churchOfChrist', 'Apostolic': 'denom.apostolic',
     'Orthodox': 'denom.orthodox', 'Protestant / Evangelical': 'denom.protestantEvangelical', 'Nazarene': 'denom.nazarene',
     'Anglican': 'denom.anglican', 'Jewish': 'denom.jewish', 'Adventist': 'denom.adventist'
   };
+  // Case- and space-insensitive fallback. The tag is the churches
+  // .denomination column, which is free text from the imports: the same
+  // body arrives as 'Non-denominational' and 'Non-Denominational', and
+  // an exact-match lookup translated the first and left the second in
+  // English next to it on the same page. Built once, on demand.
+  var denomI18nLowerMap = null;
   function translateDenomination(tag){
-    return denomI18nKeyMap[tag] ? window.t(denomI18nKeyMap[tag]) : tag;
+    if (denomI18nKeyMap[tag]) return window.t(denomI18nKeyMap[tag]);
+    if (!tag) return tag;
+    if (!denomI18nLowerMap) {
+      denomI18nLowerMap = Object.create(null);
+      Object.keys(denomI18nKeyMap).forEach(function(k){
+        denomI18nLowerMap[k.toLowerCase().replace(/s+/g, ' ').trim()] = denomI18nKeyMap[k];
+      });
+    }
+    var key = denomI18nLowerMap[String(tag).toLowerCase().replace(/s+/g, ' ').trim()];
+    return key ? window.t(key) : tag;
   }
   window.translateDenomination = translateDenomination;
 
@@ -18770,6 +18884,9 @@ Groups</span>
       }
       try { localStorage.setItem('fd-theme', nextTheme); } catch (e) {}
       updateThemeIcon(nextTheme);
+      // A map already on screen keeps its old palette otherwise -- the
+      // styles are read once when it is built.
+      if (typeof window.fdSyncMapTheme === 'function') window.fdSyncMapTheme();
     });
   }
 
