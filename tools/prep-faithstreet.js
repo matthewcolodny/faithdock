@@ -275,6 +275,7 @@ const DENOM_MAP = new Map(Object.entries({
   'Apostolic': 'Apostolic',
   'Quaker': 'Quaker',
   'Church of Christ': 'Church of Christ',
+  'Orthodox Christian': 'Orthodox',
   'Progressive Church': 'Christian / General'
 }));
 
