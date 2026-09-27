@@ -1700,6 +1700,9 @@
       'admin.noStaffOnRecord': 'No staff on record (or not visible to admin accounts yet — this list only shows what the current permissions allow).',
       'admin.canManage': 'Can manage:', 'admin.noManagementPermissions': 'No management permissions',
       'admin.noEventsYet': 'No events yet.', 'admin.past': 'Past', 'admin.noGroupsYet': 'No groups yet.',
+      'admin.filesReadyToAdd': '{files} files, {n} churches ready to add',
+      'admin.importFileProgress': 'File {i} of {files}: {name}',
+      'admin.importAllFilesSummary': 'Done. {n} churches added across {files} files.',
       'admin.noNameColumnFound': 'No "name" column found in the header row.',
       'admin.rowMissingName': '{n} row missing name', 'admin.rowsMissingName': '{n} rows missing name',
       'admin.duplicateRowInFile': '{n} duplicate row within this file', 'admin.duplicateRowsInFile': '{n} duplicate rows within this file',
@@ -2980,6 +2983,9 @@
       'admin.noStaffOnRecord': 'No hay personal registrado (o aún no es visible para cuentas de administrador — esta lista solo muestra lo que los permisos actuales permiten).',
       'admin.canManage': 'Puede gestionar:', 'admin.noManagementPermissions': 'Sin permisos de gestión',
       'admin.noEventsYet': 'Aún no hay eventos.', 'admin.past': 'Pasado', 'admin.noGroupsYet': 'Aún no hay grupos.',
+      'admin.filesReadyToAdd': '{files} archivos, {n} iglesias listas para añadir',
+      'admin.importFileProgress': 'Archivo {i} de {files}: {name}',
+      'admin.importAllFilesSummary': 'Listo. {n} iglesias añadidas en {files} archivos.',
       'admin.noNameColumnFound': 'No se encontró la columna "name" en la fila de encabezado.',
       'admin.rowMissingName': '{n} fila sin nombre', 'admin.rowsMissingName': '{n} filas sin nombre',
       'admin.duplicateRowInFile': '{n} fila duplicada dentro de este archivo', 'admin.duplicateRowsInFile': '{n} filas duplicadas dentro de este archivo',
@@ -8209,7 +8215,7 @@ Groups</span>
         </button>
         <h3 style="font-family:'Fraunces';font-size:20px;margin-bottom:6px;" data-i18n="admin.importChurches">Import churches</h3>
         <p style="color:var(--ink-mute);font-size:13.5px;margin-bottom:16px;" data-i18n="admin.importChurchesHint">Upload a CSV with a header row containing name (required) and any of: denomination, address, phone, website, logo_url. These are added as unclaimed listings — visible in the directory, with no owner until a church claims them. Addresses are automatically geocoded so distance search and the map work — this can take a moment for a large list.</p>
-        <input type="file" id="import-churches-file-input" accept=".csv" class="field">
+        <input type="file" id="import-churches-file-input" accept=".csv" multiple class="field">
         <div id="import-churches-preview" style="display:none;margin-top:16px;">
           <div style="font-size:13.5px;color:var(--ink-mute);margin-bottom:8px;" id="import-churches-preview-count"></div>
           <div id="import-churches-preview-list" style="max-height:220px;overflow-y:auto;border:1px solid var(--line);border-radius:8px;"></div>
@@ -11680,7 +11686,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-27-v329 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-27-v330 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12848,7 +12854,7 @@ Groups</span>
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-27-v329',
+      'build 2026-09-27-v330',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -40810,6 +40816,7 @@ Groups</span>
   // (reuses the CSV parser already built for congregation import).
   // ============================================================
   var importChurchesRows = [];
+  var importChurchesQueue = [];     // one entry per picked file
   // Captured on file selection, read again when "Add churches" builds
   // this run's batch id -- see admin_list_import_batches below.
   var importChurchesFilename = null;
@@ -40830,17 +40837,23 @@ Groups</span>
   var importChurchesFileInput = document.getElementById('import-churches-file-input');
   if (importChurchesFileInput) {
     importChurchesFileInput.addEventListener('change', function(){
-      var file = importChurchesFileInput.files[0];
+      var picked = [].slice.call(importChurchesFileInput.files || []);
       var statusEl = document.getElementById('import-churches-status');
       statusEl.style.display = 'none';
-      if (!file) return;
-      importChurchesFilename = file.name;
+      if (!picked.length) return;
+      // Each file stays its own import batch -- same batch id, same
+      // filename, same row in the Import batches list, so Hide all and
+      // Show all still act on one CSV at a time. Uploading twenty files
+      // is twenty batches, not one lump nobody can undo selectively.
+      importChurchesQueue = [];
+      var pendingFiles = picked.length;
+      picked.forEach(function(file, fileIndex){
       var reader = new FileReader();
       reader.onload = function(){
         var rows = parseCsv(String(reader.result));
         if (!rows.length) {
-          statusEl.textContent = window.t('dashDir.couldNotReadRows');
-          statusEl.style.color = 'var(--clay)'; statusEl.style.display = 'block';
+          importChurchesQueue[fileIndex] = { name: file.name, rows: [], bad: window.t('dashDir.couldNotReadRows') };
+          if (--pendingFiles === 0) fdRenderImportPreview();
           return;
         }
         var header = rows[0].map(function(h){ return h.trim().toLowerCase(); });
@@ -40851,8 +40864,8 @@ Groups</span>
         var websiteIdx = header.indexOf('website');
         var logoIdx = header.indexOf('logo_url') !== -1 ? header.indexOf('logo_url') : header.indexOf('logo');
         if (nameIdx === -1) {
-          statusEl.textContent = window.t('admin.noNameColumnFound');
-          statusEl.style.color = 'var(--clay)'; statusEl.style.display = 'block';
+          importChurchesQueue[fileIndex] = { name: file.name, rows: [], bad: window.t('admin.noNameColumnFound') };
+          if (--pendingFiles === 0) fdRenderImportPreview();
           return;
         }
         var parsed = [];
@@ -40877,23 +40890,50 @@ Groups</span>
             logo_url: logoIdx !== -1 ? (r[logoIdx] || '').trim() || null : null
           });
         }
-        importChurchesRows = parsed;
-        var previewList = document.getElementById('import-churches-preview-list');
-        var previewCount = document.getElementById('import-churches-preview-count');
-        var skipNotes = [];
-        if (skipped) skipNotes.push(window.t(skipped === 1 ? 'admin.rowMissingName' : 'admin.rowsMissingName').replace('{n}', skipped));
-        if (duplicatesInFile) skipNotes.push(window.t(duplicatesInFile === 1 ? 'admin.duplicateRowInFile' : 'admin.duplicateRowsInFile').replace('{n}', duplicatesInFile));
-        previewCount.textContent = window.t(parsed.length === 1 ? 'admin.churchReadyToAdd' : 'admin.churchesReadyToAdd').replace('{n}', parsed.length)
-          + (skipNotes.length ? ' (' + skipNotes.join(', ') + ' ' + window.t('admin.skipped') + ')' : '');
-        previewList.innerHTML = parsed.slice(0, 200).map(function(p){
-          var thumb = p.logo_url ? '<img src="' + p.logo_url + '" alt="" style="width:32px;height:32px;border-radius:6px;object-fit:cover;margin-right:10px;flex-shrink:0;">' : '';
-          return '<div class="registrant-row"><div style="display:flex;align-items:center;">' + thumb + '<div><div class="registrant-name">' + p.name + '</div><div class="registrant-date">' + (p.denomination || '—') + ' · ' + (p.address ? titleCaseAddress(p.address) : window.t('admin.noAddress')) + '</div></div></div></div>';
-        }).join('');
-        document.getElementById('import-churches-preview').style.display = 'block';
-        document.getElementById('import-churches-send-btn').style.display = parsed.length ? 'inline-flex' : 'none';
+        importChurchesQueue[fileIndex] = {
+          name: file.name, rows: parsed, skipped: skipped, dupes: duplicatesInFile
+        };
+        // Files finish reading in whatever order they like, so the
+        // preview waits for the last one rather than redrawing per file.
+        if (--pendingFiles === 0) fdRenderImportPreview();
       };
       reader.readAsText(file);
+      });
     });
+  }
+
+  // One row per file, then the churches. With twenty files the useful
+  // question is "did the right files load", not "what is row 14".
+  function fdRenderImportPreview(){
+    var previewList = document.getElementById('import-churches-preview-list');
+    var previewCount = document.getElementById('import-churches-preview-count');
+    if (!previewList || !previewCount) return;
+    var files = importChurchesQueue.filter(Boolean);
+    var total = 0, skipped = 0, dupes = 0;
+    files.forEach(function(f){ total += f.rows.length; skipped += (f.skipped || 0); dupes += (f.dupes || 0); });
+
+    var skipNotes = [];
+    if (skipped) skipNotes.push(window.t(skipped === 1 ? 'admin.rowMissingName' : 'admin.rowsMissingName').replace('{n}', skipped));
+    if (dupes) skipNotes.push(window.t(dupes === 1 ? 'admin.duplicateRowInFile' : 'admin.duplicateRowsInFile').replace('{n}', dupes));
+    previewCount.textContent =
+      (files.length > 1 ? window.t('admin.filesReadyToAdd').replace('{files}', files.length).replace('{n}', total)
+                        : window.t(total === 1 ? 'admin.churchReadyToAdd' : 'admin.churchesReadyToAdd').replace('{n}', total))
+      + (skipNotes.length ? ' (' + skipNotes.join(', ') + ' ' + window.t('admin.skipped') + ')' : '');
+
+    var head = files.length > 1 ? files.map(function(f){
+      var note = f.bad ? f.bad : window.t('admin.churchesReadyToAdd').replace('{n}', f.rows.length);
+      return '<div class="registrant-row"><div><div class="registrant-name">' + escapeHtml(f.name) + '</div>'
+        + '<div class="registrant-date"' + (f.bad ? ' style="color:var(--clay);"' : '') + '>' + escapeHtml(note) + '</div></div></div>';
+    }).join('') : '';
+
+    var all = [];
+    files.forEach(function(f){ all = all.concat(f.rows); });
+    previewList.innerHTML = head + all.slice(0, 200).map(function(p){
+      var thumb = p.logo_url ? '<img src="' + p.logo_url + '" alt="" style="width:32px;height:32px;border-radius:6px;object-fit:cover;margin-right:10px;flex-shrink:0;">' : '';
+      return '<div class="registrant-row"><div style="display:flex;align-items:center;">' + thumb + '<div><div class="registrant-name">' + escapeHtml(p.name) + '</div><div class="registrant-date">' + escapeHtml(p.denomination || '—') + ' · ' + (p.address ? escapeHtml(titleCaseAddress(p.address)) : window.t('admin.noAddress')) + '</div></div></div></div>';
+    }).join('');
+    document.getElementById('import-churches-preview').style.display = 'block';
+    document.getElementById('import-churches-send-btn').style.display = total ? 'inline-flex' : 'none';
   }
 
   var importChurchesSendBtn = document.getElementById('import-churches-send-btn');
@@ -40902,8 +40942,23 @@ Groups</span>
       var statusEl = document.getElementById('import-churches-status');
       statusEl.style.display = 'block';
       statusEl.style.color = 'var(--ink-mute)';
-      if (!importChurchesRows.length) return;
+      var queue = importChurchesQueue.filter(function(f){ return f && f.rows && f.rows.length; });
+      if (!queue.length) return;
       importChurchesSendBtn.disabled = true;
+      var runTotalInserted = 0;
+      var runErrors = [];
+
+      // One file at a time, each its own import batch. Sequential on
+      // purpose: the slow part is a geocode per church, and firing
+      // several files at once would just race for the same quota and
+      // make the progress line meaningless.
+      for (var fileNo = 0; fileNo < queue.length; fileNo++) {
+      importChurchesRows = queue[fileNo].rows;
+      importChurchesFilename = queue[fileNo].name;
+      var filePrefix = queue.length > 1
+        ? window.t('admin.importFileProgress').replace('{i}', fileNo + 1)
+            .replace('{files}', queue.length).replace('{name}', queue[fileNo].name) + ' — '
+        : '';
 
       // Processed in small batches rather than one giant request —
       // needed for large government/denominational data dumps (tens
@@ -40955,7 +41010,7 @@ Groups</span>
         var rows = [];
         for (var i = 0; i < toImport.length; i++) {
           var c = toImport[i];
-          statusEl.textContent = window.t('admin.batchGeocoding').replace('{n}', chunkNum).replace('{total}', totalChunks).replace('{cur}', i + 1).replace('{count}', toImport.length);
+          statusEl.textContent = filePrefix + window.t('admin.batchGeocoding').replace('{n}', chunkNum).replace('{total}', totalChunks).replace('{cur}', i + 1).replace('{count}', toImport.length);
           var lat = null, lng = null;
           if (c.address) {
             // precise: a bulk import is exactly where a town-centre
@@ -40967,7 +41022,7 @@ Groups</span>
         }
         totalUngeocoded += rows.filter(function(r){ return r.address && r.lat == null; }).length;
 
-        statusEl.textContent = window.t('admin.batchSaving').replace('{n}', chunkNum).replace('{total}', totalChunks);
+        statusEl.textContent = filePrefix + window.t('admin.batchSaving').replace('{n}', chunkNum).replace('{total}', totalChunks);
         var { data: insertedIds, error: insertError } = await supabase.rpc('admin_import_churches', { rows: rows, p_batch_id: importBatchId, p_source_filename: importBatchSourceFilename });
         if (insertError) {
           chunkErrors.push(window.t('admin.batchLabel').replace('{n}', chunkNum) + ': ' + insertError.message);
@@ -40976,13 +41031,26 @@ Groups</span>
         totalInserted += insertedIds ? insertedIds.length : rows.length;
       }
 
-      importChurchesSendBtn.disabled = false;
-      var summary = window.t('admin.churchesAddedSummary').replace('{n}', totalInserted).replace('{total}', totalRows);
+      var summary = filePrefix + window.t('admin.churchesAddedSummary').replace('{n}', totalInserted).replace('{total}', totalRows);
       if (totalDuplicates) summary += ' ' + window.t('admin.skippedAsDuplicates').replace('{n}', totalDuplicates);
       if (totalUngeocoded) summary += ' ' + window.t('admin.couldntBeLocated').replace('{n}', totalUngeocoded);
       if (chunkErrors.length) summary += ' ' + window.t('admin.batchesFailed').replace('{n}', chunkErrors.length) + ' — ' + chunkErrors.join('; ');
       statusEl.textContent = summary;
       statusEl.style.color = chunkErrors.length ? 'var(--clay)' : 'var(--sage)';
+      runTotalInserted += totalInserted;
+      if (chunkErrors.length) runErrors.push(queue[fileNo].name);
+      }
+      // End of the per-file loop. One line for the whole run, so a
+      // twenty-file upload does not end on whatever the last file
+      // happened to say.
+      importChurchesSendBtn.disabled = false;
+      if (queue.length > 1) {
+        var runSummary = window.t('admin.importAllFilesSummary')
+          .replace('{n}', runTotalInserted).replace('{files}', queue.length);
+        if (runErrors.length) runSummary += ' ' + window.t('admin.batchesFailed').replace('{n}', runErrors.length) + ' — ' + runErrors.join(', ');
+        statusEl.textContent = runSummary;
+        statusEl.style.color = runErrors.length ? 'var(--clay)' : 'var(--sage)';
+      }
       importChurchesRows = [];
       document.getElementById('import-churches-send-btn').style.display = 'none';
       loadAdminPanel();
