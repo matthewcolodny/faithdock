@@ -4810,6 +4810,22 @@
     }
   }
 
+  /* Google reserves a header row inside the info bubble for its close
+     button, which on a small bubble is more empty white than content.
+     Collapsed to nothing with the button laid over the corner instead.
+     These are Google's own class names and it does rename them from
+     time to time; every rule is additive, so if the names change the
+     bubble simply looks as it does today rather than breaking. */
+  .gm-style .gm-style-iw-c{padding:0 !important;}
+  .gm-style .gm-style-iw-chr{height:0 !important;min-height:0 !important;}
+  .gm-style .gm-style-iw-chr > button{
+    position:absolute !important;top:0 !important;right:0 !important;
+    width:30px !important;height:30px !important;z-index:2;
+  }
+  .gm-style .gm-style-iw-d{
+    overflow:hidden !important;padding:11px 34px 11px 13px !important;
+  }
+
   /* The pin being pointed at, in the list. */
   .church-card.dir-card-hot,.church-row.dir-card-hot{
     outline:2px solid var(--gold);outline-offset:2px;
@@ -4970,6 +4986,30 @@
       border:1px solid var(--line);border-radius:8px;color:var(--ink);
     }
     #dir-filter-icon-btn svg{width:19px;height:19px;}
+    /* Cards/List as bare icons -- the two words cost about 90px. */
+    #page-directory.active .dir-view-btn span{display:none;}
+    #page-directory.active .dir-view-btn{padding:0 11px;}
+    /* Five controls in a wrapping flex row is two flex:1 items bidding
+       against three fixed ones, and the result was the keyword field
+       squeezed to 11px and the location box to 112px showing "San An".
+       A grid says which line each control is on and how wide it gets,
+       instead of leaving it to whatever is left over. */
+    #page-directory.active .dir-search-row{
+      display:grid;gap:8px;align-items:center;
+      grid-template-columns:1fr 42px 76px;
+      grid-template-areas:"kw kw filter" "loc pin view";
+    }
+    #page-directory.active .dir-search-row > .search-field-wrap:not(.autocomplete-wrap){
+      grid-area:kw;max-width:none !important;min-width:0;
+    }
+    #page-directory.active .dir-search-row > #dir-filter-icon-btn{grid-area:filter;justify-self:end;}
+    #page-directory.active .dir-search-row > .autocomplete-wrap{
+      grid-area:loc;max-width:none !important;min-width:0;
+    }
+    #page-directory.active .dir-search-row > #dir-use-location-btn{grid-area:pin;padding:0;justify-content:center;}
+    #page-directory.active .dir-search-row > #dir-use-location-btn .btn-label-text{display:none;}
+    #page-directory.active .dir-search-row > .dir-view-toggle{grid-area:view;justify-self:end;}
+    #page-directory.active .dir-search-row .search-clear-wrap{min-width:0;}
     #dir-filter-icon-btn[aria-expanded="true"]{
       background:var(--gold-bg);border-color:var(--gold);color:var(--gold-ink);
     }
@@ -11500,7 +11540,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-26-v319 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-26-v320 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12215,12 +12255,26 @@ Groups</span>
   // Opening a pin, lifting it above its neighbours and bringing it into
   // view. Hovering a card, tapping a card and tapping a pin all want
   // exactly this, so it lives here rather than three times over.
+  // The bubble opens ABOVE its pin, so centring the pin puts the bubble
+  // off the top of the map -- on a phone the map is only ~234px and the
+  // bubble is most of that. Dropping the pin into the lower part of the
+  // view leaves the room the bubble needs above it.
+  function dirPanToMarker(marker){
+    if (!dirMap || !marker) return;
+    dirMap.panTo(marker.getPosition());
+    var host = document.getElementById('directory-map');
+    var h = host ? Math.round(host.getBoundingClientRect().height) : 0;
+    if (!h) return;
+    // panBy moves the CENTRE, and the content moves the other way, so a
+    // negative y walks the pin down the screen.
+    dirMap.panBy(0, -Math.round(h * 0.24));
+  }
   function dirFocusMarker(name){
     var marker = name ? dirMarkerByName[name] : null;
     if (!marker || !dirMap) return false;
     marker.setZIndex(9999);
     openDirInfo(marker, marker._fdChurch);
-    dirMap.panTo(marker.getPosition());
+    dirPanToMarker(marker);
     return true;
   }
   function dirClearHotCard(){
@@ -12357,6 +12411,7 @@ Groups</span>
       marker.addListener('click', function(){
         dirHoveredName = key;
         openDirInfo(marker, c);
+        dirPanToMarker(marker);
         dirRevealCard(key, true);
       });
       // The mirror of hovering a card. Deliberately no mouseout handler:
@@ -12463,7 +12518,7 @@ Groups</span>
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-26-v319',
+      'build 2026-09-26-v320',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -20552,7 +20607,7 @@ Groups</span>
       var place = autocomplete.getPlace();
       if (place.geometry && place.geometry.location) {
         setDirLocation(place.geometry.location.lat(), place.geometry.location.lng(), place.formatted_address || dirLocationInput.value);
-        document.getElementById('dir-location-status').textContent = window.t('dir.showingDistancesThisLocation');
+        fdSetLocationStatus(document.getElementById('dir-location-status'), window.t('dir.showingDistancesThisLocation'), true);
       }
     });
   }
@@ -20593,6 +20648,29 @@ Groups</span>
 
   // Fallback for the search button / Enter key — geocodes whatever's
   // typed even if no Places suggestion was clicked.
+  // 'Showing distances from your location' is the end of the job, not
+  // news, and on a phone it sits over the map with nothing to dismiss
+  // it. Progress messages still stay until something replaces them --
+  // it is only the done ones that clear themselves.
+  // Takes the element rather than looking one up: the events page has
+  // its own status line and the same success message, and a helper that
+  // hardcoded the directory's would have written the events result into
+  // the directory and left the events page reading 'Searching...'
+  // forever. The timer is parked on the element for the same reason.
+  function fdSetLocationStatus(el, text, transient){
+    if (!el) return;
+    if (el._fdStatusTimer) { clearTimeout(el._fdStatusTimer); el._fdStatusTimer = null; }
+    el.textContent = text;
+    if (transient && text) {
+      el._fdStatusTimer = setTimeout(function(){
+        // Only if it is still the message we set -- something newer wins.
+        if (el.textContent === text) el.textContent = '';
+        el._fdStatusTimer = null;
+      }, 4000);
+    }
+  }
+  window.fdSetLocationStatus = fdSetLocationStatus;
+
   function doDirectLocationSearch(){
     var query = dirLocationInput.value;
     var statusEl = document.getElementById('dir-location-status');
@@ -20607,7 +20685,7 @@ Groups</span>
       }
       var loc = results[0].geometry.location;
       setDirLocation(loc.lat(), loc.lng(), results[0].formatted_address);
-      statusEl.textContent = window.t('dir.showingDistancesThisLocation');
+      fdSetLocationStatus(statusEl, window.t('dir.showingDistancesThisLocation'), true);
     });
   }
   var dirLocationSearchBtn = document.getElementById('dir-location-search-btn');
@@ -20679,7 +20757,7 @@ Groups</span>
       }
       var loc = results[0].geometry.location;
       setDirLocation(loc.lat(), loc.lng(), results[0].formatted_address);
-      statusEl.textContent = window.t('dir.showingDistancesThisLocation');
+      fdSetLocationStatus(statusEl, window.t('dir.showingDistancesThisLocation'), true);
     });
   }
   var eventsLocationSearchBtn = document.getElementById('events-location-search-btn');
