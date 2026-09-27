@@ -1622,6 +1622,10 @@
       'admin.coveragePreviewHint': 'Reads the addresses and plots one ring per town, biggest first, so you can see the shape of a batch without geocoding every row. Nothing is imported.',
       'admin.coverageStop': 'Stop', 'admin.coverageClearPreview': 'Clear preview',
       'admin.coverageAddedIndividually': 'Added individually',
+      'admin.coverageBatches': 'Batches',
+      'admin.coverageBatchesAll': 'All {n} batches',
+      'admin.coverageBatchesSome': '{n} of {total} batches',
+      'admin.coverageAllOn': 'Show all', 'admin.coverageAllOff': 'Hide all',
       'admin.coverageNeedsMigration': "The coverage map needs migration 098 -- run supabase/migrations/098_admin_coverage_map.sql in the SQL Editor, then reload.",
       'admin.coverageMapsLoading': 'Waiting for Google Maps to load...',
       'admin.coverageCountHidden': 'Count hidden churches',
@@ -2898,6 +2902,10 @@
       'admin.coveragePreviewHint': 'Lee las direcciones y dibuja un anillo por localidad, de mayor a menor, para ver la forma de un lote sin geocodificar cada fila. No se importa nada.',
       'admin.coverageStop': 'Detener', 'admin.coverageClearPreview': 'Borrar vista previa',
       'admin.coverageAddedIndividually': 'Añadidas individualmente',
+      'admin.coverageBatches': 'Lotes',
+      'admin.coverageBatchesAll': 'Los {n} lotes',
+      'admin.coverageBatchesSome': '{n} de {total} lotes',
+      'admin.coverageAllOn': 'Mostrar todos', 'admin.coverageAllOff': 'Ocultar todos',
       'admin.coverageNeedsMigration': 'El mapa de cobertura necesita la migración 098 -- ejecuta supabase/migrations/098_admin_coverage_map.sql en el Editor SQL y recarga.',
       'admin.coverageMapsLoading': 'Esperando a que cargue Google Maps...',
       'admin.coverageCountHidden': 'Contar iglesias ocultas',
@@ -5334,15 +5342,38 @@
     width:100%;aspect-ratio:16/11;max-height:520px;border-radius:var(--radius);
     overflow:hidden;border:1px solid var(--line);background:var(--paper);
   }
-  .fd-cov-legend{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
-  .fd-cov-chip{
-    display:flex;align-items:center;gap:7px;padding:6px 10px;border:1px solid var(--line);
-    border-radius:999px;background:var(--card);font-size:12.5px;color:var(--ink);cursor:pointer;
-    font-family:inherit;-webkit-tap-highlight-color:transparent;max-width:100%;
+  /* A row of chips was fine at five batches and unreadable at a
+     hundred and thirty -- it wrapped into a wall of pills taller than
+     the map it was labelling. Same state, same colours, behind a
+     dropdown that stays one line. */
+  .fd-cov-bar{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap;}
+  .fd-cov-drop{position:relative;}
+  .fd-cov-drop-btn{display:inline-flex;align-items:center;gap:7px;padding:8px 13px;}
+  .fd-cov-drop-btn svg{width:12px;height:12px;}
+  .fd-cov-drop-panel{
+    position:absolute;top:calc(100% + 6px);left:0;z-index:30;width:320px;max-width:86vw;
+    max-height:min(58vh,420px);overflow-y:auto;background:var(--card);
+    border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.22);
   }
-  .fd-cov-chip[aria-pressed="false"]{opacity:.42;}
+  .fd-cov-drop-panel[hidden]{display:none;}
+  .fd-cov-drop-tools{
+    display:flex;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line);
+    position:sticky;top:0;background:var(--card);
+  }
+  .fd-cov-drop-tools button{
+    flex:1 1 0;padding:6px 8px;border:1px solid var(--line);border-radius:7px;
+    background:var(--paper);color:var(--ink);font-family:inherit;font-size:12.5px;cursor:pointer;
+  }
+  .fd-cov-drop-tools button:hover{border-color:var(--gold);}
+  .fd-cov-list{padding:6px;}
+  .fd-cov-row{
+    display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:7px;
+    font-size:12.5px;color:var(--ink);cursor:pointer;
+  }
+  .fd-cov-row:hover{background:var(--paper);}
+  .fd-cov-row input{flex:0 0 auto;margin:0;}
   .fd-cov-dot{width:11px;height:11px;border-radius:50%;flex:0 0 auto;}
-  .fd-cov-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:190px;}
+  .fd-cov-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1 1 auto;}
   .fd-cov-n{color:var(--ink-mute);flex:0 0 auto;}
 
   .fd-dp-foot button{
@@ -8084,7 +8115,21 @@ Groups</span>
     <div id="admin-coverage-status" style="display:none;font-size:12.5px;margin-bottom:8px;"></div>
     <div id="admin-coverage-map"></div>
     <label class="filter-check" style="margin-top:10px;"><input type="checkbox" id="admin-coverage-count-hidden" checked> <span data-i18n="admin.coverageCountHidden">Count hidden churches</span></label>
-    <div id="admin-coverage-legend" class="fd-cov-legend"></div>
+    <div class="fd-cov-bar">
+      <div class="fd-cov-drop">
+        <button type="button" id="admin-coverage-batches-btn" class="export-btn fd-cov-drop-btn" aria-expanded="false">
+          <span id="admin-coverage-batches-label" data-i18n="admin.coverageBatches">Batches</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div id="admin-coverage-batches-panel" class="fd-cov-drop-panel" hidden>
+          <div class="fd-cov-drop-tools">
+            <button type="button" data-cov-all="on" data-i18n="admin.coverageAllOn">Show all</button>
+            <button type="button" data-cov-all="off" data-i18n="admin.coverageAllOff">Hide all</button>
+          </div>
+          <div id="admin-coverage-legend" class="fd-cov-list"></div>
+        </div>
+      </div>
+    </div>
 
     <label style="margin-top:18px;" data-i18n="admin.coveragePreview">Preview a CSV before importing</label>
     <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:8px;max-width:600px;" data-i18n="admin.coveragePreviewHint">Reads the addresses and plots one ring per town, biggest first, so you can see the shape of a batch without geocoding every row. Nothing is imported.</p>
@@ -11635,7 +11680,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-27-v328 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-27-v329 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12803,7 +12848,7 @@ Groups</span>
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-27-v328',
+      'build 2026-09-27-v329',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -40048,26 +40093,74 @@ Groups</span>
       // The id is a timestamp joined to the filename; the filename is
       // the half a person recognises.
       var label = id ? (id.split('_').slice(1).join('_') || id) : window.t('admin.coverageAddedIndividually');
-      return '<button type="button" class="fd-cov-chip" data-cov-batch="' + escAttr(id) + '"'
-        + ' aria-pressed="' + (fdCovBatchOff[id] ? 'false' : 'true') + '">'
+      return '<label class="fd-cov-row">'
+        + '<input type="checkbox" data-cov-batch="' + escAttr(id) + '"' + (fdCovBatchOff[id] ? '' : ' checked') + '>'
         + '<span class="fd-cov-dot" style="background:' + fdCovColour(id) + ';"></span>'
-        + '<span class="fd-cov-name">' + escapeHtml(label) + '</span>'
+        + '<span class="fd-cov-name" title="' + escAttr(label) + '">' + escapeHtml(label) + '</span>'
         + '<span class="fd-cov-n">' + byBatch[id].toLocaleString() + '</span>'
-        + '</button>';
+        + '</label>';
     }).join('');
     el._rows = rows;
+    fdCovSyncBatchesLabel(ids);
   }
 
-  document.addEventListener('click', function(ev){
-    var chip = ev.target.closest && ev.target.closest('.fd-cov-chip');
-    if (!chip) return;
-    var id = chip.getAttribute('data-cov-batch');
-    fdCovBatchOff[id] = !fdCovBatchOff[id];
+  // The button has to say what is on, or a filtered map looks like a map
+  // with less data on it.
+  function fdCovSyncBatchesLabel(ids){
+    var btn = document.getElementById('admin-coverage-batches-label');
+    if (!btn) return;
+    var off = ids.filter(function(id){ return fdCovBatchOff[id]; }).length;
+    btn.textContent = off
+      ? window.t('admin.coverageBatchesSome').replace('{n}', ids.length - off).replace('{total}', ids.length)
+      : window.t('admin.coverageBatchesAll').replace('{n}', ids.length);
+  }
+
+  function fdCovRedraw(){
     var el = document.getElementById('admin-coverage-legend');
     var rows = (el && el._rows) || [];
     fdCovDrawCells(rows, fdCovPrecision);
     fdCovRenderLegend(rows);
-  });
+  }
+  // The panel opens and closes; a click inside it is a filter change,
+  // not a reason to close -- ticking four batches should take one open.
+  (function wireCovBatchesDropdown(){
+    var btn = document.getElementById('admin-coverage-batches-btn');
+    var panel = document.getElementById('admin-coverage-batches-panel');
+    if (!btn || !panel) return;
+    btn.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      var open = !panel.hidden;
+      panel.hidden = open;
+      btn.setAttribute('aria-expanded', open ? 'false' : 'true');
+    });
+    panel.addEventListener('click', function(ev){ ev.stopPropagation(); });
+    document.addEventListener('click', function(){
+      if (panel.hidden) return;
+      panel.hidden = true;
+      btn.setAttribute('aria-expanded', 'false');
+    });
+    document.addEventListener('keydown', function(ev){
+      if (ev.key !== 'Escape' || panel.hidden) return;
+      panel.hidden = true;
+      btn.setAttribute('aria-expanded', 'false');
+    });
+    panel.addEventListener('change', function(ev){
+      var box = ev.target.closest && ev.target.closest('[data-cov-batch]');
+      if (!box) return;
+      fdCovBatchOff[box.getAttribute('data-cov-batch')] = !box.checked;
+      fdCovRedraw();
+    });
+    panel.addEventListener('click', function(ev){
+      var all = ev.target.closest && ev.target.closest('[data-cov-all]');
+      if (!all) return;
+      var on = all.getAttribute('data-cov-all') === 'on';
+      [].forEach.call(panel.querySelectorAll('[data-cov-batch]'), function(b){
+        fdCovBatchOff[b.getAttribute('data-cov-batch')] = !on;
+      });
+      fdCovRedraw();
+    });
+  })();
+
 
   var fdCovHiddenToggle = document.getElementById('admin-coverage-count-hidden');
   if (fdCovHiddenToggle) {
