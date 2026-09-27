@@ -121,6 +121,7 @@ const NOT_A_CHURCH = /\b(athletic association|cyo|cemeter(y|ies)|school|academy|
 // office. Held back rather than imported -- but the church is real, and
 // its name plus city is enough for enrich-batch.js to find the street
 // address later, so they go to their own file instead of the bin.
+const OTHER_FAITH = /\b(unitarian|universalist|religious science|new thought|scientolog|baha|buddhis|hindu|islamic|masjid|sikh|kingdom hall|latter-day)\b/i;
 const PO_BOX = /\bP\.?\s?O\.?\s+box\b/i;
 
 // Worship style, ministry names and the page's own edit link, all of
@@ -276,6 +277,7 @@ const DENOM_MAP = new Map(Object.entries({
   'Quaker': 'Quaker',
   'Church of Christ': 'Church of Christ',
   'Orthodox Christian': 'Orthodox',
+  'Evangelical Bible Church': 'Bible Church',
   'Progressive Church': 'Christian / General'
 }));
 
@@ -314,7 +316,7 @@ EXCLUDE_FILES.forEach(function (f) {
   console.log('  excluding ' + added.toLocaleString() + ' names already held, from ' + f);
 });
 
-const clean = [], skipped = [], poBox = [];
+const clean = [], skipped = [], poBox = [], review = [];
 const seenProfile = new Set();   // the site's own id for a church
 const seenRow = new Set();       // belt and braces: name + address
 const unmapped = new Map();
@@ -384,6 +386,9 @@ for (const f of files) {
     // real, and name plus city is enough for enrich-batch.js to find
     // its street address later.
     if (PO_BOX.test(street)) { poBox.push(row); continue; }
+    // Three in 22,270 -- faithstreet is a Christian directory. Not
+    // dropped, because the call is not mine: routed out for a look.
+    if (OTHER_FAITH.test(rawName) || OTHER_FAITH.test(row.denomination)) { review.push(row); continue; }
     if (alreadyHave.has(name.toLowerCase())) { already++; continue; }
     clean.push(row);
   }
@@ -431,6 +436,9 @@ batches.forEach(b => {
 fs.writeFileSync(path.join(OUT, '_po-box-only.csv'),
   HEAD + '\n' +
   poBox.map(r => csvLine([r.name, r.denomination, r.address, r.phone, r.website])).join('\n') + '\n');
+fs.writeFileSync(path.join(OUT, '_review-not-christian.csv'),
+  HEAD + '\n' +
+  review.map(r => csvLine([r.name, r.denomination, r.address, r.phone, r.website])).join('\n') + '\n');
 fs.writeFileSync(path.join(OUT, '_skipped.csv'),
   'name,denomination,address,phone,reason\n' +
   skipped.map(r => csvLine([r.name, r.denomination, r.address, r.phone, r.reason])).join('\n') + '\n');
@@ -454,6 +462,7 @@ console.log('duplicates    ' + dupProfile.toLocaleString() + ' (same profile, or
 console.log('no address    ' + noAddress.toLocaleString() + ' (no street number, or no city)');
 if (already) console.log('already held  ' + already.toLocaleString());
 console.log('not a church  ' + skipped.length.toLocaleString() + '  -> _skipped.csv');
+console.log('review faith  ' + review.length.toLocaleString() + '  -> _review-not-christian.csv');
 console.log('PO box only   ' + poBox.length.toLocaleString() + '  -> _po-box-only.csv (real churches, unusable address)');
 console.log('WRITTEN       ' + clean.length.toLocaleString() + ' churches in ' + batches.length + ' batches -> ' + OUT + '/');
 console.log('');
