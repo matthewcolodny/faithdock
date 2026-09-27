@@ -11614,7 +11614,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-27-v323 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-27-v324 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12526,6 +12526,52 @@ Groups</span>
     var zoomed = Math.abs((dirMap.getZoom() || 0) - dirAreaAnchor.zoom) >= 1;
     if (moved || zoomed) showDirSearchArea(true);
   }
+  // "Map area" is a placeholder, and it leaks: the same label is what
+  // the home page's "Churches near ___" heading reads. Ask Google what
+  // the centre is actually called and put that in instead.
+  function dirCityFromGeocode(results){
+    function pick(comps, types){
+      for (var i = 0; i < comps.length; i++) {
+        for (var j = 0; j < types.length; j++) {
+          if ((comps[i].types || []).indexOf(types[j]) !== -1) return comps[i];
+        }
+      }
+      return null;
+    }
+    for (var i = 0; i < results.length; i++) {
+      var comps = results[i].address_components || [];
+      // postal_town covers places that have no locality; sublocality
+      // catches the big-city neighbourhoods that have no locality either.
+      var city = pick(comps, ['locality', 'postal_town', 'sublocality']);
+      if (!city) continue;
+      var state = pick(comps, ['administrative_area_level_1']);
+      return state ? city.long_name + ', ' + state.short_name : city.long_name;
+    }
+    // Out in the country there may be no town at all -- the county is a
+    // better answer than "Map area".
+    for (i = 0; i < results.length; i++) {
+      var county = pick(results[i].address_components || [], ['administrative_area_level_2']);
+      if (county) return county.long_name;
+    }
+    return null;
+  }
+  function dirNameMapArea(lat, lng){
+    if (!(window.google && google.maps && google.maps.Geocoder)) return;
+    if (typeof window.fdRenameDirLocation !== 'function') return;
+    try {
+      new google.maps.Geocoder().geocode({ location: { lat: lat, lng: lng } },
+        function(results, status){
+          if (status !== 'OK' || !results || !results.length) return;
+          var label = dirCityFromGeocode(results);
+          // Only if the reader has not typed or searched something else
+          // in the meantime -- the reply can land after they have moved on.
+          var input = document.getElementById('dir-location-input');
+          if (!label || !input || input.value !== window.t('dir.thisMapArea')) return;
+          window.fdRenameDirLocation(label);
+        });
+    } catch (e) { /* quota, key restriction -- the placeholder stands */ }
+  }
+
   function wireDirSearchArea(){
     var btn = document.getElementById('dir-search-area');
     if (!btn || !dirMap || btn.dataset.wired) return;
@@ -12543,7 +12589,10 @@ Groups</span>
       // Goes through setDirLocation like every other way of choosing a
       // place, so the label, the pagination reset and the
       // remember-this-choice behaviour are all the ones already there.
+      // Searched at once with a placeholder rather than waiting on the
+      // geocoder: the results are the point, and the name is cosmetic.
       window.setDirLocation(c.lat(), c.lng(), window.t('dir.thisMapArea'));
+      dirNameMapArea(c.lat(), c.lng());
     });
   }
 
@@ -12733,7 +12782,7 @@ Groups</span>
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-27-v323',
+      'build 2026-09-27-v324',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -20491,6 +20540,20 @@ Groups</span>
     window.fdPaintLocationHeadings();
   }
   window.applyDirLocationLabel = applyDirLocationLabel;
+  // Renames the place already being searched, without searching again.
+  // The remembered copy is rewritten too, or a refresh brings back the
+  // placeholder the label just replaced.
+  window.fdRenameDirLocation = function(label){
+    if (!label) return;
+    applyDirLocationLabel(label);
+    try {
+      var raw = sessionStorage.getItem('fd_manual_location');
+      if (!raw) return;
+      var o = JSON.parse(raw);
+      o.label = label;
+      sessionStorage.setItem('fd_manual_location', JSON.stringify(o));
+    } catch (e) {}
+  };
   // Paint whatever the early head script already knows about --
   // either a manual location remembered from before this refresh, or
   // (failing that) the localStorage-cached last-known-location guess
