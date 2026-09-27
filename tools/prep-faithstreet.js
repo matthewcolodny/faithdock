@@ -450,7 +450,12 @@ for (let i = 0; i < tail.length; i += MAX) {
 }
 
 fs.mkdirSync(OUT, { recursive: true });
-fs.readdirSync(OUT).filter(f => f.endsWith('.csv')).forEach(f => fs.unlinkSync(path.join(OUT, f)));
+// Only this script's own output. Deleting every .csv here would take
+// the .geo.csv files with it -- results that cost money to produce and
+// that a re-run of this script cannot recreate.
+fs.readdirSync(OUT)
+  .filter(f => f.endsWith('.csv') && !/\.geo(-check|-fail)?\.csv$/.test(f) && !/\.dryrun\./.test(f))
+  .forEach(f => fs.unlinkSync(path.join(OUT, f)));
 const slug = s => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 const HEAD = 'name,denomination,address,phone,website';
 
