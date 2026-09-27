@@ -11614,7 +11614,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-27-v322 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-27-v323 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12501,26 +12501,49 @@ Groups</span>
     var btn = document.getElementById('dir-search-area');
     if (btn) btn.hidden = !on;
   }
+  // Where the current results were framed. Offering to search again is
+  // only worth it once the reader has actually gone somewhere else.
+  var dirAreaAnchor = null;
+  function dirSetAreaAnchor(){
+    if (!dirMap) return;
+    var c = dirMap.getCenter();
+    if (!c) return;
+    dirAreaAnchor = { lat: c.lat(), lng: c.lng(), zoom: dirMap.getZoom() };
+  }
+  // Measured against the viewport rather than in miles, so it means the
+  // same at every zoom: a third of a screen away, or a full zoom step.
+  // Any nudge at all used to raise it.
+  function dirMaybeOfferAreaSearch(){
+    if (dirMapProgrammaticMove || !dirMap) return;
+    if (!dirAreaAnchor) { dirSetAreaAnchor(); return; }
+    var c = dirMap.getCenter(), b = dirMap.getBounds();
+    if (!c || !b) return;
+    var ne = b.getNorthEast(), sw = b.getSouthWest();
+    var latSpan = Math.abs(ne.lat() - sw.lat()) || 1;
+    var lngSpan = Math.abs(ne.lng() - sw.lng()) || 1;
+    var moved = Math.abs(c.lat() - dirAreaAnchor.lat) / latSpan > 0.34
+             || Math.abs(c.lng() - dirAreaAnchor.lng) / lngSpan > 0.34;
+    var zoomed = Math.abs((dirMap.getZoom() || 0) - dirAreaAnchor.zoom) >= 1;
+    if (moved || zoomed) showDirSearchArea(true);
+  }
   function wireDirSearchArea(){
     var btn = document.getElementById('dir-search-area');
     if (!btn || !dirMap || btn.dataset.wired) return;
     btn.dataset.wired = '1';
     // dragend and zoom_changed only -- both are things a person does.
     // The generic 'idle' fires for our own pans as well.
-    dirMap.addListener('dragend', function(){
-      if (!dirMapProgrammaticMove) showDirSearchArea(true);
-    });
-    dirMap.addListener('zoom_changed', function(){
-      if (!dirMapProgrammaticMove) showDirSearchArea(true);
-    });
+    // On idle rather than dragend: a drag can be a flick that keeps
+    // gliding, and the centre at dragend is not where it comes to rest.
+    dirMap.addListener('idle', dirMaybeOfferAreaSearch);
     btn.addEventListener('click', function(){
       var c = dirMap.getCenter();
       if (!c) return;
+      if (typeof window.setDirLocation !== 'function') return;
       showDirSearchArea(false);
       // Goes through setDirLocation like every other way of choosing a
       // place, so the label, the pagination reset and the
       // remember-this-choice behaviour are all the ones already there.
-      setDirLocation(c.lat(), c.lng(), window.t('dir.thisMapArea'));
+      window.setDirLocation(c.lat(), c.lng(), window.t('dir.thisMapArea'));
     });
   }
 
@@ -12619,9 +12642,16 @@ Groups</span>
       }
     });
     // A fresh result set is the answer to wherever they just searched,
-    // so the offer to search here again starts hidden.
+    // so the offer to search here again starts hidden, and this framing
+    // becomes what "somewhere else" is measured from. After the camera
+    // settles -- fitBounds animates, and the centre mid-flight is not
+    // the one to remember.
     showDirSearchArea(false);
     wireDirSearchArea();
+    google.maps.event.addListenerOnce(dirMap, 'idle', function(){
+      dirSetAreaAnchor();
+      showDirSearchArea(false);
+    });
     // Created or resized while the tab was hidden renders grey until
     // told; harmless when it was already visible.
     google.maps.event.trigger(dirMap, 'resize');
@@ -12703,7 +12733,7 @@ Groups</span>
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-27-v322',
+      'build 2026-09-27-v323',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -20502,6 +20532,12 @@ Groups</span>
       sessionStorage.setItem('fd_manual_location', JSON.stringify({ lat: lat, lng: lng, label: label || null }));
     } catch(e) { /* private mode, storage full, etc. -- refresh just won't remember this */ }
   }
+
+  // Exported for the same reason applyDirLocationCoords is: the map
+  // lives in the earlier classic <script>, which cannot see a module's
+  // top-level names. "Search this area" called it and got a
+  // ReferenceError, which looked like a search returning nothing.
+  window.setDirLocation = setDirLocation;
 
   // Undoes everything setDirLocation() above does -- same shared state
   // (window.dirUserLat/Lng), same two synced text fields, same two
