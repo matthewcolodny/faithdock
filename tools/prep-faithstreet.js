@@ -301,20 +301,45 @@ const files = fs.readdirSync(IN).filter(f => f.toLowerCase().endsWith('.csv')).s
 if (!files.length) { console.error('No CSVs in ' + IN); process.exit(1); }
 
 const alreadyHave = new Set();
+// Matched on name AND city, never on name alone. Measured against the
+// live export of 1,949 churches: 2,062 scraped rows share a name with
+// one already held, and only 380 of those are in the same city. The
+// other 1,665 are different churches that happen to share a name --
+// "First Assembly of God" in Linden is not the one in San Antonio --
+// and a name-only match silently deleted every one of them, mostly in
+// cities that have never been imported at all.
+function excludeKey(name, city) {
+  return stripSuffix(tidy(name)).toLowerCase() + '|' + tidy(city).toUpperCase();
+}
+// The live export's city column is empty; the city sits inside address,
+// as "STREET, CITY, ST ZIP".
+function cityFromLiveAddress(addr) {
+  const parts = String(addr || '').split(',').map(s => s.trim()).filter(Boolean);
+  return parts.length >= 2 ? parts[parts.length - 2] : '';
+}
 EXCLUDE_FILES.forEach(function (f) {
   if (!fs.existsSync(f)) { console.error('  --exclude not found, ignoring: ' + f); return; }
   const rows = parseCsv(fs.readFileSync(f, 'utf8'));
   const h = rows[0].map(x => x.replace(/^﻿/, '').trim().toLowerCase());
   const ni = h.indexOf('name');
+  const ai = h.indexOf('address');
   if (ni === -1) { console.error('  --exclude has no "name" column: ' + f); return; }
+  if (ai === -1) {
+    console.error('  --exclude has no "address" column: ' + f);
+    console.error('  Refusing to match on name alone -- it drops ~4 real churches for');
+    console.error('  every duplicate it finds. Re-export with the address column.');
+    return;
+  }
   let added = 0;
   for (let i = 1; i < rows.length; i++) {
     const c = rows[i];
     if (!c || !c[ni]) continue;
-    alreadyHave.add(stripSuffix(tidy(c[ni])).toLowerCase());
+    const city = cityFromLiveAddress(c[ai]);
+    if (!city) continue;
+    alreadyHave.add(excludeKey(c[ni], city));
     added++;
   }
-  console.log('  excluding ' + added.toLocaleString() + ' names already held, from ' + f);
+  console.log('  excluding ' + added.toLocaleString() + ' name+city pairs already held, from ' + f);
 });
 
 const clean = [], skipped = [], poBox = [], review = [];
@@ -390,7 +415,7 @@ for (const f of files) {
     // Three in 22,270 -- faithstreet is a Christian directory. Not
     // dropped, because the call is not mine: routed out for a look.
     if (OTHER_FAITH.test(rawName) || OTHER_FAITH.test(row.denomination)) { review.push(row); continue; }
-    if (alreadyHave.has(name.toLowerCase())) { already++; continue; }
+    if (alreadyHave.has(excludeKey(name, city))) { already++; continue; }
     clean.push(row);
   }
 }
