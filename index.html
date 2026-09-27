@@ -11485,7 +11485,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-26-v316 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-26-v317 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12415,7 +12415,7 @@ Groups</span>
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-26-v316',
+      'build 2026-09-26-v317',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -12738,22 +12738,41 @@ Groups</span>
   // aims the map instead, and the profile is reached by the one piece
   // of the card that is allowed through.
   function wireMobileCardTaps(){
-    var grid = document.getElementById('directory-grid');
-    if (!grid) return;
-    grid.addEventListener('click', function(ev){
+    // On document, in the CAPTURE phase, and stopping propagation --
+    // none of which is fussiness. The thing that navigates is the
+    // [data-route] delegate, which is a bubble-phase listener on
+    // document that reads the route and calls go() itself; it never
+    // looks at defaultPrevented, so preventDefault does nothing to it.
+    // Its own comment says as much about the follow heart: the only
+    // thing that stops a card navigating is not letting the click reach
+    // it. Capturing at document runs before it, and stopPropagation
+    // means it never runs at all. Bound to document rather than the
+    // grid so it also survives the grid being re-rendered.
+    document.addEventListener('click', function(ev){
       if (window.innerWidth > 980) return;
-      var card = ev.target.closest && ev.target.closest('[data-church-name]');
+      if (!ev.target.closest || !ev.target.closest('#directory-grid')) return;
+      var card = ev.target.closest('[data-church-name]');
       if (!card) return;
       // The two things inside the card that keep their own behaviour.
+      // Returning here lets the click carry on to the delegate, which
+      // is how the profile link navigates at all.
       if (ev.target.closest('.dir-card-profile-link')) return;
       if (ev.target.closest('.follow-heart-card')) return;
       ev.preventDefault();
+      ev.stopPropagation();
+      // The filter overlay closes on a document click, which this has
+      // just cut off, so close it here rather than leaving it open over
+      // the map the tap was aiming at.
+      var fp = document.querySelector('#page-directory > .filter-panel');
+      if (fp) fp.classList.remove('open');
+      var fb = document.getElementById('dir-filter-icon-btn');
+      if (fb) fb.setAttribute('aria-expanded', 'false');
       var name = String(card.getAttribute('data-church-name') || '').toLowerCase();
       dirHoveredName = name;
       dirClearHotCard();
       card.classList.add('dir-card-hot');
       dirFocusMarker(name);
-    });
+    }, true);
   }
 
   // ---- Phone: the filter overlay -----------------------------------
