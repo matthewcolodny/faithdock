@@ -1649,10 +1649,13 @@
       'admin.importChurchesHint': 'Upload a CSV with a header row containing name (required) and any of: denomination, address, phone, website, logo_url. These are added as unclaimed listings — visible in the directory, with no owner until a church claims them. Addresses are automatically geocoded so distance search and the map work — this can take a moment for a large list.',
       'admin.addChurches': 'Add churches',
       'admin.importBatches': 'Import batches',
-      'admin.importBatchesHint': 'Recent CSV imports, most recent first. "Hide all" and "Delete all" only affect churches from that batch that are still unclaimed — anything already claimed by a real owner is left alone.',
+      'admin.importBatchesHint': 'Recent CSV imports, most recent first. "Hide all", "Show all" and "Delete all" only affect churches from that batch that are still unclaimed — anything already claimed by a real owner is left alone. "Show all" only brings back what "Hide all" hid: churches you hid one at a time stay hidden.',
       'admin.noImportBatches': 'No import batches yet.',
       'admin.batchChurchesCount': '{n} churches, {unclaimed} unclaimed', 'admin.batchNoUnclaimedLeft': 'All claimed — nothing left to hide or delete.',
-      'admin.hideAll': 'Hide all', 'admin.deleteAll': 'Delete all',
+      'admin.hideAll': 'Hide all', 'admin.showAll': 'Show all', 'admin.deleteAll': 'Delete all',
+      'admin.batchHiddenCount': '{n} hidden',
+      'admin.batchHiddenByHand': '({n} of them one at a time)',
+      'admin.batchShownSummary': '{n} shown again. Churches hidden one at a time were left hidden.',
       'admin.deleteBatchConfirm': 'Permanently delete {n} unclaimed churches from this batch? This can’t be undone.',
       'admin.batchHiddenSummary': 'Hid {n} churches from this batch.',
       'admin.batchDeletedSummary': 'Deleted {n} churches from this batch.',
@@ -2921,10 +2924,13 @@
       'admin.importChurchesHint': 'Sube un CSV con una fila de encabezado que contenga name (requerido) y cualquiera de: denomination, address, phone, website, logo_url. Se agregan como listados sin reclamar — visibles en el directorio, sin propietario hasta que una iglesia los reclame. Las direcciones se geocodifican automáticamente para que la búsqueda por distancia y el mapa funcionen — esto puede tardar un momento para una lista grande.',
       'admin.addChurches': 'Agregar iglesias',
       'admin.importBatches': 'Lotes de importación',
-      'admin.importBatchesHint': 'Importaciones de CSV recientes, las más nuevas primero. "Ocultar todas" y "Eliminar todas" solo afectan a las iglesias de ese lote que aún no han sido reclamadas — las que ya reclamó un propietario real no se tocan.',
+      'admin.importBatchesHint': 'Importaciones de CSV recientes, las más nuevas primero. "Ocultar todas", "Mostrar todas" y "Eliminar todas" solo afectan a las iglesias de ese lote que aún no han sido reclamadas — las que ya reclamó un propietario real no se tocan. "Mostrar todas" solo recupera lo que ocultó "Ocultar todas": las iglesias que ocultaste una por una siguen ocultas.',
       'admin.noImportBatches': 'Aún no hay lotes de importación.',
       'admin.batchChurchesCount': '{n} iglesias, {unclaimed} sin reclamar', 'admin.batchNoUnclaimedLeft': 'Todas reclamadas — no queda nada que ocultar ni eliminar.',
-      'admin.hideAll': 'Ocultar todas', 'admin.deleteAll': 'Eliminar todas',
+      'admin.hideAll': 'Ocultar todas', 'admin.showAll': 'Mostrar todas', 'admin.deleteAll': 'Eliminar todas',
+      'admin.batchHiddenCount': '{n} ocultas',
+      'admin.batchHiddenByHand': '({n} de ellas una por una)',
+      'admin.batchShownSummary': '{n} vueltas a mostrar. Las iglesias ocultadas una por una siguen ocultas.',
       'admin.deleteBatchConfirm': '¿Eliminar permanentemente {n} iglesias sin reclamar de este lote? Esto no se puede deshacer.',
       'admin.batchHiddenSummary': 'Se ocultaron {n} iglesias de este lote.',
       'admin.batchDeletedSummary': 'Se eliminaron {n} iglesias de este lote.',
@@ -11627,7 +11633,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-27-v326 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-27-v327 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12795,7 +12801,7 @@ Groups</span>
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-27-v326',
+      'build 2026-09-27-v327',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -40293,10 +40299,27 @@ Groups</span>
       var dateLabel = new Date(b.batch_date).toLocaleDateString(window.appLocale(), { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
       var filename = (b.source_filename || '').replace(/</g, '&lt;') || '—';
       var countLine = window.t('admin.batchChurchesCount').replace('{n}', b.row_count).replace('{unclaimed}', b.unclaimed_count);
+      if (Number(b.hidden_count || 0) > 0) {
+        countLine += ' · ' + window.t('admin.batchHiddenCount').replace('{n}', b.hidden_count);
+        // The difference is the ones hidden by hand, which Show all
+        // will not touch -- worth saying so before it is pressed.
+        var byHand = Number(b.hidden_count) - Number(b.batch_hidden_count || 0);
+        if (byHand > 0 && Number(b.batch_hidden_count || 0) > 0) {
+          countLine += ' ' + window.t('admin.batchHiddenByHand').replace('{n}', byHand);
+        }
+      }
       var batchIdAttr = String(b.import_batch_id).replace(/"/g, '&quot;');
+      // Only the button that would do something. Hiding an
+      // already-hidden batch reports "0 hidden" and looks broken; the
+      // same for showing one that is fully visible.
+      var nHidden = Number(b.hidden_count || 0);
+      var nBatchHidden = Number(b.batch_hidden_count || 0);
+      var canHide = b.unclaimed_count > 0 && nHidden < Number(b.row_count);
+      var canShow = nBatchHidden > 0;
       var actions = b.unclaimed_count > 0
         ? '<div class="registrant-actions">'
-          + '<button class="export-btn" data-hide-batch-id="' + batchIdAttr + '" style="padding:6px 14px;">' + window.t('admin.hideAll') + '</button>'
+          + (canHide ? '<button class="export-btn" data-hide-batch-id="' + batchIdAttr + '" style="padding:6px 14px;">' + window.t('admin.hideAll') + '</button>' : '')
+          + (canShow ? '<button class="export-btn" data-show-batch-id="' + batchIdAttr + '" style="padding:6px 14px;">' + window.t('admin.showAll') + '</button>' : '')
           + '<button class="export-btn" data-delete-batch-id="' + batchIdAttr + '" data-delete-batch-count="' + b.unclaimed_count + '" style="padding:6px 14px;color:var(--clay);">' + window.t('admin.deleteAll') + '</button>'
           + '</div>'
         : '<div class="registrant-actions"><span style="font-size:12px;color:var(--ink-mute);">' + window.t('admin.batchNoUnclaimedLeft') + '</span></div>';
@@ -41170,6 +41193,19 @@ Groups</span>
         hideBatchStatusEl.style.display = 'block';
         hideBatchStatusEl.style.color = hideBatchError ? 'var(--clay)' : 'var(--sage)';
         hideBatchStatusEl.textContent = hideBatchError ? hideBatchError.message : window.t('admin.batchHiddenSummary').replace('{n}', hiddenCount);
+      }
+      loadAdminPanel();
+      return;
+    }
+    var showBatchBtn = ev.target.closest ? ev.target.closest('[data-show-batch-id]') : null;
+    if (showBatchBtn) {
+      var showBatchStatusEl = document.getElementById('admin-import-batches-status');
+      var { data: shownCount, error: showBatchError } = await supabase.rpc('admin_show_import_batch', { p_batch_id: showBatchBtn.getAttribute('data-show-batch-id') });
+      if (showBatchStatusEl) {
+        showBatchStatusEl.style.display = 'block';
+        showBatchStatusEl.style.color = showBatchError ? 'var(--clay)' : 'var(--sage)';
+        showBatchStatusEl.textContent = showBatchError ? showBatchError.message
+          : window.t('admin.batchShownSummary').replace('{n}', shownCount);
       }
       loadAdminPanel();
       return;
