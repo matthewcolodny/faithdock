@@ -584,6 +584,7 @@
       'filters.more': 'More filters',
       'dir.splitResize': 'Drag to widen or narrow the results, or use the arrow keys',
       'dir.sheetResize': 'Drag to raise or lower the list, or use the arrow keys',
+      'dir.viewProfile': 'View Church Profile',
       'dir.mapSomeMissing': '{n} of these have no location on file and are not pinned.',
       'dir.mapOneMissing': 'One of these has no location on file and is not pinned.',
       'filters.noChurchesMatch': 'No churches match these filters. Try widening your search.',
@@ -1871,6 +1872,7 @@
       'filters.more': 'Más filtros',
       'dir.splitResize': 'Arrastra para ensanchar o estrechar los resultados, o usa las flechas',
       'dir.sheetResize': 'Arrastra para subir o bajar la lista, o usa las flechas',
+      'dir.viewProfile': 'Ver el perfil de la iglesia',
       'dir.mapSomeMissing': '{n} de estas no tienen ubicación registrada y no aparecen en el mapa.',
       'dir.mapOneMissing': 'Una de estas no tiene ubicación registrada y no aparece en el mapa.',
       'filters.noChurchesMatch': 'Ninguna iglesia coincide con estos filtros. Intenta ampliar tu búsqueda.',
@@ -4186,6 +4188,8 @@
     -webkit-tap-highlight-color:transparent;
   }
   .church-card:hover, .event-card:hover{border-color:var(--gold);transform:translateY(-2px);}
+  /* Drawn on the phone only, where the card no longer navigates on tap. */
+  .dir-card-profile-link{display:none;}
   .thumb{
     aspect-ratio:16/9;background:linear-gradient(135deg,#EFEADA,#E3DCC4);position:relative;
     display:flex;align-items:center;justify-content:center;
@@ -4866,8 +4870,35 @@
     }
     /* One card per row, whatever the phone's width. */
     body.dir-fullscreen #page-directory .dir-results-col #directory-grid.grid{
-      grid-template-columns:1fr;
+      grid-template-columns:1fr;gap:10px;
     }
+    /* Graphic beside the copy instead of a 16/9 band above it. A logo
+       that fills the card's width is most of a phone screen per church;
+       at 64px square, four or five fit where one did. */
+    body.dir-fullscreen #directory-grid .church-card{
+      display:grid;grid-template-columns:64px 1fr;gap:12px;
+      align-items:start;padding:12px;
+    }
+    body.dir-fullscreen #directory-grid .church-card .thumb{
+      width:64px;height:64px;aspect-ratio:auto;border-radius:10px;
+      /* !important because the logo variant sets padding inline, and an
+         inline style beats a stylesheet rule that does not say so. */
+      padding:6px !important;
+    }
+    body.dir-fullscreen #directory-grid .church-card .thumb svg{width:26px;height:26px;}
+    body.dir-fullscreen #directory-grid .church-card .card-body{padding:0;min-width:0;}
+    body.dir-fullscreen #directory-grid .church-card h3{font-size:16px;margin:4px 0 5px;}
+    body.dir-fullscreen #directory-grid .church-card .meta-row{margin-bottom:3px;}
+    /* The tap target for the profile, now that the card itself is not
+       one. Inline-block so it is only as wide as its own text. */
+    body.dir-fullscreen #directory-grid .dir-card-profile-link{
+      display:inline-block;margin-top:7px;font-size:13px;font-weight:600;
+      color:var(--gold-ink);border-bottom:1px solid var(--gold);
+      padding:2px 0;
+    }
+    /* No lift on tap -- there is no hover on a phone, and the transform
+       fires on tap and leaves the card shifted. */
+    body.dir-fullscreen #directory-grid .church-card:hover{transform:none;}
     /* Stays put while the sheet scrolls, so the handle is always there
        to drag. */
     #dir-sheet-grip{
@@ -11429,7 +11460,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-26-v309 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-26-v310 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12034,6 +12065,7 @@ Groups</span>
       // church card -- second-hand user data, and easy to miss when
       // thinking only about "this church's own fields".
       + (c.nextEvent ? '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>' + escapeHtml(formatChurchNextEventText(c.nextEvent)) + '</div>' : '')
+      + '<span class="dir-card-profile-link" data-i18n="dir.viewProfile">View Church Profile</span>'
       + '</div>';
     if(clickable){
       // The href is encodeURIComponent'd (already safe), but
@@ -12140,6 +12172,17 @@ Groups</span>
     }
     return null;
   }
+  // Opening a pin, lifting it above its neighbours and bringing it into
+  // view. Hovering a card, tapping a card and tapping a pin all want
+  // exactly this, so it lives here rather than three times over.
+  function dirFocusMarker(name){
+    var marker = name ? dirMarkerByName[name] : null;
+    if (!marker || !dirMap) return false;
+    marker.setZIndex(9999);
+    openDirInfo(marker, marker._fdChurch);
+    dirMap.panTo(marker.getPosition());
+    return true;
+  }
   function dirClearHotCard(){
     var hot = document.querySelectorAll('.dir-card-hot');
     for (var i = 0; i < hot.length; i++) hot[i].classList.remove('dir-card-hot');
@@ -12231,8 +12274,14 @@ Groups</span>
       var marker = new google.maps.Marker({
         position: pos, map: dirMap, title: displayChurchName(c.name)
       });
-      marker.addListener('click', function(){ openDirInfo(marker, c); });
       var key = String(c.name).toLowerCase();
+      // A phone has no hover, so the tap has to do both jobs: open the
+      // pin and bring its card up in the sheet.
+      marker.addListener('click', function(){
+        dirHoveredName = key;
+        openDirInfo(marker, c);
+        dirRevealCard(key);
+      });
       // The mirror of hovering a card. Deliberately no mouseout handler:
       // the info window is an overlay that sits over its own pin, so
       // moving onto it fires mouseout and closing there would flicker.
@@ -12241,8 +12290,7 @@ Groups</span>
       marker.addListener('mouseover', function(){
         if (dirHoveredName === key) return;
         dirHoveredName = key;
-        marker.setZIndex(9999);
-        openDirInfo(marker, c);
+        dirFocusMarker(key);
         dirRevealCard(key);
       });
       marker._fdChurch = c;
@@ -12471,17 +12519,12 @@ Groups</span>
     var grid = document.getElementById('directory-grid');
     if (!grid) return;
 
+    // Above its neighbours, opened, and panned into view -- in a dense
+    // metro the pin being pointed at is often behind three others, and
+    // panTo animates only when the target is close, so running down a
+    // list slides rather than teleports.
     function show(name){
-      var marker = name ? dirMarkerByName[name] : null;
-      if (!marker) { if (dirInfo) dirInfo.close(); return; }
-      // Above its neighbours while highlighted -- in a dense metro the
-      // pin being pointed at is often behind three others.
-      marker.setZIndex(9999);
-      openDirInfo(marker, marker._fdChurch);
-      // Bring the pin into view. panTo animates only when the target is
-      // close, so running down a list slides rather than teleports, and
-      // a pin already on screen barely moves.
-      dirMap.panTo(marker.getPosition());
+      if (!dirFocusMarker(name) && dirInfo) dirInfo.close();
     }
     function clear(){
       dirHoveredName = null;
@@ -12581,6 +12624,31 @@ Groups</span>
   if (window.innerWidth > 980) { moveFiltersIntoPills(); moveViewToggleIntoResults(); }
   else { wireMobileDirectory(); }
 
+  // ---- Phone: the card points at the map ---------------------------
+  // The card stays an <a> so it is still a link to keyboard and screen
+  // reader users and still opens in a new tab from a long press. What
+  // changes on a phone is the plain tap: it cancels the navigation and
+  // aims the map instead, and the profile is reached by the one piece
+  // of the card that is allowed through.
+  function wireMobileCardTaps(){
+    var grid = document.getElementById('directory-grid');
+    if (!grid) return;
+    grid.addEventListener('click', function(ev){
+      if (window.innerWidth > 980) return;
+      var card = ev.target.closest && ev.target.closest('[data-church-name]');
+      if (!card) return;
+      // The two things inside the card that keep their own behaviour.
+      if (ev.target.closest('.dir-card-profile-link')) return;
+      if (ev.target.closest('.follow-heart-card')) return;
+      ev.preventDefault();
+      var name = String(card.getAttribute('data-church-name') || '').toLowerCase();
+      dirHoveredName = name;
+      dirClearHotCard();
+      card.classList.add('dir-card-hot');
+      dirFocusMarker(name);
+    });
+  }
+
   // ---- Phone: the filter overlay -----------------------------------
   // The panel is MOVED out of the results sheet and up to the page. It
   // has to leave: the sheet is an overflow:auto box, so a panel inside
@@ -12618,6 +12686,7 @@ Groups</span>
       });
     }
     wireDirectorySheetGrip();
+    wireMobileCardTaps();
   }
 
   // ---- Phone: dragging the sheet up and down ------------------------
