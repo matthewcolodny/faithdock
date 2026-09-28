@@ -4296,6 +4296,36 @@
   .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
   @media (max-width:860px){.grid{grid-template-columns:1fr;}}
 
+  /* Home's "near you" rows swipe sideways instead of stacking. Three
+     full-width cards were three screens of scrolling to get past one
+     section; side by side they are one swipe, and the section below
+     stays in reach.
+     Only below 861px. Above it the three already sit in a row and a
+     rail would have nothing to scroll -- so the grid is left exactly as
+     it was rather than reimplemented in flex. */
+  @media (max-width:860px){
+    .fd-rail{
+      display:flex;gap:14px;
+      overflow-x:auto;overflow-y:hidden;
+      scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;
+      scrollbar-width:none;-ms-overflow-style:none;
+      /* Out to the screen edges and back in again, so a card can scroll
+         flush to the edge while the first one still lines up with the
+         heading above it. .wrap's own gutter is 28px. */
+      margin-left:-28px;margin-right:-28px;
+      padding-left:28px;padding-right:28px;
+      scroll-padding-left:28px;
+      /* Room under the row for the cards' shadow, which overflow would
+         otherwise clip. */
+      padding-bottom:6px;
+    }
+    .fd-rail::-webkit-scrollbar{display:none;}
+    .fd-rail > *{
+      scroll-snap-align:start;
+      flex:0 0 auto;width:78%;max-width:300px;
+    }
+  }
+
   .church-card, .event-card{
     background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
     overflow:hidden;transition:border-color .15s, transform .15s;display:block;
@@ -7289,7 +7319,7 @@
          whether churches are found or not, these are replaced. The one
          case that leaves them up is an RPC that never returns at all,
          and a still-loading look is the honest answer to that. -->
-    <div class="grid" id="home-church-grid">
+    <div class="grid fd-rail" id="home-church-grid">
       <div class="church-card fd-skel" aria-hidden="true"><div class="thumb"></div><div class="card-body"><div class="card-tag-row"><span class="tag fd-skel-box">&nbsp;</span></div><h3 class="fd-skel-box">&nbsp;</h3><div class="meta-row fd-skel-box">&nbsp;</div><div class="meta-row fd-skel-box">&nbsp;</div></div></div>
       <div class="church-card fd-skel" aria-hidden="true"><div class="thumb"></div><div class="card-body"><div class="card-tag-row"><span class="tag fd-skel-box">&nbsp;</span></div><h3 class="fd-skel-box">&nbsp;</h3><div class="meta-row fd-skel-box">&nbsp;</div><div class="meta-row fd-skel-box">&nbsp;</div></div></div>
       <div class="church-card fd-skel" aria-hidden="true"><div class="thumb"></div><div class="card-body"><div class="card-tag-row"><span class="tag fd-skel-box">&nbsp;</span></div><h3 class="fd-skel-box">&nbsp;</h3><div class="meta-row fd-skel-box">&nbsp;</div><div class="meta-row fd-skel-box">&nbsp;</div></div></div>
@@ -7306,7 +7336,7 @@
     <!-- Same three placeholders as the church grid above, and the same
          reasoning. Event cards share the .church-card/.event-card shell
          so one skeleton shape fits both. -->
-    <div class="grid" id="home-event-grid">
+    <div class="grid fd-rail" id="home-event-grid">
       <div class="event-card fd-skel" aria-hidden="true"><div class="thumb"></div><div class="card-body"><div class="card-tag-row"><span class="tag fd-skel-box">&nbsp;</span></div><h3 class="fd-skel-box">&nbsp;</h3><div class="meta-row fd-skel-box">&nbsp;</div><div class="meta-row fd-skel-box">&nbsp;</div></div></div>
       <div class="event-card fd-skel" aria-hidden="true"><div class="thumb"></div><div class="card-body"><div class="card-tag-row"><span class="tag fd-skel-box">&nbsp;</span></div><h3 class="fd-skel-box">&nbsp;</h3><div class="meta-row fd-skel-box">&nbsp;</div><div class="meta-row fd-skel-box">&nbsp;</div></div></div>
       <div class="event-card fd-skel" aria-hidden="true"><div class="thumb"></div><div class="card-body"><div class="card-tag-row"><span class="tag fd-skel-box">&nbsp;</span></div><h3 class="fd-skel-box">&nbsp;</h3><div class="meta-row fd-skel-box">&nbsp;</div><div class="meta-row fd-skel-box">&nbsp;</div></div></div>
@@ -11932,7 +11962,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v356 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v357 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13183,7 +13213,7 @@ Groups</span>
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-28-v356',
+      'build 2026-09-28-v357',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
