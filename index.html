@@ -11791,7 +11791,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-27-v338 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-27-v339 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12529,6 +12529,20 @@ Groups</span>
     // negative y walks the pin down the screen.
     dirMap.panBy(0, -Math.round(h * 0.24));
   }
+  // Real hover only. A phone synthesises mouseover from touch, so
+  // dragging the map across a pin fired the hover handler, which panned
+  // the map, which dragged more pins under the finger -- a feedback
+  // loop that reads as the map rendering slowly. Tapping is handled
+  // separately and does not go through here.
+  //
+  // hover:hover rather than a touch test: what matters is whether the
+  // device can hover without committing to anything, which is the
+  // gesture this code is for. A laptop with a touchscreen answers yes
+  // and keeps its hover.
+  function fdCanHover(){
+    return !window.matchMedia || window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  }
+
   function dirFocusMarker(name){
     var marker = name ? dirMarkerByName[name] : null;
     if (!marker || !dirMap) return false;
@@ -12857,12 +12871,14 @@ Groups</span>
       // moving onto it fires mouseout and closing there would flicker.
       // The highlight clears when the next thing is hovered, or when the
       // pointer enters the results column.
-      marker.addListener('mouseover', function(){
-        if (dirHoveredName === key) return;
-        dirHoveredName = key;
-        dirFocusMarker(key);
-        dirRevealCard(key);
-      });
+      if (fdCanHover()) {
+        marker.addListener('mouseover', function(){
+          if (dirHoveredName === key) return;
+          dirHoveredName = key;
+          dirFocusMarker(key);
+          dirRevealCard(key);
+        });
+      }
       marker._fdChurch = c;
       dirMarkerByName[key] = marker;
       dirMarkers.push(marker);
@@ -12969,7 +12985,7 @@ Groups</span>
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-27-v338',
+      'build 2026-09-27-v339',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -13193,6 +13209,10 @@ Groups</span>
       dirMarkers.forEach(function(m){ m.setZIndex(null); });
     }
 
+    // Same reasoning on the list side: a tap synthesises mouseover, so
+    // on a phone every tap ran the hover path and panned the map a
+    // moment before the tap handler did it again.
+    if (!fdCanHover()) return;
     grid.addEventListener('mouseover', function(ev){
       // Nothing to point at when the map is hidden (below 860px) or has
       // not been built.
