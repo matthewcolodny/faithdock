@@ -3499,6 +3499,87 @@
       localStorage.setItem('fd_grid_counts', JSON.stringify(all));
     } catch(e) { /* private mode -- next visit just guesses three again */ }
   };
+  // ---- Arrows on the home carousels --------------------------------
+  //
+  // A rail that scrolls sideways is obvious with a thumb on it and
+  // invisible with a mouse, so each one gets a chevron. Each is hidden
+  // at the end it has reached: a dead arrow tells you nothing, and its
+  // absence says there is nothing further that way.
+  //
+  // Delegated and observed rather than bound per button, because the
+  // rails are repainted from the network after this runs -- paintGrid
+  // replaces the grid's innerHTML, so anything bound to a card is gone,
+  // while the buttons are siblings of the grid and survive.
+  window.fdWireRails = function(){
+    var rails = document.querySelectorAll('.fd-rail');
+    for (var i = 0; i < rails.length; i++) syncRail(rails[i]);
+  };
+  function railButtons(rail){
+    var wrap = rail.parentElement;
+    if (!wrap) return { prev: null, next: null };
+    return {
+      prev: wrap.querySelector('.fd-rail-prev'),
+      next: wrap.querySelector('.fd-rail-next')
+    };
+  }
+  function syncRail(rail){
+    var b = railButtons(rail);
+    // 1px of slack: scrollLeft and scrollWidth are fractional once the
+    // cards are a percentage wide, and an exact comparison leaves the
+    // arrow showing at a end it has already reached.
+    var maxLeft = rail.scrollWidth - rail.clientWidth;
+    var scrollable = maxLeft > 1;
+    if (b.prev) b.prev.hidden = !scrollable || rail.scrollLeft <= 1;
+    if (b.next) b.next.hidden = !scrollable || rail.scrollLeft >= maxLeft - 1;
+  }
+  (function wireRails(){
+    // One card plus the gap, so a press lands the next card where the
+    // last one was rather than moving by some arbitrary fraction.
+    function step(rail){
+      var first = rail.firstElementChild;
+      if (!first) return Math.round(rail.clientWidth * 0.8);
+      var gap = parseFloat(getComputedStyle(rail).columnGap) || 0;
+      return Math.round(first.getBoundingClientRect().width + gap);
+    }
+    document.addEventListener('click', function(ev){
+      var btn = ev.target.closest && ev.target.closest('.fd-rail-btn');
+      if (!btn) return;
+      var rail = document.getElementById(btn.getAttribute('data-rail'));
+      if (!rail) return;
+      ev.preventDefault();
+      rail.scrollBy({ left: step(rail) * Number(btn.getAttribute('data-rail-dir') || 1), behavior: 'smooth' });
+    });
+    // This block lives in a <head> script, which runs before any of the
+    // markup exists -- wiring the rails here found nothing at all and
+    // left both arrows hidden for good. The click delegation above is
+    // on document and is fine either way; only the per-rail work has to
+    // wait for the elements.
+    function attach(){
+      var rails = document.querySelectorAll('.fd-rail');
+      for (var i = 0; i < rails.length; i++) {
+        (function(rail){
+          syncRail(rail);
+          rail.addEventListener('scroll', function(){ syncRail(rail); }, { passive: true });
+          // The cards arrive from the network well after this runs, and
+          // again whenever the location changes. paintGrid assigns to
+          // the grid's innerHTML and keeps the element, so an observer
+          // on it survives every repaint.
+          if (window.MutationObserver) {
+            new MutationObserver(function(){ syncRail(rail); })
+              .observe(rail, { childList: true });
+          }
+        })(rails[i]);
+      }
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', attach);
+    else attach();
+
+    window.addEventListener('resize', function(){
+      var r = document.querySelectorAll('.fd-rail');
+      for (var j = 0; j < r.length; j++) syncRail(r[j]);
+    });
+  })();
+
   window.fdTrimSkeletons = function(){
     var all = {};
     try { all = JSON.parse(localStorage.getItem('fd_grid_counts') || '{}') || {}; } catch(e) { return; }
@@ -4303,6 +4384,12 @@
      Only below 861px. Above it the three already sit in a row and a
      rail would have nothing to scroll -- so the grid is left exactly as
      it was rather than reimplemented in flex. */
+  /* Always relative, so the arrows have something to sit on the moment
+     the rail exists. */
+  .fd-rail-wrap{position:relative;}
+  /* No rail above 861px -- the three cards already fit -- so no arrows
+     either. */
+  .fd-rail-btn{display:none;}
   @media (max-width:860px){
     .fd-rail{
       display:flex;gap:14px;
@@ -4320,6 +4407,22 @@
       padding-bottom:6px;
     }
     .fd-rail::-webkit-scrollbar{display:none;}
+    /* Sitting on the row rather than beside the heading, so the thing
+       you press is next to the thing it moves. Hidden at whichever end
+       the rail has reached: a dead arrow tells you nothing, and its
+       absence tells you there is nothing further that way. */
+    .fd-rail-btn{
+      position:absolute;top:calc(50% - 3px);transform:translateY(-50%);
+      display:flex;align-items:center;justify-content:center;
+      width:34px;height:34px;padding:0;border-radius:50%;
+      border:1px solid var(--line);background:var(--card);color:var(--ink);
+      box-shadow:0 2px 10px rgba(0,0,0,.20);cursor:pointer;z-index:3;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .fd-rail-btn svg{width:15px;height:15px;}
+    .fd-rail-btn[hidden]{display:none;}
+    .fd-rail-prev{left:-8px;}
+    .fd-rail-next{right:-8px;}
     .fd-rail > *{
       scroll-snap-align:start;
       flex:0 0 auto;width:78%;max-width:300px;
@@ -7336,10 +7439,14 @@
          whether churches are found or not, these are replaced. The one
          case that leaves them up is an RPC that never returns at all,
          and a still-loading look is the honest answer to that. -->
-    <div class="grid fd-rail" id="home-church-grid">
+<div class="fd-rail-wrap">
+      <button type="button" class="fd-rail-btn fd-rail-prev" data-rail="home-church-grid" data-rail-dir="-1" data-i18n-aria="common.prev" aria-label="Prev" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <div class="grid fd-rail" id="home-church-grid">
       <div class="church-card fd-skel" aria-hidden="true"><div class="thumb"></div><div class="card-body"><div class="card-tag-row"><span class="tag fd-skel-box">&nbsp;</span></div><h3 class="fd-skel-box">&nbsp;</h3><div class="meta-row fd-skel-box">&nbsp;</div><div class="meta-row fd-skel-box">&nbsp;</div></div></div>
       <div class="church-card fd-skel" aria-hidden="true"><div class="thumb"></div><div class="card-body"><div class="card-tag-row"><span class="tag fd-skel-box">&nbsp;</span></div><h3 class="fd-skel-box">&nbsp;</h3><div class="meta-row fd-skel-box">&nbsp;</div><div class="meta-row fd-skel-box">&nbsp;</div></div></div>
       <div class="church-card fd-skel" aria-hidden="true"><div class="thumb"></div><div class="card-body"><div class="card-tag-row"><span class="tag fd-skel-box">&nbsp;</span></div><h3 class="fd-skel-box">&nbsp;</h3><div class="meta-row fd-skel-box">&nbsp;</div><div class="meta-row fd-skel-box">&nbsp;</div></div></div>
+    </div>
+      <button type="button" class="fd-rail-btn fd-rail-next" data-rail="home-church-grid" data-rail-dir="1" data-i18n-aria="common.next" aria-label="Next" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
     </div>
 
     <div class="arch-divider">
@@ -7353,10 +7460,14 @@
     <!-- Same three placeholders as the church grid above, and the same
          reasoning. Event cards share the .church-card/.event-card shell
          so one skeleton shape fits both. -->
-    <div class="grid fd-rail" id="home-event-grid">
+<div class="fd-rail-wrap">
+      <button type="button" class="fd-rail-btn fd-rail-prev" data-rail="home-event-grid" data-rail-dir="-1" data-i18n-aria="common.prev" aria-label="Prev" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <div class="grid fd-rail" id="home-event-grid">
       <div class="event-card fd-skel" aria-hidden="true"><div class="thumb"></div><div class="card-body"><div class="card-tag-row"><span class="tag fd-skel-box">&nbsp;</span></div><h3 class="fd-skel-box">&nbsp;</h3><div class="meta-row fd-skel-box">&nbsp;</div><div class="meta-row fd-skel-box">&nbsp;</div></div></div>
       <div class="event-card fd-skel" aria-hidden="true"><div class="thumb"></div><div class="card-body"><div class="card-tag-row"><span class="tag fd-skel-box">&nbsp;</span></div><h3 class="fd-skel-box">&nbsp;</h3><div class="meta-row fd-skel-box">&nbsp;</div><div class="meta-row fd-skel-box">&nbsp;</div></div></div>
       <div class="event-card fd-skel" aria-hidden="true"><div class="thumb"></div><div class="card-body"><div class="card-tag-row"><span class="tag fd-skel-box">&nbsp;</span></div><h3 class="fd-skel-box">&nbsp;</h3><div class="meta-row fd-skel-box">&nbsp;</div><div class="meta-row fd-skel-box">&nbsp;</div></div></div>
+    </div>
+      <button type="button" class="fd-rail-btn fd-rail-next" data-rail="home-event-grid" data-rail-dir="1" data-i18n-aria="common.next" aria-label="Next" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
     </div>
 
     <!-- Name the place in the headings' FIRST painted frame.
@@ -11979,7 +12090,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v359 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v360 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13280,7 +13391,7 @@ Groups</span>
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-28-v359',
+      'build 2026-09-28-v360',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
