@@ -1623,6 +1623,11 @@
       'admin.coverageStop': 'Stop', 'admin.coverageClearPreview': 'Clear preview',
       'admin.coverageAddedIndividually': 'Added individually',
       'admin.coverageBatches': 'Batches',
+      'admin.coverageDetail': 'Map detail',
+      'admin.coverageRoads': 'Roads', 'admin.coveragePlaces': 'Shops and places',
+      'admin.coverageLabels': 'Place names', 'admin.coverageTerrain': 'Parks and water',
+      'admin.coverageCellCount': '{n} churches here',
+      'admin.coverageMoreBatches': '+{n} more batches',
       'admin.coverageBatchesAll': 'All {n} batches',
       'admin.coverageBatchesSome': '{n} of {total} batches',
       'admin.coverageAllOn': 'Show all', 'admin.coverageAllOff': 'Hide all',
@@ -2906,6 +2911,11 @@
       'admin.coverageStop': 'Detener', 'admin.coverageClearPreview': 'Borrar vista previa',
       'admin.coverageAddedIndividually': 'Añadidas individualmente',
       'admin.coverageBatches': 'Lotes',
+      'admin.coverageDetail': 'Detalle del mapa',
+      'admin.coverageRoads': 'Carreteras', 'admin.coveragePlaces': 'Comercios y lugares',
+      'admin.coverageLabels': 'Nombres de lugares', 'admin.coverageTerrain': 'Parques y agua',
+      'admin.coverageCellCount': '{n} iglesias aquí',
+      'admin.coverageMoreBatches': '+{n} lotes más',
       'admin.coverageBatchesAll': 'Los {n} lotes',
       'admin.coverageBatchesSome': '{n} de {total} lotes',
       'admin.coverageAllOn': 'Mostrar todos', 'admin.coverageAllOff': 'Ocultar todos',
@@ -8123,6 +8133,20 @@ Groups</span>
     <label class="filter-check" style="margin-top:10px;"><input type="checkbox" id="admin-coverage-count-hidden" checked> <span data-i18n="admin.coverageCountHidden">Count hidden churches</span></label>
     <div class="fd-cov-bar">
       <div class="fd-cov-drop">
+        <button type="button" id="admin-coverage-detail-btn" class="export-btn fd-cov-drop-btn" aria-expanded="false">
+          <span data-i18n="admin.coverageDetail">Map detail</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div id="admin-coverage-detail-panel" class="fd-cov-drop-panel" hidden style="width:240px;">
+          <div class="fd-cov-list">
+            <label class="fd-cov-row"><input type="checkbox" data-cov-detail="roads"><span class="fd-cov-name" data-i18n="admin.coverageRoads">Roads</span></label>
+            <label class="fd-cov-row"><input type="checkbox" data-cov-detail="places"><span class="fd-cov-name" data-i18n="admin.coveragePlaces">Shops and places</span></label>
+            <label class="fd-cov-row"><input type="checkbox" data-cov-detail="labels"><span class="fd-cov-name" data-i18n="admin.coverageLabels">Place names</span></label>
+            <label class="fd-cov-row"><input type="checkbox" data-cov-detail="terrain"><span class="fd-cov-name" data-i18n="admin.coverageTerrain">Parks and water</span></label>
+          </div>
+        </div>
+      </div>
+      <div class="fd-cov-drop">
         <button type="button" id="admin-coverage-batches-btn" class="export-btn fd-cov-drop-btn" aria-expanded="false">
           <span id="admin-coverage-batches-label" data-i18n="admin.coverageBatches">Batches</span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
@@ -11686,7 +11710,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-27-v330 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-27-v331 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12854,7 +12878,7 @@ Groups</span>
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-27-v330',
+      'build 2026-09-27-v331',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -40007,6 +40031,48 @@ Groups</span>
     return Math.max(cellMetres * 0.08, Math.min(cellMetres * 0.62, r));
   }
 
+  // What a coverage map is for is the circles. Everything Google draws
+  // underneath is context, and past a certain density it is noise --
+  // road casing in particular reads as data at a glance. Off by default
+  // for roads and shops; kept per browser, since it is a preference
+  // about reading the map rather than anything about the data.
+  var FD_COV_DETAIL_KEY = 'fd_cov_detail';
+  var fdCovDetail = { roads: false, places: false, labels: true, terrain: true };
+  try {
+    var savedDetail = localStorage.getItem(FD_COV_DETAIL_KEY);
+    if (savedDetail) {
+      var parsedDetail = JSON.parse(savedDetail);
+      Object.keys(fdCovDetail).forEach(function(k){
+        if (typeof parsedDetail[k] === 'boolean') fdCovDetail[k] = parsedDetail[k];
+      });
+    }
+  } catch (e) {}
+
+  function fdCovMapStyles(){
+    var st = [];
+    if (!fdCovDetail.roads) st.push({ featureType: 'road', stylers: [{ visibility: 'off' }] });
+    if (!fdCovDetail.places) st.push(
+      { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+      { featureType: 'transit', stylers: [{ visibility: 'off' }] });
+    if (!fdCovDetail.terrain) st.push(
+      { featureType: 'landscape.natural', stylers: [{ visibility: 'off' }] },
+      { featureType: 'water', elementType: 'labels', stylers: [{ visibility: 'off' }] });
+    // Last, so it wins over anything above that re-enables a label.
+    if (!fdCovDetail.labels) st.push({ elementType: 'labels', stylers: [{ visibility: 'off' }] });
+    return st;
+  }
+  function fdCovApplyDetail(){
+    if (fdCovMap && fdCovMap.setOptions) fdCovMap.setOptions({ styles: fdCovMapStyles() });
+    try { localStorage.setItem(FD_COV_DETAIL_KEY, JSON.stringify(fdCovDetail)); } catch (e) {}
+  }
+
+  // One window reused. Opening a fresh InfoWindow per circle leaves the
+  // old ones alive and the map slowly fills with them.
+  var fdCovInfo = null;
+  function fdCovBatchLabel(id){
+    return id ? (id.split('_').slice(1).join('_') || id) : window.t('admin.coverageAddedIndividually');
+  }
+
   function fdCovDrawCells(rows, precision){
     fdCovClear(fdCovCircles);
     // One circle per cell, coloured by whichever batch contributed most
@@ -40026,10 +40092,15 @@ Groups</span>
       var shown = Number(r.n) - (countHidden ? 0 : Number(r.hidden));
       if (shown <= 0) return;
       var key = r.cell_lat + ',' + r.cell_lng;
-      var cell = byCell[key] || (byCell[key] = { lat: r.cell_lat, lng: r.cell_lng, total: 0, top: null, topN: 0, hidden: 0 });
+      var cell = byCell[key] || (byCell[key] = { lat: r.cell_lat, lng: r.cell_lng, total: 0, top: null, topN: 0, hidden: 0, batches: {} });
       cell.total += shown;
       cell.hidden += Number(r.hidden);
-      if (shown > cell.topN) { cell.topN = shown; cell.top = r.import_batch_id || ''; }
+      // Kept per batch, not just the winner: a circle is coloured by
+      // whichever batch contributed most, and the hover is the only
+      // place that can say what else is under it.
+      var bid = r.import_batch_id || '';
+      cell.batches[bid] = (cell.batches[bid] || 0) + shown;
+      if (shown > cell.topN) { cell.topN = shown; cell.top = bid; }
     });
 
     var total = 0, cells = 0, hidden = 0;
@@ -40041,8 +40112,34 @@ Groups</span>
         map: fdCovMap, center: { lat: c.lat, lng: c.lng },
         radius: fdCovRadius(c.total, precision),
         strokeColor: colour, strokeOpacity: 0.85, strokeWeight: 1,
-        fillColor: colour, fillOpacity: 0.32, clickable: false
+        fillColor: colour, fillOpacity: 0.32, clickable: true
       });
+      // Which batch put these here is the question the map exists to
+      // answer, and the colour alone only answers it for whoever is
+      // holding the legend open.
+      circle.addListener('mouseover', function(ev){
+        if (!fdCovInfo) fdCovInfo = new google.maps.InfoWindow({ disableAutoPan: true });
+        var ids = Object.keys(c.batches).sort(function(a, b){ return c.batches[b] - c.batches[a]; });
+        var lines = ids.slice(0, 6).map(function(id){
+          return '<div style="display:flex;align-items:center;gap:6px;margin-top:3px;">'
+            + '<span style="width:9px;height:9px;border-radius:50%;background:' + fdCovColour(id) + ';flex:0 0 auto;"></span>'
+            + '<span style="flex:1 1 auto;">' + escapeHtml(fdCovBatchLabel(id)) + '</span>'
+            + '<span style="color:#6b6b6b;">' + c.batches[id].toLocaleString() + '</span>'
+            + '</div>';
+        }).join('');
+        if (ids.length > 6) {
+          lines += '<div style="color:#6b6b6b;margin-top:3px;">'
+            + escapeHtml(window.t('admin.coverageMoreBatches').replace('{n}', ids.length - 6)) + '</div>';
+        }
+        fdCovInfo.setContent('<div style="font-family:inherit;font-size:12.5px;color:#16233F;min-width:170px;">'
+          + '<div style="font-weight:600;">' + escapeHtml(window.t('admin.coverageCellCount').replace('{n}', c.total.toLocaleString())) + '</div>'
+          + lines + '</div>');
+        fdCovInfo.setPosition(ev && ev.latLng ? ev.latLng : { lat: c.lat, lng: c.lng });
+        fdCovInfo.open({ map: fdCovMap });
+      });
+      // No mouseout close: the circles sit edge to edge at low zoom and
+      // crossing between two would flicker the window shut and open.
+      // The next hover replaces it, and a click on open map closes it.
       fdCovCircles.push(circle);
     });
     return { total: total, cells: cells, hidden: hidden };
@@ -40129,6 +40226,38 @@ Groups</span>
   }
   // The panel opens and closes; a click inside it is a filter change,
   // not a reason to close -- ticking four batches should take one open.
+  (function wireCovDetailDropdown(){
+    var btn = document.getElementById('admin-coverage-detail-btn');
+    var panel = document.getElementById('admin-coverage-detail-panel');
+    if (!btn || !panel) return;
+    [].forEach.call(panel.querySelectorAll('[data-cov-detail]'), function(box){
+      box.checked = !!fdCovDetail[box.getAttribute('data-cov-detail')];
+    });
+    btn.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      var open = !panel.hidden;
+      panel.hidden = open;
+      btn.setAttribute('aria-expanded', open ? 'false' : 'true');
+    });
+    panel.addEventListener('click', function(ev){ ev.stopPropagation(); });
+    document.addEventListener('click', function(){
+      if (panel.hidden) return;
+      panel.hidden = true;
+      btn.setAttribute('aria-expanded', 'false');
+    });
+    document.addEventListener('keydown', function(ev){
+      if (ev.key !== 'Escape' || panel.hidden) return;
+      panel.hidden = true;
+      btn.setAttribute('aria-expanded', 'false');
+    });
+    panel.addEventListener('change', function(ev){
+      var box = ev.target.closest && ev.target.closest('[data-cov-detail]');
+      if (!box) return;
+      fdCovDetail[box.getAttribute('data-cov-detail')] = box.checked;
+      fdCovApplyDetail();
+    });
+  })();
+
   (function wireCovBatchesDropdown(){
     var btn = document.getElementById('admin-coverage-batches-btn');
     var panel = document.getElementById('admin-coverage-batches-panel');
@@ -40205,8 +40334,10 @@ Groups</span>
         center: { lat: 31.0, lng: -99.0 },   // Texas, where the data is
         zoom: 6,
         mapTypeControl: false, streetViewControl: false, fullscreenControl: false,
-        clickableIcons: false
+        clickableIcons: false,
+        styles: fdCovMapStyles()
       });
+      fdCovMap.addListener('click', function(){ if (fdCovInfo) fdCovInfo.close(); });
       // Debounced: a pinch fires dozens of zoom events and each one
       // would otherwise be its own round trip.
       var t = null;
