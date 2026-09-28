@@ -1633,7 +1633,10 @@
       'admin.coverageDenomsNeedMigration': 'Denomination filtering needs migration 104_coverage_denominations.sql. The map works without it.',
       'admin.coverageDenomsAll': 'All {n} denominations',
       'admin.coverageDenomsSome': '{n} of {total} denominations',
-      'admin.coverageNoDenomination': '(no denomination)',
+      // Sat directly under 'Non-denominational' and read as the same
+      // row twice. They are opposites: one is a church that says it has
+      // no denomination, the other is a field nobody filled in.
+      'admin.coverageNoDenomination': 'Not recorded',
       'admin.coverageRoads': 'Roads', 'admin.coveragePlaces': 'Shops and places',
       'admin.coverageLabels': 'Place names', 'admin.coverageTerrain': 'Parks and water',
       'admin.coverageCellCount': '{n} churches here',
@@ -2941,7 +2944,7 @@
       'admin.coverageDenomsNeedMigration': 'El filtro por denominación necesita la migración 104_coverage_denominations.sql. El mapa funciona sin ella.',
       'admin.coverageDenomsAll': 'Las {n} denominaciones',
       'admin.coverageDenomsSome': '{n} de {total} denominaciones',
-      'admin.coverageNoDenomination': '(sin denominación)',
+      'admin.coverageNoDenomination': 'Sin registrar',
       'admin.coverageRoads': 'Carreteras', 'admin.coveragePlaces': 'Comercios y lugares',
       'admin.coverageLabels': 'Nombres de lugares', 'admin.coverageTerrain': 'Parques y agua',
       'admin.coverageCellCount': '{n} iglesias aquí',
@@ -11828,7 +11831,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v342 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v343 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13029,7 +13032,7 @@ Groups</span>
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-28-v342',
+      'build 2026-09-28-v343',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
