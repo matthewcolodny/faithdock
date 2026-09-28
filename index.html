@@ -11962,7 +11962,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v357 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v358 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12290,6 +12290,55 @@ Groups</span>
     + '<path d="M2 13L12 5L22 13Z" />'
     + '<path fill-rule="evenodd" d="M6 13H18V21H6ZM9.5 21V16.5A2.5 2.5 0 0 1 14.5 16.5V21Z" />'
     + '</svg>';
+
+  // The map pin, carrying the same church silhouette a logoless card
+  // shows instead of Google's red teardrop.
+  //
+  // Gold body, navy glyph. That is the one pair that reads on BOTH map
+  // palettes without the pin having to know which is on: navy would sink
+  // into the night map's own #242f3e geometry, and the day map is light
+  // enough that the gold needs the navy outline to hold an edge. Doing
+  // it with one drawing means no redraw on the theme toggle and no
+  // second set of markers to keep in step.
+  //
+  // The glyph's own paths are repeated rather than shared with
+  // buildingIcon: that one is an <svg> element with its own viewBox and
+  // fill, and nesting it inside another <svg> to re-anchor and re-scale
+  // it is more moving parts than the four paths are worth.
+  // 40x52 rather than the 34x44 the artwork is drawn at. At 34 the
+  // glyph sits in a 21px disc and reads as a dark blob, which defeats
+  // the point of putting it there; at 40 the cross and the door are
+  // legible. Still close to Google's own 27x43 pin, so a dense map  // does not turn into a wall of badges. The viewBox stays 34x44 and
+  // scales up, so the drawing is resolution-independent.
+  var FD_PIN_W = 40, FD_PIN_H = 52;
+  function fdChurchPinSvg(){
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="' + FD_PIN_W + '" height="' + FD_PIN_H + '" viewBox="0 0 34 44">'
+      + '<path d="M17 43C17 43 32.5 25.6 32.5 16.5A15.5 15.5 0 1 0 1.5 16.5C1.5 25.6 17 43 17 43Z" fill="#C9A227" stroke="#16233F" stroke-width="1.6" stroke-linejoin="round"/>'
+      + '<circle cx="17" cy="16.3" r="10.6" fill="#FFFDF5"/>'
+      // buildingIcon's viewBox is "0 -3 24 27", so its own centre is
+      // (12, 10.5) -- that is what the second translate undoes.
+      + '<g transform="translate(17 16.3) scale(0.68) translate(-12 -10.5)" fill="#16233F">'
+      + '<rect x="10.8" y="-2.5" width="2.4" height="8.5"/>'
+      + '<rect x="9" y="0.3" width="6" height="2.4"/>'
+      + '<path d="M2 13L12 5L22 13Z"/>'
+      + '<path fill-rule="evenodd" d="M6 13H18V21H6ZM9.5 21V16.5A2.5 2.5 0 0 1 14.5 16.5V21Z"/>'
+      + '</g></svg>';
+  }
+  // A function, not a var holding the object: google.maps.Size and
+  // .Point do not exist until the API has loaded, and this file is
+  // parsed long before that.
+  function fdChurchPinIcon(){
+    if (!(window.google && google.maps)) return null;   // falls back to the default pin
+    return {
+      url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(fdChurchPinSvg()),
+      scaledSize: new google.maps.Size(FD_PIN_W, FD_PIN_H),
+      // The point of the teardrop is what sits on the coordinate.
+      anchor: new google.maps.Point(FD_PIN_W / 2, FD_PIN_H)
+    };
+  }
+  // The church profile's map is built in a <script type="module">, whose
+  // scope this one cannot reach.
+  window.fdChurchPinIcon = fdChurchPinIcon;
 
   // An imageless EVENT card used to fall back to buildingIcon -- the
   // same church silhouette a logoless CHURCH card uses -- so the two
@@ -13083,7 +13132,8 @@ Groups</span>
     placed.forEach(function(c){
       var pos = { lat: Number(c.lat), lng: Number(c.lng) };
       var marker = new google.maps.Marker({
-        position: pos, map: dirMap, title: displayChurchName(c.name)
+        position: pos, map: dirMap, title: displayChurchName(c.name),
+        icon: fdChurchPinIcon()
       });
       var key = String(c.name).toLowerCase();
       // A phone has no hover, so the tap has to do both jobs: open the
@@ -13213,7 +13263,7 @@ Groups</span>
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-28-v357',
+      'build 2026-09-28-v358',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -25335,7 +25385,7 @@ Groups</span>
         mapTypeControl: false,
         fullscreenControl: false
       });
-      new google.maps.Marker({ position: window.churchMapCenter, map: window.churchMapInstance, title: displayChurchName(c.name) });
+      new google.maps.Marker({ position: window.churchMapCenter, map: window.churchMapInstance, title: displayChurchName(c.name), icon: window.fdChurchPinIcon && window.fdChurchPinIcon() });
       appendOpenInGoogleMapsButton(mapEmbed, c);
     } else {
       // Maps JS hasn't finished loading yet (rare -- it's a small,
