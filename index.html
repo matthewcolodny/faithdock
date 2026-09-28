@@ -11849,7 +11849,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v346 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v347 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12573,6 +12573,7 @@ Groups</span>
   // off the top of the map -- on a phone the map is only ~234px and the
   // bubble is most of that. Dropping the pin into the lower part of the
   // view leaves the room the bubble needs above it.
+  var DIR_BUBBLE_HALF = 46;
   function dirPanToMarker(marker){
     if (!dirMap || !marker) return;
     dirMapProgrammaticMove++;
@@ -12585,7 +12586,15 @@ Groups</span>
     if (!h) return;
     // panBy moves the CENTRE, and the content moves the other way, so a
     // negative y walks the pin down the screen.
-    dirMap.panBy(0, -Math.round(h * 0.24));
+    //
+    // Half the bubble's height, which is what centres the PAIR -- pin
+    // plus the bubble above it -- whatever height the map happens to be.
+    // It used to be 24% of the map, a figure set against the phone's
+    // ~234px map; on a 520px desktop map that same fraction is a 125px
+    // shove and the pin landed near the bottom.
+    // The fraction is kept as a ceiling for a map too short to give the
+    // bubble its headroom any other way.
+    dirMap.panBy(0, -Math.min(DIR_BUBBLE_HALF, Math.round(h * 0.24)));
   }
   // Real hover only. A phone synthesises mouseover from touch, so
   // dragging the map across a pin fired the hover handler, which panned
@@ -13084,7 +13093,7 @@ Groups</span>
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-28-v346',
+      'build 2026-09-28-v347',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -40365,18 +40374,187 @@ Groups</span>
   //   "The Heatmap Layer functionality in the Maps JavaScript API is no
   //    longer available ... as of version 3.65"
   //
-  // So density is drawn from the same circles, with the signal moved
-  // from size to colour: every cell the same size, shaded cold to hot
-  // by how many churches are in it. That answers the question the
-  // batch colours cannot -- where the state is thin -- without a
-  // library that no longer exists.
-  function fdCovHeatColour(t){
-    // 210deg (blue) through green and amber to 0deg (red).
-    var hue = 210 - 210 * Math.max(0, Math.min(1, t));
-    return 'hsl(' + Math.round(hue) + ' 78% 48%)';
+  // Hence the canvas overlay below, which does the same job.
+  // ---- Density drawn as an actual heat field ------------------------
+  //
+  // Not circles shaded by count. A heatmap's colour comes from how much
+  // overlapping weight lands on a PIXEL, not from any one cell, which
+  // is why neighbouring towns melt into one hot region instead of
+  // staying separate discs. Circles cannot do that however they are
+  // coloured.
+  //
+  // The method is the one HeatmapLayer used: draw a soft radial blob
+  // per cell onto a canvas with additive compositing so the blobs sum,
+  // then read the accumulated ALPHA back and run it through a colour
+  // ramp. Black blobs, because with premultiplied alpha and 'lighter'
+  // a zero RGB leaves the colour channels alone and only alpha adds --
+  // so the alpha channel ends up holding the density field, one byte
+  // per pixel, ready to index the ramp.
+  var FD_HEAT_RADIUS = 30;      // px of blur, deliberately not a cell size
+  var FD_HEAT_WEIGHT = 0.18;    // how much one cell contributes before stacking
+  var fdCovHeat = null;         // the OverlayView instance
+  var fdCovHeatCtor = null;
+  var fdCovHeatCells = [];      // for the hover lookup
+  var fdCovHeatLUT = null;
+
+  // 256 entries, one per possible accumulated alpha. Built once.
+  function fdCovHeatRamp(){
+    if (fdCovHeatLUT) return fdCovHeatLUT;
+    var c = document.createElement('canvas');
+    c.width = 256; c.height = 1;
+    var g = c.getContext('2d');
+    var grad = g.createLinearGradient(0, 0, 256, 0);
+    // Clear at the outside so sparse country does not haze over, then
+    // blue, cyan, green, yellow, red.
+    grad.addColorStop(0.00, 'rgba(0,0,255,0)');
+    grad.addColorStop(0.16, 'rgba(0,0,255,0.50)');
+    grad.addColorStop(0.34, 'rgba(0,225,255,0.72)');
+    grad.addColorStop(0.52, 'rgba(0,228,70,0.80)');
+    grad.addColorStop(0.72, 'rgba(255,235,0,0.86)');
+    grad.addColorStop(1.00, 'rgba(255,0,0,0.92)');
+    g.fillStyle = grad;
+    g.fillRect(0, 0, 256, 1);
+    fdCovHeatLUT = g.getImageData(0, 0, 256, 1).data;
+    return fdCovHeatLUT;
   }
+
+  // Subclassed lazily: google.maps.OverlayView does not exist until the
+  // API has loaded, and this file is parsed long before that.
+  function fdCovHeatClass(){
+    if (fdCovHeatCtor) return fdCovHeatCtor;
+    function Heat(){
+      this._pts = []; this._max = 1;
+      this._canvas = null; this._zoom = null; this._rect = null; this._anchor = null;
+    }
+    Heat.prototype = new google.maps.OverlayView();
+    Heat.prototype.onAdd = function(){
+      var c = document.createElement('canvas');
+      c.style.position = 'absolute';
+      // The map keeps every gesture. Without this the canvas would eat
+      // the drag, and it covers the whole viewport.
+      c.style.pointerEvents = 'none';
+      this._canvas = c;
+      this.getPanes().overlayLayer.appendChild(c);
+    };
+    Heat.prototype.onRemove = function(){
+      if (this._canvas && this._canvas.parentNode) this._canvas.parentNode.removeChild(this._canvas);
+      this._canvas = null; this._rect = null; this._anchor = null;
+    };
+    Heat.prototype.setData = function(pts, max){
+      this._pts = pts || [];
+      this._max = max || 1;
+      this._rect = null;                 // whatever is drawn is now wrong
+      this.draw();
+    };
+    Heat.prototype.draw = function(){
+      var canvas = this._canvas, proj = this.getProjection(), map = this.getMap();
+      if (!canvas || !proj || !map) return;
+      var b = map.getBounds();
+      if (!b) return;
+      var ne = b.getNorthEast(), sw = b.getSouthWest();
+      var tl = proj.fromLatLngToDivPixel(new google.maps.LatLng(ne.lat(), sw.lng()));
+      var br = proj.fromLatLngToDivPixel(new google.maps.LatLng(sw.lat(), ne.lng()));
+      var vw = br.x - tl.x, vh = br.y - tl.y;
+      if (!(vw > 0 && vh > 0)) return;
+
+      // Drawn wider than the viewport, so an ordinary pan repaints
+      // nothing: the canvas is a child of the overlay pane and travels
+      // with it. Only when an undrawn edge comes into view is there work.
+      var pad = Math.max(FD_HEAT_RADIUS * 2, Math.round(Math.min(vw, vh) * 0.3));
+      // getImageData walks every pixel, so the canvas gets a ceiling
+      // rather than whatever a 4K window asks for.
+      if ((vw + pad * 2) * (vh + pad * 2) > 4.2e6) pad = FD_HEAT_RADIUS * 2;
+
+      var z = map.getZoom();
+      var have = this._rect;
+      if (have && this._zoom === z && this._anchor) {
+        // Div-pixel space is reanchored by the API from time to time.
+        // When that happens what is drawn is still correct, it is just
+        // in the wrong place -- so move it rather than repaint it.
+        var a = proj.fromLatLngToDivPixel(this._anchor);
+        var dx = a.x - have.l, dy = a.y - have.t;
+        if (dx || dy) {
+          have.l += dx; have.r += dx; have.t += dy; have.b += dy;
+          canvas.style.left = have.l + 'px';
+          canvas.style.top  = have.t + 'px';
+        }
+        if (tl.x - pad >= have.l && tl.y - pad >= have.t &&
+            br.x + pad <= have.r && br.y + pad <= have.b) return;
+      }
+
+      var rect = { l: tl.x - pad, t: tl.y - pad, r: br.x + pad, b: br.y + pad };
+      var w = rect.r - rect.l, h = rect.b - rect.t;
+      canvas.width = w; canvas.height = h;
+      canvas.style.left = rect.l + 'px';
+      canvas.style.top = rect.t + 'px';
+      canvas.style.width = w + 'px';
+      canvas.style.height = h + 'px';
+
+      var ctx = canvas.getContext('2d', { willReadFrequently: true });
+      ctx.clearRect(0, 0, w, h);
+      ctx.globalCompositeOperation = 'lighter';
+      var R = FD_HEAT_RADIUS, pts = this._pts, max = this._max || 1, drew = 0;
+      for (var i = 0; i < pts.length; i++) {
+        var pt = proj.fromLatLngToDivPixel(pts[i].ll);
+        var x = pt.x - rect.l, y = pt.y - rect.t;
+        if (x < -R || y < -R || x > w + R || y > h + R) continue;
+        // Deliberately faint. In a heatmap the colour comes from blobs
+        // PILING UP, so a cell bright on its own leaves nothing for the
+        // stack to add: at sqrt(w/max) the metros came out as flat red
+        // plateaus with no gradient inside them -- 42,000 pixels pinned
+        // at the top of the ramp. The pass below puts the range back.
+        ctx.globalAlpha = Math.max(0.012, Math.min(1, FD_HEAT_WEIGHT * pts[i].w / max));
+        var g = ctx.createRadialGradient(x, y, 0, x, y, R);
+        g.addColorStop(0, 'rgba(0,0,0,1)');
+        g.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.arc(x, y, R, 0, Math.PI * 2); ctx.fill();
+        drew++;
+      }
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = 'source-over';
+
+      if (drew) {
+        var img = ctx.getImageData(0, 0, w, h), d = img.data, lut = fdCovHeatRamp();
+        // Stretch whatever accumulated to fill the ramp, which is what
+        // HeatmapLayer did when maxIntensity was left unset. Without it
+        // the scale is absolute, and filtering down to one denomination
+        // drew a map that was blue everywhere -- technically true and
+        // useless, because the question being asked is where the
+        // REMAINING churches cluster.
+        var peak = 0;
+        for (var q = 3; q < d.length; q += 4) if (d[q] > peak) peak = d[q];
+        var k = peak ? 255 / peak : 1;
+        for (var j = 0; j < d.length; j += 4) {
+          var acc = d[j + 3];
+          if (!acc) continue;                    // untouched pixel, leave it clear
+          if (k !== 1) acc = Math.min(255, Math.round(acc * k));
+          var o = acc * 4;
+          d[j] = lut[o]; d[j + 1] = lut[o + 1]; d[j + 2] = lut[o + 2]; d[j + 3] = lut[o + 3];
+        }
+        ctx.putImageData(img, 0, 0);
+      }
+
+      this._zoom = z;
+      this._rect = rect;
+      this._anchor = proj.fromDivPixelToLatLng(new google.maps.Point(rect.l, rect.t));
+    };
+    fdCovHeatCtor = Heat;
+    return Heat;
+  }
+
+  function fdCovHeatHide(){
+    fdCovHeatCells = [];
+    if (fdCovHeat) fdCovHeat.setMap(null);
+    fdCovHeatMouse(false);
+    // The lookup that fed it has just been emptied, so a bubble left
+    // open would sit there describing cells that are no longer drawn.
+    clearTimeout(fdCovInfoTimer);
+    if (fdCovInfo) fdCovInfo.close();
+  }
+
   function fdCovDrawDensity(rows, precision){
-    fdCovClear(fdCovCircles);
+    fdCovClear(fdCovCircles);   // the batch discs, if that view drew them
     var countHidden = fdCovCountHidden();
     var byCell = {};
     rows.forEach(function(r){
@@ -40398,24 +40576,19 @@ Groups</span>
     var keys = Object.keys(byCell);
     var maxN = 1;
     keys.forEach(function(k){ if (byCell[k].total > maxN) maxN = byCell[k].total; });
-    var cellMetres = 111000 * Math.pow(10, -precision);
-    var total = 0, hidden = 0;
+    var total = 0, hidden = 0, pts = [];
     keys.forEach(function(k){
       var c = byCell[k];
       total += c.total; hidden += c.hidden;
-      // sqrt, so the middle of the range is visible rather than every
-      // cell but the busiest sitting at the cold end.
-      var t = Math.sqrt(c.total / maxN);
-      var colour = fdCovHeatColour(t);
-      var circle = new google.maps.Circle({
-        map: fdCovMap, center: fdCovCentre(c),
-        radius: cellMetres * 0.58,
-        strokeColor: colour, strokeOpacity: 0.25, strokeWeight: 1,
-        fillColor: colour, fillOpacity: 0.16 + 0.5 * t, clickable: true
-      });
-      fdCovAttachHover(circle, c);
-      fdCovCircles.push(circle);
+      var mid = fdCovCentre(c);
+      pts.push({ ll: new google.maps.LatLng(mid.lat, mid.lng), w: c.total });
     });
+
+    fdCovHeatCells = keys.map(function(k){ return byCell[k]; });
+    if (!fdCovHeat) fdCovHeat = new (fdCovHeatClass())();
+    fdCovHeat.setData(pts, maxN);
+    if (fdCovHeat.getMap() !== fdCovMap) fdCovHeat.setMap(fdCovMap);
+    fdCovHeatMouse(true);
     return { total: total, cells: keys.length, hidden: hidden, max: maxN };
   }
   function fdCovSyncViewButtons(){
@@ -40434,6 +40607,7 @@ Groups</span>
 
   function fdCovDrawCells(rows, precision){
     fdCovClear(fdCovCircles);
+    fdCovHeatHide();
     // One circle per cell, coloured by whichever batch contributed most
     // of it -- two batches rarely overlap inside one cell, and stacking
     // translucent circles to show a split made both unreadable.
@@ -40500,6 +40674,65 @@ Groups</span>
     var el = document.getElementById('admin-coverage-hover');
     return !el || el.checked;
   }
+  // A canvas has no per-shape events, so the heat view finds the cell
+  // under the pointer itself. Throttled: mousemove fires far faster
+  // than anyone can read a bubble, and this walks the cell list.
+  var fdCovHeatMoveL = null;
+  var fdCovHeatMoveAt = 0;
+  function fdCovHeatMouse(on){
+    if (fdCovHeatMoveL) { google.maps.event.removeListener(fdCovHeatMoveL); fdCovHeatMoveL = null; }
+    if (!on || !fdCovMap) return;
+    fdCovHeatMoveL = fdCovMap.addListener('mousemove', function(ev){
+      if (!fdCovHoverOn() || !ev.latLng || !fdCovHeatCells.length) return;
+      var now = Date.now();
+      if (now - fdCovHeatMoveAt < 60) return;
+      fdCovHeatMoveAt = now;
+
+      var lat = ev.latLng.lat(), lng = ev.latLng.lng();
+      var kx = Math.cos(lat * Math.PI / 180);      // degrees of longitude are shorter here
+      var best = null, bestD = Infinity;
+      for (var i = 0; i < fdCovHeatCells.length; i++) {
+        var mid = fdCovCentre(fdCovHeatCells[i]);
+        var dy = mid.lat - lat, dx = (mid.lng - lng) * kx;
+        var d = dx * dx + dy * dy;
+        if (d < bestD) { bestD = d; best = fdCovHeatCells[i]; }
+      }
+      // Within about three quarters of a cell, so the bubble follows the
+      // blobs rather than answering from the far side of the state.
+      var reach = Math.pow(10, -(fdCovPrecision || 1)) * 0.75;
+      if (!best || bestD > reach * reach) {
+        clearTimeout(fdCovInfoTimer);
+        fdCovInfoTimer = setTimeout(function(){ if (fdCovInfo) fdCovInfo.close(); }, 140);
+        return;
+      }
+      clearTimeout(fdCovInfoTimer);
+      if (!fdCovInfo) fdCovInfo = new google.maps.InfoWindow({ disableAutoPan: true });
+      fdCovInfo.setContent(fdCovBubbleHtml(best));
+      fdCovInfo.setPosition(fdCovCentre(best));
+      fdCovInfo.open({ map: fdCovMap });
+    });
+  }
+
+  // The bubble's contents, shared by the circles and the heat field so
+  // the two views cannot drift into saying different things.
+  function fdCovBubbleHtml(c){
+    var ids = Object.keys(c.batches).sort(function(a, b){ return c.batches[b] - c.batches[a]; });
+    var lines = ids.slice(0, 6).map(function(id){
+      return '<div style="display:flex;align-items:center;gap:6px;margin-top:3px;">'
+        + '<span style="width:9px;height:9px;border-radius:50%;background:' + fdCovColour(id) + ';flex:0 0 auto;"></span>'
+        + '<span style="flex:1 1 auto;">' + escapeHtml(fdCovBatchLabel(id)) + '</span>'
+        + '<span style="color:#6b6b6b;">' + c.batches[id].toLocaleString() + '</span>'
+        + '</div>';
+    }).join('');
+    if (ids.length > 6) {
+      lines += '<div style="color:#6b6b6b;margin-top:3px;">'
+        + escapeHtml(window.t('admin.coverageMoreBatches').replace('{n}', ids.length - 6)) + '</div>';
+    }
+    return '<div style="font-family:inherit;font-size:12.5px;color:#16233F;min-width:170px;">'
+      + '<div style="font-weight:600;">' + escapeHtml(window.t('admin.coverageCellCount').replace('{n}', c.total.toLocaleString())) + '</div>'
+      + lines + '</div>';
+  }
+
   function fdCovAttachHover(circle, c){
     circle.addListener('mouseover', function(ev){
       // Checked at hover time, not at draw time, so the checkbox takes
@@ -40507,22 +40740,8 @@ Groups</span>
       // next redraw.
       if (!fdCovHoverOn()) return;
       clearTimeout(fdCovInfoTimer);
-        if (!fdCovInfo) fdCovInfo = new google.maps.InfoWindow({ disableAutoPan: true });
-        var ids = Object.keys(c.batches).sort(function(a, b){ return c.batches[b] - c.batches[a]; });
-        var lines = ids.slice(0, 6).map(function(id){
-          return '<div style="display:flex;align-items:center;gap:6px;margin-top:3px;">'
-            + '<span style="width:9px;height:9px;border-radius:50%;background:' + fdCovColour(id) + ';flex:0 0 auto;"></span>'
-            + '<span style="flex:1 1 auto;">' + escapeHtml(fdCovBatchLabel(id)) + '</span>'
-            + '<span style="color:#6b6b6b;">' + c.batches[id].toLocaleString() + '</span>'
-            + '</div>';
-        }).join('');
-        if (ids.length > 6) {
-          lines += '<div style="color:#6b6b6b;margin-top:3px;">'
-            + escapeHtml(window.t('admin.coverageMoreBatches').replace('{n}', ids.length - 6)) + '</div>';
-        }
-        fdCovInfo.setContent('<div style="font-family:inherit;font-size:12.5px;color:#16233F;min-width:170px;">'
-          + '<div style="font-weight:600;">' + escapeHtml(window.t('admin.coverageCellCount').replace('{n}', c.total.toLocaleString())) + '</div>'
-          + lines + '</div>');
+      if (!fdCovInfo) fdCovInfo = new google.maps.InfoWindow({ disableAutoPan: true });
+      fdCovInfo.setContent(fdCovBubbleHtml(c));
       fdCovInfo.setPosition(ev && ev.latLng ? ev.latLng : fdCovCentre(c));
       fdCovInfo.open({ map: fdCovMap });
     });
@@ -40537,7 +40756,10 @@ Groups</span>
     var precision = fdCovPrecisionForZoom(fdCovMap.getZoom());
     // fdCovPrecision is set to null when a filter changes, which is
     // what makes a refetch happen at the same zoom.
-    if (precision === fdCovPrecision && fdCovCircles.length) return;
+    // Either view counts as 'already drawn'. Counting only circles
+    // meant the heat view, which makes none, refetched the whole state
+    // every time a zoom settled at the same precision.
+    if (precision === fdCovPrecision && (fdCovCircles.length || fdCovHeatCells.length)) return;
     fdCovLoading = true;
     fdCovLastFilter = fdCovDenomFilter();
     var { data, error } = await supabase.rpc('admin_church_coverage_cells',
@@ -40560,6 +40782,7 @@ Groups</span>
       // and what made circles seem to survive a change that had
       // actually emptied them. Reported as the filter not working.
       fdCovClear(fdCovCircles);
+      fdCovHeatHide();
       fdCovStatus(window.t(fdCovLastFilter ? 'admin.coverageNoneMatch' : 'admin.coverageNoRows'));
       fdCovRenderLegend([]);
       return;
