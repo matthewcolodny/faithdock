@@ -11916,7 +11916,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v352 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v353 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13167,7 +13167,7 @@ Groups</span>
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-28-v352',
+      'build 2026-09-28-v353',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -13671,7 +13671,22 @@ Groups</span>
   // the two together loses the choice: restoring 760px into a window
   // that is briefly narrow during boot clamped to the 320 floor and then
   // saved the 320 back, and the width was gone for good.
-  var dirResultsPref = null;
+  //
+  // Held as a FRACTION of the window, not a pixel count. The default is
+  // 34%, and dragging used to replace that with a fixed number of
+  // pixels: a column set to a third of a 1200px window was a sixth of a
+  // 2400px one, so it shrank away as the window grew and sat still while
+  // everything around it moved. A fraction keeps the proportion the user
+  // actually chose.
+  //
+  // Only what is REMEMBERED changes. The drag still works in pixels,
+  // which is what a pointer is.
+  var dirResultsPref = null;         // 0..1
+  var DIR_FRAC_KEY = 'fd_dir_results_frac';
+  var DIR_PX_KEY = 'fd_dir_results_w';   // what it was before fractions
+  function dirPrefPx(){
+    return dirResultsPref === null ? null : Math.round(dirResultsPref * window.innerWidth);
+  }
   function clampDirectoryColumnWidth(px){
     var max = Math.max(DIR_COL_MIN, Math.round(window.innerWidth * 0.62));
     return Math.max(DIR_COL_MIN, Math.min(max, Math.round(px)));
@@ -13683,9 +13698,13 @@ Groups</span>
   function setDirectoryColumnWidth(px, live){
     applyDirectoryColumnWidth(px);
     if (!live) {
-      dirResultsPref = clampDirectoryColumnWidth(px);
+      // Clamped before storing is safe HERE and only here: this runs on
+      // a deliberate act -- a drag, an arrow key -- where the pointer
+      // could not have gone past the clamp anyway. Boot must never do
+      // it, which is what the note above is about.
+      dirResultsPref = clampDirectoryColumnWidth(px) / window.innerWidth;
       if (dirMap && window.google && google.maps) google.maps.event.trigger(dirMap, 'resize');
-      try { localStorage.setItem('fd_dir_results_w', String(dirResultsPref)); } catch (e) {}
+      try { localStorage.setItem(DIR_FRAC_KEY, String(dirResultsPref)); } catch (e) {}
     }
     return clampDirectoryColumnWidth(px);
   }
@@ -13742,20 +13761,34 @@ Groups</span>
       if (ev.key === 'ArrowRight') { setDirectoryColumnWidth(width() + step); ev.preventDefault(); }
       else if (ev.key === 'ArrowLeft') { setDirectoryColumnWidth(width() - step); ev.preventDefault(); }
     });
-    var saved = null;
-    try { saved = localStorage.getItem('fd_dir_results_w'); } catch (e) {}
-    if (saved && !isNaN(parseInt(saved, 10))) {
-      // Apply only -- writing it back here is what destroyed it before.
-      dirResultsPref = parseInt(saved, 10);
-      applyDirectoryColumnWidth(dirResultsPref);
+    var savedFrac = null, savedPx = null;
+    try {
+      savedFrac = localStorage.getItem(DIR_FRAC_KEY);
+      savedPx = localStorage.getItem(DIR_PX_KEY);
+    } catch (e) {}
+    var frac = parseFloat(savedFrac);
+    if (isFinite(frac) && frac > 0 && frac < 1) {
+      dirResultsPref = frac;
+    } else if (savedPx && isFinite(parseInt(savedPx, 10))) {
+      // A width saved before this was a fraction. Read as the proportion
+      // of THIS window, so the column opens where it always did and
+      // scales from here on. Deliberately not written back: boot is
+      // exactly where a briefly narrow window would bake in the wrong
+      // number, which is the failure the note above records. The next
+      // drag persists the fraction and the old key stops being read.
+      dirResultsPref = parseInt(savedPx, 10) / window.innerWidth;
     }
+    // Apply only -- writing it back here is what destroyed it before.
+    if (dirResultsPref !== null) applyDirectoryColumnWidth(dirPrefPx());
   })();
 
   window.addEventListener('resize', function(){
-    // Re-clamp against the new window. Narrowing squeezes the column
-    // down; widening gives back the width that was chosen, rather than
-    // leaving it stuck at whatever the smallest window allowed.
-    if (dirResultsPref !== null) applyDirectoryColumnWidth(dirResultsPref);
+    // Recomputed from the fraction, so the column keeps its share of the
+    // window as the window changes rather than holding a pixel count.
+    // Still clamped: narrowing squeezes it to the floor, and widening
+    // gives the chosen proportion back rather than leaving it stuck at
+    // whatever the smallest window allowed.
+    if (dirResultsPref !== null) applyDirectoryColumnWidth(dirPrefPx());
   });
   window.addEventListener('resize', syncDirectoryOffsets);
 
