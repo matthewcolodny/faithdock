@@ -4661,6 +4661,15 @@
     flex-wrap:wrap;margin-top:28px;
   }
   .dir-results-foot #directory-count{flex:0 0 auto;}
+  /* A flex item defaults to min-width:auto, which is its min-CONTENT --
+     for the pager that is every page button laid end to end, and it
+     refuses to shrink below it however narrow the phone is. The pager
+     carries overflow-x:auto to scroll sideways, but it never got the
+     chance: the row pushed the whole results column out to 428px in a
+     375px screen and every card was cut off at the right edge.
+     Ten numbers in the first block, rather than the five the old pager
+     showed, is what made a long-standing default start to bite. */
+  .dir-results-foot > *{min-width:0;}
   .dir-view-toggle{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;flex-shrink:0;}
   .dir-view-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;font-size:12.5px;background:var(--card);color:var(--ink-mute);border:none;cursor:pointer;line-height:1;}
   .dir-view-btn svg{width:14px;height:14px;flex-shrink:0;}
@@ -4790,6 +4799,14 @@
     #dir-use-location-btn, #events-use-location-btn{padding:9px 12px;flex-shrink:0;}
   }
   .directory-layout{display:grid;grid-template-columns:220px 1fr;gap:36px;margin-top:32px;align-items:start;}
+  /* A grid item will not shrink below its own min-content unless told,
+     and the results column's min-content is whatever its widest     unbreakable thing is -- the pager, which is a dozen buttons that
+     refuse to shrink. On a phone that held the whole column at 428px
+     inside a 375px screen and cut every card off at the right edge.
+     The pager already carries overflow-x:auto to scroll sideways; it
+     simply never got the chance, because nothing in the chain above it
+     was allowed to be narrower than it. */
+  .directory-layout > *{min-width:0;}
   /* In the split, the filters live in pills over the map, so the column
      that held them collapses and the results take the full width. */
   .dir-results-col .directory-layout{grid-template-columns:1fr;margin-top:0;}
@@ -11962,7 +11979,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v358 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v359 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13263,7 +13280,7 @@ Groups</span>
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-28-v358',
+      'build 2026-09-28-v359',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
