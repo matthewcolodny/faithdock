@@ -1628,7 +1628,8 @@
       'admin.coverageResize': 'Drag to make the map taller or shorter, or use the arrow keys',
       'admin.coverageDenominations': 'Denominations',
       'admin.coverageHover': 'Show details on hover',
-      'admin.coverageDenomsFiltered': '{n} of {total} denominations',
+      'admin.coverageDenomsFiltered': 'filtered to {n} of {total} denominations',
+      'admin.coverageDenomsAllSent': 'all {n} denominations',
       'admin.coverageDenomsNeedMigration': 'Denomination filtering needs migration 104_coverage_denominations.sql. The map works without it.',
       'admin.coverageDenomsAll': 'All {n} denominations',
       'admin.coverageDenomsSome': '{n} of {total} denominations',
@@ -2925,7 +2926,8 @@
       'admin.coverageResize': 'Arrastra para hacer el mapa más alto o más bajo, o usa las flechas',
       'admin.coverageDenominations': 'Denominaciones',
       'admin.coverageHover': 'Mostrar detalles al pasar el cursor',
-      'admin.coverageDenomsFiltered': '{n} de {total} denominaciones',
+      'admin.coverageDenomsFiltered': 'filtrado a {n} de {total} denominaciones',
+      'admin.coverageDenomsAllSent': 'las {n} denominaciones',
       'admin.coverageDenomsNeedMigration': 'El filtro por denominación necesita la migración 104_coverage_denominations.sql. El mapa funciona sin ella.',
       'admin.coverageDenomsAll': 'Las {n} denominaciones',
       'admin.coverageDenomsSome': '{n} de {total} denominaciones',
@@ -5396,6 +5398,23 @@
      the map it was labelling. Same state, same colours, behind a
      dropdown that stays one line. */
   .fd-cov-bar{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap;}
+  /* Controls beside the map rather than under it -- with a map that can
+     now be dragged to a thousand pixels tall, anything below it needed
+     scrolling to reach, which is the wrong place for the thing that
+     changes what the map shows. */
+  .fd-cov-split{display:flex;gap:16px;align-items:flex-start;}
+  .fd-cov-side{flex:1 1 auto;min-width:0;}
+  .fd-cov-side-controls{flex:0 0 250px;position:sticky;top:78px;}
+  .fd-cov-bar-side{flex-direction:column;align-items:stretch;margin-top:0;}
+  .fd-cov-bar-side .fd-cov-drop,.fd-cov-bar-side .dir-view-toggle{width:100%;}
+  .fd-cov-bar-side .fd-cov-drop-btn{width:100%;justify-content:space-between;}
+  .fd-cov-bar-side .dir-view-btn{flex:1 1 0;justify-content:center;}
+  .fd-cov-side-controls .fd-cov-drop-panel{left:auto;right:0;width:280px;}
+  @media (max-width:980px){
+    .fd-cov-split{flex-direction:column;}
+    .fd-cov-side-controls{flex:1 1 auto;width:100%;position:static;}
+    .fd-cov-side-controls .fd-cov-drop-panel{left:0;right:auto;}
+  }
   .fd-cov-drop{position:relative;}
   .fd-cov-drop-btn{display:inline-flex;align-items:center;gap:7px;padding:8px 13px;}
   .fd-cov-drop-btn svg{width:12px;height:12px;}
@@ -8162,11 +8181,15 @@ Groups</span>
     <h2 style="font-size:20px;margin-top:44px;margin-bottom:16px;" data-i18n="admin.coverageMap">Coverage map</h2>
     <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:12px;max-width:600px;" data-i18n="admin.coverageMapHint">Every geocoded church, grouped into cells and coloured by the import batch it came from. Zoom in for finer cells. Pick a CSV below to see where a new batch would land before importing it.</p>
     <div id="admin-coverage-status" style="display:none;font-size:12.5px;margin-bottom:8px;"></div>
+    <div class="fd-cov-split">
+    <div class="fd-cov-side">
     <div id="admin-coverage-map"></div>
     <button type="button" id="admin-coverage-grip" data-i18n-title="admin.coverageResize" title="Drag to resize"></button>
-    <label class="filter-check" style="margin-top:10px;"><input type="checkbox" id="admin-coverage-count-hidden" checked> <span data-i18n="admin.coverageCountHidden">Count hidden churches</span></label>
+    </div>
+    <div class="fd-cov-side-controls">
+    <label class="filter-check"><input type="checkbox" id="admin-coverage-count-hidden" checked> <span data-i18n="admin.coverageCountHidden">Count hidden churches</span></label>
     <label class="filter-check"><input type="checkbox" id="admin-coverage-hover" checked> <span data-i18n="admin.coverageHover">Show details on hover</span></label>
-    <div class="fd-cov-bar">
+    <div class="fd-cov-bar fd-cov-bar-side">
       <div class="dir-view-toggle" role="group">
         <button type="button" class="dir-view-btn is-active" data-cov-view="circles">
           <span data-i18n="admin.coverageViewCircles">Circles</span>
@@ -8224,6 +8247,8 @@ Groups</span>
       <button class="export-btn" id="admin-coverage-stop-btn" style="display:none;" data-i18n="admin.coverageStop">Stop</button>
       <button class="export-btn" id="admin-coverage-clear-btn" style="display:none;" data-i18n="admin.coverageClearPreview">Clear preview</button>
       <span id="admin-coverage-preview-status" style="font-size:12.5px;color:var(--ink-mute);"></span>
+    </div>
+    </div>
     </div>
 
     <h2 style="font-size:20px;margin-top:44px;margin-bottom:16px;" data-i18n="admin.importBatches">Import batches</h2>
@@ -11766,7 +11791,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-27-v337 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-27-v338 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12944,7 +12969,7 @@ Groups</span>
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-27-v337',
+      'build 2026-09-27-v338',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -22361,7 +22386,11 @@ Groups</span>
     var dollars = Math.round((cents || 0) / 100);
     return '$' + dollars.toLocaleString(window.appLocale ? window.appLocale() : undefined);
   }
-  function escAttr(s){ return String(s == null ? '' : s).replace(/"/g, '&quot;'); }
+  function escAttr(s){
+    // & first, or it would double-escape the entities added after it.
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
 
   // Renders the multi-church Overview: a rolled-up stat row, the church
   // card grid (each card with its own quick stats), and a
@@ -40165,6 +40194,7 @@ Groups</span>
   // ticked -- it is what gets sent before the list has even loaded.
   var fdCovDenomOff = {};
   var fdCovDenomList = [];
+  var fdCovLastFilter = null;   // what the last request actually sent
 
   // Google's own HeatmapLayer is gone -- it throws from Maps JS 3.65
   // onward, and the constructor still being there is why asking for it
@@ -40348,8 +40378,9 @@ Groups</span>
     // what makes a refetch happen at the same zoom.
     if (precision === fdCovPrecision && fdCovCircles.length) return;
     fdCovLoading = true;
+    fdCovLastFilter = fdCovDenomFilter();
     var { data, error } = await supabase.rpc('admin_church_coverage_cells',
-      { p_precision: precision, p_denominations: fdCovDenomFilter() });
+      { p_precision: precision, p_denominations: fdCovLastFilter });
     fdCovLoading = false;
     if (error) {
       // A missing function is the expected first-run state, and telling
@@ -40378,11 +40409,17 @@ Groups</span>
     // A filter that is on should be legible from the map, not only from
     // the dropdown it was set in -- otherwise a thinned map looks like
     // missing data.
-    var denomFilter = fdCovDenomFilter();
-    if (denomFilter) {
+    // Deliberately reports what the request carried, not what the
+    // dropdown looks like. Two reports of "it does not filter" with no
+    // way to tell a request that never narrowed from a narrowing that
+    // came back the same.
+    if (fdCovLastFilter) {
       line += ' · ' + window.t('admin.coverageDenomsFiltered')
-        .replace('{n}', denomFilter.length.toLocaleString())
+        .replace('{n}', fdCovLastFilter.length.toLocaleString())
         .replace('{total}', fdCovDenomList.length.toLocaleString());
+    } else if (fdCovDenomList.length) {
+      line += ' · ' + window.t('admin.coverageDenomsAllSent')
+        .replace('{n}', fdCovDenomList.length.toLocaleString());
     }
     var un = await supabase.rpc('admin_coverage_unmapped_count');
     if (!un.error && Number(un.data) > 0) {
