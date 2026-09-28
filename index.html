@@ -1624,6 +1624,12 @@
       'admin.coverageAddedIndividually': 'Added individually',
       'admin.coverageBatches': 'Batches',
       'admin.coverageDetail': 'Map detail',
+      'admin.coverageViewCircles': 'Circles', 'admin.coverageViewHeat': 'Heatmap',
+      'admin.coverageDenominations': 'Denominations',
+      'admin.coverageDenomsAll': 'All {n} denominations',
+      'admin.coverageDenomsSome': '{n} of {total} denominations',
+      'admin.coverageNoDenomination': '(no denomination)',
+      'admin.coverageHeatUnavailable': 'The heatmap library could not be loaded. Showing circles instead.',
       'admin.coverageRoads': 'Roads', 'admin.coveragePlaces': 'Shops and places',
       'admin.coverageLabels': 'Place names', 'admin.coverageTerrain': 'Parks and water',
       'admin.coverageCellCount': '{n} churches here',
@@ -2912,6 +2918,12 @@
       'admin.coverageAddedIndividually': 'Añadidas individualmente',
       'admin.coverageBatches': 'Lotes',
       'admin.coverageDetail': 'Detalle del mapa',
+      'admin.coverageViewCircles': 'Círculos', 'admin.coverageViewHeat': 'Mapa de calor',
+      'admin.coverageDenominations': 'Denominaciones',
+      'admin.coverageDenomsAll': 'Las {n} denominaciones',
+      'admin.coverageDenomsSome': '{n} de {total} denominaciones',
+      'admin.coverageNoDenomination': '(sin denominación)',
+      'admin.coverageHeatUnavailable': 'No se pudo cargar la biblioteca del mapa de calor. Se muestran círculos.',
       'admin.coverageRoads': 'Carreteras', 'admin.coveragePlaces': 'Comercios y lugares',
       'admin.coverageLabels': 'Nombres de lugares', 'admin.coverageTerrain': 'Parques y agua',
       'admin.coverageCellCount': '{n} iglesias aquí',
@@ -8132,6 +8144,27 @@ Groups</span>
     <div id="admin-coverage-map"></div>
     <label class="filter-check" style="margin-top:10px;"><input type="checkbox" id="admin-coverage-count-hidden" checked> <span data-i18n="admin.coverageCountHidden">Count hidden churches</span></label>
     <div class="fd-cov-bar">
+      <div class="dir-view-toggle" role="group">
+        <button type="button" class="dir-view-btn is-active" data-cov-view="circles">
+          <span data-i18n="admin.coverageViewCircles">Circles</span>
+        </button>
+        <button type="button" class="dir-view-btn" data-cov-view="heat">
+          <span data-i18n="admin.coverageViewHeat">Heatmap</span>
+        </button>
+      </div>
+      <div class="fd-cov-drop">
+        <button type="button" id="admin-coverage-denoms-btn" class="export-btn fd-cov-drop-btn" aria-expanded="false">
+          <span id="admin-coverage-denoms-label" data-i18n="admin.coverageDenominations">Denominations</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div id="admin-coverage-denoms-panel" class="fd-cov-drop-panel" hidden>
+          <div class="fd-cov-drop-tools">
+            <button type="button" data-cov-denom-all="on" data-i18n="admin.coverageAllOn">Show all</button>
+            <button type="button" data-cov-denom-all="off" data-i18n="admin.coverageAllOff">Hide all</button>
+          </div>
+          <div id="admin-coverage-denoms-list" class="fd-cov-list"></div>
+        </div>
+      </div>
       <div class="fd-cov-drop">
         <button type="button" id="admin-coverage-detail-btn" class="export-btn fd-cov-drop-btn" aria-expanded="false">
           <span data-i18n="admin.coverageDetail">Map detail</span>
@@ -11710,7 +11743,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-27-v333 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-27-v334 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12888,7 +12921,7 @@ Groups</span>
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-27-v333',
+      'build 2026-09-27-v334',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -40083,6 +40116,69 @@ Groups</span>
     return id ? (id.split('_').slice(1).join('_') || id) : window.t('admin.coverageAddedIndividually');
   }
 
+  // Circles answer "who put these here" -- one colour per batch, area
+  // proportional to count. A heatmap answers "where is the state thin",
+  // which the circles cannot: at low zoom a hundred small circles and
+  // one big one read about the same. Different questions, so both.
+  var fdCovView = 'circles';
+  var fdCovHeat = null;
+  // null means no filter at all, which is not the same as every box
+  // ticked -- it is what gets sent before the list has even loaded.
+  var fdCovDenomOff = {};
+  var fdCovDenomList = [];
+
+  function fdCovClearHeat(){
+    if (fdCovHeat) { fdCovHeat.setMap(null); fdCovHeat = null; }
+  }
+  // Loaded the first time it is asked for. The visualization library is
+  // only wanted by one admin panel, so making every visitor download it
+  // on every page would be a poor trade.
+  async function fdCovEnsureHeatLib(){
+    if (window.google && google.maps && google.maps.visualization) return true;
+    if (!(window.google && google.maps && google.maps.importLibrary)) return false;
+    try { await google.maps.importLibrary('visualization'); return !!google.maps.visualization; }
+    catch (e) { return false; }
+  }
+  async function fdCovDrawHeat(rows){
+    fdCovClear(fdCovCircles);
+    if (!(await fdCovEnsureHeatLib())) {
+      fdCovStatus(window.t('admin.coverageHeatUnavailable'), true);
+      fdCovView = 'circles';
+      fdCovSyncViewButtons();
+      return null;
+    }
+    var countHidden = fdCovCountHidden();
+    var pts = [], total = 0, cells = 0, hidden = 0;
+    rows.forEach(function(r){
+      if (fdCovBatchOff[r.import_batch_id || '']) return;
+      var shown = Number(r.n) - (countHidden ? 0 : Number(r.hidden));
+      if (shown <= 0) return;
+      total += shown; cells++; hidden += Number(r.hidden);
+      // Weighted, so a cell of forty churches burns brighter than forty
+      // cells of one -- an unweighted heatmap of cell centres would just
+      // redraw the map's own population density.
+      pts.push({ location: new google.maps.LatLng(Number(r.cell_lat), Number(r.cell_lng)), weight: shown });
+    });
+    fdCovClearHeat();
+    fdCovHeat = new google.maps.visualization.HeatmapLayer({
+      data: pts, map: fdCovMap, radius: 26, opacity: 0.75, dissipating: true
+    });
+    return { total: total, cells: cells, hidden: hidden };
+  }
+  function fdCovSyncViewButtons(){
+    [].forEach.call(document.querySelectorAll('[data-cov-view]'), function(b){
+      b.classList.toggle('is-active', b.getAttribute('data-cov-view') === fdCovView);
+    });
+  }
+  // null when nothing is unticked, so the RPC skips the filter entirely
+  // rather than being handed a list of every denomination there is.
+  function fdCovDenomFilter(){
+    var off = Object.keys(fdCovDenomOff).filter(function(k){ return fdCovDenomOff[k]; });
+    if (!off.length || !fdCovDenomList.length) return null;
+    return fdCovDenomList.map(function(d){ return d.denomination; })
+      .filter(function(d){ return !fdCovDenomOff[d]; });
+  }
+
   function fdCovDrawCells(rows, precision){
     fdCovClear(fdCovCircles);
     // One circle per cell, coloured by whichever batch contributed most
@@ -40158,9 +40254,12 @@ Groups</span>
   async function fdCovLoadCells(){
     if (!fdCovMap || fdCovLoading) return;
     var precision = fdCovPrecisionForZoom(fdCovMap.getZoom());
-    if (precision === fdCovPrecision && fdCovCircles.length) return;
+    // fdCovPrecision is set to null when a filter changes, which is
+    // what makes a refetch happen at the same zoom.
+    if (precision === fdCovPrecision && (fdCovCircles.length || fdCovHeat)) return;
     fdCovLoading = true;
-    var { data, error } = await supabase.rpc('admin_church_coverage_cells', { p_precision: precision });
+    var { data, error } = await supabase.rpc('admin_church_coverage_cells',
+      { p_precision: precision, p_denominations: fdCovDenomFilter() });
     fdCovLoading = false;
     if (error) {
       // A missing function is the expected first-run state, and telling
@@ -40173,8 +40272,11 @@ Groups</span>
     fdCovPrecision = precision;
     var rows = data || [];
     if (!rows.length) { fdCovStatus(window.t('admin.coverageNoRows')); fdCovRenderLegend([]); return; }
-    var summary = fdCovDrawCells(rows, precision);
+    var summary = fdCovView === 'heat'
+      ? await fdCovDrawHeat(rows)
+      : (fdCovClearHeat(), fdCovDrawCells(rows, precision));
     fdCovRenderLegend(rows);
+    if (!summary) return;
 
     var line = window.t('admin.coverageSummary')
       .replace('{n}', summary.total.toLocaleString())
@@ -40228,11 +40330,91 @@ Groups</span>
       : window.t('admin.coverageBatchesAll').replace('{n}', ids.length);
   }
 
-  function fdCovRedraw(){
+  async function fdCovRedraw(){
     var el = document.getElementById('admin-coverage-legend');
     var rows = (el && el._rows) || [];
-    fdCovDrawCells(rows, fdCovPrecision);
+    if (fdCovView === 'heat') { fdCovClear(fdCovCircles); await fdCovDrawHeat(rows); }
+    else { fdCovClearHeat(); fdCovDrawCells(rows, fdCovPrecision); }
     fdCovRenderLegend(rows);
+  }
+
+  (function wireCovView(){
+    document.addEventListener('click', function(ev){
+      var btn = ev.target.closest && ev.target.closest('[data-cov-view]');
+      if (!btn) return;
+      fdCovView = btn.getAttribute('data-cov-view');
+      fdCovSyncViewButtons();
+      fdCovRedraw();
+    });
+  })();
+
+  (function wireCovDenoms(){
+    var btn = document.getElementById('admin-coverage-denoms-btn');
+    var panel = document.getElementById('admin-coverage-denoms-panel');
+    if (!btn || !panel) return;
+    btn.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      var open = !panel.hidden;
+      panel.hidden = open;
+      btn.setAttribute('aria-expanded', open ? 'false' : 'true');
+    });
+    panel.addEventListener('click', function(ev){ ev.stopPropagation(); });
+    document.addEventListener('click', function(){
+      if (panel.hidden) return;
+      panel.hidden = true;
+      btn.setAttribute('aria-expanded', 'false');
+    });
+    document.addEventListener('keydown', function(ev){
+      if (ev.key !== 'Escape' || panel.hidden) return;
+      panel.hidden = true;
+      btn.setAttribute('aria-expanded', 'false');
+    });
+    panel.addEventListener('change', function(ev){
+      var box = ev.target.closest && ev.target.closest('[data-cov-denom]');
+      if (!box) return;
+      fdCovDenomOff[box.getAttribute('data-cov-denom')] = !box.checked;
+      fdCovSyncDenomLabel();
+      // Server side, so this is a refetch rather than a local redraw.
+      fdCovPrecision = null;
+      fdCovLoadCells();
+    });
+    panel.addEventListener('click', function(ev){
+      var all = ev.target.closest && ev.target.closest('[data-cov-denom-all]');
+      if (!all) return;
+      var on = all.getAttribute('data-cov-denom-all') === 'on';
+      fdCovDenomList.forEach(function(d){ fdCovDenomOff[d.denomination] = !on; });
+      [].forEach.call(panel.querySelectorAll('[data-cov-denom]'), function(b){ b.checked = on; });
+      fdCovSyncDenomLabel();
+      fdCovPrecision = null;
+      fdCovLoadCells();
+    });
+  })();
+
+  function fdCovSyncDenomLabel(){
+    var lab = document.getElementById('admin-coverage-denoms-label');
+    if (!lab) return;
+    var off = fdCovDenomList.filter(function(d){ return fdCovDenomOff[d.denomination]; }).length;
+    lab.textContent = off
+      ? window.t('admin.coverageDenomsSome').replace('{n}', fdCovDenomList.length - off).replace('{total}', fdCovDenomList.length)
+      : window.t('admin.coverageDenomsAll').replace('{n}', fdCovDenomList.length);
+  }
+
+  async function fdCovLoadDenominations(){
+    var list = document.getElementById('admin-coverage-denoms-list');
+    if (!list || list.dataset.filled) return;
+    var { data, error } = await supabase.rpc('admin_coverage_denominations');
+    if (error || !data) return;   // the dropdown stays empty; the map still works
+    list.dataset.filled = '1';
+    fdCovDenomList = data;
+    list.innerHTML = data.map(function(d){
+      var label = d.denomination || window.t('admin.coverageNoDenomination');
+      return '<label class="fd-cov-row">'
+        + '<input type="checkbox" data-cov-denom="' + escAttr(d.denomination) + '" checked>'
+        + '<span class="fd-cov-name" title="' + escAttr(label) + '">' + escapeHtml(label) + '</span>'
+        + '<span class="fd-cov-n">' + Number(d.n).toLocaleString() + '</span>'
+        + '</label>';
+    }).join('');
+    fdCovSyncDenomLabel();
   }
   // The panel opens and closes; a click inside it is a filter change,
   // not a reason to close -- ticking four batches should take one open.
@@ -40368,6 +40550,9 @@ Groups</span>
       google.maps.event.trigger(fdCovMap, 'resize');
     }
     fdCovPrecision = null;
+    // Fills the denomination dropdown once. Independent of the cells, so
+    // a failure there leaves the dropdown empty and the map working.
+    fdCovLoadDenominations();
     fdCovLoadCells();
   };
 
