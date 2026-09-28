@@ -1649,6 +1649,7 @@
       'admin.coverageHiddenExcluded': 'Hidden churches are not counted ({n} left out).',
       'admin.coverageUnmapped': '{n} could not be placed (no coordinates).',
       'admin.coverageNoRows': 'No geocoded churches yet.',
+      'admin.coverageNoneMatch': 'No churches match this filter.',
       'admin.coverageGeocoding': 'Locating towns: {done} of {total} ({plotted} placed, {rows} rows covered)...',
       'admin.coverageDone': '{towns} towns, {rows} rows. {fresh} are somewhere we hold nothing yet.',
       'admin.coverageNoAddress': 'That CSV has no address column, so there is nothing to place.',
@@ -1667,6 +1668,15 @@
       'admin.clientErrorsHint': 'JavaScript errors caught on the live site, most recent first. No automatic alerting — this is a place to check, not something that notifies anyone on its own.',
       'admin.importChurchesHint': 'Upload a CSV with a header row containing name (required) and any of: denomination, address, phone, website, logo_url. These are added as unclaimed listings — visible in the directory, with no owner until a church claims them. Addresses are automatically geocoded so distance search and the map work — this can take a moment for a large list.',
       'admin.addChurches': 'Add churches',
+      'admin.backfillTitle': 'Churches with no map pin',
+      'admin.backfillHint': 'Imported churches whose address never resolved to coordinates. They are findable by search but appear on no map. This looks each one up again and fills in only the ones that were missing — it never moves a pin that already exists.',
+      'admin.backfillStart': 'Find missing coordinates',
+      'admin.backfillStopping': 'Stopping after this one…',
+      'admin.backfillNothingToDo': 'Every church with an address already has coordinates.',
+      'admin.backfillProgress': '{cur} of {total} checked, {fixed} placed',
+      'admin.backfillDone': 'Done. {fixed} now on the map, {none} still without coordinates.',
+      'admin.backfillMoreLeft': '{n} more to go — run it again.',
+      'admin.backfillNeedsMigration': 'This needs migration 106_backfill_coordinates.sql.',
       'admin.importBatches': 'Import batches',
       'admin.importBatchesHint': 'Recent CSV imports, most recent first. "Hide all", "Show all" and "Delete all" only affect churches from that batch that are still unclaimed — anything already claimed by a real owner is left alone. "Show all" only brings back what "Hide all" hid: churches you hid one at a time stay hidden.',
       'admin.noImportBatches': 'No import batches yet.',
@@ -2947,6 +2957,7 @@
       'admin.coverageHiddenExcluded': 'Las iglesias ocultas no se cuentan ({n} excluidas).',
       'admin.coverageUnmapped': '{n} no se pudieron ubicar (sin coordenadas).',
       'admin.coverageNoRows': 'Aún no hay iglesias geocodificadas.',
+      'admin.coverageNoneMatch': 'Ninguna iglesia coincide con este filtro.',
       'admin.coverageGeocoding': 'Ubicando localidades: {done} de {total} ({plotted} ubicadas, {rows} filas cubiertas)...',
       'admin.coverageDone': '{towns} localidades, {rows} filas. {fresh} están donde aún no tenemos nada.',
       'admin.coverageNoAddress': 'Ese CSV no tiene columna de dirección, así que no hay nada que ubicar.',
@@ -2965,6 +2976,15 @@
       'admin.clientErrorsHint': 'Errores de JavaScript detectados en el sitio en vivo, los más recientes primero. Sin alertas automáticas — este es un lugar para revisar, no algo que notifique a nadie por sí solo.',
       'admin.importChurchesHint': 'Sube un CSV con una fila de encabezado que contenga name (requerido) y cualquiera de: denomination, address, phone, website, logo_url. Se agregan como listados sin reclamar — visibles en el directorio, sin propietario hasta que una iglesia los reclame. Las direcciones se geocodifican automáticamente para que la búsqueda por distancia y el mapa funcionen — esto puede tardar un momento para una lista grande.',
       'admin.addChurches': 'Agregar iglesias',
+      'admin.backfillTitle': 'Iglesias sin marcador en el mapa',
+      'admin.backfillHint': 'Iglesias importadas cuya dirección nunca se convirtió en coordenadas. Se encuentran al buscar, pero no aparecen en ningún mapa. Esto vuelve a buscar cada una y solo rellena las que faltaban — nunca mueve un marcador que ya existe.',
+      'admin.backfillStart': 'Buscar coordenadas que faltan',
+      'admin.backfillStopping': 'Deteniendo después de esta…',
+      'admin.backfillNothingToDo': 'Todas las iglesias con dirección ya tienen coordenadas.',
+      'admin.backfillProgress': '{cur} de {total} comprobadas, {fixed} ubicadas',
+      'admin.backfillDone': 'Listo. {fixed} ya están en el mapa, {none} siguen sin coordenadas.',
+      'admin.backfillMoreLeft': 'Quedan {n} — vuelve a ejecutarlo.',
+      'admin.backfillNeedsMigration': 'Esto necesita la migración 106_backfill_coordinates.sql.',
       'admin.importBatches': 'Lotes de importación',
       'admin.importBatchesHint': 'Importaciones de CSV recientes, las más nuevas primero. "Ocultar todas", "Mostrar todas" y "Eliminar todas" solo afectan a las iglesias de ese lote que aún no han sido reclamadas — las que ya reclamó un propietario real no se tocan. "Mostrar todas" solo recupera lo que ocultó "Ocultar todas": las iglesias que ocultaste una por una siguen ocultas.',
       'admin.noImportBatches': 'Aún no hay lotes de importación.',
@@ -8260,6 +8280,14 @@ Groups</span>
     </div>
     </div>
 
+    <h2 style="font-size:20px;margin-top:44px;margin-bottom:16px;" data-i18n="admin.backfillTitle">Churches with no map pin</h2>
+    <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:12px;max-width:600px;" data-i18n="admin.backfillHint">Imported churches whose address never resolved to coordinates. They are findable by search but appear on no map. This looks each one up again and fills in only the ones that were missing — it never moves a pin that already exists.</p>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <button class="export-btn" id="admin-backfill-btn" data-i18n="admin.backfillStart">Find missing coordinates</button>
+      <button class="export-btn" id="admin-backfill-stop" style="display:none;" data-i18n="admin.coverageStop">Stop</button>
+      <span id="admin-backfill-status" style="font-size:12.5px;color:var(--ink-mute);"></span>
+    </div>
+
     <h2 style="font-size:20px;margin-top:44px;margin-bottom:16px;" data-i18n="admin.importBatches">Import batches</h2>
     <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:12px;max-width:600px;" data-i18n="admin.importBatchesHint">Recent CSV imports, most recent first. "Hide all" and "Delete all" only affect churches from that batch that are still unclaimed — anything already claimed by a real owner is left alone.</p>
     <div id="admin-import-batches-status" style="display:none;font-size:12.5px;margin-bottom:8px;"></div>
@@ -11800,7 +11828,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-27-v341 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v342 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13001,7 +13029,7 @@ Groups</span>
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-27-v341',
+      'build 2026-09-28-v342',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -40470,7 +40498,17 @@ Groups</span>
     }
     fdCovPrecision = precision;
     var rows = data || [];
-    if (!rows.length) { fdCovStatus(window.t('admin.coverageNoRows')); fdCovRenderLegend([]); return; }
+    if (!rows.length) {
+      // Clear FIRST. Returning without clearing left the previous
+      // result set drawn while the caption said there was nothing --
+      // which is what filtering every denomination off looked like,
+      // and what made circles seem to survive a change that had
+      // actually emptied them. Reported as the filter not working.
+      fdCovClear(fdCovCircles);
+      fdCovStatus(window.t(fdCovLastFilter ? 'admin.coverageNoneMatch' : 'admin.coverageNoRows'));
+      fdCovRenderLegend([]);
+      return;
+    }
     var summary = fdCovView === 'heat'
       ? fdCovDrawDensity(rows, precision)
       : fdCovDrawCells(rows, precision);
@@ -41551,6 +41589,101 @@ Groups</span>
     document.getElementById('import-churches-preview').style.display = 'block';
     document.getElementById('import-churches-send-btn').style.display = total ? 'inline-flex' : 'none';
   }
+
+  // ---- Filling in coordinates for churches already imported --------
+  //
+  // Re-uploading a CSV cannot do this: the importer skips a row whose
+  // name and address it already holds, so it never reaches the
+  // geocoder. Deleting and re-importing would work and would take the
+  // import history with it. This walks the rows that are already there.
+  //
+  // Same geocoding rules as the import, including the town-count one --
+  // a town-centre pin is allowed only where few churches share the
+  // town, which is decided here from the whole set rather than per page,
+  // or a town split across two pages would look small in both.
+  (function wireBackfill(){
+    var btn = document.getElementById('admin-backfill-btn');
+    var stopBtn = document.getElementById('admin-backfill-stop');
+    var statusEl = document.getElementById('admin-backfill-status');
+    if (!btn || !statusEl) return;
+    var stopping = false;
+
+    function say(msg, bad){
+      statusEl.textContent = msg;
+      statusEl.style.color = bad ? 'var(--clay)' : 'var(--ink-mute)';
+    }
+    if (stopBtn) stopBtn.addEventListener('click', function(){ stopping = true; say(window.t('admin.backfillStopping')); });
+
+    btn.addEventListener('click', async function(){
+      if (!(window.google && google.maps)) { say(window.t('dir.mapServiceLoading'), true); return; }
+      btn.disabled = true;
+      if (stopBtn) stopBtn.style.display = 'inline-flex';
+      stopping = false;
+
+      var total = 0, fixed = 0, stillNone = 0, seen = 0;
+      var { data: totalData, error: countErr } = await supabase.rpc('admin_churches_missing_coords_count');
+      if (countErr) {
+        var needs = /does not exist|schema cache/i.test(countErr.message || '');
+        say(needs ? window.t('admin.backfillNeedsMigration') : countErr.message, true);
+        btn.disabled = false;
+        if (stopBtn) stopBtn.style.display = 'none';
+        return;
+      }
+      total = Number(totalData) || 0;
+      if (!total) {
+        say(window.t('admin.backfillNothingToDo'));
+        btn.disabled = false;
+        if (stopBtn) stopBtn.style.display = 'none';
+        return;
+      }
+
+      // Every candidate up front, so the town counts are over the whole
+      // job. 500 a page is the RPC's own ceiling.
+      var all = [];
+      while (all.length < total && !stopping) {
+        var { data: page, error: pageErr } = await supabase.rpc('admin_churches_missing_coords', { p_limit: 500 });
+        if (pageErr) { say(pageErr.message, true); break; }
+        if (!page || !page.length) break;
+        // Rows already collected stay missing until they are written, so
+        // the same page comes back each time -- take it once and stop.
+        all = page;
+        break;
+      }
+      var townCounts = {};
+      all.forEach(function(r){
+        var k = fdImportTownKey(r.address);
+        if (k) townCounts[k] = (townCounts[k] || 0) + 1;
+      });
+
+      for (var i = 0; i < all.length && !stopping; i++) {
+        var row = all[i];
+        seen++;
+        say(window.t('admin.backfillProgress')
+          .replace('{cur}', seen).replace('{total}', all.length).replace('{fixed}', fixed));
+        var key = fdImportTownKey(row.address);
+        var res = null;
+        try {
+          res = await geocodeAddressGoogle(row.address, {
+            precise: true,
+            allowPlace: key ? (townCounts[key] || 0) <= 3 : false
+          });
+        } catch (e) { res = null; }
+        if (!res) { stillNone++; continue; }
+        var { data: wrote } = await supabase.rpc('admin_set_church_coords', {
+          target_church_id: row.id, p_lat: res.lat, p_lng: res.lng
+        });
+        if (wrote) fixed++; else stillNone++;
+      }
+
+      var done = window.t('admin.backfillDone')
+        .replace('{fixed}', fixed).replace('{none}', stillNone);
+      if (all.length < total) done += ' ' + window.t('admin.backfillMoreLeft').replace('{n}', total - all.length);
+      say(done);
+      btn.disabled = false;
+      if (stopBtn) stopBtn.style.display = 'none';
+      if (typeof loadAdminCoverageMap === 'function') { fdCovPrecision = null; fdCovLoadCells(); }
+    });
+  })();
 
   var importChurchesSendBtn = document.getElementById('import-churches-send-btn');
   if (importChurchesSendBtn) {
