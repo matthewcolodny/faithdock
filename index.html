@@ -11800,7 +11800,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-27-v340 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-27-v341 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13001,7 +13001,7 @@ Groups</span>
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-27-v340',
+      'build 2026-09-27-v341',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -24992,7 +24992,46 @@ Groups</span>
   // Off by default because the other callers want the loose behaviour:
   // the coverage map geocodes a TOWN NAME, and the town centre is the
   // correct answer there.
-  var GEOCODE_PRECISE_TYPES = { ROOFTOP: 1, RANGE_INTERPOLATED: 1, GEOMETRIC_CENTER: 1 };
+  // The question worth asking is not "how exact is this?" but "is this
+  // an address at all, or did Google hand back the whole town?".
+  //
+  // The first version asked the first question, rejecting anything that
+  // was not ROOFTOP, RANGE_INTERPOLATED or GEOMETRIC_CENTER. Measured
+  // across the real imports afterwards: city batches lost about 1% of
+  // their churches, and the small-town batches lost 8 to 14% -- every
+  // fs-towns-* file in the top twenty. Rural addresses routinely have no
+  // street-level match, so Google answers APPROXIMATE with a perfectly
+  // good route or premise, and all of those were being thrown away.
+  //
+  // What actually needed refusing is the fallback to a place: a result
+  // typed locality or postal_code is the centre of the town, and
+  // importing those stacks every church in it on one pin. A route in a
+  // village is not that -- it is the right road, and a far better answer
+  // than no pin at all.
+  var GEOCODE_PLACE_TYPES = {
+    locality: 1, postal_code: 1, postal_code_prefix: 1, neighborhood: 1,
+    sublocality: 1, administrative_area_level_1: 1, administrative_area_level_2: 1,
+    administrative_area_level_3: 1, country: 1
+  };
+  function fdGeocodeIsPlaceOnly(result){
+    var types = (result && result.types) || [];
+    if (!types.length) return false;
+    // Only when EVERY type is a place type. An establishment that also
+    // carries locality is still a building.
+    for (var i = 0; i < types.length; i++) {
+      if (!GEOCODE_PLACE_TYPES[types[i]] && types[i] !== 'political') return false;
+    }
+    return true;
+  }
+  // "123 Main St, Lyons, TX" -> "LYONS". The town is the part before
+  // the state, which is how every address in these imports is written.
+  function fdImportTownKey(address){
+    var parts = String(address || '').split(',').map(function(x){ return x.trim(); }).filter(Boolean);
+    if (parts.length < 2) return '';
+    return parts[parts.length - 2].toUpperCase();
+  }
+  window.fdImportTownKey = fdImportTownKey;
+
   function geocodeAddressGoogle(address, opts){
     return new Promise(function(resolve, reject){
       if (!(window.google && google.maps)) { reject(new Error('Maps not loaded')); return; }
@@ -25000,12 +25039,15 @@ Groups</span>
       geocoder.geocode({ address: address }, function(results, status){
         if (status === 'OK' && results && results.length) {
           var r = results[0];
-          if (opts && opts.precise) {
-            var t = r.geometry && r.geometry.location_type;
+          // allowPlace: the caller has established that hardly anyone
+          // else in this import shares the town, so a town-centre pin
+          // cannot stack. See the import loop for how it decides.
+          if (opts && opts.precise && !opts.allowPlace && fdGeocodeIsPlaceOnly(r)) {
             // No coordinates is a church with no pin, which the import
-            // already counts and reports. A wrong pin is worse: it looks
-            // right and nothing ever flags it.
-            if (!GEOCODE_PRECISE_TYPES[t] || r.partial_match) { resolve(null); return; }
+            // already counts and reports. A pin on the courthouse is
+            // worse: it looks right, it is shared with every other
+            // church in the town, and nothing ever flags it.
+            resolve(null); return;
           }
           resolve({ lat: r.geometry.location.lat(), lng: r.geometry.location.lng() });
         } else {
@@ -41581,6 +41623,15 @@ Groups</span>
         });
         if (!toImport.length) continue;
 
+        // How many churches in THIS file share each town. Counted from
+        // the whole file rather than the current 200-row chunk, or a
+        // town split across two chunks would look small in both.
+        var importTownCounts = {};
+        importChurchesRows.forEach(function(row){
+          var k = fdImportTownKey(row.address);
+          if (k) importTownCounts[k] = (importTownCounts[k] || 0) + 1;
+        });
+
         var rows = [];
         for (var i = 0; i < toImport.length; i++) {
           var c = toImport[i];
@@ -41589,7 +41640,20 @@ Groups</span>
           if (c.address) {
             // precise: a bulk import is exactly where a town-centre
             // fallback does its damage, a thousand pins at a time.
-            var geoResult = await geocodeAddressGoogle(c.address, { precise: true });
+            //
+            // Except where it cannot. Refusing every town-centre result
+            // cost the small-town batches 8 to 14% of their churches --
+            // measured across the real imports -- because a rural
+            // address often has no street-level match and Google
+            // answers with the town. Stacking is only a problem when
+            // several churches share that town; where this import holds
+            // one or two, the town centre is the right pin and far
+            // better than none.
+            var townKey = fdImportTownKey(c.address);
+            var geoResult = await geocodeAddressGoogle(c.address, {
+              precise: true,
+              allowPlace: townKey ? (importTownCounts[townKey] || 0) <= 3 : false
+            });
             if (geoResult) { lat = geoResult.lat; lng = geoResult.lng; }
           }
           rows.push({ name: c.name, denomination: c.denomination, address: c.address, phone: c.phone, website: c.website, logo_url: c.logo_url, lat: lat, lng: lng, owner_id: null });
