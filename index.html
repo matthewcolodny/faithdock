@@ -5170,8 +5170,17 @@
   .dir-search-row .dir-view-toggle{margin-left:auto;}
   .dir-search-row .dir-view-toggle.dir-view-first{margin-left:0;margin-right:2px;}
   #directory-map{
-    width:100%;height:300px;background:var(--card);
+    /* Google's own land grey, not var(--card). Zooming out asks for a
+       whole new set of tiles, and until they arrive whatever is behind
+       them shows through -- against a near-white card that reads as
+       white boxes flashing across the map. A phone notices because it
+       is fetching more tiles over a slower connection; a desktop
+       usually fills them before the eye lands. */
+    width:100%;height:300px;background:#e8eaed;
   }
+  /* The night styles paint geometry #242f3e, so the gap behind the tiles
+     has to be dark too or the flash is worse in dark mode than light. */
+  html[data-theme="dark"] #directory-map{background:#242f3e;}
   /* The map is edge to edge; its caption should still line up with the
      page text, so it carries .wrap's own max-width and padding. */
   #directory-map-note{
@@ -11791,7 +11800,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-27-v339 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-27-v340 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12826,6 +12835,13 @@ Groups</span>
         // attribution and Terms beside it are required by Google's terms
         // and stay.
         keyboardShortcuts: false,
+        // Same reason as the CSS behind this div: this is the colour
+        // Google paints where a tile has not arrived. It is a
+        // construction-time option and cannot be changed later, which is
+        // why the theme is read here rather than synced on toggle -- a
+        // theme switch after load keeps the colour it was built with,
+        // and the CSS underneath covers the rest.
+        backgroundColor: fdIsDark() ? '#242f3e' : '#e8eaed',
         // Plain scroll zooms; no ctrl held down. Google's default picks
         // 'cooperative' for a map inside a scrolling page, so a stray
         // wheel over the map scrolls the page instead of zooming and it
@@ -12985,7 +13001,7 @@ Groups</span>
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-27-v339',
+      'build 2026-09-27-v340',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
