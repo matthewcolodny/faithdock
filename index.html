@@ -5406,10 +5406,17 @@
   .fd-dp-day[aria-selected="true"]{background:var(--gold-bg);color:var(--gold-ink);font-weight:600;}
   .fd-dp-foot{display:flex;gap:8px;padding:12px 14px 2px;border-top:1px solid var(--line);margin-top:10px;}
   /* ---- Admin coverage map ---- */
+  /* Google's own land grey, the same reasoning as #directory-map: a
+     zoom-out asks for a whole new set of tiles and whatever sits behind
+     them shows through until they land. var(--paper) is #F5F4EE, near
+     enough to white to read as the map blanking out -- and this map is
+     now the full width of the window, so there is a great deal more of
+     it to notice. */
   #admin-coverage-map{
     width:100%;height:var(--fd-cov-h,520px);border-radius:var(--radius) var(--radius) 0 0;
-    overflow:hidden;border:1px solid var(--line);border-bottom:0;background:var(--paper);
+    overflow:hidden;border:1px solid var(--line);border-bottom:0;background:#e8eaed;
   }
+  html[data-theme="dark"] #admin-coverage-map{background:#242f3e;}
   /* Drag the bottom edge. Aspect-ratio with a max-height meant the map
      was 520px on any screen tall enough to show more, and the whole
      point of this map is seeing the state at once. */
@@ -11849,7 +11856,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v347 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v348 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13093,7 +13100,7 @@ Groups</span>
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-28-v347',
+      'build 2026-09-28-v348',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -40435,18 +40442,39 @@ Groups</span>
       c.style.pointerEvents = 'none';
       this._canvas = c;
       this.getPanes().overlayLayer.appendChild(c);
+      // The repaint is deferred to here rather than run from draw().
+      var self = this;
+      this._idleL = google.maps.event.addListener(this.getMap(), 'idle', function(){
+        self._render(true);
+      });
     };
     Heat.prototype.onRemove = function(){
+      if (this._idleL) { google.maps.event.removeListener(this._idleL); this._idleL = null; }
       if (this._canvas && this._canvas.parentNode) this._canvas.parentNode.removeChild(this._canvas);
       this._canvas = null; this._rect = null; this._anchor = null;
+      // _zoom too, or a field put away at one zoom and brought back at
+      // another reads as mid-zoom on its first draw, takes itself down
+      // and waits for an 'idle' that has already been and gone.
+      this._zoom = null;
     };
     Heat.prototype.setData = function(pts, max){
       this._pts = pts || [];
       this._max = max || 1;
       this._rect = null;                 // whatever is drawn is now wrong
-      this.draw();
+      // Forced: the map may already be idle, and then no idle event is
+      // coming to draw this.
+      this._render(true);
     };
-    Heat.prototype.draw = function(){
+    // The API calls draw() on every projection change, which during a
+    // zoom animation is every frame. A repaint is a couple of million
+    // pixels through getImageData and two passes, so painting each
+    // frame starved the tile fetch and left the map blank for as long
+    // as the zoom took -- the more so now the map is window-wide.
+    // Zooming therefore takes the canvas down and waits for 'idle'.
+    // Panning is unaffected: the zoom is unchanged, and the check
+    // further down finds the drawn area still covers the viewport.
+    Heat.prototype.draw = function(){ this._render(false); };
+    Heat.prototype._render = function(force){
       var canvas = this._canvas, proj = this.getProjection(), map = this.getMap();
       if (!canvas || !proj || !map) return;
       var b = map.getBounds();
@@ -40466,6 +40494,14 @@ Groups</span>
       if ((vw + pad * 2) * (vh + pad * 2) > 4.2e6) pad = FD_HEAT_RADIUS * 2;
 
       var z = map.getZoom();
+      if (!force && this._zoom !== null && this._zoom !== z) {
+        // Mid-zoom. What is drawn is at the old scale, so showing it
+        // would be wrong as well as expensive.
+        canvas.style.display = 'none';
+        this._rect = null;
+        return;
+      }
+      canvas.style.display = '';
       var have = this._rect;
       if (have && this._zoom === z && this._anchor) {
         // Div-pixel space is reanchored by the API from time to time.
@@ -41159,6 +41195,9 @@ Groups</span>
         // deliberately -- zooming is what anyone is here to do, and the
         // ctrl-scroll overlay was in the way every time.
         gestureHandling: 'greedy',
+        // Construction-time only -- a later theme switch does not move
+        // it, which is what the CSS rule above is for.
+        backgroundColor: fdIsDark() ? '#242f3e' : '#e8eaed',
         styles: fdCovMapStyles()
       });
       fdCovMap.addListener('click', function(){ if (fdCovInfo) fdCovInfo.close(); });
