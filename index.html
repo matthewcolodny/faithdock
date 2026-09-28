@@ -5016,18 +5016,29 @@
      goes top-centre on a phone and bottom-centre where there is room. */
   #dir-search-area{
     position:absolute;z-index:7;left:50%;transform:translateX(-50%);
-    bottom:34px;display:inline-flex;align-items:center;gap:7px;
-    height:36px;padding:0 16px;border-radius:999px;cursor:pointer;
-    border:1px solid var(--line);background:var(--card);color:var(--ink);
-    font-family:inherit;font-size:13.5px;font-weight:600;
+    bottom:34px;display:inline-flex;align-items:center;gap:8px;
+    height:42px;padding:0 20px;border-radius:999px;cursor:pointer;
+    /* Brand, not card-on-map. It was the page's own card colour, which
+       over a map reads as another piece of furniture rather than the one
+       thing here that reruns the search.
+       Blue by day, gold by night -- the same pair .dir-pager-current
+       uses, and for the same reason: the navy disappears into the night
+       map, and the gold is unreadable on the day one. Taken from the
+       tokens so a change to the palette reaches this too. */
+    border:1px solid transparent;background:var(--brand);color:#fff;
+    font-family:inherit;font-size:15px;font-weight:600;
     box-shadow:0 3px 12px rgba(0,0,0,.28);-webkit-tap-highlight-color:transparent;
   }
+  html[data-theme="dark"] #dir-search-area{background:var(--gold);color:var(--brand);}
   #dir-search-area[hidden]{display:none;}
-  #dir-search-area:hover{background:var(--paper);}
+  /* Hover has to shift the brand colour itself now; var(--paper) was a
+     light wash that made the button vanish. */
+  #dir-search-area:hover{background:#1E3157;}
+  html[data-theme="dark"] #dir-search-area:hover{background:#E6C65A;}
   #dir-search-area:disabled{opacity:.6;cursor:default;}
   @media (max-width:980px){
     /* Under the floating search row, not over the attribution. */
-    #dir-search-area{bottom:auto;top:calc(var(--dir-head-h,96px) + 4px);height:34px;font-size:13px;}
+    #dir-search-area{bottom:auto;top:calc(var(--dir-head-h,96px) + 4px);height:38px;font-size:14px;padding:0 17px;}
   }
 
   /* The pin being pointed at, in the list. */
@@ -11916,7 +11927,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v353 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v354 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13167,7 +13178,7 @@ Groups</span>
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-28-v353',
+      'build 2026-09-28-v354',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
