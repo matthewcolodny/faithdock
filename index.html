@@ -1624,12 +1624,12 @@
       'admin.coverageAddedIndividually': 'Added individually',
       'admin.coverageBatches': 'Batches',
       'admin.coverageDetail': 'Map detail',
-      'admin.coverageViewCircles': 'Circles', 'admin.coverageViewHeat': 'Heatmap',
+      'admin.coverageViewCircles': 'Batches', 'admin.coverageViewHeat': 'Density',
+      'admin.coverageResize': 'Drag to make the map taller or shorter, or use the arrow keys',
       'admin.coverageDenominations': 'Denominations',
       'admin.coverageDenomsAll': 'All {n} denominations',
       'admin.coverageDenomsSome': '{n} of {total} denominations',
       'admin.coverageNoDenomination': '(no denomination)',
-      'admin.coverageHeatUnavailable': 'The heatmap library could not be loaded. Showing circles instead.',
       'admin.coverageRoads': 'Roads', 'admin.coveragePlaces': 'Shops and places',
       'admin.coverageLabels': 'Place names', 'admin.coverageTerrain': 'Parks and water',
       'admin.coverageCellCount': '{n} churches here',
@@ -2918,12 +2918,12 @@
       'admin.coverageAddedIndividually': 'Añadidas individualmente',
       'admin.coverageBatches': 'Lotes',
       'admin.coverageDetail': 'Detalle del mapa',
-      'admin.coverageViewCircles': 'Círculos', 'admin.coverageViewHeat': 'Mapa de calor',
+      'admin.coverageViewCircles': 'Lotes', 'admin.coverageViewHeat': 'Densidad',
+      'admin.coverageResize': 'Arrastra para hacer el mapa más alto o más bajo, o usa las flechas',
       'admin.coverageDenominations': 'Denominaciones',
       'admin.coverageDenomsAll': 'Las {n} denominaciones',
       'admin.coverageDenomsSome': '{n} de {total} denominaciones',
       'admin.coverageNoDenomination': '(sin denominación)',
-      'admin.coverageHeatUnavailable': 'No se pudo cargar la biblioteca del mapa de calor. Se muestran círculos.',
       'admin.coverageRoads': 'Carreteras', 'admin.coveragePlaces': 'Comercios y lugares',
       'admin.coverageLabels': 'Nombres de lugares', 'admin.coverageTerrain': 'Parques y agua',
       'admin.coverageCellCount': '{n} iglesias aquí',
@@ -5367,9 +5367,24 @@
   .fd-dp-foot{display:flex;gap:8px;padding:12px 14px 2px;border-top:1px solid var(--line);margin-top:10px;}
   /* ---- Admin coverage map ---- */
   #admin-coverage-map{
-    width:100%;aspect-ratio:16/11;max-height:520px;border-radius:var(--radius);
-    overflow:hidden;border:1px solid var(--line);background:var(--paper);
+    width:100%;height:var(--fd-cov-h,520px);border-radius:var(--radius) var(--radius) 0 0;
+    overflow:hidden;border:1px solid var(--line);border-bottom:0;background:var(--paper);
   }
+  /* Drag the bottom edge. Aspect-ratio with a max-height meant the map
+     was 520px on any screen tall enough to show more, and the whole
+     point of this map is seeing the state at once. */
+  #admin-coverage-grip{
+    height:16px;display:flex;align-items:center;justify-content:center;cursor:row-resize;
+    border:1px solid var(--line);border-top:0;border-radius:0 0 var(--radius) var(--radius);
+    background:var(--card);-webkit-tap-highlight-color:transparent;touch-action:none;
+    width:100%;padding:0;
+  }
+  #admin-coverage-grip::before{
+    content:"";width:44px;height:3px;border-radius:2px;background:var(--line);
+  }
+  #admin-coverage-grip:hover::before,#admin-coverage-grip:focus-visible::before{background:var(--gold);}
+  #admin-coverage-grip:focus-visible{outline:2px solid var(--gold);outline-offset:-2px;}
+  body.fd-cov-resizing{user-select:none;cursor:row-resize;}
   /* A row of chips was fine at five batches and unreadable at a
      hundred and thirty -- it wrapped into a wall of pills taller than
      the map it was labelling. Same state, same colours, behind a
@@ -8142,6 +8157,7 @@ Groups</span>
     <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:12px;max-width:600px;" data-i18n="admin.coverageMapHint">Every geocoded church, grouped into cells and coloured by the import batch it came from. Zoom in for finer cells. Pick a CSV below to see where a new batch would land before importing it.</p>
     <div id="admin-coverage-status" style="display:none;font-size:12.5px;margin-bottom:8px;"></div>
     <div id="admin-coverage-map"></div>
+    <button type="button" id="admin-coverage-grip" data-i18n-title="admin.coverageResize" title="Drag to resize"></button>
     <label class="filter-check" style="margin-top:10px;"><input type="checkbox" id="admin-coverage-count-hidden" checked> <span data-i18n="admin.coverageCountHidden">Count hidden churches</span></label>
     <div class="fd-cov-bar">
       <div class="dir-view-toggle" role="group">
@@ -11743,7 +11759,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-27-v334 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-27-v335 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12921,7 +12937,7 @@ Groups</span>
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-27-v334',
+      'build 2026-09-27-v335',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -40068,10 +40084,18 @@ Groups</span>
   // cell with four times as many churches reads as four times as much
   // ink, which a radius proportional to count would not. Capped to the
   // cell itself so circles do not swallow their neighbours.
-  function fdCovRadius(count, precision){
+  // Scaled against the busiest cell on screen, not against an absolute
+  // count. The old formula was sqrt(count) * a constant, clamped so a
+  // circle could not swallow its neighbours -- and with twenty thousand
+  // churches every cell holding eight or more hit that clamp, so the
+  // whole state drew as one size. Area is still proportional to count,
+  // which is why it is sqrt: the busiest cell just sets the top of the
+  // scale instead of an arbitrary number chosen when the table held two
+  // thousand rows.
+  function fdCovRadius(count, precision, maxCount){
     var cellMetres = 111000 * Math.pow(10, -precision);
-    var r = Math.sqrt(count) * cellMetres * 0.22;
-    return Math.max(cellMetres * 0.08, Math.min(cellMetres * 0.62, r));
+    var f = Math.sqrt(Math.max(1, count) / Math.max(1, maxCount || 1));
+    return cellMetres * (0.10 + 0.52 * f);
   }
 
   // What a coverage map is for is the circles. Everything Google draws
@@ -40121,49 +40145,66 @@ Groups</span>
   // which the circles cannot: at low zoom a hundred small circles and
   // one big one read about the same. Different questions, so both.
   var fdCovView = 'circles';
-  var fdCovHeat = null;
   // null means no filter at all, which is not the same as every box
   // ticked -- it is what gets sent before the list has even loaded.
   var fdCovDenomOff = {};
   var fdCovDenomList = [];
 
-  function fdCovClearHeat(){
-    if (fdCovHeat) { fdCovHeat.setMap(null); fdCovHeat = null; }
+  // Google's own HeatmapLayer is gone -- it throws from Maps JS 3.65
+  // onward, and the constructor still being there is why asking for it
+  // failed quietly rather than at load. Measured against the live API
+  // before writing this:
+  //
+  //   "The Heatmap Layer functionality in the Maps JavaScript API is no
+  //    longer available ... as of version 3.65"
+  //
+  // So density is drawn from the same circles, with the signal moved
+  // from size to colour: every cell the same size, shaded cold to hot
+  // by how many churches are in it. That answers the question the
+  // batch colours cannot -- where the state is thin -- without a
+  // library that no longer exists.
+  function fdCovHeatColour(t){
+    // 210deg (blue) through green and amber to 0deg (red).
+    var hue = 210 - 210 * Math.max(0, Math.min(1, t));
+    return 'hsl(' + Math.round(hue) + ' 78% 48%)';
   }
-  // Loaded the first time it is asked for. The visualization library is
-  // only wanted by one admin panel, so making every visitor download it
-  // on every page would be a poor trade.
-  async function fdCovEnsureHeatLib(){
-    if (window.google && google.maps && google.maps.visualization) return true;
-    if (!(window.google && google.maps && google.maps.importLibrary)) return false;
-    try { await google.maps.importLibrary('visualization'); return !!google.maps.visualization; }
-    catch (e) { return false; }
-  }
-  async function fdCovDrawHeat(rows){
+  function fdCovDrawDensity(rows, precision){
     fdCovClear(fdCovCircles);
-    if (!(await fdCovEnsureHeatLib())) {
-      fdCovStatus(window.t('admin.coverageHeatUnavailable'), true);
-      fdCovView = 'circles';
-      fdCovSyncViewButtons();
-      return null;
-    }
     var countHidden = fdCovCountHidden();
-    var pts = [], total = 0, cells = 0, hidden = 0;
+    var byCell = {};
     rows.forEach(function(r){
       if (fdCovBatchOff[r.import_batch_id || '']) return;
       var shown = Number(r.n) - (countHidden ? 0 : Number(r.hidden));
       if (shown <= 0) return;
-      total += shown; cells++; hidden += Number(r.hidden);
-      // Weighted, so a cell of forty churches burns brighter than forty
-      // cells of one -- an unweighted heatmap of cell centres would just
-      // redraw the map's own population density.
-      pts.push({ location: new google.maps.LatLng(Number(r.cell_lat), Number(r.cell_lng)), weight: shown });
+      var key = r.cell_lat + ',' + r.cell_lng;
+      var cell = byCell[key] || (byCell[key] = { lat: r.cell_lat, lng: r.cell_lng, total: 0, hidden: 0, batches: {} });
+      cell.total += shown;
+      cell.hidden += Number(r.hidden);
+      var bid = r.import_batch_id || '';
+      cell.batches[bid] = (cell.batches[bid] || 0) + shown;
     });
-    fdCovClearHeat();
-    fdCovHeat = new google.maps.visualization.HeatmapLayer({
-      data: pts, map: fdCovMap, radius: 26, opacity: 0.75, dissipating: true
+    var keys = Object.keys(byCell);
+    var maxN = 1;
+    keys.forEach(function(k){ if (byCell[k].total > maxN) maxN = byCell[k].total; });
+    var cellMetres = 111000 * Math.pow(10, -precision);
+    var total = 0, hidden = 0;
+    keys.forEach(function(k){
+      var c = byCell[k];
+      total += c.total; hidden += c.hidden;
+      // sqrt, so the middle of the range is visible rather than every
+      // cell but the busiest sitting at the cold end.
+      var t = Math.sqrt(c.total / maxN);
+      var colour = fdCovHeatColour(t);
+      var circle = new google.maps.Circle({
+        map: fdCovMap, center: { lat: c.lat, lng: c.lng },
+        radius: cellMetres * 0.58,
+        strokeColor: colour, strokeOpacity: 0.25, strokeWeight: 1,
+        fillColor: colour, fillOpacity: 0.16 + 0.5 * t, clickable: true
+      });
+      fdCovAttachHover(circle, c);
+      fdCovCircles.push(circle);
     });
-    return { total: total, cells: cells, hidden: hidden };
+    return { total: total, cells: keys.length, hidden: hidden, max: maxN };
   }
   function fdCovSyncViewButtons(){
     [].forEach.call(document.querySelectorAll('[data-cov-view]'), function(b){
@@ -40210,20 +40251,35 @@ Groups</span>
     });
 
     var total = 0, cells = 0, hidden = 0;
+    // The scale's top, found before drawing anything, so every circle
+    // is measured against the same number.
+    var maxN = 1;
+    Object.keys(byCell).forEach(function(k){ if (byCell[k].total > maxN) maxN = byCell[k].total; });
     Object.keys(byCell).forEach(function(k){
       var c = byCell[k];
       total += c.total; cells++; hidden += c.hidden;
       var colour = fdCovColour(c.top);
       var circle = new google.maps.Circle({
         map: fdCovMap, center: { lat: c.lat, lng: c.lng },
-        radius: fdCovRadius(c.total, precision),
+        radius: fdCovRadius(c.total, precision, maxN),
         strokeColor: colour, strokeOpacity: 0.85, strokeWeight: 1,
         fillColor: colour, fillOpacity: 0.32, clickable: true
       });
-      // Which batch put these here is the question the map exists to
-      // answer, and the colour alone only answers it for whoever is
-      // holding the legend open.
-      circle.addListener('mouseover', function(ev){
+      fdCovAttachHover(circle, c);
+      fdCovCircles.push(circle);
+    });
+    return { total: total, cells: cells, hidden: hidden };
+  }
+
+  // Shared by both views. Closes on the way out, after a moment's
+  // grace: the circles sit edge to edge at low zoom, and closing the
+  // instant the pointer crosses a boundary would flicker between two
+  // neighbours. Entering another circle cancels the pending close, so
+  // moving along a row swaps the contents instead of blinking.
+  var fdCovInfoTimer = null;
+  function fdCovAttachHover(circle, c){
+    circle.addListener('mouseover', function(ev){
+      clearTimeout(fdCovInfoTimer);
         if (!fdCovInfo) fdCovInfo = new google.maps.InfoWindow({ disableAutoPan: true });
         var ids = Object.keys(c.batches).sort(function(a, b){ return c.batches[b] - c.batches[a]; });
         var lines = ids.slice(0, 6).map(function(id){
@@ -40240,15 +40296,13 @@ Groups</span>
         fdCovInfo.setContent('<div style="font-family:inherit;font-size:12.5px;color:#16233F;min-width:170px;">'
           + '<div style="font-weight:600;">' + escapeHtml(window.t('admin.coverageCellCount').replace('{n}', c.total.toLocaleString())) + '</div>'
           + lines + '</div>');
-        fdCovInfo.setPosition(ev && ev.latLng ? ev.latLng : { lat: c.lat, lng: c.lng });
-        fdCovInfo.open({ map: fdCovMap });
-      });
-      // No mouseout close: the circles sit edge to edge at low zoom and
-      // crossing between two would flicker the window shut and open.
-      // The next hover replaces it, and a click on open map closes it.
-      fdCovCircles.push(circle);
+      fdCovInfo.setPosition(ev && ev.latLng ? ev.latLng : { lat: c.lat, lng: c.lng });
+      fdCovInfo.open({ map: fdCovMap });
     });
-    return { total: total, cells: cells, hidden: hidden };
+    circle.addListener('mouseout', function(){
+      clearTimeout(fdCovInfoTimer);
+      fdCovInfoTimer = setTimeout(function(){ if (fdCovInfo) fdCovInfo.close(); }, 140);
+    });
   }
 
   async function fdCovLoadCells(){
@@ -40256,7 +40310,7 @@ Groups</span>
     var precision = fdCovPrecisionForZoom(fdCovMap.getZoom());
     // fdCovPrecision is set to null when a filter changes, which is
     // what makes a refetch happen at the same zoom.
-    if (precision === fdCovPrecision && (fdCovCircles.length || fdCovHeat)) return;
+    if (precision === fdCovPrecision && fdCovCircles.length) return;
     fdCovLoading = true;
     var { data, error } = await supabase.rpc('admin_church_coverage_cells',
       { p_precision: precision, p_denominations: fdCovDenomFilter() });
@@ -40273,8 +40327,8 @@ Groups</span>
     var rows = data || [];
     if (!rows.length) { fdCovStatus(window.t('admin.coverageNoRows')); fdCovRenderLegend([]); return; }
     var summary = fdCovView === 'heat'
-      ? await fdCovDrawHeat(rows)
-      : (fdCovClearHeat(), fdCovDrawCells(rows, precision));
+      ? fdCovDrawDensity(rows, precision)
+      : fdCovDrawCells(rows, precision);
     fdCovRenderLegend(rows);
     if (!summary) return;
 
@@ -40333,10 +40387,71 @@ Groups</span>
   async function fdCovRedraw(){
     var el = document.getElementById('admin-coverage-legend');
     var rows = (el && el._rows) || [];
-    if (fdCovView === 'heat') { fdCovClear(fdCovCircles); await fdCovDrawHeat(rows); }
-    else { fdCovClearHeat(); fdCovDrawCells(rows, fdCovPrecision); }
+    if (fdCovView === 'heat') fdCovDrawDensity(rows, fdCovPrecision);
+    else fdCovDrawCells(rows, fdCovPrecision);
     fdCovRenderLegend(rows);
   }
+
+  // Same shape as the directory's own grips: pointer capture so the
+  // drag survives leaving the strip, one write per frame, and the last
+  // position committed on release rather than measured -- a frame that
+  // never runs would otherwise save the height we started at.
+  (function wireCovResize(){
+    var grip = document.getElementById('admin-coverage-grip');
+    var host = document.getElementById('admin-coverage-map');
+    if (!grip || !host) return;
+    var KEY = 'fd_cov_map_h';
+    function setH(px, live){
+      px = Math.max(260, Math.min(1400, Math.round(px)));
+      host.style.setProperty('--fd-cov-h', px + 'px');
+      if (!live) {
+        try { localStorage.setItem(KEY, String(px)); } catch (e) {}
+      }
+      // Google keeps the old tile size until told, and a map that grew
+      // shows grey where it has not drawn yet.
+      if (fdCovMap && window.google && google.maps) google.maps.event.trigger(fdCovMap, 'resize');
+      return px;
+    }
+    try {
+      var saved = localStorage.getItem(KEY);
+      if (saved && !isNaN(parseInt(saved, 10))) setH(parseInt(saved, 10), true);
+    } catch (e) {}
+
+    var dragging = false, frame = null, nextPx = null;
+    function apply(px){
+      nextPx = px;
+      if (frame !== null) return;
+      frame = requestAnimationFrame(function(){ frame = null; if (nextPx !== null) setH(nextPx, true); });
+    }
+    grip.addEventListener('pointerdown', function(ev){
+      dragging = true; frame = null; nextPx = null;
+      try { grip.setPointerCapture(ev.pointerId); } catch (e) {}
+      document.body.classList.add('fd-cov-resizing');
+      ev.preventDefault();
+    });
+    grip.addEventListener('pointermove', function(ev){
+      if (!dragging) return;
+      apply(ev.clientY - host.getBoundingClientRect().top);
+    });
+    function end(ev){
+      if (!dragging) return;
+      dragging = false;
+      var last = nextPx;
+      if (frame !== null) { cancelAnimationFrame(frame); frame = null; }
+      nextPx = null;
+      document.body.classList.remove('fd-cov-resizing');
+      try { grip.releasePointerCapture(ev.pointerId); } catch (e) {}
+      setH(last !== null ? last : Math.round(host.getBoundingClientRect().height));
+    }
+    grip.addEventListener('pointerup', end);
+    grip.addEventListener('pointercancel', end);
+    grip.addEventListener('keydown', function(ev){
+      var cur = Math.round(host.getBoundingClientRect().height);
+      var step = ev.shiftKey ? 120 : 40;
+      if (ev.key === 'ArrowDown') { setH(cur + step); ev.preventDefault(); }
+      else if (ev.key === 'ArrowUp') { setH(cur - step); ev.preventDefault(); }
+    });
+  })();
 
   (function wireCovView(){
     document.addEventListener('click', function(ev){
