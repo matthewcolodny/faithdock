@@ -1627,6 +1627,9 @@
       'admin.coverageViewCircles': 'Batches', 'admin.coverageViewHeat': 'Density',
       'admin.coverageResize': 'Drag to make the map taller or shorter, or use the arrow keys',
       'admin.coverageDenominations': 'Denominations',
+      'admin.coverageHover': 'Show details on hover',
+      'admin.coverageDenomsFiltered': '{n} of {total} denominations',
+      'admin.coverageDenomsNeedMigration': 'Denomination filtering needs migration 104_coverage_denominations.sql. The map works without it.',
       'admin.coverageDenomsAll': 'All {n} denominations',
       'admin.coverageDenomsSome': '{n} of {total} denominations',
       'admin.coverageNoDenomination': '(no denomination)',
@@ -2921,6 +2924,9 @@
       'admin.coverageViewCircles': 'Lotes', 'admin.coverageViewHeat': 'Densidad',
       'admin.coverageResize': 'Arrastra para hacer el mapa más alto o más bajo, o usa las flechas',
       'admin.coverageDenominations': 'Denominaciones',
+      'admin.coverageHover': 'Mostrar detalles al pasar el cursor',
+      'admin.coverageDenomsFiltered': '{n} de {total} denominaciones',
+      'admin.coverageDenomsNeedMigration': 'El filtro por denominación necesita la migración 104_coverage_denominations.sql. El mapa funciona sin ella.',
       'admin.coverageDenomsAll': 'Las {n} denominaciones',
       'admin.coverageDenomsSome': '{n} de {total} denominaciones',
       'admin.coverageNoDenomination': '(sin denominación)',
@@ -8159,6 +8165,7 @@ Groups</span>
     <div id="admin-coverage-map"></div>
     <button type="button" id="admin-coverage-grip" data-i18n-title="admin.coverageResize" title="Drag to resize"></button>
     <label class="filter-check" style="margin-top:10px;"><input type="checkbox" id="admin-coverage-count-hidden" checked> <span data-i18n="admin.coverageCountHidden">Count hidden churches</span></label>
+    <label class="filter-check"><input type="checkbox" id="admin-coverage-hover" checked> <span data-i18n="admin.coverageHover">Show details on hover</span></label>
     <div class="fd-cov-bar">
       <div class="dir-view-toggle" role="group">
         <button type="button" class="dir-view-btn is-active" data-cov-view="circles">
@@ -11759,7 +11766,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-27-v335 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-27-v336 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12937,7 +12944,7 @@ Groups</span>
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-27-v335',
+      'build 2026-09-27-v336',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -40277,8 +40284,16 @@ Groups</span>
   // neighbours. Entering another circle cancels the pending close, so
   // moving along a row swaps the contents instead of blinking.
   var fdCovInfoTimer = null;
+  function fdCovHoverOn(){
+    var el = document.getElementById('admin-coverage-hover');
+    return !el || el.checked;
+  }
   function fdCovAttachHover(circle, c){
     circle.addListener('mouseover', function(ev){
+      // Checked at hover time, not at draw time, so the checkbox takes
+      // effect on the circles already on the map rather than only on the
+      // next redraw.
+      if (!fdCovHoverOn()) return;
       clearTimeout(fdCovInfoTimer);
         if (!fdCovInfo) fdCovInfo = new google.maps.InfoWindow({ disableAutoPan: true });
         var ids = Object.keys(c.batches).sort(function(a, b){ return c.batches[b] - c.batches[a]; });
@@ -40338,6 +40353,15 @@ Groups</span>
     if (summary.hidden > 0) {
       line += ' ' + window.t(fdCovCountHidden() ? 'admin.coverageHiddenNote' : 'admin.coverageHiddenExcluded')
         .replace('{n}', summary.hidden.toLocaleString());
+    }
+    // A filter that is on should be legible from the map, not only from
+    // the dropdown it was set in -- otherwise a thinned map looks like
+    // missing data.
+    var denomFilter = fdCovDenomFilter();
+    if (denomFilter) {
+      line += ' · ' + window.t('admin.coverageDenomsFiltered')
+        .replace('{n}', denomFilter.length.toLocaleString())
+        .replace('{total}', fdCovDenomList.length.toLocaleString());
     }
     var un = await supabase.rpc('admin_coverage_unmapped_count');
     if (!un.error && Number(un.data) > 0) {
@@ -40518,7 +40542,15 @@ Groups</span>
     var list = document.getElementById('admin-coverage-denoms-list');
     if (!list || list.dataset.filled) return;
     var { data, error } = await supabase.rpc('admin_coverage_denominations');
-    if (error || !data) return;   // the dropdown stays empty; the map still works
+    if (error || !data) {
+      // Silence here was a trap: an empty list makes fdCovDenomFilter
+      // return null for every call, so the filter quietly does nothing
+      // and the dropdown looks merely empty rather than broken.
+      var missing = /does not exist|schema cache/i.test((error && error.message) || '');
+      fdCovStatus(missing ? window.t('admin.coverageDenomsNeedMigration')
+                          : ((error && error.message) || 'denominations unavailable'), true);
+      return;
+    }
     list.dataset.filled = '1';
     fdCovDenomList = data;
     list.innerHTML = data.map(function(d){
