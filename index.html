@@ -473,6 +473,7 @@
       'groupsPage.membersOnlyTag': 'Members only',
       'groupsPage.memberCount': '{n} members', 'groupsPage.memberCountOne': '1 member',
       'groupsPage.couldNotLoad': 'Could not load groups.',
+      'dir.resultsHeading': 'Churches',
       'nav.churches': 'Churches', 'nav.events': 'Events', 'nav.forChurches': 'For churches', 'nav.pricing': 'Pricing', 'nav.admin': 'Admin',
       'nav.dashboard': 'Church Admin', 'nav.dashboardPlural': 'Church Admin',
       'nav.profile': 'Account profile', 'nav.myChurches': 'My Churches', 'nav.myEvents': 'My Events', 'nav.myGroups': 'My Groups',
@@ -1826,6 +1827,7 @@
       'groupsPage.membersOnlyTag': 'Solo miembros',
       'groupsPage.memberCount': '{n} miembros', 'groupsPage.memberCountOne': '1 miembro',
       'groupsPage.couldNotLoad': 'No se pudieron cargar los grupos.',
+      'dir.resultsHeading': 'Iglesias',
       'nav.churches': 'Iglesias', 'nav.events': 'Eventos', 'nav.forChurches': 'Para iglesias', 'nav.pricing': 'Precios', 'nav.admin': 'Administración',
       'nav.dashboard': 'Gestión de iglesia', 'nav.dashboardPlural': 'Gestión de iglesias',
       'nav.profile': 'Perfil de la cuenta', 'nav.myChurches': 'Mis iglesias', 'nav.myEvents': 'Mis eventos', 'nav.myGroups': 'Mis grupos',
@@ -4608,6 +4610,14 @@
   html[data-theme="dark"] .dir-pager-current{background:var(--gold);color:var(--brand);border-color:var(--gold);}
   .dir-pager-gap{padding:0 2px;color:var(--ink-mute);}
   /* Directory Card / List view toggle */
+  /* Where the count used to be. h2 picks up Fraunces from the base
+     heading rule; the margin is set explicitly because the browser
+     default is far larger than the 16px the old row had. Smaller in
+     the phone's bottom sheet, where every line costs visible cards. */
+  .dir-results-title{font-size:19px;font-weight:600;color:var(--ink);margin:0 0 16px;}
+  @media (max-width:980px){
+    .dir-results-title{font-size:16px;margin-bottom:10px;}
+  }
   /* The count sits beside the pager rather than above the grid. At the
      top it was a line you read once and scrolled past; what it answers
      -- how many, how far through -- is the question you have when you
@@ -7445,6 +7455,7 @@
       </aside>
 
       <div>
+        <h2 class="dir-results-title" data-i18n="dir.resultsHeading">Churches</h2>
         <div class="grid" id="directory-grid"></div>
         <div id="directory-empty" style="display:none;color:var(--ink-mute);font-size:14.5px;padding:40px 0;text-align:center;" data-i18n="filters.noChurchesMatch">No churches match these filters. Try widening your search.</div>
         <div class="dir-results-foot">
@@ -11879,7 +11890,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v349 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v350 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13123,7 +13134,7 @@ Groups</span>
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-28-v349',
+      'build 2026-09-28-v350',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
