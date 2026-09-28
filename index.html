@@ -11766,7 +11766,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-27-v336 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-27-v337 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12944,7 +12944,7 @@ Groups</span>
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-27-v336',
+      'build 2026-09-27-v337',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -40099,6 +40099,15 @@ Groups</span>
   // which is why it is sqrt: the busiest cell just sets the top of the
   // scale instead of an arbitrary number chosen when the table held two
   // thousand rows.
+  // Where a cell's churches actually average out, weighted across the
+  // batches that make it up. Falls back to the grid point when the
+  // server has not been migrated yet, so an un-migrated database gets
+  // the old lattice rather than circles at { lat: undefined }.
+  function fdCovCentre(c){
+    if (c.sW > 0) return { lat: c.sLat / c.sW, lng: c.sLng / c.sW };
+    return { lat: Number(c.lat), lng: Number(c.lng) };
+  }
+
   function fdCovRadius(count, precision, maxCount){
     var cellMetres = 111000 * Math.pow(10, -precision);
     var f = Math.sqrt(Math.max(1, count) / Math.max(1, maxCount || 1));
@@ -40184,9 +40193,14 @@ Groups</span>
       var shown = Number(r.n) - (countHidden ? 0 : Number(r.hidden));
       if (shown <= 0) return;
       var key = r.cell_lat + ',' + r.cell_lng;
-      var cell = byCell[key] || (byCell[key] = { lat: r.cell_lat, lng: r.cell_lng, total: 0, hidden: 0, batches: {} });
+      var cell = byCell[key] || (byCell[key] = { lat: r.cell_lat, lng: r.cell_lng, total: 0, hidden: 0, batches: {}, sLat: 0, sLng: 0, sW: 0 });
       cell.total += shown;
       cell.hidden += Number(r.hidden);
+      if (r.avg_lat != null && r.avg_lng != null) {
+        cell.sLat += Number(r.avg_lat) * shown;
+        cell.sLng += Number(r.avg_lng) * shown;
+        cell.sW += shown;
+      }
       var bid = r.import_batch_id || '';
       cell.batches[bid] = (cell.batches[bid] || 0) + shown;
     });
@@ -40203,7 +40217,7 @@ Groups</span>
       var t = Math.sqrt(c.total / maxN);
       var colour = fdCovHeatColour(t);
       var circle = new google.maps.Circle({
-        map: fdCovMap, center: { lat: c.lat, lng: c.lng },
+        map: fdCovMap, center: fdCovCentre(c),
         radius: cellMetres * 0.58,
         strokeColor: colour, strokeOpacity: 0.25, strokeWeight: 1,
         fillColor: colour, fillOpacity: 0.16 + 0.5 * t, clickable: true
@@ -40246,9 +40260,16 @@ Groups</span>
       var shown = Number(r.n) - (countHidden ? 0 : Number(r.hidden));
       if (shown <= 0) return;
       var key = r.cell_lat + ',' + r.cell_lng;
-      var cell = byCell[key] || (byCell[key] = { lat: r.cell_lat, lng: r.cell_lng, total: 0, top: null, topN: 0, hidden: 0, batches: {} });
+      var cell = byCell[key] || (byCell[key] = { lat: r.cell_lat, lng: r.cell_lng, total: 0, top: null, topN: 0, hidden: 0, batches: {}, sLat: 0, sLng: 0, sW: 0 });
       cell.total += shown;
       cell.hidden += Number(r.hidden);
+      // avg_lat/avg_lng only exist once 105 has run; without them this
+      // falls back to the grid point and the map looks as it did.
+      if (r.avg_lat != null && r.avg_lng != null) {
+        cell.sLat += Number(r.avg_lat) * shown;
+        cell.sLng += Number(r.avg_lng) * shown;
+        cell.sW += shown;
+      }
       // Kept per batch, not just the winner: a circle is coloured by
       // whichever batch contributed most, and the hover is the only
       // place that can say what else is under it.
@@ -40267,7 +40288,7 @@ Groups</span>
       total += c.total; cells++; hidden += c.hidden;
       var colour = fdCovColour(c.top);
       var circle = new google.maps.Circle({
-        map: fdCovMap, center: { lat: c.lat, lng: c.lng },
+        map: fdCovMap, center: fdCovCentre(c),
         radius: fdCovRadius(c.total, precision, maxN),
         strokeColor: colour, strokeOpacity: 0.85, strokeWeight: 1,
         fillColor: colour, fillOpacity: 0.32, clickable: true
@@ -40311,7 +40332,7 @@ Groups</span>
         fdCovInfo.setContent('<div style="font-family:inherit;font-size:12.5px;color:#16233F;min-width:170px;">'
           + '<div style="font-weight:600;">' + escapeHtml(window.t('admin.coverageCellCount').replace('{n}', c.total.toLocaleString())) + '</div>'
           + lines + '</div>');
-      fdCovInfo.setPosition(ev && ev.latLng ? ev.latLng : { lat: c.lat, lng: c.lng });
+      fdCovInfo.setPosition(ev && ev.latLng ? ev.latLng : fdCovCentre(c));
       fdCovInfo.open({ map: fdCovMap });
     });
     circle.addListener('mouseout', function(){
