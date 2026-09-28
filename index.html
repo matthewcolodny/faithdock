@@ -11932,7 +11932,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v355 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v356 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13183,7 +13183,7 @@ Groups</span>
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-28-v355',
+      'build 2026-09-28-v356',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -18080,8 +18080,31 @@ Groups</span>
   }
   window.renderDirectory = renderDirectory;
 
-  // "‹ Prev  1 … 4 5 [6] 7 8 … 20  Next ›"  -- empty string when there's
-  // only one page. Buttons carry data-dir-page for the delegated handler.
+  // Which block of page numbers is on screen. Ten to begin with, then
+  // fours: 1-10, 11-14, 15-18, 19-22 and so on.
+  var DIR_PAGER_FIRST = 10, DIR_PAGER_STEP = 4;
+  function dirPagerWindow(page, totalPages){
+    if (page <= DIR_PAGER_FIRST) return { start: 1, end: Math.min(DIR_PAGER_FIRST, totalPages) };
+    var start = DIR_PAGER_FIRST + 1 + DIR_PAGER_STEP * Math.floor((page - DIR_PAGER_FIRST - 1) / DIR_PAGER_STEP);
+    return { start: start, end: Math.min(start + DIR_PAGER_STEP - 1, totalPages) };
+  }
+
+  // "‹ Prev  11 12 13 14  Next ›"  -- empty string when there's only one
+  // page. Buttons carry data-dir-page for the delegated handler.
+  //
+  // No last-page number and no ellipsis. With 22,000 churches at 15 a
+  // page the last page is somewhere past a thousand, which is not a
+  // place anyone was going -- it only ever taught you how far the list
+  // went, and took a slot next to the page you were actually on.
+  //
+  // Prev and Next move a whole block rather than a single page, which is
+  // what makes the block on screen change: from 1-10, Next goes to 11
+  // and the numbers become 11-14; Prev from there goes to 10 and they
+  // become 1-10 again. Landing on the first page of the new block is why
+  // stepping forward twice reads 11-14 then 15-18.
+  //
+  // totalPages is still known and still used -- to stop the block at the
+  // real end and to disable Next there. It is just not shown.
   function buildDirectoryPager(page, totalPages){
     if (totalPages <= 1) return '';
     function btn(n, label, opts){
@@ -18089,15 +18112,10 @@ Groups</span>
       if (opts.current) return '<span class="dir-pager-btn dir-pager-current" aria-current="page">' + label + '</span>';
       return '<button type="button" class="dir-pager-btn" data-dir-page="' + n + '"' + (opts.disabled ? ' disabled' : '') + '>' + label + '</button>';
     }
-    var out = [btn(page - 1, '‹ ' + window.t('common.prev'), { disabled: page <= 1 })];
-    var want = {};
-    [1, totalPages, page, page - 1, page + 1, page - 2, page + 2].forEach(function(n){ if (n >= 1 && n <= totalPages) want[n] = true; });
-    var nums = Object.keys(want).map(Number).sort(function(a, b){ return a - b; });
-    for (var i = 0; i < nums.length; i++){
-      if (i > 0 && nums[i] - nums[i - 1] > 1) out.push('<span class="dir-pager-gap">…</span>');
-      out.push(btn(nums[i], String(nums[i]), { current: nums[i] === page }));
-    }
-    out.push(btn(page + 1, window.t('common.next') + ' ›', { disabled: page >= totalPages }));
+    var win = dirPagerWindow(page, totalPages);
+    var out = [btn(win.start - 1, '‹ ' + window.t('common.prev'), { disabled: win.start <= 1 })];
+    for (var n = win.start; n <= win.end; n++) out.push(btn(n, String(n), { current: n === page }));
+    out.push(btn(win.end + 1, window.t('common.next') + ' ›', { disabled: win.end >= totalPages }));
     return out.join('');
   }
   // Re-formats the already-known count in the new language without a
