@@ -4608,8 +4608,19 @@
   html[data-theme="dark"] .dir-pager-current{background:var(--gold);color:var(--brand);border-color:var(--gold);}
   .dir-pager-gap{padding:0 2px;color:var(--ink-mute);}
   /* Directory Card / List view toggle */
-  .dir-results-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px;}
-  .dir-results-head .dir-view-toggle{margin-left:auto;}
+  /* The count sits beside the pager rather than above the grid. At the
+     top it was a line you read once and scrolled past; what it answers
+     -- how many, how far through -- is the question you have when you
+     reach the bottom.
+     Wraps rather than squeezing: on a phone the count and a full set of
+     page buttons do not fit one line, and the pager scrolls sideways on
+     its own, so letting it wrap keeps both readable.
+     .dir-results-head went with it -- the count was all it held. */
+  .dir-results-foot{
+    display:flex;align-items:center;justify-content:center;gap:14px;
+    flex-wrap:wrap;margin-top:28px;
+  }
+  .dir-results-foot #directory-count{flex:0 0 auto;}
   .dir-view-toggle{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;flex-shrink:0;}
   .dir-view-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;font-size:12.5px;background:var(--card);color:var(--ink-mute);border:none;cursor:pointer;line-height:1;}
   .dir-view-btn svg{width:14px;height:14px;flex-shrink:0;}
@@ -5204,6 +5215,11 @@
   /* The night styles paint geometry #242f3e, so the gap behind the tiles
      has to be dark too or the flash is worse in dark mode than light. */
   html[data-theme="dark"] #directory-map{background:#242f3e;}
+  /* The note is emptied, not hidden, when every church has coordinates
+     -- and in the desktop split it still carried 6px of padding top and
+     bottom, drawing a 12px strip of the wrap's own dark background
+     under the map. */
+  #directory-map-note:empty{display:none;}
   /* The map is edge to edge; its caption should still line up with the
      page text, so it carries .wrap's own max-width and padding. */
   #directory-map-note{
@@ -6540,6 +6556,13 @@
     opacity:0;pointer-events:none;transition:opacity .12s;z-index:60;
   }
   .icon-tip:hover::after{opacity:1;}
+  /* table.roster carries overflow:hidden to clip its own rounded
+     corners, so a bubble that sticks out past the table edge is cut --
+     and the row menu is the last control in the last column, with only
+     the cell's 16px of padding beyond it. Centred, "More actions" lost
+     its tail. Anchored to the button's right edge instead, which keeps
+     it inside the table whatever the label says in any language. */
+  .row-menu .icon-tip::after{left:auto;right:0;transform:none;}
 
   .row-menu{position:relative;display:inline-block;}
   .row-menu-btn{background:var(--paper);border:1px solid var(--line);border-radius:7px;padding:6px 8px;color:var(--ink-mute);cursor:pointer;}
@@ -7422,12 +7445,12 @@
       </aside>
 
       <div>
-        <div class="dir-results-head">
-          <div id="directory-count" style="font-size:13.5px;color:var(--ink-mute);"></div>
-        </div>
         <div class="grid" id="directory-grid"></div>
         <div id="directory-empty" style="display:none;color:var(--ink-mute);font-size:14.5px;padding:40px 0;text-align:center;" data-i18n="filters.noChurchesMatch">No churches match these filters. Try widening your search.</div>
-        <nav id="directory-pager" class="dir-pager" aria-label="Pagination" style="justify-content:center;margin-top:28px;"></nav>
+        <div class="dir-results-foot">
+          <div id="directory-count" style="font-size:13.5px;color:var(--ink-mute);"></div>
+          <nav id="directory-pager" class="dir-pager" aria-label="Pagination" style="justify-content:center;"></nav>
+        </div>
       </div>
     </div>
     </div>
@@ -11856,7 +11879,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v348 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v349 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13100,7 +13123,7 @@ Groups</span>
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-28-v348',
+      'build 2026-09-28-v349',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
