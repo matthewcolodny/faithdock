@@ -5809,6 +5809,10 @@
   .autocomplete-item{padding:10px 14px;font-size:13.5px;color:var(--ink-soft);cursor:pointer;border-bottom:1px solid var(--paper);}
   .autocomplete-item:last-child{border-bottom:none;}
   .autocomplete-item:hover{background:var(--paper);}
+  /* Arrow-key selection. Separate from :hover because the pointer may be
+     sitting over a different row while the keyboard walks the list. */
+  .autocomplete-item.is-active{background:var(--gold-bg);color:var(--ink);}
+  .autocomplete-item strong{color:var(--ink);font-weight:600;}
 
   .chip-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
   .chip{
@@ -7373,6 +7377,7 @@
         <span class="search-field-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></span>
         <input class="field" type="search" id="dir-keyword-input" placeholder="Search by church name or keyword..." data-i18n-placeholder="filters.keywordPlaceholder" autocomplete="off">
         <button type="button" class="search-clear-btn" id="dir-keyword-clear-btn" aria-label="Clear search" data-i18n-title="common.clearSearch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+        <div class="autocomplete-list" id="dir-keyword-list" role="listbox"></div>
       </div>
       <div class="autocomplete-wrap search-field-wrap" style="max-width:340px;display:flex;">
         <span class="search-field-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
@@ -11927,7 +11932,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v354 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v355 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13178,7 +13183,7 @@ Groups</span>
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-28-v354',
+      'build 2026-09-28-v355',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -18968,6 +18973,146 @@ Groups</span>
   if (dirKeywordInput) {
     dirKeywordInput.addEventListener('input', debouncedRenderDirectory);
   }
+
+  // ---- Church names under the keyword box --------------------------
+  //
+  // Reads the table directly rather than through search_churches: this
+  // needs one column for eight rows, and the RPC returns whole church
+  // records with service times and next events attached.
+  //
+  // is_hidden is filtered HERE, explicitly. Measured against production
+  // before writing this: a plain anon select on churches returns hidden
+  // rows, so the read policy is not doing it. Without the filter this
+  // box would suggest the churches deliberately kept out of the
+  // directory -- and then find nothing when one was picked.
+  (function wireKeywordSuggest(){
+    var input = document.getElementById('dir-keyword-input');
+    var list = document.getElementById('dir-keyword-list');
+    // window.supabase is deliberately NOT checked here: this runs at
+    // parse time, the client is assigned later, and testing for it
+    // meant the box was never wired at all. It is checked where it is
+    // actually used, below.
+    if (!input || !list) return;
+    var MIN_CHARS = 2, SHOW = 8, FETCH = 40;
+    var timer = null, seq = 0, names = [], active = -1;
+
+    function close(){
+      list.classList.remove('open');
+      list.innerHTML = '';
+      names = []; active = -1;
+    }
+    function setActive(i){
+      var rows = list.children;
+      if (active >= 0 && rows[active]) rows[active].classList.remove('is-active');
+      active = i;
+      if (active >= 0 && rows[active]) {
+        rows[active].classList.add('is-active');
+        rows[active].scrollIntoView({ block: 'nearest' });
+      }
+    }
+    function choose(name){
+      input.value = name;
+      close();
+      if (typeof window.syncDirKeywordClearBtn === 'function') window.syncDirKeywordClearBtn();
+      debouncedRenderDirectory();
+    }
+    // Escaped in three pieces rather than escaping the whole string and
+    // then hunting for the query inside it -- the query could otherwise
+    // match the middle of an entity and split it.
+    function mark(name, q){
+      var at = name.toLowerCase().indexOf(q.toLowerCase());
+      if (at < 0) return escapeHtml(name);
+      return escapeHtml(name.slice(0, at))
+        + '<strong>' + escapeHtml(name.slice(at, at + q.length)) + '</strong>'
+        + escapeHtml(name.slice(at + q.length));
+    }
+    function paint(found, q){
+      names = found;
+      if (!found.length) { close(); return; }
+      list.innerHTML = found.map(function(nm, i){
+        return '<div class="autocomplete-item" role="option" data-i="' + i + '">' + mark(nm, q) + '</div>';
+      }).join('');
+      list.classList.add('open');
+      active = -1;
+    }
+    async function look(q){
+      if (!window.supabase) return;
+      var mine = ++seq;
+      // % and _ are wildcards to ilike. A name typed with one would
+      // otherwise widen the search instead of narrowing it.
+      var pattern = '%' + q.replace(/[\\%_]/g, function(ch){ return '\\' + ch; }) + '%';
+      // TWO queries, not one. Sorting a contains-match afterwards cannot
+      // put "Grace Avenue" above "Abiding Grace": the server returns the
+      // first 40 alphabetically, and with 22,000 churches those are all
+      // A-names, so the ones actually starting with what was typed were
+      // never in the page being sorted. Asking for them separately is
+      // the only way to see them. Both are one indexed column and they
+      // go out together.
+      // pattern is already %escaped%, so dropping its leading % IS the
+      // starts-with pattern -- no second round of escaping, and no way
+      // for the two to disagree about what was escaped.
+      var both = await Promise.all([
+        window.supabase.from('churches').select('name')
+          .eq('is_hidden', false).ilike('name', pattern.slice(1)).order('name').limit(SHOW),
+        window.supabase.from('churches').select('name')
+          .eq('is_hidden', false).ilike('name', pattern).order('name').limit(FETCH)
+      ]);
+      if (mine !== seq) return;             // a later keystroke already answered
+      var starts = both[0], contains = both[1];
+      if ((starts.error && contains.error) || (!starts.data && !contains.data)) { close(); return; }
+      var res = { data: (starts.data || []).concat(contains.data || []) };
+      // Deduped on the DISPLAYED name: "First Baptist Church" exists many
+      // times over and eight identical rows are no use to anyone. Picking
+      // it searches for the name, which finds all of them.
+      var seen = Object.create(null), out = [];
+      for (var i = 0; i < res.data.length; i++) {
+        var nm = displayChurchName(res.data[i].name);
+        var key = nm.toLowerCase();
+        if (seen[key]) continue;
+        seen[key] = 1; out.push(nm);
+      }
+      // The starts-with results were concatenated first and the dedupe
+      // above keeps first-seen, so they already lead. This is a stable
+      // tiebreak for the rest, and a backstop if one of the two queries
+      // failed on its own.
+      var lower = q.toLowerCase();
+      out.sort(function(a, b){
+        var pa = a.toLowerCase().indexOf(lower) === 0 ? 0 : 1;
+        var pb = b.toLowerCase().indexOf(lower) === 0 ? 0 : 1;
+        return pa !== pb ? pa - pb : 0;
+      });
+      paint(out.slice(0, SHOW), q);
+    }
+
+    input.addEventListener('input', function(){
+      var q = input.value.trim();
+      clearTimeout(timer);
+      if (q.length < MIN_CHARS) { close(); return; }
+      timer = setTimeout(function(){ look(q); }, 180);
+    });
+    input.addEventListener('keydown', function(ev){
+      if (!list.classList.contains('open')) return;
+      if (ev.key === 'ArrowDown') { setActive((active + 1) % names.length); ev.preventDefault(); }
+      else if (ev.key === 'ArrowUp') { setActive((active <= 0 ? names.length : active) - 1); ev.preventDefault(); }
+      else if (ev.key === 'Enter') {
+        if (active >= 0) { choose(names[active]); ev.preventDefault(); }
+        else close();
+      }
+      else if (ev.key === 'Escape') { close(); }
+    });
+    // mousedown, not click: the input's blur would close the list first
+    // and the click would land on nothing.
+    list.addEventListener('mousedown', function(ev){
+      var row = ev.target.closest('.autocomplete-item');
+      if (!row) return;
+      ev.preventDefault();
+      choose(names[parseInt(row.getAttribute('data-i'), 10)]);
+    });
+    document.addEventListener('click', function(ev){
+      if (ev.target !== input && !list.contains(ev.target)) close();
+    });
+    input.addEventListener('blur', function(){ setTimeout(close, 120); });
+  })();
 
   // Directory/Events keyword fields' "x" clear button -- a real, live-
   // reported gap: type="search" inputs had their native webkit clear
