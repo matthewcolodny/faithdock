@@ -4850,6 +4850,44 @@
   #dir-split-grip:focus-visible{outline:2px solid var(--gold);outline-offset:-2px;}
   body.fd-split-resizing{user-select:none;cursor:col-resize;}
   @media (max-width:980px){ #dir-split-grip{display:none;} }
+
+  /* ---- How wide is the card's own column? ----------------------------
+     Declared OUT here, not in the min-width:981px block below: the phone
+     reads the same rules, and inside that block the container was never
+     established at all on a phone -- the sheet quietly went back to the
+     16/9 band. Measured, not assumed.
+     So the cards can ask how wide their own column is rather than how
+     wide the window is. Those stopped being the same question when the
+     results column became draggable. */
+  .dir-results-col #directory-grid.grid{
+    container-type:inline-size;
+    container-name:dircards;
+  }
+  /* Graphic beside the copy instead of a 16/9 band above it, whenever
+     only one card fits across.
+     475px is not a guess: two columns need 230 + 230 + 16 of gap = 476,
+     so this matches exactly when auto-fill has dropped to one column.
+     A 16/9 logo across a single-column card is most of the visible list
+     per church; at 64px square, four or five fit where one did.
+     A container query rather than a second phone breakpoint, because it
+     is the same answer to the same question -- this column is narrow --
+     and the phone's sheet is one of the columns asking. */
+  @container dircards (max-width:475px){
+    #directory-grid .church-card{
+      display:grid;grid-template-columns:64px 1fr;gap:12px;
+      align-items:start;padding:12px;
+    }
+    #directory-grid .church-card .thumb{
+      width:64px;height:64px;aspect-ratio:auto;border-radius:10px;
+      /* !important because the logo variant sets padding inline, and an
+         inline style beats a stylesheet rule that does not say so. */
+      padding:6px !important;
+    }
+    #directory-grid .church-card .thumb svg{width:26px;height:26px;}
+    #directory-grid .church-card .card-body{padding:0;min-width:0;}
+    #directory-grid .church-card h3{font-size:16px;margin:4px 0 5px;}
+    #directory-grid .church-card .meta-row{margin-bottom:3px;}
+  }
   /* Its own scroller, so the scrollbar sits on the column's right edge
      against the map rather than out at the window edge. Scroll chaining
      is left on: running off the end of the list carries on to the page
@@ -5107,23 +5145,11 @@
       min-width:30px;height:32px;padding:0 7px;font-size:12.5px;flex-shrink:0;
     }
     #page-directory.active .dir-pager-gap{flex-shrink:0;}
-    /* Graphic beside the copy instead of a 16/9 band above it. A logo
-       that fills the card's width is most of a phone screen per church;
-       at 64px square, four or five fit where one did. */
-    #page-directory.active #directory-grid .church-card{
-      display:grid;grid-template-columns:64px 1fr;gap:12px;
-      align-items:start;padding:12px;
-    }
-    #page-directory.active #directory-grid .church-card .thumb{
-      width:64px;height:64px;aspect-ratio:auto;border-radius:10px;
-      /* !important because the logo variant sets padding inline, and an
-         inline style beats a stylesheet rule that does not say so. */
-      padding:6px !important;
-    }
-    #page-directory.active #directory-grid .church-card .thumb svg{width:26px;height:26px;}
-    #page-directory.active #directory-grid .church-card .card-body{padding:0;min-width:0;}
-    #page-directory.active #directory-grid .church-card h3{font-size:16px;margin:4px 0 5px;}
-    #page-directory.active #directory-grid .church-card .meta-row{margin-bottom:3px;}
+    /* The card's own layout is no longer set here. The sheet is inside
+       the dircards container and never wider than one column, so it
+       gets the horizontal card from the container query above -- one
+       definition instead of two that have to be kept saying the same
+       thing. What stays below is about touch, not width. */
     /* The tap target for the profile, now that the card itself is not
        one. Inline-block so it is only as wide as its own text. */
     #page-directory.active #directory-grid .dir-card-profile-link{
@@ -11890,7 +11916,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v351 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v352 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13141,7 +13167,7 @@ Groups</span>
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-28-v351',
+      'build 2026-09-28-v352',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
