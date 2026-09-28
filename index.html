@@ -11842,7 +11842,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v344 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v345 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12594,12 +12594,46 @@ Groups</span>
     return !window.matchMedia || window.matchMedia('(hover: hover) and (pointer: fine)').matches;
   }
 
-  function dirFocusMarker(name){
+  // The bubble opens ABOVE its pin and autoPan is off, so a pin in the
+  // top strip of the map gets a bubble cut off by the frame. This is the
+  // only case where hovering a pin is still allowed to move the map, and
+  // it moves by the shortfall alone rather than recentring.
+  //
+  // Measured as a fraction of the visible latitude span rather than in
+  // pixels: no projection call, and Mercator's distortion across a
+  // single viewport is far smaller than the band being tested for.
+  var DIR_BUBBLE_HEADROOM = 0.18;
+  function dirNudgeIntoHeadroom(marker){
+    var bounds = dirMap && dirMap.getBounds();
+    if (!bounds) return;
+    var host = document.getElementById('directory-map');
+    var h = host ? Math.round(host.getBoundingClientRect().height) : 0;
+    if (!h) return;
+    var north = bounds.getNorthEast().lat(), south = bounds.getSouthWest().lat();
+    var span = north - south;
+    if (!(span > 0)) return;
+    var fromTop = (north - marker.getPosition().lat()) / span;   // 0 at the top edge
+    if (fromTop >= DIR_BUBBLE_HEADROOM) return;                  // the bubble already fits
+    dirMapProgrammaticMove++;
+    setTimeout(function(){
+      dirMapProgrammaticMove = Math.max(0, dirMapProgrammaticMove - 1);
+    }, 900);
+    dirMap.panBy(0, -Math.round(h * (DIR_BUBBLE_HEADROOM - fromTop)));
+  }
+
+  // noPan for the one caller that is already looking at the pin: the
+  // pointer is ON it, so moving the map slides it out from under the
+  // cursor, which fires mouseout, which lands the pointer on whatever
+  // pin the pan brought underneath -- the map walks away from you.
+  // Hovering a CARD is the opposite case and still pans: that pin is
+  // often off-screen, and showing it is the whole point.
+  function dirFocusMarker(name, noPan){
     var marker = name ? dirMarkerByName[name] : null;
     if (!marker || !dirMap) return false;
     marker.setZIndex(9999);
     openDirInfo(marker, marker._fdChurch);
-    dirPanToMarker(marker);
+    if (noPan) dirNudgeIntoHeadroom(marker);
+    else dirPanToMarker(marker);
     return true;
   }
   function dirClearHotCard(){
@@ -12933,7 +12967,7 @@ Groups</span>
         marker.addListener('mouseover', function(){
           if (dirHoveredName === key) return;
           dirHoveredName = key;
-          dirFocusMarker(key);
+          dirFocusMarker(key, true);
           dirRevealCard(key);
         });
       }
@@ -13043,7 +13077,7 @@ Groups</span>
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-28-v344',
+      'build 2026-09-28-v345',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
