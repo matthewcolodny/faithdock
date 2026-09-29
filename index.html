@@ -5109,9 +5109,12 @@
      so the handle you drag and the button that changes the card shape
      stay put while the cards scroll under them. */
   .fd-tabs .dir-view-toggle{
-    flex:0 0 auto;align-self:center;margin-right:8px;
-    width:42px;height:34px;border-radius:8px;overflow:hidden;
+    /* No border: it sits on the strip beside the tabs, and a box around
+       it made it read as a fourth tab. */
+    flex:0 0 auto;align-self:center;margin-right:6px;
+    width:38px;height:32px;border:0;border-radius:8px;overflow:hidden;
   }
+  .fd-tabs .dir-view-btn{background:none;}
   .fd-tabs .dir-view-btn{width:100%;height:100%;justify-content:center;padding:0;}
   /* One button, not two. The icon shown is the mode you would switch TO
      -- a list glyph while you are looking at cards -- so the control
@@ -5120,8 +5123,10 @@
   .fd-tabs .dir-view-btn + .dir-view-btn{border-left:0;}
   /* The sheet handle, at the far end of the same row. */
   .fd-tabs .fd-sheet-grip{
+    /* Right-hand margin, not the glass. It was overrunning the screen by
+       17px -- the strip bleeds to the edges and the handle went with it. */
     position:static;flex:0 0 auto;align-self:center;
-    margin:0 0 0 auto;padding:6px 4px;width:auto;background:none;border:0;
+    margin:0 16px 0 auto;padding:6px 0;width:auto;background:none;border:0;
   }
   .fd-tabs .fd-sheet-grip::before{width:54px;height:4px;background:var(--gold);}
 }
@@ -5151,10 +5156,18 @@
      the cards scroll -- they are how you change what is in the sheet,
      so they cannot scroll away with it. */
   .dir-results-col .fd-tabs{
-    position:sticky;top:20px;z-index:2;background:var(--paper);
-    margin:0 -14px 12px;padding:0 14px;
+    /* top:0, not 20. At 20 there was a 21px band above the strip where
+       scrolled cards showed through -- measured: sheet starts at 520,
+       the strip stuck at 541 -- so a card appeared to slide out in front
+       of the tabs. */
+    position:sticky;top:0;z-index:3;background:var(--paper);
+    margin:0 -14px 10px;padding:8px 14px 0;
   }
-  .fd-tab{font-size:14.5px;padding:8px 13px;}
+  /* The row has to hold a toggle, three tabs and the drag handle in
+     375px. Tighter tabs, and each may shrink -- without min-width:0 a
+     flex item refuses to go below its text and the row overflows, which
+     is what pushed the handle off the right edge of the screen. */
+  .fd-tab{font-size:14px;padding:8px 9px;min-width:0;flex:0 1 auto;}
 }
 
   @media (min-width:981px){
@@ -12147,7 +12160,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v370 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v371 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13267,6 +13280,7 @@
   // .in('id', ids) trip the directory already makes for service times.
   // Cached across renders, because paging through events keeps coming
   // back to the same churches.
+  var dirPinSignature = null;
   var eventsMap = null, eventsMarkers = [], eventsMapTries = 0, eventsInfo = null;
   // What the pins currently show. renderEvents runs on every keystroke,
   // filter click and tab change, and each run was tearing down every
@@ -13563,6 +13577,14 @@
       dirInfo = new google.maps.InfoWindow({ disableAutoPan: true });
     }
 
+    // The pins only change when the CHURCHES change. Switching cards to
+    // list, or any other re-render, was tearing every marker down and
+    // building it again -- which is the flash, and on a zoom it also
+    // refits the bounds against the zoom the reader just made.
+    var dirPinSig = placed.map(function(c){ return c.name; }).join('|');
+    if (dirPinSig === dirPinSignature && dirMarkers.length) return;
+    dirPinSignature = dirPinSig;
+
     dirMarkers.forEach(function(m){ m.setMap(null); });
     dirMarkers = [];
     dirMarkerByName = Object.create(null);
@@ -13713,7 +13735,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-28-v370',
+      'build 2026-09-29-v371',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
