@@ -463,7 +463,7 @@
       'nav.myLists': 'My Lists',
       'myLists.eyebrow': 'Yours', 'myLists.title': 'My Lists',
       'myLists.subtitle': 'Everything you are connected to \u2014 the churches, events and groups you have joined or followed.',
-      'nav.groups': 'Groups', 'nav.search': 'Search', 'nav.searchSubmit': 'Search',
+      'nav.groups': 'Groups', 'nav.browse': 'Browse', 'nav.search': 'Search', 'nav.searchSubmit': 'Search',
       'groupsPage.title': 'Find a group',
       'groupsPage.subtitle': 'Small groups, studies and ministries across every listed church. You will also see groups that are only shared with members of churches you belong to.',
       'groupsPage.keywordPlaceholder': 'Search groups by name, topic or church...',
@@ -1817,7 +1817,7 @@
       'nav.myLists': 'Mis listas',
       'myLists.eyebrow': 'Tuyo', 'myLists.title': 'Mis listas',
       'myLists.subtitle': 'Todo a lo que estás conectado \u2014 las iglesias, eventos y grupos a los que te has unido o que sigues.',
-      'nav.groups': 'Grupos', 'nav.search': 'Buscar', 'nav.searchSubmit': 'Buscar',
+      'nav.groups': 'Grupos', 'nav.browse': 'Explorar', 'nav.search': 'Buscar', 'nav.searchSubmit': 'Buscar',
       'groupsPage.title': 'Encuentra un grupo',
       'groupsPage.subtitle': 'Grupos pequeños, estudios y ministerios de todas las iglesias del directorio. También verás los grupos que solo se comparten con los miembros de las iglesias a las que perteneces.',
       'groupsPage.keywordPlaceholder': 'Busca grupos por nombre, tema o iglesia...',
@@ -5085,6 +5085,46 @@
      self-scrolling results column and a sticky map -- the desktop split
      applied to a phone. The breakpoint is part of the rule, not
      something a class elsewhere is trusted to stand in for. */
+  /* Out here, not inside the desktop fence below. It lived in there,
+     which meant its own @media (max-width:980px) was nested inside
+     @media (min-width:981px) -- a pair that can never both be true, so
+     the sheet's tabs silently never went sticky. */
+/* ---- Churches / Events / Groups ----------------------------------
+   Folder tabs: the active one joins the panel below it by losing its
+   bottom border, which is what says "this is the front of the stack"
+   without needing a second colour. */
+.fd-tabs{
+  display:flex;gap:4px;align-items:flex-end;
+  border-bottom:1px solid var(--line);
+  margin:0 0 16px;
+}
+.fd-tab{
+  appearance:none;background:none;border:1px solid transparent;border-bottom:0;
+  border-radius:10px 10px 0 0;padding:9px 16px;margin-bottom:-1px;
+  font-family:'Fraunces',serif;font-size:15.5px;font-weight:600;
+  color:var(--ink-mute);cursor:pointer;white-space:nowrap;
+  -webkit-tap-highlight-color:transparent;
+}
+.fd-tab:hover{color:var(--ink);}
+.fd-tab.is-on{
+  background:var(--paper);border-color:var(--line);
+  color:var(--ink);
+  /* Covers the strip's own line, so the tab and its panel read as one
+     sheet of paper. */
+  box-shadow:0 1px 0 0 var(--paper);
+}
+.fd-tab:focus-visible{outline:2px solid var(--gold);outline-offset:-2px;}
+@media (max-width:980px){
+  /* In the sheet the tabs sit under the drag handle and stay put while
+     the cards scroll -- they are how you change what is in the sheet,
+     so they cannot scroll away with it. */
+  .dir-results-col .fd-tabs{
+    position:sticky;top:20px;z-index:2;background:var(--paper);
+    margin:0 -14px 12px;padding:0 14px;
+  }
+  .fd-tab{font-size:14.5px;padding:8px 13px;}
+}
+
   @media (min-width:981px){
   .dir-results-col{
     padding:22px 24px 28px 28px;min-width:0;
@@ -5100,6 +5140,7 @@
   .dir-results-col .fd-results-grid.grid{
     grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px;
   }
+
   .dir-map-col{
     position:sticky;top:var(--dir-split-top,150px);
     height:var(--dir-split-h, calc(100vh - var(--dir-split-top,150px)));
@@ -7636,7 +7677,17 @@
     <div class="dir-results-col">
     <button type="button" id="dir-sheet-grip" class="fd-sheet-grip" aria-orientation="horizontal"
             data-i18n-title="dir.sheetResize" title="Drag to resize"></button>
+    <!-- Churches, Events and Groups are three views of one page, not
+         three pages. The head, the map and the sheet belong to the
+         shell and never move; a tab only swaps which panel is on. That
+         is why the search row does not flicker when you switch. -->
+    <div class="fd-tabs" role="tablist" data-i18n-aria="nav.browse" aria-label="Browse">
+      <button type="button" class="fd-tab is-on" role="tab" aria-selected="true" data-browse-tab="churches" data-i18n="nav.churches">Churches</button>
+      <button type="button" class="fd-tab" role="tab" aria-selected="false" data-browse-tab="events" data-i18n="nav.events">Events</button>
+      <button type="button" class="fd-tab" role="tab" aria-selected="false" data-browse-tab="groups" data-i18n="nav.groups">Groups</button>
+    </div>
     <div class="directory-layout">
+      <div class="fd-panel is-on" data-browse-panel="churches" style="display:contents;">
       <aside class="filter-panel">
         <h3 class="filter-panel-title" data-i18n="filters.filterSearches">Filter searches</h3>
         <button type="button" class="filter-panel-toggle" id="dir-filter-toggle" aria-expanded="false" aria-controls="dir-filter-body">
@@ -7720,151 +7771,8 @@
         <button class="export-btn" id="filter-reset" style="width:100%;justify-content:center;" data-i18n="filters.reset">Reset filters</button>
         </div>
       </aside>
-
-      <div>
-        <h2 class="dir-results-title" data-i18n="dir.resultsHeading">Churches</h2>
-        <div class="grid fd-results-grid" id="directory-grid"></div>
-        <div id="directory-empty" style="display:none;color:var(--ink-mute);font-size:14.5px;padding:40px 0;text-align:center;" data-i18n="filters.noChurchesMatch">No churches match these filters. Try widening your search.</div>
-        <div class="dir-results-foot">
-          <div id="directory-count" style="font-size:13.5px;color:var(--ink-mute);"></div>
-          <nav id="directory-pager" class="dir-pager" aria-label="Pagination" style="justify-content:center;"></nav>
-        </div>
       </div>
-    </div>
-    </div>
-    <div class="dir-map-col">
-      <!-- Hangs off the column's left edge. The column is sticky and one
-           viewport tall, so the handle stays in view while the results
-           scroll past for thousands of pixels. -->
-      <div id="dir-split-grip" class="fd-split-grip" role="separator" aria-orientation="vertical" tabindex="0"
-           data-i18n-title="dir.splitResize" title="Drag to resize"></div>
-      <!-- Shown only after the reader has moved the map themselves.
-           Re-runs the search from wherever they have panned to. -->
-      <button type="button" id="dir-search-area" hidden
-              data-i18n="dir.searchThisArea">Search this area</button>
-      <!-- Filters ride over the top of the map as dropdown pills.
-           Filled by moveFiltersIntoPills() -- the existing filter
-           groups are MOVED here rather than rebuilt, so every control
-           keeps the listeners it was wired with. -->
-      <div id="dir-filter-pills" class="fd-filter-pills"></div>
-    <div id="directory-map-wrap" class="fd-map-wrap">
-      <div id="directory-map-holder" class="fd-map-holder">
-      <div id="directory-map" class="fd-map"></div>
-      <!-- Sizing. Buttons rather than a drag handle: the height feeds the
-           sticky offsets of everything below, so it has to land on known
-           values, and a drag that ends mid-pixel mid-scroll is a lot of
-           failure modes for a control used a handful of times. -->
-      <div id="directory-map-size" class="fd-map-size" role="group" data-i18n-title="dir.mapResize" title="Map size">
-        <button type="button" id="dir-map-shorter" aria-label="Shorter map">&minus;</button>
-        <button type="button" id="dir-map-taller" aria-label="Taller map">+</button>
-      </div>
-      </div>
-      <!-- Below the map rather than over it: Google puts its own zoom,
-           Terms and "Keyboard shortcuts" chrome along the bottom edge,
-           and a full-width grab strip on top of those would swallow
-           clicks meant for them. -->
-      <div id="directory-map-grip" class="fd-map-grip" role="separator" aria-orientation="horizontal"
-           tabindex="0" aria-label="Resize map" data-i18n-title="dir.mapResizeDrag"><span></span></div>
-      <div id="directory-map-note" class="fd-map-note"></div>
-    </div>
-    </div>
-  </div>
-</section>
-
-<!-- ================= EVENTS ================= -->
-<!-- ================= GROUPS (public search) =================
-     Deliberately simpler than the Events page: keyword plus an
-     optional "use my location", with no Google Places typeahead.
-     The Directory and Events pages each carry their own full copy of
-     that autocomplete wiring already, and a third would be a third
-     place to fix the next bug in it. Distance still works -- the RPC
-     takes lat/lng either way -- it just comes from the browser rather
-     than from typing a city. -->
-<section class="page" id="page-groups">
-  <div class="wrap" style="padding-top:44px;">
-    <div class="eyebrow" data-i18n="nav.groups">Groups</div>
-    <h1 style="font-size:34px;" data-i18n="groupsPage.title">Find a group</h1>
-    <p style="color:var(--ink-mute);margin-top:8px;" data-i18n="groupsPage.subtitle">Small groups, studies and ministries across every listed church. You will also see groups that are only shared with members of churches you belong to.</p>
-
-    <div class="location-row">
-      <div class="search-field-wrap search-clear-wrap" style="max-width:340px;">
-        <span class="search-field-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></span>
-        <input class="field" type="search" id="groups-keyword-input" placeholder="Search groups by name, topic or church..." data-i18n-placeholder="groupsPage.keywordPlaceholder" autocomplete="off">
-        <button type="button" class="search-clear-btn" id="groups-keyword-clear-btn" aria-label="Clear search" data-i18n-title="common.clearSearch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-      </div>
-      <button class="export-btn" id="groups-use-location-btn" data-i18n-title="events.useMyLocation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg> <span class="btn-label-text" data-i18n="events.useMyLocation">Use my location</span></button>
-      <span id="groups-location-status" style="font-size:13px;color:var(--ink-mute);"></span>
-    </div>
-
-    <!-- The directory's own toggle classes, not a second set. If that
-         control is ever restyled this follows, which is the whole
-         point of not inventing another one. -->
-    <div style="display:flex;justify-content:flex-end;margin-top:20px;">
-      <div class="dir-view-toggle" role="group" data-i18n-title="directory.viewToggleLabel" title="View">
-        <button type="button" class="dir-view-btn is-active" data-groups-view="cards" aria-pressed="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-          <span data-i18n="groupsPage.viewCards">Cards</span>
-        </button>
-        <button type="button" class="dir-view-btn" data-groups-view="list" aria-pressed="false">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3.5" y1="6" x2="3.51" y2="6"/><line x1="3.5" y1="12" x2="3.51" y2="12"/><line x1="3.5" y1="18" x2="3.51" y2="18"/></svg>
-          <span data-i18n="groupsPage.viewList">List</span>
-        </button>
-      </div>
-    </div>
-    <div id="groups-results" style="margin-top:16px;">
-      <p style="color:var(--ink-mute);font-size:14px;" data-i18n="common.loading">Loading...</p>
-    </div>
-    <div style="margin-top:20px;">
-      <button class="export-btn" id="groups-load-more-btn" style="display:none;" data-i18n="groupsPage.loadMore">Show more groups</button>
-    </div>
-  </div>
-</section>
-
-<section class="page fd-shell" id="page-events">
-  <!-- The browse shell, the same one Churches wears. The head floats
-       over the map on a phone and sits above the split on a desktop;
-       both columns and the drag-sheet come from .fd-shell. -->
-  <div id="events-head" class="fd-browse-head">
-    <div class="wrap">
-      <div class="dir-search-row">
-      <div class="search-field-wrap search-clear-wrap" style="max-width:340px;">
-        <span class="search-field-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></span>
-        <input class="field" type="search" id="events-keyword-input" placeholder="Search events by name or keyword..." data-i18n-placeholder="events.keywordPlaceholder" autocomplete="off">
-        <button type="button" class="search-clear-btn" id="events-keyword-clear-btn" aria-label="Clear search" data-i18n-title="common.clearSearch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-      </div>
-      <div class="autocomplete-wrap search-field-wrap" style="max-width:340px;display:flex;">
-        <span class="search-field-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
-        <div class="search-clear-wrap" style="flex:1;min-width:0;">
-          <input class="field" type="search" id="events-location-input" placeholder="Enter a city or address" autocomplete="off" style="border-radius:8px 0 0 8px;border-right:none;" data-i18n-placeholder="events.locationPlaceholder">
-          <button type="button" class="search-clear-btn" id="events-location-clear-btn" aria-label="Clear location" data-i18n-title="common.clearSearch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-        </div>
-        <button id="events-location-search-btn" style="background:var(--gold);color:var(--brand);border:none;padding:0 16px;border-radius:0 8px 8px 0;cursor:pointer;" aria-label="Search location" data-i18n-title="common.searchLocation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;display:block;"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></button>
-        <div class="autocomplete-list" id="events-location-list"></div>
-      </div>
-      <button class="export-btn" id="events-use-location-btn" data-i18n-title="events.useMyLocation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg> <span class="btn-label-text" data-i18n="events.useMyLocation">Use my location</span></button>
-      <span id="events-location-status" style="font-size:13px;color:var(--ink-mute);"></span>
-        <button type="button" id="events-filter-icon-btn" class="fd-filter-btn" aria-expanded="false" aria-controls="events-filter-body" data-i18n-title="filters.filterSearches" title="Filter searches">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <div class="dir-split">
-    <div class="dir-results-col">
-    <button type="button" id="events-sheet-grip" class="fd-sheet-grip" aria-orientation="horizontal"
-            data-i18n-aria="dir.sheetResize" aria-label="Resize the list"></button>
-    <h2 class="dir-results-title" data-i18n="nav.events">Events</h2>
-
-    <div class="event-tab-row">
-      <button class="event-tab-btn active" id="event-tab-all" data-event-tab="all" data-i18n="events.tabAll">All</button>
-      <button class="event-tab-btn" id="event-tab-for-you" data-event-tab="for-you" data-i18n="events.tabForYou">For you</button>
-      <button class="event-tab-btn" id="event-tab-today" data-event-tab="today" data-i18n="events.tabToday">Today</button>
-      <button class="event-tab-btn" id="event-tab-weekend" data-event-tab="weekend" data-i18n="events.tabWeekend">This weekend</button>
-    </div>
-    <div id="event-tab-for-you-empty-msg" style="display:none;color:var(--ink-mute);font-size:13.5px;margin:-8px 0 20px;"></div>
-
-    <div class="directory-layout">
+      <div class="fd-panel" data-browse-panel="events" style="display:none;">
       <aside class="filter-panel">
         <h3 class="filter-panel-title" data-i18n="filters.filterSearches">Filter searches</h3>
         <button type="button" class="filter-panel-toggle" id="events-filter-toggle" aria-expanded="false" aria-controls="events-filter-body">
@@ -8015,28 +7923,123 @@
         <button class="export-btn" id="events-filter-reset" style="width:100%;justify-content:center;" data-i18n="filters.reset">Reset filters</button>
         </div>
       </aside>
-
+      </div>
       <div>
+        <div class="fd-panel is-on" data-browse-panel="churches">
+        <h2 class="dir-results-title" data-i18n="dir.resultsHeading">Churches</h2>
+        <div class="grid fd-results-grid" id="directory-grid"></div>
+        <div id="directory-empty" style="display:none;color:var(--ink-mute);font-size:14.5px;padding:40px 0;text-align:center;" data-i18n="filters.noChurchesMatch">No churches match these filters. Try widening your search.</div>
+        <div class="dir-results-foot">
+          <div id="directory-count" style="font-size:13.5px;color:var(--ink-mute);"></div>
+          <nav id="directory-pager" class="dir-pager" aria-label="Pagination" style="justify-content:center;"></nav>
+        </div>
+        </div>
+        <div class="fd-panel" data-browse-panel="events" style="display:none;">
+    <div class="event-tab-row">
+      <button class="event-tab-btn active" id="event-tab-all" data-event-tab="all" data-i18n="events.tabAll">All</button>
+      <button class="event-tab-btn" id="event-tab-for-you" data-event-tab="for-you" data-i18n="events.tabForYou">For you</button>
+      <button class="event-tab-btn" id="event-tab-today" data-event-tab="today" data-i18n="events.tabToday">Today</button>
+      <button class="event-tab-btn" id="event-tab-weekend" data-event-tab="weekend" data-i18n="events.tabWeekend">This weekend</button>
+    </div>
+    <div id="event-tab-for-you-empty-msg" style="display:none;color:var(--ink-mute);font-size:13.5px;margin:-8px 0 20px;"></div>
         <div id="events-count" style="font-size:13.5px;color:var(--ink-mute);margin-bottom:16px;"></div>
         <div class="grid fd-results-grid" id="events-grid"></div>
         <div id="events-empty" style="display:none;color:var(--ink-mute);font-size:14.5px;padding:40px 0;text-align:center;" data-i18n="filters.noEventsMatch">No events match these filters. Try widening your search.</div>
         <div style="text-align:center;margin-top:24px;">
           <button class="export-btn" id="events-load-more-btn" style="display:none;padding:10px 24px;" data-i18n="common.loadMore">Load more</button>
         </div>
+        </div>
       </div>
     </div>
     </div>
     <div class="dir-map-col">
-      <div id="events-split-grip" class="fd-split-grip" role="separator" aria-orientation="vertical" tabindex="0"
+      <!-- Hangs off the column's left edge. The column is sticky and one
+           viewport tall, so the handle stays in view while the results
+           scroll past for thousands of pixels. -->
+      <div id="dir-split-grip" class="fd-split-grip" role="separator" aria-orientation="vertical" tabindex="0"
            data-i18n-title="dir.splitResize" title="Drag to resize"></div>
-      <div id="events-map-wrap" class="fd-map-wrap">
-        <div id="events-map-holder" class="fd-map-holder">
-          <div id="events-map" class="fd-map"></div>
-        </div>
+      <!-- Shown only after the reader has moved the map themselves.
+           Re-runs the search from wherever they have panned to. -->
+      <button type="button" id="dir-search-area" hidden
+              data-i18n="dir.searchThisArea">Search this area</button>
+      <!-- Filters ride over the top of the map as dropdown pills.
+           Filled by moveFiltersIntoPills() -- the existing filter
+           groups are MOVED here rather than rebuilt, so every control
+           keeps the listeners it was wired with. -->
+      <div id="dir-filter-pills" class="fd-filter-pills"></div>
+    <div id="directory-map-wrap" class="fd-map-wrap">
+      <div id="directory-map-holder" class="fd-map-holder">
+      <div id="directory-map" class="fd-map"></div>
+      <!-- Sizing. Buttons rather than a drag handle: the height feeds the
+           sticky offsets of everything below, so it has to land on known
+           values, and a drag that ends mid-pixel mid-scroll is a lot of
+           failure modes for a control used a handful of times. -->
+      <div id="directory-map-size" class="fd-map-size" role="group" data-i18n-title="dir.mapResize" title="Map size">
+        <button type="button" id="dir-map-shorter" aria-label="Shorter map">&minus;</button>
+        <button type="button" id="dir-map-taller" aria-label="Taller map">+</button>
       </div>
+      </div>
+      <!-- Below the map rather than over it: Google puts its own zoom,
+           Terms and "Keyboard shortcuts" chrome along the bottom edge,
+           and a full-width grab strip on top of those would swallow
+           clicks meant for them. -->
+      <div id="directory-map-grip" class="fd-map-grip" role="separator" aria-orientation="horizontal"
+           tabindex="0" aria-label="Resize map" data-i18n-title="dir.mapResizeDrag"><span></span></div>
+      <div id="directory-map-note" class="fd-map-note"></div>
+    </div>
     </div>
   </div>
 </section>
+
+<!-- ================= EVENTS ================= -->
+<!-- ================= GROUPS (public search) =================
+     Deliberately simpler than the Events page: keyword plus an
+     optional "use my location", with no Google Places typeahead.
+     The Directory and Events pages each carry their own full copy of
+     that autocomplete wiring already, and a third would be a third
+     place to fix the next bug in it. Distance still works -- the RPC
+     takes lat/lng either way -- it just comes from the browser rather
+     than from typing a city. -->
+<section class="page" id="page-groups">
+  <div class="wrap" style="padding-top:44px;">
+    <div class="eyebrow" data-i18n="nav.groups">Groups</div>
+    <h1 style="font-size:34px;" data-i18n="groupsPage.title">Find a group</h1>
+    <p style="color:var(--ink-mute);margin-top:8px;" data-i18n="groupsPage.subtitle">Small groups, studies and ministries across every listed church. You will also see groups that are only shared with members of churches you belong to.</p>
+
+    <div class="location-row">
+      <div class="search-field-wrap search-clear-wrap" style="max-width:340px;">
+        <span class="search-field-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></span>
+        <input class="field" type="search" id="groups-keyword-input" placeholder="Search groups by name, topic or church..." data-i18n-placeholder="groupsPage.keywordPlaceholder" autocomplete="off">
+        <button type="button" class="search-clear-btn" id="groups-keyword-clear-btn" aria-label="Clear search" data-i18n-title="common.clearSearch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      </div>
+      <button class="export-btn" id="groups-use-location-btn" data-i18n-title="events.useMyLocation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg> <span class="btn-label-text" data-i18n="events.useMyLocation">Use my location</span></button>
+      <span id="groups-location-status" style="font-size:13px;color:var(--ink-mute);"></span>
+    </div>
+
+    <!-- The directory's own toggle classes, not a second set. If that
+         control is ever restyled this follows, which is the whole
+         point of not inventing another one. -->
+    <div style="display:flex;justify-content:flex-end;margin-top:20px;">
+      <div class="dir-view-toggle" role="group" data-i18n-title="directory.viewToggleLabel" title="View">
+        <button type="button" class="dir-view-btn is-active" data-groups-view="cards" aria-pressed="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          <span data-i18n="groupsPage.viewCards">Cards</span>
+        </button>
+        <button type="button" class="dir-view-btn" data-groups-view="list" aria-pressed="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3.5" y1="6" x2="3.51" y2="6"/><line x1="3.5" y1="12" x2="3.51" y2="12"/><line x1="3.5" y1="18" x2="3.51" y2="18"/></svg>
+          <span data-i18n="groupsPage.viewList">List</span>
+        </button>
+      </div>
+    </div>
+    <div id="groups-results" style="margin-top:16px;">
+      <p style="color:var(--ink-mute);font-size:14px;" data-i18n="common.loading">Loading...</p>
+    </div>
+    <div style="margin-top:20px;">
+      <button class="export-btn" id="groups-load-more-btn" style="display:none;" data-i18n="groupsPage.loadMore">Show more groups</button>
+    </div>
+  </div>
+</section>
+
 
 <!-- ================= CHURCH PROFILE ================= -->
 <section class="page" id="page-church">
@@ -12162,7 +12165,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v366 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v367 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13404,6 +13407,75 @@
   }
   window.paintEventsMap = paintEventsMap;
 
+  // ---- Churches / Events / Groups ------------------------------------
+  //
+  // One shell, three panels. Switching hides one panel and shows
+  // another; the head, the search row, the map and the sheet are never
+  // touched, which is the whole point -- they used to belong to separate
+  // pages and so rebuilt themselves on every switch.
+  //
+  // The map is shared too, so each tab's pins have to be taken down when
+  // it leaves. Both sets live on dirMap.
+  var fdBrowseTab = 'churches';
+  // A tab is only offered when there is a panel behind it. Groups has
+  // not been folded in yet, and a tab that hides every panel and shows
+  // nothing is worse than no tab. Removing this is not needed when it
+  // lands -- the tab appears on its own.
+  function fdSyncBrowseTabsPresent(){
+    var tabs = document.querySelectorAll('.fd-tab');
+    for (var i = 0; i < tabs.length; i++) {
+      var name = tabs[i].getAttribute('data-browse-tab');
+      tabs[i].hidden = !document.querySelector('[data-browse-panel="' + name + '"]');
+    }
+  }
+  function fdSetBrowseTab(tab, fromRoute){
+    if (tab !== 'churches' && tab !== 'events' && tab !== 'groups') tab = 'churches';
+    fdBrowseTab = tab;
+
+    var tabs = document.querySelectorAll('.fd-tab');
+    for (var i = 0; i < tabs.length; i++) {
+      var on = tabs[i].getAttribute('data-browse-tab') === tab;
+      tabs[i].classList.toggle('is-on', on);
+      tabs[i].setAttribute('aria-selected', on ? 'true' : 'false');
+    }
+    var panels = document.querySelectorAll('[data-browse-panel]');
+    for (var j = 0; j < panels.length; j++) {
+      var showing = panels[j].getAttribute('data-browse-panel') === tab;
+      panels[j].classList.toggle('is-on', showing);
+      // display:contents on the filter-panel wrapper so the aside stays a
+      // grid item of .directory-layout rather than being boxed inside a
+      // div that is not one.
+      panels[j].style.display = showing
+        ? (panels[j].querySelector(':scope > .filter-panel') ? 'contents' : 'block')
+        : 'none';
+    }
+
+    // Whichever list this tab shows, and its pins.
+    if (tab === 'events') {
+      eventsPinSignature = null;          // the churches' pins were up
+      if (window.renderEvents) window.renderEvents();
+      else if (window.paintEventsMap) window.paintEventsMap();
+    } else if (tab === 'churches') {
+      eventsClearMarkers(); eventsPinSignature = null;
+      if (window.paintDirectoryMap) window.paintDirectoryMap();
+    }
+
+    if (!fromRoute) {
+      var want = tab === 'churches' ? '#directory' : '#' + tab;
+      if (location.hash !== want && typeof safeHistoryUpdate === 'function') {
+        safeHistoryUpdate(true, want);
+      }
+    }
+  }
+  window.fdSetBrowseTab = fdSetBrowseTab;
+  fdSyncBrowseTabsPresent();
+  document.addEventListener('click', function(ev){
+    var t = ev.target.closest && ev.target.closest('.fd-tab');
+    if (!t) return;
+    ev.preventDefault();
+    fdSetBrowseTab(t.getAttribute('data-browse-tab'));
+  });
+
   function paintDirectoryMap(){
     var wrap = document.getElementById('directory-map-wrap');
     var host = document.getElementById('directory-map');
@@ -13619,7 +13691,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-28-v366',
+      'build 2026-09-28-v367',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -15929,11 +16001,23 @@
     // loaders, body.on-dashboard -- applies to it as to any tab.
     var dashView = DASH_ROUTE_VIEWS[baseRoute] || null;
     var pageRoute = dashView ? 'dashboard' : baseRoute;
+    // Events and Groups are tabs of the browse page now, not pages of
+    // their own. #events and #groups still work and still deep-link --
+    // they open the same shell with a different panel on, which is what
+    // stops the search row and the map rebuilding on every switch.
+    var browseTab = FD_BROWSE_TABS[baseRoute] || null;
+    if (browseTab) pageRoute = 'directory';
     if(pageRoute !== 'dashboard'){ restorePricingContentToStandalonePage(); }
     var pages = document.querySelectorAll('.page');
     for(var i=0;i<pages.length;i++){ pages[i].classList.remove('active'); }
     var target = document.getElementById('page-'+pageRoute);
     if(target) target.classList.add('active');
+    // After .active, so the panels are measurable and the map can be
+    // told its size. fromRoute, or it would rewrite the hash go() is
+    // in the middle of setting.
+    if (typeof fdSetBrowseTab === 'function' && pageRoute === 'directory') {
+      fdSetBrowseTab(browseTab || 'churches', true);
+    }
     // Only the directory removes the window's scroll and pins the
     // footer, so the class goes on the body rather than the page: it has
     // to reach the footer and the sitemap, which are the body's children.
@@ -19971,6 +20055,12 @@
   window.addEventListener('hashchange', applyUnsubscribeState);
   applyUnsubscribeState();
 
+  // baseRoute -> which browse panel it opens. 'directory' is the
+  // default and is deliberately absent, so it falls through to churches.
+  // groups is deliberately absent until its panel is in the shell:
+  // listed here it would send #groups to a shell that has nothing to
+  // show it, so the route still reaches the standalone page for now.
+  var FD_BROWSE_TABS = { events: 'events' };
   var validRoutes = ['home','directory','events','church','event','group','groups','my-lists','my-groups','my-events','my-churches','profile','pricing','compare','signup','reset-password','register-church','create-event','dashboard','admin','admin-church','help','privacy','terms','ada','data-deletion','waitlist','checkin-link','about','unsubscribed'];
   showRouteFromHash(true);
   applyTranslations(savedLang);
