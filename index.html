@@ -4598,7 +4598,11 @@
     /* Padding (not icon size) is what grows the click target here --
        2px was reported as too easy to miss, landing the click on the
        row itself (which navigates) instead of the heart. */
-    background:none;border:none;cursor:pointer;padding:9px;display:inline-flex;align-items:center;
+    background:none;border:none;cursor:pointer;padding:9px;display:inline-flex;
+    /* Top, not centred: on a card the heart is in the top-right corner,
+       and a row that centres it vertically puts the same control in a
+       different place depending on which view you are in. */
+    align-items:flex-start;align-self:flex-start;
     flex-shrink:0;margin-left:auto;margin-right:-5px;
     /* Same tap-highlight fix as .follow-heart-card above. */
     -webkit-tap-highlight-color:transparent;
@@ -4948,6 +4952,10 @@
      div -- one per tab -- so the old direct-child path stopped matching
      and the panel reappeared in the middle of the cards. */
   @media (min-width:981px){ .dir-results-col .directory-layout .filter-panel{display:none;} }
+  /* Nor on a phone. The filter button over the map is how filters are
+     reached there; the panel sitting inline at the top of the sheet was
+     a second way in, and it pushed the first card off the screen. */
+  @media (max-width:980px){ .dir-results-col .directory-layout .filter-panel{display:none;} }
   .filter-panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px;position:sticky;top:92px;}
 
   /* ---- Directory results map -------------------------------------
@@ -5104,7 +5112,56 @@
    bottom border, which is what says "this is the front of the stack"
    without needing a second colour. */
 .fd-pillset{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start;}
+
+/* Churches, Events and Groups are in a fixed order, so a switch has a
+   direction: going right slides the new list in from the right. Only
+   the list moves -- the map, the search row and the sheet are the same
+   objects throughout, which is the whole point of one shell. */
+.fd-panel-slide-l, .fd-panel-slide-r{ animation:fdPanelIn .22s cubic-bezier(.22,.61,.36,1) both; }
+@keyframes fdPanelIn{ from{opacity:0;} to{opacity:1;transform:none;} }
+.fd-panel-slide-r{ animation-name:fdPanelInR; }
+.fd-panel-slide-l{ animation-name:fdPanelInL; }
+@keyframes fdPanelInR{ from{opacity:0;transform:translateX(26px);} to{opacity:1;transform:none;} }
+@keyframes fdPanelInL{ from{opacity:0;transform:translateX(-26px);} to{opacity:1;transform:none;} }
+/* Someone who has asked not to see motion gets the swap with no travel. */
+@media (prefers-reduced-motion:reduce){
+  .fd-panel-slide-l, .fd-panel-slide-r{animation:none;}
+}
 @media (max-width:980px){
+  /* The sheet's header: a full-width drag bar along the top edge, then
+     the tab strip under it. Sticky as one block, so the cards scroll
+     beneath both rather than between them. */
+  .fd-sheet-head{
+    position:sticky;top:0;z-index:4;
+    /* 2px, not 8 -- there was 44px between the strip and the first card
+       once the grid and layout margins were added on top. */
+    margin:0 -14px 2px;background:var(--brand);
+    border-radius:16px 16px 0 0;overflow:hidden;
+  }
+  /* The drag bar itself -- the full width of the sheet, which is what
+     makes it read as the edge you pull rather than a control in a row. */
+  .fd-sheet-head .fd-sheet-grip{
+    display:block;position:static;width:100%;margin:0;padding:0;
+    background:none;border:0;border-radius:0;
+  }
+  .fd-sheet-head .fd-sheet-grip::before{
+    content:"";display:block;width:100%;height:5px;border-radius:0;
+    background:var(--gold);
+  }
+  /* Navy strip, cream labels, and the open tab in the sheet's own paper
+     so it reads as the front of the stack. */
+  /* Wins over .dir-results-col .fd-tabs, which sets the sheet colour
+     and sits later in the file at the same weight. */
+  .dir-results-col .fd-sheet-head .fd-tabs{
+    margin:0;padding:0 10px;border-bottom:0;background:transparent;
+    position:static;
+  }
+  .fd-sheet-head .fd-tab{color:#EDEBE2;}
+  .fd-sheet-head .fd-tab.is-on{
+    background:var(--paper);color:var(--gold);box-shadow:none;
+    border-color:transparent;
+  }
+  .fd-sheet-head .dir-view-btn{color:var(--gold);}
   /* The sheet's own controls live in the tab strip, which is sticky --
      so the handle you drag and the button that changes the card shape
      stay put while the cards scroll under them. */
@@ -5156,13 +5213,18 @@
      the cards scroll -- they are how you change what is in the sheet,
      so they cannot scroll away with it. */
   .dir-results-col .fd-tabs{
-    /* top:0, not 20. At 20 there was a 21px band above the strip where
-       scrolled cards showed through -- measured: sheet starts at 520,
-       the strip stuck at 541 -- so a card appeared to slide out in front
-       of the tabs. */
     position:sticky;top:0;z-index:3;background:var(--paper);
     margin:0 -14px 10px;padding:8px 14px 0;
   }
+  /* The first card sat a long way below the tabs -- the grid's own top
+     margin on top of the header's. */
+  .fd-sheet-head + * , .fd-sheet-head + * > .fd-results-grid{margin-top:0;}
+  /* gap:36px is the desktop column gutter between the filter aside
+     and the results. In the sheet the aside is hidden, so all that gap
+     did was push the first card 42px below the tabs. */
+  .dir-results-col .directory-layout{margin-top:0;gap:0;}
+  .dir-results-col .fd-panel > .fd-results-grid{margin-top:0;}
+  .dir-results-col .fd-sheet-head + div{padding-top:6px;}
   /* The row has to hold a toggle, three tabs and the drag handle in
      375px. Tighter tabs, and each may shrink -- without min-width:0 a
      flex item refuses to go below its text and the row overflows, which
@@ -7961,21 +8023,9 @@
         </div>
         </div>
         <div class="fd-panel" data-browse-panel="groups" style="display:none;">
-      <!-- The directory's own toggle classes, not a second set. If that
-           control is ever restyled this follows, which is the whole
-           point of not inventing another one. -->
-      <div style="display:flex;justify-content:flex-end;margin-top:20px;">
-        <div class="dir-view-toggle" role="group" data-i18n-title="directory.viewToggleLabel" title="View">
-          <button type="button" class="dir-view-btn is-active" data-groups-view="cards" aria-pressed="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-            <span data-i18n="groupsPage.viewCards">Cards</span>
-          </button>
-          <button type="button" class="dir-view-btn" data-groups-view="list" aria-pressed="false">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3.5" y1="6" x2="3.51" y2="6"/><line x1="3.5" y1="12" x2="3.51" y2="12"/><line x1="3.5" y1="18" x2="3.51" y2="18"/></svg>
-            <span data-i18n="groupsPage.viewList">List</span>
-          </button>
-        </div>
-      </div>
+      <!-- The groups-only cards/list toggle was here. The shell carries
+           one in the tab strip beside the tabs, and two controls for one
+           list is one too many. -->
       <div id="groups-results" style="margin-top:16px;">
         <p style="color:var(--ink-mute);font-size:14px;" data-i18n="common.loading">Loading...</p>
       </div>
@@ -12160,7 +12210,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v371 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v372 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13417,7 +13467,9 @@
   //
   // The map is shared too, so each tab's pins have to be taken down when
   // it leaves. Both sets live on dirMap.
+  var fdBrowseTabPrev = 'churches';
   var fdBrowseTab = 'churches';
+  var FD_TAB_ORDER = ['churches', 'events', 'groups'];
   // A tab is only offered when there is a panel behind it. Groups has
   // not been folded in yet, and a tab that hides every panel and shows
   // nothing is worse than no tab. Removing this is not needed when it
@@ -13439,6 +13491,15 @@
       tabs[i].classList.toggle('is-on', on);
       tabs[i].setAttribute('aria-selected', on ? 'true' : 'false');
     }
+    // Which way the new panel comes from. Reading the order rather than
+    // remembering a direction means a jump straight from Churches to
+    // Groups still travels the way the tabs are laid out.
+    var wasAt = FD_TAB_ORDER.indexOf(fdBrowseTabPrev);
+    var goingTo = FD_TAB_ORDER.indexOf(tab);
+    var slide = (wasAt < 0 || goingTo < 0 || wasAt === goingTo) ? null
+      : (goingTo > wasAt ? 'fd-panel-slide-r' : 'fd-panel-slide-l');
+    fdBrowseTabPrev = tab;
+
     var panels = document.querySelectorAll('[data-browse-panel]');
     for (var j = 0; j < panels.length; j++) {
       var showing = panels[j].getAttribute('data-browse-panel') === tab;
@@ -13449,6 +13510,16 @@
       panels[j].style.display = showing
         ? (panels[j].querySelector(':scope > .filter-panel') ? 'contents' : 'block')
         : 'none';
+      panels[j].classList.remove('fd-panel-slide-l', 'fd-panel-slide-r');
+      // display:contents cannot be animated -- there is no box to move.
+      // That is the filter-panel wrapper, which is not what anyone is
+      // watching; the results panel beside it carries the movement.
+      if (showing && slide && panels[j].style.display !== 'contents') {
+        // Reading offsetWidth restarts the animation when the same panel
+        // is shown twice in a row.
+        void panels[j].offsetWidth;
+        panels[j].classList.add(slide);
+      }
     }
 
     fdSyncFilterPills(tab);
@@ -13484,10 +13555,18 @@
     var tabs = document.querySelector('#page-directory .fd-tabs');
     if (!tabs || tabs.dataset.fdControls) return;
     tabs.dataset.fdControls = '1';
+    // The cards/list button sits in the strip beside the tabs.
     var toggle = document.querySelector('#page-directory .dir-view-toggle');
     if (toggle) tabs.insertBefore(toggle, tabs.firstElementChild);
+    // The drag bar spans the top edge of the sheet, above the strip --
+    // one wrapper so the pair sticks together as the cards scroll under
+    // them, rather than two sticky elements with a seam between.
+    var head = document.createElement('div');
+    head.className = 'fd-sheet-head';
+    tabs.parentNode.insertBefore(head, tabs);
     var grip = document.getElementById('dir-sheet-grip');
-    if (grip) tabs.appendChild(grip);
+    if (grip) head.appendChild(grip);
+    head.appendChild(tabs);
   }
 
   // The pills for this tab, built the first time it is opened.
@@ -13735,7 +13814,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-29-v371',
+      'build 2026-09-29-v372',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -14251,6 +14330,58 @@
     var grips = document.querySelectorAll('.fd-sheet-grip');
     for (var i = 0; i < grips.length; i++) wireDirectorySheetGrip(grips[i]);
   }
+  // Three heights the sheet settles at, the way a maps app does it:
+  // mostly-map, the measured default, and mostly-list. A drag that ends
+  // slowly snaps to whichever is nearest; a flick goes the way it was
+  // thrown regardless of where it happens to be, which is what makes it
+  // feel like the sheet has weight.
+  var FD_FLICK_SPEED = 0.45;        // px per ms -- above this it is a flick
+  function fdSheetStops(page){
+    var box = Math.round(page.getBoundingClientRect().height);
+    if (!box) return null;
+    // Stored as sheet TOPS, which is the map's height.
+    var openTop = Math.max(DIR_SHEET_MIN, Math.round(box * 0.18));
+    var shutTop = Math.round(box - 132);
+    var restTop = (typeof directorySheetDefaultTop === 'function')
+      ? directorySheetDefaultTop() : Math.round(box * 0.5);
+    if (restTop === null || !isFinite(restTop)) restTop = Math.round(box * 0.5);
+    // Guard the order, so an odd measurement cannot put rest outside the
+    // pair and strand the sheet.
+    restTop = Math.min(Math.max(restTop, openTop + 1), shutTop - 1);
+    return [openTop, restTop, shutTop];
+  }
+  function fdSettleSheet(page, endTop, velocity){
+    var stops = fdSheetStops(page);
+    if (!stops) return endTop;
+    var target;
+    if (Math.abs(velocity) >= FD_FLICK_SPEED) {
+      // Thrown. Downwards means a bigger top -- the sheet is closing.
+      var i = 0, best = Infinity;
+      for (var k = 0; k < stops.length; k++) {
+        var d = Math.abs(stops[k] - endTop);
+        if (d < best) { best = d; i = k; }
+      }
+      i = velocity > 0 ? Math.min(i + 1, stops.length - 1) : Math.max(i - 1, 0);
+      target = stops[i];
+    } else {
+      target = stops[0];
+      for (var m = 1; m < stops.length; m++) {
+        if (Math.abs(stops[m] - endTop) < Math.abs(target - endTop)) target = stops[m];
+      }
+    }
+    var col = page.querySelector('.dir-results-col');
+    var mapCol = page.querySelector('.dir-map-col');
+    // Transition only for the settle, then off again -- left on, every
+    // pixel of a drag would be animated and the sheet would lag the
+    // finger.
+    [col, mapCol].forEach(function(el){
+      if (!el) return;
+      el.style.transition = 'top .26s cubic-bezier(.22,.61,.36,1), height .26s cubic-bezier(.22,.61,.36,1)';
+      setTimeout(function(){ el.style.transition = ''; }, 320);
+    });
+    return target;
+  }
+
   function wireDirectorySheetGrip(grip){
     grip = grip || document.getElementById('dir-sheet-grip');
     var page = grip && grip.closest ? grip.closest('.fd-shell') : null;
@@ -14262,6 +14393,9 @@
     grip.dataset.fdGripWired = '1';
     var mapCol = page.querySelector('.dir-map-col');
     var dragging = false, frame = null, nextPx = null;
+    // Speed over the last moment of the drag, not the whole of it: a
+    // slow drag that ends in a flick should still be read as a flick.
+    var lastY = 0, lastT = 0, velocity = 0;
     function apply(px){
       nextPx = px;
       if (frame !== null) return;
@@ -14272,12 +14406,20 @@
     }
     grip.addEventListener('pointerdown', function(ev){
       dragging = true; frame = null; nextPx = null;
+      lastY = ev.clientY; lastT = ev.timeStamp || Date.now(); velocity = 0;
       try { grip.setPointerCapture(ev.pointerId); } catch (e) {}
       document.body.classList.add('fd-sheet-resizing');
       ev.preventDefault();
     });
     grip.addEventListener('pointermove', function(ev){
       if (!dragging) return;
+      var t = ev.timeStamp || Date.now();
+      var dt = t - lastT;
+      if (dt > 0) {
+        // Smoothed, so one jittery sample cannot read as a throw.
+        velocity = 0.7 * ((ev.clientY - lastY) / dt) + 0.3 * velocity;
+        lastY = ev.clientY; lastT = t;
+      }
       apply(ev.clientY - page.getBoundingClientRect().top);
     });
     function end(ev){
@@ -14290,8 +14432,8 @@
       nextPx = null;
       document.body.classList.remove('fd-sheet-resizing');
       try { grip.releasePointerCapture(ev.pointerId); } catch (e) {}
-      setDirectorySheetTop(last !== null ? last :
-        Math.round(mapCol.getBoundingClientRect().height), false, page);
+      var endTop = (last !== null) ? last : Math.round(mapCol.getBoundingClientRect().height);
+      setDirectorySheetTop(fdSettleSheet(page, endTop, velocity), false, page);
     }
     grip.addEventListener('pointerup', end);
     grip.addEventListener('pointercancel', end);
