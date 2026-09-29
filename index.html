@@ -5033,7 +5033,7 @@
      So the cards can ask how wide their own column is rather than how
      wide the window is. Those stopped being the same question when the
      results column became draggable. */
-  .dir-results-col #directory-grid.grid{
+  .dir-results-col .fd-results-grid.grid{
     container-type:inline-size;
     container-name:dircards;
   }
@@ -5047,20 +5047,32 @@
      is the same answer to the same question -- this column is narrow --
      and the phone's sheet is one of the columns asking. */
   @container dircards (max-width:475px){
-    #directory-grid .church-card{
+    /* .event-card as well as .church-card: an event squeezed into a
+       third of a narrow column was a two-word-per-line title over a
+       stack of badges, which is the same fault the church cards had. */
+    .fd-results-grid .church-card,
+    .fd-results-grid .event-card{
       display:grid;grid-template-columns:64px 1fr;gap:12px;
       align-items:start;padding:12px;
     }
-    #directory-grid .church-card .thumb{
+    .fd-results-grid .church-card .thumb,
+    .fd-results-grid .event-card .thumb{
       width:64px;height:64px;aspect-ratio:auto;border-radius:10px;
       /* !important because the logo variant sets padding inline, and an
          inline style beats a stylesheet rule that does not say so. */
       padding:6px !important;
     }
-    #directory-grid .church-card .thumb svg{width:26px;height:26px;}
-    #directory-grid .church-card .card-body{padding:0;min-width:0;}
-    #directory-grid .church-card h3{font-size:16px;margin:4px 0 5px;}
-    #directory-grid .church-card .meta-row{margin-bottom:3px;}
+    .fd-results-grid .church-card .thumb svg,
+    .fd-results-grid .event-card .thumb svg{width:26px;height:26px;}
+    .fd-results-grid .church-card .card-body,
+    .fd-results-grid .event-card .card-body{padding:0;min-width:0;}
+    .fd-results-grid .church-card h3,
+    .fd-results-grid .event-card h3{font-size:16px;margin:4px 0 5px;}
+    .fd-results-grid .church-card .meta-row,
+    .fd-results-grid .event-card .meta-row{margin-bottom:3px;}
+    /* The tag stack is what made an event card tall. Side by side in the
+       compact card, wrapping only when it truly cannot fit. */
+    .fd-results-grid .event-card .card-tags{flex-wrap:wrap;}
   }
   /* Its own scroller, so the scrollbar sits on the column's right edge
      against the map rather than out at the window edge. Scroll chaining
@@ -5085,7 +5097,7 @@
      broken over four lines. Here the count follows the width instead:
      one card when the column is squeezed, two or three as it is dragged
      open. */
-  .dir-results-col #directory-grid.grid{
+  .dir-results-col .fd-results-grid.grid{
     grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px;
   }
   .dir-map-col{
@@ -7843,54 +7855,6 @@
     <button type="button" id="events-sheet-grip" class="fd-sheet-grip" aria-orientation="horizontal"
             data-i18n-aria="dir.sheetResize" aria-label="Resize the list"></button>
     <h2 class="dir-results-title" data-i18n="nav.events">Events</h2>
-    <div class="event-category-row" id="event-category-row">
-      <button class="event-category-btn" data-category-tag="Volunteer">
-        <span data-i18n="category.volunteer">Volunteer</span>
-      </button>
-      <button class="event-category-btn" data-category-tag="Celebrations">
-        <span data-i18n="category.celebrations">Celebrations</span>
-      </button>
-      <button class="event-category-btn" data-category-tag="Fellowship">
-        <span data-i18n="category.fellowship">Fellowship</span>
-      </button>
-      <button class="event-category-btn" data-category-tag="Music">
-        <span data-i18n="category.music">Music</span>
-      </button>
-      <button class="event-category-btn" data-category-tag="Worship">
-        <span data-i18n="category.worship">Worship</span>
-      </button>
-      <!-- One category, two icons' worth of history: Classes (a closed
-           book) and Studies (an open one) were separate and are now
-           merged. The open book won because it's the one that reads as
-           "studying" rather than "a book", and because the row already
-           has a closed-rectangle glyph in Holidays' old slot's
-           neighbours. Unlike Support Groups and Sports & Recreation,
-           this one shows its FULL name in the row rather than a short
-           form -- requested directly, and the wider columns leave room
-           for it to wrap onto a second line without crowding. -->
-      <button class="event-category-btn" data-category-tag="Classes & Studies">
-        <span data-i18n="category.classesStudies">Classes
-&amp; Studies</span>
-      </button>
-      <button class="event-category-btn" data-category-tag="Support Groups">
-        <span data-i18n="category.supportGroups">Support
-Groups</span>
-      </button>
-      <button class="event-category-btn" data-category-tag="Sports & Recreation">
-        <span data-i18n="category.sportsRecreation">Sports
-&amp; Recreation</span>
-      </button>
-      <!-- A suitcase rather than a plane or a bus: "Trips" here covers
-           mission trips, retreats and youth trips alike, and a plane
-           would quietly imply the international ones while a bus would
-           imply the local ones. Luggage is also the established glyph
-           for a section literally called Trips elsewhere on the web,
-           so it needs no learning. Handle plus the horizontal band is
-           what keeps it reading as luggage rather than a briefcase. -->
-      <button class="event-category-btn" data-category-tag="Trips">
-        <span data-i18n="category.trips">Trips</span>
-      </button>
-    </div>
 
     <div class="event-tab-row">
       <button class="event-tab-btn active" id="event-tab-all" data-event-tab="all" data-i18n="events.tabAll">All</button>
@@ -7908,6 +7872,51 @@ Groups</span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
         </button>
         <div class="filter-panel-body" id="events-filter-body">
+        <!-- Category lives in the filter panel rather than as a band of
+             pills above the results. It is a filter, and every other
+             filter is in here; on the shell it was also competing with
+             the cards for the narrow column. -->
+        <div class="filter-group">
+          <h4 class="filter-tradition-heading" data-i18n="filters.category">Category</h4>
+          <div class="event-category-row" id="event-category-row">
+            <button class="event-category-btn" data-category-tag="Volunteer">
+              <span data-i18n="category.volunteer">Volunteer</span>
+            </button>
+            <button class="event-category-btn" data-category-tag="Celebrations">
+              <span data-i18n="category.celebrations">Celebrations</span>
+            </button>
+            <button class="event-category-btn" data-category-tag="Fellowship">
+              <span data-i18n="category.fellowship">Fellowship</span>
+            </button>
+            <button class="event-category-btn" data-category-tag="Music">
+              <span data-i18n="category.music">Music</span>
+            </button>
+            <button class="event-category-btn" data-category-tag="Worship">
+              <span data-i18n="category.worship">Worship</span>
+            </button>
+            <button class="event-category-btn" data-category-tag="Classes & Studies">
+              <span data-i18n="category.classesStudies">Classes
+      &amp; Studies</span>
+            </button>
+            <button class="event-category-btn" data-category-tag="Support Groups">
+              <span data-i18n="category.supportGroups">Support
+      Groups</span>
+            </button>
+            <button class="event-category-btn" data-category-tag="Sports & Recreation">
+              <span data-i18n="category.sportsRecreation">Sports
+      &amp; Recreation</span>
+            </button>
+                 mission trips, retreats and youth trips alike, and a plane
+                 would quietly imply the international ones while a bus would
+                 imply the local ones. Luggage is also the established glyph
+                 for a section literally called Trips elsewhere on the web,
+                 so it needs no learning. Handle plus the horizontal band is
+                 what keeps it reading as luggage rather than a briefcase. -->
+            <button class="event-category-btn" data-category-tag="Trips">
+              <span data-i18n="category.trips">Trips</span>
+            </button>
+          </div>
+        </div>
         <div class="filter-group">
           <h4 class="filter-tradition-heading" data-i18n="filters.denominationsEtc">Denominations, etc.</h4>
           <button type="button" id="events-denom-dropdown-btn" style="width:100%;padding:9px 10px;font-size:13.5px;color:var(--ink);border:1px solid var(--line);border-radius:8px;background:var(--card);display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
@@ -8009,7 +8018,7 @@ Groups</span>
 
       <div>
         <div id="events-count" style="font-size:13.5px;color:var(--ink-mute);margin-bottom:16px;"></div>
-        <div class="grid" id="events-grid"></div>
+        <div class="grid fd-results-grid" id="events-grid"></div>
         <div id="events-empty" style="display:none;color:var(--ink-mute);font-size:14.5px;padding:40px 0;text-align:center;" data-i18n="filters.noEventsMatch">No events match these filters. Try widening your search.</div>
         <div style="text-align:center;margin-top:24px;">
           <button class="export-btn" id="events-load-more-btn" style="display:none;padding:10px 24px;" data-i18n="common.loadMore">Load more</button>
@@ -12153,7 +12162,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v365 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v366 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13269,6 +13278,12 @@ Groups</span>
   // Cached across renders, because paging through events keeps coming
   // back to the same churches.
   var eventsMap = null, eventsMarkers = [], eventsMapTries = 0, eventsInfo = null;
+  // What the pins currently show. renderEvents runs on every keystroke,
+  // filter click and tab change, and each run was tearing down every
+  // marker, building them again and refitting the bounds -- on top of
+  // whatever tiles a zoom had just asked for. Nothing to do is the
+  // common case, so it should cost nothing.
+  var eventsPinSignature = null;
   var eventsChurchCoords = Object.create(null);
 
   async function eventsLoadCoords(ids){
@@ -13330,11 +13345,13 @@ Groups</span>
       });
     }
 
-    if (!rows.length) { eventsClearMarkers(); google.maps.event.trigger(eventsMap, 'resize'); return; }
+    if (!rows.length) {
+      if (eventsPinSignature !== '') { eventsClearMarkers(); eventsPinSignature = ''; }
+      return;
+    }
 
     await eventsLoadCoords(rows.map(function(e){ return e.churchId; }));
 
-    eventsClearMarkers();
     var byChurch = Object.create(null);
     rows.forEach(function(e){
       var at = e.churchId ? eventsChurchCoords[e.churchId] : null;
@@ -13343,8 +13360,15 @@ Groups</span>
       byChurch[e.churchId].events.push(e);
     });
 
+    var keys = Object.keys(byChurch).sort();
+    // The churches being pinned, not the events: two events added at one
+    // church change the list but not the map.
+    var signature = keys.join('|');
+    if (signature === eventsPinSignature) return;
+    eventsPinSignature = signature;
+
+    eventsClearMarkers();
     var bounds = new google.maps.LatLngBounds();
-    var keys = Object.keys(byChurch);
     keys.forEach(function(k){
       var g = byChurch[k];
       var marker = new google.maps.Marker({
@@ -13373,9 +13397,10 @@ Groups</span>
       bounds.extend(g.at);
     });
 
+    // Only on a real change of pins -- refitting on every render fought
+    // whatever the reader had just zoomed to.
     if (keys.length === 1) { eventsMap.setCenter(bounds.getCenter()); eventsMap.setZoom(14); }
     else if (keys.length > 1) { eventsMap.fitBounds(bounds, 40); }
-    google.maps.event.trigger(eventsMap, 'resize');
   }
   window.paintEventsMap = paintEventsMap;
 
@@ -13594,7 +13619,7 @@ Groups</span>
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-28-v365',
+      'build 2026-09-28-v366',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -14204,7 +14229,10 @@ Groups</span>
       // could not have gone past the clamp anyway. Boot must never do
       // it, which is what the note above is about.
       dirResultsPref = clampDirectoryColumnWidth(px) / window.innerWidth;
-      if (dirMap && window.google && google.maps) google.maps.event.trigger(dirMap, 'resize');
+      // Whichever map this page owns -- paintEventsMap no longer fires a
+      // resize of its own on every render, so the drag has to.
+      var m = (page && page.id === 'page-events') ? eventsMap : dirMap;
+      if (m && window.google && google.maps) google.maps.event.trigger(m, 'resize');
       try { localStorage.setItem(DIR_FRAC_KEY, String(dirResultsPref)); } catch (e) {}
     }
     return clampDirectoryColumnWidth(px);
