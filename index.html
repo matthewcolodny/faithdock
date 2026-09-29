@@ -544,7 +544,7 @@
       'filters.within10': 'Within 10 miles', 'filters.within25': 'Within 25 miles', 'filters.hasEvents': 'Has events',
       'filters.anyTime': 'Any time', 'filters.next7': 'Next 7 days', 'filters.next14': 'Next 14 days', 'filters.next30': 'Next 30 days',
       'filters.reset': 'Reset filters', 'filters.type': 'Type', 'filters.openToAnyone': 'Open to anyone',
-      'filters.dates': 'Dates', 'filters.all': 'All', 'filters.denominations': 'Denominations', 'filters.categories': 'Categories', 'filters.faithHome': 'Faith Home', 'filters.membersOnly': 'Members only', 'filters.noSignupNeeded': 'No signup needed', 'filters.category': 'Category',
+      'filters.dates': 'Dates', 'filters.all': 'All', 'filters.denominations': 'Denominations', 'filters.categories': 'Categories', 'filters.faithHome': 'Faith Home', 'filters.byDenomination': 'By Denomination', 'filters.byCategory': 'By Category', 'filters.clearAll': 'Clear all', 'filters.removeFilter': 'Remove this filter', 'filters.membersOnly': 'Members only', 'filters.noSignupNeeded': 'No signup needed', 'filters.category': 'Category',
       'filters.noCategoriesYet': 'No categories yet.', 'filters.noEventsMatch': 'No events match these filters. Try widening your search.',
       'filters.filterSearches': 'Filter searches',
       'filters.noneSelected': 'None selected', 'filters.allSelected': 'All selected', 'filters.nSelected': 'selected',
@@ -1897,7 +1897,7 @@
       'filters.within10': 'A menos de 10 millas', 'filters.within25': 'A menos de 25 millas', 'filters.hasEvents': 'Con eventos',
       'filters.anyTime': 'Cualquier momento', 'filters.next7': 'Próximos 7 días', 'filters.next14': 'Próximos 14 días', 'filters.next30': 'Próximos 30 días',
       'filters.reset': 'Restablecer filtros', 'filters.type': 'Tipo', 'filters.openToAnyone': 'Abierto a todos',
-      'filters.dates': 'Fechas', 'filters.all': 'Todas', 'filters.denominations': 'Denominaciones', 'filters.categories': 'Categorías', 'filters.faithHome': 'Mi comunidad', 'filters.membersOnly': 'Solo miembros', 'filters.noSignupNeeded': 'No requiere inscripción', 'filters.category': 'Categoría',
+      'filters.dates': 'Fechas', 'filters.all': 'Todas', 'filters.denominations': 'Denominaciones', 'filters.categories': 'Categorías', 'filters.faithHome': 'Mi comunidad', 'filters.byDenomination': 'Por denominación', 'filters.byCategory': 'Por categoría', 'filters.clearAll': 'Quitar todos', 'filters.removeFilter': 'Quitar este filtro', 'filters.membersOnly': 'Solo miembros', 'filters.noSignupNeeded': 'No requiere inscripción', 'filters.category': 'Categoría',
       'filters.noCategoriesYet': 'Aún no hay categorías.', 'filters.noEventsMatch': 'Ningún evento coincide con estos filtros. Intenta ampliar tu búsqueda.',
       'filters.filterSearches': 'Filtrar búsqueda',
       'filters.noneSelected': 'Ninguna seleccionada', 'filters.allSelected': 'Todas seleccionadas', 'filters.nSelected': 'seleccionadas',
@@ -5196,6 +5196,33 @@
 /* Categories is the traditions; Denominations adds the bodies under
    them. */
 .filter-panel.fd-cats-open .filter-check-child{display:none;}
+@media (max-width:980px){
+  /* Denominations has its own button in the row under the tabs now, so
+     leaving it in the map's filter window as well was two doors to one
+     room -- and it was most of that window's height. What is left is
+     distance and "has events", which is why the window can be shorter. */
+  .filter-panel.open[data-filter-for="churches"] .fd-denom-group{display:none;}
+  .fd-shell.active > .filter-panel.open,
+  .fd-shell.active > .filter-panel.fd-denoms-open,
+  .fd-shell.active > .filter-panel.fd-cats-open,
+  .fd-shell.active > .filter-panel.fd-dates-open{
+    max-height:min(54vh, 440px);padding:16px 16px 18px;
+  }
+  /* A window opened from a button in the row sits under that row, and
+     must not reach past the bottom of the sheet it belongs to. */
+  .fd-shell.active > .filter-panel{border-radius:14px;}
+
+  /* ---- the top of the sheet is for sizing, not scrolling ----------
+     The header is sticky inside the scroller, so a thumb that landed on
+     it to drag the sheet taller scrolled the cards underneath instead.
+     touch-action:none takes the header out of the browser's panning
+     entirely -- taps still work, and the drag handler below now listens
+     on the whole header rather than the 17px bar. The quick row keeps
+     pan-x, because in Spanish it scrolls sideways. */
+  .fd-sheet-head{touch-action:none;}
+  .dir-results-col .fd-quick-row,
+  .dir-results-col .event-tab-row{touch-action:pan-x;}
+}
 .event-tab-dates:hover{color:var(--gold-ink);}
 .event-tab-dates[aria-expanded="true"]{color:var(--gold-ink);}
 @media (max-width:980px){ .event-tab-dates span{display:none;} .event-tab-dates{padding:6px 10px;} }
@@ -7084,13 +7111,72 @@
      with it. The row scrolls sideways instead. */
   .event-tab-btn{background:none;border:none;padding:10px 2px;font-size:14.5px;color:var(--ink-mute);cursor:pointer;border-bottom:2px solid transparent;font-weight:600;white-space:nowrap;flex-shrink:0;}
   @media (max-width:980px){
-    /* Four labels at a 26px gap do not fit 375px however short they are. */
+    /* Labels at a 26px gap do not fit 375px however short they are. */
     .event-tab-row{gap:15px;overflow-x:auto;scrollbar-width:none;}
     .event-tab-row::-webkit-scrollbar{display:none;}
     .event-tab-btn{font-size:13.5px;}
+    /* "By Denomination" is the long one, and three pills with 13px of
+       padding a side came to 367px in a 347px row. */
+    /* .fd-quick-row prefix because this block sits ABOVE the base
+       .fd-quick-btn rule in the file and would otherwise lose the tie. */
+    .fd-quick-row{gap:8px;}
+    .fd-quick-row .fd-quick-btn{font-size:13px;padding:7px 9px;}
   }
   .event-tab-btn.active{color:var(--ink);border-bottom-color:var(--gold);}
   .event-tab-btn:hover{color:var(--ink);}
+  /* Android paints a grey wash over any button it considers tapped,
+     which on a row of small controls reads as a flash. */
+  .event-tab-btn{-webkit-tap-highlight-color:transparent;}
+  .event-tab-btn:focus{outline:none;}
+  .event-tab-btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:999px;}
+
+  /* By Denomination and By Category open a window rather than switching
+     what you are looking at, so they are drawn as buttons, not as tabs
+     with an underline. Faith Home is a real filter and sits with them
+     because it is the third thing you can do to this list. */
+  /* Centred by auto margins on the end buttons rather than by
+     justify-content: a centred flex row that overflows spills off BOTH
+     edges, and the left one cannot be scrolled back to. Auto margins
+     collapse to nothing once there is no free space, so a row that does
+     not fit starts at the left and scrolls the normal way. */
+  .fd-quick-row{border-bottom:0;margin-bottom:14px;}
+  .fd-quick-row > :first-child{margin-left:auto;}
+  .fd-quick-row > :last-child{margin-right:auto;}
+  .fd-quick-btn{
+    border:1px solid var(--line);border-radius:999px;padding:7px 13px;
+    background:var(--card);color:var(--ink);
+  }
+  .fd-quick-btn[aria-expanded="true"],
+  .fd-quick-btn.active{
+    border-color:var(--gold);background:var(--gold-bg);color:var(--gold-ink);
+  }
+  .fd-quick-btn:hover{border-color:var(--gold);}
+
+  /* The chips at the top of a filter window. */
+  .fd-filter-chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px;}
+  .fd-filter-chips[hidden]{display:none;}
+  .fd-filter-chip{
+    display:inline-flex;align-items:center;gap:5px;
+    padding:4px 5px 4px 11px;border-radius:999px;
+    background:var(--gold-bg);color:var(--gold-ink);
+    font-size:12.5px;font-weight:600;line-height:1.25;
+  }
+  .fd-filter-chip button{
+    background:none;border:0;padding:0;margin:0;cursor:pointer;color:inherit;
+    width:18px;height:18px;border-radius:999px;flex-shrink:0;
+    display:inline-flex;align-items:center;justify-content:center;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .fd-filter-chip button svg{width:11px;height:11px;}
+  .fd-filter-chip button:hover{background:rgba(0,0,0,.12);}
+  /* "Clear all" as the last chip, so taking every filter off is one tap
+     and not one tap per chip. */
+  .fd-filter-chip-clear{
+    background:none;border:1px dashed var(--line);color:var(--ink-mute);
+    padding:4px 11px;font-weight:600;cursor:pointer;border-radius:999px;
+    font-size:12.5px;-webkit-tap-highlight-color:transparent;
+  }
+  .fd-filter-chip-clear:hover{color:var(--ink);border-color:var(--ink-mute);}
   @media (max-width: 640px){
     .cal-day{min-height:46px;padding:3px;cursor:pointer;}
     .cal-dow{font-size:9px;padding:6px 2px;}
@@ -7969,6 +8055,11 @@
       <div class="fd-panel is-on" data-browse-panel="churches" style="display:contents;">
       <aside class="filter-panel" data-filter-for="churches">
         <h3 class="filter-panel-title" data-i18n="filters.filterSearches">Filter searches</h3>
+        <!-- What is currently narrowing the list, as chips you can take
+             off. Built by fdRenderFilterChips from the same checkboxes
+             the search reads, so there is nothing here to keep in step
+             by hand. Empty and hidden when nothing is narrowing it. -->
+        <div id="dir-filter-chips" class="fd-filter-chips" hidden></div>
         <button type="button" class="filter-panel-toggle" id="dir-filter-toggle" aria-expanded="false" aria-controls="dir-filter-body">
           <span data-i18n="filters.filterSearches">Filter searches</span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
@@ -8173,11 +8264,14 @@
              the two that need a list opening the filter panel scoped to
              just that list. Faith Home is a real filter rather than a
              way in, so it is the only one that toggles. -->
-        <div class="event-tab-row" id="church-tab-row">
-          <button class="event-tab-btn active" data-church-tab="all" data-i18n="filters.all">All</button>
-          <button class="event-tab-btn" data-church-tab="denominations" data-i18n="filters.denominations">Denominations</button>
-          <button class="event-tab-btn" data-church-tab="categories" data-i18n="filters.categories">Categories</button>
-          <button class="event-tab-btn" data-church-tab="faith-home" data-i18n="filters.faithHome">Faith Home</button>
+        <!-- No "All": everything shows until one of these is used, so a
+             button for it was a button for the state you are already in,
+             and it stayed lit after opening a filter because opening a
+             window is not a state. Without it the other three centre. -->
+        <div class="event-tab-row fd-quick-row" id="church-tab-row">
+          <button class="event-tab-btn fd-quick-btn" type="button" aria-expanded="false" data-church-tab="denominations" data-i18n="filters.byDenomination">By Denomination</button>
+          <button class="event-tab-btn fd-quick-btn" type="button" aria-expanded="false" data-church-tab="categories" data-i18n="filters.byCategory">By Category</button>
+          <button class="event-tab-btn fd-quick-btn" type="button" data-church-tab="faith-home" data-i18n="filters.faithHome">Faith Home</button>
         </div>
         <div class="grid fd-results-grid" id="directory-grid"></div>
         <div id="directory-empty" style="display:none;color:var(--ink-mute);font-size:14.5px;padding:40px 0;text-align:center;" data-i18n="filters.noChurchesMatch">No churches match these filters. Try widening your search.</div>
@@ -12414,7 +12508,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v383 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v384 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13789,68 +13883,279 @@
       sets[i].style.display = sets[i].getAttribute('data-pillset') === tab ? 'flex' : 'none';
     }
   }
-  // ---- The Churches row: All / Denominations / Categories / Faith Home
+  // ---- One place that knows a filter window is open ----------------
   //
-  // Two of these are ways in rather than filters: Denominations and
-  // Categories open the churches filter panel scoped to the one group
-  // they name, the same trick the events Dates button uses. Faith Home
-  // is a real filter and is the only one that toggles anything, driving
-  // the "Churches I follow" checkbox that the search already reads --
-  // that checkbox is hidden now, because two visible controls for one
-  // filter is what this replaces.
+  // Four classes put a filter over the sheet: .open is the map's filter
+  // button, .fd-denoms-open and .fd-cats-open are the two buttons in the
+  // row, .fd-dates-open is Events' date range. Back should shut whichever
+  // is up rather than leaving the page, so they are opened and closed
+  // through here and each open pushes one history entry to spend.
+  var FD_FILTER_OPEN_CLASSES = ['open', 'fd-denoms-open', 'fd-cats-open', 'fd-dates-open'];
+  function fdFilterPanels(){
+    return document.querySelectorAll('#page-directory .filter-panel');
+  }
+  function fdAnyFilterOpen(){
+    var ps = fdFilterPanels();
+    for (var i = 0; i < ps.length; i++) {
+      for (var j = 0; j < FD_FILTER_OPEN_CLASSES.length; j++) {
+        if (ps[i].classList.contains(FD_FILTER_OPEN_CLASSES[j])) return true;
+      }
+    }
+    return false;
+  }
+  // Returns whether anything was actually shut, so Back knows whether it
+  // has done a job or should be left to the router.
+  function fdCloseFilterPanels(){
+    var shut = false, ps = fdFilterPanels();
+    for (var i = 0; i < ps.length; i++) {
+      for (var j = 0; j < FD_FILTER_OPEN_CLASSES.length; j++) {
+        if (ps[i].classList.contains(FD_FILTER_OPEN_CLASSES[j])) {
+          ps[i].classList.remove(FD_FILTER_OPEN_CLASSES[j]);
+          shut = true;
+        }
+      }
+    }
+    var ids = ['dir-filter-icon-btn', 'events-dates-btn'];
+    for (var k = 0; k < ids.length; k++) {
+      var b = document.getElementById(ids[k]);
+      if (b) b.setAttribute('aria-expanded', 'false');
+    }
+    var qs = document.querySelectorAll('#church-tab-row [aria-expanded]');
+    for (var q = 0; q < qs.length; q++) qs[q].setAttribute('aria-expanded', 'false');
+    return shut;
+  }
+  window.fdCloseFilterPanels = fdCloseFilterPanels;
+
+  // One entry, not one per open: opening a second window while the first
+  // is up replaces it on screen, so it should still cost a single Back.
+  var fdFilterHistoryDepth = 0;
+  function fdSyncFilterHistory(){
+    var open = fdAnyFilterOpen();
+    if (open && !fdFilterHistoryDepth) {
+      fdFilterHistoryDepth = 1;
+      try { history.pushState({ fdFilter: 1 }, '', location.href); }
+      catch (e) { fdFilterHistoryDepth = 0; }
+    } else if (!open && fdFilterHistoryDepth) {
+      // Shut some other way -- a tap outside, Escape, the same button
+      // again. Spend the entry now, or the next Back would close nothing
+      // and look like it had been swallowed.
+      fdFilterHistoryDepth = 0;
+      window.fdSwallowPopstate = true;
+      try { history.back(); } catch (e) { window.fdSwallowPopstate = false; }
+    }
+  }
+  window.fdSyncFilterHistory = fdSyncFilterHistory;
+  // Registered here, which is before the router's own popstate listener
+  // further down the file -- listeners run in the order they were added,
+  // so this one gets to set the flag the router checks.
+  window.addEventListener('popstate', function(){
+    if (!fdFilterHistoryDepth) return;    // not an entry we pushed
+    fdFilterHistoryDepth = 0;
+    if (fdCloseFilterPanels()) window.fdSwallowPopstate = true;
+  });
+
+  // ---- The chips at the top of a filter window ----------------------
+  //
+  // The denomination boxes start all-ticked, which is the same thing as
+  // no filter at all, so that state shows no chips. Once some are off,
+  // the ticked ones are what was chosen and each gets one.
+  function fdDenomBoxes(){
+    return document.querySelectorAll('#filter-denom-checks .denom-filter');
+  }
+  function fdDenomUncheckedCount(){
+    var b = fdDenomBoxes(), c = 0;
+    for (var i = 0; i < b.length; i++) if (!b[i].checked) c++;
+    return c;
+  }
+  function fdDenomLabel(box){
+    var span = box.nextElementSibling;
+    return (span ? span.textContent : box.value || '').trim();
+  }
+  function fdChosenDenoms(){
+    var boxes = fdDenomBoxes();
+    if (!boxes.length || fdDenomUncheckedCount() === 0) return [];
+    // A tradition that is on covers every body under it, so the bodies
+    // do not each get a chip as well.
+    var parentOn = Object.create(null);
+    for (var i = 0; i < boxes.length; i++) {
+      if (boxes[i].classList.contains('denom-parent') && boxes[i].checked) {
+        parentOn[boxes[i].getAttribute('data-denom-parent')] = 1;
+      }
+    }
+    var out = [];
+    for (var j = 0; j < boxes.length; j++) {
+      var b = boxes[j];
+      if (!b.checked) continue;
+      if (b.classList.contains('denom-child') && parentOn[b.getAttribute('data-denom-parent')]) continue;
+      out.push({ value: b.value, label: fdDenomLabel(b) });
+    }
+    return out;
+  }
+  var FD_CHIP_X = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+  function fdRenderFilterChips(){
+    var host = document.getElementById('dir-filter-chips');
+    if (!host) return;
+    var parts = [];
+    fdChosenDenoms().forEach(function(c){
+      parts.push('<span class="fd-filter-chip">' + escapeHtml(c.label)
+        + '<button type="button" data-chip-denom="' + escapeHtml(c.value) + '"'
+        + ' aria-label="' + escapeHtml(window.t('filters.removeFilter')) + '">' + FD_CHIP_X + '</button></span>');
+    });
+    var followed = document.getElementById('dir-filter-followed-churches');
+    if (followed && followed.checked) {
+      parts.push('<span class="fd-filter-chip">' + escapeHtml(window.t('filters.faithHome'))
+        + '<button type="button" data-chip-followed="1"'
+        + ' aria-label="' + escapeHtml(window.t('filters.removeFilter')) + '">' + FD_CHIP_X + '</button></span>');
+    }
+    if (!parts.length) { host.hidden = true; host.innerHTML = ''; return; }
+    if (parts.length > 1) {
+      parts.push('<button type="button" class="fd-filter-chip-clear" data-chip-clear="1">'
+        + escapeHtml(window.t('filters.clearAll')) + '</button>');
+    }
+    host.innerHTML = parts.join('');
+    host.hidden = false;
+    // Bound to the row, not to document: the filter panel stops clicks
+    // from bubbling out of itself, so that a tap inside it does not read
+    // as the tap-outside that closes it. Nothing in here would ever
+    // reach a document-level listener.
+    if (!host.dataset.fdChipsWired) {
+      host.dataset.fdChipsWired = '1';
+      host.addEventListener('click', fdHandleChipClick);
+    }
+  }
+  window.fdRenderFilterChips = fdRenderFilterChips;
+
+  function fdClearFaithHome(){
+    var fb = document.getElementById('dir-filter-followed-churches');
+    if (fb && fb.checked) { fb.checked = false; fb.dispatchEvent(new Event('change', { bubbles: true })); }
+    var fh = document.querySelector('[data-church-tab="faith-home"]');
+    if (fh) fh.classList.remove('active');
+  }
+  function fdHandleChipClick(ev){
+    var xd = ev.target.closest && ev.target.closest('[data-chip-denom]');
+    if (xd) {
+      ev.preventDefault(); ev.stopPropagation();
+      var val = xd.getAttribute('data-chip-denom');
+      var boxes = fdDenomBoxes();
+      for (var i = 0; i < boxes.length; i++) {
+        if (boxes[i].value !== val) continue;
+        boxes[i].checked = false;
+        if (boxes[i].classList.contains('denom-parent')) {
+          var pv = boxes[i].getAttribute('data-denom-parent');
+          for (var k = 0; k < boxes.length; k++) {
+            if (boxes[k].classList.contains('denom-child') && boxes[k].getAttribute('data-denom-parent') === pv) boxes[k].checked = false;
+          }
+        }
+        break;
+      }
+      if (fdChosenDenoms().length === 0) fdRestoreAllDenoms();
+      if (typeof window.updateDenomDropdownLabel === 'function') window.updateDenomDropdownLabel();
+      fdRenderFilterChips();
+      if (typeof window.renderDirectory === 'function') window.renderDirectory();
+      return;
+    }
+    if (ev.target.closest && ev.target.closest('[data-chip-followed]')) {
+      ev.preventDefault(); ev.stopPropagation();
+      fdClearFaithHome();
+      fdRenderFilterChips();
+      return;
+    }
+    if (ev.target.closest && ev.target.closest('[data-chip-clear]')) {
+      ev.preventDefault(); ev.stopPropagation();
+      fdRestoreAllDenoms();
+      fdClearFaithHome();
+      fdRenderFilterChips();
+      if (typeof window.renderDirectory === 'function') window.renderDirectory();
+    }
+  }
+
+  // Nothing chosen is the same as everything chosen, and an empty set
+  // returns no churches at all -- so taking the last chip off ticks them
+  // all back on rather than emptying the list.
+  function fdRestoreAllDenoms(){
+    var boxes = fdDenomBoxes();
+    for (var i = 0; i < boxes.length; i++) boxes[i].checked = true;
+    if (typeof window.updateDenomDropdownLabel === 'function') window.updateDenomDropdownLabel();
+  }
+
+  // Registered before the cascade listener further down the file, so
+  // this runs first and the cascade then applies to what it leaves.
+  document.addEventListener('change', function(ev){
+    var box = ev.target;
+    if (!box || !box.classList || !box.classList.contains('denom-filter')) return;
+    var pn = document.querySelector('.filter-panel[data-filter-for="churches"]');
+    var scoped = pn && (pn.classList.contains('fd-denoms-open') || pn.classList.contains('fd-cats-open'));
+    // Coming from "everything is on", the first box you touch means
+    // "only this one". Left alone it would mean "everything except this
+    // one", which is thirty chips and not a choice anyone made. The test
+    // for "it was all on a moment ago" is that the box just turned off
+    // and it is the only one that is off.
+    if (scoped && !box.checked && fdDenomUncheckedCount() === 1) {
+      var boxes = fdDenomBoxes();
+      for (var i = 0; i < boxes.length; i++) boxes[i].checked = false;
+      box.checked = true;
+    }
+  });
+
+  // ---- The Churches row: By Denomination / By Category / Faith Home
+  //
+  // The first two are ways in rather than filters: they open the churches
+  // filter panel scoped to the one group they name, the same trick the
+  // events Dates button uses. Faith Home is a real filter and is the only
+  // one that toggles anything, driving the "Churches I follow" checkbox
+  // that the search already reads -- that checkbox is hidden now, because
+  // two visible controls for one filter is what this replaces.
   (function wireChurchTabs(){
     function panel(){
       return document.querySelector('.filter-panel[data-filter-for="churches"]');
-    }
-    function closeScoped(){
-      var pn = panel();
-      if (pn) pn.classList.remove('fd-denoms-open', 'fd-cats-open');
     }
     function openScoped(cls, btn){
       var pn = panel();
       if (!pn) return;
       var already = pn.classList.contains(cls);
-      closeScoped();
-      if (already) return;
-      pn.classList.add(cls);
-      var row = btn.closest('.event-tab-row');
-      if (row && pn.offsetParent) pn.style.top = (row.offsetTop + row.offsetHeight + 6) + 'px';
+      // Shuts the map's own filter window too, so the two cannot stack.
+      fdCloseFilterPanels();
+      if (!already) {
+        pn.classList.add(cls);
+        btn.setAttribute('aria-expanded', 'true');
+        var row = btn.closest('.event-tab-row');
+        if (row && pn.offsetParent) pn.style.top = (row.offsetTop + row.offsetHeight + 6) + 'px';
+        fdRenderFilterChips();
+      }
+      fdSyncFilterHistory();
     }
     document.addEventListener('click', function(ev){
       var btn = ev.target.closest && ev.target.closest('[data-church-tab]');
       if (!btn) {
-        if (!ev.target.closest('.filter-panel')) closeScoped();
+        // A tap outside shuts whichever of the two windows is up.
+        if (!ev.target.closest('.filter-panel')) {
+          var pn0 = panel();
+          if (pn0 && (pn0.classList.contains('fd-denoms-open') || pn0.classList.contains('fd-cats-open'))) {
+            fdCloseFilterPanels();
+            fdSyncFilterHistory();
+          }
+        }
         return;
       }
       ev.preventDefault();
       ev.stopPropagation();
       var which = btn.getAttribute('data-church-tab');
-      var row = btn.closest('.event-tab-row');
-      if (row) {
-        // All and Faith Home are states you are in; the other two are
-        // panels you opened, so they do not claim the active mark.
-        if (which === 'all' || which === 'faith-home') {
-          [].forEach.call(row.querySelectorAll('[data-church-tab]'), function(b){
-            b.classList.toggle('active', b === btn);
-          });
-        }
-      }
-      var followed = document.getElementById('dir-filter-followed-churches');
       if (which === 'denominations') { openScoped('fd-denoms-open', btn); return; }
       if (which === 'categories')    { openScoped('fd-cats-open', btn); return; }
-      closeScoped();
-      if (which === 'faith-home') {
-        if (followed) { followed.checked = true; followed.dispatchEvent(new Event('change', { bubbles: true })); }
-      } else {
-        // All: back to everything, including whatever the two panels left
-        // ticked.
-        if (followed && followed.checked) {
-          followed.checked = false;
-          followed.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-        var reset = document.getElementById('filter-reset');
-        if (reset) reset.click();
+      if (which !== 'faith-home') return;
+      fdCloseFilterPanels();
+      fdSyncFilterHistory();
+      // Faith Home is the one that toggles: pressing it again is how you
+      // get back to every church, now that there is no All to press.
+      var followed = document.getElementById('dir-filter-followed-churches');
+      var on = !btn.classList.contains('active');
+      btn.classList.toggle('active', on);
+      if (followed && followed.checked !== on) {
+        followed.checked = on;
+        followed.dispatchEvent(new Event('change', { bubbles: true }));
       }
+      fdRenderFilterChips();
+      if (typeof window.renderDirectory === 'function') window.renderDirectory();
     });
   })();
 
@@ -13868,6 +14173,7 @@
           panel.classList.remove('fd-dates-open');
           var b = document.getElementById('events-dates-btn');
           if (b) b.setAttribute('aria-expanded', 'false');
+          if (window.fdSyncFilterHistory) window.fdSyncFilterHistory();
         }
         return;
       }
@@ -13876,6 +14182,7 @@
       var open = !panel.classList.contains('fd-dates-open');
       panel.classList.toggle('fd-dates-open', open);
       btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (window.fdSyncFilterHistory) window.fdSyncFilterHistory();
       if (!open) return;
       // Sit it under the button that opened it.
       var row = btn.closest('.event-tab-row');
@@ -14131,7 +14438,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-29-v383',
+      'build 2026-09-29-v384',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -14503,6 +14810,7 @@
       if (fp) fp.classList.remove('open');
       var fb = document.getElementById('dir-filter-icon-btn');
       if (fb) fb.setAttribute('aria-expanded', 'false');
+      if (window.fdSyncFilterHistory) window.fdSyncFilterHistory();
       var name = String(card.getAttribute('data-church-name') || '').toLowerCase();
       dirHoveredName = name;
       dirClearHotCard();
@@ -14552,11 +14860,14 @@
         for (var q = 0; q < all.length; q++) if (all[q] !== mine) all[q].classList.remove('open');
         var open = mine.classList.toggle('open');
         btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        if (open && window.fdRenderFilterChips) window.fdRenderFilterChips();
+        if (window.fdSyncFilterHistory) window.fdSyncFilterHistory();
       });
       panel.addEventListener('click', function(ev){ ev.stopPropagation(); });
       document.addEventListener('click', function(){
         panel.classList.remove('open');
         btn.setAttribute('aria-expanded', 'false');
+        if (window.fdSyncFilterHistory) window.fdSyncFilterHistory();
       });
       document.addEventListener('keydown', function(ev){
         if (ev.key !== 'Escape') return;
@@ -14728,6 +15039,17 @@
     // two setPointerCapture calls and two commits per drag.
     if (grip.dataset.fdGripWired) return;
     grip.dataset.fdGripWired = '1';
+    // The whole sticky header drags, not just the 5px bar: a thumb aimed
+    // at the bar and landing on the tabs beside it was scrolling the
+    // cards instead of resizing, because the header sits inside the
+    // scroller. The header is touch-action:none so the browser does no
+    // panning there at all, and a drag has to travel FD_DRAG_SLOP before
+    // it counts -- under that it is a tap, and the tab it landed on still
+    // switches.
+    var surface = (grip.parentElement && grip.parentElement.classList.contains('fd-sheet-head'))
+      ? grip.parentElement : grip;
+    var FD_DRAG_SLOP = 6;
+    var armed = false, startY = 0, moved = false;
     var mapCol = page.querySelector('.dir-map-col');
     var dragging = false, frame = null, nextPx = null;
     // Speed over the last moment of the drag, not the whole of it: a
@@ -14741,15 +15063,41 @@
         if (nextPx !== null) setDirectorySheetTop(nextPx, true, page);
       });
     }
-    grip.addEventListener('pointerdown', function(ev){
-      dragging = true; frame = null; nextPx = null;
+    surface.addEventListener('pointerdown', function(ev){
+      // A drag that starts on the bar itself is a drag from the first
+      // pixel; anywhere else on the header has to earn it.
+      var onBar = (ev.target === grip || grip.contains(ev.target));
+      armed = true; moved = false; startY = ev.clientY;
+      dragging = onBar; frame = null; nextPx = null;
       lastY = ev.clientY; lastT = ev.timeStamp || Date.now(); velocity = 0;
-      try { grip.setPointerCapture(ev.pointerId); } catch (e) {}
-      document.body.classList.add('fd-sheet-resizing');
-      ev.preventDefault();
+      if (dragging) {
+        document.body.classList.add('fd-sheet-resizing');
+        ev.preventDefault();
+      }
     });
-    grip.addEventListener('pointermove', function(ev){
-      if (!dragging) return;
+    // On document, not on the header, and with no setPointerCapture.
+    //
+    // Capture was the obvious way to follow a finger that leaves the
+    // handle, but capturing on press retargets the pointerup -- and with
+    // it the CLICK -- to the header, so a tap on a tab arrived as a tap
+    // on the header and the tab never switched. Measured: pointerdown
+    // target=fd-tab, click target=fd-sheet-head.
+    //
+    // Deferring the capture until the drag passes the threshold broke the
+    // other half: the threshold is tested in a move handler, and a quick
+    // drag's first move can already be outside the header, so a move
+    // handler bound to the header never ran. Listening on document has
+    // neither problem -- armed is only ever set by a pointerdown on the
+    // header, so nothing else can start a drag.
+    document.addEventListener('pointermove', function(ev){
+      if (!armed) return;
+      if (!dragging) {
+        if (Math.abs(ev.clientY - startY) < FD_DRAG_SLOP) return;
+        dragging = true; moved = true;
+        lastY = ev.clientY; lastT = ev.timeStamp || Date.now();
+        document.body.classList.add('fd-sheet-resizing');
+      }
+      moved = true;
       var t = ev.timeStamp || Date.now();
       var dt = t - lastT;
       if (dt > 0) {
@@ -14760,7 +15108,13 @@
       apply(ev.clientY - page.getBoundingClientRect().top);
     });
     function end(ev){
-      if (!dragging) return;
+      if (!dragging) {
+        // A tap: leave the click alone so the tab under the thumb still
+        // switches.
+        armed = false;
+        return;
+      }
+      armed = false;
       dragging = false;
       // Commit where the finger finished rather than measuring: the last
       // move before release has usually not had a frame yet.
@@ -14768,12 +15122,18 @@
       if (frame !== null) { cancelAnimationFrame(frame); frame = null; }
       nextPx = null;
       document.body.classList.remove('fd-sheet-resizing');
-      try { grip.releasePointerCapture(ev.pointerId); } catch (e) {}
       var endTop = (last !== null) ? last : Math.round(mapCol.getBoundingClientRect().height);
       setDirectorySheetTop(fdSettleSheet(page, endTop, velocity), false, page);
     }
-    grip.addEventListener('pointerup', end);
-    grip.addEventListener('pointercancel', end);
+    document.addEventListener('pointerup', end);
+    document.addEventListener('pointercancel', end);
+    // A drag that happened to start on a tab must not also switch to it.
+    surface.addEventListener('click', function(ev){
+      if (!moved) return;
+      moved = false;
+      ev.preventDefault();
+      ev.stopPropagation();
+    }, true);
     grip.addEventListener('keydown', function(ev){
       var cur = Math.round(mapCol.getBoundingClientRect().height);
       if (ev.key === 'ArrowDown') { setDirectorySheetTop(cur + 40, false, page); ev.preventDefault(); }
@@ -18007,6 +18367,10 @@
   window.showRouteFromHash = showRouteFromHash;
 
   window.addEventListener('popstate', function(){
+    // A Back that only shut a filter window is not a route change. The
+    // listener that shuts it is registered earlier in the file, so by
+    // the time this runs the flag is already set.
+    if (window.fdSwallowPopstate) { window.fdSwallowPopstate = false; return; }
     showRouteFromHash(true);
   });
 
@@ -18920,6 +19284,10 @@
     if (checkedCount === 0) labelEl.textContent = window.t('filters.noneSelected');
     else if (checkedCount === total) labelEl.textContent = window.t('filters.allSelected');
     else labelEl.textContent = checkedCount + ' ' + window.t('filters.nSelected');
+    // The chips are the same selection said another way, so they are
+    // rebuilt wherever this label is -- which covers Select all, Uncheck
+    // all, the desktop pills and the checkboxes themselves.
+    if (window.fdRenderFilterChips) window.fdRenderFilterChips();
   }
   window.updateDenomDropdownLabel = updateDenomDropdownLabel;
 
