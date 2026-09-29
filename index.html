@@ -1713,6 +1713,14 @@
       'admin.approvedTag': 'Approved', 'admin.rejectedTag': 'Rejected', 'admin.noResolvedClaimsYet': 'No resolved claims yet.', 'admin.resolvedClaim': 'resolved claim', 'admin.resolvedClaimsWord': 'resolved claims',
       'admin.churchOwnerSingular': 'Church owner', 'admin.individual': 'Individual', 'admin.joinedOn': 'Joined {date}',
       'admin.noUsersMatch': 'No users match.', 'admin.userWord': 'user', 'admin.usersWord': 'users',
+      'admin.batchesShown': '{n} import batches',
+      'admin.hideEveryChurch': 'Hide every unclaimed church',
+      'admin.showEveryHidden': 'Bring back everything hidden in bulk',
+      'admin.hideEveryChurchHint': 'Takes the whole directory dark in one go, instead of one import batch at a time. Churches somebody has claimed are never touched, and neither are churches you hid by hand — those stay hidden when you bring the rest back.',
+      'admin.hideEveryChurchConfirm': 'Hide every unclaimed church? The directory will show nothing to visitors until you bring them back. Claimed churches are not affected.',
+      'admin.showEveryHiddenConfirm': 'Bring back every church hidden by a bulk action? Churches you hid one by one stay hidden.',
+      'admin.bulkHidDone': 'Hid {n} churches.',
+      'admin.bulkShowDone': 'Brought back {n} churches.',
       'admin.featureSwitches': 'Feature switches',
       'admin.featureSwitchesHint': 'Things that are built but not switched on yet. These take effect for everyone on their next page load.',
       'admin.flagChurchCategories': 'By Category in the churches directory',
@@ -3031,6 +3039,14 @@
       'admin.approvedTag': 'Aprobado', 'admin.rejectedTag': 'Rechazado', 'admin.noResolvedClaimsYet': 'Aún no hay reclamos resueltos.', 'admin.resolvedClaim': 'reclamo resuelto', 'admin.resolvedClaimsWord': 'reclamos resueltos',
       'admin.churchOwnerSingular': 'Propietario de iglesia', 'admin.individual': 'Individual', 'admin.joinedOn': 'Se unió el {date}',
       'admin.noUsersMatch': 'Ningún usuario coincide.', 'admin.userWord': 'usuario', 'admin.usersWord': 'usuarios',
+      'admin.batchesShown': '{n} lotes de importación',
+      'admin.hideEveryChurch': 'Ocultar todas las iglesias sin reclamar',
+      'admin.showEveryHidden': 'Recuperar todo lo ocultado en bloque',
+      'admin.hideEveryChurchHint': 'Apaga el directorio entero de una vez, en lugar de lote por lote. Nunca toca las iglesias reclamadas, ni las que ocultaste a mano — esas siguen ocultas cuando recuperes el resto.',
+      'admin.hideEveryChurchConfirm': '¿Ocultar todas las iglesias sin reclamar? El directorio no mostrará nada a los visitantes hasta que las recuperes. Las iglesias reclamadas no se ven afectadas.',
+      'admin.showEveryHiddenConfirm': '¿Recuperar todas las iglesias ocultadas en bloque? Las que ocultaste una por una siguen ocultas.',
+      'admin.bulkHidDone': 'Se ocultaron {n} iglesias.',
+      'admin.bulkShowDone': 'Se recuperaron {n} iglesias.',
       'admin.featureSwitches': 'Interruptores de funciones',
       'admin.featureSwitchesHint': 'Cosas ya construidas pero aún no activadas. Surten efecto para todos en su próxima carga de página.',
       'admin.flagChurchCategories': 'Por categoría en el directorio de iglesias',
@@ -9095,6 +9111,16 @@
     <h2 style="font-size:20px;margin-top:44px;margin-bottom:16px;" data-i18n="admin.importBatches">Import batches</h2>
     <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:12px;max-width:600px;" data-i18n="admin.importBatchesHint">Recent CSV imports, most recent first. "Hide all" and "Delete all" only affect churches from that batch that are still unclaimed — anything already claimed by a real owner is left alone.</p>
     <div id="admin-import-batches-status" style="display:none;font-size:12.5px;margin-bottom:8px;"></div>
+    <div class="side-note" style="max-width:560px;margin-bottom:14px;">
+      <h4 data-i18n="admin.hideEveryChurch">Hide every unclaimed church</h4>
+      <p style="font-size:12.5px;color:var(--ink-mute);" data-i18n="admin.hideEveryChurchHint">Takes the whole directory dark in one go, instead of one import batch at a time. Churches somebody has claimed are never touched, and neither are churches you hid by hand — those stay hidden when you bring the rest back.</p>
+      <div class="registrant-actions" style="margin-top:10px;">
+        <button class="export-btn" id="admin-hide-all-churches-btn" style="color:var(--clay);" data-i18n="admin.hideEveryChurch">Hide every unclaimed church</button>
+        <button class="export-btn" id="admin-show-all-churches-btn" data-i18n="admin.showEveryHidden">Bring back everything hidden in bulk</button>
+      </div>
+      <div id="admin-bulk-hide-status" style="display:none;font-size:12px;margin-top:8px;"></div>
+    </div>
+    <div id="admin-import-batches-count" style="font-size:12.5px;color:var(--ink-mute);margin-bottom:8px;"></div>
     <div id="admin-import-batches-list" style="max-height:320px;overflow-y:auto;border:1px solid var(--line);border-radius:10px;padding:4px;">
       <p style="color:var(--ink-mute);font-size:14px;padding:12px;" data-i18n="common.loading">Loading...</p>
     </div>
@@ -12647,7 +12673,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v389 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v390 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -14766,7 +14792,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-29-v389',
+      'build 2026-09-29-v390',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -43924,14 +43950,63 @@
   // all/Delete all summary is set there right before this re-runs (see
   // the click handlers below) and should persist through the refresh,
   // same as the import modal's own status line persists until reopened.
+  // Every unclaimed church at once, rather than 135 batches one at a
+  // time. Both RPCs are migration 112 and are the per-batch pair with
+  // the batch predicate dropped -- same owner_id guard, same
+  // hidden_by_batch marker, so hide-then-show is a round trip that
+  // leaves hand-hidden churches exactly as they were.
+  (function wireAdminBulkHide(){
+    function run(btn, rpc, confirmKey, doneKey){
+      if (!btn) return;
+      btn.addEventListener('click', async function(){
+        if (!confirm(window.t(confirmKey))) return;
+        var status = document.getElementById('admin-bulk-hide-status');
+        btn.disabled = true;
+        var res = await supabase.rpc(rpc);
+        btn.disabled = false;
+        if (status) {
+          status.style.display = 'block';
+          if (res.error) {
+            status.style.color = 'var(--clay)';
+            status.textContent = res.error.message;
+            return;
+          }
+          status.style.color = 'var(--ink-mute)';
+          status.textContent = window.t(doneKey).replace('{n}', Number(res.data || 0).toLocaleString());
+        }
+        loadAdminImportBatchesList();
+      });
+    }
+    run(document.getElementById('admin-hide-all-churches-btn'),
+        'admin_hide_all_unclaimed_churches', 'admin.hideEveryChurchConfirm', 'admin.bulkHidDone');
+    run(document.getElementById('admin-show-all-churches-btn'),
+        'admin_show_all_batch_hidden_churches', 'admin.showEveryHiddenConfirm', 'admin.bulkShowDone');
+  })();
+
+  // Well past the 135 there are, and the cost is only in rows returned:
+  // the function groups over every church either way.
+  var FD_ADMIN_BATCH_LIMIT = 2000;
   async function loadAdminImportBatchesList(){
     var listEl = document.getElementById('admin-import-batches-list');
     if (!listEl) return;
 
-    var { data, error } = await supabase.rpc('admin_list_import_batches');
+    // p_limit, explicitly. The function defaults it to 100 and orders
+    // batch_date DESC, so calling it bare silently dropped the oldest
+    // imports off the end -- at 135 batches that was the first 35,
+    // including the very first upload. The cap is the function's, not
+    // the data's: every batch is still in churches.import_batch_id.
+    var { data, error } = await supabase.rpc('admin_list_import_batches', { p_limit: FD_ADMIN_BATCH_LIMIT });
     if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:14px;padding:12px;">' + escapeHtml(error.message) + '</p>'; return; }
 
     var batches = data || [];
+    // A count, because the failure this replaces was invisible: a
+    // truncated list looks exactly like a complete one.
+    var countEl = document.getElementById('admin-import-batches-count');
+    if (countEl) {
+      countEl.textContent = batches.length
+        ? window.t('admin.batchesShown').replace('{n}', batches.length)
+        : '';
+    }
     if (!batches.length) {
       listEl.innerHTML = '<p style="color:var(--ink-mute);font-size:14px;padding:12px;">' + window.t('admin.noImportBatches') + '</p>';
       return;
@@ -43999,7 +44074,12 @@
   async function fillAdminBatchFilter(){
     var sel = document.getElementById('admin-churches-batch-filter');
     if (!sel || sel.dataset.filled) return;
-    var { data, error } = await supabase.rpc('admin_list_import_batches');
+    // p_limit, explicitly. The function defaults it to 100 and orders
+    // batch_date DESC, so calling it bare silently dropped the oldest
+    // imports off the end -- at 135 batches that was the first 35,
+    // including the very first upload. The cap is the function's, not
+    // the data's: every batch is still in churches.import_batch_id.
+    var { data, error } = await supabase.rpc('admin_list_import_batches', { p_limit: FD_ADMIN_BATCH_LIMIT });
     if (error || !data) return;
     sel.dataset.filled = '1';
     data.forEach(function(b){
