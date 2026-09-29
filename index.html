@@ -7136,6 +7136,17 @@
     .event-tab-btn{font-size:13.5px;}
     /* "By Denomination" is the long one, and three pills with 13px of
        padding a side came to 367px in a 347px row. */
+    /* Even air above and below the pills. Measured: the row sat 8px
+       under the tab strip and 14px above the first card, so it read as
+       stuck to the tabs rather than sitting in its own band. The 8 is
+       the sheet head's 2px margin plus the panel's 6px padding-top, so
+       3px here brings both sides to 11 without changing the total and
+       shifting every card down. */
+    .dir-results-col .fd-quick-row{margin-top:3px;margin-bottom:11px;}
+    /* Events' row had the same fault, 8 above and 20 below its divider.
+       Same arithmetic, different numbers because that row is taller and
+       carries a border. */
+    .dir-results-col .fd-panel[data-browse-panel="events"] .event-tab-row{margin-top:6px;margin-bottom:14px;}
     /* .fd-quick-row prefix because this block sits ABOVE the base
        .fd-quick-btn rule in the file and would otherwise lose the tie. */
     .fd-quick-row{gap:8px;}
@@ -12556,7 +12567,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v385 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v386 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -14617,7 +14628,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-29-v385',
+      'build 2026-09-29-v386',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
