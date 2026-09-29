@@ -1713,6 +1713,12 @@
       'admin.approvedTag': 'Approved', 'admin.rejectedTag': 'Rejected', 'admin.noResolvedClaimsYet': 'No resolved claims yet.', 'admin.resolvedClaim': 'resolved claim', 'admin.resolvedClaimsWord': 'resolved claims',
       'admin.churchOwnerSingular': 'Church owner', 'admin.individual': 'Individual', 'admin.joinedOn': 'Joined {date}',
       'admin.noUsersMatch': 'No users match.', 'admin.userWord': 'user', 'admin.usersWord': 'users',
+      'admin.featureSwitches': 'Feature switches',
+      'admin.featureSwitchesHint': 'Things that are built but not switched on yet. These take effect for everyone on their next page load.',
+      'admin.flagChurchCategories': 'By Category in the churches directory',
+      'admin.flagChurchCategoriesHint': 'Filters churches by their descriptor tags — languages, access, character, music, programmes. Leave this off until enough churches have filled theirs in, or every choice returns an empty list.',
+      'admin.flagChurchCategoriesCoverage': '{n} of {total} visible churches have set at least one tag.',
+      'admin.flagSaveRefused': 'That was refused. Only a platform admin can change a switch.',
       'admin.waitlistSignups': 'Waitlist signups', 'admin.copyAllEmails': 'Copy all emails', 'admin.copied': 'Copied!', 'admin.copyFailed': "Couldn't copy",
       'admin.noSignupsYet': 'No signups yet.', 'admin.signupWord': 'signup', 'admin.signupsWord': 'signups',
       'admin.everyChurchResolved': 'Every church has a resolved address.',
@@ -3025,6 +3031,12 @@
       'admin.approvedTag': 'Aprobado', 'admin.rejectedTag': 'Rechazado', 'admin.noResolvedClaimsYet': 'Aún no hay reclamos resueltos.', 'admin.resolvedClaim': 'reclamo resuelto', 'admin.resolvedClaimsWord': 'reclamos resueltos',
       'admin.churchOwnerSingular': 'Propietario de iglesia', 'admin.individual': 'Individual', 'admin.joinedOn': 'Se unió el {date}',
       'admin.noUsersMatch': 'Ningún usuario coincide.', 'admin.userWord': 'usuario', 'admin.usersWord': 'usuarios',
+      'admin.featureSwitches': 'Interruptores de funciones',
+      'admin.featureSwitchesHint': 'Cosas ya construidas pero aún no activadas. Surten efecto para todos en su próxima carga de página.',
+      'admin.flagChurchCategories': 'Por categoría en el directorio de iglesias',
+      'admin.flagChurchCategoriesHint': 'Filtra iglesias por sus etiquetas descriptivas — idiomas, accesibilidad, carácter, música, programas. Déjalo apagado hasta que suficientes iglesias las hayan completado, o cada opción devolverá una lista vacía.',
+      'admin.flagChurchCategoriesCoverage': '{n} de {total} iglesias visibles tienen al menos una etiqueta.',
+      'admin.flagSaveRefused': 'Rechazado. Solo un administrador de la plataforma puede cambiar un interruptor.',
       'admin.waitlistSignups': 'Lista de espera', 'admin.copyAllEmails': 'Copiar todos los correos', 'admin.copied': '¡Copiado!', 'admin.copyFailed': 'No se pudo copiar',
       'admin.noSignupsYet': 'Aún no hay inscripciones.', 'admin.signupWord': 'inscripción', 'admin.signupsWord': 'inscripciones',
       'admin.everyChurchResolved': 'Todas las iglesias tienen una dirección resuelta.',
@@ -5166,8 +5178,17 @@
 .filter-panel.fd-cats-open .filter-panel-body{display:block;}
 .filter-panel.fd-denoms-open .filter-group,
 .filter-panel.fd-cats-open .filter-group{display:none;}
-.filter-panel.fd-denoms-open .fd-denom-group,
-.filter-panel.fd-cats-open .fd-denom-group{display:block;}
+.filter-panel.fd-denoms-open .fd-denom-group{display:block;}
+/* By Category is the descriptor tags -- what a visitor wants to know
+   that the denomination does not say. It was the tradition list with the
+   bodies hidden, which made two buttons for one list. */
+.filter-panel.fd-cats-open .fd-cat-group{display:block;}
+.fd-cat-group{display:none;}
+.fd-cat-fieldset{border:0;padding:0;margin:0 0 14px;}
+.fd-cat-fieldset > legend{
+  padding:0;margin:0 0 4px;font-size:12px;font-weight:700;
+  letter-spacing:.04em;text-transform:uppercase;color:var(--ink-mute);
+}
 /* The list normally hides behind a dropdown button. Opened from the
    row it is the only thing on screen, so it shows inline and the
    button that would open it goes -- otherwise both buttons opened a
@@ -5193,9 +5214,7 @@
 .filter-panel.fd-cats-open #denom-dropdown-btn,
 .filter-panel.open #denom-dropdown-btn,
 .filter-panel.open #events-denom-dropdown-btn{display:none !important;}
-/* Categories is the traditions; Denominations adds the bodies under
-   them. */
-.filter-panel.fd-cats-open .filter-check-child{display:none;}
+
 @media (max-width:980px){
   /* Denominations has its own button in the row under the tabs now, so
      leaving it in the map's filter window as well was two doors to one
@@ -7146,7 +7165,13 @@
     border:1px solid var(--line);border-radius:999px;padding:7px 13px;
     background:var(--card);color:var(--ink);
   }
-  .fd-quick-btn[aria-expanded="true"],
+  /* Gold fill means this button is narrowing the list right now -- the
+     point being that you can see you have filtered without opening
+     anything. Merely having the window open is a gold OUTLINE, because
+     an open window is not a filter: that conflation is what made the
+     old All button stay lit. */
+  .fd-quick-btn[aria-expanded="true"]{border-color:var(--gold);}
+  .fd-quick-btn.fd-quick-on,
   .fd-quick-btn.active{
     border-color:var(--gold);background:var(--gold-bg);color:var(--gold-ink);
   }
@@ -8116,6 +8141,15 @@
             </div>
           </div>
         </div>
+        <!-- Descriptor tags (migration 110). Filled by JS from
+             FD_CHURCH_TAG_GROUPS rather than written out here: a hundred
+             checkboxes in the markup would be a hundred places for the
+             vocabulary and the page to drift apart. Only ever on screen
+             in the By Category view. -->
+        <div class="filter-group fd-cat-group">
+          <h4 data-i18n="filters.byCategory">By Category</h4>
+          <div id="filter-category-checks"></div>
+        </div>
         <div class="filter-group">
           <h4 data-i18n="filters.distance">Distance</h4>
           <select class="field" id="filter-distance">
@@ -8827,6 +8861,20 @@
          click handler below (search admin-my-church-dashboard-link)
          sends them to register one instead when that's the case. -->
     <a href="#dashboard" id="admin-my-church-dashboard-link" style="display:inline-block;margin-top:8px;font-size:13.5px;font-weight:600;color:var(--ink);border-bottom:1px solid var(--gold);padding-bottom:2px;" data-i18n="admin.myChurchDashboard">Manage my church →</a>
+
+    <h2 style="font-size:20px;margin-top:40px;margin-bottom:6px;" data-i18n="admin.featureSwitches">Feature switches</h2>
+    <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:12px;max-width:560px;" data-i18n="admin.featureSwitchesHint">Things that are built but not switched on yet. These take effect for everyone on their next page load.</p>
+    <div class="side-note" style="max-width:560px;">
+      <label class="filter-check" style="align-items:flex-start;">
+        <input type="checkbox" id="admin-flag-church-categories" style="margin-top:3px;">
+        <span>
+          <strong data-i18n="admin.flagChurchCategories">By Category in the churches directory</strong><br>
+          <span style="font-size:12.5px;color:var(--ink-mute);" data-i18n="admin.flagChurchCategoriesHint">Filters churches by their descriptor tags — languages, access, character, music, programmes. Leave this off until enough churches have filled theirs in, or every choice returns an empty list.</span>
+        </span>
+      </label>
+      <div id="admin-flag-status" style="display:none;font-size:12px;margin-top:8px;"></div>
+      <div id="admin-flag-coverage" style="font-size:12.5px;color:var(--ink-mute);margin-top:10px;"></div>
+    </div>
 
     <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:36px;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
       <h2 style="font-size:20px;margin:0;" data-i18n="admin.waitlistSignups">Waitlist signups</h2>
@@ -12508,7 +12556,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v384 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v385 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -14001,12 +14049,18 @@
         + '<button type="button" data-chip-denom="' + escapeHtml(c.value) + '"'
         + ' aria-label="' + escapeHtml(window.t('filters.removeFilter')) + '">' + FD_CHIP_X + '</button></span>');
     });
+    fdChosenCategories().forEach(function(slug){
+      parts.push('<span class="fd-filter-chip">' + escapeHtml(window.fdChurchTagLabel(slug))
+        + '<button type="button" data-chip-cat="' + escapeHtml(slug) + '"'
+        + ' aria-label="' + escapeHtml(window.t('filters.removeFilter')) + '">' + FD_CHIP_X + '</button></span>');
+    });
     var followed = document.getElementById('dir-filter-followed-churches');
     if (followed && followed.checked) {
       parts.push('<span class="fd-filter-chip">' + escapeHtml(window.t('filters.faithHome'))
         + '<button type="button" data-chip-followed="1"'
         + ' aria-label="' + escapeHtml(window.t('filters.removeFilter')) + '">' + FD_CHIP_X + '</button></span>');
     }
+    fdSyncQuickButtons();
     if (!parts.length) { host.hidden = true; host.innerHTML = ''; return; }
     if (parts.length > 1) {
       parts.push('<button type="button" class="fd-filter-chip-clear" data-chip-clear="1">'
@@ -14024,6 +14078,120 @@
     }
   }
   window.fdRenderFilterChips = fdRenderFilterChips;
+
+  // ---- By Category: the descriptor tags --------------------------
+  //
+  // churches.church_tags is one namespaced text[] (migration 110), so a
+  // single overlaps() answers "does this church match anything ticked"
+  // across every group. Unticked is the default and means no filter --
+  // the opposite of the denomination boxes beside it, which start all on.
+  // That is not an inconsistency to iron out: you narrow by denomination
+  // by taking things away, and you narrow by category by adding them.
+  function fdRenderCategoryFilter(){
+    var host = document.getElementById('filter-category-checks');
+    if (!host || host.dataset.fdBuilt || !window.FD_CHURCH_TAG_GROUPS) return;
+    host.dataset.fdBuilt = '1';
+    host.innerHTML = window.FD_CHURCH_TAG_GROUPS.map(function(g){
+      var boxes = g.tags.map(function(t){
+        return '<label class="filter-check"><input type="checkbox" class="fd-cat-filter" value="'
+          + escapeHtml(t[0]) + '"> <span>' + escapeHtml(window.fdChurchTagLabel(t[0])) + '</span></label>';
+      }).join('');
+      return '<fieldset class="fd-cat-fieldset"><legend>'
+        + escapeHtml(window.currentLang === 'es' ? g.es : g.en) + '</legend>' + boxes + '</fieldset>';
+    }).join('');
+  }
+  function fdChosenCategories(){
+    return [].map.call(document.querySelectorAll('.fd-cat-filter:checked'),
+      function(b){ return b.value; });
+  }
+  window.fdChosenCategories = fdChosenCategories;
+
+  // The ids of the churches matching the ticked tags, handed to
+  // search_churches as p_church_ids -- the same narrowing the "Churches
+  // I follow" box uses (migration 031). The RPC itself is untouched:
+  // teaching it about church_tags would mean changing a function that
+  // predates this repo and is not in it.
+  //
+  // KNOWN CEILING: one page of ids. With the flag off until churches
+  // have actually set tags this is nowhere near binding, but a tag that
+  // eventually matches more than FD_CAT_ID_CAP churches would silently
+  // show only the first that many.
+  var FD_CAT_ID_CAP = 3000;
+  window.fdCategoryChurchIds = null;      // null = no category filter
+  var fdCatQuerySeq = 0;
+  async function fdLoadCategoryChurchIds(){
+    var picked = fdChosenCategories();
+    var seq = ++fdCatQuerySeq;
+    if (!picked.length) { window.fdCategoryChurchIds = null; return; }
+    try {
+      var res = await window.supabase.from('churches').select('id')
+        .overlaps('church_tags', picked)
+        // RLS does not hide these from anon, so the filter has to.
+        .eq('is_hidden', false)
+        .limit(FD_CAT_ID_CAP);
+      if (seq !== fdCatQuerySeq) return;   // a later tick won
+      window.fdCategoryChurchIds = (res.data || []).map(function(r){ return r.id; });
+    } catch (e) {
+      if (seq !== fdCatQuerySeq) return;
+      window.fdCategoryChurchIds = [];
+    }
+  }
+
+  document.addEventListener('change', async function(ev){
+    if (!ev.target || !ev.target.classList || !ev.target.classList.contains('fd-cat-filter')) return;
+    await fdLoadCategoryChurchIds();
+    fdRenderFilterChips();
+    if (typeof window.renderDirectory === 'function') window.renderDirectory();
+  });
+
+  // ---- The switch that decides whether any of this is on screen ----
+  //
+  // platform_flags.church_categories (migration 111). Read once, by
+  // anyone including a signed-out visitor, because the signed-out
+  // visitor is exactly who needs to know whether to draw the button.
+  // A failed read leaves it hidden: the safe direction for a feature
+  // whose data is not there yet.
+  async function fdLoadPlatformFlags(){
+    var on = false;
+    try {
+      var res = await window.supabase.from('platform_flags')
+        .select('key, enabled').eq('key', 'church_categories').limit(1);
+      on = !!(res.data && res.data[0] && res.data[0].enabled);
+    } catch (e) { on = false; }
+    window.fdCategoriesEnabled = on;
+    fdApplyCategoriesFlag();
+  }
+  function fdApplyCategoriesFlag(){
+    var btn = document.querySelector('[data-church-tab="categories"]');
+    if (btn) btn.style.display = window.fdCategoriesEnabled ? '' : 'none';
+    if (window.fdCategoriesEnabled) {
+      fdRenderCategoryFilter();
+    } else if (fdChosenCategories().length) {
+      // Switched off with something ticked: drop the filter rather than
+      // leaving the list narrowed by a control nobody can see.
+      [].forEach.call(document.querySelectorAll('.fd-cat-filter:checked'), function(b){ b.checked = false; });
+      window.fdCategoryChurchIds = null;
+      fdRenderFilterChips();
+      if (typeof window.renderDirectory === 'function') window.renderDirectory();
+    }
+  }
+  window.fdApplyCategoriesFlag = fdApplyCategoriesFlag;
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', fdLoadPlatformFlags);
+  } else {
+    fdLoadPlatformFlags();
+  }
+
+  // Which of the row's buttons are currently narrowing the list. Faith
+  // Home carries .active because it is a toggle you pressed; the other
+  // two are lit by what is ticked behind them, not by having been used.
+  function fdSyncQuickButtons(){
+    var d = document.querySelector('[data-church-tab="denominations"]');
+    if (d) d.classList.toggle('fd-quick-on', fdDenomUncheckedCount() > 0);
+    var c = document.querySelector('[data-church-tab="categories"]');
+    if (c) c.classList.toggle('fd-quick-on', (window.fdChosenCategories ? window.fdChosenCategories().length : 0) > 0);
+  }
+  window.fdSyncQuickButtons = fdSyncQuickButtons;
 
   function fdClearFaithHome(){
     var fb = document.getElementById('dir-filter-followed-churches');
@@ -14054,6 +14222,14 @@
       if (typeof window.renderDirectory === 'function') window.renderDirectory();
       return;
     }
+    var xc = ev.target.closest && ev.target.closest('[data-chip-cat]');
+    if (xc) {
+      ev.preventDefault(); ev.stopPropagation();
+      var slug = xc.getAttribute('data-chip-cat');
+      var box = document.querySelector('.fd-cat-filter[value="' + slug.replace(/"/g, '\\"') + '"]');
+      if (box) { box.checked = false; box.dispatchEvent(new Event('change', { bubbles: true })); }
+      return;
+    }
     if (ev.target.closest && ev.target.closest('[data-chip-followed]')) {
       ev.preventDefault(); ev.stopPropagation();
       fdClearFaithHome();
@@ -14064,6 +14240,9 @@
       ev.preventDefault(); ev.stopPropagation();
       fdRestoreAllDenoms();
       fdClearFaithHome();
+      var cats = document.querySelectorAll('.fd-cat-filter:checked');
+      for (var ci = 0; ci < cats.length; ci++) cats[ci].checked = false;
+      window.fdCategoryChurchIds = null;
       fdRenderFilterChips();
       if (typeof window.renderDirectory === 'function') window.renderDirectory();
     }
@@ -14438,7 +14617,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-29-v384',
+      'build 2026-09-29-v385',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -15050,6 +15229,18 @@
       ? grip.parentElement : grip;
     var FD_DRAG_SLOP = 6;
     var armed = false, startY = 0, moved = false;
+    // Where the thumb sits relative to the top of the sheet, measured
+    // the instant a drag begins. Without it the sheet top was set to the
+    // pointer itself, so grabbing the header anywhere below its top edge
+    // snapped the sheet down to meet the thumb before it would move --
+    // invisible when the handle was a 17px bar, a visible jump now that
+    // the whole 51px header is the handle.
+    var grabOffset = 0;
+    function beginDrag(clientY){
+      grabOffset = (clientY - page.getBoundingClientRect().top)
+                 - Math.round(mapCol.getBoundingClientRect().height);
+      document.body.classList.add('fd-sheet-resizing');
+    }
     var mapCol = page.querySelector('.dir-map-col');
     var dragging = false, frame = null, nextPx = null;
     // Speed over the last moment of the drag, not the whole of it: a
@@ -15071,7 +15262,7 @@
       dragging = onBar; frame = null; nextPx = null;
       lastY = ev.clientY; lastT = ev.timeStamp || Date.now(); velocity = 0;
       if (dragging) {
-        document.body.classList.add('fd-sheet-resizing');
+        beginDrag(ev.clientY);
         ev.preventDefault();
       }
     });
@@ -15094,8 +15285,11 @@
       if (!dragging) {
         if (Math.abs(ev.clientY - startY) < FD_DRAG_SLOP) return;
         dragging = true; moved = true;
+        // Measured here, not at pointerdown: the six pixels of slop are
+        // absorbed rather than applied, so the sheet picks up exactly
+        // where it was and tracks one-to-one from there.
+        beginDrag(ev.clientY);
         lastY = ev.clientY; lastT = ev.timeStamp || Date.now();
-        document.body.classList.add('fd-sheet-resizing');
       }
       moved = true;
       var t = ev.timeStamp || Date.now();
@@ -15105,7 +15299,7 @@
         velocity = 0.7 * ((ev.clientY - lastY) / dt) + 0.3 * velocity;
         lastY = ev.clientY; lastT = t;
       }
-      apply(ev.clientY - page.getBoundingClientRect().top);
+      apply(ev.clientY - page.getBoundingClientRect().top - grabOffset);
     });
     function end(ev){
       if (!dragging) {
@@ -15123,6 +15317,7 @@
       nextPx = null;
       document.body.classList.remove('fd-sheet-resizing');
       var endTop = (last !== null) ? last : Math.round(mapCol.getBoundingClientRect().height);
+      grabOffset = 0;
       setDirectorySheetTop(fdSettleSheet(page, endTop, velocity), false, page);
     }
     document.addEventListener('pointerup', end);
@@ -19585,6 +19780,20 @@
     var followedChecked = document.getElementById('dir-filter-followed-churches');
     var wantFollowed = !!(followedChecked && followedChecked.checked);
     var churchIds = wantFollowed ? (window.myFollowedChurchIds || []) : null;
+    // Both narrowings ride the one p_church_ids parameter, so when both
+    // are on the answer is their intersection -- churches you follow
+    // THAT also carry a ticked tag, which is what having both switched
+    // on plainly means.
+    var catIds = window.fdCategoryChurchIds;
+    if (catIds) {
+      if (churchIds) {
+        var keep = Object.create(null);
+        for (var ci = 0; ci < catIds.length; ci++) keep[catIds[ci]] = 1;
+        churchIds = churchIds.filter(function(id){ return keep[id]; });
+      } else {
+        churchIds = catIds;
+      }
+    }
     return {
       keyword: keyword,
       denomSearch: denomSearch,
@@ -42097,10 +42306,66 @@
   // just this page's own visibility — the same "UI hiding isn't the
   // real security boundary" principle used throughout this app.
   // ============================================================
+  // ---- Feature switches -------------------------------------------
+  //
+  // platform_flags (migration 111). The write is an ordinary update as
+  // the signed-in admin -- the table's policy checks is_platform_admin()
+  // server-side, so a hand-crafted request from anyone else is refused
+  // whatever this page believes about who is looking at it.
+  async function loadAdminFlags(){
+    var box = document.getElementById('admin-flag-church-categories');
+    if (!box || !window.isPlatformAdmin) return;
+    var res = await supabase.from('platform_flags').select('key, enabled').eq('key', 'church_categories').limit(1);
+    box.checked = !!(res.data && res.data[0] && res.data[0].enabled);
+    // How many churches have actually set a tag, which is the number the
+    // decision to switch this on turns on.
+    var cov = document.getElementById('admin-flag-coverage');
+    if (cov) {
+      var withTags = await supabase.from('churches')
+        .select('id', { count: 'exact', head: true })
+        .eq('is_hidden', false).not('church_tags', 'eq', '{}');
+      var total = await supabase.from('churches')
+        .select('id', { count: 'exact', head: true }).eq('is_hidden', false);
+      if (typeof withTags.count === 'number' && typeof total.count === 'number') {
+        cov.textContent = window.t('admin.flagChurchCategoriesCoverage')
+          .replace('{n}', withTags.count.toLocaleString())
+          .replace('{total}', total.count.toLocaleString());
+      }
+    }
+  }
+  var adminFlagBox = document.getElementById('admin-flag-church-categories');
+  if (adminFlagBox) adminFlagBox.addEventListener('change', async function(){
+    var status = document.getElementById('admin-flag-status');
+    var want = adminFlagBox.checked;
+    adminFlagBox.disabled = true;
+    var res = await supabase.from('platform_flags')
+      .update({ enabled: want, updated_at: new Date().toISOString() })
+      .eq('key', 'church_categories').select('key, enabled');
+    adminFlagBox.disabled = false;
+    if (status) {
+      status.style.display = 'block';
+      if (res.error || !res.data || !res.data.length) {
+        // A policy refusal comes back as zero rows, not as an error, so
+        // an empty result has to be treated as a failure too.
+        adminFlagBox.checked = !want;
+        status.style.color = 'var(--clay)';
+        status.textContent = res.error ? res.error.message : window.t('admin.flagSaveRefused');
+      } else {
+        status.style.color = 'var(--sage-ink, var(--ink-mute))';
+        status.textContent = window.t('common.saved');
+        // This tab should agree with what was just written without a
+        // reload, even though everyone else picks it up on their next.
+        window.fdCategoriesEnabled = want;
+        if (window.fdApplyCategoriesFlag) window.fdApplyCategoriesFlag();
+      }
+    }
+  });
+
   async function loadAdminPanel(){
     var verifList = document.getElementById('admin-verifications-list');
     if (!verifList) return;
     if (!window.isPlatformAdmin) return;
+    loadAdminFlags();
 
     var { data: pending, error: pendingError } = await supabase.rpc('get_pending_verifications');
     if (pendingError) { verifList.innerHTML = '<p style="color:var(--clay);font-size:14px;">' + escapeHtml(pendingError.message) + '</p>'; }
