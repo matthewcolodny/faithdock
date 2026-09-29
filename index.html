@@ -5245,13 +5245,13 @@
     }
     /* Everything below is positioned against this box, which is exactly
        the room between the sticky header and the pinned footer. */
-    #page-directory.active{
+    .fd-shell.active{
       position:relative;height:var(--dir-screen-h, calc(100vh - 210px));
       padding:0;overflow:hidden;
     }
-    #page-directory.active .dir-split{position:absolute;inset:0;}
+    .fd-shell.active .dir-split{position:absolute;inset:0;}
 
-    #page-directory.active .dir-map-col{
+    .fd-shell.active .dir-map-col{
       display:block;position:absolute;top:0;left:0;right:0;bottom:auto;
       height:var(--dir-sheet-top,40%);
       /* Explicit, because the map column is a positioned element that
@@ -5263,48 +5263,48 @@
        the fence is where they were when the phone layout was written --
        so the map wrap kept its banner-era intrinsic height and left a
        blank strip between the map and the sheet. */
-    #page-directory.active #directory-map-wrap{
+    .fd-shell.active .fd-map-wrap{
       position:static;height:100%;display:flex;flex-direction:column;margin:0;
     }
-    #page-directory.active #directory-map-holder{flex:1;min-height:0;}
-    #page-directory.active #directory-map{height:100%;border:0;}
-    #page-directory.active #directory-map-note{display:none;}
+    .fd-shell.active .fd-map-holder{flex:1;min-height:0;}
+    .fd-shell.active .fd-map{height:100%;border:0;}
+    .fd-shell.active .fd-map-note{display:none;}
     /* The banner had its own drag grip and a taller/shorter pair. The
        phone has the sheet handle instead, and two draggable bars one
        above the other is exactly as confusing as it sounds. */
-    #page-directory.active #directory-map-grip,
-    #page-directory.active #directory-map-size{display:none;}
+    .fd-shell.active .fd-map-grip,
+    .fd-shell.active .fd-map-size{display:none;}
     /* The pills are a desktop device; the phone has one filter button. */
-    #page-directory.active #dir-filter-pills{display:none;}
+    .fd-shell.active .fd-filter-pills{display:none;}
 
     /* The search row, floating over the map rather than pushing it down. */
-    #page-directory.active #directory-head{
+    .fd-shell.active .fd-browse-head{
       position:absolute;top:0;left:0;right:0;z-index:20;
       background:transparent;border-bottom:0;padding:10px 0 0;
     }
-    #page-directory.active #directory-head .wrap{padding:0 12px;}
-    #page-directory.active .dir-search-row{gap:8px;}
+    .fd-shell.active .fd-browse-head .wrap{padding:0 12px;}
+    .fd-shell.active .dir-search-row{gap:8px;}
     /* Opaque, because what is behind them is a map and not a page. */
-    #page-directory.active .dir-search-row .field,
-    #page-directory.active .dir-search-row .export-btn,
-    #page-directory.active .dir-search-row .dir-view-toggle,
-    #page-directory.active #dir-filter-icon-btn{
+    .fd-shell.active .dir-search-row .field,
+    .fd-shell.active .dir-search-row .export-btn,
+    .fd-shell.active .dir-search-row .dir-view-toggle,
+    .fd-shell.active .fd-filter-btn{
       background:var(--card);box-shadow:0 2px 8px rgba(0,0,0,.18);
     }
 
     /* ---- the sheet ---- */
-    #page-directory.active .dir-results-col{
+    .fd-shell.active .dir-results-col{
       position:absolute;left:0;right:0;top:var(--dir-sheet-top,40%);bottom:0;
       height:auto;padding:0 14px 16px;overflow-y:auto;overscroll-behavior:contain;
       background:var(--paper);border-top:1px solid var(--line);
       border-radius:16px 16px 0 0;box-shadow:0 -6px 20px rgba(0,0,0,.16);
       z-index:4;
     }
-    #page-directory.active .dir-results-col > .directory-layout{
+    .fd-shell.active .dir-results-col > .directory-layout{
       margin-top:0;grid-template-columns:1fr;
     }
     /* One card per row, whatever the phone's width. */
-    #page-directory.active .dir-results-col #directory-grid.grid{
+    .fd-shell.active .dir-results-col .fd-results-grid.grid{
       grid-template-columns:1fr;gap:10px;
     }
     /* Prev 1 2 3 4 5 ... 98 Next is eleven controls, and past page 2 the
@@ -5312,16 +5312,16 @@
        buttons and a smaller gap keep it to one row; nowrap so that when
        it genuinely cannot fit it scrolls sideways rather than breaking
        a single button onto its own line. */
-    #page-directory.active .dir-pager{
+    .fd-shell.active .dir-pager{
       flex-wrap:nowrap;gap:4px;overflow-x:auto;
       justify-content:flex-start !important;
       scrollbar-width:none;margin-top:20px !important;
     }
-    #page-directory.active .dir-pager::-webkit-scrollbar{display:none;}
-    #page-directory.active .dir-pager-btn{
+    .fd-shell.active .dir-pager::-webkit-scrollbar{display:none;}
+    .fd-shell.active .dir-pager-btn{
       min-width:30px;height:32px;padding:0 7px;font-size:12.5px;flex-shrink:0;
     }
-    #page-directory.active .dir-pager-gap{flex-shrink:0;}
+    .fd-shell.active .dir-pager-gap{flex-shrink:0;}
     /* The card's own layout is no longer set here. The sheet is inside
        the dircards container and never wider than one column, so it
        gets the horizontal card from the container query above -- one
@@ -5329,48 +5329,48 @@
        thing. What stays below is about touch, not width. */
     /* The tap target for the profile, now that the card itself is not
        one. Inline-block so it is only as wide as its own text. */
-    #page-directory.active #directory-grid .dir-card-profile-link{
+    .fd-shell.active .fd-results-grid .dir-card-profile-link{
       display:inline-block;margin-top:7px;font-size:13px;font-weight:600;
       color:var(--gold-ink);border-bottom:1px solid var(--gold);
       padding:2px 0;
     }
     /* No lift on tap -- there is no hover on a phone, and the transform
        fires on tap and leaves the card shifted. */
-    #page-directory.active #directory-grid .church-card:hover{transform:none;}
+    .fd-shell.active .fd-results-grid .church-card:hover{transform:none;}
     /* Stays put while the sheet scrolls, so the handle is always there
        to drag. */
-    #dir-sheet-grip{
+    .fd-sheet-grip{
       display:block;position:sticky;top:0;z-index:2;
       margin:0 -14px 4px;padding:9px 0 7px;background:var(--paper);
       border:0;width:calc(100% + 28px);cursor:row-resize;touch-action:none;
       -webkit-tap-highlight-color:transparent;
     }
-    #dir-sheet-grip::before{
+    .fd-sheet-grip::before{
       content:"";display:block;margin:0 auto;
       width:40px;height:4px;border-radius:2px;background:var(--line);
     }
-    #dir-sheet-grip:focus-visible{outline:2px solid var(--gold);outline-offset:-2px;}
+    .fd-sheet-grip:focus-visible{outline:2px solid var(--gold);outline-offset:-2px;}
     body.fd-sheet-resizing{user-select:none;}
 
     /* ---- the filter panel, as an overlay under the search row ---- */
-    #page-directory.active > .filter-panel{
+    .fd-shell.active > .filter-panel{
       position:absolute;top:var(--dir-head-h,96px);left:12px;right:12px;z-index:8;
       display:none;max-height:calc(100% - var(--dir-head-h,96px) - 16px);
       overflow-y:auto;box-shadow:0 14px 34px rgba(0,0,0,.28);
     }
-    #page-directory.active > .filter-panel.open{display:block;}
-    #page-directory.active > .filter-panel .filter-panel-toggle{display:none;}
-    #page-directory.active > .filter-panel .filter-panel-body{display:block;}
-    #page-directory.active > .filter-panel .filter-panel-title{display:block;}
-    #dir-filter-icon-btn{
+    .fd-shell.active > .filter-panel.open{display:block;}
+    .fd-shell.active > .filter-panel .filter-panel-toggle{display:none;}
+    .fd-shell.active > .filter-panel .filter-panel-body{display:block;}
+    .fd-shell.active > .filter-panel .filter-panel-title{display:block;}
+    .fd-filter-btn{
       display:inline-flex;align-items:center;justify-content:center;
       width:42px;height:42px;flex-shrink:0;padding:0;cursor:pointer;
       border:1px solid var(--line);border-radius:8px;color:var(--ink);
     }
-    #dir-filter-icon-btn svg{width:19px;height:19px;}
+    .fd-filter-btn svg{width:19px;height:19px;}
     /* Cards/List as bare icons -- the two words cost about 90px. */
-    #page-directory.active .dir-view-btn span{display:none;}
-    #page-directory.active .dir-view-btn{padding:0 11px;}
+    .fd-shell.active .dir-view-btn span{display:none;}
+    .fd-shell.active .dir-view-btn{padding:0 11px;}
     /* Five controls in a wrapping flex row is two flex:1 items bidding
        against three fixed ones, and the result was the keyword field
        squeezed to 11px and the location box to 112px showing "San An".
@@ -5383,28 +5383,28 @@
        location, and the cards/list toggle.
        They are display:none rather than deleted, because the same
        markup is the desktop row, where the fields stay. */
-    #page-directory.active .dir-search-row > .search-field-wrap:not(.autocomplete-wrap),
-    #page-directory.active .dir-search-row > .autocomplete-wrap{
+    .fd-shell.active .dir-search-row > .search-field-wrap:not(.autocomplete-wrap),
+    .fd-shell.active .dir-search-row > .autocomplete-wrap{
       /* !important because the location wrap carries display:flex as an
          inline style, and an inline style beats a stylesheet rule that
          does not say otherwise. */
       display:none !important;
     }
-    #page-directory.active .dir-search-row{
+    .fd-shell.active .dir-search-row{
       display:grid;gap:8px;align-items:center;
       grid-template-columns:42px 42px 1fr;
       grid-template-areas:"filter pin view";
       justify-content:start;
     }
-    #page-directory.active .dir-search-row > #dir-filter-icon-btn{grid-area:filter;justify-self:start;}
+    .fd-shell.active .dir-search-row > .fd-filter-btn{grid-area:filter;justify-self:start;}
     /* stretch, not start: the cell is 42px and the button has padding:0,
        so left to itself it shrank to the icon and sat beside a much
        larger filter button. */
-    #page-directory.active .dir-search-row > #dir-use-location-btn{grid-area:pin;padding:0;justify-content:center;justify-self:stretch;}
-    #page-directory.active .dir-search-row > #dir-use-location-btn .btn-label-text{display:none;}
-    #page-directory.active .dir-search-row > .dir-view-toggle{grid-area:view;justify-self:end;}
-    #page-directory.active .dir-search-row .search-clear-wrap{min-width:0;}
-    #dir-filter-icon-btn[aria-expanded="true"]{
+    .fd-shell.active .dir-search-row > .fd-loc-btn{grid-area:pin;padding:0;justify-content:center;justify-self:stretch;}
+    .fd-shell.active .dir-search-row > .fd-loc-btn .btn-label-text{display:none;}
+    .fd-shell.active .dir-search-row > .dir-view-toggle{grid-area:view;justify-self:end;}
+    .fd-shell.active .dir-search-row .search-clear-wrap{min-width:0;}
+    .fd-filter-btn[aria-expanded="true"]{
       background:var(--gold-bg);border-color:var(--gold);color:var(--gold-ink);
     }
   }
@@ -5413,15 +5413,23 @@
      and carry the same one-ID specificity, so an unscoped display:none
      would win on source order and hide them on the phone too. */
   @media (min-width:981px){
-    #dir-filter-icon-btn{display:none;}
-    #dir-sheet-grip{display:none;}
+    .fd-filter-btn{display:none;}
+    .fd-sheet-grip{display:none;}
   }
 
   /* Tight, now that the heading is not drawn -- the search row sits
      just under the map. */
-  #directory-head{
-    position:sticky;top:var(--dir-head-top,0px);z-index:39;background:var(--paper);
-    border-bottom:1px solid var(--line);padding:12px 0;
+  /* Fenced to the desktop, and a class rather than an id. Unfenced it
+     sat after the phone shell block carrying one-ID specificity, so
+     when the shell rules became classes this rule started winning and
+     the search row dropped out of its floating position back into the
+     flow -- measured: position went absolute -> static. Same reasoning
+     as the #dir-filter-icon-btn pair a few rules above. */
+  @media (min-width:981px){
+    .fd-browse-head{
+      position:sticky;top:var(--dir-head-top,0px);z-index:39;background:var(--paper);
+      border-bottom:1px solid var(--line);padding:12px 0;
+    }
   }
   #page-directory .filter-panel{ top:var(--dir-panel-top,92px); }
   .dir-search-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
@@ -5460,7 +5468,12 @@
        top 40% of the phone layout. paintDirectoryMap() refuses to build
        into a display:none element, so hiding it here was also what kept
        the map from ever existing on a phone. */
-    #directory-head{position:static;border-bottom:0;padding-top:24px;}
+    /* #directory-head is not touched here any more. It un-stickied the
+       head before the phone shell existed; the shell now positions it
+       absolutely over the map for every width up to 980, and this rule
+       only ever won because it carried an id against the shell s own
+       id. Once the shell became class-based it started overriding the
+       shell and dropped the search row back into the flow. */
     #page-directory .filter-panel{ top:92px; }
   }
 
@@ -7539,13 +7552,13 @@
 </section>
 
 <!-- ================= DIRECTORY ================= -->
-<section class="page" id="page-directory">
+<section class="page fd-shell" id="page-directory">
   <!-- Heading, both searches and the view toggle, pinned under the map.
        One row instead of two stacked ones, and the toggle moved up from
        the results header so everything a search touches is on the same
        line. Outside .wrap so the sticky band spans the full width; the
        inner .wrap keeps the content aligned with the page. -->
-  <div id="directory-head">
+  <div id="directory-head" class="fd-browse-head">
     <div class="wrap">
       <!-- Hidden, not deleted. It is the only h1 on the page, and a
            page with no heading is worse for a screen reader and for
@@ -7553,7 +7566,7 @@
            says where you are far better than a line of text did. -->
       <h1 class="sr-only" data-i18n="home.churchesNearYou">Churches near you</h1>
       <div class="dir-search-row">
-      <button type="button" id="dir-filter-icon-btn" aria-expanded="false" aria-controls="dir-filter-body"
+      <button type="button" id="dir-filter-icon-btn" class="fd-filter-btn" aria-expanded="false" aria-controls="dir-filter-body"
               data-i18n-title="filters.filterSearches" title="Filter searches"
               data-i18n-aria-label="filters.filterSearches" aria-label="Filter searches">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
@@ -7576,7 +7589,7 @@
         <button id="dir-location-search-btn" style="background:var(--gold);color:var(--brand);border:none;padding:0 16px;border-radius:0 8px 8px 0;cursor:pointer;" aria-label="Search location" data-i18n-title="common.searchLocation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;display:block;"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></button>
         <div class="autocomplete-list" id="dir-location-list"></div>
         </div>
-      <button class="export-btn" id="dir-use-location-btn" data-i18n-title="events.useMyLocation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg> <span class="btn-label-text" data-i18n="events.useMyLocation">Use my location</span></button>
+      <button class="export-btn fd-loc-btn" id="dir-use-location-btn" data-i18n-title="events.useMyLocation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg> <span class="btn-label-text" data-i18n="events.useMyLocation">Use my location</span></button>
         <div class="dir-view-toggle" role="group" data-i18n-title="directory.viewToggleLabel" title="View">
           <button type="button" class="dir-view-btn" data-dir-view="cards" aria-pressed="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
@@ -7597,7 +7610,7 @@
        ends up narrower than the cards beside it. -->
   <div class="dir-split">
     <div class="dir-results-col">
-    <button type="button" id="dir-sheet-grip" aria-orientation="horizontal"
+    <button type="button" id="dir-sheet-grip" class="fd-sheet-grip" aria-orientation="horizontal"
             data-i18n-title="dir.sheetResize" title="Drag to resize"></button>
     <div class="directory-layout">
       <aside class="filter-panel">
@@ -7686,7 +7699,7 @@
 
       <div>
         <h2 class="dir-results-title" data-i18n="dir.resultsHeading">Churches</h2>
-        <div class="grid" id="directory-grid"></div>
+        <div class="grid fd-results-grid" id="directory-grid"></div>
         <div id="directory-empty" style="display:none;color:var(--ink-mute);font-size:14.5px;padding:40px 0;text-align:center;" data-i18n="filters.noChurchesMatch">No churches match these filters. Try widening your search.</div>
         <div class="dir-results-foot">
           <div id="directory-count" style="font-size:13.5px;color:var(--ink-mute);"></div>
@@ -7709,10 +7722,10 @@
            Filled by moveFiltersIntoPills() -- the existing filter
            groups are MOVED here rather than rebuilt, so every control
            keeps the listeners it was wired with. -->
-      <div id="dir-filter-pills"></div>
-    <div id="directory-map-wrap">
-      <div id="directory-map-holder">
-      <div id="directory-map"></div>
+      <div id="dir-filter-pills" class="fd-filter-pills"></div>
+    <div id="directory-map-wrap" class="fd-map-wrap">
+      <div id="directory-map-holder" class="fd-map-holder">
+      <div id="directory-map" class="fd-map"></div>
       <!-- Sizing. Buttons rather than a drag handle: the height feeds the
            sticky offsets of everything below, so it has to land on known
            values, and a drag that ends mid-pixel mid-scroll is a lot of
@@ -7728,7 +7741,7 @@
            clicks meant for them. -->
       <div id="directory-map-grip" role="separator" aria-orientation="horizontal"
            tabindex="0" aria-label="Resize map" data-i18n-title="dir.mapResizeDrag"><span></span></div>
-      <div id="directory-map-note"></div>
+      <div id="directory-map-note" class="fd-map-note"></div>
     </div>
     </div>
   </div>
@@ -12120,7 +12133,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v361 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v362 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13437,7 +13450,7 @@ Groups</span>
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-28-v361',
+      'build 2026-09-28-v362',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
