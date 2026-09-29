@@ -5635,6 +5635,15 @@
     .fd-shell.active .dir-search-row > .fd-loc-btn .btn-label-text{display:none;}
     .fd-shell.active .dir-search-row > .dir-view-toggle{grid-area:view;justify-self:end;}
     .fd-shell.active .dir-search-row .search-clear-wrap{min-width:0;}
+    /* The head is a transparent strip across the top of the map, and at
+       z-index 20 it swallowed everything beneath it -- Search this area
+       stopped responding the moment it moved up onto this line, and the
+       map could not be dragged in this band either. The strip itself
+       takes no input now; only the controls in it do. */
+    .fd-shell.active .fd-browse-head,
+    .fd-shell.active .fd-browse-head .wrap,
+    .fd-shell.active .dir-search-row{pointer-events:none;}
+    .fd-shell.active .dir-search-row > *{pointer-events:auto;}
     .fd-filter-btn[aria-expanded="true"]{
       background:var(--gold-bg);border-color:var(--gold);color:var(--gold-ink);
     }
@@ -12277,7 +12286,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v377 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v378 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13925,7 +13934,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-29-v377',
+      'build 2026-09-29-v378',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
