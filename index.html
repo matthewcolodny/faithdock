@@ -7796,21 +7796,18 @@
   </div>
 </section>
 
-<section class="page" id="page-events">
-  <div class="wrap" style="padding-top:44px;">
-    <div class="eyebrow" data-i18n="nav.events">Events</div>
-    <h1 style="font-size:34px;" data-i18n="events.title">Upcoming events near you</h1>
-    <p style="color:var(--ink-mute);margin-top:8px;" data-i18n="events.subtitle">Public and members-only events across all listed churches</p>
-
-    <div class="location-row">
+<section class="page fd-shell" id="page-events">
+  <!-- The browse shell, the same one Churches wears. The head floats
+       over the map on a phone and sits above the split on a desktop;
+       both columns and the drag-sheet come from .fd-shell. -->
+  <div id="events-head" class="fd-browse-head">
+    <div class="wrap">
+      <div class="dir-search-row">
       <div class="search-field-wrap search-clear-wrap" style="max-width:340px;">
         <span class="search-field-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></span>
         <input class="field" type="search" id="events-keyword-input" placeholder="Search events by name or keyword..." data-i18n-placeholder="events.keywordPlaceholder" autocomplete="off">
         <button type="button" class="search-clear-btn" id="events-keyword-clear-btn" aria-label="Clear search" data-i18n-title="common.clearSearch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       </div>
-    </div>
-
-    <div class="location-row" style="margin-top:10px;">
       <div class="autocomplete-wrap search-field-wrap" style="max-width:340px;display:flex;">
         <span class="search-field-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
         <div class="search-clear-wrap" style="flex:1;min-width:0;">
@@ -7822,8 +7819,18 @@
       </div>
       <button class="export-btn" id="events-use-location-btn" data-i18n-title="events.useMyLocation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg> <span class="btn-label-text" data-i18n="events.useMyLocation">Use my location</span></button>
       <span id="events-location-status" style="font-size:13px;color:var(--ink-mute);"></span>
+        <button type="button" id="events-filter-icon-btn" class="fd-filter-btn" aria-expanded="false" aria-controls="events-filter-body" data-i18n-title="filters.filterSearches" title="Filter searches">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+        </button>
+      </div>
     </div>
+  </div>
 
+  <div class="dir-split">
+    <div class="dir-results-col">
+    <button type="button" id="events-sheet-grip" class="fd-sheet-grip" aria-orientation="horizontal"
+            data-i18n-aria="dir.sheetResize" aria-label="Resize the list"></button>
+    <h2 class="dir-results-title" data-i18n="nav.events">Events</h2>
     <div class="event-category-row" id="event-category-row">
       <button class="event-category-btn" data-category-tag="Volunteer">
         <div class="event-category-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20l-7-7a4 4 0 0 1 6-5.5L12 8l1-.5a4 4 0 0 1 6 5.5l-7 7z"/></svg></div>
@@ -8003,6 +8010,14 @@ Groups</span>
         <div id="events-empty" style="display:none;color:var(--ink-mute);font-size:14.5px;padding:40px 0;text-align:center;" data-i18n="filters.noEventsMatch">No events match these filters. Try widening your search.</div>
         <div style="text-align:center;margin-top:24px;">
           <button class="export-btn" id="events-load-more-btn" style="display:none;padding:10px 24px;" data-i18n="common.loadMore">Load more</button>
+        </div>
+      </div>
+    </div>
+    </div>
+    <div class="dir-map-col">
+      <div id="events-map-wrap" class="fd-map-wrap">
+        <div id="events-map-holder" class="fd-map-holder">
+          <div id="events-map" class="fd-map"></div>
         </div>
       </div>
     </div>
@@ -12133,7 +12148,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v363 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v364 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13235,6 +13250,125 @@ Groups</span>
     });
   }
 
+  // ---- The events map ------------------------------------------------
+  //
+  // An event has no position of its own. search_events returns a
+  // distance but no coordinates, because the position belongs to the
+  // church hosting it -- so the pins ARE the host churches, and several
+  // events at one church share one pin.
+  //
+  // The coordinates are fetched for the church ids on screen rather than
+  // added to the RPC's return: that would be a fourth migration waiting
+  // to be run before any of this worked, and this is the same
+  // .in('id', ids) trip the directory already makes for service times.
+  // Cached across renders, because paging through events keeps coming
+  // back to the same churches.
+  var eventsMap = null, eventsMarkers = [], eventsMapTries = 0, eventsInfo = null;
+  var eventsChurchCoords = Object.create(null);
+
+  async function eventsLoadCoords(ids){
+    var missing = [];
+    for (var i = 0; i < ids.length; i++) {
+      if (ids[i] && !(ids[i] in eventsChurchCoords)) missing.push(ids[i]);
+    }
+    if (!missing.length) return;
+    var res = await window.supabase.from('churches').select('id, lat, lng').in('id', missing);
+    (res.data || []).forEach(function(r){
+      eventsChurchCoords[r.id] = (r.lat != null && r.lng != null)
+        ? { lat: Number(r.lat), lng: Number(r.lng) } : null;
+    });
+    // Remember the misses too, or every render asks again about the
+    // churches that have no coordinates.
+    missing.forEach(function(id){
+      if (!(id in eventsChurchCoords)) eventsChurchCoords[id] = null;
+    });
+  }
+
+  function eventsClearMarkers(){
+    for (var i = 0; i < eventsMarkers.length; i++) eventsMarkers[i].setMap(null);
+    eventsMarkers = [];
+  }
+
+  async function paintEventsMap(){
+    var wrap = document.getElementById('events-map-wrap');
+    var host = document.getElementById('events-map');
+    if (!wrap || !host) return;
+    // Building a map into a display:none element gives a grey box that
+    // never recovers.
+    if (!wrap.offsetParent) return;
+
+    if (!(window.google && google.maps)) {
+      // Google's script is async and usually lands after the first
+      // paint. Retried, but not forever -- see paintDirectoryMap.
+      eventsMapTries++;
+      if (eventsMapTries > 20) { wrap.style.display = 'none'; return; }
+      setTimeout(paintEventsMap, 600);
+      return;
+    }
+    eventsMapTries = 0;
+
+    var rows = window.eventsLastRenderedRows || [];
+    if (!rows.length) { wrap.style.visibility = 'hidden'; return; }
+    wrap.style.visibility = '';
+
+    if (!eventsMap) {
+      eventsMap = new google.maps.Map(host, {
+        center: { lat: 29.42, lng: -98.49 }, zoom: 10,
+        mapTypeControl: false, streetViewControl: false, fullscreenControl: false,
+        clickableIcons: false, keyboardShortcuts: false,
+        gestureHandling: 'greedy',
+        backgroundColor: fdIsDark() ? '#242f3e' : '#e8eaed',
+        styles: dirMapStyles()
+      });
+    }
+
+    await eventsLoadCoords(rows.map(function(e){ return e.churchId; }));
+
+    eventsClearMarkers();
+    var byChurch = Object.create(null);
+    rows.forEach(function(e){
+      var at = e.churchId ? eventsChurchCoords[e.churchId] : null;
+      if (!at) return;
+      if (!byChurch[e.churchId]) byChurch[e.churchId] = { at: at, church: e.church, events: [] };
+      byChurch[e.churchId].events.push(e);
+    });
+
+    var bounds = new google.maps.LatLngBounds();
+    var keys = Object.keys(byChurch);
+    keys.forEach(function(k){
+      var g = byChurch[k];
+      var marker = new google.maps.Marker({
+        position: g.at, map: eventsMap, icon: fdChurchPinIcon(),
+        title: displayChurchName(g.church || '')
+      });
+      marker.addListener('click', function(){
+        if (!eventsInfo) eventsInfo = new google.maps.InfoWindow({ disableAutoPan: true });
+        // data-event-key is what the [data-route] delegate reads to load
+        // the event. Without it the route fires and the page opens
+        // empty, which is the fault the church bubble had.
+        var lines = g.events.slice(0, 5).map(function(e){
+          return '<div style="margin-top:4px;"><a href="#event/' + encodeURIComponent(e.id)
+            + '" data-route="event" data-event-key="' + escapeHtml(String(e.id))
+            + '" style="color:#16233F;font-weight:600;">' + escapeHtml(e.title) + '</a></div>';
+        }).join('');
+        if (g.events.length > 5) {
+          lines += '<div style="color:#6b6b6b;margin-top:4px;">+' + (g.events.length - 5) + '</div>';
+        }
+        eventsInfo.setContent('<div style="font-family:inherit;font-size:13px;max-width:210px;color:#16233F;">'
+          + '<div style="font-weight:600;">' + escapeHtml(displayChurchName(g.church || '')) + '</div>'
+          + lines + '</div>');
+        eventsInfo.open({ map: eventsMap, anchor: marker });
+      });
+      eventsMarkers.push(marker);
+      bounds.extend(g.at);
+    });
+
+    if (keys.length === 1) { eventsMap.setCenter(bounds.getCenter()); eventsMap.setZoom(14); }
+    else if (keys.length > 1) { eventsMap.fitBounds(bounds, 40); }
+    google.maps.event.trigger(eventsMap, 'resize');
+  }
+  window.paintEventsMap = paintEventsMap;
+
   function paintDirectoryMap(){
     var wrap = document.getElementById('directory-map-wrap');
     var host = document.getElementById('directory-map');
@@ -13450,7 +13584,7 @@ Groups</span>
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-28-v363',
+      'build 2026-09-28-v364',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -13859,7 +13993,7 @@ Groups</span>
         btn.setAttribute('aria-expanded', 'false');
       });
     }
-    wireDirectorySheetGrip();
+    // The grips are wired together further down, by wireShellSheetGrips.
     wireMobileCardTaps();
   }
 
@@ -13867,8 +14001,13 @@ Groups</span>
   // Sets the map's height, which is also the sheet's top -- they are the
   // same edge. Default 40% of the screen box.
   var DIR_SHEET_MIN = 140;
-  function setDirectorySheetTop(px, live){
-    var page = document.getElementById('page-directory');
+  // Every shell page keeps its own remembered height. The directory's
+  // key is left as it was so a height already dragged is not lost.
+  function fdSheetKey(page){
+    return page.id === 'page-directory' ? 'fd_dir_sheet_top' : 'fd_sheet_top_' + page.id;
+  }
+  function setDirectorySheetTop(px, live, page){
+    page = page || document.getElementById('page-directory');
     if (!page) return;
     var box = Math.round(page.getBoundingClientRect().height) || window.innerHeight;
     px = Math.max(DIR_SHEET_MIN || 140, Math.min(box - 150, Math.round(Number(px))));
@@ -13878,15 +14017,17 @@ Groups</span>
     // otherwise a single bad write repeats on every load forever.
     if (!isFinite(px)) {
       page.style.removeProperty('--dir-sheet-top');
-      try { localStorage.removeItem('fd_dir_sheet_top'); } catch (e) {}
+      try { localStorage.removeItem(fdSheetKey(page)); } catch (e) {}
       return;
     }
     page.style.setProperty('--dir-sheet-top', px + 'px');
     if (!live) {
       // Google keeps the old tile size until told, which on a map that
       // just changed height shows as a grey band.
-      if (dirMap && window.google && google.maps) google.maps.event.trigger(dirMap, 'resize');
-      try { localStorage.setItem('fd_dir_sheet_top', String(px)); } catch (e) {}
+      // Whichever map this page owns.
+      var m = page.id === 'page-events' ? eventsMap : dirMap;
+      if (m && window.google && google.maps) google.maps.event.trigger(m, 'resize');
+      try { localStorage.setItem(fdSheetKey(page), String(px)); } catch (e) {}
     }
     return px;
   }
@@ -13941,17 +14082,30 @@ Groups</span>
   }
   window.fdApplyDirectorySheetDefault = applyDirectorySheetDefault;
 
-  function wireDirectorySheetGrip(){
-    var grip = document.getElementById('dir-sheet-grip');
-    var page = document.getElementById('page-directory');
+  // Called once per grip. Each one finds its own page by walking up to
+  // the shell it is inside, so Churches and Events get the same drag
+  // without the code knowing either of them by name.
+  function wireShellSheetGrips(){
+    var grips = document.querySelectorAll('.fd-sheet-grip');
+    for (var i = 0; i < grips.length; i++) wireDirectorySheetGrip(grips[i]);
+  }
+  function wireDirectorySheetGrip(grip){
+    grip = grip || document.getElementById('dir-sheet-grip');
+    var page = grip && grip.closest ? grip.closest('.fd-shell') : null;
     if (!grip || !page) return;
+    // Idempotent: wireMobileDirectory used to wire the directory grip on
+    // its own, and a second set of pointer listeners on one handle means
+    // two setPointerCapture calls and two commits per drag.
+    if (grip.dataset.fdGripWired) return;
+    grip.dataset.fdGripWired = '1';
+    var mapCol = page.querySelector('.dir-map-col');
     var dragging = false, frame = null, nextPx = null;
     function apply(px){
       nextPx = px;
       if (frame !== null) return;
       frame = requestAnimationFrame(function(){
         frame = null;
-        if (nextPx !== null) setDirectorySheetTop(nextPx, true);
+        if (nextPx !== null) setDirectorySheetTop(nextPx, true, page);
       });
     }
     grip.addEventListener('pointerdown', function(ev){
@@ -13975,18 +14129,18 @@ Groups</span>
       document.body.classList.remove('fd-sheet-resizing');
       try { grip.releasePointerCapture(ev.pointerId); } catch (e) {}
       setDirectorySheetTop(last !== null ? last :
-        Math.round(document.querySelector('.dir-map-col').getBoundingClientRect().height));
+        Math.round(mapCol.getBoundingClientRect().height), false, page);
     }
     grip.addEventListener('pointerup', end);
     grip.addEventListener('pointercancel', end);
     grip.addEventListener('keydown', function(ev){
-      var cur = Math.round(document.querySelector('.dir-map-col').getBoundingClientRect().height);
-      if (ev.key === 'ArrowDown') { setDirectorySheetTop(cur + 40); ev.preventDefault(); }
-      else if (ev.key === 'ArrowUp') { setDirectorySheetTop(cur - 40); ev.preventDefault(); }
+      var cur = Math.round(mapCol.getBoundingClientRect().height);
+      if (ev.key === 'ArrowDown') { setDirectorySheetTop(cur + 40, false, page); ev.preventDefault(); }
+      else if (ev.key === 'ArrowUp') { setDirectorySheetTop(cur - 40, false, page); ev.preventDefault(); }
     });
     var saved = null;
-    try { saved = localStorage.getItem('fd_dir_sheet_top'); } catch (e) {}
-    if (saved && !isNaN(parseInt(saved, 10))) setDirectorySheetTop(parseInt(saved, 10), true);
+    try { saved = localStorage.getItem(fdSheetKey(page)); } catch (e) {}
+    if (saved && !isNaN(parseInt(saved, 10))) setDirectorySheetTop(parseInt(saved, 10), true, page);
   }
 
   // Dispatched here, not up beside the desktop branch. Everything above
@@ -13994,6 +14148,9 @@ Groups</span>
   // run by this point. Called from higher up, the function declarations
   // hoisted but the plain vars did not, and the restore computed NaN.
   if (window.innerWidth <= 980) wireMobileDirectory();
+  // Events has a grip too, and it is not inside wireMobileDirectory's
+  // reach. Wiring every shell's grip here covers both.
+  if (window.innerWidth <= 980) wireShellSheetGrips();
 
   // ---- Dragging the divider ----------------------------------------
   // Same shape as the map's own grip: pointer capture so the drag
@@ -19207,6 +19364,8 @@ Groups</span>
       window.eventsLastRenderedRows = (window.eventsLastRenderedRows || []).concat(rows);
       grid.insertAdjacentHTML('beforeend', mapJoin(rows, eventCard));
     }
+
+    if (window.paintEventsMap) window.paintEventsMap();
 
     window.eventsOffset = offset + rows.length;
     window.eventsLastTotalCount = totalCount;
