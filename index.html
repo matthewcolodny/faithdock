@@ -5290,6 +5290,11 @@
      so it reads as the front of the stack. */
   /* Wins over .dir-results-col .fd-tabs, which sets the sheet colour
      and sits later in the file at the same weight. */
+  /* If the three ever do outgrow the strip -- a long translation, a
+     large system font -- they scroll without drawing a bar across the
+     navy. */
+  .fd-sheet-head, .fd-sheet-head .fd-tabs{scrollbar-width:none;}
+  .fd-sheet-head::-webkit-scrollbar, .fd-sheet-head .fd-tabs::-webkit-scrollbar{display:none;}
   .dir-results-col .fd-sheet-head .fd-tabs{
     /* padding-top so the open tab does not butt into the gold bar, and
        centred so the three sit in the middle of the sheet rather than
@@ -5619,7 +5624,14 @@
     /* ---- the sheet ---- */
     .fd-shell.active .dir-results-col{
       position:absolute;left:0;right:0;top:var(--dir-sheet-top,40%);bottom:0;
-      height:auto;padding:0 14px 16px;overflow-y:auto;overscroll-behavior:contain;
+      height:auto;padding:0 14px 16px;
+      /* Vertical only. overflow-y:auto alone makes the OTHER axis
+         compute to auto as well, not visible, so the sheet was a
+         sideways scroller too -- one stray wide child and a horizontal
+         bar draws across it. Nothing in here is meant to scroll
+         sideways; the rows that are (the tab row, the pager) are their
+         own scrollers and hide their own bars. */
+      overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;
       background:var(--paper);border-top:1px solid var(--line);
       border-radius:16px 16px 0 0;box-shadow:0 -6px 20px rgba(0,0,0,.16);
       z-index:4;
@@ -7149,7 +7161,8 @@
     .dir-results-col .fd-panel[data-browse-panel="events"] .event-tab-row{margin-top:6px;margin-bottom:14px;}
     /* .fd-quick-row prefix because this block sits ABOVE the base
        .fd-quick-btn rule in the file and would otherwise lose the tie. */
-    .fd-quick-row{gap:8px;}
+    .fd-quick-row{gap:14px;}
+    .fd-quick-end{gap:7px;}
     .fd-quick-row .fd-quick-btn{font-size:13px;padding:7px 9px;}
   }
   .event-tab-btn.active{color:var(--ink);border-bottom-color:var(--gold);}
@@ -7164,14 +7177,11 @@
      what you are looking at, so they are drawn as buttons, not as tabs
      with an underline. Faith Home is a real filter and sits with them
      because it is the third thing you can do to this list. */
-  /* Centred by auto margins on the end buttons rather than by
-     justify-content: a centred flex row that overflows spills off BOTH
-     edges, and the left one cannot be scrolled back to. Auto margins
-     collapse to nothing once there is no free space, so a row that does
-     not fit starts at the left and scrolls the normal way. */
   .fd-quick-row{border-bottom:0;margin-bottom:14px;}
-  .fd-quick-row > :first-child{margin-left:auto;}
-  .fd-quick-row > :last-child{margin-right:auto;}
+  /* An auto margin rather than a spacer element, and it collapses to
+     nothing when the row runs out of room, so a row that does not fit
+     scrolls from the left instead of spilling off both ends. */
+  .fd-quick-end{display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0;}
   .fd-quick-btn{
     border:1px solid var(--line);border-radius:999px;padding:7px 13px;
     background:var(--card);color:var(--ink);
@@ -8309,14 +8319,22 @@
              the two that need a list opening the filter panel scoped to
              just that list. Faith Home is a real filter rather than a
              way in, so it is the only one that toggles. -->
-        <!-- No "All": everything shows until one of these is used, so a
-             button for it was a button for the state you are already in,
-             and it stayed lit after opening a filter because opening a
-             window is not a state. Without it the other three centre. -->
+        <!-- Two kinds of control, so two shapes and two sides. All and
+             Faith Home are states the list is in, drawn as tabs with an
+             underline; By Category and By Denomination open a window, so
+             they are buttons and they sit to the right, away from the
+             pair you switch between. All is lit whenever nothing is
+             narrowing the list, whatever did the narrowing.
+             The two buttons are wrapped rather than pushed right
+             individually: By Category is hidden until the platform flag
+             is on, and a margin on a hidden element pushes nothing. -->
         <div class="event-tab-row fd-quick-row" id="church-tab-row">
-          <button class="event-tab-btn fd-quick-btn" type="button" aria-expanded="false" data-church-tab="denominations" data-i18n="filters.byDenomination">By Denomination</button>
-          <button class="event-tab-btn fd-quick-btn" type="button" aria-expanded="false" data-church-tab="categories" data-i18n="filters.byCategory">By Category</button>
-          <button class="event-tab-btn fd-quick-btn" type="button" data-church-tab="faith-home" data-i18n="filters.faithHome">Faith Home</button>
+          <button class="event-tab-btn active" type="button" data-church-tab="all" data-i18n="filters.all">All</button>
+          <button class="event-tab-btn" type="button" data-church-tab="faith-home" data-i18n="filters.faithHome">Faith Home</button>
+          <div class="fd-quick-end">
+            <button class="event-tab-btn fd-quick-btn" type="button" aria-expanded="false" data-church-tab="categories" data-i18n="filters.byCategory">By Category</button>
+            <button class="event-tab-btn fd-quick-btn" type="button" aria-expanded="false" data-church-tab="denominations" data-i18n="filters.byDenomination">By Denomination</button>
+          </div>
         </div>
         <div class="grid fd-results-grid" id="directory-grid"></div>
         <div id="directory-empty" style="display:none;color:var(--ink-mute);font-size:14.5px;padding:40px 0;text-align:center;" data-i18n="filters.noChurchesMatch">No churches match these filters. Try widening your search.</div>
@@ -12567,7 +12585,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v386 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v387 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13999,8 +14017,17 @@
       // again. Spend the entry now, or the next Back would close nothing
       // and look like it had been swallowed.
       fdFilterHistoryDepth = 0;
-      window.fdSwallowPopstate = true;
-      try { history.back(); } catch (e) { window.fdSwallowPopstate = false; }
+      // Deferred, and only if our own marker is still the entry on top.
+      // Tapping a card shuts the window AND navigates in the same click;
+      // going back unconditionally would undo that navigation instead of
+      // the filter, because history.back() lands after the route change.
+      var hashAtClose = location.hash;
+      setTimeout(function(){
+        if (location.hash !== hashAtClose) return;
+        if (!history.state || !history.state.fdFilter) return;
+        window.fdSwallowPopstate = true;
+        try { history.back(); } catch (e) { window.fdSwallowPopstate = false; }
+      }, 0);
     }
   }
   window.fdSyncFilterHistory = fdSyncFilterHistory;
@@ -14197,10 +14224,21 @@
   // Home carries .active because it is a toggle you pressed; the other
   // two are lit by what is ticked behind them, not by having been used.
   function fdSyncQuickButtons(){
+    var byDenom = fdDenomUncheckedCount() > 0;
+    var byCat = (window.fdChosenCategories ? window.fdChosenCategories().length : 0) > 0;
+    var fb = document.getElementById('dir-filter-followed-churches');
+    var faithHome = !!(fb && fb.checked);
     var d = document.querySelector('[data-church-tab="denominations"]');
-    if (d) d.classList.toggle('fd-quick-on', fdDenomUncheckedCount() > 0);
+    if (d) d.classList.toggle('fd-quick-on', byDenom);
     var c = document.querySelector('[data-church-tab="categories"]');
-    if (c) c.classList.toggle('fd-quick-on', (window.fdChosenCategories ? window.fdChosenCategories().length : 0) > 0);
+    if (c) c.classList.toggle('fd-quick-on', byCat);
+    var f = document.querySelector('[data-church-tab="faith-home"]');
+    if (f) f.classList.toggle('active', faithHome);
+    // All is not a filter of its own -- it is the absence of the other
+    // three. Lighting it from the actual state rather than from having
+    // been clicked is what stops it sitting lit next to a narrowed list.
+    var a = document.querySelector('[data-church-tab="all"]');
+    if (a) a.classList.toggle('active', !byDenom && !byCat && !faithHome);
   }
   window.fdSyncQuickButtons = fdSyncQuickButtons;
 
@@ -14295,6 +14333,24 @@
   // one that toggles anything, driving the "Churches I follow" checkbox
   // that the search already reads -- that checkbox is hidden now, because
   // two visible controls for one filter is what this replaces.
+  // A tap anywhere that is not the window or the control that opened it
+  // shuts the window. On document and in the CAPTURE phase, because the
+  // bubble phase does not reliably get here: the panel stops clicks
+  // inside itself, the card handler stops clicks on a card during
+  // capture, and the map swallows its own -- three separate ways for a
+  // tap to close nothing. Capture runs before any of them.
+  document.addEventListener('click', function(ev){
+    var t = ev.target;
+    if (!t || !t.closest) return;
+    if (t.closest('.filter-panel')) return;          // inside the window
+    if (t.closest('[data-church-tab]')) return;      // the button that toggles it
+    if (t.closest('#dir-filter-icon-btn')) return;   // the map's filter button
+    if (t.closest('#events-dates-btn')) return;      // Events' date button
+    if (!fdAnyFilterOpen()) return;
+    fdCloseFilterPanels();
+    fdSyncFilterHistory();
+  }, true);
+
   (function wireChurchTabs(){
     function panel(){
       return document.querySelector('.filter-panel[data-filter-for="churches"]');
@@ -14316,34 +14372,39 @@
     }
     document.addEventListener('click', function(ev){
       var btn = ev.target.closest && ev.target.closest('[data-church-tab]');
-      if (!btn) {
-        // A tap outside shuts whichever of the two windows is up.
-        if (!ev.target.closest('.filter-panel')) {
-          var pn0 = panel();
-          if (pn0 && (pn0.classList.contains('fd-denoms-open') || pn0.classList.contains('fd-cats-open'))) {
-            fdCloseFilterPanels();
-            fdSyncFilterHistory();
-          }
-        }
-        return;
-      }
+      if (!btn) return;
       ev.preventDefault();
       ev.stopPropagation();
       var which = btn.getAttribute('data-church-tab');
       if (which === 'denominations') { openScoped('fd-denoms-open', btn); return; }
       if (which === 'categories')    { openScoped('fd-cats-open', btn); return; }
-      if (which !== 'faith-home') return;
       fdCloseFilterPanels();
       fdSyncFilterHistory();
+      if (which === 'all') {
+        // Back to every church: the denominations all on, no tags, no
+        // Faith Home. One button that undoes whichever of the three was
+        // used, which is the only thing All can usefully mean.
+        fdRestoreAllDenoms();
+        fdClearFaithHome();
+        var cats = document.querySelectorAll('.fd-cat-filter:checked');
+        for (var ai = 0; ai < cats.length; ai++) cats[ai].checked = false;
+        window.fdCategoryChurchIds = null;
+        fdRenderFilterChips();
+        if (typeof window.renderDirectory === 'function') window.renderDirectory();
+        return;
+      }
+      if (which !== 'faith-home') return;
       // Faith Home is the one that toggles: pressing it again is how you
       // get back to every church, now that there is no All to press.
       var followed = document.getElementById('dir-filter-followed-churches');
       var on = !btn.classList.contains('active');
-      btn.classList.toggle('active', on);
       if (followed && followed.checked !== on) {
         followed.checked = on;
         followed.dispatchEvent(new Event('change', { bubbles: true }));
       }
+      // The mark comes from fdSyncQuickButtons reading the checkbox, not
+      // from here, so All and Faith Home cannot disagree about which of
+      // them is lit.
       fdRenderFilterChips();
       if (typeof window.renderDirectory === 'function') window.renderDirectory();
     });
@@ -14628,7 +14689,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-29-v386',
+      'build 2026-09-29-v387',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
