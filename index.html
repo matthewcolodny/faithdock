@@ -5217,13 +5217,7 @@
   /* The sheet's own controls live in the tab strip, which is sticky --
      so the handle you drag and the button that changes the card shape
      stay put while the cards scroll under them. */
-  .fd-tabs .dir-view-toggle{
-    /* No border: it sits on the strip beside the tabs, and a box around
-       it made it read as a fourth tab. */
-    flex:0 0 auto;align-self:center;margin-right:6px;
-    width:38px;height:32px;border:0;border-radius:8px;overflow:hidden;
-  }
-  .fd-tabs .dir-view-btn{background:none;}
+
   .fd-tabs .dir-view-btn{width:100%;height:100%;justify-content:center;padding:0;}
   /* One button, not two. The icon shown is the mode you would switch TO
      -- a list glyph while you are looking at cards -- so the control
@@ -5429,7 +5423,14 @@
        tall starting at the head padding, so 12px centres a 38px pill
        against it. It sits in the gap the row leaves between the two
        icons on the left and the cards/list toggle on the right. */
-    #dir-search-area{bottom:auto;top:12px;height:38px;font-size:14px;padding:0 17px;}
+    /* Same line as the three map buttons, at the other end of the row.
+       Centred it overlapped the new third square by 37px; the right of
+       the row is empty now that the cards/list toggle has joined the
+       other two on the left. */
+    #dir-search-area{
+      bottom:auto;top:12px;left:auto;right:12px;transform:none;
+      height:38px;font-size:14px;padding:0 17px;
+    }
   }
 
   /* The pin being pointed at, in the list. */
@@ -5617,10 +5618,21 @@
     }
     .fd-shell.active .dir-search-row{
       display:grid;gap:8px;align-items:center;
-      grid-template-columns:42px 42px 1fr;
-      grid-template-areas:"filter pin view";
+      grid-template-columns:42px 42px 42px 1fr;
+      grid-template-areas:"filter pin view rest";
       justify-content:start;
     }
+    /* The third square. Same size and shape as the two beside it -- the
+       two-button pill it used to be does not belong in a row of icons. */
+    .fd-shell.active .dir-search-row > .dir-view-toggle{
+      width:42px;height:42px;border-radius:8px;overflow:hidden;
+      border:1px solid var(--line);
+    }
+    .fd-shell.active .dir-search-row .dir-view-btn{
+      width:100%;height:100%;justify-content:center;padding:0;
+    }
+    /* One button: the icon shown is the mode you would switch TO. */
+    .fd-shell.active .dir-search-row .dir-view-btn.is-active{display:none;}
     .fd-shell.active .dir-search-row > .fd-filter-btn{grid-area:filter;justify-self:start;}
     /* stretch, not start: the cell is 42px and the button has padding:0,
        so left to itself it shrank to the icon and sat beside a much
@@ -5633,7 +5645,7 @@
       width:42px;height:42px;border-radius:8px;border:1px solid var(--line);
     }
     .fd-shell.active .dir-search-row > .fd-loc-btn .btn-label-text{display:none;}
-    .fd-shell.active .dir-search-row > .dir-view-toggle{grid-area:view;justify-self:end;}
+    .fd-shell.active .dir-search-row > .dir-view-toggle{grid-area:view;justify-self:start;}
     .fd-shell.active .dir-search-row .search-clear-wrap{min-width:0;}
     /* The head is a transparent strip across the top of the map, and at
        z-index 20 it swallowed everything beneath it -- Search this area
@@ -12286,7 +12298,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v378 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v379 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13631,9 +13643,13 @@
     var tabs = document.querySelector('#page-directory .fd-tabs');
     if (!tabs || tabs.dataset.fdControls) return;
     tabs.dataset.fdControls = '1';
-    // The cards/list button sits in the strip beside the tabs.
-    var toggle = document.querySelector('#page-directory .dir-view-toggle');
-    if (toggle) tabs.insertBefore(toggle, tabs.firstElementChild);
+    // The cards/list button stays on the map, as a third square beside
+    // filter and my-location. It was at the left end of this strip, 19px
+    // under Google's logo and directly in line with it -- and the other
+    // end is no better, since "Map data (c) Google / Terms" occupies the
+    // map's bottom-right. The whole bottom edge belongs to Google, so
+    // the only place clear of it is up here with the other map
+    // controls, which is also where it already looks at home.
     // The drag bar spans the top edge of the sheet, above the strip --
     // one wrapper so the pair sticks together as the cards scroll under
     // them, rather than two sticky elements with a seam between.
@@ -13934,7 +13950,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-29-v378',
+      'build 2026-09-29-v379',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
