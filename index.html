@@ -5118,8 +5118,8 @@
    row, which was empty. */
 .event-tab-dates{
   margin-left:auto;display:inline-flex;align-items:center;gap:6px;
-  background:none;border:1px solid var(--line);border-radius:999px;
-  padding:5px 12px;font-size:12.5px;color:var(--ink);cursor:pointer;
+  background:none;border:0;border-radius:999px;
+  padding:5px 10px;font-size:12.5px;color:var(--ink);cursor:pointer;
   flex-shrink:0;-webkit-tap-highlight-color:transparent;
 }
 .event-tab-dates svg{width:14px;height:14px;}
@@ -5136,8 +5136,16 @@
 }
 .filter-panel.fd-dates-open .filter-panel-toggle{display:none;}
 .filter-panel.fd-dates-open .filter-panel-body{display:block;}
-.event-tab-dates:hover{border-color:var(--gold);}
-.event-tab-dates[aria-expanded="true"]{background:var(--gold-bg);border-color:var(--gold);color:var(--gold-ink);}
+/* Dates shows the date range and nothing else. Denominations, distance,
+   type and category belong to the filter button over the map -- one
+   panel, opened two ways, rather than two panels saying the same thing. */
+.filter-panel.fd-dates-open .filter-group{display:none;}
+.filter-panel.fd-dates-open .fd-when-group{display:block;}
+.filter-panel.fd-dates-open .filter-panel-title{display:none;}
+/* ...and the filter button shows everything except the date range. */
+.filter-panel.open .fd-when-group{display:none;}
+.event-tab-dates:hover{color:var(--gold-ink);}
+.event-tab-dates[aria-expanded="true"]{color:var(--gold-ink);}
 @media (max-width:980px){ .event-tab-dates span{display:none;} .event-tab-dates{padding:6px 10px;} }
 
 /* Churches, Events and Groups are in a fixed order, so a switch has a
@@ -5416,7 +5424,12 @@
   #dir-search-area:disabled{opacity:.6;cursor:default;}
   @media (max-width:980px){
     /* Under the floating search row, not over the attribution. */
-    #dir-search-area{bottom:auto;top:calc(var(--dir-head-h,96px) + 4px);height:38px;font-size:14px;padding:0 17px;}
+    /* Up onto the same line as the filter and my-location buttons,
+       rather than floating in the middle of the map. The row is 42px
+       tall starting at the head padding, so 12px centres a 38px pill
+       against it. It sits in the gap the row leaves between the two
+       icons on the left and the cards/list toggle on the right. */
+    #dir-search-area{bottom:auto;top:12px;height:38px;font-size:14px;padding:0 17px;}
   }
 
   /* The pin being pointed at, in the list. */
@@ -7845,7 +7858,7 @@
     </div>
     <div class="directory-layout">
       <div class="fd-panel is-on" data-browse-panel="churches" style="display:contents;">
-      <aside class="filter-panel">
+      <aside class="filter-panel" data-filter-for="churches">
         <h3 class="filter-panel-title" data-i18n="filters.filterSearches">Filter searches</h3>
         <button type="button" class="filter-panel-toggle" id="dir-filter-toggle" aria-expanded="false" aria-controls="dir-filter-body">
           <span data-i18n="filters.filterSearches">Filter searches</span>
@@ -7930,7 +7943,7 @@
       </aside>
       </div>
       <div class="fd-panel" data-browse-panel="events" style="display:none;">
-      <aside class="filter-panel">
+      <aside class="filter-panel" data-filter-for="events">
         <h3 class="filter-panel-title" data-i18n="filters.filterSearches">Filter searches</h3>
         <button type="button" class="filter-panel-toggle" id="events-filter-toggle" aria-expanded="false" aria-controls="events-filter-body">
           <span data-i18n="filters.filterSearches">Filter searches</span>
@@ -8005,7 +8018,7 @@
             <option value="25" data-i18n="filters.within25">Within 25 miles</option>
           </select>
         </div>
-        <div class="filter-group">
+        <div class="filter-group fd-when-group">
           <h4 data-i18n="events.when">When</h4>
           <select class="field" id="filter-when">
             <option value="0" data-i18n="filters.anyTime">Any time</option>
@@ -12264,7 +12277,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v376 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v377 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13641,7 +13654,7 @@
   (function wireEventsDates(){
     document.addEventListener('click', function(ev){
       var btn = ev.target.closest && ev.target.closest('#events-dates-btn');
-      var panel = document.querySelector('[data-browse-panel="events"] .filter-panel');
+      var panel = document.querySelector('.filter-panel[data-filter-for="events"]');
       if (!panel) return;
       if (!btn) {
         // A click anywhere else closes it, unless it landed inside.
@@ -13912,7 +13925,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-29-v376',
+      'build 2026-09-29-v377',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -14303,9 +14316,15 @@
   // cards. Moving keeps every listener already bound to the controls.
   function wireMobileDirectory(){
     var page = document.getElementById('page-directory');
-    var panel = document.querySelector('#page-directory .filter-panel');
+    // Every tab's panel, not just the first. They move out to be page
+    // children because that is what the overlay rule reaches; each keeps
+    // a data-filter-for saying whose it is.
+    var panels = page ? page.querySelectorAll('.filter-panel[data-filter-for]') : [];
+    for (var pi = 0; pi < panels.length; pi++) {
+      if (panels[pi].parentElement !== page) page.appendChild(panels[pi]);
+    }
+    var panel = document.querySelector('#page-directory > .filter-panel[data-filter-for="churches"]');
     var btn = document.getElementById('dir-filter-icon-btn');
-    if (page && panel && panel.parentElement !== page) page.appendChild(panel);
     // Right of the search field. It is authored as the row's first child
     // so that the desktop rule that hides it needs no ordering games;
     // here it moves to where it belongs on a phone.
@@ -14318,7 +14337,14 @@
     if (btn && panel) {
       btn.addEventListener('click', function(ev){
         ev.stopPropagation();
-        var open = panel.classList.toggle('open');
+        // The panel belonging to the tab on screen. One button, and the
+        // filters it opens are the ones for what you are looking at.
+        var which = (typeof fdBrowseTab === 'string') ? fdBrowseTab : 'churches';
+        var mine = document.querySelector('#page-directory > .filter-panel[data-filter-for="' + which + '"]')
+          || panel;
+        var all = document.querySelectorAll('#page-directory > .filter-panel');
+        for (var q = 0; q < all.length; q++) if (all[q] !== mine) all[q].classList.remove('open');
+        var open = mine.classList.toggle('open');
         btn.setAttribute('aria-expanded', open ? 'true' : 'false');
       });
       panel.addEventListener('click', function(ev){ ev.stopPropagation(); });
