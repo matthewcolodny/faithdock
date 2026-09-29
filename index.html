@@ -1151,6 +1151,9 @@
       'dash.allChurchesTitle': 'Your churches', 'dash.churchesEntry': 'Churches',
       'dashSub.accountSettings': 'Account settings',
       'sectionSettings.visibility': 'Public page', 'sectionSettings.showEvents': 'Show Events on your public page',
+      'sectionSettings.churchTags': 'How people find you',
+      'sectionSettings.churchTagsHint': 'Languages, access, character, music and programmes. These are what someone filters by when they are looking for a church like yours — so tick what is true today, not what you hope to offer.',
+      'sectionSettings.churchTagsChosen': '{n} selected',
       'sectionSettings.eventTags': 'Event tags',
       'sectionSettings.eventTagsHint': 'Your church\'s own tags, offered when creating an event. Keeping the list short is what makes tags useful — "Youth" and "Youth Group" as separate tags help nobody.',
       'sectionSettings.eventTagPlaceholder': 'e.g. Outreach', 'sectionSettings.noTags': 'No tags yet.', 'sectionSettings.tagExists': 'That tag is already on the list.',
@@ -2480,6 +2483,9 @@
       'dash.allChurchesTitle': 'Tus iglesias', 'dash.churchesEntry': 'Iglesias',
       'dashSub.accountSettings': 'Ajustes de la cuenta',
       'sectionSettings.visibility': 'Página pública', 'sectionSettings.showEvents': 'Mostrar Eventos en tu página pública',
+      'sectionSettings.churchTags': 'Cómo te encuentran',
+      'sectionSettings.churchTagsHint': 'Idiomas, accesibilidad, carácter, música y programas. Esto es lo que alguien filtra cuando busca una iglesia como la tuya — marca lo que es cierto hoy, no lo que esperas ofrecer.',
+      'sectionSettings.churchTagsChosen': '{n} seleccionadas',
       'sectionSettings.eventTags': 'Etiquetas de eventos',
       'sectionSettings.eventTagsHint': 'Las etiquetas propias de tu iglesia, ofrecidas al crear un evento. Mantener la lista corta es lo que hace útiles las etiquetas.',
       'sectionSettings.eventTagPlaceholder': 'p. ej. Alcance', 'sectionSettings.noTags': 'Aún no hay etiquetas.', 'sectionSettings.tagExists': 'Esa etiqueta ya está en la lista.',
@@ -6291,6 +6297,32 @@
   .autocomplete-item strong{color:var(--ink);font-weight:600;}
 
   .chip-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+  /* One <details> per group: 88 checkboxes in a column would be a long
+     scroll to reach Save, and nobody sets all five groups at once. */
+  .fd-tag-group{border-top:1px solid var(--line);}
+  .fd-tag-group summary{
+    list-style:none;cursor:pointer;padding:11px 0;
+    display:flex;align-items:center;gap:8px;
+    font-size:13.5px;font-weight:600;color:var(--ink);
+  }
+  .fd-tag-group summary::-webkit-details-marker{display:none;}
+  .fd-tag-group summary::after{
+    content:"";margin-left:auto;width:8px;height:8px;
+    border-right:2px solid var(--ink-mute);border-bottom:2px solid var(--ink-mute);
+    transform:rotate(45deg);transition:transform .15s;
+  }
+  .fd-tag-group[open] summary::after{transform:rotate(-135deg);}
+  .fd-tag-count{
+    min-width:20px;height:20px;padding:0 6px;border-radius:999px;
+    background:var(--gold-bg);color:var(--gold-ink);
+    font-size:11.5px;font-weight:600;display:inline-flex;
+    align-items:center;justify-content:center;
+  }
+  .fd-tag-count:empty{display:none;}
+  .fd-tag-boxes{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));
+    gap:2px 14px;padding:0 0 12px;
+  }
   .chip{
     display:inline-flex;align-items:center;gap:6px;background:var(--sage-bg);color:var(--sage);
     font-size:12.5px;font-weight:500;padding:5px 6px 5px 12px;border-radius:20px;
@@ -10828,6 +10860,21 @@
           <div id="settings-event-tags-list" class="chip-list" style="margin-top:10px;"></div>
           <div id="settings-event-tags-status" style="display:none;font-size:12px;margin-top:8px;"></div>
         </div>
+
+        <!-- What a visitor wants to know that the denomination does not
+             say. Built from FD_CHURCH_TAG_GROUPS rather than written out
+             here: 88 checkboxes in the markup would be 88 places for the
+             vocabulary and the page to drift apart. -->
+        <div class="side-note" style="max-width:560px;">
+          <h4 data-i18n="sectionSettings.churchTags">How people find you</h4>
+          <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:4px;" data-i18n="sectionSettings.churchTagsHint">Languages, access, character, music and programmes. These are what someone filters by when they are looking for a church like yours — so tick what is true today, not what you hope to offer.</p>
+          <div id="settings-church-tags"></div>
+          <div style="display:flex;gap:8px;align-items:center;margin-top:12px;">
+            <button class="btn-gold" id="settings-church-tags-save" data-i18n="profile.save">Save</button>
+            <span id="settings-church-tags-count" style="font-size:12.5px;color:var(--ink-mute);"></span>
+          </div>
+          <div id="settings-church-tags-status" style="display:none;font-size:12px;margin-top:8px;"></div>
+        </div>
       </div>
       <div class="dash-content" id="dash-directory-reports">
         <h2 style="font-size:24px;margin-bottom:8px;" data-i18n="dashSub.directoryReports">Directory reports</h2>
@@ -12344,7 +12391,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v381 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v382 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -14061,7 +14108,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-29-v381',
+      'build 2026-09-29-v382',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -14561,8 +14608,17 @@
     // A third of the box is the floor, so it never opens as a sliver on
     // a short card; the peek is what makes the second card announce
     // itself.
-    var want = cardH ? (chrome + cardH + 46) : Math.round(box / 3);
-    want = Math.max(want, Math.round(box / 3));
+    // A little under half the screen, which is where it reads as a
+    // list you can see with a map above it rather than either one
+    // winning. The card measurement stays as the floor: whatever the
+    // fraction works out to, the first card is still whole and the
+    // next one still shows.
+    // 45% is the target. The card measurement is the FLOOR, not the
+    // answer: it only has to guarantee the first card is whole with the
+    // next one starting. Reserving a 46px peek on top of the card made
+    // the floor 51% and the fraction never got a say.
+    var want = Math.round(box * 0.45);
+    if (cardH) want = Math.max(want, chrome + cardH + 8);
     // Leave the map at least a third, or the sheet stops being a sheet.
     want = Math.min(want, Math.round(box * 0.66));
     return box - want;
@@ -32097,6 +32153,10 @@
     if (footer) footer.value = row.receipt_footer_text || '';
     churchEventTags = Array.isArray(row.event_tags) ? row.event_tags.slice() : [];
     renderEventTagChips();
+    // Its own read: church_tags is not in the row this function already
+    // holds, and adding it there would change a shape several other
+    // settings depend on.
+    if (window.fdLoadChurchTags) window.fdLoadChurchTags();
   }
   window.loadSectionSettings = loadSectionSettings;
 
@@ -32285,6 +32345,75 @@
         + '<button type="button" data-remove-event-tag="' + escapeHtml(tag) + '" aria-label="' + escapeHtml(window.t('common.remove')) + '">&times;</button></span>';
     }).join('');
   }
+
+  // ---- Descriptor tags -----------------------------------------------
+  //
+  // Drawn from FD_CHURCH_TAG_GROUPS, one <details> per group so 88
+  // checkboxes are not 88 rows of scrolling before the Save button. The
+  // count under it is the only feedback that matters while ticking --
+  // the status line comes after the write.
+  var churchTagSet = null;   // null until the church's own row is read
+
+  function renderChurchTagEditor(){
+    var host = document.getElementById('settings-church-tags');
+    if (!host || !window.FD_CHURCH_TAG_GROUPS) return;
+    var chosen = churchTagSet || Object.create(null);
+    host.innerHTML = window.FD_CHURCH_TAG_GROUPS.map(function(g){
+      var picked = g.tags.filter(function(t){ return chosen[t[0]]; }).length;
+      var boxes = g.tags.map(function(t){
+        return '<label class="filter-check"><input type="checkbox" data-church-tag="' + escapeHtml(t[0]) + '"'
+          + (chosen[t[0]] ? ' checked' : '') + '> <span>' + escapeHtml(window.fdChurchTagLabel(t[0])) + '</span></label>';
+      }).join('');
+      return '<details class="fd-tag-group"' + (picked ? ' open' : '') + '>'
+        + '<summary>' + escapeHtml(window.currentLang === 'es' ? g.es : g.en)
+        + '<span class="fd-tag-count">' + (picked ? picked : '') + '</span></summary>'
+        + '<div class="fd-tag-boxes">' + boxes + '</div></details>';
+    }).join('');
+    syncChurchTagCount();
+  }
+  function syncChurchTagCount(){
+    var el = document.getElementById('settings-church-tags-count');
+    if (!el) return;
+    var n = document.querySelectorAll('#settings-church-tags [data-church-tag]:checked').length;
+    el.textContent = n ? window.t('sectionSettings.churchTagsChosen').replace('{n}', n) : '';
+  }
+  async function loadChurchTags(){
+    var host = document.getElementById('settings-church-tags');
+    if (!host) return;
+    var myChurch = await getMyChurch();
+    churchTagSet = Object.create(null);
+    if (myChurch && myChurch.id) {
+      var res = await supabase.from('churches').select('church_tags').eq('id', myChurch.id).limit(1);
+      var list = (res.data && res.data[0] && res.data[0].church_tags) || [];
+      list.forEach(function(t){ churchTagSet[t] = 1; });
+    }
+    renderChurchTagEditor();
+  }
+  window.fdLoadChurchTags = loadChurchTags;
+
+  document.addEventListener('change', function(ev){
+    if (ev.target && ev.target.matches && ev.target.matches('#settings-church-tags [data-church-tag]')) {
+      syncChurchTagCount();
+      // Keep the open/closed groups as they are: re-rendering here would
+      // collapse whatever the reader had open mid-tick.
+      var sum = ev.target.closest('details');
+      if (sum) {
+        var c = sum.querySelectorAll('[data-church-tag]:checked').length;
+        var badge = sum.querySelector('.fd-tag-count');
+        if (badge) badge.textContent = c ? c : '';
+      }
+    }
+  });
+
+  var churchTagsSaveBtn = document.getElementById('settings-church-tags-save');
+  if (churchTagsSaveBtn) churchTagsSaveBtn.addEventListener('click', async function(){
+    var picked = [].map.call(
+      document.querySelectorAll('#settings-church-tags [data-church-tag]:checked'),
+      function(b){ return b.getAttribute('data-church-tag'); });
+    churchTagsSaveBtn.disabled = true;
+    await saveChurchSetting('church_tags', picked, 'settings-church-tags-status');
+    churchTagsSaveBtn.disabled = false;
+  });
 
   async function saveEventTags(){
     return saveChurchSetting('event_tags', churchEventTags, 'settings-event-tags-status');
