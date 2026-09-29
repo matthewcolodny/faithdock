@@ -4937,7 +4937,11 @@
   /* In the split, the filters live in pills over the map, so the column
      that held them collapses and the results take the full width. */
   .dir-results-col .directory-layout{grid-template-columns:1fr;margin-top:0;}
-  @media (min-width:981px){ .dir-results-col > .directory-layout > .filter-panel{display:none;} }
+  /* In the split the filters are pills over the map, so the panel in
+     the column is hidden. The aside is now wrapped in a [data-browse-panel]
+     div -- one per tab -- so the old direct-child path stopped matching
+     and the panel reappeared in the middle of the cards. */
+  @media (min-width:981px){ .dir-results-col .directory-layout .filter-panel{display:none;} }
   .filter-panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px;position:sticky;top:92px;}
 
   /* ---- Directory results map -------------------------------------
@@ -5093,6 +5097,7 @@
    Folder tabs: the active one joins the panel below it by losing its
    bottom border, which is what says "this is the front of the stack"
    without needing a second colour. */
+.fd-pillset{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start;}
 .fd-tabs{
   display:flex;gap:4px;align-items:flex-end;
   border-bottom:1px solid var(--line);
@@ -7780,51 +7785,12 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
         </button>
         <div class="filter-panel-body" id="events-filter-body">
-        <!-- Category lives in the filter panel rather than as a band of
-             pills above the results. It is a filter, and every other
-             filter is in here; on the shell it was also competing with
-             the cards for the narrow column. -->
-        <div class="filter-group">
-          <h4 class="filter-tradition-heading" data-i18n="filters.category">Category</h4>
-          <div class="event-category-row" id="event-category-row">
-            <button class="event-category-btn" data-category-tag="Volunteer">
-              <span data-i18n="category.volunteer">Volunteer</span>
-            </button>
-            <button class="event-category-btn" data-category-tag="Celebrations">
-              <span data-i18n="category.celebrations">Celebrations</span>
-            </button>
-            <button class="event-category-btn" data-category-tag="Fellowship">
-              <span data-i18n="category.fellowship">Fellowship</span>
-            </button>
-            <button class="event-category-btn" data-category-tag="Music">
-              <span data-i18n="category.music">Music</span>
-            </button>
-            <button class="event-category-btn" data-category-tag="Worship">
-              <span data-i18n="category.worship">Worship</span>
-            </button>
-            <button class="event-category-btn" data-category-tag="Classes & Studies">
-              <span data-i18n="category.classesStudies">Classes
-      &amp; Studies</span>
-            </button>
-            <button class="event-category-btn" data-category-tag="Support Groups">
-              <span data-i18n="category.supportGroups">Support
-      Groups</span>
-            </button>
-            <button class="event-category-btn" data-category-tag="Sports & Recreation">
-              <span data-i18n="category.sportsRecreation">Sports
-      &amp; Recreation</span>
-            </button>
-                 mission trips, retreats and youth trips alike, and a plane
-                 would quietly imply the international ones while a bus would
-                 imply the local ones. Luggage is also the established glyph
-                 for a section literally called Trips elsewhere on the web,
-                 so it needs no learning. Handle plus the horizontal band is
-                 what keeps it reading as luggage rather than a briefcase. -->
-            <button class="event-category-btn" data-category-tag="Trips">
-              <span data-i18n="category.trips">Trips</span>
-            </button>
-          </div>
-        </div>
+        <!-- The one-at-a-time category pills are gone. The panel already
+             carries a Category group of checkboxes further down, inside
+             More filters, which does the same job and can pick several;
+             the pills were a second control for one filter and, being
+             first in the panel, they also shifted every pill label over
+             by one -- the Denominations pill was opening Category. -->
         <div class="filter-group">
           <h4 class="filter-tradition-heading" data-i18n="filters.denominationsEtc">Denominations, etc.</h4>
           <button type="button" id="events-denom-dropdown-btn" style="width:100%;padding:9px 10px;font-size:13.5px;color:var(--ink);border:1px solid var(--line);border-radius:8px;background:var(--card);display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
@@ -12165,7 +12131,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v367 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v368 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12893,7 +12859,12 @@
     if (!grid) return;
     var rows = window.directoryLastRenderedRows || [];
     var view = directoryView();
-    grid.className = (view === 'list') ? 'church-list' : 'grid';
+    // fd-results-grid has to survive this. It is what carries the
+    // auto-fill columns and the container the compact card asks, and
+    // assigning className wholesale used to drop it -- harmless while
+    // those rules keyed on the id, silent breakage once they keyed on
+    // the class: three 137px cards in a 452px column.
+    grid.className = ((view === 'list') ? 'church-list' : 'grid') + ' fd-results-grid';
     grid.style.display = (view === 'list') ? 'flex' : 'grid';
     grid.innerHTML = mapJoin(rows, (view === 'list')
       ? function(c){ return churchRow(c); }
@@ -13450,6 +13421,8 @@
         : 'none';
     }
 
+    fdSyncFilterPills(tab);
+
     // Whichever list this tab shows, and its pins.
     if (tab === 'events') {
       eventsPinSignature = null;          // the churches' pins were up
@@ -13465,6 +13438,18 @@
       if (location.hash !== want && typeof safeHistoryUpdate === 'function') {
         safeHistoryUpdate(true, want);
       }
+    }
+  }
+  // The pills for this tab, built the first time it is opened.
+  function fdSyncFilterPills(tab){
+    if (typeof moveFiltersIntoPills !== 'function') return;
+    if (window.innerWidth <= 980) return;      // the phone uses the panel itself
+    moveFiltersIntoPills(tab, tab === 'churches' ? 'dir-filter-body' : tab + '-filter-body');
+    var bar = document.getElementById('dir-filter-pills');
+    if (!bar) return;
+    var sets = bar.querySelectorAll('[data-pillset]');
+    for (var i = 0; i < sets.length; i++) {
+      sets[i].style.display = sets[i].getAttribute('data-pillset') === tab ? 'flex' : 'none';
     }
   }
   window.fdSetBrowseTab = fdSetBrowseTab;
@@ -13691,7 +13676,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-28-v367',
+      'build 2026-09-28-v368',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -13940,13 +13925,24 @@
   // so the denomination dropdown, the distance select and the
   // checkboxes go on working without being rewired -- and there is no
   // second copy of that markup to drift.
-  function moveFiltersIntoPills(){
+  // Each tab's filters become their own set of pills over the map, and
+  // only the active set is shown. Churches and Events therefore get the
+  // same controls in the same place -- which they could not while the
+  // filters lived in a panel belonging to a page.
+  function moveFiltersIntoPills(tab, bodyId){
+    tab = tab || 'churches';
     var bar = document.getElementById('dir-filter-pills');
-    var body = document.getElementById('dir-filter-body');
-    if (!bar || !body || bar.dataset.filled) return;
+    var body = document.getElementById(bodyId || 'dir-filter-body');
+    if (!bar || !body) return;
+    var set = bar.querySelector('[data-pillset="' + tab + '"]');
+    if (set) return;                       // already built for this tab
     var groups = [].slice.call(body.querySelectorAll('.filter-group'));
     if (!groups.length) return;
     bar.dataset.filled = '1';
+    set = document.createElement('div');
+    set.className = 'fd-pillset';
+    set.setAttribute('data-pillset', tab);
+    bar.appendChild(set);
 
     // Denominations and Distance get their own pill because they are
     // the two people reach for; the rest share one, the way an "All
@@ -13983,7 +13979,7 @@
       panel.addEventListener('click', function(ev){ ev.stopPropagation(); });
       wrap.appendChild(btn);
       wrap.appendChild(panel);
-      bar.appendChild(wrap);
+      set.appendChild(wrap);
     });
 
     document.addEventListener('click', closeAllPills);
@@ -14007,7 +14003,7 @@
 
   // Only in the split. Below 980px the phone layout takes over, with one
   // filter button instead of a row of pills.
-  if (window.innerWidth > 980) { moveFiltersIntoPills(); moveViewToggleIntoResults(); }
+  if (window.innerWidth > 980) { moveFiltersIntoPills('churches', 'dir-filter-body'); moveViewToggleIntoResults(); }
   // The phone wiring is dispatched at the BOTTOM of this section, after
   // the values it reads have actually been assigned. See there.
 
