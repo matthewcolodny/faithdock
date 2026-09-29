@@ -544,7 +544,7 @@
       'filters.within10': 'Within 10 miles', 'filters.within25': 'Within 25 miles', 'filters.hasEvents': 'Has events',
       'filters.anyTime': 'Any time', 'filters.next7': 'Next 7 days', 'filters.next14': 'Next 14 days', 'filters.next30': 'Next 30 days',
       'filters.reset': 'Reset filters', 'filters.type': 'Type', 'filters.openToAnyone': 'Open to anyone',
-      'filters.dates': 'Dates', 'filters.membersOnly': 'Members only', 'filters.noSignupNeeded': 'No signup needed', 'filters.category': 'Category',
+      'filters.dates': 'Dates', 'filters.all': 'All', 'filters.denominations': 'Denominations', 'filters.categories': 'Categories', 'filters.faithHome': 'Faith Home', 'filters.membersOnly': 'Members only', 'filters.noSignupNeeded': 'No signup needed', 'filters.category': 'Category',
       'filters.noCategoriesYet': 'No categories yet.', 'filters.noEventsMatch': 'No events match these filters. Try widening your search.',
       'filters.filterSearches': 'Filter searches',
       'filters.noneSelected': 'None selected', 'filters.allSelected': 'All selected', 'filters.nSelected': 'selected',
@@ -1894,7 +1894,7 @@
       'filters.within10': 'A menos de 10 millas', 'filters.within25': 'A menos de 25 millas', 'filters.hasEvents': 'Con eventos',
       'filters.anyTime': 'Cualquier momento', 'filters.next7': 'Próximos 7 días', 'filters.next14': 'Próximos 14 días', 'filters.next30': 'Próximos 30 días',
       'filters.reset': 'Restablecer filtros', 'filters.type': 'Tipo', 'filters.openToAnyone': 'Abierto a todos',
-      'filters.dates': 'Fechas', 'filters.membersOnly': 'Solo miembros', 'filters.noSignupNeeded': 'No requiere inscripción', 'filters.category': 'Categoría',
+      'filters.dates': 'Fechas', 'filters.all': 'Todas', 'filters.denominations': 'Denominaciones', 'filters.categories': 'Categorías', 'filters.faithHome': 'Mi comunidad', 'filters.membersOnly': 'Solo miembros', 'filters.noSignupNeeded': 'No requiere inscripción', 'filters.category': 'Categoría',
       'filters.noCategoriesYet': 'Aún no hay categorías.', 'filters.noEventsMatch': 'Ningún evento coincide con estos filtros. Intenta ampliar tu búsqueda.',
       'filters.filterSearches': 'Filtrar búsqueda',
       'filters.noneSelected': 'Ninguna seleccionada', 'filters.allSelected': 'Todas seleccionadas', 'filters.nSelected': 'seleccionadas',
@@ -5144,6 +5144,39 @@
 .filter-panel.fd-dates-open .filter-panel-title{display:none;}
 /* ...and the filter button shows everything except the date range. */
 .filter-panel.open .fd-when-group{display:none;}
+/* Denominations and Categories open the same panel scoped to the one
+   group they name. Categories shows the traditions only -- the parent
+   rows -- and Denominations shows the bodies under them as well. */
+.filter-panel.fd-denoms-open,
+.filter-panel.fd-cats-open{
+  display:block !important;
+  position:absolute;left:14px;right:14px;top:auto;z-index:9;
+  max-height:min(62vh, 520px);overflow-y:auto;
+  box-shadow:0 14px 34px rgba(0,0,0,.30);
+}
+.filter-panel.fd-denoms-open .filter-panel-toggle,
+.filter-panel.fd-cats-open .filter-panel-toggle{display:none;}
+.filter-panel.fd-denoms-open .filter-panel-body,
+.filter-panel.fd-cats-open .filter-panel-body{display:block;}
+.filter-panel.fd-denoms-open .filter-group,
+.filter-panel.fd-cats-open .filter-group{display:none;}
+.filter-panel.fd-denoms-open .fd-denom-group,
+.filter-panel.fd-cats-open .fd-denom-group{display:block;}
+/* The list normally hides behind a dropdown button. Opened from the
+   row it is the only thing on screen, so it shows inline and the
+   button that would open it goes -- otherwise both buttons opened a
+   panel containing nothing but a closed dropdown. */
+.filter-panel.fd-denoms-open #denom-dropdown-panel,
+.filter-panel.fd-cats-open #denom-dropdown-panel{
+  display:block !important;position:static;box-shadow:none;
+  max-height:none;padding:0;border:0;background:none;
+}
+/* !important because the button carries display:flex inline. */
+.filter-panel.fd-denoms-open #denom-dropdown-btn,
+.filter-panel.fd-cats-open #denom-dropdown-btn{display:none !important;}
+/* Categories is the traditions; Denominations adds the bodies under
+   them. */
+.filter-panel.fd-cats-open .filter-check-child{display:none;}
 .event-tab-dates:hover{color:var(--gold-ink);}
 .event-tab-dates[aria-expanded="true"]{color:var(--gold-ink);}
 @media (max-width:980px){ .event-tab-dates span{display:none;} .event-tab-dates{padding:6px 10px;} }
@@ -7886,7 +7919,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
         </button>
         <div class="filter-panel-body" id="dir-filter-body">
-        <div class="filter-group">
+        <div class="filter-group fd-denom-group">
           <h4 class="filter-tradition-heading" data-i18n="filters.denominationsEtc">Denominations, etc.</h4>
           <button type="button" id="denom-dropdown-btn" style="width:100%;padding:9px 10px;font-size:13.5px;color:var(--ink);border:1px solid var(--line);border-radius:8px;background:var(--card);display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
             <span id="denom-dropdown-label" data-i18n="filters.allSelected">All selected</span>
@@ -7947,7 +7980,10 @@
             <option value="25" data-i18n="filters.within25">Within 25 miles</option>
           </select>
         </div>
-        <div class="filter-group">
+        <!-- Hidden, not deleted: Faith Home in the row above drives this
+             checkbox, which is what the search already reads. Two visible
+             controls for one filter is what this replaces. -->
+        <div class="filter-group" hidden>
           <label class="filter-check" id="dir-filter-followed-wrap" style="display:none;"><input type="checkbox" id="dir-filter-followed-churches"> <span data-i18n="events.churchesIFollow">Churches I follow</span></label>
         </div>
         <div class="filter-group">
@@ -8078,6 +8114,16 @@
       </div>
       <div>
         <div class="fd-panel is-on" data-browse-panel="churches">
+        <!-- The same shape Events has: a quick answer per button, with
+             the two that need a list opening the filter panel scoped to
+             just that list. Faith Home is a real filter rather than a
+             way in, so it is the only one that toggles. -->
+        <div class="event-tab-row" id="church-tab-row">
+          <button class="event-tab-btn active" data-church-tab="all" data-i18n="filters.all">All</button>
+          <button class="event-tab-btn" data-church-tab="denominations" data-i18n="filters.denominations">Denominations</button>
+          <button class="event-tab-btn" data-church-tab="categories" data-i18n="filters.categories">Categories</button>
+          <button class="event-tab-btn" data-church-tab="faith-home" data-i18n="filters.faithHome">Faith Home</button>
+        </div>
         <div class="grid fd-results-grid" id="directory-grid"></div>
         <div id="directory-empty" style="display:none;color:var(--ink-mute);font-size:14.5px;padding:40px 0;text-align:center;" data-i18n="filters.noChurchesMatch">No churches match these filters. Try widening your search.</div>
         <div class="dir-results-foot">
@@ -12298,7 +12344,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v379 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v380 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13673,6 +13719,71 @@
       sets[i].style.display = sets[i].getAttribute('data-pillset') === tab ? 'flex' : 'none';
     }
   }
+  // ---- The Churches row: All / Denominations / Categories / Faith Home
+  //
+  // Two of these are ways in rather than filters: Denominations and
+  // Categories open the churches filter panel scoped to the one group
+  // they name, the same trick the events Dates button uses. Faith Home
+  // is a real filter and is the only one that toggles anything, driving
+  // the "Churches I follow" checkbox that the search already reads --
+  // that checkbox is hidden now, because two visible controls for one
+  // filter is what this replaces.
+  (function wireChurchTabs(){
+    function panel(){
+      return document.querySelector('.filter-panel[data-filter-for="churches"]');
+    }
+    function closeScoped(){
+      var pn = panel();
+      if (pn) pn.classList.remove('fd-denoms-open', 'fd-cats-open');
+    }
+    function openScoped(cls, btn){
+      var pn = panel();
+      if (!pn) return;
+      var already = pn.classList.contains(cls);
+      closeScoped();
+      if (already) return;
+      pn.classList.add(cls);
+      var row = btn.closest('.event-tab-row');
+      if (row && pn.offsetParent) pn.style.top = (row.offsetTop + row.offsetHeight + 6) + 'px';
+    }
+    document.addEventListener('click', function(ev){
+      var btn = ev.target.closest && ev.target.closest('[data-church-tab]');
+      if (!btn) {
+        if (!ev.target.closest('.filter-panel')) closeScoped();
+        return;
+      }
+      ev.preventDefault();
+      ev.stopPropagation();
+      var which = btn.getAttribute('data-church-tab');
+      var row = btn.closest('.event-tab-row');
+      if (row) {
+        // All and Faith Home are states you are in; the other two are
+        // panels you opened, so they do not claim the active mark.
+        if (which === 'all' || which === 'faith-home') {
+          [].forEach.call(row.querySelectorAll('[data-church-tab]'), function(b){
+            b.classList.toggle('active', b === btn);
+          });
+        }
+      }
+      var followed = document.getElementById('dir-filter-followed-churches');
+      if (which === 'denominations') { openScoped('fd-denoms-open', btn); return; }
+      if (which === 'categories')    { openScoped('fd-cats-open', btn); return; }
+      closeScoped();
+      if (which === 'faith-home') {
+        if (followed) { followed.checked = true; followed.dispatchEvent(new Event('change', { bubbles: true })); }
+      } else {
+        // All: back to everything, including whatever the two panels left
+        // ticked.
+        if (followed && followed.checked) {
+          followed.checked = false;
+          followed.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        var reset = document.getElementById('filter-reset');
+        if (reset) reset.click();
+      }
+    });
+  })();
+
   // Dates opens the events filter panel over the list, scrolled to the
   // When group -- the range controls already live there, so this is a
   // way in rather than a second set of date fields to keep in step.
@@ -13950,7 +14061,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-29-v379',
+      'build 2026-09-29-v380',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
