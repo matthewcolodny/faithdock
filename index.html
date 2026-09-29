@@ -4155,6 +4155,17 @@
   .nav-search-row input{flex:1;min-width:0;background:none;border:none;outline:none;color:#EDEBE2;
     font-size:15px;font-family:inherit;}
   .nav-search-row input::placeholder{color:#8E97A8;}
+  /* The rows sit on the navy panel, so this cannot borrow
+     .search-clear-btn -- that one is drawn for a light field. */
+  .nav-search-clear{
+    display:flex;align-items:center;justify-content:center;
+    width:24px;height:24px;flex-shrink:0;padding:0;
+    background:none;border:0;border-radius:50%;cursor:pointer;color:#9AA3B5;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .nav-search-clear:hover{color:#EDEBE2;background:rgba(255,255,255,0.10);}
+  .nav-search-clear[hidden]{display:none;}
+  .nav-search-clear svg{width:14px;height:14px;}
   #nav-panel-submit{width:100%;justify-content:center;padding:12px;font-size:15px;}
   /* Desktop has the search box in the bar itself. */
   @media (min-width:861px){ #nav-search-btn, #nav-search-panel{display:none;} }
@@ -4232,6 +4243,11 @@
   }
   .nav-search input::placeholder{color:#8791A5;}
   @media (max-width:760px){ .nav-search{display:none;} }
+  /* Redundant on the three browse pages: each carries its own search
+     row directly underneath, and two search boxes a centimetre apart
+     invite typing into the wrong one. The phone keeps its nav search --
+     there the map search bars are the ones that go. */
+  body.fd-browse .nav-search{display:none;}
   /* Between the widest phone and a roomy laptop the desktop nav, the
      search box and the brand all want the same row. The search box
      gives first -- it is the one built to flex, and a narrower search
@@ -5360,19 +5376,31 @@
        squeezed to 11px and the location box to 112px showing "San An".
        A grid says which line each control is on and how wide it gets,
        instead of leaving it to whatever is left over. */
+    /* The keyword and location fields are gone from the phone's map --
+       the nav's own search does that job there, and two sets of search
+       boxes on one screen is one set too many. What is left is the
+       three controls that have nowhere else to live: filters, use my
+       location, and the cards/list toggle.
+       They are display:none rather than deleted, because the same
+       markup is the desktop row, where the fields stay. */
+    #page-directory.active .dir-search-row > .search-field-wrap:not(.autocomplete-wrap),
+    #page-directory.active .dir-search-row > .autocomplete-wrap{
+      /* !important because the location wrap carries display:flex as an
+         inline style, and an inline style beats a stylesheet rule that
+         does not say otherwise. */
+      display:none !important;
+    }
     #page-directory.active .dir-search-row{
       display:grid;gap:8px;align-items:center;
-      grid-template-columns:1fr 42px 76px;
-      grid-template-areas:"kw kw filter" "loc pin view";
+      grid-template-columns:42px 42px 1fr;
+      grid-template-areas:"filter pin view";
+      justify-content:start;
     }
-    #page-directory.active .dir-search-row > .search-field-wrap:not(.autocomplete-wrap){
-      grid-area:kw;max-width:none !important;min-width:0;
-    }
-    #page-directory.active .dir-search-row > #dir-filter-icon-btn{grid-area:filter;justify-self:end;}
-    #page-directory.active .dir-search-row > .autocomplete-wrap{
-      grid-area:loc;max-width:none !important;min-width:0;
-    }
-    #page-directory.active .dir-search-row > #dir-use-location-btn{grid-area:pin;padding:0;justify-content:center;}
+    #page-directory.active .dir-search-row > #dir-filter-icon-btn{grid-area:filter;justify-self:start;}
+    /* stretch, not start: the cell is 42px and the button has padding:0,
+       so left to itself it shrank to the icon and sat beside a much
+       larger filter button. */
+    #page-directory.active .dir-search-row > #dir-use-location-btn{grid-area:pin;padding:0;justify-content:center;justify-self:stretch;}
     #page-directory.active .dir-search-row > #dir-use-location-btn .btn-label-text{display:none;}
     #page-directory.active .dir-search-row > .dir-view-toggle{grid-area:view;justify-self:end;}
     #page-directory.active .dir-search-row .search-clear-wrap{min-width:0;}
@@ -7354,10 +7382,12 @@
     <div class="nav-search-row">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
       <input type="search" id="nav-panel-keyword" placeholder="Search churches by name or keyword..." data-i18n-placeholder="home.keywordPlaceholder" autocomplete="off">
+      <button type="button" class="nav-search-clear" id="nav-panel-keyword-clear" aria-label="Clear search" data-i18n-aria="common.clearSearch" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>
     <div class="nav-search-row">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-5.7 7-11a7 7 0 1 0-14 0c0 5.3 7 11 7 11Z"/><circle cx="12" cy="10" r="2.6"/></svg>
       <input type="search" id="nav-panel-location" placeholder="Enter your city or zip code" data-i18n-placeholder="home.locationPlaceholder" autocomplete="off">
+      <button type="button" class="nav-search-clear" id="nav-panel-location-clear" aria-label="Clear location" data-i18n-aria="common.clearSearch" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>
     <button type="button" id="nav-panel-submit" class="btn-gold" data-i18n="nav.searchSubmit">Search</button>
   </div>
@@ -12090,7 +12120,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v360 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v361 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -12823,6 +12853,13 @@ Groups</span>
     grid.innerHTML = mapJoin(rows, (view === 'list')
       ? function(c){ return churchRow(c); }
       : function(c){ return churchCard(c, true); });
+    // The sheet's opening height is measured off a real card, so it can
+    // only be worked out once one exists. This is the directory's own
+    // paint path -- paintGrid() belongs to the home rows and the
+    // directory never goes through it.
+    if (typeof window.fdApplyDirectorySheetDefault === 'function') {
+      window.fdApplyDirectorySheetDefault();
+    }
     if (window.paintDirectoryMap) window.paintDirectoryMap();
   }
   window.paintDirectoryGrid = paintDirectoryGrid;
@@ -13355,6 +13392,15 @@ Groups</span>
   function syncDirFullscreenClass(){
     var page = document.getElementById('page-directory');
     document.body.classList.toggle('dir-fullscreen', !!(page && page.classList.contains('active')));
+    // Churches, Events and Groups are the three browse pages: each has
+    // its own search row, so the nav's is redundant on all of them.
+    // Read off what is actually on screen, for the reason above.
+    var browsing = false;
+    ['page-directory', 'page-events', 'page-groups'].forEach(function(id){
+      var el = document.getElementById(id);
+      if (el && el.classList.contains('active')) browsing = true;
+    });
+    document.body.classList.toggle('fd-browse', browsing);
   }
   window.addEventListener('hashchange', function(){
     // After the router has swapped .active, not before it.
@@ -13391,7 +13437,7 @@ Groups</span>
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-28-v360',
+      'build 2026-09-28-v361',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -13831,6 +13877,57 @@ Groups</span>
     }
     return px;
   }
+  // How tall the sheet should be before anyone has dragged it.
+  //
+  // Measured, not a percentage. A third of the screen is the rough
+  // answer, but what actually matters is that the first card is whole
+  // and the next one is visibly starting -- a card cut off at the fold
+  // reads as the end of the list. Card heights move with the content
+  // (two-line names, an events row), so the figure is taken from the
+  // card that is actually there.
+  //
+  // Returns a sheet TOP, which is the map's height: they are the same
+  // edge, and a taller sheet is a smaller number.
+  function directorySheetDefaultTop(){
+    var page = document.getElementById('page-directory');
+    var grid = document.getElementById('directory-grid');
+    if (!page || !grid) return null;
+    var box = Math.round(page.getBoundingClientRect().height);
+    if (!box) return null;
+    var card = grid.querySelector('.church-card, .church-row');
+    var col = document.querySelector('.dir-results-col');
+    // Everything above the first card inside the sheet: the drag handle
+    // and the "Churches" heading.
+    var chrome = 0;
+    if (card && col) {
+      chrome = Math.max(0, Math.round(card.getBoundingClientRect().top - col.getBoundingClientRect().top));
+    }
+    var cardH = card ? Math.round(card.getBoundingClientRect().height) : 0;
+    // A third of the box is the floor, so it never opens as a sliver on
+    // a short card; the peek is what makes the second card announce
+    // itself.
+    var want = cardH ? (chrome + cardH + 46) : Math.round(box / 3);
+    want = Math.max(want, Math.round(box / 3));
+    // Leave the map at least a third, or the sheet stops being a sheet.
+    want = Math.min(want, Math.round(box * 0.66));
+    return box - want;
+  }
+  // Applied once the cards exist, and never written to storage: this is
+  // a default, not a choice the user made. A saved value always wins.
+  function applyDirectorySheetDefault(){
+    if (window.innerWidth > 980) return;
+    var page = document.getElementById('page-directory');
+    if (!page || page.style.getPropertyValue('--dir-sheet-top')) return;
+    var saved = null;
+    try { saved = localStorage.getItem('fd_dir_sheet_top'); } catch (e) {}
+    if (saved && !isNaN(parseInt(saved, 10))) return;
+    var top = directorySheetDefaultTop();
+    if (top === null) return;
+    page.style.setProperty('--dir-sheet-top', top + 'px');
+    if (dirMap && window.google && google.maps) google.maps.event.trigger(dirMap, 'resize');
+  }
+  window.fdApplyDirectorySheetDefault = applyDirectorySheetDefault;
+
   function wireDirectorySheetGrip(){
     var grip = document.getElementById('dir-sheet-grip');
     var page = document.getElementById('page-directory');
@@ -21676,6 +21773,24 @@ Groups</span>
     if (ev.key !== 'Escape' || !navSearchPanel || navSearchPanel.hidden) return;
     setNavSearchOpen(false);
     if (navSearchBtn) navSearchBtn.focus();
+  });
+
+  // Each nav field gets its own clear button. Not wireSearchClearBtn:
+  // that one lives in the other script block and drives a directory
+  // re-render on clear, which is wrong here -- these fields do nothing
+  // until Search is pressed.
+  ['nav-panel-keyword', 'nav-panel-location'].forEach(function(id){
+    var input = document.getElementById(id);
+    var btn = document.getElementById(id + '-clear');
+    if (!input || !btn) return;
+    function sync(){ btn.hidden = !input.value; }
+    input.addEventListener('input', sync);
+    btn.addEventListener('click', function(){
+      input.value = '';
+      sync();
+      input.focus();
+    });
+    sync();
   });
 
   var navPanelSubmit = document.getElementById('nav-panel-submit');
