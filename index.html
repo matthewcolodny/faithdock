@@ -4944,7 +4944,7 @@
      
      Opaque, because a sticky element with no background lets the cards
      show through as they slide underneath. */
-  #directory-map-wrap{
+  .fd-map-wrap{
     position:sticky;top:72px;z-index:40;
     background:var(--paper);margin-bottom:0;
   }
@@ -4953,29 +4953,29 @@
   #page-directory{ --dir-map-h:300px; }
   /* The buttons anchor to the MAP, not the band: the band also holds
      the note, and bottom:14px there floats them over the caption. */
-  #directory-map-holder{position:relative;}
-  #directory-map-size{
+  .fd-map-holder{position:relative;}
+  .fd-map-size{
     position:absolute;right:14px;bottom:14px;display:flex;
     border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.3);
   }
-  #directory-map-size button{
+  .fd-map-size button{
     width:30px;height:30px;border:none;background:#fff;color:#16233F;
     font-size:17px;line-height:1;cursor:pointer;-webkit-tap-highlight-color:transparent;
   }
-  #directory-map-size button + button{border-left:1px solid #dcdcdc;}
-  #directory-map-size button:hover{background:#f1f1f1;}
+  .fd-map-size button + button{border-left:1px solid #dcdcdc;}
+  .fd-map-size button:hover{background:#f1f1f1;}
 
-  #directory-map-grip{
+  .fd-map-grip{
     height:14px;display:flex;align-items:center;justify-content:center;
     cursor:ns-resize;background:var(--paper);
     border-bottom:1px solid var(--line);
     -webkit-tap-highlight-color:transparent;touch-action:none;
   }
-  #directory-map-grip span{
+  .fd-map-grip span{
     display:block;width:44px;height:4px;border-radius:2px;background:var(--line);
   }
-  #directory-map-grip:hover span,#directory-map-grip:focus-visible span{background:var(--gold);}
-  #directory-map-grip:focus-visible{outline:2px solid var(--gold);outline-offset:-2px;}
+  .fd-map-grip:hover span,.fd-map-grip:focus-visible span{background:var(--gold);}
+  .fd-map-grip:focus-visible{outline:2px solid var(--gold);outline-offset:-2px;}
   /* While dragging, stop the pointer selecting the heading and cards it
      passes over, and keep the resize cursor even off the grip. */
   body.fd-map-resizing{user-select:none;cursor:ns-resize;}
@@ -5086,14 +5086,14 @@
     min-width:0;
   }
   /* The map fills its column; the banner-era sizing does not apply. */
-  .dir-map-col #directory-map-wrap{position:static;height:100%;display:flex;flex-direction:column;margin:0;}
-  .dir-map-col #directory-map-holder{flex:1;min-height:0;}
-  .dir-map-col #directory-map{height:100%;border:0;border-left:1px solid var(--line);}
-  .dir-map-col #directory-map-note{max-width:none;margin:0;padding:6px 14px;}
+  .dir-map-col .fd-map-wrap{position:static;height:100%;display:flex;flex-direction:column;margin:0;}
+  .dir-map-col .fd-map-holder{flex:1;min-height:0;}
+  .dir-map-col .fd-map{height:100%;border:0;border-left:1px solid var(--line);}
+  .dir-map-col .fd-map-note{max-width:none;margin:0;padding:6px 14px;}
   /* The grip resized a banner. In a full-height column the map simply
      fills what is there, so there is nothing to drag. */
-  .dir-map-col #directory-map-grip,
-  .dir-map-col #directory-map-size{display:none;}
+  .dir-map-col .fd-map-grip,
+  .dir-map-col .fd-map-size{display:none;}
 
   /* Filter pills, floating over the top of the map. */
   #dir-filter-pills{
@@ -5436,7 +5436,7 @@
   /* Pushes the view toggle to the far right of the row. */
   .dir-search-row .dir-view-toggle{margin-left:auto;}
   .dir-search-row .dir-view-toggle.dir-view-first{margin-left:0;margin-right:2px;}
-  #directory-map{
+  .fd-map{
     /* Google's own land grey, not var(--card). Zooming out asks for a
        whole new set of tiles, and until they arrive whatever is behind
        them shows through -- against a near-white card that reads as
@@ -5447,15 +5447,15 @@
   }
   /* The night styles paint geometry #242f3e, so the gap behind the tiles
      has to be dark too or the flash is worse in dark mode than light. */
-  html[data-theme="dark"] #directory-map{background:#242f3e;}
+  html[data-theme="dark"] .fd-map{background:#242f3e;}
   /* The note is emptied, not hidden, when every church has coordinates
      -- and in the desktop split it still carried 6px of padding top and
      bottom, drawing a 12px strip of the wrap's own dark background
      under the map. */
-  #directory-map-note:empty{display:none;}
+  .fd-map-note:empty{display:none;}
   /* The map is edge to edge; its caption should still line up with the
      page text, so it carries .wrap's own max-width and padding. */
-  #directory-map-note{
+  .fd-map-note{
     max-width:1080px;margin:8px auto 0;padding:0 28px;
     font-size:12px;color:var(--ink-mute);
   }
@@ -5464,7 +5464,7 @@
      page there. The head stops being sticky too -- three stacked
      sticky bands on a 812px screen leaves no room for results. */
   @media (max-width:860px){
-    /* #directory-map-wrap is NOT hidden here any more -- the map is the
+    /* .fd-map-wrap is NOT hidden here any more -- the map is the
        top 40% of the phone layout. paintDirectoryMap() refuses to build
        into a display:none element, so hiding it here was also what kept
        the map from ever existing on a phone. */
@@ -5660,7 +5660,7 @@
   .fd-dp-day[aria-selected="true"]{background:var(--gold-bg);color:var(--gold-ink);font-weight:600;}
   .fd-dp-foot{display:flex;gap:8px;padding:12px 14px 2px;border-top:1px solid var(--line);margin-top:10px;}
   /* ---- Admin coverage map ---- */
-  /* Google's own land grey, the same reasoning as #directory-map: a
+  /* Google's own land grey, the same reasoning as .fd-map: a
      zoom-out asks for a whole new set of tiles and whatever sits behind
      them shows through until they land. var(--paper) is #F5F4EE, near
      enough to white to read as the map blanking out -- and this map is
@@ -7730,7 +7730,7 @@
            sticky offsets of everything below, so it has to land on known
            values, and a drag that ends mid-pixel mid-scroll is a lot of
            failure modes for a control used a handful of times. -->
-      <div id="directory-map-size" role="group" data-i18n-title="dir.mapResize" title="Map size">
+      <div id="directory-map-size" class="fd-map-size" role="group" data-i18n-title="dir.mapResize" title="Map size">
         <button type="button" id="dir-map-shorter" aria-label="Shorter map">&minus;</button>
         <button type="button" id="dir-map-taller" aria-label="Taller map">+</button>
       </div>
@@ -7739,7 +7739,7 @@
            Terms and "Keyboard shortcuts" chrome along the bottom edge,
            and a full-width grab strip on top of those would swallow
            clicks meant for them. -->
-      <div id="directory-map-grip" role="separator" aria-orientation="horizontal"
+      <div id="directory-map-grip" class="fd-map-grip" role="separator" aria-orientation="horizontal"
            tabindex="0" aria-label="Resize map" data-i18n-title="dir.mapResizeDrag"><span></span></div>
       <div id="directory-map-note" class="fd-map-note"></div>
     </div>
@@ -12133,7 +12133,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v362 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v363 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13450,7 +13450,7 @@ Groups</span>
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-28-v362',
+      'build 2026-09-28-v363',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
