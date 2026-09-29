@@ -544,7 +544,7 @@
       'filters.within10': 'Within 10 miles', 'filters.within25': 'Within 25 miles', 'filters.hasEvents': 'Has events',
       'filters.anyTime': 'Any time', 'filters.next7': 'Next 7 days', 'filters.next14': 'Next 14 days', 'filters.next30': 'Next 30 days',
       'filters.reset': 'Reset filters', 'filters.type': 'Type', 'filters.openToAnyone': 'Open to anyone',
-      'filters.membersOnly': 'Members only', 'filters.noSignupNeeded': 'No signup needed', 'filters.category': 'Category',
+      'filters.dates': 'Dates', 'filters.membersOnly': 'Members only', 'filters.noSignupNeeded': 'No signup needed', 'filters.category': 'Category',
       'filters.noCategoriesYet': 'No categories yet.', 'filters.noEventsMatch': 'No events match these filters. Try widening your search.',
       'filters.filterSearches': 'Filter searches',
       'filters.noneSelected': 'None selected', 'filters.allSelected': 'All selected', 'filters.nSelected': 'selected',
@@ -1894,7 +1894,7 @@
       'filters.within10': 'A menos de 10 millas', 'filters.within25': 'A menos de 25 millas', 'filters.hasEvents': 'Con eventos',
       'filters.anyTime': 'Cualquier momento', 'filters.next7': 'Próximos 7 días', 'filters.next14': 'Próximos 14 días', 'filters.next30': 'Próximos 30 días',
       'filters.reset': 'Restablecer filtros', 'filters.type': 'Tipo', 'filters.openToAnyone': 'Abierto a todos',
-      'filters.membersOnly': 'Solo miembros', 'filters.noSignupNeeded': 'No requiere inscripción', 'filters.category': 'Categoría',
+      'filters.dates': 'Fechas', 'filters.membersOnly': 'Solo miembros', 'filters.noSignupNeeded': 'No requiere inscripción', 'filters.category': 'Categoría',
       'filters.noCategoriesYet': 'Aún no hay categorías.', 'filters.noEventsMatch': 'Ningún evento coincide con estos filtros. Intenta ampliar tu búsqueda.',
       'filters.filterSearches': 'Filtrar búsqueda',
       'filters.noneSelected': 'Ninguna seleccionada', 'filters.allSelected': 'Todas seleccionadas', 'filters.nSelected': 'seleccionadas',
@@ -5113,6 +5113,33 @@
    without needing a second colour. */
 .fd-pillset{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start;}
 
+/* All / Today / This weekend answer the common cases; the rest is a
+   date range, and this is where it lives. Pushed to the far end of the
+   row, which was empty. */
+.event-tab-dates{
+  margin-left:auto;display:inline-flex;align-items:center;gap:6px;
+  background:none;border:1px solid var(--line);border-radius:999px;
+  padding:5px 12px;font-size:12.5px;color:var(--ink);cursor:pointer;
+  flex-shrink:0;-webkit-tap-highlight-color:transparent;
+}
+.event-tab-dates svg{width:14px;height:14px;}
+/* The events filter panel, opened from the Dates button. On a phone the
+   panel is hidden in the sheet, so without this the events filters had
+   no way in at all -- the filter button over the map opens the
+   directory's. Floating rather than inline, so opening it does not shove
+   the list down the screen. */
+.filter-panel.fd-dates-open{
+  display:block !important;
+  position:absolute;left:14px;right:14px;top:auto;z-index:9;
+  max-height:min(62vh, 520px);overflow-y:auto;
+  box-shadow:0 14px 34px rgba(0,0,0,.30);
+}
+.filter-panel.fd-dates-open .filter-panel-toggle{display:none;}
+.filter-panel.fd-dates-open .filter-panel-body{display:block;}
+.event-tab-dates:hover{border-color:var(--gold);}
+.event-tab-dates[aria-expanded="true"]{background:var(--gold-bg);border-color:var(--gold);color:var(--gold-ink);}
+@media (max-width:980px){ .event-tab-dates span{display:none;} .event-tab-dates{padding:6px 10px;} }
+
 /* Churches, Events and Groups are in a fixed order, so a switch has a
    direction: going right slides the new list in from the right. Only
    the list moves -- the map, the search row and the sheet are the same
@@ -8027,11 +8054,17 @@
         <div class="fd-panel" data-browse-panel="events" style="display:none;">
     <div class="event-tab-row">
       <button class="event-tab-btn active" id="event-tab-all" data-event-tab="all" data-i18n="events.tabAll">All</button>
-      <button class="event-tab-btn" id="event-tab-for-you" data-event-tab="for-you" data-i18n="events.tabForYou">For you</button>
       <button class="event-tab-btn" id="event-tab-today" data-event-tab="today" data-i18n="events.tabToday">Today</button>
       <button class="event-tab-btn" id="event-tab-weekend" data-event-tab="weekend" data-i18n="events.tabWeekend">This weekend</button>
+      <!-- All / Today / This weekend are the quick answers; anything
+           else is a date range, which is what this opens. It also puts
+           the events filters back within reach on a phone, where the
+           panel itself is hidden. -->
+      <button type="button" id="events-dates-btn" class="event-tab-dates" aria-expanded="false" data-i18n-title="events.when" title="Dates">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        <span data-i18n="filters.dates">Dates</span>
+      </button>
     </div>
-    <div id="event-tab-for-you-empty-msg" style="display:none;color:var(--ink-mute);font-size:13.5px;margin:-8px 0 20px;"></div>
         <div class="grid fd-results-grid" id="events-grid"></div>
         <div id="events-empty" style="display:none;color:var(--ink-mute);font-size:14.5px;padding:40px 0;text-align:center;" data-i18n="filters.noEventsMatch">No events match these filters. Try widening your search.</div>
         <!-- The count sits with the paging control, the way the Churches
@@ -12231,7 +12264,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v375 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v376 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13602,6 +13635,40 @@
       sets[i].style.display = sets[i].getAttribute('data-pillset') === tab ? 'flex' : 'none';
     }
   }
+  // Dates opens the events filter panel over the list, scrolled to the
+  // When group -- the range controls already live there, so this is a
+  // way in rather than a second set of date fields to keep in step.
+  (function wireEventsDates(){
+    document.addEventListener('click', function(ev){
+      var btn = ev.target.closest && ev.target.closest('#events-dates-btn');
+      var panel = document.querySelector('[data-browse-panel="events"] .filter-panel');
+      if (!panel) return;
+      if (!btn) {
+        // A click anywhere else closes it, unless it landed inside.
+        if (panel.classList.contains('fd-dates-open') && !ev.target.closest('.filter-panel')) {
+          panel.classList.remove('fd-dates-open');
+          var b = document.getElementById('events-dates-btn');
+          if (b) b.setAttribute('aria-expanded', 'false');
+        }
+        return;
+      }
+      ev.preventDefault();
+      ev.stopPropagation();
+      var open = !panel.classList.contains('fd-dates-open');
+      panel.classList.toggle('fd-dates-open', open);
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (!open) return;
+      // Sit it under the button that opened it.
+      var row = btn.closest('.event-tab-row');
+      if (row && panel.offsetParent) {
+        var top = row.offsetTop + row.offsetHeight + 6;
+        panel.style.top = top + 'px';
+      }
+      var when = panel.querySelector('[data-i18n="events.when"]');
+      if (when) when.scrollIntoView({ block: 'start' });
+    });
+  })();
+
   window.fdSetBrowseTab = fdSetBrowseTab;
   fdSyncBrowseTabsPresent();
   fdMoveSheetControlsIntoTabs();
@@ -13763,6 +13830,16 @@
     syncDirectoryOffsets();
   }
   window.paintDirectoryMap = paintDirectoryMap;
+  // "Use my location" lives in the module script, which cannot see
+  // dirMap. It set the coordinates the distances are measured from and
+  // left the map wherever it was, so the button appeared to do nothing
+  // but print a line of text.
+  window.fdCentreDirectoryMap = function(lat, lng, zoom){
+    if (!dirMap || !window.google || !google.maps) return false;
+    dirMap.setCenter({ lat: Number(lat), lng: Number(lng) });
+    if (zoom) dirMap.setZoom(zoom);
+    return true;
+  };
 
   // ---- Where the sticky things sit --------------------------------
   // Three bands pin under one another: the site header, the map, then
@@ -13835,7 +13912,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-29-v375',
+      'build 2026-09-29-v376',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -19287,7 +19364,12 @@
       clearEventDateFields();
       if (typeof window.renderEvents === 'function') window.renderEvents();
     } else if (tabName === 'for-you') {
-      var forYouMsgEl = document.getElementById('event-tab-for-you-empty-msg');
+      // The For you button is gone from the row, so nothing selects this
+      // any more. Guarded rather than deleted: the branch still carries
+      // the "follow a church first" explanation, and its message element
+      // no longer exists to write into.
+      var forYouMsgEl = document.getElementById('event-tab-for-you-empty-msg')
+        || { style: {}, textContent: '' };
       var hasConnection = (window.myChurchHomeId) || (window.myFollowedChurchIds && window.myFollowedChurchIds.length);
       if (!hasConnection) {
         // No home church, no follows — there's no real signal to
@@ -22360,6 +22442,18 @@
     });
   }
 
+  // Move the map there, and let the confirmation go rather than leaving
+  // it parked under the button -- once the map has jumped to where you
+  // are, the sentence saying so is the least useful thing on screen.
+  function fdAfterLocated(lat, lng, statusEl){
+    var moved = window.fdCentreDirectoryMap && window.fdCentreDirectoryMap(lat, lng, 13);
+    if (statusEl) {
+      statusEl.textContent = window.t('dir.showingDistancesYourLocation');
+      clearTimeout(statusEl._fdClear);
+      statusEl._fdClear = setTimeout(function(){ statusEl.textContent = ''; }, moved ? 2600 : 6000);
+    }
+  }
+
   var dirUseLocationBtn = document.getElementById('dir-use-location-btn');
   if (dirUseLocationBtn) {
     dirUseLocationBtn.addEventListener('click', function(){
@@ -22376,11 +22470,11 @@
           geocoder.geocode({ location: { lat: lat, lng: lng } }, function(results, status){
             var label = (status === 'OK' && results && results[0]) ? results[0].formatted_address : (lat.toFixed(3) + ', ' + lng.toFixed(3));
             setDirLocation(lat, lng, label);
-            statusEl.textContent = window.t('dir.showingDistancesYourLocation');
+            fdAfterLocated(lat, lng, statusEl);
           });
         } else {
           setDirLocation(lat, lng, 'Your location');
-          statusEl.textContent = window.t('dir.showingDistancesYourLocation');
+          fdAfterLocated(lat, lng, statusEl);
         }
       }, function(err){
         statusEl.textContent = window.t('dir.couldNotGetLocation');
@@ -22506,11 +22600,11 @@
           geocoder.geocode({ location: { lat: lat, lng: lng } }, function(results, status){
             var label = (status === 'OK' && results && results[0]) ? results[0].formatted_address : (lat.toFixed(3) + ', ' + lng.toFixed(3));
             setDirLocation(lat, lng, label);
-            statusEl.textContent = window.t('dir.showingDistancesYourLocation');
+            fdAfterLocated(lat, lng, statusEl);
           });
         } else {
           setDirLocation(lat, lng, 'Your location');
-          statusEl.textContent = window.t('dir.showingDistancesYourLocation');
+          fdAfterLocated(lat, lng, statusEl);
         }
       }, function(err){
         statusEl.textContent = window.t('dir.couldNotGetLocation');
