@@ -5141,7 +5141,12 @@
   /* The drag bar itself -- the full width of the sheet, which is what
      makes it read as the edge you pull rather than a control in a row. */
   .fd-sheet-head .fd-sheet-grip{
-    display:block;position:static;width:100%;margin:0;padding:0;
+    /* The bar is 5px, which is a hard thing to land a thumb on. The
+       padding below it is invisible but draggable, so the target is 17px
+       tall while the bar stays the thin edge the mock-up shows. That
+       padding is also the space between the bar and the tabs, so it is
+       not costing any extra height. */
+    display:block;position:static;width:100%;margin:0;padding:0 0 12px;
     background:none;border:0;border-radius:0;
   }
   .fd-sheet-head .fd-sheet-grip::before{
@@ -5156,7 +5161,7 @@
     /* padding-top so the open tab does not butt into the gold bar, and
        centred so the three sit in the middle of the sheet rather than
        being pushed along by the button beside them. */
-    margin:0;padding:7px 10px 0;border-bottom:0;background:transparent;
+    margin:0;padding:0 10px;border-bottom:0;background:transparent;
     position:relative;justify-content:center;
   }
   /* Out of the flow, so it cannot shift the three tabs off centre. */
@@ -12222,7 +12227,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v373 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v374 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13826,7 +13831,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-29-v373',
+      'build 2026-09-29-v374',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
