@@ -4355,8 +4355,16 @@
   }
   .hero-search-bar button svg{width:18px;height:18px;display:block;}
   @media (max-width:600px){
-    .hero-search-bar{padding:4px;gap:0;}
-    .hero-search-bar input{font-size:13px;padding:10px 8px;}
+    /* Stacked, one field per row. They used to share a single row with
+       min-width:0 and ellipsis, which fitted but left each field about
+       140px wide -- enough for "Search churches by n...". Two rows cost
+       one field's height and give both their full width. */
+    .hero-search-bar{padding:6px;gap:6px;flex-direction:column;align-items:stretch;}
+    .hero-search-bar .search-bar-divider{
+      width:auto;height:1px;align-self:stretch;margin:0 8px;
+    }
+    .hero-search-bar button{align-self:stretch;width:100%;border-radius:8px;margin-left:0;}
+    .hero-search-bar input{font-size:14px;padding:11px 8px;}
     /* .search-field-wrap's own min-width:160px (fine when the two
        fields each get their own full-width row on Churches/Events)
        is too wide for hero's single-row mobile layout — two of those
@@ -4365,7 +4373,7 @@
        fields shrink below that floor here, with text-overflow
        clipping cleanly rather than wrapping/overflowing, is what
        keeps everything on one row and the button inside the card. */
-    .hero-search-bar .search-field-wrap{min-width:0;flex:1 1 0;}
+    .hero-search-bar .search-field-wrap{min-width:0;flex:1 1 auto;width:100%;}
     .hero-search-bar .search-field-wrap input{padding-left:32px;text-overflow:ellipsis;}
     .hero-search-bar .search-field-icon{left:8px;}
     .hero-search-bar .search-field-icon svg{width:14px;height:14px;}
@@ -5486,13 +5494,28 @@
      bubble simply looks as it does today rather than breaking. */
   .gm-style .gm-style-iw-c{padding:0 !important;}
   .gm-style .gm-style-iw-chr{height:0 !important;min-height:0 !important;}
-  .gm-style .gm-style-iw-chr > button{
-    position:absolute !important;top:5px !important;right:7px !important;
-    width:30px !important;height:30px !important;z-index:2;
-  }
+  /* Google's own close button is hidden and replaced by one in our own
+     content. Pinning theirs to the corner with !important worked until
+     they started centring it vertically in that header row, which put it
+     beside the text rather than above it -- and the next rename would
+     move it again. A button in markup we write cannot drift.
+     :not() rather than naming their class, so a rename still hides it. */
+  .gm-style .gm-style-iw-c button:not(.fd-iw-x){display:none !important;}
   .gm-style .gm-style-iw-d{
-    overflow:hidden !important;padding:11px 40px 11px 13px !important;
+    overflow:hidden !important;padding:10px 34px 10px 13px !important;
   }
+  .fd-iw{position:relative;font-family:inherit;font-size:13px;color:#16233F;}
+  /* Offsets are measured out of the content box back to the bubble's own
+     corner: 34px of right padding less 30 leaves 4px, and 10px of top
+     padding less 6 leaves 4px. */
+  .fd-iw-x{
+    position:absolute;top:-6px;right:-30px;width:26px;height:26px;
+    display:inline-flex;align-items:center;justify-content:center;
+    background:none;border:0;padding:0;cursor:pointer;color:#6b6b6b;
+    border-radius:50%;-webkit-tap-highlight-color:transparent;
+  }
+  .fd-iw-x:hover{background:rgba(0,0,0,.08);color:#16233F;}
+  .fd-iw-x svg{width:13px;height:13px;display:block;}
 
   /* Floats over the map, clear of Google's own controls: the zoom pair
      sits bottom-right and the attribution along the bottom edge, so this
@@ -5582,7 +5605,11 @@
 
     .fd-shell.active .dir-map-col{
       display:block;position:absolute;top:0;left:0;right:0;bottom:auto;
-      height:var(--dir-sheet-top,40%);
+      /* 55%, which is what directorySheetDefaultTop() computes for a
+         45%-tall sheet. It was 40%, so the first paint drew the sheet at
+         60% and it shrank to 45% as soon as the cards arrived and the
+         real figure could be measured -- the flash on opening. */
+      height:var(--dir-sheet-top,55%);
       /* Explicit, because the map column is a positioned element that
          comes AFTER the search row in the DOM. Left on auto it paints
          over the row on top of it. */
@@ -5623,7 +5650,7 @@
 
     /* ---- the sheet ---- */
     .fd-shell.active .dir-results-col{
-      position:absolute;left:0;right:0;top:var(--dir-sheet-top,40%);bottom:0;
+      position:absolute;left:0;right:0;top:var(--dir-sheet-top,55%);bottom:0;
       height:auto;padding:0 14px 16px;
       /* Vertical only. overflow-y:auto alone makes the OTHER axis
          compute to auto as well, not visible, so the sheet was a
@@ -6375,6 +6402,23 @@
   .autocomplete-item.is-active{background:var(--gold-bg);color:var(--ink);}
   .autocomplete-item strong{color:var(--ink);font-weight:600;}
 
+  /* Three card-shaped blanks, only ever on screen before the first
+     result set. Deliberately dumb: a shimmer that outlives its welcome
+     is worse than a flat block, and this is usually gone inside a
+     second. */
+  .fd-card-skeletons{display:grid;gap:10px;}
+  .fd-skel-card{
+    height:112px;border-radius:var(--radius);
+    border:1px solid var(--line);background:var(--card);opacity:.55;
+  }
+  .fd-skel-card:nth-child(2){opacity:.38;}
+  .fd-skel-card:nth-child(3){opacity:.22;}
+  @media (prefers-reduced-motion:no-preference){
+    .fd-skel-card{animation:fdSkelPulse 1.4s ease-in-out infinite;}
+    .fd-skel-card:nth-child(2){animation-delay:.15s;}
+    .fd-skel-card:nth-child(3){animation-delay:.3s;}
+  }
+  @keyframes fdSkelPulse{50%{opacity:.16;}}
   .chip-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
   /* One <details> per group: 88 checkboxes in a column would be a long
      scroll to reach Save, and nobody sets all five groups at once. */
@@ -7929,14 +7973,17 @@
       <h1 data-i18n="home.headline">Find your church home, and everything happening there.</h1>
       <p class="lead" data-i18n="home.lead">Search churches and events near you, follow the ones you love, and never miss what's next.</p>
       <div class="search-bar hero-search-bar">
-        <div class="search-field-wrap">
+        <div class="search-field-wrap search-clear-wrap autocomplete-wrap">
           <span class="search-field-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></span>
           <input type="search" id="hero-keyword-input" placeholder="Search churches by name or keyword..." data-i18n-placeholder="home.keywordPlaceholder" autocomplete="off">
+          <button type="button" class="search-clear-btn" id="hero-keyword-clear-btn" aria-label="Clear search" data-i18n-title="common.clearSearch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+          <div class="autocomplete-list" id="hero-keyword-list" role="listbox"></div>
         </div>
         <span class="search-bar-divider"></span>
-        <div class="search-field-wrap">
+        <div class="search-field-wrap search-clear-wrap">
           <span class="search-field-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
           <input type="search" id="hero-location-input" placeholder="Enter your city or zip code" data-i18n-placeholder="home.locationPlaceholder" autocomplete="off">
+          <button type="button" class="search-clear-btn" id="hero-location-clear-btn" aria-label="Clear location" data-i18n-title="common.clearSearch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
         </div>
         <button id="hero-browse-btn" type="button" aria-label="Browse churches" data-i18n-title="home.browseBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></button>
       </div>
@@ -8343,6 +8390,13 @@
             <button class="event-tab-btn fd-quick-btn" type="button" aria-expanded="false" data-church-tab="categories" data-i18n="filters.byCategory">By Category</button>
             <button class="event-tab-btn fd-quick-btn" type="button" aria-expanded="false" data-church-tab="denominations" data-i18n="filters.byDenomination">By Denomination</button>
           </div>
+        </div>
+        <!-- Shown until the first result set lands. The sheet used to
+             open on nothing at all for as long as the query took, which
+             read as "no churches here" rather than as "not yet". Removed
+             by the first render, whichever way it goes. -->
+        <div id="directory-loading" class="fd-card-skeletons" aria-hidden="true">
+          <div class="fd-skel-card"></div><div class="fd-skel-card"></div><div class="fd-skel-card"></div>
         </div>
         <div class="grid fd-results-grid" id="directory-grid"></div>
         <div id="directory-empty" style="display:none;color:var(--ink-mute);font-size:14.5px;padding:40px 0;text-align:center;" data-i18n="filters.noChurchesMatch">No churches match these filters. Try widening your search.</div>
@@ -12593,7 +12647,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v388 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v389 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13535,7 +13589,9 @@
   function openDirInfo(marker, c){
     if (!dirInfo || !dirMap) return;
     dirInfo.setContent(
-      '<div style="font-family:inherit;font-size:13px;max-width:200px;">' +
+      // Our own close button, top-right, because Google moves theirs.
+      '<div class="fd-iw" style="max-width:200px;">' +
+      '<button type="button" class="fd-iw-x" data-fd-iw-close aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>' +
       // data-church-name is what actually loads the profile: the
       // [data-route] delegate reads it, fetches the church and populates
       // the page, and WITHOUT it the whole block is skipped -- the route
@@ -13813,7 +13869,7 @@
         title: displayChurchName(g.church || '')
       });
       marker.addListener('click', function(){
-        if (!eventsInfo) eventsInfo = new google.maps.InfoWindow({ disableAutoPan: true });
+        if (!eventsInfo) { eventsInfo = new google.maps.InfoWindow({ disableAutoPan: true }); window.fdEventsInfo = eventsInfo; }
         // data-event-key is what the [data-route] delegate reads to load
         // the event. Without it the route fires and the page opens
         // empty, which is the fault the church bubble had.
@@ -13825,7 +13881,8 @@
         if (g.events.length > 5) {
           lines += '<div style="color:#6b6b6b;margin-top:4px;">+' + (g.events.length - 5) + '</div>';
         }
-        eventsInfo.setContent('<div style="font-family:inherit;font-size:13px;max-width:210px;color:#16233F;">'
+        eventsInfo.setContent('<div class="fd-iw" style="max-width:210px;">'
+          + '<button type="button" class="fd-iw-x" data-fd-iw-close aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'
           + '<div style="font-weight:600;">' + escapeHtml(displayChurchName(g.church || '')) + '</div>'
           + lines + '</div>');
         eventsInfo.open({ map: eventsMap, anchor: marker });
@@ -14341,6 +14398,17 @@
   // one that toggles anything, driving the "Churches I follow" checkbox
   // that the search already reads -- that checkbox is hidden now, because
   // two visible controls for one filter is what this replaces.
+  // The close button inside a map bubble. Delegated, because the bubble's
+  // content is replaced on every pin and a listener bound to the button
+  // would go with it.
+  document.addEventListener('click', function(ev){
+    if (!ev.target.closest || !ev.target.closest('[data-fd-iw-close]')) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    if (window.fdDirInfo) window.fdDirInfo.close();
+    if (window.fdEventsInfo) window.fdEventsInfo.close();
+  }, true);
+
   // A tap anywhere that is not the window or the control that opened it
   // shuts the window. On document and in the CAPTURE phase, because the
   // bubble phase does not reliably get here: the panel stops clicks
@@ -14527,6 +14595,7 @@
       // card, and running down a list of fifteen throws the map around
       // fifteen times.
       dirInfo = new google.maps.InfoWindow({ disableAutoPan: true });
+      window.fdDirInfo = dirInfo;
     }
 
     // The pins only change when the CHURCHES change. Switching cards to
@@ -14697,7 +14766,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-29-v388',
+      'build 2026-09-29-v389',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -19971,6 +20040,9 @@
     var empty = document.getElementById('directory-empty');
     var count = document.getElementById('directory-count');
     var pager = document.getElementById('directory-pager');
+    // Whatever the answer is, there is one now.
+    var skel = document.getElementById('directory-loading');
+    if (skel) skel.remove();
 
     if (error) {
       grid.style.display = 'none';
@@ -20966,15 +21038,81 @@
   // rows, so the read policy is not doing it. Without the filter this
   // box would suggest the churches deliberately kept out of the
   // directory -- and then find nothing when one was picked.
-  (function wireKeywordSuggest(){
-    var input = document.getElementById('dir-keyword-input');
-    var list = document.getElementById('dir-keyword-list');
+  // ---- Type-ahead ---------------------------------------------------
+  //
+  // One implementation, three sources, two places it is used: the hero
+  // and the browse shell's shared keyword field. The source is a
+  // function of the typed string, so which table is asked can depend on
+  // the tab that is open without the list widget knowing anything about
+  // tabs.
+  var FD_SUGGEST_SHOW = 8, FD_SUGGEST_FETCH = 40, FD_SUGGEST_MIN = 2;
+
+  // % and _ are wildcards to ilike. A name typed with one would
+  // otherwise widen the search instead of narrowing it.
+  function fdLikePattern(q){
+    return '%' + q.replace(/[\\%_]/g, function(ch){ return '\\' + ch; }) + '%';
+  }
+  // Starts-with first, then contains -- and both are asked for
+  // separately rather than sorting one result set afterwards. Sorting a
+  // contains-match cannot put "Grace Avenue" above "Abiding Grace": the
+  // server returns the first 40 alphabetically and with 22,000 churches
+  // those are all A-names, so the ones actually starting with what was
+  // typed were never in the page being sorted.
+  // pattern is already %escaped%, so dropping its leading % IS the
+  // starts-with pattern -- no second round of escaping, and no way for
+  // the two to disagree about what was escaped.
+  async function fdSuggestChurches(q){
+    if (!window.supabase) return [];
+    var pattern = fdLikePattern(q);
+    var both = await Promise.all([
+      window.supabase.from('churches').select('name')
+        .eq('is_hidden', false).ilike('name', pattern.slice(1)).order('name').limit(FD_SUGGEST_SHOW),
+      window.supabase.from('churches').select('name')
+        .eq('is_hidden', false).ilike('name', pattern).order('name').limit(FD_SUGGEST_FETCH)
+    ]);
+    var starts = both[0], contains = both[1];
+    if ((starts.error && contains.error) || (!starts.data && !contains.data)) return [];
+    return (starts.data || []).concat(contains.data || []).map(function(r){
+      return displayChurchName(r.name);
+    });
+  }
+  // Events go through the RPC, not the table: which events a visitor may
+  // see is the RPC's business (members-only ones are not anon-readable),
+  // and asking it with the typed keyword is exactly the search the field
+  // is about to run anyway.
+  async function fdSuggestEvents(q){
+    if (!window.supabase) return [];
+    var res = await window.supabase.rpc('search_events', {
+      p_keyword: q, p_from_date: new Date().toISOString(),
+      p_limit: FD_SUGGEST_FETCH, p_offset: 0
+    });
+    if (res.error || !res.data) return [];
+    // search_events returns 'title' -- confirmed against the row
+    // mapper the events grid already uses, not guessed.
+    return res.data.map(function(r){ return r.title || ''; });
+  }
+  async function fdSuggestGroups(q){
+    if (!window.supabase) return [];
+    var res = await window.supabase.from('groups').select('name')
+      .ilike('name', fdLikePattern(q)).order('name').limit(FD_SUGGEST_FETCH);
+    if (res.error || !res.data) return [];
+    return res.data.map(function(r){ return r.name || ''; });
+  }
+  // The shared field belongs to whichever tab is open.
+  function fdSuggestForBrowseTab(q){
+    var tab = (typeof fdBrowseTab === 'string') ? fdBrowseTab : 'churches';
+    if (tab === 'events') return fdSuggestEvents(q);
+    if (tab === 'groups') return fdSuggestGroups(q);
+    return fdSuggestChurches(q);
+  }
+
+  function fdWireSuggest(opts){
+    var input = document.getElementById(opts.inputId);
+    var list = document.getElementById(opts.listId);
     // window.supabase is deliberately NOT checked here: this runs at
-    // parse time, the client is assigned later, and testing for it
-    // meant the box was never wired at all. It is checked where it is
-    // actually used, below.
+    // parse time, the client is assigned later, and testing for it meant
+    // the box was never wired at all. It is checked in the sources.
     if (!input || !list) return;
-    var MIN_CHARS = 2, SHOW = 8, FETCH = 40;
     var timer = null, seq = 0, names = [], active = -1;
 
     function close(){
@@ -20994,8 +21132,7 @@
     function choose(name){
       input.value = name;
       close();
-      if (typeof window.syncDirKeywordClearBtn === 'function') window.syncDirKeywordClearBtn();
-      debouncedRenderDirectory();
+      if (typeof opts.onChoose === 'function') opts.onChoose(name);
     }
     // Escaped in three pieces rather than escaping the whole string and
     // then hunting for the query inside it -- the query could otherwise
@@ -21017,58 +21154,36 @@
       active = -1;
     }
     async function look(q){
-      if (!window.supabase) return;
       var mine = ++seq;
-      // % and _ are wildcards to ilike. A name typed with one would
-      // otherwise widen the search instead of narrowing it.
-      var pattern = '%' + q.replace(/[\\%_]/g, function(ch){ return '\\' + ch; }) + '%';
-      // TWO queries, not one. Sorting a contains-match afterwards cannot
-      // put "Grace Avenue" above "Abiding Grace": the server returns the
-      // first 40 alphabetically, and with 22,000 churches those are all
-      // A-names, so the ones actually starting with what was typed were
-      // never in the page being sorted. Asking for them separately is
-      // the only way to see them. Both are one indexed column and they
-      // go out together.
-      // pattern is already %escaped%, so dropping its leading % IS the
-      // starts-with pattern -- no second round of escaping, and no way
-      // for the two to disagree about what was escaped.
-      var both = await Promise.all([
-        window.supabase.from('churches').select('name')
-          .eq('is_hidden', false).ilike('name', pattern.slice(1)).order('name').limit(SHOW),
-        window.supabase.from('churches').select('name')
-          .eq('is_hidden', false).ilike('name', pattern).order('name').limit(FETCH)
-      ]);
+      var raw;
+      try { raw = await opts.source(q); } catch (e) { raw = []; }
       if (mine !== seq) return;             // a later keystroke already answered
-      var starts = both[0], contains = both[1];
-      if ((starts.error && contains.error) || (!starts.data && !contains.data)) { close(); return; }
-      var res = { data: (starts.data || []).concat(contains.data || []) };
       // Deduped on the DISPLAYED name: "First Baptist Church" exists many
       // times over and eight identical rows are no use to anyone. Picking
       // it searches for the name, which finds all of them.
       var seen = Object.create(null), out = [];
-      for (var i = 0; i < res.data.length; i++) {
-        var nm = displayChurchName(res.data[i].name);
+      for (var i = 0; i < raw.length; i++) {
+        var nm = String(raw[i] || '').trim();
+        if (!nm) continue;
         var key = nm.toLowerCase();
         if (seen[key]) continue;
         seen[key] = 1; out.push(nm);
       }
-      // The starts-with results were concatenated first and the dedupe
-      // above keeps first-seen, so they already lead. This is a stable
-      // tiebreak for the rest, and a backstop if one of the two queries
-      // failed on its own.
+      // A stable tiebreak, and a backstop if one of a source's two
+      // queries failed on its own.
       var lower = q.toLowerCase();
       out.sort(function(a, b){
         var pa = a.toLowerCase().indexOf(lower) === 0 ? 0 : 1;
         var pb = b.toLowerCase().indexOf(lower) === 0 ? 0 : 1;
         return pa !== pb ? pa - pb : 0;
       });
-      paint(out.slice(0, SHOW), q);
+      paint(out.slice(0, FD_SUGGEST_SHOW), q);
     }
 
     input.addEventListener('input', function(){
       var q = input.value.trim();
       clearTimeout(timer);
-      if (q.length < MIN_CHARS) { close(); return; }
+      if (q.length < FD_SUGGEST_MIN) { close(); return; }
       timer = setTimeout(function(){ look(q); }, 180);
     });
     input.addEventListener('keydown', function(ev){
@@ -21093,7 +21208,23 @@
       if (ev.target !== input && !list.contains(ev.target)) close();
     });
     input.addEventListener('blur', function(){ setTimeout(close, 120); });
-  })();
+  }
+
+  fdWireSuggest({
+    inputId: 'dir-keyword-input', listId: 'dir-keyword-list',
+    source: fdSuggestForBrowseTab,
+    onChoose: function(){
+      if (typeof window.syncDirKeywordClearBtn === 'function') window.syncDirKeywordClearBtn();
+      debouncedRenderDirectory();
+    }
+  });
+  fdWireSuggest({
+    inputId: 'hero-keyword-input', listId: 'hero-keyword-list',
+    source: fdSuggestChurches,
+    onChoose: function(){
+      if (typeof window.syncHeroKeywordClearBtn === 'function') window.syncHeroKeywordClearBtn();
+    }
+  });
 
   // Directory/Events keyword fields' "x" clear button -- a real, live-
   // reported gap: type="search" inputs had their native webkit clear
@@ -21124,6 +21255,10 @@
     return syncVisibility;
   }
   window.syncDirKeywordClearBtn = wireSearchClearBtn('dir-keyword-input', 'dir-keyword-clear-btn', debouncedRenderDirectory);
+  // The hero's two fields. Nothing to re-render on clear -- the hero
+  // searches when you press the button, not as you type.
+  window.syncHeroKeywordClearBtn = wireSearchClearBtn('hero-keyword-input', 'hero-keyword-clear-btn');
+  window.syncHeroLocationClearBtn = wireSearchClearBtn('hero-location-input', 'hero-location-clear-btn');
   // The events row is gone; its clear button is the shared one, already
   // wired below for the directory.
   // Location fields' own clear buttons -- onClear calls
