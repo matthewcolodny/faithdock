@@ -12344,7 +12344,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v380 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v381 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -14061,7 +14061,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-29-v380',
+      'build 2026-09-29-v381',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -17447,6 +17447,147 @@
   // actually running that migration by hand. Fetched separately, softly,
   // right below instead -- see the giving_enabled/messaging_enabled
   // block in findOrFetchChurchByName().
+  // ---- Church descriptor tags ----------------------------------------
+  //
+  // What a visitor wants to know that the denomination does not tell
+  // them. Stored in churches.church_tags as one namespaced text[] (see
+  // migration 110), so a single overlaps() answers "does this church
+  // match anything ticked" across every group.
+  //
+  // The labels live here rather than in the i18n dictionary: there are
+  // over a hundred of them, and two dictionary entries each would be two
+  // hundred lines a long way from the list they belong to. Each row
+  // carries its own en/es, which is also how a translator sees the
+  // alternatives side by side.
+  //
+  // Refined from FaithStreet's published lists rather than copied:
+  //   - "Gay affirming" and "Inclusive" moved into welcome, where a
+  //     visitor looking for them will actually look.
+  //   - "Hip", "Downtown", "Hand-clapping" dropped -- they describe a
+  //     feeling no two churches would read the same way.
+  //   - "Psalms a cappella" folded into "A cappella".
+  //   - welcome is new: accessibility is the thing FaithStreet buries
+  //     under a single "Disability" programme tag, and it is the one
+  //     group where getting it wrong wastes somebody's Sunday morning.
+  var FD_CHURCH_TAG_GROUPS = [
+    { key: 'welcome', en: 'Welcome & access', es: 'Acogida y accesibilidad', tags: [
+      ['welcome:everyone-welcome',      'Everyone welcome',          'Todos son bienvenidos'],
+      ['welcome:lgbtq-affirming',       'LGBTQ+ affirming',          'Afirmante LGBTQ+'],
+      ['welcome:asl-interpreted',       'ASL interpreted',           'Interpretado en ASL'],
+      ['welcome:deaf-ministry',         'Deaf ministry',             'Ministerio para sordos'],
+      ['welcome:assistive-listening',   'Assistive listening',       'Sistema de audioayuda'],
+      ['welcome:wheelchair-accessible', 'Wheelchair accessible',     'Accesible en silla de ruedas'],
+      ['welcome:large-print',           'Large print & braille',     'Letra grande y braille'],
+      ['welcome:sensory-friendly',      'Sensory friendly',          'Espacio sensorial amigable'],
+      ['welcome:newcomers',             'Newcomer friendly',         'Acoge a quien llega por primera vez']
+    ]},
+    { key: 'language', en: 'Service languages', es: 'Idiomas del servicio', tags: [
+      ['lang:english',        'English',              'Inglés'],
+      ['lang:spanish',        'Spanish',              'Español'],
+      ['lang:asl',            'American Sign Language','Lengua de señas americana'],
+      ['lang:mandarin',       'Mandarin',             'Mandarín'],
+      ['lang:cantonese',      'Cantonese',            'Cantonés'],
+      ['lang:korean',         'Korean',               'Coreano'],
+      ['lang:vietnamese',     'Vietnamese',           'Vietnamita'],
+      ['lang:tagalog',        'Tagalog',              'Tagalo'],
+      ['lang:portuguese',     'Portuguese',           'Portugués'],
+      ['lang:french',         'French',               'Francés'],
+      ['lang:haitian-creole', 'Haitian Creole',       'Criollo haitiano'],
+      ['lang:arabic',         'Arabic',               'Árabe'],
+      ['lang:amharic',        'Amharic',              'Amárico'],
+      ['lang:swahili',        'Swahili',              'Suajili'],
+      ['lang:russian',        'Russian',              'Ruso'],
+      ['lang:ukrainian',      'Ukrainian',            'Ucraniano'],
+      ['lang:romanian',       'Romanian',             'Rumano'],
+      ['lang:polish',         'Polish',               'Polaco'],
+      ['lang:german',         'German',               'Alemán'],
+      ['lang:italian',        'Italian',              'Italiano'],
+      ['lang:greek',          'Greek',                'Griego'],
+      ['lang:armenian',       'Armenian',             'Armenio'],
+      ['lang:hebrew',         'Hebrew',               'Hebreo'],
+      ['lang:hmong',          'Hmong',                'Hmong'],
+      ['lang:khmer',          'Khmer',                'Jemer'],
+      ['lang:japanese',       'Japanese',             'Japonés'],
+      ['lang:nepali',         'Nepali',               'Nepalí'],
+      ['lang:navajo',         'Navajo',               'Navajo'],
+      ['lang:latin',          'Latin',                'Latín']
+    ]},
+    { key: 'character', en: 'Character', es: 'Carácter', tags: [
+      ['char:casual',              'Casual',              'Informal'],
+      ['char:traditional-liturgy', 'Traditional liturgy', 'Liturgia tradicional'],
+      ['char:charismatic',         'Charismatic',         'Carismática'],
+      ['char:spirit-filled',       'Spirit-filled',       'Llena del Espíritu'],
+      ['char:conservative',        'Conservative',        'Conservadora'],
+      ['char:progressive',         'Progressive',         'Progresista'],
+      ['char:creative',            'Creative',            'Creativa'],
+      ['char:down-to-earth',       'Down to earth',       'Sencilla'],
+      ['char:friendly',            'Friendly',            'Amigable'],
+      ['char:historic',            'Historic',            'Histórica'],
+      ['char:lively',              'Lively',              'Animada'],
+      ['char:multigenerational',   'Multigenerational',   'Multigeneracional'],
+      ['char:neighbourhood',       'Neighbourhood-focused','Centrada en el barrio'],
+      ['char:old-school',          'Old-school',          'A la antigua'],
+      ['char:young',               'Young',               'Joven'],
+      ['char:young-families',      'Young families',      'Familias jóvenes'],
+      ['char:lots-of-kids',        'Lots of kids',        'Muchos niños']
+    ]},
+    { key: 'music', en: 'Music', es: 'Música', tags: [
+      ['music:a-cappella',         'A cappella',          'A capela'],
+      ['music:traditional-hymns',  'Traditional hymns',   'Himnos tradicionales'],
+      ['music:organ',              'Organ',               'Órgano'],
+      ['music:chanting',           'Chanting',            'Canto llano'],
+      ['music:gospel-choir',       'Gospel choir',        'Coro gospel'],
+      ['music:praise-and-worship', 'Praise and worship',  'Alabanza y adoración'],
+      ['music:contemporary',       'Contemporary',        'Contemporánea'],
+      ['music:hillsong-style',     'Hillsong-style',      'Estilo Hillsong'],
+      ['music:rock',               'Rock',                'Rock'],
+      ['music:hip-hop',            'Hip-hop',             'Hip-hop'],
+      ['music:country',            'Country',             'Country'],
+      ['music:bluegrass',          'Bluegrass',           'Bluegrass'],
+      ['music:jazz',               'Jazz',                'Jazz'],
+      ['music:indie',              'Indie',               'Indie'],
+      ['music:singer-songwriter',  'Singer-songwriter',   'Cantautor']
+    ]},
+    { key: 'programs', en: 'Programmes', es: 'Programas', tags: [
+      ['prog:childrens-ministry', "Children's ministry",  'Ministerio infantil'],
+      ['prog:nursery',            'Nursery',              'Guardería'],
+      ['prog:preschool',          'Preschool',            'Preescolar'],
+      ['prog:daycare',            'Daycare',              'Cuidado infantil'],
+      ['prog:school',             'School',               'Escuela'],
+      ['prog:youth-group',        'Youth group',          'Grupo juvenil'],
+      ['prog:young-adults',       'Young adults',         'Jóvenes adultos'],
+      ['prog:seniors',            'Seniors ministry',     'Ministerio de adultos mayores'],
+      ['prog:adult-education',    'Adult education',      'Educación para adultos'],
+      ['prog:choir',              'Choir',                'Coro'],
+      ['prog:addiction-recovery', 'Addiction & recovery', 'Adicciones y recuperación'],
+      ['prog:food-pantry',        'Food pantry',          'Despensa de alimentos'],
+      ['prog:community-service',  'Community service',    'Servicio comunitario'],
+      ['prog:social-justice',     'Social justice',       'Justicia social'],
+      ['prog:missions',           'Missions',             'Misiones'],
+      ['prog:disability-ministry','Disability ministry',  'Ministerio de discapacidad'],
+      ['prog:hospice',            'Hospice ministry',     'Ministerio de cuidados paliativos'],
+      ['prog:counselling',        'Counselling',          'Consejería']
+    ]}
+  ];
+  // slug -> label, built once.
+  var FD_CHURCH_TAG_LABELS = (function(){
+    var m = Object.create(null);
+    FD_CHURCH_TAG_GROUPS.forEach(function(g){
+      g.tags.forEach(function(t){ m[t[0]] = { en: t[1], es: t[2], group: g.key }; });
+    });
+    return m;
+  })();
+  // The label in whatever language is on, falling back to the slug's own
+  // tail so an unknown tag still reads as words rather than vanishing.
+  function fdChurchTagLabel(slug){
+    var row = FD_CHURCH_TAG_LABELS[slug];
+    var es = (typeof window.currentLang === 'string' && window.currentLang.indexOf('es') === 0);
+    if (row) return es ? row.es : row.en;
+    return String(slug || '').split(':').pop().replace(/-/g, ' ');
+  }
+  window.FD_CHURCH_TAG_GROUPS = FD_CHURCH_TAG_GROUPS;
+  window.fdChurchTagLabel = fdChurchTagLabel;
+
   var PUBLIC_CHURCH_COLUMNS = 'id, owner_id, name, description, address, city, state, created_at, denomination, denomination_tags, website, logo_url, lat, lng, phone, facebook_url, instagram_url, stripe_account_id, stripe_onboarding_complete, verification_status, verification_requested_at, verification_reviewed_at, plan_type, subscription_status, current_period_end, dedupe_key, service_times, website_public';
 
   // Once a church was cached here it stayed cached forever, for the
