@@ -4050,6 +4050,12 @@
     display:flex;align-items:center;justify-content:space-between;
     height:72px;
   }
+  /* 72px of navy is a lot of a phone screen to spend on a bar that only
+     holds a wordmark and five icons -- and on the browse page everything
+     below it is measured from its height, so the map and the sheet get
+     the difference back. syncDirectoryOffsets reads the real height
+     rather than the number, so nothing else needs telling. */
+  @media (max-width:860px){ .navbar{height:56px;} }
   /* -webkit-tap-highlight-color: without it Android paints a grey box
      over the whole link on every tap -- and this link is the logo plus
      the wordmark, so the flash is the width of both. Reported as the
@@ -5098,6 +5104,27 @@
    bottom border, which is what says "this is the front of the stack"
    without needing a second colour. */
 .fd-pillset{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start;}
+@media (max-width:980px){
+  /* The sheet's own controls live in the tab strip, which is sticky --
+     so the handle you drag and the button that changes the card shape
+     stay put while the cards scroll under them. */
+  .fd-tabs .dir-view-toggle{
+    flex:0 0 auto;align-self:center;margin-right:8px;
+    width:42px;height:34px;border-radius:8px;overflow:hidden;
+  }
+  .fd-tabs .dir-view-btn{width:100%;height:100%;justify-content:center;padding:0;}
+  /* One button, not two. The icon shown is the mode you would switch TO
+     -- a list glyph while you are looking at cards -- so the control
+     says what it does rather than what you already have. */
+  .fd-tabs .dir-view-btn.is-active{display:none;}
+  .fd-tabs .dir-view-btn + .dir-view-btn{border-left:0;}
+  /* The sheet handle, at the far end of the same row. */
+  .fd-tabs .fd-sheet-grip{
+    position:static;flex:0 0 auto;align-self:center;
+    margin:0 0 0 auto;padding:6px 4px;width:auto;background:none;border:0;
+  }
+  .fd-tabs .fd-sheet-grip::before{width:54px;height:4px;background:var(--gold);}
+}
 .fd-tabs{
   display:flex;gap:4px;align-items:flex-end;
   border-bottom:1px solid var(--line);
@@ -5466,7 +5493,13 @@
     /* stretch, not start: the cell is 42px and the button has padding:0,
        so left to itself it shrank to the icon and sat beside a much
        larger filter button. */
-    .fd-shell.active .dir-search-row > .fd-loc-btn{grid-area:pin;padding:0;justify-content:center;justify-self:stretch;}
+    /* Same square as the filter button beside it. They sit together
+       over the map and were two different shapes doing the same kind
+       of job. */
+    .fd-shell.active .dir-search-row > .fd-loc-btn{
+      grid-area:pin;padding:0;justify-content:center;justify-self:stretch;
+      width:42px;height:42px;border-radius:8px;border:1px solid var(--line);
+    }
     .fd-shell.active .dir-search-row > .fd-loc-btn .btn-label-text{display:none;}
     .fd-shell.active .dir-search-row > .dir-view-toggle{grid-area:view;justify-self:end;}
     .fd-shell.active .dir-search-row .search-clear-wrap{min-width:0;}
@@ -7892,7 +7925,6 @@
       </div>
       <div>
         <div class="fd-panel is-on" data-browse-panel="churches">
-        <h2 class="dir-results-title" data-i18n="dir.resultsHeading">Churches</h2>
         <div class="grid fd-results-grid" id="directory-grid"></div>
         <div id="directory-empty" style="display:none;color:var(--ink-mute);font-size:14.5px;padding:40px 0;text-align:center;" data-i18n="filters.noChurchesMatch">No churches match these filters. Try widening your search.</div>
         <div class="dir-results-foot">
@@ -7916,7 +7948,6 @@
         </div>
         </div>
         <div class="fd-panel" data-browse-panel="groups" style="display:none;">
-          <h2 class="dir-results-title" data-i18n="nav.groups">Groups</h2>
       <!-- The directory's own toggle classes, not a second set. If that
            control is ever restyled this follows, which is the whole
            point of not inventing another one. -->
@@ -12116,7 +12147,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v369 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v370 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13431,6 +13462,20 @@
       }
     }
   }
+  // On a phone the cards/list button and the sheet handle belong in the
+  // tab strip: it is the one part of the sheet that does not scroll, and
+  // both are controls for the sheet rather than for a card in it.
+  function fdMoveSheetControlsIntoTabs(){
+    if (window.innerWidth > 980) return;
+    var tabs = document.querySelector('#page-directory .fd-tabs');
+    if (!tabs || tabs.dataset.fdControls) return;
+    tabs.dataset.fdControls = '1';
+    var toggle = document.querySelector('#page-directory .dir-view-toggle');
+    if (toggle) tabs.insertBefore(toggle, tabs.firstElementChild);
+    var grip = document.getElementById('dir-sheet-grip');
+    if (grip) tabs.appendChild(grip);
+  }
+
   // The pills for this tab, built the first time it is opened.
   function fdSyncFilterPills(tab){
     if (typeof moveFiltersIntoPills !== 'function') return;
@@ -13445,6 +13490,7 @@
   }
   window.fdSetBrowseTab = fdSetBrowseTab;
   fdSyncBrowseTabsPresent();
+  fdMoveSheetControlsIntoTabs();
   document.addEventListener('click', function(ev){
     var t = ev.target.closest && ev.target.closest('.fd-tab');
     if (!t) return;
@@ -13667,7 +13713,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-28-v369',
+      'build 2026-09-28-v370',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
