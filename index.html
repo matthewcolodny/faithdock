@@ -5153,8 +5153,15 @@
   /* Wins over .dir-results-col .fd-tabs, which sets the sheet colour
      and sits later in the file at the same weight. */
   .dir-results-col .fd-sheet-head .fd-tabs{
-    margin:0;padding:0 10px;border-bottom:0;background:transparent;
-    position:static;
+    /* padding-top so the open tab does not butt into the gold bar, and
+       centred so the three sit in the middle of the sheet rather than
+       being pushed along by the button beside them. */
+    margin:0;padding:7px 10px 0;border-bottom:0;background:transparent;
+    position:relative;justify-content:center;
+  }
+  /* Out of the flow, so it cannot shift the three tabs off centre. */
+  .fd-sheet-head .dir-view-toggle{
+    position:absolute;left:8px;top:50%;transform:translateY(-50%);margin:0;
   }
   .fd-sheet-head .fd-tab{color:#EDEBE2;}
   .fd-sheet-head .fd-tab.is-on{
@@ -5162,6 +5169,11 @@
     border-color:transparent;
   }
   .fd-sheet-head .dir-view-btn{color:var(--gold);}
+  /* One heart, whichever view you are in. Measured: the row drew a 21px
+     glyph in a 39px box against the card 22px in 34px, which reads as a
+     bigger heart in list mode even though the glyph is a pixel smaller. */
+  .follow-heart-row{width:34px;height:34px;padding:0;justify-content:center;}
+  .follow-heart-row svg{width:22px;height:22px;}
   /* The sheet's own controls live in the tab strip, which is sticky --
      so the handle you drag and the button that changes the card shape
      stay put while the cards scroll under them. */
@@ -12210,7 +12222,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v372 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v373 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13814,7 +13826,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-29-v372',
+      'build 2026-09-29-v373',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
