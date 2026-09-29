@@ -5172,14 +5172,27 @@
    row it is the only thing on screen, so it shows inline and the
    button that would open it goes -- otherwise both buttons opened a
    panel containing nothing but a closed dropdown. */
+/* Every declaration is !important because the panel carries position,
+   max-height, padding, border, box-shadow and overflow inline, and an
+   inline style beats a stylesheet rule that does not say otherwise --
+   without this the list was still an absolutely-positioned 440px box
+   with a scrollbar of its own, sitting on top of the cards.
+   .filter-panel.open is the same list reached from the map's filter
+   button, which had the same escape: the panel behind it looked cut
+   off because a white box was hanging over the edge of it. */
 .filter-panel.fd-denoms-open #denom-dropdown-panel,
-.filter-panel.fd-cats-open #denom-dropdown-panel{
-  display:block !important;position:static;box-shadow:none;
-  max-height:none;padding:0;border:0;background:none;
+.filter-panel.fd-cats-open #denom-dropdown-panel,
+.filter-panel.open #denom-dropdown-panel,
+.filter-panel.open #events-denom-dropdown-panel{
+  display:block !important;position:static !important;width:auto !important;
+  box-shadow:none !important;max-height:none !important;overflow:visible !important;
+  padding:0 !important;border:0 !important;background:none !important;
 }
 /* !important because the button carries display:flex inline. */
 .filter-panel.fd-denoms-open #denom-dropdown-btn,
-.filter-panel.fd-cats-open #denom-dropdown-btn{display:none !important;}
+.filter-panel.fd-cats-open #denom-dropdown-btn,
+.filter-panel.open #denom-dropdown-btn,
+.filter-panel.open #events-denom-dropdown-btn{display:none !important;}
 /* Categories is the traditions; Denominations adds the bodies under
    them. */
 .filter-panel.fd-cats-open .filter-check-child{display:none;}
@@ -7064,8 +7077,18 @@
      which was there to break them under a circle. On one line of a pill
      it has to collapse back to a space. */
   .event-category-btn span{font-size:12.5px;color:var(--ink);text-align:center;line-height:1.2;white-space:normal;}
-  .event-tab-row{display:flex;gap:26px;border-bottom:1px solid var(--line);margin-bottom:20px;}
-  .event-tab-btn{background:none;border:none;padding:10px 2px;font-size:14.5px;color:var(--ink-mute);cursor:pointer;border-bottom:2px solid transparent;font-weight:600;}
+  .event-tab-row{display:flex;gap:26px;border-bottom:1px solid var(--line);margin-bottom:20px;align-items:center;}
+  /* nowrap: "Faith Home" and "This weekend" are two words, and in a flex
+     row with no free space left they broke across two lines -- one tab
+     twice the height of its neighbours, with the underline dragged down
+     with it. The row scrolls sideways instead. */
+  .event-tab-btn{background:none;border:none;padding:10px 2px;font-size:14.5px;color:var(--ink-mute);cursor:pointer;border-bottom:2px solid transparent;font-weight:600;white-space:nowrap;flex-shrink:0;}
+  @media (max-width:980px){
+    /* Four labels at a 26px gap do not fit 375px however short they are. */
+    .event-tab-row{gap:15px;overflow-x:auto;scrollbar-width:none;}
+    .event-tab-row::-webkit-scrollbar{display:none;}
+    .event-tab-btn{font-size:13.5px;}
+  }
   .event-tab-btn.active{color:var(--ink);border-bottom-color:var(--gold);}
   .event-tab-btn:hover{color:var(--ink);}
   @media (max-width: 640px){
@@ -12391,7 +12414,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v382 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v383 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -14108,7 +14131,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-29-v382',
+      'build 2026-09-29-v383',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -14549,8 +14572,9 @@
   // Sets the map's height, which is also the sheet's top -- they are the
   // same edge. Default 40% of the screen box.
   var DIR_SHEET_MIN = 140;
-  // Every shell page keeps its own remembered height. The directory's
-  // key is left as it was so a height already dragged is not lost.
+  // Each shell page has its own key. Nothing reads these back any more
+  // -- see applyDirectorySheetDefault -- but the name is still needed to
+  // clear a value written by an older build.
   function fdSheetKey(page){
     return page.id === 'page-directory' ? 'fd_dir_sheet_top' : 'fd_sheet_top_' + page.id;
   }
@@ -14575,7 +14599,6 @@
       // Whichever map this page owns.
       var m = page.id === 'page-events' ? eventsMap : dirMap;
       if (m && window.google && google.maps) google.maps.event.trigger(m, 'resize');
-      try { localStorage.setItem(fdSheetKey(page), String(px)); } catch (e) {}
     }
     return px;
   }
@@ -14623,15 +14646,14 @@
     want = Math.min(want, Math.round(box * 0.66));
     return box - want;
   }
-  // Applied once the cards exist, and never written to storage: this is
-  // a default, not a choice the user made. A saved value always wins.
+  // Applied once the cards exist. Every fresh load lands here: the
+  // height is not persisted, so the only thing that can have set the
+  // variable already is a drag in this same visit, which the guard
+  // below leaves alone.
   function applyDirectorySheetDefault(){
     if (window.innerWidth > 980) return;
     var page = document.getElementById('page-directory');
     if (!page || page.style.getPropertyValue('--dir-sheet-top')) return;
-    var saved = null;
-    try { saved = localStorage.getItem('fd_dir_sheet_top'); } catch (e) {}
-    if (saved && !isNaN(parseInt(saved, 10))) return;
     var top = directorySheetDefaultTop();
     if (top === null) return;
     page.style.setProperty('--dir-sheet-top', top + 'px');
@@ -14757,9 +14779,13 @@
       if (ev.key === 'ArrowDown') { setDirectorySheetTop(cur + 40, false, page); ev.preventDefault(); }
       else if (ev.key === 'ArrowUp') { setDirectorySheetTop(cur - 40, false, page); ev.preventDefault(); }
     });
-    var saved = null;
-    try { saved = localStorage.getItem(fdSheetKey(page)); } catch (e) {}
-    if (saved && !isNaN(parseInt(saved, 10))) setDirectorySheetTop(parseInt(saved, 10), true, page);
+    // No restore. A height dragged now holds for the rest of the visit,
+    // but opening the app again starts at the measured default: coming
+    // back days later to wherever the sheet was last shoved is not the
+    // same as remembering a preference, and the one everybody noticed
+    // was a sheet left shut. An old build's value is cleared so it
+    // cannot outlive the change.
+    try { localStorage.removeItem(fdSheetKey(page)); } catch (e) {}
   }
 
   // Dispatched here, not up beside the desktop branch. Everything above
