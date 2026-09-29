@@ -4445,6 +4445,14 @@
     }
   }
 
+  /* An event carries two or three tags where a church carries one, and
+     in a results column they were wrapping to a line each -- a stack of
+     badges taller than the name underneath. Smaller and tighter, so the
+     usual pair sits on one line and the card keeps a church card's
+     proportions. */
+  .event-card .card-tags .tag{font-size:10px;padding:3px 7px;letter-spacing:.02em;}
+  .event-card .card-tags{gap:4px;}
+
   .church-card, .event-card{
     background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
     overflow:hidden;transition:border-color .15s, transform .15s;display:block;
@@ -5003,19 +5011,19 @@
   }
   /* Sits in the gutter between the two columns, over the map's left
      edge, so it costs no layout width of its own. */
-  #dir-split-grip{
+  .fd-split-grip{
     position:absolute;top:0;bottom:0;width:11px;left:-6px;
     z-index:6;cursor:col-resize;
     display:flex;align-items:center;justify-content:center;
     -webkit-tap-highlight-color:transparent;touch-action:none;
   }
-  #dir-split-grip::before{
+  .fd-split-grip::before{
     content:"";width:3px;height:44px;border-radius:2px;background:var(--line);
   }
-  #dir-split-grip:hover::before,#dir-split-grip:focus-visible::before{background:var(--gold);}
-  #dir-split-grip:focus-visible{outline:2px solid var(--gold);outline-offset:-2px;}
+  .fd-split-grip:hover::before,.fd-split-grip:focus-visible::before{background:var(--gold);}
+  .fd-split-grip:focus-visible{outline:2px solid var(--gold);outline-offset:-2px;}
   body.fd-split-resizing{user-select:none;cursor:col-resize;}
-  @media (max-width:980px){ #dir-split-grip{display:none;} }
+  @media (max-width:980px){ .fd-split-grip{display:none;} }
 
   /* ---- How wide is the card's own column? ----------------------------
      Declared OUT here, not in the min-width:981px block below: the phone
@@ -5235,7 +5243,7 @@
        results are a sheet from the bottom that drags up and down. The
        window does not scroll; the sheet does. */
     .dir-split{display:block;}
-    #dir-split-grip{display:none;}
+    .fd-split-grip{display:none;}
 
     body.dir-fullscreen{overflow:hidden;}
     body.dir-fullscreen .sitemap{display:none;}
@@ -6720,26 +6728,33 @@
      overflow-x is visible, not auto: with equal fractional columns
      there is nothing that CAN overflow, and `auto` was what put a
      scrollbar track under the row even when it wasn't needed. */
-  .event-category-row{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:22px;overflow-x:visible;padding:18px 0 22px;margin-bottom:4px;}
-  .event-category-btn{display:flex;flex-direction:column;align-items:center;gap:8px;background:none;border:none;cursor:pointer;min-width:0;padding:0;}
-  /* Sized from its column rather than pinned at 84px, which is what
-     makes the first and last circles land flush with the content edges
-     and the row reach the same right-hand edge as the tab row below it.
-     aspect-ratio (already used elsewhere in this file) keeps them
-     circular at whatever width the column works out to, so there's no
-     second number to keep in sync with the first. */
-  .event-category-icon{width:100%;aspect-ratio:1;border-radius:50%;border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--ink);transition:border-color .15s,color .15s;}
-  /* Percentage, not pixels, so the glyph grows with its circle -- 39%
-     is the ratio the old fixed pair (33px in 84px) already had. */
-  .event-category-icon svg{width:39%;height:39%;}
-  .event-category-btn:hover .event-category-icon{border-color:var(--gold);color:var(--gold);}
-  .event-category-btn.active .event-category-icon{border-color:var(--gold);background:var(--gold);color:#fff;}
+  /* Words, not circles. The icons were a row of nine outline glyphs
+     that all had to be decoded before the label under them could be
+     read, and in the shell's narrow results column they squeezed to the
+     point of overlapping their own captions. The label was always the
+     thing doing the work. */
+  .event-category-row{
+    display:flex;flex-wrap:wrap;gap:8px;
+    padding:12px 0 14px;margin-bottom:4px;
+  }
+  .event-category-btn{
+    display:inline-flex;align-items:center;justify-content:center;
+    background:var(--card);border:1px solid var(--line);border-radius:999px;
+    cursor:pointer;min-width:0;padding:7px 14px;
+    transition:border-color .15s,background .15s,color .15s;
+  }
+  .event-category-btn:hover{border-color:var(--gold);}
+  .event-category-btn.active{border-color:var(--gold);background:var(--gold-bg);}
+  .event-category-btn.active span{color:var(--gold-ink);font-weight:600;}
   /* pre-line honours the \n the two- and three-word category names
      carry in the dictionary, so "Support / Groups" breaks where it was
      meant to instead of wherever the column width happens to run out.
      It still collapses ordinary spaces, so single-word names are
      unaffected. */
-  .event-category-btn span{font-size:12px;color:var(--ink);text-align:center;line-height:1.2;white-space:pre-line;}
+  /* The dictionary carries a newline in the two- and three-word names,
+     which was there to break them under a circle. On one line of a pill
+     it has to collapse back to a space. */
+  .event-category-btn span{font-size:12.5px;color:var(--ink);text-align:center;line-height:1.2;white-space:normal;}
   .event-tab-row{display:flex;gap:26px;border-bottom:1px solid var(--line);margin-bottom:20px;}
   .event-tab-btn{background:none;border:none;padding:10px 2px;font-size:14.5px;color:var(--ink-mute);cursor:pointer;border-bottom:2px solid transparent;font-weight:600;}
   .event-tab-btn.active{color:var(--ink);border-bottom-color:var(--gold);}
@@ -6782,13 +6797,10 @@
        desktop rule above sets it to column, and left alone it would
        override grid-template-columns and lay these out in a single
        squeezed line again. */
-    .event-category-row{display:grid;grid-auto-flow:row;grid-template-columns:repeat(4,1fr);gap:20px 4px;overflow-x:visible;padding:18px 0 22px;}
-    .event-category-btn{min-width:0;}
-    /* Back to a fixed size on phones: a quarter of a narrow screen is
-       small enough that letting the circle fill its column makes the
-       icon inside it hard to make out. */
-    .event-category-icon{width:64px;height:64px;aspect-ratio:auto;}
-    .event-category-icon svg{width:26px;height:26px;}
+    /* Wraps as many pills per line as fit, rather than a fixed four. */
+    .event-category-row{display:flex;flex-wrap:wrap;gap:7px;padding:10px 0 12px;}
+    .event-category-btn{min-width:0;padding:6px 12px;}
+    .event-category-btn span{font-size:12px;}
   }
 
   .icon-tip{position:relative;display:inline-flex;}
@@ -7712,7 +7724,7 @@
       <!-- Hangs off the column's left edge. The column is sticky and one
            viewport tall, so the handle stays in view while the results
            scroll past for thousands of pixels. -->
-      <div id="dir-split-grip" role="separator" aria-orientation="vertical" tabindex="0"
+      <div id="dir-split-grip" class="fd-split-grip" role="separator" aria-orientation="vertical" tabindex="0"
            data-i18n-title="dir.splitResize" title="Drag to resize"></div>
       <!-- Shown only after the reader has moved the map themselves.
            Re-runs the search from wherever they have panned to. -->
@@ -7833,23 +7845,18 @@
     <h2 class="dir-results-title" data-i18n="nav.events">Events</h2>
     <div class="event-category-row" id="event-category-row">
       <button class="event-category-btn" data-category-tag="Volunteer">
-        <div class="event-category-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20l-7-7a4 4 0 0 1 6-5.5L12 8l1-.5a4 4 0 0 1 6 5.5l-7 7z"/></svg></div>
         <span data-i18n="category.volunteer">Volunteer</span>
       </button>
       <button class="event-category-btn" data-category-tag="Celebrations">
-        <div class="event-category-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5.8 11.3L2 22l10.7-3.8"/><path d="M4 3h.01M22 4h.01M14.5 2.5l1 1M18 6l1 1M17.5 10.5l1 1"/><path d="M6 12l6-6 6 6-6 6z"/></svg></div>
         <span data-i18n="category.celebrations">Celebrations</span>
       </button>
       <button class="event-category-btn" data-category-tag="Fellowship">
-        <div class="event-category-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
         <span data-i18n="category.fellowship">Fellowship</span>
       </button>
       <button class="event-category-btn" data-category-tag="Music">
-        <div class="event-category-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
         <span data-i18n="category.music">Music</span>
       </button>
       <button class="event-category-btn" data-category-tag="Worship">
-        <div class="event-category-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M8 6l4-4 4 4M6 12h12"/></svg></div>
         <span data-i18n="category.worship">Worship</span>
       </button>
       <!-- One category, two icons' worth of history: Classes (a closed
@@ -7862,17 +7869,14 @@
            form -- requested directly, and the wider columns leave room
            for it to wrap onto a second line without crowding. -->
       <button class="event-category-btn" data-category-tag="Classes & Studies">
-        <div class="event-category-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
         <span data-i18n="category.classesStudies">Classes
 &amp; Studies</span>
       </button>
       <button class="event-category-btn" data-category-tag="Support Groups">
-        <div class="event-category-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.6z"/></svg></div>
         <span data-i18n="category.supportGroups">Support
 Groups</span>
       </button>
       <button class="event-category-btn" data-category-tag="Sports & Recreation">
-        <div class="event-category-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a15 15 0 0 0 0 20M2 12h20"/></svg></div>
         <span data-i18n="category.sportsRecreation">Sports
 &amp; Recreation</span>
       </button>
@@ -7884,7 +7888,6 @@ Groups</span>
            so it needs no learning. Handle plus the horizontal band is
            what keeps it reading as luggage rather than a briefcase. -->
       <button class="event-category-btn" data-category-tag="Trips">
-        <div class="event-category-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M2 13h20"/></svg></div>
         <span data-i18n="category.trips">Trips</span>
       </button>
     </div>
@@ -8015,6 +8018,8 @@ Groups</span>
     </div>
     </div>
     <div class="dir-map-col">
+      <div id="events-split-grip" class="fd-split-grip" role="separator" aria-orientation="vertical" tabindex="0"
+           data-i18n-title="dir.splitResize" title="Drag to resize"></div>
       <div id="events-map-wrap" class="fd-map-wrap">
         <div id="events-map-holder" class="fd-map-holder">
           <div id="events-map" class="fd-map"></div>
@@ -12148,7 +12153,7 @@ Groups</span>
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v364 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v365 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13307,8 +13312,11 @@ Groups</span>
     }
     eventsMapTries = 0;
 
+    // An empty list still gets a map. Hiding it was copied from the
+    // directory, where the list is never empty -- here "no events match
+    // these filters" is a normal state, and blanking half the screen to
+    // say so loses the one thing that shows WHERE you are looking.
     var rows = window.eventsLastRenderedRows || [];
-    if (!rows.length) { wrap.style.visibility = 'hidden'; return; }
     wrap.style.visibility = '';
 
     if (!eventsMap) {
@@ -13321,6 +13329,8 @@ Groups</span>
         styles: dirMapStyles()
       });
     }
+
+    if (!rows.length) { eventsClearMarkers(); google.maps.event.trigger(eventsMap, 'resize'); return; }
 
     await eventsLoadCoords(rows.map(function(e){ return e.churchId; }));
 
@@ -13584,7 +13594,7 @@ Groups</span>
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-28-v364',
+      'build 2026-09-28-v365',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -14182,12 +14192,12 @@ Groups</span>
     var max = Math.max(DIR_COL_MIN, Math.round(window.innerWidth * 0.62));
     return Math.max(DIR_COL_MIN, Math.min(max, Math.round(px)));
   }
-  function applyDirectoryColumnWidth(px){
-    var page = document.getElementById('page-directory');
+  function applyDirectoryColumnWidth(px, page){
+    page = page || document.getElementById('page-directory');
     if (page) page.style.setProperty('--dir-results-w', clampDirectoryColumnWidth(px) + 'px');
   }
-  function setDirectoryColumnWidth(px, live){
-    applyDirectoryColumnWidth(px);
+  function setDirectoryColumnWidth(px, live, page){
+    applyDirectoryColumnWidth(px, page);
     if (!live) {
       // Clamped before storing is safe HERE and only here: this runs on
       // a deliberate act -- a drag, an arrow key -- where the pointer
@@ -14199,20 +14209,31 @@ Groups</span>
     }
     return clampDirectoryColumnWidth(px);
   }
-  (function wireDirectorySplitGrip(){
-    var grip = document.getElementById('dir-split-grip');
-    var split = document.querySelector('.dir-split');
+  // One per shell page, found by walking up from the grip -- the same
+  // arrangement the sheet grip uses, so Events can be dragged on a
+  // desktop too rather than being stuck at the default width.
+  function wireShellSplitGrips(){
+    var grips = document.querySelectorAll('.fd-split-grip');
+    for (var i = 0; i < grips.length; i++) wireDirectorySplitGrip(grips[i]);
+  }
+  function wireDirectorySplitGrip(grip){
+    grip = grip || document.getElementById('dir-split-grip');
+    var split = grip && grip.closest ? grip.closest('.dir-split') : null;
     if (!grip || !split) return;
+    if (grip.dataset.fdSplitWired) return;
+    grip.dataset.fdSplitWired = '1';
+    var page = grip.closest('.fd-shell');
+    var col = split.querySelector('.dir-results-col');
     var dragging = false, frame = null, nextPx = null;
     function apply(px){
       nextPx = px;
       if (frame !== null) return;
       frame = requestAnimationFrame(function(){
         frame = null;
-        if (nextPx !== null) setDirectoryColumnWidth(nextPx, true);
+        if (nextPx !== null) setDirectoryColumnWidth(nextPx, true, page);
       });
     }
-    function width(){ return Math.round(document.querySelector('.dir-results-col').getBoundingClientRect().width); }
+    function width(){ return Math.round(col.getBoundingClientRect().width); }
     grip.addEventListener('pointerdown', function(ev){
       if (!inDirectorySplit()) return;
       dragging = true; frame = null; nextPx = null;
@@ -14243,14 +14264,14 @@ Groups</span>
       nextPx = null;
       document.body.classList.remove('fd-split-resizing');
       try { grip.releasePointerCapture(ev.pointerId); } catch (e) {}
-      setDirectoryColumnWidth(last !== null ? last : width());
+      setDirectoryColumnWidth(last !== null ? last : width(), false, page);
     }
     grip.addEventListener('pointerup', end);
     grip.addEventListener('pointercancel', end);
     grip.addEventListener('keydown', function(ev){
       var step = ev.shiftKey ? 80 : 24;
-      if (ev.key === 'ArrowRight') { setDirectoryColumnWidth(width() + step); ev.preventDefault(); }
-      else if (ev.key === 'ArrowLeft') { setDirectoryColumnWidth(width() - step); ev.preventDefault(); }
+      if (ev.key === 'ArrowRight') { setDirectoryColumnWidth(width() + step, false, page); ev.preventDefault(); }
+      else if (ev.key === 'ArrowLeft') { setDirectoryColumnWidth(width() - step, false, page); ev.preventDefault(); }
     });
     var savedFrac = null, savedPx = null;
     try {
@@ -14270,8 +14291,9 @@ Groups</span>
       dirResultsPref = parseInt(savedPx, 10) / window.innerWidth;
     }
     // Apply only -- writing it back here is what destroyed it before.
-    if (dirResultsPref !== null) applyDirectoryColumnWidth(dirPrefPx());
-  })();
+    if (dirResultsPref !== null) applyDirectoryColumnWidth(dirPrefPx(), page);
+  }
+  wireShellSplitGrips();
 
   window.addEventListener('resize', function(){
     // Recomputed from the fraction, so the column keeps its share of the
@@ -14279,7 +14301,9 @@ Groups</span>
     // Still clamped: narrowing squeezes it to the floor, and widening
     // gives the chosen proportion back rather than leaving it stuck at
     // whatever the smallest window allowed.
-    if (dirResultsPref !== null) applyDirectoryColumnWidth(dirPrefPx());
+    if (dirResultsPref === null) return;
+    var pages = document.querySelectorAll('.fd-shell');
+    for (var i = 0; i < pages.length; i++) applyDirectoryColumnWidth(dirPrefPx(), pages[i]);
   });
   window.addEventListener('resize', syncDirectoryOffsets);
 
@@ -15643,9 +15667,11 @@ Groups</span>
       + '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>' + escapeHtml(e.when) + '</div>';
     if(e.real){
       if(!e.registrationRequired){
-        // No signup needed — a card shouldn't offer a Register button or
-        // role radios, just say so, same as the event detail page.
-        inner += '<div class="card-role-choice" style="margin-top:12px;">' + window.t('events.registrationNotRequired') + '</div>';
+        // Nothing. The card already carries a "No signup needed" tag,
+        // and the sentence under it was the same fact a second time --
+        // three lines of it in a narrow column, which is most of why an
+        // event card stood so much taller than a church card. The event
+        // page still spells it out, where there is room to.
       } else {
         // Reported directly: toggling a type/category filter made every
         // card you're registered for flash "Register" for a moment
