@@ -7915,6 +7915,30 @@
           <button class="export-btn" id="events-load-more-btn" style="display:none;padding:10px 24px;" data-i18n="common.loadMore">Load more</button>
         </div>
         </div>
+        <div class="fd-panel" data-browse-panel="groups" style="display:none;">
+          <h2 class="dir-results-title" data-i18n="nav.groups">Groups</h2>
+      <!-- The directory's own toggle classes, not a second set. If that
+           control is ever restyled this follows, which is the whole
+           point of not inventing another one. -->
+      <div style="display:flex;justify-content:flex-end;margin-top:20px;">
+        <div class="dir-view-toggle" role="group" data-i18n-title="directory.viewToggleLabel" title="View">
+          <button type="button" class="dir-view-btn is-active" data-groups-view="cards" aria-pressed="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            <span data-i18n="groupsPage.viewCards">Cards</span>
+          </button>
+          <button type="button" class="dir-view-btn" data-groups-view="list" aria-pressed="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3.5" y1="6" x2="3.51" y2="6"/><line x1="3.5" y1="12" x2="3.51" y2="12"/><line x1="3.5" y1="18" x2="3.51" y2="18"/></svg>
+            <span data-i18n="groupsPage.viewList">List</span>
+          </button>
+        </div>
+      </div>
+      <div id="groups-results" style="margin-top:16px;">
+        <p style="color:var(--ink-mute);font-size:14px;" data-i18n="common.loading">Loading...</p>
+      </div>
+      <div style="margin-top:20px;">
+        <button class="export-btn" id="groups-load-more-btn" style="display:none;" data-i18n="groupsPage.loadMore">Show more groups</button>
+      </div>
+        </div>
       </div>
     </div>
     </div>
@@ -7966,45 +7990,6 @@
      place to fix the next bug in it. Distance still works -- the RPC
      takes lat/lng either way -- it just comes from the browser rather
      than from typing a city. -->
-<section class="page" id="page-groups">
-  <div class="wrap" style="padding-top:44px;">
-    <div class="eyebrow" data-i18n="nav.groups">Groups</div>
-    <h1 style="font-size:34px;" data-i18n="groupsPage.title">Find a group</h1>
-    <p style="color:var(--ink-mute);margin-top:8px;" data-i18n="groupsPage.subtitle">Small groups, studies and ministries across every listed church. You will also see groups that are only shared with members of churches you belong to.</p>
-
-    <div class="location-row">
-      <div class="search-field-wrap search-clear-wrap" style="max-width:340px;">
-        <span class="search-field-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></span>
-        <input class="field" type="search" id="groups-keyword-input" placeholder="Search groups by name, topic or church..." data-i18n-placeholder="groupsPage.keywordPlaceholder" autocomplete="off">
-        <button type="button" class="search-clear-btn" id="groups-keyword-clear-btn" aria-label="Clear search" data-i18n-title="common.clearSearch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-      </div>
-      <button class="export-btn" id="groups-use-location-btn" data-i18n-title="events.useMyLocation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg> <span class="btn-label-text" data-i18n="events.useMyLocation">Use my location</span></button>
-      <span id="groups-location-status" style="font-size:13px;color:var(--ink-mute);"></span>
-    </div>
-
-    <!-- The directory's own toggle classes, not a second set. If that
-         control is ever restyled this follows, which is the whole
-         point of not inventing another one. -->
-    <div style="display:flex;justify-content:flex-end;margin-top:20px;">
-      <div class="dir-view-toggle" role="group" data-i18n-title="directory.viewToggleLabel" title="View">
-        <button type="button" class="dir-view-btn is-active" data-groups-view="cards" aria-pressed="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-          <span data-i18n="groupsPage.viewCards">Cards</span>
-        </button>
-        <button type="button" class="dir-view-btn" data-groups-view="list" aria-pressed="false">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3.5" y1="6" x2="3.51" y2="6"/><line x1="3.5" y1="12" x2="3.51" y2="12"/><line x1="3.5" y1="18" x2="3.51" y2="18"/></svg>
-          <span data-i18n="groupsPage.viewList">List</span>
-        </button>
-      </div>
-    </div>
-    <div id="groups-results" style="margin-top:16px;">
-      <p style="color:var(--ink-mute);font-size:14px;" data-i18n="common.loading">Loading...</p>
-    </div>
-    <div style="margin-top:20px;">
-      <button class="export-btn" id="groups-load-more-btn" style="display:none;" data-i18n="groupsPage.loadMore">Show more groups</button>
-    </div>
-  </div>
-</section>
 
 
 <!-- ================= CHURCH PROFILE ================= -->
@@ -12131,7 +12116,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v368 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-28-v369 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13428,6 +13413,12 @@
       eventsPinSignature = null;          // the churches' pins were up
       if (window.renderEvents) window.renderEvents();
       else if (window.paintEventsMap) window.paintEventsMap();
+    } else if (tab === 'groups') {
+      // Groups have no coordinates of their own yet, so the map keeps the
+      // church pins rather than going blank.
+      eventsClearMarkers(); eventsPinSignature = null;
+      if (window.loadGroupsSearch) window.loadGroupsSearch();
+      if (window.paintDirectoryMap) window.paintDirectoryMap();
     } else if (tab === 'churches') {
       eventsClearMarkers(); eventsPinSignature = null;
       if (window.paintDirectoryMap) window.paintDirectoryMap();
@@ -13676,7 +13667,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-28-v368',
+      'build 2026-09-28-v369',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -19271,7 +19262,7 @@
   window.eventsOffset = 0;
 
   async function renderEvents(append){
-    var eventsKeywordEl = document.getElementById('events-keyword-input');
+    var eventsKeywordEl = document.getElementById('dir-keyword-input');
     var eventsKeyword = eventsKeywordEl ? eventsKeywordEl.value.trim() : '';
     var maxDays = parseInt(document.getElementById('filter-when').value, 10) || 0;
 
@@ -19594,13 +19585,20 @@
   if (filterDenomSearch) {
     filterDenomSearch.addEventListener('input', debouncedRenderDirectory);
   }
-  var eventsKeywordInput = document.getElementById('events-keyword-input');
-  if (eventsKeywordInput) {
-    eventsKeywordInput.addEventListener('input', debouncedRenderEvents);
-  }
+  // Deliberately NOT a second listener on the shared field -- Churches
+  // already listens, and two would run both searches on every keystroke.
+  // fdBrowseSearch below sends the text to whichever tab is on.
+  // One search field for all three tabs. Which renderer it feeds depends
+  // on which panel is on -- the field itself never changes, which is the
+  // point of the tabs sharing a shell.
   var dirKeywordInput = document.getElementById('dir-keyword-input');
   if (dirKeywordInput) {
-    dirKeywordInput.addEventListener('input', debouncedRenderDirectory);
+    dirKeywordInput.addEventListener('input', function(){
+      var tab = (typeof fdBrowseTab === 'string') ? fdBrowseTab : 'churches';
+      if (tab === 'events' && typeof debouncedRenderEvents === 'function') debouncedRenderEvents();
+      else if (tab === 'groups' && typeof window.loadGroupsSearch === 'function') window.loadGroupsSearch();
+      else debouncedRenderDirectory();
+    });
   }
 
   // ---- Church names under the keyword box --------------------------
@@ -19772,7 +19770,8 @@
     return syncVisibility;
   }
   window.syncDirKeywordClearBtn = wireSearchClearBtn('dir-keyword-input', 'dir-keyword-clear-btn', debouncedRenderDirectory);
-  wireSearchClearBtn('events-keyword-input', 'events-keyword-clear-btn', debouncedRenderEvents);
+  // The events row is gone; its clear button is the shared one, already
+  // wired below for the directory.
   // Location fields' own clear buttons -- onClear calls
   // window.clearDirLocation() (defined further down, in a different
   // enclosing scope than this code -- confirmed the hard way, a bare
@@ -19785,7 +19784,10 @@
   // shared lat/lng state and the OTHER page's synced field too, not
   // just re-run a search.
   window.syncDirLocationClearBtn = wireSearchClearBtn('dir-location-input', 'dir-location-clear-btn', function(){ window.clearDirLocation(); });
-  window.syncEventsLocationClearBtn = wireSearchClearBtn('events-location-input', 'events-location-clear-btn', function(){ window.clearDirLocation(); });
+  // Same shared field, so the directory's own wiring covers it. Kept as
+  // a name because callers re-check the button after setting a value
+  // programmatically.
+  window.syncEventsLocationClearBtn = window.syncDirLocationClearBtn || function(){};
 
   document.addEventListener('change', function(ev){
     if(ev.target.id === 'filter-has-events'){
@@ -20056,7 +20058,7 @@
   // groups is deliberately absent until its panel is in the shell:
   // listed here it would send #groups to a shell that has nothing to
   // show it, so the route still reaches the standalone page for now.
-  var FD_BROWSE_TABS = { events: 'events' };
+  var FD_BROWSE_TABS = { events: 'events', groups: 'groups' };
   var validRoutes = ['home','directory','events','church','event','group','groups','my-lists','my-groups','my-events','my-churches','profile','pricing','compare','signup','reset-password','register-church','create-event','dashboard','admin','admin-church','help','privacy','terms','ada','data-deletion','waitlist','checkin-link','about','unsubscribed'];
   showRouteFromHash(true);
   applyTranslations(savedLang);
@@ -21711,7 +21713,7 @@
     if (!label) return;
     var input = document.getElementById('dir-location-input');
     if (input) input.value = label;
-    var eventsInput = document.getElementById('events-location-input');
+    var eventsInput = document.getElementById('dir-location-input');
     if (eventsInput) eventsInput.value = label;
     // Same as clearDirLocation() below -- a programmatic .value write
     // doesn't fire 'input', so the clear buttons' own visibility
@@ -21837,11 +21839,11 @@
     try { sessionStorage.removeItem('fd_manual_location'); } catch(e) {}
     var input = document.getElementById('dir-location-input');
     if (input) input.value = '';
-    var eventsInput = document.getElementById('events-location-input');
+    var eventsInput = document.getElementById('dir-location-input');
     if (eventsInput) eventsInput.value = '';
     var dirStatus = document.getElementById('dir-location-status');
     if (dirStatus) dirStatus.textContent = '';
-    var eventsStatus = document.getElementById('events-location-status');
+    var eventsStatus = document.getElementById('dir-location-status');
     if (eventsStatus) eventsStatus.textContent = '';
     var churchHeadingEl = document.getElementById('home-church-heading');
     if (churchHeadingEl) churchHeadingEl.textContent = window.t('home.churchesNearYou');
@@ -22258,10 +22260,10 @@
   // (window.dirUserLat/Lng) as the Directory page, just a second set
   // of input/buttons so it doesn't require bouncing between pages to
   // search events by location.
-  var eventsUseLocationBtn = document.getElementById('events-use-location-btn');
+  var eventsUseLocationBtn = document.getElementById('dir-use-location-btn');
   if (eventsUseLocationBtn) {
     eventsUseLocationBtn.addEventListener('click', function(){
-      var statusEl = document.getElementById('events-location-status');
+      var statusEl = document.getElementById('dir-location-status');
       if (!navigator.geolocation) {
         statusEl.textContent = window.t('dir.geoNotSupported');
         return;
@@ -22286,7 +22288,7 @@
     });
   }
 
-  var eventsLocationInput = document.getElementById('events-location-input');
+  var eventsLocationInput = document.getElementById('dir-location-input');
 
   function setupEventsLocationAutocomplete(){
     if (!eventsLocationInput || !window.google || !google.maps || !google.maps.places) return;
@@ -22295,7 +22297,7 @@
       var place = autocomplete.getPlace();
       if (place.geometry && place.geometry.location) {
         setDirLocation(place.geometry.location.lat(), place.geometry.location.lng(), place.formatted_address || eventsLocationInput.value);
-        document.getElementById('events-location-status').textContent = window.t('dir.showingDistancesThisLocation');
+        document.getElementById('dir-location-status').textContent = window.t('dir.showingDistancesThisLocation');
       }
     });
   }
@@ -22303,7 +22305,7 @@
 
   function doEventsLocationSearch(){
     var query = eventsLocationInput.value;
-    var statusEl = document.getElementById('events-location-status');
+    var statusEl = document.getElementById('dir-location-status');
     if (!query || query.length < 2) { return; }
     if (!(window.google && google.maps)) { statusEl.textContent = window.t('dir.mapServiceLoading'); return; }
     statusEl.textContent = window.t('dir.searching');
@@ -35318,7 +35320,7 @@
     }
     if (moreBtn) moreBtn.style.display = 'none';
 
-    var keywordEl = document.getElementById('groups-keyword-input');
+    var keywordEl = document.getElementById('dir-keyword-input');
     var keyword = keywordEl ? keywordEl.value.trim() : '';
 
     var { data: rows, error } = await supabase.rpc('search_groups', {
@@ -35369,7 +35371,7 @@
   }
   window.loadGroupsSearch = loadGroupsSearch;
 
-  var groupsKeywordInput = document.getElementById('groups-keyword-input');
+  var groupsKeywordInput = document.getElementById('dir-keyword-input');
   if (groupsKeywordInput) {
     var groupsKeywordTimer = null;
     groupsKeywordInput.addEventListener('input', function(){
@@ -35385,10 +35387,10 @@
   var groupsLoadMore = document.getElementById('groups-load-more-btn');
   if (groupsLoadMore) groupsLoadMore.addEventListener('click', function(){ loadGroupsSearch(true); });
 
-  var groupsUseLocationBtn = document.getElementById('groups-use-location-btn');
+  var groupsUseLocationBtn = document.getElementById('dir-use-location-btn');
   if (groupsUseLocationBtn) {
     groupsUseLocationBtn.addEventListener('click', function(){
-      var statusEl = document.getElementById('groups-location-status');
+      var statusEl = document.getElementById('dir-location-status');
       if (!navigator.geolocation) { statusEl.textContent = window.t('dir.geoNotSupported'); return; }
       statusEl.textContent = window.t('dir.findingYou');
       navigator.geolocation.getCurrentPosition(function(pos){
