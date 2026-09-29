@@ -8032,10 +8032,14 @@
       <button class="event-tab-btn" id="event-tab-weekend" data-event-tab="weekend" data-i18n="events.tabWeekend">This weekend</button>
     </div>
     <div id="event-tab-for-you-empty-msg" style="display:none;color:var(--ink-mute);font-size:13.5px;margin:-8px 0 20px;"></div>
-        <div id="events-count" style="font-size:13.5px;color:var(--ink-mute);margin-bottom:16px;"></div>
         <div class="grid fd-results-grid" id="events-grid"></div>
         <div id="events-empty" style="display:none;color:var(--ink-mute);font-size:14.5px;padding:40px 0;text-align:center;" data-i18n="filters.noEventsMatch">No events match these filters. Try widening your search.</div>
-        <div style="text-align:center;margin-top:24px;">
+        <!-- The count sits with the paging control, the way the Churches
+             panel has it: what it answers -- how many, how far through --
+             is the question you have when you reach the bottom, not a
+             line you read once on the way in. -->
+        <div class="dir-results-foot">
+          <div id="events-count" style="font-size:13.5px;color:var(--ink-mute);"></div>
           <button class="export-btn" id="events-load-more-btn" style="display:none;padding:10px 24px;" data-i18n="common.loadMore">Load more</button>
         </div>
         </div>
@@ -12227,7 +12231,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v374 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v375 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13831,7 +13835,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-29-v374',
+      'build 2026-09-29-v375',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -14370,22 +14374,21 @@
   function fdSettleSheet(page, endTop, velocity){
     var stops = fdSheetStops(page);
     if (!stops) return endTop;
-    var target;
-    if (Math.abs(velocity) >= FD_FLICK_SPEED) {
-      // Thrown. Downwards means a bigger top -- the sheet is closing.
-      var i = 0, best = Infinity;
-      for (var k = 0; k < stops.length; k++) {
-        var d = Math.abs(stops[k] - endTop);
-        if (d < best) { best = d; i = k; }
-      }
-      i = velocity > 0 ? Math.min(i + 1, stops.length - 1) : Math.max(i - 1, 0);
-      target = stops[i];
-    } else {
-      target = stops[0];
-      for (var m = 1; m < stops.length; m++) {
-        if (Math.abs(stops[m] - endTop) < Math.abs(target - endTop)) target = stops[m];
-      }
+    // A slow release leaves the sheet exactly where it was put. It used
+    // to snap to the nearest of the three stops either way, which meant
+    // a deliberate drag to half height was pulled up or down the instant
+    // you let go and there was no way to choose any other height. Only a
+    // throw moves it now.
+    if (Math.abs(velocity) < FD_FLICK_SPEED) return endTop;
+
+    // Thrown. Downwards means a bigger top -- the sheet is closing.
+    var i = 0, best = Infinity;
+    for (var k = 0; k < stops.length; k++) {
+      var d = Math.abs(stops[k] - endTop);
+      if (d < best) { best = d; i = k; }
     }
+    i = velocity > 0 ? Math.min(i + 1, stops.length - 1) : Math.max(i - 1, 0);
+    var target = stops[i];
     var col = page.querySelector('.dir-results-col');
     var mapCol = page.querySelector('.dir-map-col');
     // Transition only for the settle, then off again -- left on, every
