@@ -5632,10 +5632,18 @@
          sideways; the rows that are (the tab row, the pager) are their
          own scrollers and hide their own bars. */
       overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;
+      /* No visible track. The sheet's own scrollbar drew a pale strip
+         down the right edge, and because the navy header is sticky and
+         full-bleed (margin:0 -14px) the strip sat right against it and
+         read as a seam in the bar rather than as a scrollbar. A sheet
+         full of cards does not need to be told it scrolls. Mobile only
+         -- the desktop results column keeps its scrollbar. */
+      scrollbar-width:none;
       background:var(--paper);border-top:1px solid var(--line);
       border-radius:16px 16px 0 0;box-shadow:0 -6px 20px rgba(0,0,0,.16);
       z-index:4;
     }
+    .fd-shell.active .dir-results-col::-webkit-scrollbar{display:none;}
     .fd-shell.active .dir-results-col > .directory-layout{
       margin-top:0;grid-template-columns:1fr;
     }
@@ -12585,7 +12593,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v387 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v388 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -14689,7 +14697,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-29-v387',
+      'build 2026-09-29-v388',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
