@@ -512,6 +512,8 @@
       'dir.couldNotGetLocation': 'Could not get your location — try typing it instead.', 'dir.mapServiceLoading': 'Map service still loading — try again in a moment.',
       'home.nearPlace': 'Searching near {q}',
       'dir.yourLocation': 'Your location',
+      'filters.noChurchesTagged': 'No churches have set this yet. Churches add these themselves, and this fills in as they do.',
+      'filters.addFilter': 'Add filter',
       'search.groupCategories': 'Categories',
       'filters.searchCategory': 'Search categories',
       'search.groupChurches': 'Churches',
@@ -1895,6 +1897,8 @@
       'dir.couldNotGetLocation': 'No pudimos obtener tu ubicación — intenta escribirla.', 'dir.mapServiceLoading': 'El servicio de mapas aún se está cargando — intenta de nuevo en un momento.',
       'home.nearPlace': 'Buscando cerca de {q}',
       'dir.yourLocation': 'Tu ubicación',
+      'filters.noChurchesTagged': 'Ninguna iglesia ha indicado esto todavía. Las iglesias lo añaden ellas mismas, y esto se irá llenando.',
+      'filters.addFilter': 'Añadir filtro',
       'search.groupCategories': 'Categorías',
       'filters.searchCategory': 'Buscar categorías',
       'search.groupChurches': 'Iglesias',
@@ -4226,12 +4230,18 @@
   .nav-search-row input::placeholder{color:#8E97A8;}
   /* The rows sit on the navy panel, so this cannot borrow
      .search-clear-btn -- that one is drawn for a light field. */
+  /* Out of the flow. In it, a 24px button in a row whose input is
+     shorter made the row grow the moment the button appeared --
+     measured 45px to 48px on the first keystroke, which reads as the
+     bar jumping as you type. */
   .nav-search-clear{
+    position:absolute;right:12px;top:50%;transform:translateY(-50%);
     display:flex;align-items:center;justify-content:center;
     width:24px;height:24px;flex-shrink:0;padding:0;
     background:none;border:0;border-radius:50%;cursor:pointer;color:#9AA3B5;
     -webkit-tap-highlight-color:transparent;
   }
+  .nav-search-row input{padding-right:30px;}
   .nav-search-clear:hover{color:#EDEBE2;background:rgba(255,255,255,0.10);}
   .nav-search-clear[hidden]{display:none;}
   .nav-search-clear svg{width:14px;height:14px;}
@@ -5315,6 +5325,8 @@
    bodies hidden, which made two buttons for one list. */
 .filter-panel.fd-cats-open .fd-cat-group{display:block;}
 .fd-cat-group{display:none;}
+/* Present for the search to read, never drawn in a panel. */
+.fd-hidden-group{display:none !important;}
 .filter-panel.fd-loc-open .fd-loc-group{display:block;}
 .fd-loc-group{display:none;}
 .filter-panel.fd-loc-open,
@@ -7431,6 +7443,21 @@
     cursor:pointer;-webkit-tap-highlight-color:transparent;
   }
   .fd-search-summary button:hover{color:var(--ink);border-color:var(--ink-mute);}
+  .fd-panel-close{
+    position:absolute;top:10px;right:10px;width:30px;height:30px;
+    display:none;align-items:center;justify-content:center;
+    background:none;border:0;border-radius:50%;cursor:pointer;color:var(--ink-mute);
+    -webkit-tap-highlight-color:transparent;
+  }
+  .fd-panel-close svg{width:15px;height:15px;display:block;}
+  .fd-panel-close:hover{background:rgba(0,0,0,.07);color:var(--ink);}
+  /* Only in the overlay states -- on the desktop sidebar there is
+     nothing to close. */
+  .filter-panel.open .fd-panel-close,
+  .filter-panel.fd-denoms-open .fd-panel-close,
+  .filter-panel.fd-cats-open .fd-panel-close,
+  .filter-panel.fd-loc-open .fd-panel-close,
+  .filter-panel.fd-dates-open .fd-panel-close{display:flex;}
   .fd-filter-chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px;}
   .fd-filter-chips[hidden]{display:none;}
   .fd-filter-chip{
@@ -8353,6 +8380,9 @@
       <div class="fd-panel is-on" data-browse-panel="churches" style="display:contents;">
       <aside class="filter-panel" data-filter-for="churches">
         <h3 class="filter-panel-title" data-i18n="filters.filterSearches">Filter searches</h3>
+        <!-- Shutting a window by tapping the map behind it works, but
+             only once you know it does. A corner x says so. -->
+        <button type="button" class="fd-panel-close" data-fd-panel-close aria-label="Close" data-i18n-aria="common.close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
         <!-- What is currently narrowing the list, as chips you can take
              off. Built by fdRenderFilterChips from the same checkboxes
              the search reads, so there is nothing here to keep in step
@@ -8442,7 +8472,14 @@
           <h4 data-i18n="filters.mapHeading">Map</h4>
           <label class="filter-check"><input type="checkbox" id="filter-show-pois"> <span data-i18n="filters.showOtherPlaces">Show shops, restaurants and other places</span></label>
         </div>
-        <div class="filter-group">
+        <!-- Distance and "has events" used to sit in the map's filter
+             window. Distance is what By Location is for, and "has
+             events" is a thing about a church, so it belongs with the
+             other things about a church. Both stay in the DOM -- the
+             search reads them by id -- they are just not shown here.
+             fd-cat-group carries the events one so it appears in the
+             By Category view. -->
+        <div class="filter-group fd-hidden-group">
           <h4 data-i18n="filters.distance">Distance</h4>
           <select class="field" id="filter-distance">
             <option value="0" data-i18n="filters.anyDistance">Any distance</option>
@@ -8458,7 +8495,7 @@
         <div class="filter-group">
           <label class="filter-check" id="dir-filter-followed-wrap" style="display:none;"><input type="checkbox" id="dir-filter-followed-churches"> <span data-i18n="events.churchesIFollow">Churches I follow</span></label>
         </div>
-        <div class="filter-group">
+        <div class="filter-group fd-cat-group">
           <label class="filter-check"><input type="checkbox" id="filter-has-events"> <span data-i18n="filters.hasEvents">Has events</span></label>
           <select class="field" id="filter-events" style="margin-top:8px;display:none;">
             <option value="0" data-i18n="filters.anyTime">Any time</option>
@@ -12890,7 +12927,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v404 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v405 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -14240,6 +14277,12 @@
     // absent, so a tab that vanished comes back on the next tap rather
     // than staying gone for the session.
     fdSyncBrowseTabsPresent();
+    // Switching tabs onto a sheet dragged down far enough to cut the
+    // first card in half shows a sliver of something new, which reads
+    // as broken rather than as scrolled. Raised to the measured default
+    // -- the same figure a fresh open uses, which is chosen so the
+    // first card is whole and the next is visibly starting.
+    if (typeof window.fdRaiseSheetForCards === 'function') window.fdRaiseSheetForCards();
 
     var tabs = document.querySelectorAll('.fd-tab');
     for (var i = 0; i < tabs.length; i++) {
@@ -14348,7 +14391,10 @@
   // row, .fd-dates-open is Events' date range. Back should shut whichever
   // is up rather than leaving the page, so they are opened and closed
   // through here and each open pushes one history entry to spend.
-  var FD_FILTER_OPEN_CLASSES = ['open', 'fd-denoms-open', 'fd-cats-open', 'fd-dates-open'];
+  // fd-loc-open belongs here too. It was added as a fourth scoped
+  // view and not to this list, so nothing could see it was open: the
+  // tap-outside handler skipped it and Back had nothing to shut.
+  var FD_FILTER_OPEN_CLASSES = ['open', 'fd-denoms-open', 'fd-cats-open', 'fd-loc-open', 'fd-dates-open'];
   function fdFilterPanels(){
     return document.querySelectorAll('#page-directory .filter-panel');
   }
@@ -14734,6 +14780,16 @@
     ev.stopPropagation();
     if (window.fdDirInfo) window.fdDirInfo.close();
     if (window.fdEventsInfo) window.fdEventsInfo.close();
+  }, true);
+
+  // The window's own close button. Shutting one by tapping the map
+  // behind it works, but only once you know it does.
+  document.addEventListener('click', function(ev){
+    if (!ev.target.closest || !ev.target.closest('[data-fd-panel-close]')) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    fdCloseFilterPanels();
+    fdSyncFilterHistory();
   }, true);
 
   // ---- Dismissing an overlay costs the tap that does it -------------
@@ -15123,7 +15179,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-30-v404',
+      'build 2026-09-30-v405',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -15656,6 +15712,21 @@
     if (dirMap && window.google && google.maps) google.maps.event.trigger(dirMap, 'resize');
   }
   window.fdApplyDirectorySheetDefault = applyDirectorySheetDefault;
+
+  // Bring the sheet up far enough for one whole card, and no further.
+  // A sheet the reader has deliberately pulled taller is left alone --
+  // this only ever raises.
+  function fdRaiseSheetForCards(){
+    if (window.innerWidth > 980) return;
+    var page = document.getElementById('page-directory');
+    if (!page) return;
+    var want = directorySheetDefaultTop();
+    if (want === null) return;
+    var cur = parseInt(page.style.getPropertyValue('--dir-sheet-top'), 10);
+    if (!isNaN(cur) && cur <= want) return;   // already at least this tall
+    setDirectorySheetTop(want, false, page);
+  }
+  window.fdRaiseSheetForCards = fdRaiseSheetForCards;
 
   // Called once per grip. Each one finds its own page by walking up to
   // the shell it is inside, so Churches and Events get the same drag
@@ -20400,6 +20471,16 @@
     // Whatever the answer is, there is one now.
     var skel = document.getElementById('directory-loading');
     if (skel) skel.remove();
+    // A category filter with no data behind it returns nothing, and
+    // "try widening your search" is the wrong advice for it -- there is
+    // nothing to widen to until churches fill their tags in. Said
+    // plainly instead.
+    var emptyMsgEl = document.getElementById('directory-empty');
+    if (emptyMsgEl) {
+      var catsOn = window.fdChosenCategories && window.fdChosenCategories().length;
+      var noneTagged = catsOn && Array.isArray(window.fdCategoryChurchIds) && window.fdCategoryChurchIds.length === 0;
+      emptyMsgEl.textContent = window.t(noneTagged ? 'filters.noChurchesTagged' : 'filters.noChurchesMatch');
+    }
     if (window.fdRenderSearchSummary) window.fdRenderSearchSummary();
 
     if (error) {
