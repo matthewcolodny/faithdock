@@ -5006,7 +5006,16 @@
   .church-row-head,.event-row-head,.group-row-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
   .church-row-name,.event-row-name,.group-row-name{font-family:'Fraunces';font-size:15.5px;font-weight:600;color:var(--ink);}
   .church-row-meta,.event-row-meta,.group-row-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;color:var(--ink-mute);font-size:12.5px;margin-top:4px;}
-  .church-row-sep{opacity:.5;}
+  /* Drawn by the span that FOLLOWS it rather than standing between the
+     two as a flex item of its own. As an item it could be pushed to
+     the end of a wrapped line and left dangling there with nothing
+     after it -- visible on any row narrow enough to wrap, which on a
+     phone is most of them. Part of the next span, it wraps with it. */
+  .church-row-meta > :not(:first-child)::before,
+  .event-row-meta > :not(:first-child)::before,
+  .group-row-meta > :not(:first-child)::before{
+    content:'\00b7';opacity:.5;margin-right:8px;
+  }
   /* The count on the right of a group row, outside the flexible middle
      so a long group name cannot push it off the edge. */
   .group-row-count{flex-shrink:0;font-size:12px;color:var(--ink-mute);}
@@ -8040,6 +8049,9 @@
      all, so an unbounded one here is the single thing that would still
      make a group tile stand taller than the cards beside it -- and a
      group name on its own is often too vague to drop it entirely. */
+  /* The name standing in for the tag row: takes the width the tags
+     would have, so the heart keeps the same right edge. */
+  .card-tag-row-title{flex:1;min-width:0;margin:0;}
   .group-card-desc{
     font-size:13.5px;color:var(--ink-soft);margin:10px 0 0;
     display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
@@ -13086,7 +13098,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v414 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v415 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13783,7 +13795,7 @@
       + '<span class="church-row-name">' + escapeHtml(displayChurchName(c.name)) + '</span>'
       + '<span class="tag sage">' + escapeHtml(translateDenomination(c.tag)) + '</span>'
       + '</div>'
-      + (bits.length ? '<div class="church-row-meta">' + bits.join('<span class="church-row-sep">&middot;</span>') + '</div>' : '')
+      + (bits.length ? '<div class="church-row-meta">' + bits.join('') + '</div>' : '')
       // Same span, same rules as the card: a <span> because the row is
       // already an <a> and a nested anchor is invalid, and the phone
       // handler lets this one through so it still reaches the row's href.
@@ -14516,6 +14528,23 @@
     }
 
     fdSyncFilterPills(tab);
+
+    // One map, drawn from the churches, behind all three tabs -- so
+    // the churches have to be fetched by whoever gets here first.
+    // Events and Groups each called their own loader below and
+    // Churches called none, because the route renders the directory on
+    // the way into #directory. That is true for #directory and false
+    // for anybody who opened #groups or #events and then tapped
+    // Churches: no search had run, so the grid sat on its skeleton and
+    // the map had no pins to draw. Reported as "going to groups loads a
+    // blank map and then navigating to churches it's all blank".
+    //
+    // undefined, not empty: renderDirectory sets this to an array even
+    // when nothing matched, so a genuine no-results does not re-run the
+    // search on every tab switch.
+    if (!window.directoryLastRenderedRows && typeof window.renderDirectory === 'function') {
+      window.renderDirectory();
+    }
 
     // Whichever list this tab shows, and its pins.
     if (tab === 'events') {
@@ -15478,7 +15507,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-30-v414',
+      'build 2026-09-30-v415',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -17829,7 +17858,7 @@
       +     '<span class="event-row-name">' + escapeHtml(e.title) + '</span>'
       +     tags
       +   '</div>'
-      +   (bits.length ? '<div class="event-row-meta">' + bits.join('<span class="church-row-sep">&middot;</span>') + '</div>' : '')
+      +   (bits.length ? '<div class="event-row-meta">' + bits.join('') + '</div>' : '')
       + '</div>'
       + followHeartEvent(e)
       + '</div>';
@@ -38839,7 +38868,7 @@
         // church, when it meets, how big it is. Same component as a
         // church row now, rather than a flex container built by hand.
         var rbits = [];
-        if (meta) rbits.push(meta);
+        if (meta) rbits.push('<span>' + meta + '</span>');
         if (g.meeting_schedule) rbits.push('<span>' + escapeHtml(g.meeting_schedule) + '</span>');
         return '<div class="group-row" data-route="group" data-group-id="' + escapeHtml(g.id) + '">'
           + '<div class="group-row-main">'
@@ -38847,7 +38876,7 @@
           +     '<span class="group-row-name">' + escapeHtml(g.name) + '</span>'
           +     visTag + fmtTag
           +   '</div>'
-          +   (rbits.length ? '<div class="group-row-meta">' + rbits.join('<span class="church-row-sep">&middot;</span>') + '</div>' : '')
+          +   (rbits.length ? '<div class="group-row-meta">' + rbits.join('') + '</div>' : '')
           +   (dirHtml ? '<div class="dir-card-actions">' + dirHtml + '</div>' : '')
           + '</div>'
           + '<div class="group-row-count">' + escapeHtml(groupsMemberCountLabel(g.member_count)) + '</div>'
@@ -38867,20 +38896,28 @@
       return '<div class="group-card--tile" data-route="group" data-group-id="' + escapeHtml(g.id) + '" style="cursor:pointer;">'
         + thumb
         + '<div class="card-body">'
-        +   '<div class="card-tag-row">'
-        // Empty when there is nothing true to say. A church card's tag is
-        // its denomination and an event's is when it is; a group's will be
-        // its format and its category, which search_groups does not return
-        // yet. A word like 'Groups' in the meantime is not a tag, it is the
-        // name of the list you are already looking at. The heart keeps its
-        // place either way -- it is pushed right by its own margin, not by
-        // whatever is beside it: .card-tags is flex:1, so it holds the
-        // row open at full width empty or not, and measuring it that way
-        // put the heart at the same right edge either way.
-        +     '<div class="card-tags">' + visTag + fmtTag + '</div>'
-        +     heart
-        +   '</div>'
-        +   '<h3>' + escapeHtml(g.name) + '</h3>'
+        // A church card's tag is its denomination and an event's is when
+        // it is; a group's will be its format and its category, which
+        // search_groups does not return yet. A word like 'Groups' in the
+        // meantime is not a tag, it is the name of the list you are
+        // already looking at -- so with nothing true to say, the row
+        // holds the NAME instead of standing empty.
+        //
+        // Empty, it was 34px of blank space with the heart on the end,
+        // which started the name level with the bottom of the picture
+        // rather than the top. That is what "the default image is too
+        // high, doesn't look like a church card" was. This goes back to
+        // the tags-then-name shape on its own once the tags arrive.
+        +   ((visTag || fmtTag)
+              ? '<div class="card-tag-row">'
+                + '<div class="card-tags">' + visTag + fmtTag + '</div>'
+                + heart
+                + '</div>'
+                + '<h3>' + escapeHtml(g.name) + '</h3>'
+              : '<div class="card-tag-row">'
+                + '<h3 class="card-tag-row-title">' + escapeHtml(g.name) + '</h3>'
+                + heart
+                + '</div>')
         +   (meta ? '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/></svg>' + meta + '</div>' : '')
         +   (g.meeting_schedule ? '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>' + escapeHtml(g.meeting_schedule) + '</div>' : '')
         +   '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg>' + escapeHtml(groupsMemberCountLabel(g.member_count)) + '</div>'
