@@ -1713,6 +1713,8 @@
       'admin.approvedTag': 'Approved', 'admin.rejectedTag': 'Rejected', 'admin.noResolvedClaimsYet': 'No resolved claims yet.', 'admin.resolvedClaim': 'resolved claim', 'admin.resolvedClaimsWord': 'resolved claims',
       'admin.churchOwnerSingular': 'Church owner', 'admin.individual': 'Individual', 'admin.joinedOn': 'Joined {date}',
       'admin.noUsersMatch': 'No users match.', 'admin.userWord': 'user', 'admin.usersWord': 'users',
+      'admin.showChurchConfirm': 'Make "{name}" visible again? It will leave the hidden list straight away.',
+      'admin.visibilityLogTitle': 'Visibility changes you made in this browser',
       'admin.batchesShown': '{n} import batches',
       'admin.hideEveryChurch': 'Hide every unclaimed church',
       'admin.showEveryHidden': 'Bring back everything hidden in bulk',
@@ -3039,6 +3041,8 @@
       'admin.approvedTag': 'Aprobado', 'admin.rejectedTag': 'Rechazado', 'admin.noResolvedClaimsYet': 'Aún no hay reclamos resueltos.', 'admin.resolvedClaim': 'reclamo resuelto', 'admin.resolvedClaimsWord': 'reclamos resueltos',
       'admin.churchOwnerSingular': 'Propietario de iglesia', 'admin.individual': 'Individual', 'admin.joinedOn': 'Se unió el {date}',
       'admin.noUsersMatch': 'Ningún usuario coincide.', 'admin.userWord': 'usuario', 'admin.usersWord': 'usuarios',
+      'admin.showChurchConfirm': '¿Hacer visible «{name}» otra vez? Saldrá de la lista de ocultas de inmediato.',
+      'admin.visibilityLogTitle': 'Cambios de visibilidad hechos en este navegador',
       'admin.batchesShown': '{n} lotes de importación',
       'admin.hideEveryChurch': 'Ocultar todas las iglesias sin reclamar',
       'admin.showEveryHidden': 'Recuperar todo lo ocultado en bloque',
@@ -4342,7 +4346,11 @@
     .hero p.lead{font-size:15.5px;}
     .search-bar{flex-direction:column;background:transparent;padding:0;gap:10px;}
     .search-bar input{background:var(--card);border-radius:8px;}
-    .search-bar button{width:100%;padding:13px;}
+    /* Direct child, like the two rules above it. This one was missed
+       when those were narrowed, and it is the reason the clear "x" sat
+       in the middle of the field: width:100% made the button 294px
+       wide, and the x is centred in it. */
+    .search-bar > button{width:100%;padding:13px;}
   }
   .hero-for-churches{margin-top:16px;font-size:13.5px;color:#C7CCD8;}
   .hero-for-churches a{color:#fff;border-bottom:1px solid var(--gold);white-space:nowrap;}
@@ -5000,6 +5008,10 @@
     display:none;align-items:center;justify-content:center;line-height:0;
   }
   .search-clear-btn svg{width:14px;height:14px;display:block;}
+  /* The x is 22px wide sitting 8px in, so the text has to stop before
+     30px from the edge or it runs underneath it. Fields without a clear
+     button keep their own padding. */
+  .search-clear-wrap input{padding-right:36px;}
   /* On narrow screens, "Use my location" shrinks to just the pin icon
      so the address input has room to breathe — the label stays
      available via the title/aria-label set from data-i18n-title. */
@@ -9157,6 +9169,7 @@
       </div>
       <div id="admin-bulk-hide-status" style="display:none;font-size:12px;margin-top:8px;"></div>
     </div>
+    <div id="admin-visibility-log" style="margin-bottom:12px;"></div>
     <div id="admin-import-batches-count" style="font-size:12.5px;color:var(--ink-mute);margin-bottom:8px;"></div>
     <div id="admin-import-batches-list" style="max-height:320px;overflow-y:auto;border:1px solid var(--line);border-radius:10px;padding:4px;">
       <p style="color:var(--ink-mute);font-size:14px;padding:12px;" data-i18n="common.loading">Loading...</p>
@@ -12710,7 +12723,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v393 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v394 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13498,10 +13511,7 @@
   var DIR_BUBBLE_HALF = 46;
   function dirPanToMarker(marker){
     if (!dirMap || !marker) return;
-    dirMapProgrammaticMove++;
-    setTimeout(function(){
-      dirMapProgrammaticMove = Math.max(0, dirMapProgrammaticMove - 1);
-    }, 900);
+    dirHoldMapMove();
     dirMap.panTo(marker.getPosition());
     var host = document.getElementById('directory-map');
     var h = host ? Math.round(host.getBoundingClientRect().height) : 0;
@@ -13710,15 +13720,33 @@
   // hovered card -- would otherwise raise it immediately and it would
   // never be off. dirMapProgrammaticMove is held up around those.
   var dirMapProgrammaticMove = 0;
-  function dirMapQuiet(fn){
+  var dirQuietTimer = null;
+  // One debounced release for every programmatic move, not a countdown
+  // per call. dirPanToMarker fires panTo AND panBy, whose idles arrive
+  // separately and sometimes later than 900ms on a long glide -- so the
+  // second one landed after the guard had already expired and was read
+  // as the reader moving the map.
+  //
+  // Re-anchoring on release is the other half. A hover-pan leaves the
+  // map somewhere other than where the results were framed, and the
+  // anchor still pointed at the original framing, so the very next idle
+  // measured as "a third of a screen away" and raised the button --
+  // which is why it kept appearing while hovering around the area it
+  // was already showing. Hovering a card is not going exploring: the
+  // results have not changed, so the anchor comes along and any
+  // standing offer is withdrawn.
+  function dirHoldMapMove(ms){
     dirMapProgrammaticMove++;
-    try { fn(); } finally {
-      // Released after the move settles, not on the next line: panTo and
-      // fitBounds animate, and their idle event arrives later.
-      setTimeout(function(){
-        dirMapProgrammaticMove = Math.max(0, dirMapProgrammaticMove - 1);
-      }, 900);
-    }
+    if (dirQuietTimer) clearTimeout(dirQuietTimer);
+    dirQuietTimer = setTimeout(function(){
+      dirQuietTimer = null;
+      dirMapProgrammaticMove = 0;
+      dirSetAreaAnchor();
+      showDirSearchArea(false);
+    }, ms || 1600);
+  }
+  function dirMapQuiet(fn){
+    try { fn(); } finally { dirHoldMapMove(); }
   }
   // The offer has a shelf life. It appears when you move somewhere new,
   // and if you have not taken it within a few seconds you were not going
@@ -14875,7 +14903,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-29-v393',
+      'build 2026-09-29-v394',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -21351,8 +21379,14 @@
       // something is already typed there, which is a choice to respect.
       var addr = fdChurchAddressByName[String(name || '').toLowerCase()];
       var loc = document.getElementById('hero-location-input');
-      if (addr && loc && !loc.value.trim()) {
+      // Replaced when the field is empty OR when what is in it was put
+      // there by a previous pick. Only something typed by hand is left
+      // alone -- otherwise picking a second church left the first one's
+      // address sitting underneath it, which is how this looked like it
+      // only worked once.
+      if (addr && loc && (!loc.value.trim() || loc.dataset.fdFromPick === '1')) {
         loc.value = titleCaseAddress(addr);
+        loc.dataset.fdFromPick = '1';
         if (typeof window.syncHeroLocationClearBtn === 'function') window.syncHeroLocationClearBtn();
       }
     }
@@ -21418,6 +21452,10 @@
   (function(){
     var kw = document.getElementById('hero-keyword-input');
     if (kw) kw.addEventListener('input', fdSyncHeroSubmit);
+    // Typing in the location by hand claims it: from then on a pick
+    // leaves it alone.
+    var loc = document.getElementById('hero-location-input');
+    if (loc) loc.addEventListener('input', function(){ delete loc.dataset.fdFromPick; });
     fdSyncHeroSubmit();
   })();
   // The events row is gone; its clear button is the shared one, already
@@ -23908,6 +23946,24 @@
         statusEl.textContent = window.t('dir.couldNotFindLocation');
         return;
       }
+      // Google answers almost anything. "gorill" and "cows" come back OK
+      // with partial_match set and a type nobody typed a location for,
+      // and the directory then searched around wherever that landed. A
+      // result has to be somewhere -- an address, a town, a postcode, a
+      // region -- and it has to be what was asked for.
+      //
+      // Deliberately not Places Autocomplete, which would answer this by
+      // never letting a bad string be typed: that bills per keystroke
+      // session, and this costs nothing beyond the geocode that was
+      // already happening.
+      var r0 = results[0];
+      var FD_PLACEY = ['street_address','premise','subpremise','postal_code','postal_town',
+                       'locality','sublocality','neighborhood','administrative_area_level_1',
+                       'administrative_area_level_2','administrative_area_level_3','country'];
+      if (r0.partial_match || !(r0.types || []).some(function(t){ return FD_PLACEY.indexOf(t) !== -1; })) {
+        statusEl.textContent = window.t('dir.couldNotFindLocation');
+        return;
+      }
       var loc = results[0].geometry.location;
       setDirLocation(loc.lat(), loc.lng(), results[0].formatted_address);
       fdSetLocationStatus(statusEl, window.t('dir.showingDistancesThisLocation'), true);
@@ -23977,6 +24033,24 @@
     var geocoder = new google.maps.Geocoder();
     geocoder.geocode({ address: query }, function(results, status){
       if (status !== 'OK' || !results.length) {
+        statusEl.textContent = window.t('dir.couldNotFindLocation');
+        return;
+      }
+      // Google answers almost anything. "gorill" and "cows" come back OK
+      // with partial_match set and a type nobody typed a location for,
+      // and the directory then searched around wherever that landed. A
+      // result has to be somewhere -- an address, a town, a postcode, a
+      // region -- and it has to be what was asked for.
+      //
+      // Deliberately not Places Autocomplete, which would answer this by
+      // never letting a bad string be typed: that bills per keystroke
+      // session, and this costs nothing beyond the geocode that was
+      // already happening.
+      var r0 = results[0];
+      var FD_PLACEY = ['street_address','premise','subpremise','postal_code','postal_town',
+                       'locality','sublocality','neighborhood','administrative_area_level_1',
+                       'administrative_area_level_2','administrative_area_level_3','country'];
+      if (r0.partial_match || !(r0.types || []).some(function(t){ return FD_PLACEY.indexOf(t) !== -1; })) {
         statusEl.textContent = window.t('dir.couldNotFindLocation');
         return;
       }
@@ -42747,6 +42821,7 @@
     if (!verifList) return;
     if (!window.isPlatformAdmin) return;
     loadAdminFlags();
+    fdRenderVisibilityLog();
 
     var { data: pending, error: pendingError } = await supabase.rpc('get_pending_verifications');
     if (pendingError) { verifList.innerHTML = '<p style="color:var(--clay);font-size:14px;">' + escapeHtml(pendingError.message) + '</p>'; }
@@ -44282,7 +44357,7 @@
       // (a same-width spacer holds it when a church is claimed);
       // Un-verify only appears for the rare verified church.
       var actions = '<div class="registrant-actions">'
-        + '<button class="export-btn" data-toggle-hidden-church-id="' + c.id + '" data-toggle-hidden-to="' + (isHidden ? 'false' : 'true') + '" style="padding:6px 14px;min-width:74px;justify-content:center;">' + window.t(isHidden ? 'admin.show' : 'admin.hide') + '</button>'
+        + '<button class="export-btn" data-toggle-hidden-church-id="' + c.id + '" data-toggle-hidden-to="' + (isHidden ? 'false' : 'true') + '" data-toggle-hidden-name="' + escapeHtml(displayChurchName(c.name)) + '" style="padding:6px 14px;min-width:74px;justify-content:center;">' + window.t(isHidden ? 'admin.show' : 'admin.hide') + '</button>'
         + (st === 'verified' ? '<button class="export-btn" data-unverify-church-id="' + c.id + '" style="padding:6px 14px;">' + window.t('admin.unverify') + '</button>' : '')
         + (!c.owner_id
             ? '<button class="export-btn" data-delete-unclaimed-church-id="' + c.id + '" data-delete-unclaimed-church-name="' + escapeHtml(displayChurchName(c.name)) + '" style="padding:6px 14px;color:var(--clay);">' + window.t('admin.delete') + '</button>'
@@ -45210,14 +45285,52 @@
   // RPC (a church's normal UPDATE RLS is owner-only). A hidden church
   // drops off the directory / homepage / search but stays fully usable
   // by its owner.
+  // Every flip is written to a local log first. A church that is shown
+  // by mistake leaves the hidden list the instant it is pressed and
+  // there is no row history to ask afterwards -- which is exactly how
+  // one got away. The log is this browser only, which is enough: the
+  // person who pressed it is the person asking which one it was.
+  var FD_VIS_LOG_KEY = 'fd_admin_visibility_log';
+  function fdLogVisibilityChange(entry){
+    try {
+      var log = JSON.parse(localStorage.getItem(FD_VIS_LOG_KEY) || '[]');
+      log.unshift(entry);
+      localStorage.setItem(FD_VIS_LOG_KEY, JSON.stringify(log.slice(0, 50)));
+    } catch (e) {}
+    fdRenderVisibilityLog();
+  }
+  function fdRenderVisibilityLog(){
+    var host = document.getElementById('admin-visibility-log');
+    if (!host) return;
+    var log = [];
+    try { log = JSON.parse(localStorage.getItem(FD_VIS_LOG_KEY) || '[]'); } catch (e) {}
+    if (!log.length) { host.innerHTML = ''; return; }
+    host.innerHTML = '<div style="font-size:12.5px;color:var(--ink-mute);margin-bottom:6px;">'
+      + escapeHtml(window.t('admin.visibilityLogTitle')) + '</div>'
+      + log.slice(0, 10).map(function(e){
+          return '<div style="font-size:12.5px;color:var(--ink-mute);">'
+            + escapeHtml(new Date(e.at).toLocaleString(window.appLocale()))
+            + ' — ' + escapeHtml(e.hidden ? window.t('admin.hide') : window.t('admin.show'))
+            + ' — ' + escapeHtml(e.name || e.id) + '</div>';
+        }).join('');
+  }
+  window.fdRenderVisibilityLog = fdRenderVisibilityLog;
+
   document.addEventListener('click', async function(ev){
     var toggleHiddenBtn = ev.target.closest ? ev.target.closest('[data-toggle-hidden-church-id]') : null;
     if (!toggleHiddenBtn) return;
     var targetId = toggleHiddenBtn.getAttribute('data-toggle-hidden-church-id');
     var hideTo = toggleHiddenBtn.getAttribute('data-toggle-hidden-to') === 'true';
+    var targetName = toggleHiddenBtn.getAttribute('data-toggle-hidden-name') || targetId;
+    // Only the showing direction asks. Hiding is quiet and reversible --
+    // the row stays in front of you with a Show button on it. Showing is
+    // the one that drops the church out of the list you were working
+    // through, so a mis-tap is both consequential and hard to undo.
+    if (!hideTo && !confirm(window.t('admin.showChurchConfirm').replace('{name}', targetName))) return;
     toggleHiddenBtn.disabled = true;
     var { error } = await supabase.rpc('admin_set_church_hidden', { target_church_id: targetId, hidden: hideTo });
     if (error) { alert(error.message); toggleHiddenBtn.disabled = false; return; }
+    fdLogVisibilityChange({ at: Date.now(), id: targetId, name: targetName, hidden: hideTo });
     loadAdminPanel();
   });
 
