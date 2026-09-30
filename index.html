@@ -5349,8 +5349,8 @@
    find. row-gap is small because the underline on the active one
    already separates the rows. */
 .fd-cat-tabs{
-  display:flex;flex-wrap:wrap;gap:2px 14px;overflow-x:visible;
-  margin-bottom:12px;border-bottom:1px solid var(--line);
+  display:flex;flex-wrap:wrap;justify-content:center;gap:2px 14px;
+  overflow-x:visible;margin-bottom:12px;border-bottom:1px solid var(--line);
 }
 .fd-cat-tab{font-size:13px;padding:8px 2px;}
 .fd-cat-pane[hidden]{display:none;}
@@ -12972,7 +12972,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v406 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v407 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -14557,6 +14557,16 @@
     var hosts = document.querySelectorAll('#dir-filter-chips, [data-fd-filter-chips]');
     if (!hosts.length) return;
     var parts = [];
+    // The keyword is a filter too, and it was the odd one out -- said
+    // in a sentence above the results while everything else was a chip
+    // you could take off. Now it is a chip you can take off.
+    var kwEl = document.getElementById('dir-keyword-input');
+    var kwVal = kwEl ? kwEl.value.trim() : '';
+    if (kwVal) {
+      parts.push('<span class="fd-filter-chip">' + escapeHtml(kwVal)
+        + '<button type="button" data-chip-keyword="1"'
+        + ' aria-label="' + escapeHtml(window.t('filters.removeFilter')) + '">' + FD_CHIP_X + '</button></span>');
+    }
     fdChosenDenoms().forEach(function(c){
       parts.push('<span class="fd-filter-chip">' + escapeHtml(c.label)
         + '<button type="button" data-chip-denom="' + escapeHtml(c.value) + '"'
@@ -14800,6 +14810,18 @@
       var slug = xc.getAttribute('data-chip-cat');
       var box = document.querySelector('.fd-cat-filter[value="' + slug.replace(/"/g, '\\"') + '"]');
       if (box) { box.checked = false; box.dispatchEvent(new Event('change', { bubbles: true })); }
+      return;
+    }
+    if (ev.target.closest && ev.target.closest('[data-chip-keyword]')) {
+      ev.preventDefault(); ev.stopPropagation();
+      var kwi = document.getElementById('dir-keyword-input');
+      if (kwi) {
+        kwi.value = '';
+        if (typeof window.syncDirKeywordClearBtn === 'function') window.syncDirKeywordClearBtn();
+      }
+      fdRenderFilterChips();
+      if (window.fdRenderSearchSummary) window.fdRenderSearchSummary();
+      if (typeof window.renderDirectory === 'function') window.renderDirectory();
       return;
     }
     if (ev.target.closest && ev.target.closest('[data-chip-followed]')) {
@@ -15259,7 +15281,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-30-v406',
+      'build 2026-09-30-v407',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -21828,13 +21850,23 @@
   }
   // One path for every way a location gets chosen in that window: a
   // suggestion, the locate button, or Add filter with typed text.
-  function fdApplyLocationChoice(label){
+  // lat/lng optional. When they are given they are USED, rather than
+  // the label being geocoded back into coordinates -- which is what
+  // "near me" was doing: it had the phone's exact position, turned it
+  // into "San Antonio, TX" for the label, then looked that up again and
+  // landed on the middle of San Antonio. The name is for reading; the
+  // coordinates are the search.
+  function fdApplyLocationChoice(label, lat, lng){
     var dirLoc = document.getElementById('dir-location-input');
     if (dirLoc) {
       dirLoc.value = label;
       dirLoc.dispatchEvent(new Event('input', { bubbles: true }));
     }
-    if (typeof window.doDirectLocationSearch === 'function') window.doDirectLocationSearch();
+    if (typeof lat === 'number' && typeof lng === 'number' && typeof window.setDirLocation === 'function') {
+      window.setDirLocation(lat, lng, label);
+    } else if (typeof window.doDirectLocationSearch === 'function') {
+      window.doDirectLocationSearch();
+    }
     if (window.fdRenderSearchSummary) window.fdRenderSearchSummary();
   }
   window.fdApplyLocationChoice = fdApplyLocationChoice;
@@ -22206,6 +22238,7 @@
     btn.addEventListener('click', function(){
       if (!navigator.geolocation) return;
       var settled = false, guard = null;
+      var gotLat = null, gotLng = null;
       function done(label){
         if (settled) return;
         settled = true;
@@ -22214,13 +22247,14 @@
         btn.disabled = false;
         var inp = document.getElementById('filter-location-input');
         if (inp && label) inp.value = label;
-        if (label) fdApplyLocationChoice(label);
+        if (label) fdApplyLocationChoice(label, gotLat, gotLng);
       }
       btn.classList.add('is-busy');
       btn.disabled = true;
       navigator.geolocation.getCurrentPosition(function(pos){
         var lat = pos.coords.latitude, lng = pos.coords.longitude;
         window.dirUserLat = lat; window.dirUserLng = lng;
+        gotLat = lat; gotLng = lng;
         guard = setTimeout(function(){ done(window.t('dir.yourLocation')); }, 4000);
         if (window.google && google.maps && google.maps.Geocoder) {
           new google.maps.Geocoder().geocode({ location: { lat: lat, lng: lng } }, function(results, status){
@@ -22346,6 +22380,7 @@
     var el = document.getElementById(id);
     if (el) el.addEventListener('input', function(){
       if (window.fdRenderSearchSummary) window.fdRenderSearchSummary();
+      if (window.fdRenderFilterChips) window.fdRenderFilterChips();
     });
   });
   // The hero's two fields. Nothing to re-render on clear -- the hero
@@ -24827,6 +24862,7 @@
     // cosmetic, so a silent geocoder costs a nicer label and nothing
     // else.
     var settled = false, fallbackTimer = null;
+    var heroLat = null, heroLng = null;
     function done(label){
       if (settled) return;
       settled = true;
@@ -24835,6 +24871,12 @@
       heroLocBtn.disabled = false;
       var loc = document.getElementById('hero-location-input');
       if (loc && label) { loc.value = label; delete loc.dataset.fdFromPick; }
+      // The coordinates, not the name. setDirLocation also records the
+      // label, so the search that follows sees it as already resolved
+      // and does not geocode the town back into its centre.
+      if (heroLat !== null && typeof window.setDirLocation === 'function') {
+        window.setDirLocation(heroLat, heroLng, label || window.t('dir.yourLocation'));
+      }
       if (typeof window.syncHeroLocationClearBtn === 'function') window.syncHeroLocationClearBtn();
       if (typeof window.fdSyncHeroSubmit === 'function') window.fdSyncHeroSubmit();
       if (typeof window.fdSyncHeroLocationNote === 'function') window.fdSyncHeroLocationNote();
@@ -24842,6 +24884,7 @@
     navigator.geolocation.getCurrentPosition(function(pos){
       var lat = pos.coords.latitude, lng = pos.coords.longitude;
       window.dirUserLat = lat; window.dirUserLng = lng;
+      heroLat = lat; heroLng = lng;
       // Whatever the geocoder does or does not do, the button comes
       // back and the field gets something.
       fallbackTimer = setTimeout(function(){
@@ -46360,9 +46403,14 @@
     var loc = document.getElementById('dir-location-input');
     var kwv = kw ? kw.value.trim() : '';
     var locv = loc ? loc.value.trim() : '';
+    // Still shown when only a keyword is set: Clear search is the way
+    // out of everything at once, and it should not vanish just because
+    // the one filter left is the keyword.
     if (!kwv && !locv) { host.hidden = true; host.innerHTML = ''; return; }
+    // The keyword is a chip now, so only the location is said here --
+    // saying it twice, once as a sentence and once as a chip, was the
+    // thing that made two filters feel like four.
     var bits = [];
-    if (kwv) bits.push(window.t('dir.summaryMatching').replace('{q}', '<strong>' + escapeHtml(kwv) + '</strong>'));
     if (locv) bits.push(window.t('dir.summaryNear').replace('{q}', '<strong>' + escapeHtml(locv) + '</strong>'));
     host.innerHTML = '<span>' + bits.join(' ') + '</span>'
       + '<button type="button" id="dir-clear-search">' + escapeHtml(window.t('dir.clearSearch')) + '</button>';
