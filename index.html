@@ -516,6 +516,7 @@
       'filters.addFilter': 'Add filter',
       'home.browseAll': 'Browse churches, events and groups',
       'search.groupCategories': 'Categories',
+      'search.groupGroups': 'Groups',
       'filters.searchCategory': 'Search categories',
       'search.groupChurches': 'Churches',
       'search.groupDenominations': 'Denominations',
@@ -618,7 +619,7 @@
       'filters.more': 'More filters',
       'dir.splitResize': 'Drag to widen or narrow the results, or use the arrow keys',
       'dir.sheetResize': 'Drag to raise or lower the list, or use the arrow keys',
-      'dir.viewProfile': 'View Church Profile',
+      'dir.viewProfile': 'View Church Profile', 'dir.directions': 'Directions',
       'dir.searchThisArea': 'Search this area',
       'dir.thisMapArea': 'Map area',
       'dir.mapSomeMissing': '{n} of these have no location on file and are not pinned.',
@@ -1908,6 +1909,7 @@
       'filters.addFilter': 'Añadir filtro',
       'home.browseAll': 'Explorar iglesias, eventos y grupos',
       'search.groupCategories': 'Categorías',
+      'search.groupGroups': 'Grupos',
       'filters.searchCategory': 'Buscar categorías',
       'search.groupChurches': 'Iglesias',
       'search.groupDenominations': 'Denominaciones',
@@ -2006,7 +2008,7 @@
       'filters.more': 'Más filtros',
       'dir.splitResize': 'Arrastra para ensanchar o estrechar los resultados, o usa las flechas',
       'dir.sheetResize': 'Arrastra para subir o bajar la lista, o usa las flechas',
-      'dir.viewProfile': 'Ver el perfil de la iglesia',
+      'dir.viewProfile': 'Ver el perfil de la iglesia', 'dir.directions': 'Cómo llegar',
       'dir.searchThisArea': 'Buscar en esta zona',
       'dir.thisMapArea': 'Zona del mapa',
       'dir.mapSomeMissing': '{n} de estas no tienen ubicación registrada y no aparecen en el mapa.',
@@ -7494,6 +7496,15 @@
   .fd-loc-inline svg{width:17px;height:17px;display:block;}
   .fd-loc-inline:hover{color:var(--ink);border-color:var(--ink-mute);}
   .fd-loc-inline.is-busy{opacity:.55;}
+  .dir-card-actions{display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin-top:10px;}
+  .dir-card-directions{
+    font-size:13.5px;font-weight:600;color:var(--gold-ink);cursor:pointer;
+    border-bottom:1px solid var(--gold);padding-bottom:2px;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .dir-card-directions:hover{color:var(--ink);}
+  /* In the bubble it sits on its own line under the address. */
+  .fd-iw .dir-card-directions{display:inline-block;margin-top:6px;}
   .fd-panel-close{
     position:absolute;top:10px;right:10px;width:30px;height:30px;
     display:none;align-items:center;justify-content:center;
@@ -13033,7 +13044,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v411 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v412 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13687,8 +13698,11 @@
       // church card -- second-hand user data, and easy to miss when
       // thinking only about "this church's own fields".
       + (c.nextEvent ? '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>' + escapeHtml(formatChurchNextEventText(c.nextEvent)) + '</div>' : '')
+      + '<div class="dir-card-actions">'
       + '<span class="dir-card-profile-link" data-i18n="dir.viewProfile">'
       + escapeHtml(window.t('dir.viewProfile')) + '</span>'
+      + fdDirectionsHtml(c)
+      + '</div>'
       + '</div>';
     if(clickable){
       // The href is encodeURIComponent'd (already safe), but
@@ -13731,8 +13745,11 @@
       // Same span, same rules as the card: a <span> because the row is
       // already an <a> and a nested anchor is invalid, and the phone
       // handler lets this one through so it still reaches the row's href.
+      + '<div class="dir-card-actions">'
       + '<span class="dir-card-profile-link" data-i18n="dir.viewProfile">'
       + escapeHtml(window.t('dir.viewProfile')) + '</span>'
+      + fdDirectionsHtml(c)
+      + '</div>'
       + '</div>'
       + followHeartRow(c);
     return '<a class="church-row" style="--thumb-hue:' + denomHue(c.tag) + ';" href="#church/' + encodeURIComponent(c.name) + '" data-route="church" data-church-name="' + escapeHtml(c.name) + '">' + inner + '</a>';
@@ -13985,6 +14002,7 @@
       'data-church-name="' + escapeHtml(c.name) + '" ' +
       'style="font-weight:600;color:#16233F;">' + escapeHtml(displayChurchName(c.name)) + '</a>' +
       (c.address ? '<div style="color:#6b6b6b;margin-top:3px;">' + escapeHtml(titleCaseAddress(c.address)) + '</div>' : '') +
+      (window.fdDirectionsHtml ? window.fdDirectionsHtml(c) : '') +
       '</div>');
     dirInfo.open({ map: dirMap, anchor: marker });
   }
@@ -14960,6 +14978,22 @@
     if (window.fdEventsInfo) window.fdEventsInfo.close();
   }, true);
 
+  // Directions. Capture, and it stops the event: the card is an <a>
+  // and the phone's card handler is on document in capture too, so a
+  // tap here would otherwise also open the church.
+  document.addEventListener('click', function(ev){
+    var el = ev.target.closest && ev.target.closest('[data-fd-directions]');
+    if (!el) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    ev.stopImmediatePropagation();
+    var dest = el.getAttribute('data-fd-directions');
+    if (!dest) return;
+    // noopener because this is a new tab to a third-party site.
+    window.open('https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(dest),
+      '_blank', 'noopener');
+  }, true);
+
   // The window's own close button. Shutting one by tapping the map
   // behind it works, but only once you know it does.
   document.addEventListener('click', function(ev){
@@ -15357,7 +15391,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-30-v411',
+      'build 2026-09-30-v412',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -20495,6 +20529,29 @@
     });
   }
 
+  // Directions, as Google's documented Maps URL rather than anything
+  // from the JS SDK -- it is a plain link, costs nothing, and opens
+  // whichever map app the phone actually uses.
+  //
+  // Coordinates when we have them, the address when we do not: a
+  // geocoded pin beats asking Google to re-find a string it has already
+  // struggled with once. A church with neither gets no link at all
+  // rather than a link that lands on nothing.
+  //
+  // A <span>, not an <a>: the card and the row are both already <a>,
+  // and a nested anchor is invalid. The delegated handler below opens
+  // it and stops the card's own navigation.
+  function fdDirectionsHtml(c){
+    var dest = null;
+    if (c && c.lat != null && c.lng != null) dest = c.lat + ',' + c.lng;
+    else if (c && c.address) dest = c.address;
+    if (!dest) return '';
+    return '<span class="dir-card-directions" role="link" tabindex="0"'
+      + ' data-fd-directions="' + escapeHtml(dest) + '">'
+      + escapeHtml(window.t('dir.directions')) + '</span>';
+  }
+  window.fdDirectionsHtml = fdDirectionsHtml;
+
   // Maps a search_churches() RPC row into the same shape churchCard()
   // and populateChurchPage() already expect, so nothing downstream
   // needs to know whether a church came from the RPC or the old
@@ -21762,6 +21819,7 @@
     church: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v4M10 4h4"/><path d="M12 7l-6 4v10h12V11l-6-4Z"/><path d="M10 21v-4h4v4"/></svg>',
     place:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>',
     denom:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20h16"/><path d="M6 20V9l6-5 6 5v11"/><path d="M10 20v-5h4v5"/></svg>',
+    group: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 20a5.5 5.5 0 0 1 5.5-5"/></svg>',
     category: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.6 13.4 11 3.8V3H4v7h.8l9.6 9.6a1.4 1.4 0 0 0 2 0l4.2-4.2a1.4 1.4 0 0 0 0-2Z"/><circle cx="7.5" cy="6.5" r="1.2"/></svg>'
   };
   function fdSuggestGroupLabels(){
@@ -21769,6 +21827,7 @@
       church:   window.t('search.groupChurches'),
       denom:    window.t('search.groupDenominations'),
       category: window.t('search.groupCategories'),
+      group:    window.t('search.groupGroups'),
       place:    window.t('search.groupPlaces')
     };
   }
@@ -21834,7 +21893,12 @@
     if (!window.supabase) return [];
     var res = await window.supabase.from('groups').select('name')
       .ilike('name', fdLikePattern(q)).order('name').limit(FD_SUGGEST_FETCH);
-    var names = (!res.error && res.data) ? res.data.map(function(r){ return r.name || ''; }) : [];
+    // kind 'group', not a bare string: a bare string lands in the
+    // unnamed bucket and draws with no heading, which put a group name
+    // and a category side by side looking like the same kind of thing.
+    var names = (!res.error && res.data)
+      ? res.data.filter(function(r){ return r.name; }).map(function(r){ return { kind: 'group', label: r.name, sub: '', value: r.name }; })
+      : [];
     // Names first, then the tags -- a group you can name is more
     // specific than a kind of group.
     return names.concat(fdSuggestGroupTags(q));
@@ -22443,8 +22507,43 @@
   fdWireSuggest({
     inputId: 'dir-keyword-input', listId: 'dir-keyword-list',
     source: fdSuggestForBrowseTab,
-    onChoose: function(){
+    // groupLabels was missing here, so this box drew the suggestions
+    // with no headings at all -- a category came back looking like a
+    // church name. And onChoose ignored the kind, so picking one only
+    // ever set the keyword: "Prayer" searched for the word rather than
+    // filtering by the tag.
+    groupLabels: fdSuggestGroupLabels(),
+    onChoose: function(name, item){
+      var kw = document.getElementById('dir-keyword-input');
+      function clearKeyword(){
+        if (kw) kw.value = '';
+        if (typeof window.syncDirKeywordClearBtn === 'function') window.syncDirKeywordClearBtn();
+      }
+      if (item && item.kind === 'category') {
+        // The same word can be a church tag or a group tag. Which one
+        // it is depends on the tab you are looking at, which is also
+        // what decided to offer it.
+        clearKeyword();
+        if (fdBrowseTab === 'groups') fdApplyGroupTagPick(item.value);
+        else fdApplyCategoryPick(item.value);
+        if (window.fdRenderFilterChips) window.fdRenderFilterChips();
+        return;
+      }
+      if (item && item.kind === 'denom') {
+        clearKeyword();
+        fdApplyDenominationPick(item.value);
+        if (window.fdRenderFilterChips) window.fdRenderFilterChips();
+        if (typeof window.renderDirectory === 'function') window.renderDirectory();
+        return;
+      }
+      if (item && item.kind === 'place') {
+        clearKeyword();
+        if (window.fdApplyLocationChoice) window.fdApplyLocationChoice(item.label);
+        return;
+      }
+      // A name: that is what the keyword is for.
       if (typeof window.syncDirKeywordClearBtn === 'function') window.syncDirKeywordClearBtn();
+      if (window.fdRenderFilterChips) window.fdRenderFilterChips();
       debouncedRenderDirectory();
     }
   });
