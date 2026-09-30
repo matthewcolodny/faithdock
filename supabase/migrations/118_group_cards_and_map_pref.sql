@@ -59,9 +59,25 @@
 --   shipping a call to a parameter that does not exist yet would take
 --   the Groups tab out entirely.
 
+-- The drop is dynamic, by OID, rather than by a written-out argument
+-- list. The first attempt at this named the types and was refused by
+-- its own guard: pg_get_function_identity_arguments includes argument
+-- NAMES as well as types -- it is what pg_dump uses to write
+-- "DROP FUNCTION public.f(p_keyword text, ...)" -- so it returns
+-- "p_keyword text, p_church_ids uuid[], ..." and never matches a bare
+-- list of types.
+--
+-- Matching a rendered string was the wrong test anyway. What actually
+-- has to be true is checked directly below, and then the one function
+-- that exists is dropped by its own identity, which cannot be
+-- mis-spelled.
 do $$
 declare
   n_overloads int;
+  target      text;
+  sig         text;
+  is_definer  boolean;
+  n_args      int;
 begin
   select count(*) into n_overloads
     from pg_proc p join pg_namespace n on n.oid = p.pronamespace
@@ -71,24 +87,31 @@ begin
     raise exception 'ABORT: expected exactly one search_groups, found %. Dropping one would leave another answering calls.', n_overloads;
   end if;
 
-  if not exists (
-    select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
-     where n.nspname = 'public' and p.proname = 'search_groups'
-       and pg_get_function_identity_arguments(p.oid)
-           = 'text, uuid[], double precision, double precision, double precision, integer, integer'
-  ) then
-    raise exception 'ABORT: the live search_groups does not have the argument list this drop names. Re-probe before continuing.';
+  select p.oid::regprocedure::text, p.prosecdef, p.pronargs,
+         pg_get_function_result(p.oid)
+    into target, is_definer, n_args, sig
+    from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+   where n.nspname = 'public' and p.proname = 'search_groups';
+
+  -- Seven inputs, counted rather than spelled.
+  if n_args <> 7 then
+    raise exception 'ABORT: search_groups takes % arguments, not the 7 this was written against. Found: %', n_args, target;
   end if;
 
-  if exists (
-    select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
-     where n.nspname = 'public' and p.proname = 'search_groups' and p.prosecdef
-  ) then
+  -- image_url in the result is what identifies this as 068's version,
+  -- which is the body the new one is an edit of. 067's had no such
+  -- column.
+  if sig not like '%image_url%' then
+    raise exception 'ABORT: the live search_groups does not return image_url, so it is not the version this was written against. Returns: %', sig;
+  end if;
+
+  if is_definer then
     raise exception 'ABORT: search_groups is SECURITY DEFINER now. It was invoker when this was written, and 116 depends on that.';
   end if;
-end $$;
 
-drop function if exists search_groups(text, uuid[], double precision, double precision, double precision, integer, integer);
+  raise notice 'Dropping %', target;
+  execute 'drop function ' || target;
+end $$;
 
 create function search_groups(
   p_keyword text default null,
