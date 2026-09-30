@@ -4416,6 +4416,21 @@
      keyword field has something in it, which also keeps the resting
      hero quieter. */
   .hero-search-bar > button[hidden]{display:none;}
+  /* Not the gold submit: this one is quiet furniture inside the bar,
+     the same weight as the clear x. */
+  /* .hero-search-bar > .hero-loc-btn, not .hero-loc-btn: this button is
+     a direct child of the bar, so .search-bar > button (0,1,1) was
+     painting it the gold of the submit button and outranking a bare
+     class (0,1,0). */
+  .hero-search-bar > .hero-loc-btn{
+    width:38px;height:38px;padding:0;border-radius:50%;flex-shrink:0;
+    display:inline-flex;align-items:center;justify-content:center;cursor:pointer;
+    background:none;border:1px solid var(--line);color:var(--ink-mute);
+    -webkit-tap-highlight-color:transparent;
+  }
+  .hero-search-bar > .hero-loc-btn svg{width:17px;height:17px;display:block;}
+  .hero-search-bar > .hero-loc-btn:hover{color:var(--ink);border-color:var(--ink-mute);}
+  .hero-search-bar > .hero-loc-btn.is-busy{opacity:.55;}
   .hero-search-bar > [hidden]{display:none;}
   @media (max-width:600px){
     /* Stacked, one field per row. They used to share a single row with
@@ -8104,6 +8119,7 @@
           <button type="button" class="search-clear-btn" id="hero-keyword-clear-btn" aria-label="Clear search" data-i18n-title="common.clearSearch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
           <div class="autocomplete-list" id="hero-keyword-list" role="listbox"></div>
         </div>
+        <button type="button" id="hero-use-location-btn" class="hero-loc-btn" data-i18n-title="events.useMyLocation" aria-label="Use my location" data-i18n-aria="events.useMyLocation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8"/></svg></button>
         <!-- The location half is still here, and still filled by
              geolocation detection, by picking a town from the one
              search box above, and by picking a church (its address).
@@ -12796,7 +12812,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v397 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v398 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13901,6 +13917,9 @@
     }
     return null;
   }
+  // The hero's locate button wants the same short town answer this
+  // already works out for the map, rather than a full street address.
+  window.fdCityFromGeocode = dirCityFromGeocode;
   function dirNameMapArea(lat, lng){
     if (!(window.google && google.maps && google.maps.Geocoder)) return;
     if (typeof window.fdRenameDirLocation !== 'function') return;
@@ -14976,7 +14995,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-29-v397',
+      'build 2026-09-29-v398',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -21354,6 +21373,28 @@
   // "Edinburg, TX". Trailing "USA" is dropped, and the state is the
   // two letters at the front of the last part, which also survives a
   // postcode hanging off it.
+  // "SAN ANTONIO, TX" and "San Antonio, TX" are the same town typed two
+  // ways -- both spellings are in the data, and whichever came back
+  // first was the one shown. The state stays upper, which is how a
+  // state is written; the town is title-cased, with the small words a
+  // town name actually contains left alone and anything that is already
+  // mixed case (McAllen, DeSoto) left exactly as it is, because
+  // lowercasing it first would destroy the capital in the middle.
+  var FD_TOWN_SMALL = { of:1, the:1, and:1, de:1, del:1, la:1, las:1, los:1, el:1, y:1, 'a':1 };
+  function fdTitleCaseTown(t){
+    if (!t) return t;
+    var words = String(t).split(/\s+/);
+    return words.map(function(w, i){
+      if (!w) return w;
+      // Already mixed case: the author meant it.
+      if (/[a-z]/.test(w) && /[A-Z]/.test(w.slice(1))) return w;
+      var lower = w.toLowerCase();
+      if (i > 0 && FD_TOWN_SMALL[lower]) return lower;
+      return lower.charAt(0).toUpperCase() + lower.slice(1);
+    }).join(' ');
+  }
+  window.fdTitleCaseTown = fdTitleCaseTown;
+
   function fdPlaceFromAddress(a){
     if (!a) return null;
     var parts = String(a).split(',').map(function(x){ return x.trim(); }).filter(Boolean);
@@ -21363,7 +21404,7 @@
     if (!m) return null;
     var city = parts[parts.length - 2].replace(/\s+/g, ' ');
     if (!city) return null;
-    return city + ', ' + m[1].toUpperCase();
+    return fdTitleCaseTown(city) + ', ' + m[1].toUpperCase();
   }
   window.fdPlaceFromAddress = fdPlaceFromAddress;
 
@@ -21386,7 +21427,9 @@
       if (!byCol.error && byCol.data && byCol.data.length) {
         fdCityColumnUsable = true;
         return fdDedupePlaces(byCol.data.map(function(r){
-          return r.city ? (r.city + (r.state ? ', ' + r.state : '')) : null;
+          // The column carries whatever case the address had, so the
+          // same tidy-up applies here as to the parsed fallback.
+          return r.city ? (fdTitleCaseTown(r.city) + (r.state ? ', ' + r.state.toUpperCase() : '')) : null;
         }), q);
       }
       // An empty result is not proof the column is unusable -- the town
@@ -21596,13 +21639,32 @@
       // source's queries failed on its own. Kinds keep the order the
       // source put them in, because that is what the headings follow.
       var lower = q.toLowerCase();
-      var order = Object.create(null), seenKind = 0;
-      out.forEach(function(it){ if (!(it.kind in order)) order[it.kind] = seenKind++; });
+      // Which heading goes first is decided by how closely its best
+      // match fits what was typed, not by a fixed order. Typing
+      // "Lutheran" should lead with the DENOMINATION Lutheran, not with
+      // "Lutheran Church Missouri Synod St Paul Lutheran"; typing
+      // "San Antonio" should lead with the town. The measure is how
+      // much label is left over after a prefix match -- an exact match
+      // leaves none and wins outright. A group with no prefix match at
+      // all falls to the back, and the source's own order breaks ties.
+      var natural = Object.create(null), seenKind = 0;
+      out.forEach(function(it){ if (!(it.kind in natural)) natural[it.kind] = seenKind++; });
+      var best = Object.create(null);
+      out.forEach(function(it){
+        var fit = it.label.toLowerCase().indexOf(lower) === 0
+          ? it.label.length - q.length
+          : Infinity;
+        if (!(it.kind in best) || fit < best[it.kind]) best[it.kind] = fit;
+      });
       out.sort(function(a, b){
-        if (order[a.kind] !== order[b.kind]) return order[a.kind] - order[b.kind];
+        if (a.kind !== b.kind) {
+          if (best[a.kind] !== best[b.kind]) return best[a.kind] - best[b.kind];
+          return natural[a.kind] - natural[b.kind];
+        }
         var pa = a.label.toLowerCase().indexOf(lower) === 0 ? 0 : 1;
         var pb = b.label.toLowerCase().indexOf(lower) === 0 ? 0 : 1;
-        return pa !== pb ? pa - pb : 0;
+        if (pa !== pb) return pa - pb;
+        return a.label.length - b.label.length;
       });
       paint(out.slice(0, opts.show || FD_SUGGEST_SHOW), q);
     }
@@ -24178,6 +24240,44 @@
       statusEl._fdClear = setTimeout(function(){ statusEl.textContent = ''; }, moved ? 2600 : 6000);
     }
   }
+
+  // The hero's own locate button. It fills the hidden location field
+  // and leaves you on the hero -- it is an autofill, not a search, so
+  // you can still type a church name before pressing go. Reverse
+  // geocoding is best-effort: if it fails the coordinates are still
+  // good, so the field gets the town from the nearest church instead of
+  // nothing.
+  var heroLocBtn = document.getElementById('hero-use-location-btn');
+  if (heroLocBtn) heroLocBtn.addEventListener('click', function(){
+    if (!navigator.geolocation) return;
+    heroLocBtn.classList.add('is-busy');
+    heroLocBtn.disabled = true;
+    function done(label){
+      heroLocBtn.classList.remove('is-busy');
+      heroLocBtn.disabled = false;
+      var loc = document.getElementById('hero-location-input');
+      if (loc && label) { loc.value = label; delete loc.dataset.fdFromPick; }
+      if (typeof window.syncHeroLocationClearBtn === 'function') window.syncHeroLocationClearBtn();
+      if (typeof window.fdSyncHeroSubmit === 'function') window.fdSyncHeroSubmit();
+    }
+    navigator.geolocation.getCurrentPosition(function(pos){
+      var lat = pos.coords.latitude, lng = pos.coords.longitude;
+      window.dirUserLat = lat; window.dirUserLng = lng;
+      if (window.google && google.maps && google.maps.Geocoder) {
+        new google.maps.Geocoder().geocode({ location: { lat: lat, lng: lng } }, function(results, status){
+          var label = (status === 'OK' && results && results[0])
+            ? (window.fdCityFromGeocode ? window.fdCityFromGeocode(results) : results[0].formatted_address)
+            : (lat.toFixed(3) + ', ' + lng.toFixed(3));
+          done(label);
+        });
+      } else {
+        done(lat.toFixed(3) + ', ' + lng.toFixed(3));
+      }
+    }, function(){
+      heroLocBtn.classList.remove('is-busy');
+      heroLocBtn.disabled = false;
+    }, { timeout: 8000 });
+  });
 
   var dirUseLocationBtn = document.getElementById('dir-use-location-btn');
   if (dirUseLocationBtn) {
