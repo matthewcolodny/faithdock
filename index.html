@@ -4327,7 +4327,11 @@
     flex:1;border:none;outline:none;padding:12px 16px;font-family:'IBM Plex Sans';font-size:15px;
     border-radius:8px;color:var(--ink);
   }
-  .search-bar button{
+  /* Direct child only. These rules are for the SUBMIT button; the
+     clear "x" is also a <button>, but it lives inside a
+     .search-field-wrap, so a descendant selector was painting it a gold
+     circle 44px across sitting inside the field. */
+  .search-bar > button{
     background:var(--gold);color:var(--brand);border:none;padding:12px 24px;border-radius:8px;
     font-weight:600;font-size:14.5px;
   }
@@ -4370,11 +4374,15 @@
     width:100%;padding:12px 14px;background:none;min-width:0;flex:1;
   }
   .search-bar-divider{width:1px;align-self:stretch;background:var(--line);flex-shrink:0;margin:8px 2px;}
-  .hero-search-bar button{
+  .hero-search-bar > button{
     width:44px;height:44px;padding:0;border-radius:50%;
     flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;margin-left:4px;
   }
-  .hero-search-bar button svg{width:18px;height:18px;display:block;}
+  .hero-search-bar > button svg{width:18px;height:18px;display:block;}
+  /* Nothing to submit, nothing to press. The button appears once the
+     keyword field has something in it, which also keeps the resting
+     hero quieter. */
+  .hero-search-bar > button[hidden]{display:none;}
   @media (max-width:600px){
     /* Stacked, one field per row. They used to share a single row with
        min-width:0 and ellipsis, which fitted but left each field about
@@ -4392,12 +4400,17 @@
     /* first/last of TYPE: the children are div, span, div, button, so
        "first div" is the keyword wrap and "last div" is the location
        wrap, without needing a class on either. */
-    .hero-search-bar > .search-field-wrap:first-of-type{flex:1 1 100%;}
-    .hero-search-bar > .search-field-wrap:last-of-type{flex:1 1 0;}
-    .hero-search-bar .search-bar-divider{
-      flex:1 1 100%;width:auto;height:1px;align-self:auto;margin:0 8px;
+    /* order, not a DOM move: the markup is keyword, divider, location,
+       button, which is right on desktop. Here the button is pulled up
+       beside the keyword field it actually submits -- the location
+       field does not need a search button of its own -- and the
+       location field takes the last line to itself. */
+    .hero-search-bar > .search-field-wrap:first-of-type{order:1;flex:1 1 0;}
+    .hero-search-bar > .search-bar-divider{
+      order:3;flex:1 1 100%;width:auto;height:1px;align-self:auto;margin:0 8px;
     }
-    .hero-search-bar button{flex:0 0 auto;margin-left:4px;}
+    .hero-search-bar > .search-field-wrap:last-of-type{order:4;flex:1 1 100%;}
+    .hero-search-bar > button{order:2;flex:0 0 auto;margin-left:4px;}
     .hero-search-bar input{font-size:14px;padding:11px 8px;}
     /* .search-field-wrap's own min-width:160px (fine when the two
        fields each get their own full-width row on Churches/Events)
@@ -4434,8 +4447,8 @@
        is the only thing doing the job. */
     html[data-theme="dark"] .hero-search-bar .search-bar-divider{background:rgba(255,255,255,0.18);}
     .search-bar-divider{margin:6px 1px;}
-    .hero-search-bar button{width:38px;height:38px;}
-    .hero-search-bar button svg{width:16px;height:16px;}
+    .hero-search-bar > button{width:38px;height:38px;}
+    .hero-search-bar > button svg{width:16px;height:16px;}
   }
 
   /* ---- section headings ---- */
@@ -5571,6 +5584,12 @@
   }
   html[data-theme="dark"] #dir-search-area{background:var(--gold);color:var(--brand);}
   #dir-search-area[hidden]{display:none;}
+  /* Faded rather than removed, so it can come back without the map
+     jumping, and pointer-events:none so a tap aimed past it reaches the
+     map underneath instead of pressing a button nobody can see. */
+  #dir-search-area{transition:opacity .45s ease;}
+  #dir-search-area.is-faded{opacity:0;pointer-events:none;}
+  @media (prefers-reduced-motion:reduce){ #dir-search-area{transition:none;} }
   /* Hover has to shift the brand colour itself now; var(--paper) was a
      light wash that made the button vanish. */
   #dir-search-area:hover{background:#1E3157;}
@@ -12691,7 +12710,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v392 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v393 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13701,9 +13720,24 @@
       }, 900);
     }
   }
+  // The offer has a shelf life. It appears when you move somewhere new,
+  // and if you have not taken it within a few seconds you were not going
+  // to -- so it fades out rather than sitting over the map for the rest
+  // of the session. Moving again brings it straight back.
+  var FD_AREA_LINGER = 4000;
+  var dirAreaFadeTimer = null;
   function showDirSearchArea(on){
     var btn = document.getElementById('dir-search-area');
-    if (btn) btn.hidden = !on;
+    if (!btn) return;
+    if (dirAreaFadeTimer) { clearTimeout(dirAreaFadeTimer); dirAreaFadeTimer = null; }
+    if (!on) { btn.hidden = true; btn.classList.remove('is-faded'); return; }
+    btn.hidden = false;
+    btn.classList.remove('is-faded');
+    dirAreaFadeTimer = setTimeout(function(){
+      dirAreaFadeTimer = null;
+      var b = document.getElementById('dir-search-area');
+      if (b && !b.hidden) b.classList.add('is-faded');
+    }, FD_AREA_LINGER);
   }
   // Where the current results were framed. Offering to search again is
   // only worth it once the reader has actually gone somewhere else.
@@ -13728,7 +13762,14 @@
     var moved = Math.abs(c.lat() - dirAreaAnchor.lat) / latSpan > 0.34
              || Math.abs(c.lng() - dirAreaAnchor.lng) / lngSpan > 0.34;
     var zoomed = Math.abs((dirMap.getZoom() || 0) - dirAreaAnchor.zoom) >= 1;
+    // And the other direction, which is the half that was missing:
+    // wandering off and coming back means there is nothing new to
+    // search, so the offer goes rather than lingering over the results
+    // it already describes. The anchor is where those results were
+    // framed, so "back" is measured against the same 34% of a screen
+    // that counted as having left.
     if (moved || zoomed) showDirSearchArea(true);
+    else showDirSearchArea(false);
   }
   // "Map area" is a placeholder, and it leaks: the same label is what
   // the home page's "Churches near ___" heading reads. Ask Google what
@@ -14834,7 +14875,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-29-v392',
+      'build 2026-09-29-v393',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -21114,6 +21155,9 @@
   // the tab that is open without the list widget knowing anything about
   // tabs.
   var FD_SUGGEST_SHOW = 8, FD_SUGGEST_FETCH = 40, FD_SUGGEST_MIN = 2;
+  // Display name -> address, filled as suggestions come back. Only ever
+  // read straight after a pick, so it does not need clearing.
+  var fdChurchAddressByName = Object.create(null);
 
   // % and _ are wildcards to ilike. A name typed with one would
   // otherwise widen the search instead of narrowing it.
@@ -21133,16 +21177,26 @@
     if (!window.supabase) return [];
     var pattern = fdLikePattern(q);
     var both = await Promise.all([
-      window.supabase.from('churches').select('name')
+      window.supabase.from('churches').select('name, address')
         .eq('is_hidden', false).ilike('name', pattern.slice(1)).order('name').limit(FD_SUGGEST_SHOW),
-      window.supabase.from('churches').select('name')
+      window.supabase.from('churches').select('name, address')
         .eq('is_hidden', false).ilike('name', pattern).order('name').limit(FD_SUGGEST_FETCH)
     ]);
     var starts = both[0], contains = both[1];
     if ((starts.error && contains.error) || (!starts.data && !contains.data)) return [];
-    return (starts.data || []).concat(contains.data || []).map(function(r){
-      return displayChurchName(r.name);
+    // The address rides along so that picking a suggestion can fill the
+    // location field too -- keyed on the DISPLAYED name, which is what
+    // the list shows and what comes back to onChoose. First one wins,
+    // matching the dedupe further down: "First Baptist Church" exists
+    // many times over and the first is as good a guess as any.
+    var out = [];
+    (starts.data || []).concat(contains.data || []).forEach(function(r){
+      var label = displayChurchName(r.name);
+      var key = label.toLowerCase();
+      if (!(key in fdChurchAddressByName)) fdChurchAddressByName[key] = r.address || '';
+      out.push(label);
     });
+    return out;
   }
   // Events go through the RPC, not the table: which events a visitor may
   // see is the RPC's business (members-only ones are not anon-readable),
@@ -21289,8 +21343,18 @@
   fdWireSuggest({
     inputId: 'hero-keyword-input', listId: 'hero-keyword-list',
     source: fdSuggestChurches,
-    onChoose: function(){
+    onChoose: function(name){
       if (typeof window.syncHeroKeywordClearBtn === 'function') window.syncHeroKeywordClearBtn();
+      if (typeof window.fdSyncHeroSubmit === 'function') window.fdSyncHeroSubmit();
+      // Picking a named church is also a statement about where you are
+      // looking, so its address fills the location field -- unless
+      // something is already typed there, which is a choice to respect.
+      var addr = fdChurchAddressByName[String(name || '').toLowerCase()];
+      var loc = document.getElementById('hero-location-input');
+      if (addr && loc && !loc.value.trim()) {
+        loc.value = titleCaseAddress(addr);
+        if (typeof window.syncHeroLocationClearBtn === 'function') window.syncHeroLocationClearBtn();
+      }
     }
   });
 
@@ -21325,8 +21389,37 @@
   window.syncDirKeywordClearBtn = wireSearchClearBtn('dir-keyword-input', 'dir-keyword-clear-btn', debouncedRenderDirectory);
   // The hero's two fields. Nothing to re-render on clear -- the hero
   // searches when you press the button, not as you type.
-  window.syncHeroKeywordClearBtn = wireSearchClearBtn('hero-keyword-input', 'hero-keyword-clear-btn');
+  // "List your church FREE" is an offer, and it does not apply to
+  // someone who already runs one -- for them the link quietly became a
+  // trip to their dashboard, which on an account like that lands on the
+  // event list and reads as a broken link rather than a redirect.
+  // Hidden instead. updateAuthUI calls this both ways, so signing out
+  // brings it back.
+  function fdSyncListChurchCta(){
+    var on = window.hasChurchAccess === true;
+    [].forEach.call(document.querySelectorAll('.hero-for-churches'), function(el){
+      el.style.display = on ? 'none' : '';
+    });
+  }
+  window.fdSyncListChurchCta = fdSyncListChurchCta;
+
+  // The submit button follows the keyword field: hidden while it is
+  // empty, because a search button with nothing to search reads as a
+  // control you have failed to use.
+  function fdSyncHeroSubmit(){
+    var kw = document.getElementById('hero-keyword-input');
+    var btn = document.getElementById('hero-browse-btn');
+    if (!kw || !btn) return;
+    btn.hidden = !kw.value.trim();
+  }
+  window.fdSyncHeroSubmit = fdSyncHeroSubmit;
+  window.syncHeroKeywordClearBtn = wireSearchClearBtn('hero-keyword-input', 'hero-keyword-clear-btn', fdSyncHeroSubmit);
   window.syncHeroLocationClearBtn = wireSearchClearBtn('hero-location-input', 'hero-location-clear-btn');
+  (function(){
+    var kw = document.getElementById('hero-keyword-input');
+    if (kw) kw.addEventListener('input', fdSyncHeroSubmit);
+    fdSyncHeroSubmit();
+  })();
   // The events row is gone; its clear button is the shared one, already
   // wired below for the directory.
   // Location fields' own clear buttons -- onClear calls
@@ -26489,6 +26582,7 @@
       if (myGeneration !== window.authUICheckGeneration) return;
       var hasChurchAccess = !!myChurchForNav;
       window.hasChurchAccess = hasChurchAccess;
+      if (window.fdSyncListChurchCta) window.fdSyncListChurchCta();
       // Pricing hides only for someone already on a paid plan (owner or
       // staff -- both get a planType off the same getMyChurch() row);
       // no church yet, or a free-tier church, both still see it as the
@@ -26499,6 +26593,7 @@
       userMenu.style.display = 'none';
       window.isPlatformAdmin = false;
       window.hasChurchAccess = false;
+      if (window.fdSyncListChurchCta) window.fdSyncListChurchCta();
     }
     window.userAccountType = accountType;
 
