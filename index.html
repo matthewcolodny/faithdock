@@ -4319,6 +4319,14 @@
 
   /* ---- HERO ---- */
   .hero{background:var(--brand);color:#EDEBE2;padding:84px 0 96px;position:relative;overflow:hidden;}
+  /* overflow:hidden is here for .hero-skyline, which is absolutely
+     positioned along the bottom edge -- but it also cut the search
+     suggestions off at the navy/cream seam, measured at 98px of the
+     list missing. Lifted only while a list is open, which is the only
+     moment anything is meant to hang outside the hero, and the skyline
+     cannot spill in that moment because it is pinned left:0;right:0
+     inside the same box. */
+  .hero.fd-unclip{overflow:visible;}
   .hero-skyline{position:absolute;bottom:0;left:0;right:0;height:64px;opacity:.35;}
   .hero-inner{max-width:1080px;margin:0 auto;padding:0 28px;position:relative;z-index:2;}
   .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:12.5px;letter-spacing:.12em;
@@ -7325,6 +7333,9 @@
   /* The chips at the top of a filter window. */
   /* A heading per kind, in the same list. Not clickable, and skipped by
      the arrow keys, because it is a label and not a result. */
+  /* Nine rows plus two headings do not fit 200px, and the hero no
+     longer clips, so there is somewhere for them to go. */
+  #hero-keyword-list{max-height:min(48vh, 360px);}
   .fd-sugg-group{
     padding:8px 12px 4px;font-size:11.5px;font-weight:700;
     letter-spacing:.06em;text-transform:uppercase;color:var(--ink-mute);
@@ -12770,7 +12781,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v395 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v396 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -14950,7 +14961,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-29-v395',
+      'build 2026-09-29-v396',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -21339,20 +21350,42 @@
   // actually have a church in them.
   // ", " before the term so it matches the town segment and not a
   // street name that happens to start the same way.
+  // The city column first -- migration 114 backfilled it and a trigger
+  // keeps it true -- with the address string as a fallback so this
+  // still works against a database where that migration has not run.
+  var fdCityColumnUsable = null;    // null = not yet known
   async function fdSuggestPlaces(q){
     if (!window.supabase) return [];
+    var esc = q.replace(/[\\%_]/g, function(ch){ return '\\' + ch; });
+    if (fdCityColumnUsable !== false) {
+      var byCol = await window.supabase.from('churches').select('city, state')
+        .eq('is_hidden', false).ilike('city', esc + '%').limit(200);
+      if (!byCol.error && byCol.data && byCol.data.length) {
+        fdCityColumnUsable = true;
+        return fdDedupePlaces(byCol.data.map(function(r){
+          return r.city ? (r.city + (r.state ? ', ' + r.state : '')) : null;
+        }), q);
+      }
+      // An empty result is not proof the column is unusable -- the town
+      // may simply not be there -- so only an error turns the fallback
+      // on for good. An empty answer just falls through this once.
+      if (byCol.error) fdCityColumnUsable = false;
+    }
+    // ", " before the term so it matches the town segment and not a
+    // street name that happens to start the same way.
     var res = await window.supabase.from('churches').select('address')
-      .eq('is_hidden', false)
-      .ilike('address', '%, ' + q.replace(/[\\%_]/g, function(ch){ return '\\' + ch; }) + '%')
-      .limit(300);
+      .eq('is_hidden', false).ilike('address', '%, ' + esc + '%').limit(300);
     if (res.error || !res.data) return [];
-    var seen = Object.create(null), out = [];
-    for (var i = 0; i < res.data.length; i++) {
-      var place = fdPlaceFromAddress(res.data[i].address);
+    return fdDedupePlaces(res.data.map(function(r){ return fdPlaceFromAddress(r.address); }), q);
+  }
+  function fdDedupePlaces(list, q){
+    var seen = Object.create(null), out = [], lower = q.toLowerCase();
+    for (var i = 0; i < list.length; i++) {
+      var place = list[i];
       if (!place) continue;
-      // The match has to be on the town, not on something else in the
-      // address that happened to satisfy the LIKE.
-      if (place.toLowerCase().indexOf(q.toLowerCase()) !== 0) continue;
+      // The match has to be on the town, not on something else that
+      // happened to satisfy the LIKE.
+      if (place.toLowerCase().indexOf(lower) !== 0) continue;
       var key = place.toLowerCase();
       if (seen[key]) continue;
       seen[key] = 1;
@@ -21415,10 +21448,16 @@
     if (!input || !list) return;
     var timer = null, seq = 0, names = [], active = -1;
 
+    function setUnclip(on){
+      if (!opts.unclip) return;
+      var host = document.querySelector(opts.unclip);
+      if (host) host.classList.toggle('fd-unclip', !!on);
+    }
     function close(){
       list.classList.remove('open');
       list.innerHTML = '';
       names = []; active = -1;
+      setUnclip(false);
     }
     function setActive(i){
       // The results only. list.children now also holds group headings,
@@ -21469,6 +21508,7 @@
       list.innerHTML = html;
       list.classList.add('open');
       active = -1;
+      setUnclip(true);
     }
     async function look(q){
       var mine = ++seq;
@@ -21541,6 +21581,7 @@
     inputId: 'hero-keyword-input', listId: 'hero-keyword-list',
     source: fdSuggestChurchesAndPlaces,
     show: 9,
+    unclip: '.hero',
     groupLabels: { church: 'Churches', place: 'Places' },
     onChoose: function(name, item){
       // A place is a location, not a name to search for: it goes in the
