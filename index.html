@@ -492,7 +492,7 @@
       'home.headline': 'Find your church home, and everything happening there.',
       'home.lead': "Search churches and events near you, follow the ones you love, and never miss what's next.",
       'home.locationPlaceholder': 'Enter your city or zip code', 'home.browseBtn': 'Browse churches',
-      'home.keywordPlaceholder': 'Search churches by name or keyword...',
+      'home.keywordPlaceholder': 'Search a church or a town...',
       'home.viewDirectory': 'View directory', 'home.upcomingEvents': 'Upcoming events', 'home.viewAllEvents': 'View all events',
       'home.noChurchesNearby': 'No churches found near you yet.', 'home.browseEventsInstead': 'Browse upcoming events',
       'home.noEventsNearby': 'No upcoming events near you yet.', 'home.browseChurchesInstead': 'Browse churches near you',
@@ -510,6 +510,9 @@
       'dir.geoNotSupported': 'Geolocation not supported by this browser.', 'dir.findingYou': 'Finding you...',
       'dir.showingDistancesYourLocation': 'Showing distances from your location.', 'dir.showingDistancesThisLocation': 'Showing distances from this location.',
       'dir.couldNotGetLocation': 'Could not get your location — try typing it instead.', 'dir.mapServiceLoading': 'Map service still loading — try again in a moment.',
+      'dir.summaryMatching': 'Matching {q}.',
+      'dir.summaryNear': 'Near {q}.',
+      'dir.clearSearch': 'Clear search',
       'dir.searching': 'Searching...', 'dir.couldNotFindLocation': "Couldn't find that location — try a different search.",
       'dir.enterCityOrAddress': 'Enter a city or address',
       'auth.signupTab': 'Sign up', 'auth.loginTab': 'Log in', 'auth.fullName': 'Full name', 'auth.email': 'Email',
@@ -1865,7 +1868,7 @@
       'home.headline': 'Encuentra tu iglesia y todo lo que sucede allí.',
       'home.lead': 'Busca iglesias y eventos cerca de ti, sigue a las que más te gustan y no te pierdas nada.',
       'home.locationPlaceholder': 'Ingresa tu ciudad o código postal', 'home.browseBtn': 'Explorar iglesias',
-      'home.keywordPlaceholder': 'Busca iglesias por nombre o palabra clave...',
+      'home.keywordPlaceholder': 'Busca una iglesia o una ciudad...',
       'home.viewDirectory': 'Ver directorio', 'home.upcomingEvents': 'Próximos eventos', 'home.viewAllEvents': 'Ver todos los eventos',
       'home.noChurchesNearby': 'Aún no se encontraron iglesias cerca de ti.', 'home.browseEventsInstead': 'Ver próximos eventos',
       'home.noEventsNearby': 'Aún no hay próximos eventos cerca de ti.', 'home.browseChurchesInstead': 'Ver iglesias cerca de ti',
@@ -1883,6 +1886,9 @@
       'dir.geoNotSupported': 'Este navegador no admite geolocalización.', 'dir.findingYou': 'Buscándote...',
       'dir.showingDistancesYourLocation': 'Mostrando distancias desde tu ubicación.', 'dir.showingDistancesThisLocation': 'Mostrando distancias desde esta ubicación.',
       'dir.couldNotGetLocation': 'No pudimos obtener tu ubicación — intenta escribirla.', 'dir.mapServiceLoading': 'El servicio de mapas aún se está cargando — intenta de nuevo en un momento.',
+      'dir.summaryMatching': 'Que coincidan con {q}.',
+      'dir.summaryNear': 'Cerca de {q}.',
+      'dir.clearSearch': 'Borrar búsqueda',
       'dir.searching': 'Buscando...', 'dir.couldNotFindLocation': 'No pudimos encontrar esa ubicación — intenta con otra búsqueda.',
       'dir.enterCityOrAddress': 'Ingresa una ciudad o dirección',
       'auth.signupTab': 'Registrarse', 'auth.loginTab': 'Iniciar sesión', 'auth.fullName': 'Nombre completo', 'auth.email': 'Correo electrónico',
@@ -4391,6 +4397,7 @@
      keyword field has something in it, which also keeps the resting
      hero quieter. */
   .hero-search-bar > button[hidden]{display:none;}
+  .hero-search-bar > [hidden]{display:none;}
   @media (max-width:600px){
     /* Stacked, one field per row. They used to share a single row with
        min-width:0 and ellipsis, which fitted but left each field about
@@ -7316,6 +7323,33 @@
   .fd-quick-btn:hover{border-color:var(--gold);}
 
   /* The chips at the top of a filter window. */
+  /* A heading per kind, in the same list. Not clickable, and skipped by
+     the arrow keys, because it is a label and not a result. */
+  .fd-sugg-group{
+    padding:8px 12px 4px;font-size:11.5px;font-weight:700;
+    letter-spacing:.06em;text-transform:uppercase;color:var(--ink-mute);
+  }
+  .autocomplete-item.fd-sugg-row{display:flex;align-items:center;gap:10px;}
+  .fd-sugg-ico{
+    flex-shrink:0;width:34px;height:34px;border-radius:50%;
+    background:var(--paper);color:var(--ink-mute);
+    display:inline-flex;align-items:center;justify-content:center;
+  }
+  .fd-sugg-ico svg{width:17px;height:17px;display:block;}
+  .fd-sugg-txt{min-width:0;display:flex;flex-direction:column;gap:1px;}
+  .fd-sugg-label{overflow:hidden;text-overflow:ellipsis;}
+  .fd-sugg-sub{font-size:12px;color:var(--ink-mute);}
+  .fd-search-summary{
+    display:flex;flex-wrap:wrap;align-items:center;gap:8px;
+    margin:0 0 12px;font-size:13px;color:var(--ink-mute);
+  }
+  .fd-search-summary strong{color:var(--ink);font-weight:600;}
+  .fd-search-summary button{
+    background:none;border:1px solid var(--line);border-radius:999px;
+    padding:4px 11px;font-size:12.5px;font-weight:600;color:var(--ink-mute);
+    cursor:pointer;-webkit-tap-highlight-color:transparent;
+  }
+  .fd-search-summary button:hover{color:var(--ink);border-color:var(--ink-mute);}
   .fd-filter-chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px;}
   .fd-filter-chips[hidden]{display:none;}
   .fd-filter-chip{
@@ -8044,8 +8078,16 @@
           <button type="button" class="search-clear-btn" id="hero-keyword-clear-btn" aria-label="Clear search" data-i18n-title="common.clearSearch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
           <div class="autocomplete-list" id="hero-keyword-list" role="listbox"></div>
         </div>
-        <span class="search-bar-divider"></span>
-        <div class="search-field-wrap search-clear-wrap">
+        <!-- The location half is still here, and still filled by
+             geolocation detection, by picking a town from the one
+             search box above, and by picking a church (its address).
+             It is just not a second thing to type into: one box that
+             suggests churches AND towns is the whole point, and two
+             boxes that both narrow the results is how a search ended up
+             limited twice over. Hidden rather than removed because a
+             good deal of code reads and writes it by id. -->
+        <span class="search-bar-divider" hidden></span>
+        <div class="search-field-wrap search-clear-wrap" hidden>
           <span class="search-field-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
           <input type="search" id="hero-location-input" placeholder="Enter your city or zip code" data-i18n-placeholder="home.locationPlaceholder" autocomplete="off">
           <button type="button" class="search-clear-btn" id="hero-location-clear-btn" aria-label="Clear location" data-i18n-title="common.clearSearch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
@@ -8460,6 +8502,11 @@
              open on nothing at all for as long as the query took, which
              read as "no churches here" rather than as "not yet". Removed
              by the first render, whichever way it goes. -->
+        <!-- What the results are narrowed to, above the results. A
+             keyword and a location both persist once set, and together
+             they narrow twice over -- which is fine as long as you can
+             see it and undo it without navigating away. -->
+        <div id="dir-search-summary" class="fd-search-summary" hidden></div>
         <div id="directory-loading" class="fd-card-skeletons" aria-hidden="true">
           <div class="fd-skel-card"></div><div class="fd-skel-card"></div><div class="fd-skel-card"></div>
         </div>
@@ -12723,7 +12770,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v394 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v395 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -14903,7 +14950,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-29-v394',
+      'build 2026-09-29-v395',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -20180,6 +20227,7 @@
     // Whatever the answer is, there is one now.
     var skel = document.getElementById('directory-loading');
     if (skel) skel.remove();
+    if (window.fdRenderSearchSummary) window.fdRenderSearchSummary();
 
     if (error) {
       grid.style.display = 'none';
@@ -21183,6 +21231,24 @@
   // the tab that is open without the list widget knowing anything about
   // tabs.
   var FD_SUGGEST_SHOW = 8, FD_SUGGEST_FETCH = 40, FD_SUGGEST_MIN = 2;
+  // A source returns either plain strings or {kind, label, sub, value}.
+  // Strings are normalised to the object form so the two shapes can
+  // live side by side -- the directory's field still wants a flat list
+  // of names, the hero's wants churches and places in one list under
+  // their own headings.
+  function fdNormaliseSuggestions(raw){
+    var out = [];
+    for (var i = 0; i < (raw || []).length; i++) {
+      var r = raw[i];
+      if (typeof r === 'string') { if (r.trim()) out.push({ kind: '', label: r.trim(), sub: '', value: r.trim() }); }
+      else if (r && r.label) out.push({ kind: r.kind || '', label: r.label, sub: r.sub || '', value: r.value || r.label });
+    }
+    return out;
+  }
+  var FD_SUGG_ICON = {
+    church: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v4M10 4h4"/><path d="M12 7l-6 4v10h12V11l-6-4Z"/><path d="M10 21v-4h4v4"/></svg>',
+    place:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>'
+  };
   // Display name -> address, filled as suggestions come back. Only ever
   // read straight after a pick, so it does not need clearing.
   var fdChurchAddressByName = Object.create(null);
@@ -21248,6 +21314,90 @@
     if (res.error || !res.data) return [];
     return res.data.map(function(r){ return r.name || ''; });
   }
+  // A town out of an address string. city and state exist as columns
+  // but are null on all 22,401 rows, so the address is the only place
+  // the town actually lives: "122 W Fay St, Edinburg, TX" ->
+  // "Edinburg, TX". Trailing "USA" is dropped, and the state is the
+  // two letters at the front of the last part, which also survives a
+  // postcode hanging off it.
+  function fdPlaceFromAddress(a){
+    if (!a) return null;
+    var parts = String(a).split(',').map(function(x){ return x.trim(); }).filter(Boolean);
+    if (parts.length && /^(usa|united states)$/i.test(parts[parts.length - 1])) parts.pop();
+    if (parts.length < 2) return null;
+    var m = parts[parts.length - 1].match(/^([A-Za-z]{2})\b/);
+    if (!m) return null;
+    var city = parts[parts.length - 2].replace(/\s+/g, ' ');
+    if (!city) return null;
+    return city + ', ' + m[1].toUpperCase();
+  }
+  window.fdPlaceFromAddress = fdPlaceFromAddress;
+
+  // Places come out of the churches we already have rather than from
+  // Places Autocomplete, which bills per keystroke session. The side
+  // effect is the right one: the only towns offered are towns that
+  // actually have a church in them.
+  // ", " before the term so it matches the town segment and not a
+  // street name that happens to start the same way.
+  async function fdSuggestPlaces(q){
+    if (!window.supabase) return [];
+    var res = await window.supabase.from('churches').select('address')
+      .eq('is_hidden', false)
+      .ilike('address', '%, ' + q.replace(/[\\%_]/g, function(ch){ return '\\' + ch; }) + '%')
+      .limit(300);
+    if (res.error || !res.data) return [];
+    var seen = Object.create(null), out = [];
+    for (var i = 0; i < res.data.length; i++) {
+      var place = fdPlaceFromAddress(res.data[i].address);
+      if (!place) continue;
+      // The match has to be on the town, not on something else in the
+      // address that happened to satisfy the LIKE.
+      if (place.toLowerCase().indexOf(q.toLowerCase()) !== 0) continue;
+      var key = place.toLowerCase();
+      if (seen[key]) continue;
+      seen[key] = 1;
+      out.push({ kind: 'place', label: place, sub: '', value: place });
+      if (out.length >= 4) break;
+    }
+    return out;
+  }
+
+  // Churches and places in one list, each under its own heading. Two
+  // queries in parallel, because one field doing both jobs is the whole
+  // point -- you should not have to decide which box a thing goes in
+  // before you have finished typing it.
+  async function fdSuggestChurchesAndPlaces(q){
+    var both = await Promise.all([
+      fdSuggestChurchesDetailed(q),
+      fdSuggestPlaces(q)
+    ]);
+    return both[0].slice(0, 5).concat(both[1]);
+  }
+  // Same query as fdSuggestChurches, kept as objects so the row can
+  // carry the town under the name and the raw name for the route.
+  async function fdSuggestChurchesDetailed(q){
+    if (!window.supabase) return [];
+    var pattern = fdLikePattern(q);
+    var both = await Promise.all([
+      window.supabase.from('churches').select('name, address')
+        .eq('is_hidden', false).ilike('name', pattern.slice(1)).order('name').limit(FD_SUGGEST_SHOW),
+      window.supabase.from('churches').select('name, address')
+        .eq('is_hidden', false).ilike('name', pattern).order('name').limit(FD_SUGGEST_FETCH)
+    ]);
+    var starts = both[0], contains = both[1];
+    if ((starts.error && contains.error) || (!starts.data && !contains.data)) return [];
+    var seen = Object.create(null), out = [];
+    (starts.data || []).concat(contains.data || []).forEach(function(r){
+      var label = displayChurchName(r.name);
+      var key = label.toLowerCase();
+      if (seen[key]) return;
+      seen[key] = 1;
+      if (!(key in fdChurchAddressByName)) fdChurchAddressByName[key] = r.address || '';
+      out.push({ kind: 'church', label: label, sub: fdPlaceFromAddress(r.address) || '', value: r.name });
+    });
+    return out;
+  }
+
   // The shared field belongs to whichever tab is open.
   function fdSuggestForBrowseTab(q){
     var tab = (typeof fdBrowseTab === 'string') ? fdBrowseTab : 'churches';
@@ -21271,7 +21421,10 @@
       names = []; active = -1;
     }
     function setActive(i){
-      var rows = list.children;
+      // The results only. list.children now also holds group headings,
+      // so indexing straight into it walked the arrow keys onto a label
+      // and then off the end of the list.
+      var rows = list.querySelectorAll('.autocomplete-item');
       if (active >= 0 && rows[active]) rows[active].classList.remove('is-active');
       active = i;
       if (active >= 0 && rows[active]) {
@@ -21279,10 +21432,11 @@
         rows[active].scrollIntoView({ block: 'nearest' });
       }
     }
-    function choose(name){
-      input.value = name;
+    function choose(item){
+      if (!item) return;
+      input.value = item.label;
       close();
-      if (typeof opts.onChoose === 'function') opts.onChoose(name);
+      if (typeof opts.onChoose === 'function') opts.onChoose(item.label, item);
     }
     // Escaped in three pieces rather than escaping the whole string and
     // then hunting for the query inside it -- the query could otherwise
@@ -21297,37 +21451,52 @@
     function paint(found, q){
       names = found;
       if (!found.length) { close(); return; }
-      list.innerHTML = found.map(function(nm, i){
-        return '<div class="autocomplete-item" role="option" data-i="' + i + '">' + mark(nm, q) + '</div>';
-      }).join('');
+      var html = '', lastKind = null;
+      for (var i = 0; i < found.length; i++) {
+        var it = found[i];
+        // A heading only where the kind changes, and only when there is
+        // more than one kind to tell apart.
+        if (it.kind && it.kind !== lastKind && opts.groupLabels) {
+          html += '<div class="fd-sugg-group">' + escapeHtml(opts.groupLabels[it.kind] || it.kind) + '</div>';
+        }
+        lastKind = it.kind;
+        html += '<div class="autocomplete-item' + (it.kind ? ' fd-sugg-row' : '') + '" role="option" data-i="' + i + '">'
+          + (it.kind && FD_SUGG_ICON[it.kind] ? '<span class="fd-sugg-ico">' + FD_SUGG_ICON[it.kind] + '</span>' : '')
+          + '<span class="fd-sugg-txt"><span class="fd-sugg-label">' + mark(it.label, q) + '</span>'
+          + (it.sub ? '<span class="fd-sugg-sub">' + escapeHtml(it.sub) + '</span>' : '')
+          + '</span></div>';
+      }
+      list.innerHTML = html;
       list.classList.add('open');
       active = -1;
     }
     async function look(q){
       var mine = ++seq;
       var raw;
-      try { raw = await opts.source(q); } catch (e) { raw = []; }
+      try { raw = fdNormaliseSuggestions(await opts.source(q)); } catch (e) { raw = []; }
       if (mine !== seq) return;             // a later keystroke already answered
       // Deduped on the DISPLAYED name: "First Baptist Church" exists many
       // times over and eight identical rows are no use to anyone. Picking
       // it searches for the name, which finds all of them.
       var seen = Object.create(null), out = [];
       for (var i = 0; i < raw.length; i++) {
-        var nm = String(raw[i] || '').trim();
-        if (!nm) continue;
-        var key = nm.toLowerCase();
+        var key = raw[i].kind + '|' + raw[i].label.toLowerCase();
         if (seen[key]) continue;
-        seen[key] = 1; out.push(nm);
+        seen[key] = 1; out.push(raw[i]);
       }
-      // A stable tiebreak, and a backstop if one of a source's two
-      // queries failed on its own.
+      // A stable tiebreak within a kind, and a backstop if one of a
+      // source's queries failed on its own. Kinds keep the order the
+      // source put them in, because that is what the headings follow.
       var lower = q.toLowerCase();
+      var order = Object.create(null), seenKind = 0;
+      out.forEach(function(it){ if (!(it.kind in order)) order[it.kind] = seenKind++; });
       out.sort(function(a, b){
-        var pa = a.toLowerCase().indexOf(lower) === 0 ? 0 : 1;
-        var pb = b.toLowerCase().indexOf(lower) === 0 ? 0 : 1;
+        if (order[a.kind] !== order[b.kind]) return order[a.kind] - order[b.kind];
+        var pa = a.label.toLowerCase().indexOf(lower) === 0 ? 0 : 1;
+        var pb = b.label.toLowerCase().indexOf(lower) === 0 ? 0 : 1;
         return pa !== pb ? pa - pb : 0;
       });
-      paint(out.slice(0, FD_SUGGEST_SHOW), q);
+      paint(out.slice(0, opts.show || FD_SUGGEST_SHOW), q);
     }
 
     input.addEventListener('input', function(){
@@ -21370,8 +21539,25 @@
   });
   fdWireSuggest({
     inputId: 'hero-keyword-input', listId: 'hero-keyword-list',
-    source: fdSuggestChurches,
-    onChoose: function(name){
+    source: fdSuggestChurchesAndPlaces,
+    show: 9,
+    groupLabels: { church: 'Churches', place: 'Places' },
+    onChoose: function(name, item){
+      // A place is a location, not a name to search for: it goes in the
+      // location field and leaves the keyword empty, so picking
+      // "San Antonio, TX" means everything there rather than every
+      // church called San Antonio.
+      if (item && item.kind === 'place') {
+        var kwEl = document.getElementById('hero-keyword-input');
+        var locEl = document.getElementById('hero-location-input');
+        if (kwEl) kwEl.value = '';
+        if (locEl) { locEl.value = item.label; delete locEl.dataset.fdFromPick; }
+        if (typeof window.syncHeroKeywordClearBtn === 'function') window.syncHeroKeywordClearBtn();
+        if (typeof window.syncHeroLocationClearBtn === 'function') window.syncHeroLocationClearBtn();
+        if (typeof window.fdSyncHeroSubmit === 'function') window.fdSyncHeroSubmit();
+        if (typeof window.goToDirectoryFromHero === 'function') window.goToDirectoryFromHero();
+        return;
+      }
       if (typeof window.syncHeroKeywordClearBtn === 'function') window.syncHeroKeywordClearBtn();
       if (typeof window.fdSyncHeroSubmit === 'function') window.fdSyncHeroSubmit();
       // Picking a named church is also a statement about where you are
@@ -21421,6 +21607,14 @@
     return syncVisibility;
   }
   window.syncDirKeywordClearBtn = wireSearchClearBtn('dir-keyword-input', 'dir-keyword-clear-btn', debouncedRenderDirectory);
+  // The keyword half. Typing is the only way it changes that
+  // setDirLocation does not already cover.
+  ['dir-keyword-input', 'dir-location-input'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.addEventListener('input', function(){
+      if (window.fdRenderSearchSummary) window.fdRenderSearchSummary();
+    });
+  });
   // The hero's two fields. Nothing to re-render on clear -- the hero
   // searches when you press the button, not as you type.
   // "List your church FREE" is an offer, and it does not apply to
@@ -23485,6 +23679,9 @@
     // already points at.
     applyDirLocationCoords(lat, lng, true);
     applyDirLocationLabel(label);
+    // Everything that changes the location goes through here, which
+    // makes it the one place the summary line has to be told.
+    if (window.fdRenderSearchSummary) window.fdRenderSearchSummary();
     // Every manual location entry point (Directory/Events autocomplete,
     // Enter/search-button geocoding, "Use my location" on either page)
     // funnels through this one function -- the single choke point to
@@ -23645,6 +23842,12 @@
     // by mistake was silently filtering out every real church.
     var locationInput = document.getElementById('dir-location-input');
     if (locationInput) locationInput.value = typedLocation;
+    // Both fields are assigned programmatically here, which fires no
+    // input event, so the summary has to be told directly. It reflects
+    // what is IN the fields rather than what the geocoder made of them:
+    // if the location cannot be resolved you still need to see it
+    // sitting there, and still need a way to take it off.
+    if (window.fdRenderSearchSummary) window.fdRenderSearchSummary();
     go('directory');
 
     // Register the directory as a surface worth rendering.
@@ -45285,6 +45488,41 @@
   // RPC (a church's normal UPDATE RLS is owner-only). A hidden church
   // drops off the directory / homepage / search but stays fully usable
   // by its owner.
+  // What the list is currently narrowed to, and one control that undoes
+  // all of it. Both fields keep their values after a search -- which is
+  // right, you usually want to adjust one of them -- but with nothing
+  // on screen saying so, a second search silently ran inside the first
+  // and the only way out was the back button.
+  function fdRenderSearchSummary(){
+    var host = document.getElementById('dir-search-summary');
+    if (!host) return;
+    var kw = document.getElementById('dir-keyword-input');
+    var loc = document.getElementById('dir-location-input');
+    var kwv = kw ? kw.value.trim() : '';
+    var locv = loc ? loc.value.trim() : '';
+    if (!kwv && !locv) { host.hidden = true; host.innerHTML = ''; return; }
+    var bits = [];
+    if (kwv) bits.push(window.t('dir.summaryMatching').replace('{q}', '<strong>' + escapeHtml(kwv) + '</strong>'));
+    if (locv) bits.push(window.t('dir.summaryNear').replace('{q}', '<strong>' + escapeHtml(locv) + '</strong>'));
+    host.innerHTML = '<span>' + bits.join(' ') + '</span>'
+      + '<button type="button" id="dir-clear-search">' + escapeHtml(window.t('dir.clearSearch')) + '</button>';
+    host.hidden = false;
+  }
+  window.fdRenderSearchSummary = fdRenderSearchSummary;
+
+  document.addEventListener('click', function(ev){
+    if (!ev.target.closest || !ev.target.closest('#dir-clear-search')) return;
+    var kw = document.getElementById('dir-keyword-input');
+    if (kw) kw.value = '';
+    if (typeof window.syncDirKeywordClearBtn === 'function') window.syncDirKeywordClearBtn();
+    // Goes through the same function the location field's own x uses, so
+    // the label, the coordinates and the stored choice all reset the way
+    // they already do rather than a second time in a different way.
+    if (typeof window.clearDirLocation === 'function') window.clearDirLocation();
+    else if (typeof window.renderDirectory === 'function') window.renderDirectory();
+    fdRenderSearchSummary();
+  });
+
   // Every flip is written to a local log first. A church that is shown
   // by mistake leaves the hidden list the instant it is pressed and
   // there is no row history to ask afterwards -- which is exactly how
