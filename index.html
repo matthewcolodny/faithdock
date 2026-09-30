@@ -8644,10 +8644,12 @@
            else is a date range, which is what this opens. It also puts
            the events filters back within reach on a phone, where the
            panel itself is hidden. -->
-      <!-- Same shape as By Denomination on the churches row: these two
-           do the same job, so they should not look like different
-           kinds of control. -->
-      <button type="button" id="events-dates-btn" class="event-tab-btn fd-quick-btn" aria-expanded="false" data-i18n-title="events.when" title="By Date" data-i18n="filters.byDate">By Date</button>
+      <!-- Same shape and same side as By Denomination on the churches
+           row: these two do the same job, so they should not look like
+           different kinds of control or sit in different places. -->
+      <div class="fd-quick-end">
+        <button type="button" id="events-dates-btn" class="event-tab-btn fd-quick-btn" aria-expanded="false" data-i18n-title="events.when" title="By Date" data-i18n="filters.byDate">By Date</button>
+      </div>
     </div>
         <div class="grid fd-results-grid" id="events-grid"></div>
         <div id="events-empty" style="display:none;color:var(--ink-mute);font-size:14.5px;padding:40px 0;text-align:center;" data-i18n="filters.noEventsMatch">No events match these filters. Try widening your search.</div>
