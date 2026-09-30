@@ -5349,6 +5349,8 @@
 .fd-hidden-group{display:none !important;}
 .filter-panel.fd-loc-open .fd-loc-group{display:block;}
 .fd-loc-group{display:none;}
+/* The groups panel has one group and it is always the one showing. */
+.filter-panel[data-filter-for="groups"] .fd-gcat-group{display:block;}
 .filter-panel.fd-loc-open,
 .filter-panel.fd-loc-open .filter-panel-body{display:block;}
 .filter-panel.fd-loc-open .filter-panel-toggle{display:none;}
@@ -8566,6 +8568,23 @@
       </aside>
       </div>
       <div class="fd-panel" data-browse-panel="events" style="display:none;">
+      <!-- Groups get their own filter panel so the map's filter button
+           opens something that belongs to the tab you are on. One group
+           only: everything else about a group is a column, not a tag. -->
+      <aside class="filter-panel" data-filter-for="groups">
+        <h3 class="filter-panel-title" data-i18n="filters.filterSearches">Filter searches</h3>
+        <button type="button" class="fd-panel-close" data-fd-panel-close aria-label="Close" data-i18n-aria="common.close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+        <div class="filter-panel-body">
+          <div class="filter-group fd-gcat-group">
+            <h4 data-i18n="filters.byCategory">By Category</h4>
+            <div class="autocomplete-wrap" style="position:relative;margin-bottom:10px;">
+              <input class="field" type="text" id="group-filter-search" placeholder="Search" data-i18n-placeholder="filters.searchCategory">
+              <div class="autocomplete-list" id="group-filter-list" role="listbox"></div>
+            </div>
+            <div id="group-filter-checks"></div>
+          </div>
+        </div>
+      </aside>
       <aside class="filter-panel" data-filter-for="events">
         <h3 class="filter-panel-title" data-i18n="filters.filterSearches">Filter searches</h3>
         <button type="button" class="filter-panel-toggle" id="events-filter-toggle" aria-expanded="false" aria-controls="events-filter-body">
@@ -8760,6 +8779,15 @@
       <!-- The groups-only cards/list toggle was here. The shell carries
            one in the tab strip beside the tabs, and two controls for one
            list is one too many. -->
+      <!-- Same row as churches and events: a quick answer on the left,
+           the window-opening button on the right. -->
+      <div class="event-tab-row fd-quick-row" id="group-tab-row">
+        <button class="event-tab-btn active" type="button" data-group-tab="all" data-i18n="filters.all">All</button>
+        <div class="fd-quick-end">
+          <button class="event-tab-btn fd-quick-btn" type="button" aria-expanded="false" data-group-tab="categories" data-i18n="filters.byCategory">By Category</button>
+        </div>
+      </div>
+      <div class="fd-filter-chips" data-fd-group-chips hidden></div>
       <div id="groups-results" style="margin-top:16px;">
         <p style="color:var(--ink-mute);font-size:14px;" data-i18n="common.loading">Loading...</p>
       </div>
@@ -13005,7 +13033,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v410 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v411 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -15329,7 +15357,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-30-v410',
+      'build 2026-09-30-v411',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -21806,8 +21834,10 @@
     if (!window.supabase) return [];
     var res = await window.supabase.from('groups').select('name')
       .ilike('name', fdLikePattern(q)).order('name').limit(FD_SUGGEST_FETCH);
-    if (res.error || !res.data) return [];
-    return res.data.map(function(r){ return r.name || ''; });
+    var names = (!res.error && res.data) ? res.data.map(function(r){ return r.name || ''; }) : [];
+    // Names first, then the tags -- a group you can name is more
+    // specific than a kind of group.
+    return names.concat(fdSuggestGroupTags(q));
   }
   // A town out of an address string. city and state exist as columns
   // but are null on all 22,401 rows, so the address is the only place
@@ -22075,6 +22105,168 @@
     hit.checked = true;
     hit.dispatchEvent(new Event('change', { bubbles: true }));
     return true;
+  }
+
+  // ---- Group categories, in the browse panel ---------------------
+  //
+  // Same tabbed picker as the church one, over FD_GROUP_TAG_GROUPS.
+  function fdRenderGroupFilter(){
+    var host = document.getElementById('group-filter-checks');
+    if (!host || host.dataset.fdBuilt || !window.FD_GROUP_TAG_GROUPS) return;
+    host.dataset.fdBuilt = '1';
+    var groups = window.FD_GROUP_TAG_GROUPS;
+    var tabs = groups.map(function(g, i){
+      return '<button type="button" class="event-tab-btn fd-cat-tab' + (i === 0 ? ' active' : '')
+        + '" data-gfilter-group="' + escapeHtml(g.key) + '">'
+        + escapeHtml(window.currentLang === 'es' ? g.es : g.en) + '</button>';
+    }).join('');
+    var panes = groups.map(function(g, i){
+      var boxes = g.tags.map(function(t){
+        return '<label class="filter-check"><input type="checkbox" class="fd-gcat-filter" value="'
+          + escapeHtml(t[0]) + '"> <span>' + escapeHtml(window.fdGroupTagLabel(t[0])) + '</span></label>';
+      }).join('');
+      return '<div class="fd-cat-pane" data-gfilter-pane="' + escapeHtml(g.key) + '"'
+        + (i === 0 ? '' : ' hidden') + '>' + boxes + '</div>';
+    }).join('');
+    host.innerHTML = '<div class="event-tab-row fd-cat-tabs">' + tabs + '</div>' + panes;
+    // On the host: the panel stops clicks reaching document.
+    host.addEventListener('click', function(ev){
+      var t = ev.target.closest && ev.target.closest('[data-gfilter-group]');
+      if (!t) return;
+      ev.preventDefault();
+      var key = t.getAttribute('data-gfilter-group');
+      [].forEach.call(host.querySelectorAll('[data-gfilter-group]'), function(b){ b.classList.toggle('active', b === t); });
+      [].forEach.call(host.querySelectorAll('[data-gfilter-pane]'), function(pn){ pn.hidden = pn.getAttribute('data-gfilter-pane') !== key; });
+    });
+    host.addEventListener('change', function(ev){
+      if (!ev.target || !ev.target.classList || !ev.target.classList.contains('fd-gcat-filter')) return;
+      fdApplyGroupTagFilter();
+    });
+  }
+  window.fdRenderGroupFilter = fdRenderGroupFilter;
+
+  function fdChosenGroupTags(){
+    return [].map.call(document.querySelectorAll('.fd-gcat-filter:checked'), function(b){ return b.value; });
+  }
+  window.fdChosenGroupTags = fdChosenGroupTags;
+
+  // search_groups has no p_group_ids -- search_churches gained its
+  // equivalent in a migration, this one never did, and it predates this
+  // repo. So the narrowing happens on ids fetched separately and
+  // applied to what the RPC returns, rather than by changing a function
+  // I cannot read. window.fdGroupTagIds is null when no tag is ticked,
+  // which the loader reads as "no filter".
+  window.fdGroupTagIds = null;
+  var fdGroupTagSeq = 0;
+  async function fdApplyGroupTagFilter(){
+    var picked = fdChosenGroupTags();
+    var seq = ++fdGroupTagSeq;
+    if (!picked.length) {
+      window.fdGroupTagIds = null;
+    } else {
+      try {
+        var res = await window.supabase.from('groups').select('id').overlaps('group_tags', picked).limit(2000);
+        if (seq !== fdGroupTagSeq) return;
+        window.fdGroupTagIds = (res.data || []).map(function(r){ return r.id; });
+      } catch (e) {
+        if (seq !== fdGroupTagSeq) return;
+        window.fdGroupTagIds = [];
+      }
+    }
+    fdRenderGroupChips();
+    if (typeof window.loadGroupsSearch === 'function') window.loadGroupsSearch();
+  }
+  window.fdApplyGroupTagFilter = fdApplyGroupTagFilter;
+
+  function fdRenderGroupChips(){
+    var host = document.querySelector('[data-fd-group-chips]');
+    if (!host) return;
+    var picked = fdChosenGroupTags();
+    var allBtn = document.querySelector('[data-group-tab="all"]');
+    var catBtn = document.querySelector('[data-group-tab="categories"]');
+    if (allBtn) allBtn.classList.toggle('active', !picked.length);
+    if (catBtn) catBtn.classList.toggle('fd-quick-on', !!picked.length);
+    if (!picked.length) { host.hidden = true; host.innerHTML = ''; return; }
+    var parts = picked.map(function(slug){
+      return '<span class="fd-filter-chip">' + escapeHtml(window.fdGroupTagLabel(slug))
+        + '<button type="button" data-gchip="' + escapeHtml(slug) + '"'
+        + ' aria-label="' + escapeHtml(window.t('filters.removeFilter')) + '">' + FD_CHIP_X + '</button></span>';
+    });
+    if (parts.length > 1) {
+      parts.push('<button type="button" class="fd-filter-chip-clear" data-gchip-clear="1">'
+        + escapeHtml(window.t('filters.clearAll')) + '</button>');
+    }
+    host.innerHTML = parts.join('');
+    host.hidden = false;
+    if (!host.dataset.fdWired) {
+      host.dataset.fdWired = '1';
+      host.addEventListener('click', function(ev){
+        var one = ev.target.closest && ev.target.closest('[data-gchip]');
+        var all = ev.target.closest && ev.target.closest('[data-gchip-clear]');
+        if (!one && !all) return;
+        ev.preventDefault();
+        ev.stopPropagation();
+        var boxes = document.querySelectorAll('.fd-gcat-filter');
+        for (var i = 0; i < boxes.length; i++) {
+          if (all || boxes[i].value === one.getAttribute('data-gchip')) boxes[i].checked = false;
+        }
+        fdApplyGroupTagFilter();
+      });
+    }
+  }
+  window.fdRenderGroupChips = fdRenderGroupChips;
+
+  function fdApplyGroupTagPick(slug){
+    fdRenderGroupFilter();
+    var boxes = document.querySelectorAll('.fd-gcat-filter');
+    for (var i = 0; i < boxes.length; i++) if (boxes[i].value === slug) boxes[i].checked = true;
+    fdApplyGroupTagFilter();
+  }
+
+  // The groups row: All clears, By Category opens the groups panel.
+  document.addEventListener('click', function(ev){
+    var btn = ev.target.closest && ev.target.closest('[data-group-tab]');
+    if (!btn) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    var which = btn.getAttribute('data-group-tab');
+    var pn = document.querySelector('.filter-panel[data-filter-for="groups"]');
+    if (which === 'all') {
+      if (window.fdCloseFilterPanels) window.fdCloseFilterPanels();
+      var boxes = document.querySelectorAll('.fd-gcat-filter');
+      for (var i = 0; i < boxes.length; i++) boxes[i].checked = false;
+      fdApplyGroupTagFilter();
+      if (window.fdSyncFilterHistory) window.fdSyncFilterHistory();
+      return;
+    }
+    fdRenderGroupFilter();
+    var already = pn && pn.classList.contains('open');
+    if (window.fdCloseFilterPanels) window.fdCloseFilterPanels();
+    if (pn && !already) {
+      pn.classList.add('open');
+      btn.setAttribute('aria-expanded', 'true');
+      var row = btn.closest('.event-tab-row');
+      if (row && pn.offsetParent) pn.style.top = (row.offsetTop + row.offsetHeight + 6) + 'px';
+    }
+    if (window.fdSyncFilterHistory) window.fdSyncFilterHistory();
+  });
+
+  // Group tags as suggestions, but only while the Groups tab is the one
+  // open -- they mean nothing against a list of churches.
+  function fdSuggestGroupTags(q){
+    if (fdBrowseTab !== 'groups' || !window.FD_GROUP_TAG_GROUPS) return [];
+    var lower = q.toLowerCase(), starts = [], contains = [];
+    window.FD_GROUP_TAG_GROUPS.forEach(function(g){
+      var groupName = (window.currentLang === 'es' ? g.es : g.en);
+      g.tags.forEach(function(t){
+        var label = window.fdGroupTagLabel(t[0]);
+        var at = label.toLowerCase().indexOf(lower);
+        var item = { kind: 'category', label: label, sub: groupName, value: t[0] };
+        if (at === 0) starts.push(item);
+        else if (at > 0) contains.push(item);
+      });
+    });
+    return starts.concat(contains).slice(0, 4);
   }
 
   // The shared field belongs to whichever tab is open.
@@ -38393,7 +38585,16 @@
     }
 
     rows = rows || [];
+    // Tag narrowing, applied to what came back rather than inside the
+    // query: search_groups has no p_group_ids to pass these to. The
+    // count is recomputed from what survives, so it matches the list.
+    if (Array.isArray(window.fdGroupTagIds)) {
+      var keep = Object.create(null);
+      window.fdGroupTagIds.forEach(function(id){ keep[id] = 1; });
+      rows = rows.filter(function(r){ return keep[r.id]; });
+    }
     groupsSearchTotal = rows.length ? Number(rows[0].total_count) : 0;
+    if (Array.isArray(window.fdGroupTagIds)) groupsSearchTotal = rows.length;
 
     if (!rows.length && !append) {
       listEl.innerHTML = '<p style="color:var(--ink-mute);font-size:14px;">'
