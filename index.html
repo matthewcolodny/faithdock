@@ -1164,7 +1164,7 @@
       'dashSub.accountSettings': 'Account settings',
       'sectionSettings.visibility': 'Public page', 'sectionSettings.showEvents': 'Show Events on your public page',
       'sectionSettings.churchTags': 'How people find you',
-      'sectionSettings.churchTagsHint': 'Languages, access, character, music and programmes. These are what someone filters by when they are looking for a church like yours — so tick what is true today, not what you hope to offer.',
+      'sectionSettings.churchTagsHint': 'Languages, access, type, music and programs. These are what someone filters by when they are looking for a church like yours — so tick what is true today, not what you hope to offer.',
       'sectionSettings.churchTagsChosen': '{n} selected',
       'sectionSettings.eventTags': 'Event tags',
       'sectionSettings.eventTagsHint': 'Your church\'s own tags, offered when creating an event. Keeping the list short is what makes tags useful — "Youth" and "Youth Group" as separate tags help nobody.',
@@ -5334,11 +5334,15 @@
 .filter-panel.fd-loc-open .filter-panel-toggle{display:none;}
 .filter-panel.fd-loc-open .filter-group{display:none;}
 .filter-panel.fd-loc-open .fd-loc-group{display:block;}
-.fd-cat-fieldset{border:0;padding:0;margin:0 0 14px;}
-.fd-cat-fieldset > legend{
-  padding:0;margin:0 0 4px;font-size:12px;font-weight:700;
-  letter-spacing:.04em;text-transform:uppercase;color:var(--ink-mute);
+/* A folder of tabs, not five stacked fieldsets: 88 checkboxes in one
+   column is a long scroll to reach the group you came for. */
+.fd-cat-tabs{
+  gap:14px;overflow-x:auto;scrollbar-width:none;margin-bottom:12px;
+  border-bottom:1px solid var(--line);
 }
+.fd-cat-tabs::-webkit-scrollbar{display:none;}
+.fd-cat-tab{font-size:13px;padding:8px 2px;}
+.fd-cat-pane[hidden]{display:none;}
 /* The list normally hides behind a dropdown button. Opened from the
    row it is the only thing on screen, so it shows inline and the
    button that would open it goes -- otherwise both buttons opened a
@@ -11403,7 +11407,7 @@
              vocabulary and the page to drift apart. -->
         <div class="side-note" style="max-width:560px;">
           <h4 data-i18n="sectionSettings.churchTags">How people find you</h4>
-          <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:4px;" data-i18n="sectionSettings.churchTagsHint">Languages, access, character, music and programmes. These are what someone filters by when they are looking for a church like yours — so tick what is true today, not what you hope to offer.</p>
+          <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:4px;" data-i18n="sectionSettings.churchTagsHint">Languages, access, type, music and programs. These are what someone filters by when they are looking for a church like yours — so tick what is true today, not what you hope to offer.</p>
           <div id="settings-church-tags"></div>
           <div style="display:flex;gap:8px;align-items:center;margin-top:12px;">
             <button class="btn-gold" id="settings-church-tags-save" data-i18n="profile.save">Save</button>
@@ -14557,18 +14561,53 @@
   // the opposite of the denomination boxes beside it, which start all on.
   // That is not an inconsistency to iron out: you narrow by denomination
   // by taking things away, and you narrow by category by adding them.
+  // A folder of tabs rather than five stacked fieldsets: 88 checkboxes
+  // in one column is a long scroll to find the one group you came for,
+  // and the groups are genuinely separate questions. Same shape as the
+  // My Lists page's tab row, so it is a pattern already in the app.
   function fdRenderCategoryFilter(){
     var host = document.getElementById('filter-category-checks');
     if (!host || host.dataset.fdBuilt || !window.FD_CHURCH_TAG_GROUPS) return;
     host.dataset.fdBuilt = '1';
-    host.innerHTML = window.FD_CHURCH_TAG_GROUPS.map(function(g){
+    var groups = window.FD_CHURCH_TAG_GROUPS;
+    var tabs = groups.map(function(g, i){
+      return '<button type="button" class="event-tab-btn fd-cat-tab' + (i === 0 ? ' active' : '')
+        + '" data-cat-group="' + escapeHtml(g.key) + '">'
+        + escapeHtml(window.currentLang === 'es' ? g.es : g.en) + '</button>';
+    }).join('');
+    var panes = groups.map(function(g, i){
       var boxes = g.tags.map(function(t){
         return '<label class="filter-check"><input type="checkbox" class="fd-cat-filter" value="'
           + escapeHtml(t[0]) + '"> <span>' + escapeHtml(window.fdChurchTagLabel(t[0])) + '</span></label>';
       }).join('');
-      return '<fieldset class="fd-cat-fieldset"><legend>'
-        + escapeHtml(window.currentLang === 'es' ? g.es : g.en) + '</legend>' + boxes + '</fieldset>';
+      return '<div class="fd-cat-pane" data-cat-pane="' + escapeHtml(g.key) + '"'
+        + (i === 0 ? '' : ' hidden') + '>' + boxes + '</div>';
     }).join('');
+    host.innerHTML = '<div class="event-tab-row fd-cat-tabs">' + tabs + '</div>' + panes;
+    fdWireCategoryTabs(host);
+  }
+  // Bound to the host, not to document: the filter panel stops clicks
+  // from bubbling out of itself, so a document listener never hears
+  // them. Same trap the chips row hit.
+  function fdWireCategoryTabs(host){
+    if (!host || host.dataset.fdTabsWired) return;
+    host.dataset.fdTabsWired = '1';
+    host.addEventListener('click', fdHandleCategoryTab);
+  }
+  function fdHandleCategoryTab(ev){
+    var t = ev.target.closest && ev.target.closest('[data-cat-group]');
+    if (!t) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    var key = t.getAttribute('data-cat-group');
+    var host = document.getElementById('filter-category-checks');
+    if (!host) return;
+    [].forEach.call(host.querySelectorAll('[data-cat-group]'), function(b){
+      b.classList.toggle('active', b === t);
+    });
+    [].forEach.call(host.querySelectorAll('[data-cat-pane]'), function(pane){
+      pane.hidden = pane.getAttribute('data-cat-pane') !== key;
+    });
   }
   function fdChosenCategories(){
     return [].map.call(document.querySelectorAll('.fd-cat-filter:checked'),
@@ -18726,7 +18765,7 @@
       ['lang:navajo',         'Navajo',               'Navajo'],
       ['lang:latin',          'Latin',                'Latín']
     ]},
-    { key: 'character', en: 'Character', es: 'Carácter', tags: [
+    { key: 'character', en: 'Type', es: 'Carácter', tags: [
       ['char:casual',              'Casual',              'Informal'],
       ['char:traditional-liturgy', 'Traditional liturgy', 'Liturgia tradicional'],
       ['char:charismatic',         'Charismatic',         'Carismática'],
@@ -18739,7 +18778,7 @@
       ['char:historic',            'Historic',            'Histórica'],
       ['char:lively',              'Lively',              'Animada'],
       ['char:multigenerational',   'Multigenerational',   'Multigeneracional'],
-      ['char:neighbourhood',       'Neighbourhood-focused','Centrada en el barrio'],
+      ['char:neighbourhood',       'Neighborhood-focused','Centrada en el barrio'],
       ['char:old-school',          'Old-school',          'A la antigua'],
       ['char:young',               'Young',               'Joven'],
       ['char:young-families',      'Young families',      'Familias jóvenes'],
@@ -18762,7 +18801,7 @@
       ['music:indie',              'Indie',               'Indie'],
       ['music:singer-songwriter',  'Singer-songwriter',   'Cantautor']
     ]},
-    { key: 'programs', en: 'Programmes', es: 'Programas', tags: [
+    { key: 'programs', en: 'Programs', es: 'Programas', tags: [
       ['prog:childrens-ministry', "Children's ministry",  'Ministerio infantil'],
       ['prog:nursery',            'Nursery',              'Guardería'],
       ['prog:preschool',          'Preschool',            'Preescolar'],
@@ -18780,7 +18819,7 @@
       ['prog:missions',           'Missions',             'Misiones'],
       ['prog:disability-ministry','Disability ministry',  'Ministerio de discapacidad'],
       ['prog:hospice',            'Hospice ministry',     'Ministerio de cuidados paliativos'],
-      ['prog:counselling',        'Counselling',          'Consejería']
+      ['prog:counselling',        'Counseling',           'Consejería']
     ]}
   ];
   // slug -> label, built once.
