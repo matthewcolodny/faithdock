@@ -54,16 +54,26 @@ select policyname, cmd, permissive, roles, qual as using_expr, with_check
  order by cmd, policyname;
 
 -- 3 -------------------------------------------------------------------
--- Would a delete actually be refused? Asked as a PLAN, not as a delete.
--- With RLS in force and nothing permitting it, the policy collapses the
--- scan to a One-Time Filter: false and the plan says so out loud.
--- EXPLAIN without ANALYZE executes nothing, the id matches no row
--- either way, and the rollback puts the role back even if it throws.
-begin;
-set local role anon;
-explain (costs off)
-  delete from profiles where id = '00000000-0000-0000-0000-000000000000';
-rollback;
+-- There was an EXPLAIN of a delete-as-anon here. It cannot be asked
+-- that way, and the attempt is worth keeping as a note:
+--
+--   ERROR: 42501: permission denied for table profiles
+--
+-- A delete with a WHERE clause needs SELECT on the columns it filters
+-- on, and anon has no SELECT -- 012b's revoke is confirmed working by
+-- that error. The plan was refused before RLS was ever consulted, so
+-- it answered a different question than the one asked.
+--
+-- It is NOT a mitigation. An unqualified "delete from profiles" reads
+-- no column and needs no SELECT, and PostgREST will send one. So the
+-- answer rests entirely on queries 1 and 2 above, which is where it
+-- should have rested in the first place:
+--
+--   RLS off                      -> anon can delete every profile.
+--   RLS on, no DELETE policy     -> denied. This is the good outcome.
+--   RLS on, permissive DELETE    -> read its USING clause closely.
+--
+-- Nothing below writes either.
 
 -- 4 -------------------------------------------------------------------
 -- The column-level grants the previous probe also asked for and the
