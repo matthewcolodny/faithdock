@@ -514,6 +514,7 @@
       'dir.yourLocation': 'Your location',
       'filters.noChurchesTagged': 'No churches have set this yet. Churches add these themselves, and this fills in as they do.',
       'filters.addFilter': 'Add filter',
+      'home.browseAll': 'Browse churches, events and groups',
       'search.groupCategories': 'Categories',
       'filters.searchCategory': 'Search categories',
       'search.groupChurches': 'Churches',
@@ -1899,6 +1900,7 @@
       'dir.yourLocation': 'Tu ubicación',
       'filters.noChurchesTagged': 'Ninguna iglesia ha indicado esto todavía. Las iglesias lo añaden ellas mismas, y esto se irá llenando.',
       'filters.addFilter': 'Añadir filtro',
+      'home.browseAll': 'Explorar iglesias, eventos y grupos',
       'search.groupCategories': 'Categorías',
       'filters.searchCategory': 'Buscar categorías',
       'search.groupChurches': 'Iglesias',
@@ -4395,6 +4397,12 @@
        wide, and the x is centred in it. */
     .search-bar > button{width:100%;padding:13px;}
   }
+  .hero-browse-all{
+    margin-top:16px;padding:12px 22px;border-radius:999px;
+    font-size:14.5px;font-weight:600;cursor:pointer;border:0;
+    -webkit-tap-highlight-color:transparent;
+  }
+  @media (max-width:600px){ .hero-browse-all{width:100%;justify-content:center;} }
   .hero-loc-note{
     display:flex;align-items:center;gap:8px;
     margin-top:12px;font-size:13.5px;color:#C7CCD8;
@@ -5336,11 +5344,14 @@
 .filter-panel.fd-loc-open .fd-loc-group{display:block;}
 /* A folder of tabs, not five stacked fieldsets: 88 checkboxes in one
    column is a long scroll to reach the group you came for. */
+/* Wrapped, not scrolled. Five names do not fit 380px in a line, and a
+   tab you have to discover by swiping is a tab most people will not
+   find. row-gap is small because the underline on the active one
+   already separates the rows. */
 .fd-cat-tabs{
-  gap:14px;overflow-x:auto;scrollbar-width:none;margin-bottom:12px;
-  border-bottom:1px solid var(--line);
+  display:flex;flex-wrap:wrap;gap:2px 14px;overflow-x:visible;
+  margin-bottom:12px;border-bottom:1px solid var(--line);
 }
-.fd-cat-tabs::-webkit-scrollbar{display:none;}
 .fd-cat-tab{font-size:13px;padding:8px 2px;}
 .fd-cat-pane[hidden]{display:none;}
 /* The list normally hides behind a dropdown button. Opened from the
@@ -7447,6 +7458,28 @@
     cursor:pointer;-webkit-tap-highlight-color:transparent;
   }
   .fd-search-summary button:hover{color:var(--ink);border-color:var(--ink-mute);}
+  /* Sits over the right-hand end of the field it belongs to. Only
+     there once something is typed, because until then there is nothing
+     to add. */
+  .fd-add-filter{
+    position:absolute;right:8px;top:8px;z-index:2;
+    padding:5px 10px;border-radius:999px;cursor:pointer;
+    background:var(--gold);color:var(--brand);border:0;
+    font-size:12px;font-weight:600;white-space:nowrap;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .fd-add-filter[hidden]{display:none;}
+  .fd-loc-inline + .fd-add-filter, .fd-add-filter{right:8px;}
+  .fd-loc-group .fd-add-filter{right:54px;}
+  .fd-loc-inline{
+    width:38px;height:38px;flex-shrink:0;padding:0;border-radius:8px;
+    display:inline-flex;align-items:center;justify-content:center;cursor:pointer;
+    background:none;border:1px solid var(--line);color:var(--ink-mute);
+    -webkit-tap-highlight-color:transparent;
+  }
+  .fd-loc-inline svg{width:17px;height:17px;display:block;}
+  .fd-loc-inline:hover{color:var(--ink);border-color:var(--ink-mute);}
+  .fd-loc-inline.is-busy{opacity:.55;}
   .fd-panel-close{
     position:absolute;top:10px;right:10px;width:30px;height:30px;
     display:none;align-items:center;justify-content:center;
@@ -8215,6 +8248,10 @@
            nothing at all to show for pressing locate, or for picking a
            town: the value went into a box nobody can see. -->
       <p class="hero-loc-note" id="hero-location-note" hidden></p>
+      <!-- Straight through to the directory, with or without a search.
+           The magnifier only appears once something is typed, so
+           without this there was no way in from an empty box. -->
+      <button type="button" id="hero-browse-all-btn" class="btn-gold hero-browse-all" data-i18n="home.browseAll">Browse churches, events and groups</button>
       <p class="hero-for-churches">
         <span data-i18n="home.forChurchesQ">Are you a church?</span>
         <a href="#register-church" data-route="register-church" data-list-church="true" data-i18n="home.forChurchesLink">List your church FREE</a>
@@ -8406,6 +8443,7 @@
           <div id="denom-dropdown-panel" style="display:none;position:absolute;background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,0.16);padding:12px;z-index:200;max-height:min(440px, calc(100vh - 140px));overflow-y:auto;">
             <div class="autocomplete-wrap" style="position:relative;margin-bottom:10px;">
               <input class="field" type="text" id="filter-denom-search" placeholder="Search" data-i18n-placeholder="filters.searchTradition">
+              <button type="button" class="fd-add-filter" data-add-filter="denom" hidden data-i18n="filters.addFilter">Add filter</button>
               <div class="autocomplete-list" id="filter-denom-list" role="listbox"></div>
             </div>
             <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:12px;">
@@ -8460,6 +8498,7 @@
           <h4 data-i18n="filters.byCategory">By Category</h4>
           <div class="autocomplete-wrap" style="position:relative;margin-bottom:10px;">
             <input class="field" type="text" id="filter-category-search" placeholder="Search" data-i18n-placeholder="filters.searchCategory">
+            <button type="button" class="fd-add-filter" data-add-filter="category" hidden data-i18n="filters.addFilter">Add filter</button>
             <div class="autocomplete-list" id="filter-category-list" role="listbox"></div>
           </div>
           <div id="filter-category-checks"></div>
@@ -8467,9 +8506,11 @@
         <!-- Only ever on screen in the By Location view. -->
         <div class="filter-group fd-loc-group">
           <h4 data-i18n="filters.byLocation">By Location</h4>
-          <div class="autocomplete-wrap search-clear-wrap" style="position:relative;">
-            <input class="field" type="search" id="filter-location-input" autocomplete="off" data-i18n-placeholder="dir.enterCityOrAddress" placeholder="Enter a city or address">
-            <div class="autocomplete-list" id="filter-location-list" role="listbox"></div>
+          <div class="autocomplete-wrap search-clear-wrap" style="position:relative;display:flex;gap:8px;align-items:center;">
+            <input class="field" type="search" id="filter-location-input" autocomplete="off" style="flex:1;min-width:0;" data-i18n-placeholder="dir.enterCityOrAddress" placeholder="Enter a city or address">
+            <button type="button" class="fd-add-filter" data-add-filter="location" hidden data-i18n="filters.addFilter">Add filter</button>
+            <button type="button" id="filter-location-locate" class="fd-loc-inline" data-i18n-title="events.useMyLocation" title="Use my location" aria-label="Use my location" data-i18n-aria="events.useMyLocation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8"/></svg></button>
+            <div class="autocomplete-list" id="filter-location-list" role="listbox" style="left:0;right:46px;"></div>
           </div>
         </div>
         <div class="filter-group">
@@ -12931,7 +12972,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v405 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v406 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -15218,7 +15259,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-30-v405',
+      'build 2026-09-30-v406',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -18723,7 +18764,7 @@
   //     under a single "Disability" programme tag, and it is the one
   //     group where getting it wrong wastes somebody's Sunday morning.
   var FD_CHURCH_TAG_GROUPS = [
-    { key: 'welcome', en: 'Welcome & access', es: 'Acogida y accesibilidad', tags: [
+    { key: 'welcome', en: 'Welcome & Access', es: 'Acogida y accesibilidad', tags: [
       ['welcome:everyone-welcome',      'Everyone welcome',          'Todos son bienvenidos'],
       ['welcome:lgbtq-affirming',       'LGBTQ+ affirming',          'Afirmante LGBTQ+'],
       ['welcome:asl-interpreted',       'ASL interpreted',           'Interpretado en ASL'],
@@ -18734,7 +18775,7 @@
       ['welcome:sensory-friendly',      'Sensory friendly',          'Espacio sensorial amigable'],
       ['welcome:newcomers',             'Newcomer friendly',         'Acoge a quien llega por primera vez']
     ]},
-    { key: 'language', en: 'Service languages', es: 'Idiomas del servicio', tags: [
+    { key: 'language', en: 'Service Languages', es: 'Idiomas del servicio', tags: [
       ['lang:english',        'English',              'Inglés'],
       ['lang:spanish',        'Spanish',              'Español'],
       ['lang:asl',            'American Sign Language','Lengua de señas americana'],
@@ -21754,6 +21795,50 @@
     return true;
   }
 
+  // Street addresses out of the churches we hold, for when what you
+  // want is "near this building" rather than "in this town". Only when
+  // the query looks like an address -- a digit in it -- because
+  // otherwise every town query would drag a hundred street names
+  // behind it.
+  //
+  // It cannot suggest an address with no church on it; that needs
+  // Places Autocomplete, which bills per keystroke session. Typing one
+  // in full still works: the geocoder handles whatever is in the box.
+  async function fdSuggestAddresses(q){
+    if (!window.supabase || !/\d/.test(q)) return [];
+    var esc = q.replace(/[\\%_]/g, function(ch){ return '\\' + ch; });
+    var res = await window.supabase.from('churches').select('address')
+      .eq('is_hidden', false).ilike('address', '%' + esc + '%').limit(40);
+    if (res.error || !res.data) return [];
+    var seen = Object.create(null), out = [];
+    for (var i = 0; i < res.data.length; i++) {
+      var a = titleCaseAddress(res.data[i].address || '');
+      if (!a) continue;
+      var key = a.toLowerCase();
+      if (seen[key]) continue;
+      seen[key] = 1;
+      out.push({ kind: 'place', label: a, sub: '', value: a });
+      if (out.length >= 3) break;
+    }
+    return out;
+  }
+  async function fdSuggestLocations(q){
+    var both = await Promise.all([fdSuggestPlaces(q), fdSuggestAddresses(q)]);
+    return both[0].concat(both[1]);
+  }
+  // One path for every way a location gets chosen in that window: a
+  // suggestion, the locate button, or Add filter with typed text.
+  function fdApplyLocationChoice(label){
+    var dirLoc = document.getElementById('dir-location-input');
+    if (dirLoc) {
+      dirLoc.value = label;
+      dirLoc.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    if (typeof window.doDirectLocationSearch === 'function') window.doDirectLocationSearch();
+    if (window.fdRenderSearchSummary) window.fdRenderSearchSummary();
+  }
+  window.fdApplyLocationChoice = fdApplyLocationChoice;
+
   // Churches, denominations and places in one list, each under its own heading. Two
   // queries in parallel, because one field doing both jobs is the whole
   // point -- you should not have to decide which box a thing goes in
@@ -22091,12 +22176,13 @@
   fdWireSuggest({
     inputId: 'filter-denom-search', listId: 'filter-denom-list',
     source: fdSuggestDenominations,
+    // The window stays open. Picking one denomination is often the
+    // first of two, and closing after each one meant reopening to make
+    // the second choice.
     onChoose: function(name, item){
       if (item) fdApplyDenominationPick(item.value);
       var el = document.getElementById('filter-denom-search');
       if (el) { el.value = ''; el.dispatchEvent(new Event('input', { bubbles: true })); }
-      if (window.fdCloseFilterPanels) window.fdCloseFilterPanels();
-      if (window.fdSyncFilterHistory) window.fdSyncFilterHistory();
       fdRenderFilterChips();
       if (typeof window.renderDirectory === 'function') window.renderDirectory();
     }
@@ -22108,25 +22194,109 @@
       if (item) fdApplyCategoryPick(item.value);
       var el = document.getElementById('filter-category-search');
       if (el) el.value = '';
-      if (window.fdCloseFilterPanels) window.fdCloseFilterPanels();
-      if (window.fdSyncFilterHistory) window.fdSyncFilterHistory();
     }
   });
 
-  // The By Location window: towns only, and picking one is the search.
+  // Locate, inside the By Location window. Same shape as the hero's:
+  // guaranteed to settle, and it fills the box rather than searching
+  // from under you.
+  (function wireFilterLocate(){
+    var btn = document.getElementById('filter-location-locate');
+    if (!btn) return;
+    btn.addEventListener('click', function(){
+      if (!navigator.geolocation) return;
+      var settled = false, guard = null;
+      function done(label){
+        if (settled) return;
+        settled = true;
+        if (guard) { clearTimeout(guard); guard = null; }
+        btn.classList.remove('is-busy');
+        btn.disabled = false;
+        var inp = document.getElementById('filter-location-input');
+        if (inp && label) inp.value = label;
+        if (label) fdApplyLocationChoice(label);
+      }
+      btn.classList.add('is-busy');
+      btn.disabled = true;
+      navigator.geolocation.getCurrentPosition(function(pos){
+        var lat = pos.coords.latitude, lng = pos.coords.longitude;
+        window.dirUserLat = lat; window.dirUserLng = lng;
+        guard = setTimeout(function(){ done(window.t('dir.yourLocation')); }, 4000);
+        if (window.google && google.maps && google.maps.Geocoder) {
+          new google.maps.Geocoder().geocode({ location: { lat: lat, lng: lng } }, function(results, status){
+            done((status === 'OK' && results && results[0] && window.fdCityFromGeocode
+              && window.fdCityFromGeocode(results)) || window.t('dir.yourLocation'));
+          });
+        }
+      }, function(){
+        settled = true;
+        btn.classList.remove('is-busy');
+        btn.disabled = false;
+      }, { timeout: 8000 });
+    });
+  })();
+
+  // Add filter: whatever is literally in the box, applied as a
+  // free-text keyword. The three filter searches all suggest, but a
+  // suggestion can only offer what exists -- this is the way to search
+  // for something the list does not know about.
+  //
+  // Capped, because the text becomes a chip: a paragraph pasted into
+  // the box would otherwise become a chip the width of the sheet.
+  var FD_FREE_TEXT_MAX = 40;
+  (function wireAddFilter(){
+    var inputs = {
+      denom: 'filter-denom-search',
+      category: 'filter-category-search',
+      location: 'filter-location-input'
+    };
+    function sync(){
+      [].forEach.call(document.querySelectorAll('[data-add-filter]'), function(btn){
+        var el = document.getElementById(inputs[btn.getAttribute('data-add-filter')]);
+        btn.hidden = !(el && el.value.trim());
+      });
+    }
+    Object.keys(inputs).forEach(function(k){
+      var el = document.getElementById(inputs[k]);
+      if (el) el.addEventListener('input', sync);
+    });
+    // On the panel, not document: the panel stops clicks getting out.
+    var panel = document.querySelector('.filter-panel[data-filter-for="churches"]');
+    if (panel) panel.addEventListener('click', function(ev){
+      var btn = ev.target.closest && ev.target.closest('[data-add-filter]');
+      if (!btn) return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      var kind = btn.getAttribute('data-add-filter');
+      var el = document.getElementById(inputs[kind]);
+      if (!el) return;
+      var text = el.value.trim().slice(0, FD_FREE_TEXT_MAX);
+      if (!text) return;
+      if (kind === 'location') {
+        fdApplyLocationChoice(text);
+      } else {
+        // Everything else becomes the directory's keyword, which is the
+        // one free-text filter the search actually has.
+        var kw = document.getElementById('dir-keyword-input');
+        if (kw) {
+          kw.value = text;
+          kw.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        if (typeof window.renderDirectory === 'function') window.renderDirectory();
+      }
+      el.value = '';
+      sync();
+      if (window.fdRenderSearchSummary) window.fdRenderSearchSummary();
+    });
+    sync();
+  })();
+
+  // The By Location window: towns and addresses, and picking one searches.
   fdWireSuggest({
     inputId: 'filter-location-input', listId: 'filter-location-list',
-    source: fdSuggestPlaces,
+    source: fdSuggestLocations,
     onChoose: function(name){
-      var dirLoc = document.getElementById('dir-location-input');
-      if (dirLoc) {
-        dirLoc.value = name;
-        dirLoc.dispatchEvent(new Event('input', { bubbles: true }));
-      }
-      if (window.fdCloseFilterPanels) window.fdCloseFilterPanels();
-      if (window.fdSyncFilterHistory) window.fdSyncFilterHistory();
-      if (typeof window.doDirectLocationSearch === 'function') window.doDirectLocationSearch();
-      if (window.fdRenderSearchSummary) window.fdRenderSearchSummary();
+      fdApplyLocationChoice(name);
     }
   });
 
@@ -24612,6 +24782,12 @@
   var heroBrowseBtn = document.getElementById('hero-browse-btn');
   if (heroBrowseBtn) {
     heroBrowseBtn.addEventListener('click', goToDirectoryFromHero);
+  }
+  // Same destination, and it uses whatever is in the box -- an empty
+  // box simply browses everything, which is the point of it.
+  var heroBrowseAllBtn = document.getElementById('hero-browse-all-btn');
+  if (heroBrowseAllBtn) {
+    heroBrowseAllBtn.addEventListener('click', goToDirectoryFromHero);
   }
   var heroKeywordInputEl = document.getElementById('hero-keyword-input');
   if (heroKeywordInputEl) {
