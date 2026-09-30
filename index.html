@@ -510,6 +510,8 @@
       'dir.geoNotSupported': 'Geolocation not supported by this browser.', 'dir.findingYou': 'Finding you...',
       'dir.showingDistancesYourLocation': 'Showing distances from your location.', 'dir.showingDistancesThisLocation': 'Showing distances from this location.',
       'dir.couldNotGetLocation': 'Could not get your location — try typing it instead.', 'dir.mapServiceLoading': 'Map service still loading — try again in a moment.',
+      'home.nearPlace': 'Searching near {q}',
+      'dir.yourLocation': 'Your location',
       'search.groupChurches': 'Churches',
       'search.groupDenominations': 'Denominations',
       'search.groupPlaces': 'Places',
@@ -1889,6 +1891,8 @@
       'dir.geoNotSupported': 'Este navegador no admite geolocalización.', 'dir.findingYou': 'Buscándote...',
       'dir.showingDistancesYourLocation': 'Mostrando distancias desde tu ubicación.', 'dir.showingDistancesThisLocation': 'Mostrando distancias desde esta ubicación.',
       'dir.couldNotGetLocation': 'No pudimos obtener tu ubicación — intenta escribirla.', 'dir.mapServiceLoading': 'El servicio de mapas aún se está cargando — intenta de nuevo en un momento.',
+      'home.nearPlace': 'Buscando cerca de {q}',
+      'dir.yourLocation': 'Tu ubicación',
       'search.groupChurches': 'Iglesias',
       'search.groupDenominations': 'Denominaciones',
       'search.groupPlaces': 'Lugares',
@@ -4377,6 +4381,20 @@
        wide, and the x is centred in it. */
     .search-bar > button{width:100%;padding:13px;}
   }
+  .hero-loc-note{
+    display:flex;align-items:center;gap:8px;
+    margin-top:12px;font-size:13.5px;color:#C7CCD8;
+  }
+  .hero-loc-note[hidden]{display:none;}
+  .hero-loc-note strong{color:#fff;font-weight:600;}
+  .hero-loc-note button{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:22px;height:22px;padding:0;border:0;border-radius:50%;
+    background:rgba(255,255,255,0.12);color:#EDEBE2;cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .hero-loc-note button svg{width:11px;height:11px;display:block;}
+  .hero-loc-note button:hover{background:rgba(255,255,255,0.22);}
   .hero-for-churches{margin-top:16px;font-size:13.5px;color:#C7CCD8;}
   .hero-for-churches a{color:#fff;border-bottom:1px solid var(--gold);white-space:nowrap;}
 
@@ -8136,6 +8154,10 @@
         </div>
         <button id="hero-browse-btn" type="button" aria-label="Browse churches" data-i18n-title="home.browseBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></button>
       </div>
+      <!-- The location field is hidden, so without this there was
+           nothing at all to show for pressing locate, or for picking a
+           town: the value went into a box nobody can see. -->
+      <p class="hero-loc-note" id="hero-location-note" hidden></p>
       <p class="hero-for-churches">
         <span data-i18n="home.forChurchesQ">Are you a church?</span>
         <a href="#register-church" data-route="register-church" data-list-church="true" data-i18n="home.forChurchesLink">List your church FREE</a>
@@ -12812,7 +12834,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v398 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v399 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -14995,7 +15017,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-29-v398',
+      'build 2026-09-29-v399',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -21717,6 +21739,7 @@
         if (typeof window.syncHeroKeywordClearBtn === 'function') window.syncHeroKeywordClearBtn();
         if (typeof window.syncHeroLocationClearBtn === 'function') window.syncHeroLocationClearBtn();
         if (typeof window.fdSyncHeroSubmit === 'function') window.fdSyncHeroSubmit();
+        if (typeof window.fdSyncHeroLocationNote === 'function') window.fdSyncHeroLocationNote();
       }
       if (item && item.kind === 'place') {
         // A town is a location, not a name to search for: it goes in the
@@ -21837,6 +21860,29 @@
   // The submit button follows the keyword field: hidden while it is
   // empty, because a search button with nothing to search reads as a
   // control you have failed to use.
+  // What the hero is going to search near, said out loud. The field it
+  // reflects is hidden, so this is the only confirmation that pressing
+  // locate -- or picking a town -- did anything.
+  function fdSyncHeroLocationNote(){
+    var note = document.getElementById('hero-location-note');
+    var loc = document.getElementById('hero-location-input');
+    if (!note || !loc) return;
+    var v = loc.value.trim();
+    if (!v) { note.hidden = true; note.innerHTML = ''; return; }
+    note.innerHTML = '<span>' + window.t('home.nearPlace').replace('{q}', '<strong>' + escapeHtml(v) + '</strong>') + '</span>'
+      + '<button type="button" data-hero-loc-clear aria-label="' + escapeHtml(window.t('common.clearSearch')) + '">'
+      + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>';
+    note.hidden = false;
+  }
+  window.fdSyncHeroLocationNote = fdSyncHeroLocationNote;
+  document.addEventListener('click', function(ev){
+    if (!ev.target.closest || !ev.target.closest('[data-hero-loc-clear]')) return;
+    var loc = document.getElementById('hero-location-input');
+    if (loc) { loc.value = ''; delete loc.dataset.fdFromPick; }
+    if (typeof window.syncHeroLocationClearBtn === 'function') window.syncHeroLocationClearBtn();
+    fdSyncHeroLocationNote();
+  });
+
   function fdSyncHeroSubmit(){
     var kw = document.getElementById('hero-keyword-input');
     var btn = document.getElementById('hero-browse-btn');
@@ -24252,17 +24298,34 @@
     if (!navigator.geolocation) return;
     heroLocBtn.classList.add('is-busy');
     heroLocBtn.disabled = true;
+    // Called at most once, and guaranteed to be called. The Geocoder
+    // has no timeout of its own and simply never calls back when the
+    // key will not answer for this referer -- measured: coordinates
+    // arrived, the callback never did, and the button sat disabled for
+    // good. The coordinates are the useful part anyway; the name is
+    // cosmetic, so a silent geocoder costs a nicer label and nothing
+    // else.
+    var settled = false, fallbackTimer = null;
     function done(label){
+      if (settled) return;
+      settled = true;
+      if (fallbackTimer) { clearTimeout(fallbackTimer); fallbackTimer = null; }
       heroLocBtn.classList.remove('is-busy');
       heroLocBtn.disabled = false;
       var loc = document.getElementById('hero-location-input');
       if (loc && label) { loc.value = label; delete loc.dataset.fdFromPick; }
       if (typeof window.syncHeroLocationClearBtn === 'function') window.syncHeroLocationClearBtn();
       if (typeof window.fdSyncHeroSubmit === 'function') window.fdSyncHeroSubmit();
+      if (typeof window.fdSyncHeroLocationNote === 'function') window.fdSyncHeroLocationNote();
     }
     navigator.geolocation.getCurrentPosition(function(pos){
       var lat = pos.coords.latitude, lng = pos.coords.longitude;
       window.dirUserLat = lat; window.dirUserLng = lng;
+      // Whatever the geocoder does or does not do, the button comes
+      // back and the field gets something.
+      fallbackTimer = setTimeout(function(){
+        done(window.t('dir.yourLocation'));
+      }, 4000);
       if (window.google && google.maps && google.maps.Geocoder) {
         new google.maps.Geocoder().geocode({ location: { lat: lat, lng: lng } }, function(results, status){
           var label = (status === 'OK' && results && results[0])
@@ -24274,6 +24337,10 @@
         done(lat.toFixed(3) + ', ' + lng.toFixed(3));
       }
     }, function(){
+      // Refused or unavailable: nothing to fill, but the button must
+      // still come back.
+      settled = true;
+      if (fallbackTimer) { clearTimeout(fallbackTimer); fallbackTimer = null; }
       heroLocBtn.classList.remove('is-busy');
       heroLocBtn.disabled = false;
     }, { timeout: 8000 });
