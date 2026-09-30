@@ -5365,10 +5365,30 @@
    find. row-gap is small because the underline on the active one
    already separates the rows. */
 .fd-cat-tabs{
-  display:flex;flex-wrap:wrap;justify-content:center;gap:2px 14px;
-  overflow-x:visible;margin-bottom:12px;border-bottom:1px solid var(--line);
+  display:flex;flex-wrap:wrap;justify-content:center;gap:8px;
+  overflow-x:visible;margin-bottom:12px;
 }
-.fd-cat-tab{font-size:13px;padding:8px 2px;}
+/* The same pill as the row that opened this window. They were bare
+   text with an underline, which read as a different kind of control to
+   the By Location / By Category / By Denomination buttons two lines
+   above -- same job, same look.
+
+   Both selectors need .fd-cat-tabs in front of them. A bare .fd-cat-tab
+   is (0,1,0), exactly what .event-tab-btn{border:none} is, and that
+   rule sits further down the sheet, so it won on order and the border
+   never appeared. The container class buys the tie-break.
+
+   The container's own bottom border goes with it: the underline was
+   what marked the active tab, and a filled pill says it better. */
+.fd-cat-tabs .fd-cat-tab{
+  font-size:13px;padding:7px 13px;
+  border:1px solid var(--line);border-radius:999px;
+  background:var(--card);color:var(--ink);
+}
+.fd-cat-tabs .fd-cat-tab:hover{border-color:var(--gold);}
+.fd-cat-tabs .fd-cat-tab.active{
+  border-color:var(--gold);background:var(--gold-bg);color:var(--gold-ink);
+}
 .fd-cat-pane[hidden]{display:none;}
 /* The list normally hides behind a dropdown button. Opened from the
    row it is the only thing on screen, so it shows inline and the
@@ -13044,7 +13064,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v412 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v413 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -14864,6 +14884,38 @@
     var fh = document.querySelector('[data-church-tab="faith-home"]');
     if (fh) fh.classList.remove('active');
   }
+  // Everything the browse shell is narrowing by, cleared. Called when
+  // the signed-in person changes.
+  //
+  // The group tag filter is the reason this exists: its ids are fetched
+  // with the session's own permissions, so ids gathered while signed in
+  // can include a members-only group that the same browser may no
+  // longer read after signing out. Carrying them across a session
+  // change leaves the list filtered by rows that are no longer
+  // visible -- reported as the group filter staying put after logging
+  // out.
+  //
+  // The location is deliberately left alone: where you are does not
+  // change when you sign out, and re-asking for it would be a
+  // permission prompt nobody asked for.
+  function fdResetBrowseFilters(){
+    fdClearAllChurchFilters();
+    var kw = document.getElementById('dir-keyword-input');
+    if (kw && kw.value) {
+      kw.value = '';
+      if (typeof window.syncDirKeywordClearBtn === 'function') window.syncDirKeywordClearBtn();
+    }
+    var gboxes = document.querySelectorAll('.fd-gcat-filter');
+    for (var i = 0; i < gboxes.length; i++) gboxes[i].checked = false;
+    window.fdGroupTagIds = null;
+    if (window.fdRenderGroupChips) window.fdRenderGroupChips();
+    if (window.fdCloseFilterPanels) window.fdCloseFilterPanels();
+    if (window.fdRenderSearchSummary) window.fdRenderSearchSummary();
+    if (typeof window.renderDirectory === 'function') window.renderDirectory();
+    if (typeof window.loadGroupsSearch === 'function') window.loadGroupsSearch();
+  }
+  window.fdResetBrowseFilters = fdResetBrowseFilters;
+
   // One reset, used by the Clear all chip and by Clear search.
   function fdClearAllChurchFilters(){
     fdRestoreAllDenoms();
@@ -15391,7 +15443,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-30-v412',
+      'build 2026-09-30-v413',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -28382,6 +28434,10 @@
     sendWelcomeEmail(session.user);
   }
 
+  // Who was signed in when this last fired, so a token refresh can be
+  // told apart from an actual sign-in or sign-out.
+  var fdLastAuthUserId = null;
+  var fdSeenFirstAuthEvent = false;
   supabase.auth.onAuthStateChange(async function(event, session){
     // FIRST, before anything else in this handler runs: who is signed
     // in has just changed, so any cached getUser() answer is now a lie.
@@ -28394,6 +28450,19 @@
     // Same event, same reason: a different person is a different set of
     // churches owned, staffed and called home.
     if (typeof window.invalidateChurchRoleCache === 'function') window.invalidateChurchRoleCache();
+    // And a different person is a different set of things they may
+    // read, so what the browse shell is filtering by is cleared too.
+    // Keyed on the user id rather than the event name: this handler
+    // also fires for token refreshes and cross-tab syncs, which are the
+    // same person and must not wipe the filters mid-session. The first
+    // call is skipped because nothing is filtered at startup and
+    // clearing then would only undo a filter restored from the URL.
+    var fdAuthUserId = session && session.user ? session.user.id : null;
+    if (fdSeenFirstAuthEvent && fdAuthUserId !== fdLastAuthUserId) {
+      if (typeof window.fdResetBrowseFilters === 'function') window.fdResetBrowseFilters();
+    }
+    fdSeenFirstAuthEvent = true;
+    fdLastAuthUserId = fdAuthUserId;
     // getMyChurch's cache is keyed on the literal string
     // '__current_user__', which does not change when the user does --
     // so signing out and back in as somebody else within the TTL could
