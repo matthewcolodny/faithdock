@@ -4,8 +4,24 @@
     {
       "name": "faithdock-static",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["serve", "-l", "5173", "."],
+      "runtimeArgs": [
+        "serve",
+        "-l",
+        "5173",
+        "."
+      ],
       "port": 5173
+    },
+    {
+      "name": "faithdock-probe",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "serve",
+        "-l",
+        "5189",
+        "C:/Users/Owner/AppData/Local/Temp/claude/C--Users-Owner-Documents-faithdock-repo/d631a3ae-05ad-4163-a4af-8ecb0bdd7ef9/scratchpad/probe"
+      ],
+      "port": 5189
     }
   ]
 }
