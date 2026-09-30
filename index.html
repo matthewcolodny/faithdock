@@ -12834,7 +12834,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v399 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v400 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -14151,6 +14151,14 @@
   function fdSetBrowseTab(tab, fromRoute){
     if (tab !== 'churches' && tab !== 'events' && tab !== 'groups') tab = 'churches';
     fdBrowseTab = tab;
+    // Cheap insurance, not a diagnosis. A tab has been reported missing
+    // from the strip after switching quickly, and I could not reproduce
+    // it -- clicking all three with no delay at all leaves every tab
+    // present here. Whatever the cause, this re-asserts the truth on
+    // every switch: a tab is hidden only while its panel is genuinely
+    // absent, so a tab that vanished comes back on the next tap rather
+    // than staying gone for the session.
+    fdSyncBrowseTabsPresent();
 
     var tabs = document.querySelectorAll('.fd-tab');
     for (var i = 0; i < tabs.length; i++) {
@@ -15017,7 +15025,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-29-v399',
+      'build 2026-09-30-v400',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -24360,7 +24368,15 @@
         if (window.google && google.maps) {
           var geocoder = new google.maps.Geocoder();
           geocoder.geocode({ location: { lat: lat, lng: lng } }, function(results, status){
-            var label = (status === 'OK' && results && results[0]) ? results[0].formatted_address : (lat.toFixed(3) + ', ' + lng.toFixed(3));
+            // The town, not the doorstep. dirCityFromGeocode already
+            // works this out for the map and falls back through
+            // locality, postal town and county before giving up.
+            var label = (status === 'OK' && results && results[0])
+              // window.fdCityFromGeocode, not the bare name: these two call
+              // sites are inside <script type="module">, which cannot see
+              // the classic block where dirCityFromGeocode is declared.
+              ? ((window.fdCityFromGeocode && window.fdCityFromGeocode(results)) || window.t('dir.yourLocation'))
+              : (lat.toFixed(3) + ', ' + lng.toFixed(3));
             setDirLocation(lat, lng, label);
             fdAfterLocated(lat, lng, statusEl);
           });
@@ -24508,7 +24524,15 @@
         if (window.google && google.maps) {
           var geocoder = new google.maps.Geocoder();
           geocoder.geocode({ location: { lat: lat, lng: lng } }, function(results, status){
-            var label = (status === 'OK' && results && results[0]) ? results[0].formatted_address : (lat.toFixed(3) + ', ' + lng.toFixed(3));
+            // The town, not the doorstep. dirCityFromGeocode already
+            // works this out for the map and falls back through
+            // locality, postal town and county before giving up.
+            var label = (status === 'OK' && results && results[0])
+              // window.fdCityFromGeocode, not the bare name: these two call
+              // sites are inside <script type="module">, which cannot see
+              // the classic block where dirCityFromGeocode is declared.
+              ? ((window.fdCityFromGeocode && window.fdCityFromGeocode(results)) || window.t('dir.yourLocation'))
+              : (lat.toFixed(3) + ', ' + lng.toFixed(3));
             setDirLocation(lat, lng, label);
             fdAfterLocated(lat, lng, statusEl);
           });
