@@ -4380,11 +4380,24 @@
        min-width:0 and ellipsis, which fitted but left each field about
        140px wide -- enough for "Search churches by n...". Two rows cost
        one field's height and give both their full width. */
-    .hero-search-bar{padding:6px;gap:6px;flex-direction:column;align-items:stretch;}
+    /* A wrapping row, not a column. A column put the search button on a
+       line of its own with nothing beside it, which read as a stray
+       control rather than as the end of the form -- and the full-width
+       button that was meant to fix that lost to a width:38px rule
+       further down this same block, leaving a small square adrift.
+       Three flex lines instead: the keyword field takes a whole line,
+       the divider is the hairline between them, and the location field
+       shares the last line with the button. */
+    .hero-search-bar{padding:6px;gap:6px;flex-direction:row;flex-wrap:wrap;align-items:center;}
+    /* first/last of TYPE: the children are div, span, div, button, so
+       "first div" is the keyword wrap and "last div" is the location
+       wrap, without needing a class on either. */
+    .hero-search-bar > .search-field-wrap:first-of-type{flex:1 1 100%;}
+    .hero-search-bar > .search-field-wrap:last-of-type{flex:1 1 0;}
     .hero-search-bar .search-bar-divider{
-      width:auto;height:1px;align-self:stretch;margin:0 8px;
+      flex:1 1 100%;width:auto;height:1px;align-self:auto;margin:0 8px;
     }
-    .hero-search-bar button{align-self:stretch;width:100%;border-radius:8px;margin-left:0;}
+    .hero-search-bar button{flex:0 0 auto;margin-left:4px;}
     .hero-search-bar input{font-size:14px;padding:11px 8px;}
     /* .search-field-wrap's own min-width:160px (fine when the two
        fields each get their own full-width row on Churches/Events)
@@ -12678,7 +12691,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v391 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v392 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -14821,7 +14834,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-29-v391',
+      'build 2026-09-29-v392',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
