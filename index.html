@@ -4258,7 +4258,12 @@
     }
     #nav-user-dropdown a:hover{background:none;color:#fff;}
     nav.links{
-      display:none;position:absolute;top:72px;left:0;right:0;background:var(--brand);
+      /* 100%, not 72px. 72 is the DESKTOP navbar height; this breakpoint
+         makes the bar 56px, so the drawer hung 16px below it and the map
+         showed through the gap. Percentage of header.site, which is
+         position:sticky and therefore the containing block -- so it also
+         stays flush when the invite banner comes and goes. */
+      display:none;position:absolute;top:100%;left:0;right:0;background:var(--brand);
       flex-direction:column;align-items:stretch;padding:8px 24px 20px;gap:0;
       border-top:1px solid rgba(255,255,255,0.1);box-shadow:0 12px 24px rgba(0,0,0,0.25);
     }
@@ -12673,7 +12678,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v390 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v391 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -14435,22 +14440,46 @@
     if (window.fdEventsInfo) window.fdEventsInfo.close();
   }, true);
 
-  // A tap anywhere that is not the window or the control that opened it
-  // shuts the window. On document and in the CAPTURE phase, because the
-  // bubble phase does not reliably get here: the panel stops clicks
-  // inside itself, the card handler stops clicks on a card during
-  // capture, and the map swallows its own -- three separate ways for a
-  // tap to close nothing. Capture runs before any of them.
+  // ---- Dismissing an overlay costs the tap that does it -------------
+  //
+  // One listener for both the filter windows and the nav drawer, on
+  // document and in the CAPTURE phase, registered early. Three things
+  // forced that shape:
+  //
+  //  - Bubble never reliably arrives. The filter panel stops clicks
+  //    inside itself, the card handler stops clicks on a card, and the
+  //    map swallows its own.
+  //  - stopPropagation is not enough. The card handler is ALSO on
+  //    document in capture, and stopPropagation does not stop other
+  //    listeners on the SAME node -- only stopImmediatePropagation
+  //    does. Measured: with it, a tap on a card while an overlay was
+  //    open still marked the card.
+  //  - Which means order matters, so this must be registered before
+  //    that handler. It is: this runs at ~14k, the card handler at
+  //    ~15k. The nav drawer's own close listener sits at ~21k and
+  //    could never have swallowed anything from here, which is why it
+  //    is handled below rather than there.
   document.addEventListener('click', function(ev){
     var t = ev.target;
     if (!t || !t.closest) return;
-    if (t.closest('.filter-panel')) return;          // inside the window
-    if (t.closest('[data-church-tab]')) return;      // the button that toggles it
-    if (t.closest('#dir-filter-icon-btn')) return;   // the map's filter button
-    if (t.closest('#events-dates-btn')) return;      // Events' date button
-    if (!fdAnyFilterOpen()) return;
-    fdCloseFilterPanels();
-    fdSyncFilterHistory();
+    var nav = document.getElementById('nav-links');
+    var burger = document.getElementById('hamburger-btn');
+    var navOpen = !!(nav && nav.classList.contains('open'));
+    var filterOpen = fdAnyFilterOpen();
+    if (!navOpen && !filterOpen) return;
+    // A control that owns an overlay is never an outside tap, whichever
+    // overlay is currently up.
+    if (t.closest('.filter-panel')) return;
+    if (t.closest('[data-church-tab]')) return;
+    if (t.closest('#dir-filter-icon-btn')) return;
+    if (t.closest('#events-dates-btn')) return;
+    if (nav && nav.contains(t)) return;
+    if (burger && burger.contains(t)) return;
+    if (filterOpen) { fdCloseFilterPanels(); fdSyncFilterHistory(); }
+    if (navOpen) nav.classList.remove('open');
+    ev.preventDefault();
+    ev.stopPropagation();
+    ev.stopImmediatePropagation();
   }, true);
 
   (function wireChurchTabs(){
@@ -14792,7 +14821,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-29-v390',
+      'build 2026-09-29-v391',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -21501,6 +21530,9 @@
     // search bar, anywhere that isn't the menu itself or the hamburger
     // button (which already has its own open/close toggle above, and
     // would otherwise conflict with this if not excluded here).
+    // A fallback only. The capture-phase dismiss listener further up
+    // the file closes this first and eats the event, so this rarely
+    // runs -- it is kept for any path that one bails out of early.
     document.addEventListener('click', function(ev){
       if (!navLinksEl.classList.contains('open')) return;
       if (navLinksEl.contains(ev.target)) return;
