@@ -12972,7 +12972,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v408 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v409 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -15296,7 +15296,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-30-v408',
+      'build 2026-09-30-v409',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -18778,6 +18778,117 @@
   // actually running that migration by hand. Fetched separately, softly,
   // right below instead -- see the giving_enabled/messaging_enabled
   // block in findOrFetchChurchByName().
+  // ---- Languages, shared -----------------------------------------
+  //
+  // One list, used by the church vocabulary and the group one. They are
+  // separate columns on separate tables, but they are the same question
+  // asked twice, and two copies would drift the first time a language
+  // is added to one of them.
+  var FD_LANGUAGE_TAGS = [
+    ['lang:english',        'English',              'Inglés'],
+    ['lang:spanish',        'Spanish',              'Español'],
+    ['lang:asl',            'American Sign Language','Lengua de señas americana'],
+    ['lang:mandarin',       'Mandarin',             'Mandarín'],
+    ['lang:cantonese',      'Cantonese',            'Cantonés'],
+    ['lang:korean',         'Korean',               'Coreano'],
+    ['lang:vietnamese',     'Vietnamese',           'Vietnamita'],
+    ['lang:tagalog',        'Tagalog',              'Tagalo'],
+    ['lang:portuguese',     'Portuguese',           'Portugués'],
+    ['lang:french',         'French',               'Francés'],
+    ['lang:haitian-creole', 'Haitian Creole',       'Criollo haitiano'],
+    ['lang:arabic',         'Arabic',               'Árabe'],
+    ['lang:amharic',        'Amharic',              'Amárico'],
+    ['lang:swahili',        'Swahili',              'Suajili'],
+    ['lang:russian',        'Russian',              'Ruso'],
+    ['lang:ukrainian',      'Ukrainian',            'Ucraniano'],
+    ['lang:romanian',       'Romanian',             'Rumano'],
+    ['lang:polish',         'Polish',               'Polaco'],
+    ['lang:german',         'German',               'Alemán'],
+    ['lang:italian',        'Italian',              'Italiano'],
+    ['lang:greek',          'Greek',                'Griego'],
+    ['lang:armenian',       'Armenian',             'Armenio'],
+    ['lang:hebrew',         'Hebrew',               'Hebreo'],
+    ['lang:hmong',          'Hmong',                'Hmong'],
+    ['lang:khmer',          'Khmer',                'Jemer'],
+    ['lang:japanese',       'Japanese',             'Japonés'],
+    ['lang:nepali',         'Nepali',               'Nepalí'],
+    ['lang:navajo',         'Navajo',               'Navajo'],
+    ['lang:latin',          'Latin',                'Latín']
+  ];
+
+  // ---- Group descriptor tags -------------------------------------
+  //
+  // Smaller than the church list on purpose -- a group is a simpler
+  // thing than a church. Three questions plus the shared languages.
+  //
+  // Deliberately NOT here, because each is already a real column and a
+  // tag would be a second answer that can disagree with the first:
+  //   members only        -> groups.visibility
+  //   open to anyone      -> groups.join_method
+  //   when it meets       -> meeting_day_of_week / recurrence / time
+  //   online or in person -> groups.meeting_format, added by migration
+  //                          115 rather than tagged, so it can be
+  //                          filtered reliably and shown on the card
+  var FD_GROUP_TAG_GROUPS = [
+    { key: 'audience', en: 'Who it is for', es: 'Para quién es', tags: [
+      ['gwho:everyone',     'Everyone',            'Todos'],
+      ['gwho:men',          'Men',                 'Hombres'],
+      ['gwho:women',        'Women',               'Mujeres'],
+      ['gwho:young-adults', 'Young adults',        'Jóvenes adultos'],
+      ['gwho:youth',        'Youth',               'Jóvenes'],
+      ['gwho:college',      'College students',    'Universitarios'],
+      ['gwho:seniors',      'Seniors',             'Adultos mayores'],
+      ['gwho:couples',      'Couples',             'Parejas'],
+      ['gwho:singles',      'Singles',             'Solteros'],
+      ['gwho:parents',      'Parents',             'Padres'],
+      ['gwho:families',     'Families with kids',  'Familias con niños'],
+      ['gwho:new-to-faith', 'New to faith',        'Nuevos en la fe'],
+      ['gwho:new-here',     'New to the church',   'Nuevos en la iglesia']
+    ]},
+    { key: 'focus', en: 'What you do', es: 'Qué hacen', tags: [
+      ['gdo:bible-study',  'Bible study',         'Estudio bíblico'],
+      ['gdo:prayer',       'Prayer',              'Oración'],
+      ['gdo:discipleship', 'Discipleship',        'Discipulado'],
+      ['gdo:fellowship',   'Fellowship',          'Compañerismo'],
+      ['gdo:service',      'Service & outreach',  'Servicio y alcance'],
+      ['gdo:missions',     'Missions',            'Misiones'],
+      ['gdo:recovery',     'Recovery & addiction','Recuperación y adicciones'],
+      ['gdo:grief',        'Grief & loss',        'Duelo y pérdida'],
+      ['gdo:marriage',     'Marriage',            'Matrimonio'],
+      ['gdo:parenting',    'Parenting',           'Crianza'],
+      ['gdo:finances',     'Finances',            'Finanzas'],
+      ['gdo:sports',       'Sports & fitness',    'Deportes y ejercicio'],
+      ['gdo:music-arts',   'Music & arts',        'Música y arte'],
+      ['gdo:food',         'Food & cooking',      'Comida y cocina'],
+      ['gdo:books',        'Book club',           'Club de lectura'],
+      ['gdo:games',        'Games',               'Juegos']
+    ]},
+    { key: 'gaccess', en: 'Access & Welcome', es: 'Acogida y accesibilidad', tags: [
+      ['gacc:childcare',  'Childcare provided',    'Cuidado de niños'],
+      ['gacc:wheelchair', 'Wheelchair accessible', 'Accesible en silla de ruedas'],
+      ['gacc:asl',        'ASL interpreted',       'Interpretado en ASL'],
+      ['gacc:newcomers',  'Newcomers welcome',     'Bienvenidos los que llegan'],
+      ['gacc:drop-in',    'Drop in any week',      'Puedes venir cualquier semana'],
+      ['gacc:sensory',    'Sensory friendly',      'Espacio sensorial amigable']
+    ]},
+    { key: 'glanguage', en: 'Languages', es: 'Idiomas', tags: FD_LANGUAGE_TAGS }
+  ];
+  var FD_GROUP_TAG_LABELS = (function(){
+    var m = Object.create(null);
+    FD_GROUP_TAG_GROUPS.forEach(function(g){
+      g.tags.forEach(function(t){ m[t[0]] = { en: t[1], es: t[2], group: g.key }; });
+    });
+    return m;
+  })();
+  function fdGroupTagLabel(slug){
+    var row = FD_GROUP_TAG_LABELS[slug];
+    var es = (typeof window.currentLang === 'string' && window.currentLang.indexOf('es') === 0);
+    if (row) return es ? row.es : row.en;
+    return String(slug || '').split(':').pop().replace(/-/g, ' ');
+  }
+  window.FD_GROUP_TAG_GROUPS = FD_GROUP_TAG_GROUPS;
+  window.fdGroupTagLabel = fdGroupTagLabel;
+
   // ---- Church descriptor tags ----------------------------------------
   //
   // What a visitor wants to know that the denomination does not tell
@@ -18812,37 +18923,7 @@
       ['welcome:sensory-friendly',      'Sensory friendly',          'Espacio sensorial amigable'],
       ['welcome:newcomers',             'Newcomer friendly',         'Acoge a quien llega por primera vez']
     ]},
-    { key: 'language', en: 'Service Languages', es: 'Idiomas del servicio', tags: [
-      ['lang:english',        'English',              'Inglés'],
-      ['lang:spanish',        'Spanish',              'Español'],
-      ['lang:asl',            'American Sign Language','Lengua de señas americana'],
-      ['lang:mandarin',       'Mandarin',             'Mandarín'],
-      ['lang:cantonese',      'Cantonese',            'Cantonés'],
-      ['lang:korean',         'Korean',               'Coreano'],
-      ['lang:vietnamese',     'Vietnamese',           'Vietnamita'],
-      ['lang:tagalog',        'Tagalog',              'Tagalo'],
-      ['lang:portuguese',     'Portuguese',           'Portugués'],
-      ['lang:french',         'French',               'Francés'],
-      ['lang:haitian-creole', 'Haitian Creole',       'Criollo haitiano'],
-      ['lang:arabic',         'Arabic',               'Árabe'],
-      ['lang:amharic',        'Amharic',              'Amárico'],
-      ['lang:swahili',        'Swahili',              'Suajili'],
-      ['lang:russian',        'Russian',              'Ruso'],
-      ['lang:ukrainian',      'Ukrainian',            'Ucraniano'],
-      ['lang:romanian',       'Romanian',             'Rumano'],
-      ['lang:polish',         'Polish',               'Polaco'],
-      ['lang:german',         'German',               'Alemán'],
-      ['lang:italian',        'Italian',              'Italiano'],
-      ['lang:greek',          'Greek',                'Griego'],
-      ['lang:armenian',       'Armenian',             'Armenio'],
-      ['lang:hebrew',         'Hebrew',               'Hebreo'],
-      ['lang:hmong',          'Hmong',                'Hmong'],
-      ['lang:khmer',          'Khmer',                'Jemer'],
-      ['lang:japanese',       'Japanese',             'Japonés'],
-      ['lang:nepali',         'Nepali',               'Nepalí'],
-      ['lang:navajo',         'Navajo',               'Navajo'],
-      ['lang:latin',          'Latin',                'Latín']
-    ]},
+    { key: 'language', en: 'Service Languages', es: 'Idiomas del servicio', tags: FD_LANGUAGE_TAGS },
     { key: 'character', en: 'Type', es: 'Carácter', tags: [
       ['char:casual',              'Casual',              'Informal'],
       ['char:traditional-liturgy', 'Traditional liturgy', 'Liturgia tradicional'],
