@@ -5292,7 +5292,8 @@
    group they name. Categories shows the traditions only -- the parent
    rows -- and Denominations shows the bodies under them as well. */
 .filter-panel.fd-denoms-open,
-.filter-panel.fd-cats-open{
+.filter-panel.fd-cats-open,
+.filter-panel.fd-loc-open{
   display:block !important;
   position:absolute;left:14px;right:14px;top:auto;z-index:9;
   max-height:min(62vh, 520px);overflow-y:auto;
@@ -5310,6 +5311,13 @@
    bodies hidden, which made two buttons for one list. */
 .filter-panel.fd-cats-open .fd-cat-group{display:block;}
 .fd-cat-group{display:none;}
+.filter-panel.fd-loc-open .fd-loc-group{display:block;}
+.fd-loc-group{display:none;}
+.filter-panel.fd-loc-open,
+.filter-panel.fd-loc-open .filter-panel-body{display:block;}
+.filter-panel.fd-loc-open .filter-panel-toggle{display:none;}
+.filter-panel.fd-loc-open .filter-group{display:none;}
+.filter-panel.fd-loc-open .fd-loc-group{display:block;}
 .fd-cat-fieldset{border:0;padding:0;margin:0 0 14px;}
 .fd-cat-fieldset > legend{
   padding:0;margin:0 0 4px;font-size:12px;font-weight:700;
@@ -5350,6 +5358,7 @@
   .fd-shell.active > .filter-panel.open,
   .fd-shell.active > .filter-panel.fd-denoms-open,
   .fd-shell.active > .filter-panel.fd-cats-open,
+  .fd-shell.active > .filter-panel.fd-loc-open,
   .fd-shell.active > .filter-panel.fd-dates-open{
     max-height:min(54vh, 440px);padding:16px 16px 18px;
   }
@@ -8410,6 +8419,14 @@
           <h4 data-i18n="filters.byCategory">By Category</h4>
           <div id="filter-category-checks"></div>
         </div>
+        <!-- Only ever on screen in the By Location view. -->
+        <div class="filter-group fd-loc-group">
+          <h4 data-i18n="filters.byLocation">By Location</h4>
+          <div class="autocomplete-wrap search-clear-wrap" style="position:relative;">
+            <input class="field" type="search" id="filter-location-input" autocomplete="off" data-i18n-placeholder="dir.enterCityOrAddress" placeholder="Enter a city or address">
+            <div class="autocomplete-list" id="filter-location-list" role="listbox"></div>
+          </div>
+        </div>
         <div class="filter-group">
           <h4 data-i18n="filters.mapHeading">Map</h4>
           <label class="filter-check"><input type="checkbox" id="filter-show-pois"> <span data-i18n="filters.showOtherPlaces">Show shops, restaurants and other places</span></label>
@@ -8427,7 +8444,7 @@
         <!-- Hidden, not deleted: Faith Home in the row above drives this
              checkbox, which is what the search already reads. Two visible
              controls for one filter is what this replaces. -->
-        <div class="filter-group" hidden>
+        <div class="filter-group">
           <label class="filter-check" id="dir-filter-followed-wrap" style="display:none;"><input type="checkbox" id="dir-filter-followed-churches"> <span data-i18n="events.churchesIFollow">Churches I follow</span></label>
         </div>
         <div class="filter-group">
@@ -8571,14 +8588,23 @@
              The two buttons are wrapped rather than pushed right
              individually: By Category is hidden until the platform flag
              is on, and a margin on a hidden element pushes nothing. -->
+        <!-- Faith Home has left this row for By Location. It is not
+             gone: the "Churches I follow" checkbox it drove is no
+             longer hidden in the filter panel, so the filter is still
+             reachable -- it just is not one of the four things worth a
+             button of its own. -->
         <div class="event-tab-row fd-quick-row" id="church-tab-row">
           <button class="event-tab-btn active" type="button" data-church-tab="all" data-i18n="filters.all">All</button>
-          <button class="event-tab-btn" type="button" data-church-tab="faith-home" data-i18n="filters.faithHome">Faith Home</button>
           <div class="fd-quick-end">
+            <button class="event-tab-btn fd-quick-btn" type="button" aria-expanded="false" data-church-tab="location" data-i18n="filters.byLocation">By Location</button>
             <button class="event-tab-btn fd-quick-btn" type="button" aria-expanded="false" data-church-tab="categories" data-i18n="filters.byCategory">By Category</button>
             <button class="event-tab-btn fd-quick-btn" type="button" aria-expanded="false" data-church-tab="denominations" data-i18n="filters.byDenomination">By Denomination</button>
           </div>
         </div>
+        <!-- Everything currently narrowing the list, in the sheet where
+             the results are, not only inside the filter window you would
+             have to open to see it. Same chips, same x, one renderer. -->
+        <div class="fd-filter-chips" data-fd-filter-chips hidden></div>
         <!-- Shown until the first result set lands. The sheet used to
              open on nothing at all for as long as the query took, which
              read as "no churches here" rather than as "not yet". Removed
@@ -12851,7 +12877,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v402 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v403 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -14421,8 +14447,11 @@
   }
   var FD_CHIP_X = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
   function fdRenderFilterChips(){
-    var host = document.getElementById('dir-filter-chips');
-    if (!host) return;
+    // Every host, not just the one in the filter panel: the sheet shows
+    // the same chips under the quick row, so what is narrowing the list
+    // is visible without opening the window that set it.
+    var hosts = document.querySelectorAll('#dir-filter-chips, [data-fd-filter-chips]');
+    if (!hosts.length) return;
     var parts = [];
     fdChosenDenoms().forEach(function(c){
       parts.push('<span class="fd-filter-chip">' + escapeHtml(c.label)
@@ -14441,21 +14470,23 @@
         + ' aria-label="' + escapeHtml(window.t('filters.removeFilter')) + '">' + FD_CHIP_X + '</button></span>');
     }
     fdSyncQuickButtons();
-    if (!parts.length) { host.hidden = true; host.innerHTML = ''; return; }
     if (parts.length > 1) {
       parts.push('<button type="button" class="fd-filter-chip-clear" data-chip-clear="1">'
         + escapeHtml(window.t('filters.clearAll')) + '</button>');
     }
-    host.innerHTML = parts.join('');
-    host.hidden = false;
-    // Bound to the row, not to document: the filter panel stops clicks
-    // from bubbling out of itself, so that a tap inside it does not read
-    // as the tap-outside that closes it. Nothing in here would ever
-    // reach a document-level listener.
-    if (!host.dataset.fdChipsWired) {
-      host.dataset.fdChipsWired = '1';
-      host.addEventListener('click', fdHandleChipClick);
+    var html = parts.join('');
+    for (var h = 0; h < hosts.length; h++) {
+      hosts[h].innerHTML = parts.length ? html : '';
+      hosts[h].hidden = !parts.length;
+      if (parts.length && !hosts[h].dataset.fdChipsWired) {
+        hosts[h].dataset.fdChipsWired = '1';
+        hosts[h].addEventListener('click', fdHandleChipClick);
+      }
     }
+    // Each row gets its own listener, not document: the filter panel
+    // stops clicks from bubbling out of itself, so that a tap inside it
+    // does not read as the tap-outside that closes it. Nothing in there
+    // would ever reach a document-level listener.
   }
   window.fdRenderFilterChips = fdRenderFilterChips;
 
@@ -14590,6 +14621,17 @@
     var fh = document.querySelector('[data-church-tab="faith-home"]');
     if (fh) fh.classList.remove('active');
   }
+  // One reset, used by the Clear all chip and by Clear search.
+  function fdClearAllChurchFilters(){
+    fdRestoreAllDenoms();
+    fdClearFaithHome();
+    var cats = document.querySelectorAll('.fd-cat-filter:checked');
+    for (var ci = 0; ci < cats.length; ci++) cats[ci].checked = false;
+    window.fdCategoryChurchIds = null;
+    fdRenderFilterChips();
+  }
+  window.fdClearAllChurchFilters = fdClearAllChurchFilters;
+
   function fdHandleChipClick(ev){
     var xd = ev.target.closest && ev.target.closest('[data-chip-denom]');
     if (xd) {
@@ -14629,12 +14671,7 @@
     }
     if (ev.target.closest && ev.target.closest('[data-chip-clear]')) {
       ev.preventDefault(); ev.stopPropagation();
-      fdRestoreAllDenoms();
-      fdClearFaithHome();
-      var cats = document.querySelectorAll('.fd-cat-filter:checked');
-      for (var ci = 0; ci < cats.length; ci++) cats[ci].checked = false;
-      window.fdCategoryChurchIds = null;
-      fdRenderFilterChips();
+      fdClearAllChurchFilters();
       if (typeof window.renderDirectory === 'function') window.renderDirectory();
     }
   }
@@ -14755,6 +14792,12 @@
       var which = btn.getAttribute('data-church-tab');
       if (which === 'denominations') { openScoped('fd-denoms-open', btn); return; }
       if (which === 'categories')    { openScoped('fd-cats-open', btn); return; }
+      if (which === 'location') {
+        openScoped('fd-loc-open', btn);
+        var li = document.getElementById('filter-location-input');
+        if (li) setTimeout(function(){ li.focus(); }, 60);
+        return;
+      }
       fdCloseFilterPanels();
       fdSyncFilterHistory();
       if (which === 'all') {
@@ -15067,7 +15110,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-30-v402',
+      'build 2026-09-30-v403',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -21857,6 +21900,23 @@
   // hero's is: one box that suggests churches, denominations and towns
   // is the point, and two fields that both narrow is how a search ended
   // up limited twice over.
+  // The By Location window: towns only, and picking one is the search.
+  fdWireSuggest({
+    inputId: 'filter-location-input', listId: 'filter-location-list',
+    source: fdSuggestPlaces,
+    onChoose: function(name){
+      var dirLoc = document.getElementById('dir-location-input');
+      if (dirLoc) {
+        dirLoc.value = name;
+        dirLoc.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+      if (window.fdCloseFilterPanels) window.fdCloseFilterPanels();
+      if (window.fdSyncFilterHistory) window.fdSyncFilterHistory();
+      if (typeof window.doDirectLocationSearch === 'function') window.doDirectLocationSearch();
+      if (window.fdRenderSearchSummary) window.fdRenderSearchSummary();
+    }
+  });
+
   fdWireSuggest({
     inputId: 'nav-panel-keyword', listId: 'nav-panel-list',
     source: fdSuggestChurchesAndPlaces,
@@ -24572,6 +24632,9 @@
       fdSetLocationStatus(statusEl, window.t('dir.showingDistancesThisLocation'), true);
     });
   }
+  // Exposed because the By Location window is wired in the earlier
+  // classic <script>, which cannot see a name declared in this module.
+  window.doDirectLocationSearch = doDirectLocationSearch;
   var dirLocationSearchBtn = document.getElementById('dir-location-search-btn');
   if (dirLocationSearchBtn) { dirLocationSearchBtn.addEventListener('click', doDirectLocationSearch); }
   if (dirLocationInput) {
@@ -45923,6 +45986,10 @@
     var kw = document.getElementById('dir-keyword-input');
     if (kw) kw.value = '';
     if (typeof window.syncDirKeywordClearBtn === 'function') window.syncDirKeywordClearBtn();
+    // "Clear search" means all of it. A denomination or a set of tags
+    // left ticked behind a closed window is exactly the invisible
+    // narrowing this button exists to undo.
+    if (window.fdClearAllChurchFilters) window.fdClearAllChurchFilters();
     // Goes through the same function the location field's own x uses, so
     // the label, the coordinates and the stored choice all reset the way
     // they already do rather than a second time in a different way.
