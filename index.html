@@ -1323,7 +1323,7 @@
       'dashGroups.groupImage': 'Group image',
       'groupsPage.followGroup': 'Follow this group',
       'loginRequired.followGroup': 'Sign in to follow this group and keep an eye on it.',
-      'groupsPage.viewCards': 'Cards', 'groupsPage.viewList': 'List',
+      'dashGroups.formatHybridShort': 'Hybrid',
       'dashGroups.whoCanSeeGroup': 'Who can see this group?',
       'dashGroups.visPublic': 'Anyone \u2014 shows on your church page and in group search',
       'dashGroups.visMembers': 'Members of this church only',
@@ -2677,7 +2677,7 @@
       'dashGroups.groupImage': 'Imagen del grupo',
       'groupsPage.followGroup': 'Seguir este grupo',
       'loginRequired.followGroup': 'Inicia sesión para seguir este grupo y estar al tanto.',
-      'groupsPage.viewCards': 'Tarjetas', 'groupsPage.viewList': 'Lista',
+      'dashGroups.formatHybridShort': 'Híbrido',
       'dashGroups.whoCanSeeGroup': '¿Quién puede ver este grupo?',
       'dashGroups.visPublic': 'Cualquiera \u2014 aparece en la página de tu iglesia y en la búsqueda de grupos',
       'dashGroups.visMembers': 'Solo los miembros de esta iglesia',
@@ -4635,7 +4635,7 @@
   .event-card .card-tags .tag{font-size:10px;padding:3px 7px;letter-spacing:.02em;}
   .event-card .card-tags{gap:4px;}
 
-  .church-card, .event-card{
+  .church-card, .event-card, .group-card--tile{
     background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
     overflow:hidden;transition:border-color .15s, transform .15s;display:block;
     /* Mobile browsers paint a default translucent tap-highlight
@@ -4649,7 +4649,7 @@
        touch state independently of either. */
     -webkit-tap-highlight-color:transparent;
   }
-  .church-card:hover, .event-card:hover{border-color:var(--gold);transform:translateY(-2px);}
+  .church-card:hover, .event-card:hover, .group-card--tile:hover{border-color:var(--gold);transform:translateY(-2px);}
   /* Drawn on the phone only, where the card no longer navigates on tap. */
   .dir-card-profile-link{display:none;}
   .thumb{
@@ -4992,16 +4992,24 @@
   /* Directory list view — one compact row per church, no thumbnail, so a
      church with no logo costs no extra height. Left accent keyed to the
      same denomination hue the card placeholder uses. */
-  .church-list{display:flex;flex-direction:column;gap:8px;}
-  .church-row{display:flex;align-items:center;gap:14px;padding:11px 14px;background:var(--card);border:1px solid var(--line);border-left:3px solid hsl(var(--thumb-hue,220) 42% 62%);border-radius:10px;transition:border-color .15s;text-decoration:none;color:inherit;-webkit-tap-highlight-color:transparent;}
-  .church-row:hover{border-color:var(--gold);border-left-color:hsl(var(--thumb-hue,220) 42% 62%);}
+  .church-list,.fd-result-list{display:flex;flex-direction:column;gap:8px;}
+  .church-row,.event-row,.group-row{display:flex;align-items:center;gap:14px;padding:11px 14px;background:var(--card);border:1px solid var(--line);border-left:3px solid hsl(var(--thumb-hue,220) 42% 62%);border-radius:10px;transition:border-color .15s;text-decoration:none;color:inherit;-webkit-tap-highlight-color:transparent;}
+  .church-row:hover,.event-row:hover,.group-row:hover{border-color:var(--gold);border-left-color:hsl(var(--thumb-hue,220) 42% 62%);}
+  /* An event and a group have no denomination to hue the accent by, so
+     they take the one their kind is already drawn in elsewhere: the
+     event thumb's gold and the group thumb's slate. */
+  .event-row{--thumb-hue:38;}
+  .group-row{--thumb-hue:220;cursor:pointer;}
   html[data-theme="dark"] .church-row{border-left-color:hsl(var(--thumb-hue,220) 30% 46%);}
   html[data-theme="dark"] .church-row:hover{border-left-color:hsl(var(--thumb-hue,220) 30% 46%);}
-  .church-row-main{flex:1;min-width:0;}
-  .church-row-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-  .church-row-name{font-family:'Fraunces';font-size:15.5px;font-weight:600;color:var(--ink);}
-  .church-row-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;color:var(--ink-mute);font-size:12.5px;margin-top:4px;}
+  .church-row-main,.event-row-main,.group-row-main{flex:1;min-width:0;}
+  .church-row-head,.event-row-head,.group-row-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .church-row-name,.event-row-name,.group-row-name{font-family:'Fraunces';font-size:15.5px;font-weight:600;color:var(--ink);}
+  .church-row-meta,.event-row-meta,.group-row-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;color:var(--ink-mute);font-size:12.5px;margin-top:4px;}
   .church-row-sep{opacity:.5;}
+  /* The count on the right of a group row, outside the flexible middle
+     so a long group name cannot push it off the edge. */
+  .group-row-count{flex-shrink:0;font-size:12px;color:var(--ink-mute);}
   /* .church-row-chev is gone from the markup -- the row says "View
      Church Profile" in words now. */
   .church-row .dir-card-profile-link{
@@ -5249,25 +5257,31 @@
        third of a narrow column was a two-word-per-line title over a
        stack of badges, which is the same fault the church cards had. */
     .fd-results-grid .church-card,
-    .fd-results-grid .event-card{
+    .fd-results-grid .event-card,
+    .fd-results-grid .group-card--tile{
       display:grid;grid-template-columns:64px 1fr;gap:12px;
       align-items:start;padding:12px;
     }
     .fd-results-grid .church-card .thumb,
-    .fd-results-grid .event-card .thumb{
+    .fd-results-grid .event-card .thumb,
+    .fd-results-grid .group-card--tile .thumb{
       width:64px;height:64px;aspect-ratio:auto;border-radius:10px;
       /* !important because the logo variant sets padding inline, and an
          inline style beats a stylesheet rule that does not say so. */
       padding:6px !important;
     }
     .fd-results-grid .church-card .thumb svg,
-    .fd-results-grid .event-card .thumb svg{width:26px;height:26px;}
+    .fd-results-grid .event-card .thumb svg,
+    .fd-results-grid .group-card--tile .thumb svg{width:26px;height:26px;}
     .fd-results-grid .church-card .card-body,
-    .fd-results-grid .event-card .card-body{padding:0;min-width:0;}
+    .fd-results-grid .event-card .card-body,
+    .fd-results-grid .group-card--tile .card-body{padding:0;min-width:0;}
     .fd-results-grid .church-card h3,
-    .fd-results-grid .event-card h3{font-size:16px;margin:4px 0 5px;}
+    .fd-results-grid .event-card h3,
+    .fd-results-grid .group-card--tile h3{font-size:16px;margin:4px 0 5px;}
     .fd-results-grid .church-card .meta-row,
-    .fd-results-grid .event-card .meta-row{margin-bottom:3px;}
+    .fd-results-grid .event-card .meta-row,
+    .fd-results-grid .group-card--tile .meta-row{margin-bottom:3px;}
     /* The tag stack is what made an event card tall. Side by side in the
        compact card, wrapping only when it truly cannot fit. */
     .fd-results-grid .event-card .card-tags{flex-wrap:wrap;}
@@ -8013,8 +8027,7 @@
      .church-card and .event-card are built, and the reason a group
      tile can sit in the same grid without looking like a different
      component. .group-card keeps its padded form everywhere else. */
-  .group-card--tile{padding:0;overflow:hidden;transition:border-color .15s,transform .15s;}
-  .group-card--tile:hover{border-color:var(--gold);transform:translateY(-2px);}
+  .group-card--tile{padding:0;margin-bottom:0;}
   .group-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
   /* margin-top:0 is the fix, not the tidy-up. Headings carry an
      inherited 21px top margin here, which pushed the name down inside
@@ -8023,6 +8036,15 @@
      empty space. It also made the gap from the picture to the name
      39px where a church or event card has 18. */
   .group-card-head h4{flex:1;min-width:0;margin-top:0;margin-bottom:6px;}
+  /* Two lines and then an ellipsis. A church card has no paragraph at
+     all, so an unbounded one here is the single thing that would still
+     make a group tile stand taller than the cards beside it -- and a
+     group name on its own is often too vague to drop it entirely. */
+  .group-card-desc{
+    font-size:13.5px;color:var(--ink-soft);margin:10px 0 0;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+    overflow:hidden;
+  }
 
   /* Multi-church Overview: church picker tiles */
   .church-tile-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;}
@@ -13064,7 +13086,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v413 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v414 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -14071,6 +14093,19 @@
     try { return localStorage.getItem('fd_map_pois') === '1'; } catch (e) { return false; }
   }
   window.fdShowMapPois = fdShowMapPois;
+  // The browser's copy stays the one the map reads. It answers with no
+  // round trip -- dirMapStyles() is called on every map build and every
+  // theme flip -- and it is the only answer there is for a signed-out
+  // visitor. The account copy, below, is the durable one: it is what
+  // carries the setting to the person's other devices, and on sign-in
+  // it overwrites this.
+  function fdSetShowMapPois(on){
+    try { localStorage.setItem('fd_map_pois', on ? '1' : '0'); } catch (e) {}
+    var box = document.getElementById('filter-show-pois');
+    if (box) box.checked = !!on;
+    if (window.fdSyncMapPois) window.fdSyncMapPois();
+  }
+  window.fdSetShowMapPois = fdSetShowMapPois;
   function dirMapStyles(){
     var base = fdIsDark() ? DIR_MAP_NIGHT.slice() : [];
     return fdShowMapPois() ? base : base.concat(FD_MAP_HIDE_POI);
@@ -15443,7 +15478,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-30-v413',
+      'build 2026-09-30-v414',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -17762,6 +17797,65 @@
     return '<div class="event-card">' + inner + '</div>';
   }
 
+  // The List view's event. Same fields a card leads with -- what it
+  // is, whose it is, when -- on one line each, and none of the
+  // registration machinery: a row you are scanning is not a row you are
+  // signing up from, and the button is two taps away on the event page.
+  //
+  // Escaped throughout for the reason eventCard() is: an event title is
+  // somebody else's text, and a confirmed stored-XSS was found in this
+  // exact data. A second template over the same rows is a second place
+  // to get that wrong, which is why this sits next to the first one.
+  function eventRow(e){
+    var churchLabel = (e.church === 'A FaithDock church') ? window.t('church.genericName') : e.church;
+    var bits = [];
+    if (churchLabel) bits.push('<span>' + escapeHtml(churchLabel) + '</span>');
+    if (e.distanceMiles != null) bits.push('<span>' + escapeHtml(e.distanceMiles.toFixed(1) + ' mi ' + window.t('church.away')) + '</span>');
+    if (e.when) bits.push('<span>' + escapeHtml(e.when) + '</span>');
+    var tags = '';
+    if (e.visibilityLabel) {
+      tags += '<span class="tag ' + (e.membersOnly ? 'clay' : 'sage') + '">'
+        + escapeHtml(translateBadgeLabel(e.visibilityLabel)) + '</span>';
+    }
+    if (e.badgeLabel) {
+      tags += '<span class="tag ' + escapeHtml(e.badge) + '">'
+        + escapeHtml(translateBadgeLabel(e.badgeLabel)) + '</span>';
+    }
+    var lookupKey = e.real ? e.id : e.title;
+    return '<div class="event-row" data-route="event" data-event-key="'
+      + escapeHtml(String(lookupKey)) + '" style="cursor:pointer;">'
+      + '<div class="event-row-main">'
+      +   '<div class="event-row-head">'
+      +     '<span class="event-row-name">' + escapeHtml(e.title) + '</span>'
+      +     tags
+      +   '</div>'
+      +   (bits.length ? '<div class="event-row-meta">' + bits.join('<span class="church-row-sep">&middot;</span>') + '</div>' : '')
+      + '</div>'
+      + followHeartEvent(e)
+      + '</div>';
+  }
+  window.eventRow = eventRow;
+
+  // Paints #events-grid from window.eventsLastRenderedRows in whichever
+  // view the shell is set to. The directory has had one of these since
+  // the List view was built; events painted in three places instead,
+  // which is why the toggle in the sheet head only ever moved the
+  // churches. One function, one place to teach about a new view.
+  function paintEventsGrid(){
+    var grid = document.getElementById('events-grid');
+    if (!grid) return;
+    var rows = window.eventsLastRenderedRows || [];
+    var list = (typeof window.directoryView === 'function') && window.directoryView() === 'list';
+    // fd-results-grid has to survive, for the same reason it does in
+    // paintDirectoryGrid: it carries the auto-fill columns and the
+    // container the compact card asks about.
+    grid.className = (list ? 'fd-result-list' : 'grid') + ' fd-results-grid';
+    grid.style.display = rows.length ? (list ? 'flex' : 'grid') : 'none';
+    grid.innerHTML = mapJoin(rows, list ? eventRow : eventCard);
+    if (typeof window.refreshAllCardRegistrationStates === 'function') window.refreshAllCardRegistrationStates();
+  }
+  window.paintEventsGrid = paintEventsGrid;
+
   function mapJoin(arr, fn){
     var out = [];
     for(var i=0;i<arr.length;i++){ out.push(fn(arr[i], i)); }
@@ -19034,6 +19128,15 @@
     return String(slug || '').split(':').pop().replace(/-/g, ' ');
   }
   window.FD_GROUP_TAG_GROUPS = FD_GROUP_TAG_GROUPS;
+
+  // The column, turned into something a card can wear. Its own short
+  // label for hybrid: the editor asks "Both -- online and in person",
+  // which is the right question and much too long for a tag.
+  window.FD_GROUP_FORMAT_LABELS = {
+    in_person: "dashGroups.formatInPerson",
+    online:    "dashGroups.formatOnline",
+    hybrid:    "dashGroups.formatHybridShort"
+  };
   window.fdGroupTagLabel = fdGroupTagLabel;
 
   // ---- Church descriptor tags ----------------------------------------
@@ -21013,7 +21116,14 @@
       if (v === directoryView()) return;
       setDirectoryView(v);
       syncDirViewButtons();
+      // All three, not just the churches. The toggle lives in the
+      // sheet head, which is shared by the three tabs, so it has to
+      // mean the same thing in each of them -- it used to move the
+      // churches only, and switching to Events or Groups put you back
+      // on cards with the button still saying List.
       paintDirectoryGrid();
+      if (window.paintEventsGrid) window.paintEventsGrid();
+      if (window.repaintGroupsView) window.repaintGroupsView();
     });
   }
 
@@ -21715,12 +21825,15 @@
         grid.innerHTML = ''; grid.style.display = 'none'; empty.style.display = 'block';
         empty.textContent = window.t('filters.noEventsMatch');
       } else {
-        grid.style.display = 'grid'; empty.style.display = 'none';
-        grid.innerHTML = mapJoin(window.eventsLastRenderedRows, eventCard);
+        empty.style.display = 'none';
+        window.paintEventsGrid();
       }
     } else if (rows.length) {
       window.eventsLastRenderedRows = (window.eventsLastRenderedRows || []).concat(rows);
-      grid.insertAdjacentHTML('beforeend', mapJoin(rows, eventCard));
+      // Appended in the view that is showing, not always as cards --
+      // Load more used to paint cards underneath a list.
+      grid.insertAdjacentHTML('beforeend', mapJoin(rows,
+        (window.directoryView && window.directoryView() === 'list') ? eventRow : eventCard));
     }
 
     if (window.paintEventsMap) window.paintEventsMap();
@@ -21746,8 +21859,7 @@
   window.refreshEventsCardsText = function(){
     var grid = document.getElementById('events-grid');
     if (!grid || !window.eventsLastRenderedRows) return;
-    grid.innerHTML = mapJoin(window.eventsLastRenderedRows, eventCard);
-    if (typeof window.refreshAllCardRegistrationStates === 'function') window.refreshAllCardRegistrationStates();
+    window.paintEventsGrid();
   };
 
   var eventsLoadMoreBtn = document.getElementById('events-load-more-btn');
@@ -25382,13 +25494,49 @@
     }, { timeout: 8000 });
   });
 
+  // Whether the account's copy can be reached at all. Set false the
+  // first time the RPC comes back missing, so a build that is ahead of
+  // its migration asks once rather than on every sign-in and every
+  // tick of the checkbox.
+  var fdMapPoiRpcLive = true;
+
+  // Read the account's copy and let it win. Called on sign-in, because
+  // that is the moment the setting stops belonging to this browser and
+  // starts belonging to the person -- picking your preference up on a
+  // second device is the whole reason it moved off localStorage.
+  window.fdLoadMapPoisFromAccount = async function(){
+    if (!fdMapPoiRpcLive) return;
+    try {
+      var res = await supabase.rpc('get_my_map_pois');
+      if (res.error) {
+        // PGRST202 is "no such function": the migration has not been
+        // run here. Anything else is a real failure and is worth
+        // seeing, but neither is worth breaking the map over.
+        if (res.error.code === 'PGRST202') fdMapPoiRpcLive = false;
+        else console.warn('get_my_map_pois:', res.error);
+        return;
+      }
+      if (res.data === null || res.data === undefined) return;
+      if (window.fdSetShowMapPois) window.fdSetShowMapPois(res.data === true);
+    } catch (e) { /* offline, or no session -- the local copy stands */ }
+  };
+
   (function wireMapPoiToggle(){
     var box = document.getElementById('filter-show-pois');
     if (!box) return;
-    try { box.checked = localStorage.getItem('fd_map_pois') === '1'; } catch (e) {}
-    box.addEventListener('change', function(){
-      try { localStorage.setItem('fd_map_pois', box.checked ? '1' : '0'); } catch (e) {}
-      if (window.fdSyncMapPois) window.fdSyncMapPois();
+    box.checked = window.fdShowMapPois ? window.fdShowMapPois() : false;
+    box.addEventListener('change', async function(){
+      var on = box.checked;
+      // Locally first, so the map redraws on the tap rather than after
+      // a round trip -- and so it still works signed out, which is most
+      // of the traffic.
+      if (window.fdSetShowMapPois) window.fdSetShowMapPois(on);
+      if (!fdMapPoiRpcLive) return;
+      try {
+        var res = await supabase.rpc('set_my_map_pois', { p_on: on });
+        if (res.error && res.error.code === 'PGRST202') fdMapPoiRpcLive = false;
+        else if (res.error) console.warn('set_my_map_pois:', res.error);
+      } catch (e) { /* signed out, or offline: the local copy stands */ }
     });
   })();
 
@@ -28463,6 +28611,12 @@
     }
     fdSeenFirstAuthEvent = true;
     fdLastAuthUserId = fdAuthUserId;
+    // And the map preference comes down from the account, so a person
+    // who turned the shops off on their phone does not meet them again
+    // on their laptop. Signed out it is left alone -- the browser's
+    // copy is the only one there is then, and clearing it would look
+    // like the setting had been forgotten.
+    if (fdAuthUserId && window.fdLoadMapPoisFromAccount) window.fdLoadMapPoisFromAccount();
     // getMyChurch's cache is keyed on the literal string
     // '__current_user__', which does not change when the user does --
     // so signing out and back in as somebody else within the TTL could
@@ -38589,16 +38743,14 @@
                        : window.t('groupsPage.memberCount').replace('{n}', count);
   }
 
-  // Which view is showing. Remembered per browser, like the
-  // directory's, so somebody who prefers the list is not put back on
-  // cards by every visit. Wrapped because storage throws in a private
-  // window, and a view preference is not worth an exception.
+  // Groups had a view preference of their own, in its own storage key,
+  // driven by buttons that no longer exist -- so the toggle in the
+  // sheet head moved the churches and the groups stayed on cards
+  // forever. One preference now, the directory's, because there is one
+  // toggle and it sits above all three tabs.
   function groupsView(){
-    try { return localStorage.getItem('faithdock_groups_view') === 'list' ? 'list' : 'cards'; }
-    catch (e) { return 'cards'; }
-  }
-  function setGroupsView(v){
-    try { localStorage.setItem('faithdock_groups_view', v); } catch (e) {}
+    return (typeof window.directoryView === 'function' && window.directoryView() === 'list')
+      ? 'list' : 'cards';
   }
 
   // The rows currently on screen, kept so switching view repaints
@@ -38611,24 +38763,6 @@
     renderGroupSearchCards(groupsLastRows, groupsLastMemberships, false);
   };
 
-  function syncGroupsViewButtons(){
-    var v = groupsView();
-    document.querySelectorAll('[data-groups-view]').forEach(function(btn){
-      var on = btn.getAttribute('data-groups-view') === v;
-      btn.classList.toggle('is-active', on);
-      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-    });
-  }
-  document.addEventListener('click', function(ev){
-    var btn = ev.target.closest ? ev.target.closest('[data-groups-view]') : null;
-    if (!btn) return;
-    var v = btn.getAttribute('data-groups-view') === 'list' ? 'list' : 'cards';
-    if (v === groupsView()) return;
-    setGroupsView(v);
-    syncGroupsViewButtons();
-    window.repaintGroupsView();
-  });
-
   function renderGroupSearchCards(rows, myMemberships, append){
     var listEl = document.getElementById('groups-results');
     if (!listEl) return;
@@ -38639,8 +38773,9 @@
     if (append) { Object.keys(myMemberships).forEach(function(k){ groupsLastMemberships[k] = myMemberships[k]; }); }
 
     var asList = groupsView() === 'list';
-    listEl.className = asList ? '' : 'grid';
-    syncGroupsViewButtons();
+    // fd-results-grid for the same reason the churches and events
+    // carry it: it is what the compact-card container query measures.
+    listEl.className = (asList ? 'fd-result-list' : 'grid') + ' fd-results-grid';
 
     var html = rows.map(function(g){
       var memberStatus = myMemberships[g.id];
@@ -38677,38 +38812,80 @@
       var img = (typeof safeImageUrl === 'function') ? safeImageUrl(g.image_url) : '';
       var heart = (typeof followHeartGroup === 'function') ? followHeartGroup(g) : '';
 
+      // Online / In person / Hybrid, which is a column rather than a
+      // tag (migration 115) precisely so it can be shown here. Skipped
+      // silently until search_groups returns it.
+      var fmtTag = '';
+      if (g.meeting_format && window.FD_GROUP_FORMAT_LABELS
+          && window.FD_GROUP_FORMAT_LABELS[g.meeting_format]) {
+        fmtTag = '<span class="tag">'
+          + escapeHtml(window.t(window.FD_GROUP_FORMAT_LABELS[g.meeting_format])) + '</span>';
+      }
+      // A group meets at its church, so the church's location is the
+      // one worth walking to. Costs nothing: the link hands Google a
+      // destination and Google resolves it -- our own geocoding is for
+      // drawing pins and measuring distance, not for this.
+      var dirHtml = '';
+      if (window.fdDirectionsHtml) {
+        dirHtml = window.fdDirectionsHtml({
+          lat: g.church_lat, lng: g.church_lng,
+          address: g.church_address || [g.church_name, where].filter(Boolean).join(', ')
+        });
+      }
+
       if (asList) {
         // The list row drops the picture and the description and keeps
         // what somebody scanning a list is actually comparing: name,
-        // church, when it meets, how big it is.
-        return '<div class="group-card" data-route="group" data-group-id="' + escapeHtml(g.id) + '" style="cursor:pointer;display:flex;align-items:center;gap:12px;margin-bottom:10px;">'
-          + '<div style="flex:1;min-width:0;">'
-          +   '<h4 style="margin-bottom:2px;">' + escapeHtml(g.name) + visTag + '</h4>'
-          +   '<div style="font-size:12.5px;color:var(--ink-mute);">' + meta + '</div>'
-          +   (g.meeting_schedule ? '<div class="group-schedule" style="margin-top:4px;">' + escapeHtml(g.meeting_schedule) + '</div>' : '')
+        // church, when it meets, how big it is. Same component as a
+        // church row now, rather than a flex container built by hand.
+        var rbits = [];
+        if (meta) rbits.push(meta);
+        if (g.meeting_schedule) rbits.push('<span>' + escapeHtml(g.meeting_schedule) + '</span>');
+        return '<div class="group-row" data-route="group" data-group-id="' + escapeHtml(g.id) + '">'
+          + '<div class="group-row-main">'
+          +   '<div class="group-row-head">'
+          +     '<span class="group-row-name">' + escapeHtml(g.name) + '</span>'
+          +     visTag + fmtTag
+          +   '</div>'
+          +   (rbits.length ? '<div class="group-row-meta">' + rbits.join('<span class="church-row-sep">&middot;</span>') + '</div>' : '')
+          +   (dirHtml ? '<div class="dir-card-actions">' + dirHtml + '</div>' : '')
           + '</div>'
-          + '<div style="flex-shrink:0;font-size:12px;color:var(--ink-mute);">' + escapeHtml(groupsMemberCountLabel(g.member_count)) + '</div>'
-          + '<div style="flex-shrink:0;">' + heart + '</div>'
+          + '<div class="group-row-count">' + escapeHtml(groupsMemberCountLabel(g.member_count)) + '</div>'
+          + heart
           + '</div>';
       }
 
       var thumb = img
         ? '<div class="thumb" style="background-image:url(\'' + img + '\');background-size:cover;background-position:center;"></div>'
         : '<div class="thumb thumb--group">' + groupIcon + '</div>';
-      return '<div class="group-card group-card--tile" data-route="group" data-group-id="' + escapeHtml(g.id) + '" style="cursor:pointer;">'
+      // Built as a church/event card is built, element for element:
+      // thumb, then a body whose first row is the tags with the heart
+      // beside them, then the name, then icon-led meta rows. It was
+      // close before -- a bare <h4> and three differently-styled
+      // <div>s -- which is exactly why it read as a different kind of
+      // thing in the same grid.
+      return '<div class="group-card--tile" data-route="group" data-group-id="' + escapeHtml(g.id) + '" style="cursor:pointer;">'
         + thumb
         + '<div class="card-body">'
-        // The heart shares a row with the tag rather than floating over
-        // the picture, which is where churches and events put it after
-        // that was reported on both.
-        +   '<div class="group-card-head">'
-        +     '<h4>' + escapeHtml(g.name) + visTag + '</h4>'
+        +   '<div class="card-tag-row">'
+        // Empty when there is nothing true to say. A church card's tag is
+        // its denomination and an event's is when it is; a group's will be
+        // its format and its category, which search_groups does not return
+        // yet. A word like 'Groups' in the meantime is not a tag, it is the
+        // name of the list you are already looking at. The heart keeps its
+        // place either way -- it is pushed right by its own margin, not by
+        // whatever is beside it: .card-tags is flex:1, so it holds the
+        // row open at full width empty or not, and measuring it that way
+        // put the heart at the same right edge either way.
+        +     '<div class="card-tags">' + visTag + fmtTag + '</div>'
         +     heart
         +   '</div>'
-        +   '<div style="font-size:12.5px;color:var(--ink-mute);margin-bottom:6px;">' + meta + '</div>'
-        +   (g.description ? '<p>' + escapeHtml(g.description) + '</p>' : '')
-        +   (g.meeting_schedule ? '<div class="group-schedule">' + escapeHtml(g.meeting_schedule) + '</div>' : '')
-        +   '<div style="font-size:12px;color:var(--ink-mute);margin-bottom:8px;">' + escapeHtml(groupsMemberCountLabel(g.member_count)) + '</div>'
+        +   '<h3>' + escapeHtml(g.name) + '</h3>'
+        +   (meta ? '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/></svg>' + meta + '</div>' : '')
+        +   (g.meeting_schedule ? '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>' + escapeHtml(g.meeting_schedule) + '</div>' : '')
+        +   '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg>' + escapeHtml(groupsMemberCountLabel(g.member_count)) + '</div>'
+        +   (g.description ? '<p class="group-card-desc">' + escapeHtml(g.description) + '</p>' : '')
+        +   (dirHtml ? '<div class="dir-card-actions">' + dirHtml + '</div>' : '')
         +   actionHtml
         +   '<div class="group-join-status" style="display:none;font-size:12px;color:var(--ink-mute);margin-top:6px;"></div>'
         + '</div>'
