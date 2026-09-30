@@ -512,6 +512,8 @@
       'dir.couldNotGetLocation': 'Could not get your location — try typing it instead.', 'dir.mapServiceLoading': 'Map service still loading — try again in a moment.',
       'home.nearPlace': 'Searching near {q}',
       'dir.yourLocation': 'Your location',
+      'search.groupCategories': 'Categories',
+      'filters.searchCategory': 'Search categories',
       'search.groupChurches': 'Churches',
       'search.groupDenominations': 'Denominations',
       'search.groupPlaces': 'Places',
@@ -1893,6 +1895,8 @@
       'dir.couldNotGetLocation': 'No pudimos obtener tu ubicación — intenta escribirla.', 'dir.mapServiceLoading': 'El servicio de mapas aún se está cargando — intenta de nuevo en un momento.',
       'home.nearPlace': 'Buscando cerca de {q}',
       'dir.yourLocation': 'Tu ubicación',
+      'search.groupCategories': 'Categorías',
+      'filters.searchCategory': 'Buscar categorías',
       'search.groupChurches': 'Iglesias',
       'search.groupDenominations': 'Denominaciones',
       'search.groupPlaces': 'Lugares',
@@ -8366,7 +8370,10 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;flex-shrink:0;"><path d="M6 9l6 6 6-6"/></svg>
           </button>
           <div id="denom-dropdown-panel" style="display:none;position:absolute;background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,0.16);padding:12px;z-index:200;max-height:min(440px, calc(100vh - 140px));overflow-y:auto;">
-            <input class="field" type="text" id="filter-denom-search" placeholder="Search" style="margin-bottom:10px;" data-i18n-placeholder="filters.searchTradition">
+            <div class="autocomplete-wrap" style="position:relative;margin-bottom:10px;">
+              <input class="field" type="text" id="filter-denom-search" placeholder="Search" data-i18n-placeholder="filters.searchTradition">
+              <div class="autocomplete-list" id="filter-denom-list" role="listbox"></div>
+            </div>
             <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:12px;">
               <button type="button" id="denom-select-all-btn" style="background:none;border:none;padding:0;color:var(--gold);border-bottom:1px solid var(--gold);cursor:pointer;font-size:12px;" data-i18n="filters.selectAll">Select all</button>
               <button type="button" id="denom-clear-all-btn" style="background:none;border:none;padding:0;color:var(--ink-mute);border-bottom:1px solid var(--ink-mute);cursor:pointer;font-size:12px;" data-i18n="filters.uncheckAll">Uncheck all</button>
@@ -8417,6 +8424,10 @@
              in the By Category view. -->
         <div class="filter-group fd-cat-group">
           <h4 data-i18n="filters.byCategory">By Category</h4>
+          <div class="autocomplete-wrap" style="position:relative;margin-bottom:10px;">
+            <input class="field" type="text" id="filter-category-search" placeholder="Search" data-i18n-placeholder="filters.searchCategory">
+            <div class="autocomplete-list" id="filter-category-list" role="listbox"></div>
+          </div>
           <div id="filter-category-checks"></div>
         </div>
         <!-- Only ever on screen in the By Location view. -->
@@ -12877,7 +12888,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v403 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v404 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -15110,7 +15121,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-30-v403',
+      'build 2026-09-30-v404',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -21408,13 +21419,15 @@
   var FD_SUGG_ICON = {
     church: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v4M10 4h4"/><path d="M12 7l-6 4v10h12V11l-6-4Z"/><path d="M10 21v-4h4v4"/></svg>',
     place:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>',
-    denom:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20h16"/><path d="M6 20V9l6-5 6 5v11"/><path d="M10 20v-5h4v5"/></svg>'
+    denom:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20h16"/><path d="M6 20V9l6-5 6 5v11"/><path d="M10 20v-5h4v5"/></svg>',
+    category: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.6 13.4 11 3.8V3H4v7h.8l9.6 9.6a1.4 1.4 0 0 0 2 0l4.2-4.2a1.4 1.4 0 0 0 0-2Z"/><circle cx="7.5" cy="6.5" r="1.2"/></svg>'
   };
   function fdSuggestGroupLabels(){
     return {
-      church: window.t('search.groupChurches'),
-      denom:  window.t('search.groupDenominations'),
-      place:  window.t('search.groupPlaces')
+      church:   window.t('search.groupChurches'),
+      denom:    window.t('search.groupDenominations'),
+      category: window.t('search.groupCategories'),
+      place:    window.t('search.groupPlaces')
     };
   }
   // Display name -> address, filled as suggestions come back. Only ever
@@ -21630,7 +21643,10 @@
     ]);
     // Churches first because a name is the most specific thing you can
     // mean, then the two ways of widening: a denomination, then a town.
-    return all[0].slice(0, 5).concat(fdSuggestDenominations(q)).concat(all[1]);
+    return all[0].slice(0, 5)
+      .concat(fdSuggestDenominations(q))
+      .concat(fdSuggestCategoryTags(q))
+      .concat(all[1]);
   }
   // Same query as fdSuggestChurches, kept as objects so the row can
   // carry the town under the name and the raw name for the route.
@@ -21655,6 +21671,42 @@
       out.push({ kind: 'church', label: label, sub: fdPlaceFromAddress(r.address) || '', value: r.name });
     });
     return out;
+  }
+
+  // Descriptor tags as suggestions. Only offered while the platform
+  // flag is on -- the same switch that draws the By Category button --
+  // because a tag nobody has set yet is a suggestion that leads to an
+  // empty list.
+  function fdSuggestCategoryTags(q){
+    if (!window.fdCategoriesEnabled || !window.FD_CHURCH_TAG_GROUPS) return [];
+    var lower = q.toLowerCase(), starts = [], contains = [];
+    window.FD_CHURCH_TAG_GROUPS.forEach(function(g){
+      var groupName = (window.currentLang === 'es' ? g.es : g.en);
+      g.tags.forEach(function(t){
+        var label = window.fdChurchTagLabel(t[0]);
+        var at = label.toLowerCase().indexOf(lower);
+        var item = { kind: 'category', label: label, sub: groupName, value: t[0] };
+        if (at === 0) starts.push(item);
+        else if (at > 0) contains.push(item);
+      });
+    });
+    return starts.concat(contains).slice(0, 4);
+  }
+  // Picking one means only that tag, matching how a denomination pick
+  // behaves. The checkboxes may not be built yet if the panel has never
+  // been opened, so build them first and then tick.
+  function fdApplyCategoryPick(slug){
+    if (window.fdRenderCategoryFilter) window.fdRenderCategoryFilter();
+    var boxes = document.querySelectorAll('.fd-cat-filter');
+    var hit = null;
+    for (var i = 0; i < boxes.length; i++) {
+      boxes[i].checked = false;
+      if (boxes[i].value === slug) hit = boxes[i];
+    }
+    if (!hit) return false;
+    hit.checked = true;
+    hit.dispatchEvent(new Event('change', { bubbles: true }));
+    return true;
   }
 
   // The shared field belongs to whichever tab is open.
@@ -21861,6 +21913,16 @@
         }
         return;
       }
+      if (item && item.kind === 'category') {
+        if (kwEl) kwEl.value = '';
+        fdApplyCategoryPick(item.value);
+        sync();
+        if (after) after();
+        if (typeof window.searchDirectoryFor === 'function') {
+          window.searchDirectoryFor('', locEl ? locEl.value.trim() : '');
+        }
+        return;
+      }
       if (item && item.kind === 'denom') {
         // Not a keyword either -- keyword wants an exact name match, and
         // "Baptist" as a keyword finds only churches with Baptist in the
@@ -21900,6 +21962,35 @@
   // hero's is: one box that suggests churches, denominations and towns
   // is the point, and two fields that both narrow is how a search ended
   // up limited twice over.
+  // The By Denomination window's own search: it already narrowed the
+  // RESULTS as you typed, which is useful but is not the same as
+  // telling you what there is to pick. Now it suggests, and picking one
+  // ticks it.
+  fdWireSuggest({
+    inputId: 'filter-denom-search', listId: 'filter-denom-list',
+    source: fdSuggestDenominations,
+    onChoose: function(name, item){
+      if (item) fdApplyDenominationPick(item.value);
+      var el = document.getElementById('filter-denom-search');
+      if (el) { el.value = ''; el.dispatchEvent(new Event('input', { bubbles: true })); }
+      if (window.fdCloseFilterPanels) window.fdCloseFilterPanels();
+      if (window.fdSyncFilterHistory) window.fdSyncFilterHistory();
+      fdRenderFilterChips();
+      if (typeof window.renderDirectory === 'function') window.renderDirectory();
+    }
+  });
+  fdWireSuggest({
+    inputId: 'filter-category-search', listId: 'filter-category-list',
+    source: fdSuggestCategoryTags,
+    onChoose: function(name, item){
+      if (item) fdApplyCategoryPick(item.value);
+      var el = document.getElementById('filter-category-search');
+      if (el) el.value = '';
+      if (window.fdCloseFilterPanels) window.fdCloseFilterPanels();
+      if (window.fdSyncFilterHistory) window.fdSyncFilterHistory();
+    }
+  });
+
   // The By Location window: towns only, and picking one is the search.
   fdWireSuggest({
     inputId: 'filter-location-input', listId: 'filter-location-list',
