@@ -5022,8 +5022,8 @@
   /* .church-row-chev is gone from the markup -- the row says "View
      Church Profile" in words now. */
   .church-row .dir-card-profile-link{
-    display:inline-block;margin-top:5px;font-size:12.5px;font-weight:600;
-    color:var(--gold-ink);border-bottom:1px solid var(--gold);padding-bottom:1px;
+    display:inline-block;
+    color:var(--gold-ink);border-bottom:1px solid var(--gold);
   }
   .card-body{padding:18px;}
   .tag{
@@ -5924,9 +5924,8 @@
     /* The tap target for the profile, now that the card itself is not
        one. Inline-block so it is only as wide as its own text. */
     .fd-shell.active .fd-results-grid .dir-card-profile-link{
-      display:inline-block;margin-top:7px;font-size:13px;font-weight:600;
+      display:inline-block;
       color:var(--gold-ink);border-bottom:1px solid var(--gold);
-      padding:2px 0;
     }
     /* No lift on tap -- there is no hover on a phone, and the transform
        fires on tap and leaves the card shifted. */
@@ -7539,7 +7538,7 @@
   .fd-loc-inline svg{width:17px;height:17px;display:block;}
   .fd-loc-inline:hover{color:var(--ink);border-color:var(--ink-mute);}
   .fd-loc-inline.is-busy{opacity:.55;}
-  .dir-card-actions{display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin-top:10px;}
+  .dir-card-actions{display:flex;flex-wrap:wrap;align-items:baseline;gap:14px;margin-top:4px;}
   .dir-card-directions{
     font-size:13.5px;font-weight:600;color:var(--gold-ink);cursor:pointer;
     border-bottom:1px solid var(--gold);padding-bottom:2px;
@@ -7548,6 +7547,10 @@
   .dir-card-directions:hover{color:var(--ink);}
   /* In the bubble it sits on its own line under the address. */
   .fd-iw .dir-card-directions{display:inline-block;margin-top:6px;}
+  .dir-card-actions > *{
+    font-size:13px;line-height:1.6;font-weight:600;
+    margin:0;padding:0 0 2px;
+  }
   .fd-panel-close{
     position:absolute;top:10px;right:10px;width:30px;height:30px;
     display:none;align-items:center;justify-content:center;
@@ -13098,7 +13101,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v415 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v416 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -15507,7 +15510,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-30-v415',
+      'build 2026-09-30-v416',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
