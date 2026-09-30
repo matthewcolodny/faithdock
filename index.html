@@ -7380,6 +7380,12 @@
   /* Nine rows plus two headings do not fit 200px, and the hero no
      longer clips, so there is somewhere for them to go. */
   #hero-keyword-list{max-height:min(48vh, 360px);}
+  /* 200px is three rows of nine. overscroll-behavior:contain so a
+     flick that reaches the end scrolls nothing else, which on a page
+     whose body does not scroll otherwise felt like the gesture had
+     been ignored. */
+  #nav-panel-list{max-height:min(52vh, 380px);}
+  .autocomplete-list{overscroll-behavior:contain;-webkit-overflow-scrolling:touch;}
   .fd-sugg-group{
     padding:8px 12px 4px;font-size:11.5px;font-weight:700;
     letter-spacing:.06em;text-transform:uppercase;color:var(--ink-mute);
@@ -12834,7 +12840,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v400 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v401 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -15025,7 +15031,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-30-v400',
+      'build 2026-09-30-v401',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -21723,10 +21729,24 @@
       ev.preventDefault();
       choose(names[parseInt(row.getAttribute('data-i'), 10)]);
     });
+    // A finger on the list is using the list, not leaving the field.
+    // Dragging to scroll moves focus off the input, and the blur below
+    // then closed the list 120ms later -- so the list vanished the
+    // moment you tried to scroll it, which reads as "cannot scroll".
+    // preventDefault is deliberately NOT used here: that would cancel
+    // the scroll itself.
+    var pointerInList = false;
+    list.addEventListener('pointerdown', function(){ pointerInList = true; });
+    document.addEventListener('pointerup', function(){
+      // After the gesture, not during: the blur fires first.
+      setTimeout(function(){ pointerInList = false; }, 200);
+    });
     document.addEventListener('click', function(ev){
       if (ev.target !== input && !list.contains(ev.target)) close();
     });
-    input.addEventListener('blur', function(){ setTimeout(close, 120); });
+    input.addEventListener('blur', function(){
+      setTimeout(function(){ if (!pointerInList) close(); }, 120);
+    });
   }
 
   fdWireSuggest({
@@ -24221,7 +24241,15 @@
   function submitNavSearch(){
     var kw = document.getElementById('nav-panel-keyword');
     var loc = document.getElementById('nav-panel-location');
-    searchDirectoryFor(kw ? kw.value.trim() : '', loc ? loc.value.trim() : '');
+    // A typed search starts clean. The location this panel carries is
+    // invisible -- its field is hidden -- so a keyword searched after a
+    // place search was silently still narrowed to that place, and there
+    // was nothing on the panel to say so or to undo it. Picking a town
+    // from the list is unaffected: that path searches on its own and
+    // never reaches here.
+    if (loc) { loc.value = ''; delete loc.dataset.fdFromPick; }
+    if (typeof window.clearDirLocation === 'function') window.clearDirLocation();
+    searchDirectoryFor(kw ? kw.value.trim() : '', '');
     setNavSearchOpen(false);
   }
 
