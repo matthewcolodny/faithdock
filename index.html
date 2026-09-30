@@ -13101,7 +13101,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v416 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v417 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -14974,7 +14974,7 @@
     }
     var gboxes = document.querySelectorAll('.fd-gcat-filter');
     for (var i = 0; i < gboxes.length; i++) gboxes[i].checked = false;
-    window.fdGroupTagIds = null;
+    window.fdGroupTagFilter = null;
     if (window.fdRenderGroupChips) window.fdRenderGroupChips();
     if (window.fdCloseFilterPanels) window.fdCloseFilterPanels();
     if (window.fdRenderSearchSummary) window.fdRenderSearchSummary();
@@ -15510,7 +15510,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-30-v416',
+      'build 2026-09-30-v417',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -22410,29 +22410,22 @@
   }
   window.fdChosenGroupTags = fdChosenGroupTags;
 
-  // search_groups has no p_group_ids -- search_churches gained its
-  // equivalent in a migration, this one never did, and it predates this
-  // repo. So the narrowing happens on ids fetched separately and
-  // applied to what the RPC returns, rather than by changing a function
-  // I cannot read. window.fdGroupTagIds is null when no tag is ticked,
-  // which the loader reads as "no filter".
-  window.fdGroupTagIds = null;
-  var fdGroupTagSeq = 0;
-  async function fdApplyGroupTagFilter(){
+  // The chosen tags, handed straight to search_groups as p_group_tags
+  // (migration 118). Null when nothing is ticked, which the function
+  // reads as no filter.
+  //
+  // This used to fetch matching ids with a direct .overlaps() on
+  // groups and narrow the page the RPC had already returned. Three
+  // things were wrong with that and all of them go with it: it was a
+  // second reader of the groups RLS policy from the client, its ids
+  // were gathered under one session and could outlive it (the filter
+  // that stayed applied after signing out), and narrowing a page after
+  // the fact makes the count and the paging lie -- 24 rows come back,
+  // six survive, and "6 groups" is the answer for page one only.
+  window.fdGroupTagFilter = null;
+  function fdApplyGroupTagFilter(){
     var picked = fdChosenGroupTags();
-    var seq = ++fdGroupTagSeq;
-    if (!picked.length) {
-      window.fdGroupTagIds = null;
-    } else {
-      try {
-        var res = await window.supabase.from('groups').select('id').overlaps('group_tags', picked).limit(2000);
-        if (seq !== fdGroupTagSeq) return;
-        window.fdGroupTagIds = (res.data || []).map(function(r){ return r.id; });
-      } catch (e) {
-        if (seq !== fdGroupTagSeq) return;
-        window.fdGroupTagIds = [];
-      }
-    }
+    window.fdGroupTagFilter = picked.length ? picked : null;
     fdRenderGroupChips();
     if (typeof window.loadGroupsSearch === 'function') window.loadGroupsSearch();
   }
@@ -38853,6 +38846,15 @@
         fmtTag = '<span class="tag">'
           + escapeHtml(window.t(window.FD_GROUP_FORMAT_LABELS[g.meeting_format])) + '</span>';
       }
+      // One category, not all of them. A church card carries a single
+      // denomination and an event a single badge; a group with nine
+      // tags would be a card that is mostly tags. The first is the one
+      // the church chose first.
+      var catTag = '';
+      if (Array.isArray(g.group_tags) && g.group_tags.length && window.fdGroupTagLabel) {
+        catTag = '<span class="tag sage">'
+          + escapeHtml(window.fdGroupTagLabel(g.group_tags[0])) + '</span>';
+      }
       // A group meets at its church, so the church's location is the
       // one worth walking to. Costs nothing: the link hands Google a
       // destination and Google resolves it -- our own geocoding is for
@@ -38877,7 +38879,7 @@
           + '<div class="group-row-main">'
           +   '<div class="group-row-head">'
           +     '<span class="group-row-name">' + escapeHtml(g.name) + '</span>'
-          +     visTag + fmtTag
+          +     catTag + fmtTag + visTag
           +   '</div>'
           +   (rbits.length ? '<div class="group-row-meta">' + rbits.join('') + '</div>' : '')
           +   (dirHtml ? '<div class="dir-card-actions">' + dirHtml + '</div>' : '')
@@ -38911,9 +38913,9 @@
         // rather than the top. That is what "the default image is too
         // high, doesn't look like a church card" was. This goes back to
         // the tags-then-name shape on its own once the tags arrive.
-        +   ((visTag || fmtTag)
+        +   ((visTag || fmtTag || catTag)
               ? '<div class="card-tag-row">'
-                + '<div class="card-tags">' + visTag + fmtTag + '</div>'
+                + '<div class="card-tags">' + catTag + fmtTag + visTag + '</div>'
                 + heart
                 + '</div>'
                 + '<h3>' + escapeHtml(g.name) + '</h3>'
@@ -38956,7 +38958,8 @@
       p_user_lng: groupsSearchLng,
       p_max_distance_miles: null,
       p_limit: GROUPS_PAGE_SIZE,
-      p_offset: groupsSearchOffset
+      p_offset: groupsSearchOffset,
+      p_group_tags: window.fdGroupTagFilter || null
     });
     if (myGeneration !== groupsSearchGeneration) return;
 
@@ -38970,16 +38973,10 @@
     }
 
     rows = rows || [];
-    // Tag narrowing, applied to what came back rather than inside the
-    // query: search_groups has no p_group_ids to pass these to. The
-    // count is recomputed from what survives, so it matches the list.
-    if (Array.isArray(window.fdGroupTagIds)) {
-      var keep = Object.create(null);
-      window.fdGroupTagIds.forEach(function(id){ keep[id] = 1; });
-      rows = rows.filter(function(r){ return keep[r.id]; });
-    }
+    // No post-filtering any more: the tags went into the query, so
+    // every row that came back belongs, and total_count counts the
+    // whole result rather than the slice of one page that survived.
     groupsSearchTotal = rows.length ? Number(rows[0].total_count) : 0;
-    if (Array.isArray(window.fdGroupTagIds)) groupsSearchTotal = rows.length;
 
     if (!rows.length && !append) {
       listEl.innerHTML = '<p style="color:var(--ink-mute);font-size:14px;">'
