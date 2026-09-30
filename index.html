@@ -12972,7 +12972,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v407 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v408 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -14304,11 +14304,26 @@
   // not been folded in yet, and a tab that hides every panel and shows
   // nothing is worse than no tab. Removing this is not needed when it
   // lands -- the tab appears on its own.
+  // This used to hide a tab whose panel was missing. All three panels
+  // are static markup that nothing removes, so that branch could only
+  // ever fire on a bug -- and a tab vanishing from the strip has now
+  // been reported four times, twice after a drag, without reproducing
+  // here across taps at every speed and a 240px drag.
+  //
+  // So it no longer hides anything. A tab whose panel really was
+  // missing would be a dead click, which is a far smaller problem than
+  // a control disappearing mid-gesture. The case is still recorded, so
+  // if it happens again window.fdTabHideLog says when and which --
+  // read it from the console, or with ?fdiag=1.
+  window.fdTabHideLog = [];
   function fdSyncBrowseTabsPresent(){
     var tabs = document.querySelectorAll('.fd-tab');
     for (var i = 0; i < tabs.length; i++) {
       var name = tabs[i].getAttribute('data-browse-tab');
-      tabs[i].hidden = !document.querySelector('[data-browse-panel="' + name + '"]');
+      if (!document.querySelector('[data-browse-panel="' + name + '"]')) {
+        window.fdTabHideLog.push({ at: new Date().toISOString(), tab: name });
+      }
+      tabs[i].hidden = false;
     }
   }
   function fdSetBrowseTab(tab, fromRoute){
@@ -15281,7 +15296,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-30-v407',
+      'build 2026-09-30-v408',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
