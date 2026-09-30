@@ -5574,6 +5574,27 @@
   -webkit-tap-highlight-color:transparent;
 }
 .fd-tab:hover{color:var(--ink);}
+/* Android selects the label on a long press, and the selection paints
+   over the text -- reported as "the tab text disappears when clicking
+   and holding down for a second (it seems to highlight the text and
+   make it disappear)".
+
+   This is what was behind four earlier reports of a tab vanishing from
+   the strip, including one after dragging the sheet: a drag that
+   starts on the strip IS a long press. It never reproduced under
+   synthetic clicks, and measuring the layout found nothing wrong,
+   because nothing WAS wrong with the layout -- the box keeps its full
+   width and simply stops painting its text, which is why the other two
+   tabs stayed exactly where a full row of three puts them.
+
+   Controls are not prose. Nobody needs to select the word "Groups",
+   and a drag handle that selects text mid-drag is actively broken.
+   Card and address text is deliberately left alone -- that is worth
+   copying. */
+.fd-tab, .event-tab-btn, .fd-quick-btn, .dir-view-btn,
+.fd-sheet-head, .fd-sheet-grip, .fd-filter-chip, .fd-panel-close{
+  -webkit-user-select:none; user-select:none; -webkit-touch-callout:none;
+}
 .fd-tab.is-on{
   background:var(--paper);border-color:var(--line);
   color:var(--ink);
@@ -13101,7 +13122,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v417 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v418 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -15510,7 +15531,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-30-v417',
+      'build 2026-09-30-v418',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
