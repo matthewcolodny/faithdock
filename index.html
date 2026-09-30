@@ -1344,6 +1344,12 @@
       'dashGroups.detailTitle': 'Group details',
       'dashGroups.createdBy': 'Created by', 'dashGroups.createdOn': 'Created',
       'dashGroups.ministryLabel': 'Ministry', 'dashGroups.noMinistry': 'No ministry',
+      'dashGroups.meetingFormat': 'Does it meet online or in person?',
+      'dashGroups.formatUnset': 'Not said', 'dashGroups.formatInPerson': 'In person',
+      'dashGroups.formatOnline': 'Online', 'dashGroups.formatHybrid': 'Both — online and in person',
+      'dashGroups.tagsLabel': 'How people find this group',
+      'dashGroups.tagsHint': 'What someone filters by when they are looking for a group like yours. Tick what is true today.',
+      'dashGroups.tagsChosen': '{n} selected',
       'dashGroups.joinMethodLabel': 'How people join', 'dashGroups.visibilityLabel': 'Visibility',
       'dashGroups.memberListShown': 'Member list shown publicly',
       'dashGroups.viewDetails': 'View details', 'dashGroups.unknownPerson': 'Unknown',
@@ -2688,6 +2694,12 @@
       'dashGroups.detailTitle': 'Detalles del grupo',
       'dashGroups.createdBy': 'Creado por', 'dashGroups.createdOn': 'Creado',
       'dashGroups.ministryLabel': 'Ministerio', 'dashGroups.noMinistry': 'Sin ministerio',
+      'dashGroups.meetingFormat': '¿Se reúne en línea o en persona?',
+      'dashGroups.formatUnset': 'Sin indicar', 'dashGroups.formatInPerson': 'En persona',
+      'dashGroups.formatOnline': 'En línea', 'dashGroups.formatHybrid': 'Ambos — en línea y en persona',
+      'dashGroups.tagsLabel': 'Cómo encuentran este grupo',
+      'dashGroups.tagsHint': 'Lo que alguien filtra cuando busca un grupo como el tuyo. Marca lo que es cierto hoy.',
+      'dashGroups.tagsChosen': '{n} seleccionadas',
       'dashGroups.joinMethodLabel': 'Cómo se unen', 'dashGroups.visibilityLabel': 'Visibilidad',
       'dashGroups.memberListShown': 'Lista de miembros visible públicamente',
       'dashGroups.viewDetails': 'Ver detalles', 'dashGroups.unknownPerson': 'Desconocido',
@@ -12133,6 +12145,27 @@
               <span id="group-image-filename" style="font-size:13px;color:var(--ink-mute);" data-i18n="rc.noFileChosen">No file chosen</span>
             </div>
           </div>
+          <div style="margin-bottom:12px;">
+            <label data-i18n="dashGroups.meetingFormat">Does it meet online or in person?</label>
+            <select class="field" id="group-meeting-format">
+              <option value="" data-i18n="dashGroups.formatUnset">Not said</option>
+              <option value="in_person" data-i18n="dashGroups.formatInPerson">In person</option>
+              <option value="online" data-i18n="dashGroups.formatOnline">Online</option>
+              <option value="hybrid" data-i18n="dashGroups.formatHybrid">Both — online and in person</option>
+            </select>
+          </div>
+          <!-- 64 checkboxes in a form this long is a wall, so the same
+               tabbed treatment the By Category window uses: one group of
+               answers at a time. Built from FD_GROUP_TAG_GROUPS rather
+               than written out, for the same reason the church editor
+               is -- 64 places for the vocabulary and the page to drift
+               apart is 64 too many. -->
+          <div style="margin-bottom:12px;">
+            <label data-i18n="dashGroups.tagsLabel">How people find this group</label>
+            <div style="font-size:12px;color:var(--ink-mute);margin:2px 0 8px;" data-i18n="dashGroups.tagsHint">What someone filters by when they are looking for a group like yours. Tick what is true today.</div>
+            <div id="group-tags-editor"></div>
+            <div id="group-tags-count" style="font-size:12.5px;color:var(--ink-mute);margin-top:8px;"></div>
+          </div>
           <div>
             <label data-i18n="dashGroups.whoCanSeeGroup">Who can see this group?</label>
             <select class="field" id="group-visibility">
@@ -12972,7 +13005,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v409 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v410 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -15296,7 +15329,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-30-v409',
+      'build 2026-09-30-v410',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -48433,6 +48466,8 @@
     groupExceptions = [];
     renderGroupExceptions();
     document.getElementById('group-visibility').value = 'public';
+    document.getElementById('group-meeting-format').value = '';
+    fdSetGroupTagEditor([]);
     document.getElementById('group-ministry').value = '';
     populateGroupMinistrySelect(null);
     window.groupImageEditedFile = null;
@@ -48467,6 +48502,67 @@
       document.getElementById('group-form-card').style.display = 'none';
     });
   }
+
+  // ---- The group's own descriptor tags ----------------------------
+  //
+  // Tabs, not a wall: same shape as the By Category window, and bound
+  // to the host rather than to document because the form sits inside
+  // containers that stop clicks, which is the trap this file keeps
+  // setting.
+  function fdRenderGroupTagEditor(){
+    var host = document.getElementById('group-tags-editor');
+    if (!host || !window.FD_GROUP_TAG_GROUPS) return;
+    if (host.dataset.fdBuilt) return;
+    host.dataset.fdBuilt = '1';
+    var groups = window.FD_GROUP_TAG_GROUPS;
+    var tabs = groups.map(function(g, i){
+      return '<button type="button" class="event-tab-btn fd-cat-tab' + (i === 0 ? ' active' : '')
+        + '" data-gtag-group="' + escapeHtml(g.key) + '">'
+        + escapeHtml(window.currentLang === 'es' ? g.es : g.en) + '</button>';
+    }).join('');
+    var panes = groups.map(function(g, i){
+      var boxes = g.tags.map(function(t){
+        return '<label class="filter-check"><input type="checkbox" class="fd-gtag" value="'
+          + escapeHtml(t[0]) + '"> <span>' + escapeHtml(window.fdGroupTagLabel(t[0])) + '</span></label>';
+      }).join('');
+      return '<div class="fd-cat-pane" data-gtag-pane="' + escapeHtml(g.key) + '"'
+        + (i === 0 ? '' : ' hidden') + '>' + boxes + '</div>';
+    }).join('');
+    host.innerHTML = '<div class="event-tab-row fd-cat-tabs">' + tabs + '</div>' + panes;
+    host.addEventListener('click', function(ev){
+      var t = ev.target.closest && ev.target.closest('[data-gtag-group]');
+      if (!t) return;
+      ev.preventDefault();
+      var key = t.getAttribute('data-gtag-group');
+      [].forEach.call(host.querySelectorAll('[data-gtag-group]'), function(b){ b.classList.toggle('active', b === t); });
+      [].forEach.call(host.querySelectorAll('[data-gtag-pane]'), function(pn){ pn.hidden = pn.getAttribute('data-gtag-pane') !== key; });
+    });
+    host.addEventListener('change', function(ev){
+      if (ev.target && ev.target.classList && ev.target.classList.contains('fd-gtag')) fdSyncGroupTagCount();
+    });
+  }
+  function fdSyncGroupTagCount(){
+    var el = document.getElementById('group-tags-count');
+    if (!el) return;
+    var c = document.querySelectorAll('#group-tags-editor .fd-gtag:checked').length;
+    el.textContent = c ? window.t('dashGroups.tagsChosen').replace('{n}', c) : '';
+  }
+  // Ticks the boxes for a group being edited, and clears them for a new
+  // one. Called from both places the form is opened.
+  function fdSetGroupTagEditor(tags){
+    fdRenderGroupTagEditor();
+    var picked = Object.create(null);
+    (tags || []).forEach(function(t){ picked[t] = 1; });
+    [].forEach.call(document.querySelectorAll('#group-tags-editor .fd-gtag'), function(b){
+      b.checked = !!picked[b.value];
+    });
+    fdSyncGroupTagCount();
+  }
+  function fdGetGroupTags(){
+    return [].map.call(document.querySelectorAll('#group-tags-editor .fd-gtag:checked'),
+      function(b){ return b.value; });
+  }
+  window.fdSetGroupTagEditor = fdSetGroupTagEditor;
 
   var groupSaveBtn = document.getElementById('group-save-btn');
   if (groupSaveBtn) {
@@ -48527,6 +48623,11 @@
         meeting_exceptions: (recurrence === 'once' || !groupExceptions.length) ? null : groupExceptions,
         meeting_schedule: formatGroupSchedule(recurrence, day, meetingDate, time24),
         visibility: document.getElementById('group-visibility').value,
+        // '' from the select means "not said", which is null in the
+        // column -- the CHECK constraint only allows the three values
+        // or null, and '' is none of them.
+        meeting_format: document.getElementById('group-meeting-format').value || null,
+        group_tags: fdGetGroupTags(),
         // null, not '': the column is a uuid FK, and an empty string
         // is not a uuid -- Postgres rejects it rather than reading it
         // as "no ministry".
@@ -48606,6 +48707,8 @@
         // is actually public would tell a church its group is hidden
         // when everyone can see it.
         document.getElementById('group-visibility').value = g.visibility || 'public';
+        document.getElementById('group-meeting-format').value = g.meeting_format || '';
+        fdSetGroupTagEditor(g.group_tags || []);
         // Awaited: the options have to exist before the value is set,
         // and resetGroupForm() above has a populate of its own in
         // flight. groupMinistrySeq settles which one wins.
