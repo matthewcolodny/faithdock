@@ -510,6 +510,9 @@
       'dir.geoNotSupported': 'Geolocation not supported by this browser.', 'dir.findingYou': 'Finding you...',
       'dir.showingDistancesYourLocation': 'Showing distances from your location.', 'dir.showingDistancesThisLocation': 'Showing distances from this location.',
       'dir.couldNotGetLocation': 'Could not get your location — try typing it instead.', 'dir.mapServiceLoading': 'Map service still loading — try again in a moment.',
+      'search.groupChurches': 'Churches',
+      'search.groupDenominations': 'Denominations',
+      'search.groupPlaces': 'Places',
       'dir.summaryMatching': 'Matching {q}.',
       'dir.summaryNear': 'Near {q}.',
       'dir.clearSearch': 'Clear search',
@@ -1886,6 +1889,9 @@
       'dir.geoNotSupported': 'Este navegador no admite geolocalización.', 'dir.findingYou': 'Buscándote...',
       'dir.showingDistancesYourLocation': 'Mostrando distancias desde tu ubicación.', 'dir.showingDistancesThisLocation': 'Mostrando distancias desde esta ubicación.',
       'dir.couldNotGetLocation': 'No pudimos obtener tu ubicación — intenta escribirla.', 'dir.mapServiceLoading': 'El servicio de mapas aún se está cargando — intenta de nuevo en un momento.',
+      'search.groupChurches': 'Iglesias',
+      'search.groupDenominations': 'Denominaciones',
+      'search.groupPlaces': 'Lugares',
       'dir.summaryMatching': 'Que coincidan con {q}.',
       'dir.summaryNear': 'Cerca de {q}.',
       'dir.clearSearch': 'Borrar búsqueda',
@@ -4199,7 +4205,12 @@
      the panel correct instead of hidden), but that is a double-rAF
      dance for decoration, and the panel appearing at once is not worse
      to use. */
-  .nav-search-row{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.08);
+  /* position: the suggestion list is absolutely positioned inside
+     this row; without it the list anchored to header.site instead.
+     [hidden]: display:flex here beats the attribute's own display:none,
+     so the hidden second row would otherwise still show. */
+  .nav-search-row[hidden]{display:none;}
+  .nav-search-row{position:relative;display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.08);
     border:1px solid rgba(255,255,255,0.16);border-radius:10px;padding:11px 14px;}
   .nav-search-row svg{width:17px;height:17px;color:#9AA3B5;flex-shrink:0;}
   .nav-search-row input{flex:1;min-width:0;background:none;border:none;outline:none;color:#EDEBE2;
@@ -8034,8 +8045,12 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
       <input type="search" id="nav-panel-keyword" placeholder="Search churches by name or keyword..." data-i18n-placeholder="home.keywordPlaceholder" autocomplete="off">
       <button type="button" class="nav-search-clear" id="nav-panel-keyword-clear" aria-label="Clear search" data-i18n-aria="common.clearSearch" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      <div class="autocomplete-list" id="nav-panel-list" role="listbox"></div>
     </div>
-    <div class="nav-search-row">
+    <!-- Hidden, not removed: submitNavSearch and the clear-button
+         wiring both read it by id, and a picked town or church address
+         still lands in it. -->
+    <div class="nav-search-row" hidden>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-5.7 7-11a7 7 0 1 0-14 0c0 5.3 7 11 7 11Z"/><circle cx="12" cy="10" r="2.6"/></svg>
       <input type="search" id="nav-panel-location" placeholder="Enter your city or zip code" data-i18n-placeholder="home.locationPlaceholder" autocomplete="off">
       <button type="button" class="nav-search-clear" id="nav-panel-location-clear" aria-label="Clear location" data-i18n-aria="common.clearSearch" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
@@ -12781,7 +12796,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v396 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-29-v397 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -14961,7 +14976,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-29-v396',
+      'build 2026-09-29-v397',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -21258,8 +21273,16 @@
   }
   var FD_SUGG_ICON = {
     church: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v4M10 4h4"/><path d="M12 7l-6 4v10h12V11l-6-4Z"/><path d="M10 21v-4h4v4"/></svg>',
-    place:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>'
+    place:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>',
+    denom:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20h16"/><path d="M6 20V9l6-5 6 5v11"/><path d="M10 20v-5h4v5"/></svg>'
   };
+  function fdSuggestGroupLabels(){
+    return {
+      church: window.t('search.groupChurches'),
+      denom:  window.t('search.groupDenominations'),
+      place:  window.t('search.groupPlaces')
+    };
+  }
   // Display name -> address, filled as suggestions come back. Only ever
   // read straight after a pick, so it does not need clearing.
   var fdChurchAddressByName = Object.create(null);
@@ -21395,16 +21418,61 @@
     return out;
   }
 
-  // Churches and places in one list, each under its own heading. Two
+  // Denominations come straight off the directory's own filter
+  // checkboxes rather than a second list kept in step by hand -- the
+  // vocabulary is already in the DOM, labels translated and all, and a
+  // pick has to drive those same boxes anyway.
+  function fdSuggestDenominations(q){
+    var boxes = document.querySelectorAll('#filter-denom-checks .denom-filter');
+    var lower = q.toLowerCase(), starts = [], contains = [];
+    for (var i = 0; i < boxes.length; i++) {
+      var b = boxes[i];
+      // "Other" is not a denomination anyone searches for, and it
+      // matches nothing in denomination_tags either.
+      if (b.value === 'Other') continue;
+      var span = b.nextElementSibling;
+      var label = ((span ? span.textContent : b.value) || '').trim();
+      if (!label) continue;
+      var at = label.toLowerCase().indexOf(lower);
+      if (at === 0) starts.push({ kind: 'denom', label: label, sub: '', value: b.value });
+      else if (at > 0) contains.push({ kind: 'denom', label: label, sub: '', value: b.value });
+    }
+    return starts.concat(contains).slice(0, 4);
+  }
+
+  // Picking one means "only this", which is what the row under the tabs
+  // does too -- see the comment there about thirty chips.
+  function fdApplyDenominationPick(value){
+    var boxes = document.querySelectorAll('#filter-denom-checks .denom-filter');
+    if (!boxes.length) return false;
+    var hit = null;
+    for (var i = 0; i < boxes.length; i++) { boxes[i].checked = false; if (boxes[i].value === value) hit = boxes[i]; }
+    if (!hit) { for (var k = 0; k < boxes.length; k++) boxes[k].checked = true; return false; }
+    hit.checked = true;
+    // A tradition brings the bodies under it, the same cascade the
+    // checkbox itself has.
+    if (hit.classList.contains('denom-parent')) {
+      var pv = hit.getAttribute('data-denom-parent');
+      for (var j = 0; j < boxes.length; j++) {
+        if (boxes[j].classList.contains('denom-child') && boxes[j].getAttribute('data-denom-parent') === pv) boxes[j].checked = true;
+      }
+    }
+    if (typeof window.updateDenomDropdownLabel === 'function') window.updateDenomDropdownLabel();
+    return true;
+  }
+
+  // Churches, denominations and places in one list, each under its own heading. Two
   // queries in parallel, because one field doing both jobs is the whole
   // point -- you should not have to decide which box a thing goes in
   // before you have finished typing it.
   async function fdSuggestChurchesAndPlaces(q){
-    var both = await Promise.all([
+    var all = await Promise.all([
       fdSuggestChurchesDetailed(q),
       fdSuggestPlaces(q)
     ]);
-    return both[0].slice(0, 5).concat(both[1]);
+    // Churches first because a name is the most specific thing you can
+    // mean, then the two ways of widening: a denomination, then a town.
+    return all[0].slice(0, 5).concat(fdSuggestDenominations(q)).concat(all[1]);
   }
   // Same query as fdSuggestChurches, kept as objects so the row can
   // carry the town under the name and the raw name for the route.
@@ -21577,46 +21645,78 @@
       debouncedRenderDirectory();
     }
   });
+  // The hero and the nav panel are the same control in two places, so
+  // they share a pick handler rather than growing two copies that drift.
+  function fdMakeUnifiedPick(kwId, locId, after){
+    return function(name, item){
+      var kwEl = document.getElementById(kwId);
+      var locEl = document.getElementById(locId);
+      function sync(){
+        if (typeof window.syncHeroKeywordClearBtn === 'function') window.syncHeroKeywordClearBtn();
+        if (typeof window.syncHeroLocationClearBtn === 'function') window.syncHeroLocationClearBtn();
+        if (typeof window.fdSyncHeroSubmit === 'function') window.fdSyncHeroSubmit();
+      }
+      if (item && item.kind === 'place') {
+        // A town is a location, not a name to search for: it goes in the
+        // location field and leaves the keyword empty, so "San Antonio"
+        // means everything there rather than every church called that.
+        if (kwEl) kwEl.value = '';
+        if (locEl) { locEl.value = item.label; delete locEl.dataset.fdFromPick; }
+        sync();
+        if (after) after();
+        if (typeof window.searchDirectoryFor === 'function') {
+          window.searchDirectoryFor('', item.label);
+        }
+        return;
+      }
+      if (item && item.kind === 'denom') {
+        // Not a keyword either -- keyword wants an exact name match, and
+        // "Baptist" as a keyword finds only churches with Baptist in the
+        // name, not Baptist churches.
+        if (kwEl) kwEl.value = '';
+        fdApplyDenominationPick(item.value);
+        sync();
+        if (after) after();
+        if (typeof window.searchDirectoryFor === 'function') {
+          window.searchDirectoryFor('', locEl ? locEl.value.trim() : '');
+        }
+        if (window.fdRenderFilterChips) window.fdRenderFilterChips();
+        return;
+      }
+      // A church: its name in the field, its town as the location.
+      var addr = fdChurchAddressByName[String(name || '').toLowerCase()];
+      if (addr && locEl && (!locEl.value.trim() || locEl.dataset.fdFromPick === '1')) {
+        locEl.value = titleCaseAddress(addr);
+        locEl.dataset.fdFromPick = '1';
+      }
+      sync();
+      if (after) after();
+    };
+  }
+
   fdWireSuggest({
     inputId: 'hero-keyword-input', listId: 'hero-keyword-list',
     source: fdSuggestChurchesAndPlaces,
     show: 9,
     unclip: '.hero',
-    groupLabels: { church: 'Churches', place: 'Places' },
-    onChoose: function(name, item){
-      // A place is a location, not a name to search for: it goes in the
-      // location field and leaves the keyword empty, so picking
-      // "San Antonio, TX" means everything there rather than every
-      // church called San Antonio.
-      if (item && item.kind === 'place') {
-        var kwEl = document.getElementById('hero-keyword-input');
-        var locEl = document.getElementById('hero-location-input');
-        if (kwEl) kwEl.value = '';
-        if (locEl) { locEl.value = item.label; delete locEl.dataset.fdFromPick; }
-        if (typeof window.syncHeroKeywordClearBtn === 'function') window.syncHeroKeywordClearBtn();
-        if (typeof window.syncHeroLocationClearBtn === 'function') window.syncHeroLocationClearBtn();
-        if (typeof window.fdSyncHeroSubmit === 'function') window.fdSyncHeroSubmit();
-        if (typeof window.goToDirectoryFromHero === 'function') window.goToDirectoryFromHero();
-        return;
-      }
-      if (typeof window.syncHeroKeywordClearBtn === 'function') window.syncHeroKeywordClearBtn();
-      if (typeof window.fdSyncHeroSubmit === 'function') window.fdSyncHeroSubmit();
-      // Picking a named church is also a statement about where you are
-      // looking, so its address fills the location field -- unless
-      // something is already typed there, which is a choice to respect.
-      var addr = fdChurchAddressByName[String(name || '').toLowerCase()];
-      var loc = document.getElementById('hero-location-input');
-      // Replaced when the field is empty OR when what is in it was put
-      // there by a previous pick. Only something typed by hand is left
-      // alone -- otherwise picking a second church left the first one's
-      // address sitting underneath it, which is how this looked like it
-      // only worked once.
-      if (addr && loc && (!loc.value.trim() || loc.dataset.fdFromPick === '1')) {
-        loc.value = titleCaseAddress(addr);
-        loc.dataset.fdFromPick = '1';
-        if (typeof window.syncHeroLocationClearBtn === 'function') window.syncHeroLocationClearBtn();
-      }
-    }
+    groupLabels: fdSuggestGroupLabels(),
+    onChoose: fdMakeUnifiedPick('hero-keyword-input', 'hero-location-input')
+  });
+
+  // The nav panel is the same control, reached from the magnifier in
+  // the bar. Its own second field is hidden for the same reason the
+  // hero's is: one box that suggests churches, denominations and towns
+  // is the point, and two fields that both narrow is how a search ended
+  // up limited twice over.
+  fdWireSuggest({
+    inputId: 'nav-panel-keyword', listId: 'nav-panel-list',
+    source: fdSuggestChurchesAndPlaces,
+    show: 9,
+    groupLabels: fdSuggestGroupLabels(),
+    onChoose: fdMakeUnifiedPick('nav-panel-keyword', 'nav-panel-location', function(){
+      // A pick is a search, so the panel has done its job.
+      if (typeof window.setNavSearchOpen === 'function') window.setNavSearchOpen(false);
+    })
   });
 
   // Directory/Events keyword fields' "x" clear button -- a real, live-
@@ -23982,6 +24082,7 @@
   var navSearchBtn = document.getElementById('nav-search-btn');
   var navSearchPanel = document.getElementById('nav-search-panel');
 
+  window.setNavSearchOpen = function(open){ return setNavSearchOpen(open); };
   function setNavSearchOpen(open){
     if (!navSearchBtn || !navSearchPanel) return;
     navSearchPanel.hidden = !open;
@@ -24005,6 +24106,7 @@
     var kw = document.getElementById('nav-panel-keyword');
     var loc = document.getElementById('nav-panel-location');
     searchDirectoryFor(kw ? kw.value.trim() : '', loc ? loc.value.trim() : '');
+    setNavSearchOpen(false);
   }
 
   // One listener for opening, closing and clicking away, so the button
