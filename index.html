@@ -5359,18 +5359,21 @@
     /* Both columns, so the tags sit under the picture instead of
        beside it. The card's own 12px padding is the inset here, so
        the foot adds none of its own. */
-    .fd-results-grid .church-card .dir-card-foot{
+    .fd-results-grid .church-card .dir-card-foot,
+    .fd-results-grid .event-card .dir-card-foot{
       grid-column:1 / -1;padding:0;margin-top:0;
     }
     /* The compact card's 12px gap applies to rows as well as columns,
        and the foot is on a row of its own -- so that gap, plus the
        foot's own margin, was the space under the service times. 4px
        between the rows, 12px still between the picture and the body. */
-    .fd-results-grid .church-card{row-gap:4px;}
+    .fd-results-grid .church-card,
+    .fd-results-grid .event-card{row-gap:4px;}
     /* The picture drops a little, so it sits against the name rather
        than hard against the card's top edge now that the tags have
        moved out from beside it. */
-    .fd-results-grid .church-card .thumb{margin-top:9px;}
+    .fd-results-grid .church-card .thumb,
+    .fd-results-grid .event-card .thumb{margin-top:9px;}
     /* The tag stack is what made an event card tall. Side by side in the
        compact card, wrapping only when it truly cannot fit. */
     .fd-results-grid .event-card .card-tags{flex-wrap:wrap;}
@@ -5701,6 +5704,8 @@
     border-color:transparent;
   }
   .fd-sheet-head .dir-view-btn{color:var(--gold);}
+  /* The toggle goes with it: there is one view on a phone now. */
+  #page-directory .dir-view-toggle{display:none;}
   /* One heart, whichever view you are in. Measured: the row drew a 21px
      glyph in a 39px box against the card 22px in 34px, which reads as a
      bigger heart in list mode even though the glyph is a pixel smaller. */
@@ -13522,7 +13527,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-10-01-v435 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-10-01-v436 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -14323,6 +14328,14 @@
   // storage throws on access.
   var DIR_VIEW_KEY = 'fd-directory-view';
   function directoryView(){
+    // Cards, always, on a phone. Since the cards were tightened -- the
+    // tags moved to the foot, the leading came in, the next-event row
+    // went -- a card is SHORTER than the row it was competing with, so
+    // the list had nothing left to offer and the control that chose it
+    // was a third square in a crowded strip. The stored preference is
+    // left alone rather than overwritten, so a desktop visit still
+    // finds whatever was chosen there.
+    if (window.innerWidth <= 980) return 'cards';
     try { return localStorage.getItem(DIR_VIEW_KEY) === 'list' ? 'list' : 'cards'; }
     catch (e) { return 'cards'; }
   }
@@ -16101,7 +16114,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-10-01-v435',
+      'build 2026-10-01-v436',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -18433,8 +18446,14 @@
       // these tags used to carry is gone: .card-tags is a flex row with
       // gap:6px, and keeping both would have doubled the spacing
       // between them.
-      + '<div class="card-tag-row">'
-      + '<div class="card-tags">'
+      // Built as a church card is built: the title first, then the two
+      // facts worth scanning, then the badges along the foot. The
+      // badges used to head the card with the heart beside them, which
+      // on an event meant four tags above its own name.
+      + '<h3>' + escapeHtml(e.title) + '</h3>'
+      + '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/></svg><span>' + escapeHtml(churchLabel) + (distanceText ? ' · ' + escapeHtml(distanceText) : '') + '</span></div>'
+      + '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><span>' + escapeHtml(fdBindTimeMeridiem(e.when)) + '</span></div>';
+    var eventTags = ''
       + (e.visibilityLabel ? '<span class="tag ' + (e.membersOnly ? 'clay' : 'sage') + '">' + escapeHtml(translateBadgeLabel(e.visibilityLabel)) + '</span>' : '')
       // e.badge lands in a class attribute. mapSearchEventRow only ever
       // sets 'gold'/'sage', but demo rows carry whatever they were
@@ -18452,13 +18471,7 @@
       // Same registration gate as fillBadge (see mapSearchEventRow):
       // a "no signup needed" event has no signups to count, so "0/1"
       // there is meaningless -- reported directly.
-      + '<span class="tag" data-capacity-count-for="' + escapeHtml(e.id) + '" style="' + ((e.registrationRequired && e.maxParticipants) ? '' : 'display:none;') + '">' + ((e.registrationRequired && e.maxParticipants) ? escapeHtml((e.confirmedParticipantCount || 0) + '/' + e.maxParticipants) : '') + '</span>'
-      + '</div>'
-      + eventHeart
-      + '</div>'
-      + '<h3>' + escapeHtml(e.title) + '</h3>'
-      + '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/></svg>' + escapeHtml(churchLabel) + (distanceText ? ' · ' + escapeHtml(distanceText) : '') + '</div>'
-      + '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>' + escapeHtml(e.when) + '</div>';
+      + '<span class="tag" data-capacity-count-for="' + escapeHtml(e.id) + '" style="' + ((e.registrationRequired && e.maxParticipants) ? '' : 'display:none;') + '">' + ((e.registrationRequired && e.maxParticipants) ? escapeHtml((e.confirmedParticipantCount || 0) + '/' + e.maxParticipants) : '') + '</span>';
     if(e.real){
       if(!e.registrationRequired){
         // Nothing. The card already carries a "No signup needed" tag,
@@ -18514,7 +18527,15 @@
           + '<div class="register-status mono" style="font-size:11px;color:var(--ink-mute);margin-top:6px;display:none;"></div>';
       }
     }
-    inner += '</div>';
+    // The foot is a sibling of .card-body, not a child, for the same
+    // reason it is on a church card: the body is the second column of
+    // the compact card, so anything inside it starts under the title
+    // rather than under the picture.
+    inner += '</div>'
+      + '<div class="dir-card-foot">'
+      + '<div class="card-tags">' + eventTags + '</div>'
+      + eventHeart
+      + '</div>';
     var lookupKey = e.real ? e.id : e.title;
     if(e.clickable || e.real){
       return '<div class="event-card" data-route="event" data-event-key="' + String(lookupKey).replace(/"/g, '&quot;') + '" style="cursor:pointer;">' + inner + '</div>';
