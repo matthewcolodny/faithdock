@@ -6720,7 +6720,9 @@
   .church-hero .eyebrow{margin-bottom:8px;}
   /* The tick is inside the h1 so it flows with the last word. */
   .church-hero h1{margin:0;line-height:1.12;}
-  .church-hero h1 #church-partner-badge{margin-left:9px;vertical-align:6px;}
+  /* Lower and a little closer in: it was riding 6px above the
+     baseline, which read as floating away from the word. */
+  .church-hero h1 #church-partner-badge{margin-left:7px;vertical-align:-1px;}
   .church-hero-details{margin-top:10px;}
   /* .info-row is written for the light page -- --ink-soft on paper.
      In here it would be dark text on the navy banner, which is the
@@ -6787,9 +6789,16 @@
   #church-partner-badge{
     width:22px;height:22px;border-radius:50%;
     background:var(--gold);color:var(--brand);
-    text-align:center;line-height:22px;flex-shrink:0;
+    /* inline-flex centres the tick exactly; line-height and
+       vertical-align got it close and no closer. */
+    display:inline-flex;align-items:center;justify-content:center;
+    flex-shrink:0;
   }
-  #church-partner-badge svg{width:12px;height:12px;vertical-align:middle;}
+  /* The attribute has to win over the display above -- display on a
+     class or id beats a bare [hidden], which is why this is spelled
+     out rather than left to the browser default. */
+  #church-partner-badge[hidden]{display:none;}
+  #church-partner-badge svg{width:12px;height:12px;display:block;}
 
   /* Underlined text, not a button. It is the one destructive thing on
      the card and it should not look like one of the three things you
@@ -6880,6 +6889,12 @@
   /* Ministry and group entries inside the card are compact rows
      rather than tall boxes -- they have no picture, so the height was
      all padding. */
+  /* A plain list: a rule between entries instead of a box around
+     each one. */
+  .fd-plain-row{padding:10px 0;border-bottom:1px solid var(--line);}
+  .fd-plain-row:last-child{border-bottom:0;}
+  .fd-plain-row h4{font-size:15px;margin:0 0 2px;}
+  .fd-plain-row p{font-size:13.5px;color:var(--ink-soft);margin:0;}
   body.fd-church-sheet #page-church .group-card{padding:12px 14px;margin-bottom:8px;}
   body.fd-church-sheet #page-church .group-card h4{font-size:15px;margin-bottom:2px;}
   body.fd-church-sheet #page-church .group-card p{font-size:13px;margin-bottom:0;}
@@ -9277,7 +9292,7 @@
                writing the h1's textContent would delete the tick. The
                tick carries no text, so #church-name.textContent is
                still exactly the name for the code that reads it. -->
-          <h1 id="church-name"><span id="church-name-text"></span><span id="church-partner-badge" style="display:none;" data-i18n-title="church.partnerBadge" title="FaithDock Partner" data-i18n-aria="church.partnerBadge" aria-label="FaithDock Partner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span></h1>
+          <h1 id="church-name"><span id="church-name-text"></span><span id="church-partner-badge" hidden data-i18n-title="church.partnerBadge" title="FaithDock Partner" data-i18n-aria="church.partnerBadge" aria-label="FaithDock Partner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span></h1>
         </div>
         <div id="church-unclaimed-banner" style="display:none;margin-top:14px;background:rgba(201,162,39,0.16);border:1px solid var(--gold);border-radius:12px;padding:14px 16px;max-width:480px;">
           <div style="font-weight:700;font-size:15px;color:#fff;margin-bottom:4px;" data-i18n="church.claimCtaHeadline">Is this your church? Claim your free FaithDock profile.</div>
@@ -13436,7 +13451,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v428 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v429 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -15929,7 +15944,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-30-v428',
+      'build 2026-09-30-v429',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -16905,8 +16920,12 @@
     var isClaimed = !!c.ownerId;
     var isPaid = isClaimed && c.planType && c.planType !== 'free';
 
+    // hidden rather than an inline display, so the stylesheet owns
+    // the display mode. It was being set to inline-block from here,
+    // which ruled out centring the tick with flex and left it sitting
+    // high and left of the circle's middle.
     var partnerBadge = document.getElementById('church-partner-badge');
-    if (partnerBadge) partnerBadge.style.display = isPaid ? 'inline-block' : 'none';
+    if (partnerBadge) partnerBadge.hidden = !isPaid;
 
     var managedLine = document.getElementById('church-managed-line');
     if (managedLine) managedLine.style.display = isClaimed ? 'block' : 'none';
@@ -16983,7 +17002,7 @@
         ? window.t('church.regularService')
         : window.t('church.regularServices');
       serviceTimesEl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> <span>'
-        + escapeHtml(svcHeading) + '<br>' + escapeHtml(c.serviceTimesLabel) + '</span>';
+        + escapeHtml(svcHeading) + '<br>' + escapeHtml(fdBindTimeMeridiem(c.serviceTimesLabel)) + '</span>';
       serviceTimesEl.style.display = 'flex';
     } else {
       serviceTimesEl.style.display = 'none';
@@ -16991,7 +17010,14 @@
 
     // Street on line 1, "City, ST ZIP" on line 2 (split at the first
     // comma) so the city never breaks mid-word in the narrow side panel.
+    // The country comes off. This is a US directory, the city, state
+    // and ZIP already identify the place, and ", USA" was the one
+    // token that pushed the second line onto a third -- leaving USA
+    // orphaned on its own line in a column the 2x2 action block has
+    // already narrowed. Street on one line, everything else on the
+    // second, every time.
     var addrText = c.address ? fdFixAddressAcronyms(titleCaseAddress(c.address)) : 'Address not listed yet';
+    addrText = addrText.replace(/,\s*(USA|US|United States)\s*$/i, '');
     var commaAt = addrText.indexOf(',');
     var addrHtml = commaAt > 0
       ? addrText.slice(0, commaAt).trim() + '<br>' + addrText.slice(commaAt + 1).trim()
@@ -17665,6 +17691,16 @@
   // general pass rather than inside it, so the list stays one obvious
   // place to add to.
   var FD_ADDR_ACRONYMS = ['USA', 'US', 'UK', 'PO', 'NE', 'NW', 'SE', 'SW'];
+  // A non-breaking space between a time and its AM/PM, so "11:00 AM"
+  // wraps as one thing. Without it the line broke after "11:00" and
+  // left AM alone on the next one. A space, not a font size: making
+  // the type smaller to dodge a wrap is fixing the symptom at the
+  // cost of every other reading of it.
+  function fdBindTimeMeridiem(text){
+    return String(text || '').replace(/(\d)\s+([AaPp]\.?[Mm]\.?)\b/g, '$1\u00a0$2');
+  }
+  window.fdBindTimeMeridiem = fdBindTimeMeridiem;
+
   function fdFixAddressAcronyms(text){
     return String(text || '').replace(/\b[A-Za-z]{2,3}\b/g, function(w){
       var up = w.toUpperCase();
@@ -42628,8 +42664,12 @@
     if (error) { listEl.innerHTML = '<p style="color:var(--clay);font-size:14px;">' + escapeHtml(error.message) + '</p>'; return; }
     if (!ministriesData || !ministriesData.length) { listEl.innerHTML = '<p style="color:var(--ink-mute);font-size:14px;">' + window.t('church.noMinistriesPosted') + '</p>'; return; }
 
+    // Not cards. A ministry is a name and a line about it -- there is
+    // no picture, no action and nowhere to click, so the border, the
+    // radius and the 18px of padding were drawing a box around
+    // nothing and making five of them a scroll.
     listEl.innerHTML = ministriesData.map(function(m){
-      return '<div class="group-card">'
+      return '<div class="fd-plain-row">'
         + '<h4>' + m.name.replace(/</g, '&lt;') + '</h4>'
         + (m.description ? '<p>' + m.description.replace(/</g, '&lt;') + '</p>' : '')
         + '</div>';
