@@ -559,7 +559,7 @@
       'filters.within10': 'Within 10 miles', 'filters.within25': 'Within 25 miles', 'filters.hasEvents': 'Has events',
       'filters.anyTime': 'Any time', 'filters.next7': 'Next 7 days', 'filters.next14': 'Next 14 days', 'filters.next30': 'Next 30 days',
       'filters.reset': 'Reset filters', 'filters.type': 'Type', 'filters.openToAnyone': 'Open to anyone',
-      'filters.dates': 'Dates', 'filters.all': 'All', 'filters.denominations': 'Denominations', 'filters.categories': 'Categories', 'filters.faithHome': 'Faith Home', 'filters.byDenomination': 'Denomination', 'filters.byDate': 'Date', 'filters.byLocation': 'Location', 'filters.followed': 'Followed', 'filters.clearDates': 'Clear dates', 'filters.summaryDates': 'Dates: {q}.', 'filters.summaryFollowed': 'Followed only.', 'filters.mapHeading': 'Map', 'filters.showOtherPlaces': 'Show shops, restaurants and other places', 'filters.byCategory': 'Category', 'filters.clearAll': 'Clear tags', 'filters.removeFilter': 'Remove this filter', 'filters.membersOnly': 'Members only', 'filters.noSignupNeeded': 'No signup needed', 'filters.category': 'Category',
+      'filters.dates': 'Dates', 'filters.all': 'All', 'filters.denominations': 'Denominations', 'filters.categories': 'Categories', 'filters.faithHome': 'Faith Home', 'filters.byDenomination': 'Denomination', 'filters.byDate': 'Date', 'filters.byLocation': 'Location', 'filters.followed': 'Followed', 'filters.following': 'Following', 'filters.clearDates': 'Clear dates', 'filters.summaryDates': 'Dates: {q}.', 'filters.summaryFollowed': 'Followed only.', 'filters.mapHeading': 'Map', 'filters.showOtherPlaces': 'Show shops, restaurants and other places', 'filters.byCategory': 'Category', 'filters.clearAll': 'Clear tags', 'filters.removeFilter': 'Remove this filter', 'filters.membersOnly': 'Members only', 'filters.noSignupNeeded': 'No signup needed', 'filters.category': 'Category',
       'filters.noCategoriesYet': 'No categories yet.', 'filters.noEventsMatch': 'No events match these filters. Try widening your search.',
       'filters.filterSearches': 'Filter searches',
       'filters.noneSelected': 'None selected', 'filters.allSelected': 'All selected', 'filters.nSelected': 'selected',
@@ -1957,7 +1957,7 @@
       'filters.within10': 'A menos de 10 millas', 'filters.within25': 'A menos de 25 millas', 'filters.hasEvents': 'Con eventos',
       'filters.anyTime': 'Cualquier momento', 'filters.next7': 'Próximos 7 días', 'filters.next14': 'Próximos 14 días', 'filters.next30': 'Próximos 30 días',
       'filters.reset': 'Restablecer filtros', 'filters.type': 'Tipo', 'filters.openToAnyone': 'Abierto a todos',
-      'filters.dates': 'Fechas', 'filters.all': 'Todas', 'filters.denominations': 'Denominaciones', 'filters.categories': 'Categorías', 'filters.faithHome': 'Mi comunidad', 'filters.byDenomination': 'Denominación', 'filters.byDate': 'Fecha', 'filters.byLocation': 'Ubicación', 'filters.followed': 'Siguiendo', 'filters.clearDates': 'Borrar fechas', 'filters.summaryDates': 'Fechas: {q}.', 'filters.summaryFollowed': 'Solo seguidos.', 'filters.mapHeading': 'Mapa', 'filters.showOtherPlaces': 'Mostrar tiendas, restaurantes y otros lugares', 'filters.byCategory': 'Categoría', 'filters.clearAll': 'Quitar etiquetas', 'filters.removeFilter': 'Quitar este filtro', 'filters.membersOnly': 'Solo miembros', 'filters.noSignupNeeded': 'No requiere inscripción', 'filters.category': 'Categoría',
+      'filters.dates': 'Fechas', 'filters.all': 'Todas', 'filters.denominations': 'Denominaciones', 'filters.categories': 'Categorías', 'filters.faithHome': 'Mi comunidad', 'filters.byDenomination': 'Denominación', 'filters.byDate': 'Fecha', 'filters.byLocation': 'Ubicación', 'filters.followed': 'Seguidos', 'filters.following': 'Siguiendo', 'filters.clearDates': 'Borrar fechas', 'filters.summaryDates': 'Fechas: {q}.', 'filters.summaryFollowed': 'Solo seguidos.', 'filters.mapHeading': 'Mapa', 'filters.showOtherPlaces': 'Mostrar tiendas, restaurantes y otros lugares', 'filters.byCategory': 'Categoría', 'filters.clearAll': 'Quitar etiquetas', 'filters.removeFilter': 'Quitar este filtro', 'filters.membersOnly': 'Solo miembros', 'filters.noSignupNeeded': 'No requiere inscripción', 'filters.category': 'Categoría',
       'filters.noCategoriesYet': 'Aún no hay categorías.', 'filters.noEventsMatch': 'Ningún evento coincide con estos filtros. Intenta ampliar tu búsqueda.',
       'filters.filterSearches': 'Filtrar búsqueda',
       'filters.noneSelected': 'Ninguna seleccionada', 'filters.allSelected': 'Todas seleccionadas', 'filters.nSelected': 'seleccionadas',
@@ -5491,6 +5491,21 @@
 .filter-panel.fd-edenoms-open .filter-group{display:none;}
 .filter-panel.fd-edenoms-open .fd-edenom-group{display:block;}
 .filter-panel.fd-edenoms-open .filter-panel-title{display:none;}
+/* Category, the third of the set, same panel scoped to its own group.
+   The checkboxes were already there behind the full filter window --
+   this is the door the other two tabs already had. */
+.filter-panel.fd-ecats-open{
+  display:block !important;
+  position:absolute;left:14px;right:14px;top:auto;z-index:9;
+  max-height:min(62vh, 520px);overflow-y:auto;
+  box-shadow:0 14px 34px rgba(0,0,0,.30);
+}
+.filter-panel.fd-ecats-open .filter-panel-toggle{display:none;}
+.filter-panel.fd-ecats-open .filter-panel-body{display:block;}
+.filter-panel.fd-ecats-open .filter-group{display:none;}
+.filter-panel.fd-ecats-open .fd-ecat-group{display:block;}
+.filter-panel.fd-ecats-open .filter-panel-title{display:none;}
+.filter-panel.fd-ecats-open #events-filter-reset{display:none;}
 /* Reset clears every events filter, which is not what a window scoped
    to one of them should offer. */
 .filter-panel.fd-edenoms-open #events-filter-reset{display:none;}
@@ -5564,6 +5579,7 @@
   .fd-shell.active > .filter-panel.fd-denoms-open,
   .fd-shell.active > .filter-panel.fd-cats-open,
   .fd-shell.active > .filter-panel.fd-edenoms-open,
+  .fd-shell.active > .filter-panel.fd-ecats-open,
   .fd-shell.active > .filter-panel.fd-loc-open,
   .fd-shell.active > .filter-panel.fd-dates-open{
     max-height:min(54vh, 440px);padding:16px 16px 18px;
@@ -5830,7 +5846,7 @@
      375px. Tighter tabs, and each may shrink -- without min-width:0 a
      flex item refuses to go below its text and the row overflows, which
      is what pushed the handle off the right edge of the screen. */
-  .fd-tab{font-size:14px;padding:8px 9px;min-width:0;flex:0 1 auto;}
+  .fd-tab{font-size:16px;padding:8px 10px;min-width:0;flex:0 1 auto;}
 }
 
   @media (min-width:981px){
@@ -7909,7 +7925,7 @@
      Same pill as its neighbours otherwise, because it is the same kind
      of thing -- one more way this list is narrowed. */
   .fd-quick-btn.fd-quick-toggle::after{content:none;}
-  .fd-quick-toggle{display:inline-flex;align-items:center;gap:6px;}
+  .fd-quick-toggle{display:inline-flex;align-items:center;justify-content:center;gap:6px;align-self:stretch;}
   .fd-quick-toggle svg{width:14px;height:14px;flex-shrink:0;}
   /* Filled when it is on, outline when it is not -- the same reading
      the heart on a card already has. */
@@ -7921,8 +7937,13 @@
      through, so they read as the narrower question and belong second.
      A plain row -- no bottom margin of its own -- so the pair reads as
      one block of controls rather than two separate bars. */
-  .fd-quick-row.fd-filter-row{margin-bottom:8px;}
-  .fd-quick-row.fd-filter-row .fd-quick-end{margin-left:0;flex-wrap:wrap;}
+  .fd-quick-row.fd-filter-row{margin-bottom:8px;justify-content:center;}
+  /* Evenly spaced across the row rather than bunched at one end. The
+     four of them are one set of equal choices, and left-justifying
+     them left a hole on the right that read as a missing fifth. */
+  .fd-quick-row.fd-filter-row .fd-quick-end{
+    margin-left:0;width:100%;justify-content:space-evenly;gap:4px;align-items:stretch;
+  }
 
   /* What the events list is narrowed to, said in words, the way the
      churches list says "Near ...". Same element shape so the two look
@@ -8091,6 +8112,7 @@
   .filter-panel.fd-denoms-open .fd-panel-close,
   .filter-panel.fd-cats-open .fd-panel-close,
   .filter-panel.fd-edenoms-open .fd-panel-close,
+  .filter-panel.fd-ecats-open .fd-panel-close,
   .filter-panel.fd-loc-open .fd-panel-close,
   .filter-panel.fd-dates-open .fd-panel-close{display:flex;}
   .fd-filter-chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px;}
@@ -9182,6 +9204,9 @@
       </aside>
       <aside class="filter-panel" data-filter-for="events">
         <h3 class="filter-panel-title" data-i18n="filters.filterSearches">Filter searches</h3>
+        <!-- Churches and Groups both had one; this panel never did, so
+             By Date was the one window with no corner x. -->
+        <button type="button" class="fd-panel-close" data-fd-panel-close aria-label="Close" data-i18n-aria="common.close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
         <button type="button" class="filter-panel-toggle" id="events-filter-toggle" aria-expanded="false" aria-controls="events-filter-body">
           <span data-i18n="filters.filterSearches">Filter searches</span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
@@ -9280,7 +9305,7 @@
           <label class="filter-check" id="filter-home-wrap" style="display:none;"><input type="checkbox" id="filter-church-home"> <span data-i18n="events.myChurchHome">My Church Home</span></label>
           <label class="filter-check" id="filter-followed-events-wrap" style="display:none;"><input type="checkbox" id="filter-followed-events"> <span data-i18n="events.eventsIFollow">Followed Events</span></label>
         </div>
-        <div class="filter-group">
+        <div class="filter-group fd-ecat-group">
           <h4 data-i18n="filters.category">Category</h4>
           <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:12px;">
             <button type="button" id="events-category-select-all-btn" style="background:none;border:none;padding:0;color:var(--gold);border-bottom:1px solid var(--gold);cursor:pointer;font-size:12px;" data-i18n="filters.selectAll">Select all</button>
@@ -9312,7 +9337,7 @@
              longer hidden in the filter panel, so the filter is still
              reachable -- it just is not one of the four things worth a
              button of its own. -->
-        <div class="event-tab-row fd-quick-row" id="church-tab-row">
+        <div class="event-tab-row fd-quick-row fd-filter-row" id="church-tab-row">
           <!-- All has gone. It was never a filter of its own, only the
                absence of the other three, and the one thing it did do
                -- clear the search -- is what Clear location and Clear
@@ -9357,6 +9382,7 @@
     <div class="event-tab-row fd-quick-row fd-filter-row">
       <div class="fd-quick-end">
         <button class="event-tab-btn fd-quick-btn" type="button" aria-expanded="false" data-event-filter="location" data-i18n="filters.byLocation">Location</button>
+        <button class="event-tab-btn fd-quick-btn" type="button" aria-expanded="false" data-event-filter="categories" data-i18n="filters.byCategory">Category</button>
         <button class="event-tab-btn fd-quick-btn" type="button" aria-expanded="false" data-event-filter="denominations" data-i18n="filters.byDenomination">Denomination</button>
         <button class="event-tab-btn fd-quick-btn fd-quick-toggle" type="button" data-fd-followed="events" data-i18n-title="filters.followed" title="Followed" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M12 20.5l-7.1-7.1a4.6 4.6 0 0 1 6.5-6.5l.6.6.6-.6a4.6 4.6 0 0 1 6.5 6.5z"/></svg></button>
       </div>
@@ -13656,7 +13682,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-10-01-v442 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-10-01-v443 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -15359,7 +15385,7 @@
   // fd-loc-open belongs here too. It was added as a fourth scoped
   // view and not to this list, so nothing could see it was open: the
   // tap-outside handler skipped it and Back had nothing to shut.
-  var FD_FILTER_OPEN_CLASSES = ['open', 'fd-denoms-open', 'fd-cats-open', 'fd-loc-open', 'fd-dates-open', 'fd-edenoms-open'];
+  var FD_FILTER_OPEN_CLASSES = ['open', 'fd-denoms-open', 'fd-cats-open', 'fd-loc-open', 'fd-dates-open', 'fd-edenoms-open', 'fd-ecats-open'];
   function fdFilterPanels(){
     return document.querySelectorAll('#page-directory .filter-panel');
   }
@@ -15506,7 +15532,7 @@
     });
     var followed = document.getElementById('dir-filter-followed-churches');
     if (followed && followed.checked) {
-      parts.push('<span class="fd-filter-chip">' + escapeHtml(window.t('filters.faithHome'))
+      parts.push('<span class="fd-filter-chip">' + escapeHtml(window.t('filters.following'))
         + '<button type="button" data-chip-followed="1"'
         + ' aria-label="' + escapeHtml(window.t('filters.removeFilter')) + '">' + FD_CHIP_X + '</button></span>');
     }
@@ -15725,7 +15751,7 @@
   // it is a dead end. Same test the checkboxes' own wrappers use.
   function fdSyncFollowedButtons(){
     var have = {
-      churches: (window.myFollowedChurchIds || []).length,
+      churches: (window.myFollowedChurchIds || []).length || (window.myChurchHomeId ? 1 : 0),
       events: (window.myFollowedEventIds || []).length,
       groups: (window.myFollowedGroupIds || []).length
     };
@@ -16170,6 +16196,12 @@
         if (li) setTimeout(function(){ li.focus(); }, 60);
         return;
       }
+      if (which === 'categories') {
+        // Only Events arrives here: Groups' Category button is still
+        // data-group-tab, wired with the rest of that row.
+        openOn('.filter-panel[data-filter-for="events"]', 'fd-ecats-open', btn);
+        return;
+      }
       if (which !== 'denominations') return;
       if (btn.hasAttribute('data-event-filter')) {
         openOn('.filter-panel[data-filter-for="events"]', 'fd-edenoms-open', btn);
@@ -16459,7 +16491,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-10-01-v442',
+      'build 2026-10-01-v443',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -21986,7 +22018,20 @@
     // sign something's broken.
     var followedChecked = document.getElementById('dir-filter-followed-churches');
     var wantFollowed = !!(followedChecked && followedChecked.checked);
-    var churchIds = wantFollowed ? (window.myFollowedChurchIds || []) : null;
+    // The church home belongs in here. It is the strongest connection
+    // a person has and it was the one this filter left out, so a
+    // visitor whose only connection was their home church got an empty
+    // list from the control that is meant to show exactly that church.
+    // Events has always treated the two as one set -- see renderEvents'
+    // wantFollowed/wantHome union -- so this is the churches list
+    // agreeing with the events list rather than a new idea.
+    var churchIds = null;
+    if (wantFollowed) {
+      churchIds = (window.myFollowedChurchIds || []).slice();
+      if (window.myChurchHomeId && churchIds.indexOf(window.myChurchHomeId) === -1) {
+        churchIds.push(window.myChurchHomeId);
+      }
+    }
     // Both narrowings ride the one p_church_ids parameter, so when both
     // are on the answer is their intersection -- churches you follow
     // THAT also carry a ticked tag, which is what having both switched
@@ -22814,7 +22859,9 @@
         var d = new Date(v + 'T00:00:00');
         return isNaN(d) ? v : d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
       };
-      if (fv && tv) return fmt(fv) + ' \u2013 ' + fmt(tv);
+      // Today sets from and to to the same day, so this was printing
+      // "Oct 1 - Oct 1". One day is a day, not a range.
+      if (fv && tv) return fv === tv ? fmt(fv) : fmt(fv) + ' \u2013 ' + fmt(tv);
       return fv ? fmt(fv) + ' \u2192' : '\u2192 ' + fmt(tv);
     }
     // The select's own option text rather than a new string: it is
@@ -22840,6 +22887,12 @@
     for (var i = 0; i < boxes.length; i++) if (!boxes[i].checked) off++;
     var dbn = document.querySelector('[data-event-filter="denominations"]');
     if (dbn) dbn.classList.toggle('fd-quick-on', off > 0);
+
+    var cats = document.querySelectorAll('.category-filter');
+    var catsOff = 0;
+    for (var ci = 0; ci < cats.length; ci++) if (!cats[ci].checked) catsOff++;
+    var cbn = document.querySelector('[data-event-filter="categories"]');
+    if (cbn) cbn.classList.toggle('fd-quick-on', catsOff > 0);
 
     if (typeof window.fdSyncFollowedButtons === 'function') window.fdSyncFollowedButtons();
 
@@ -43713,6 +43766,7 @@
     window.myFollowedChurchIds = following
       ? (window.myFollowedChurchIds || []).concat([churchId])
       : (window.myFollowedChurchIds || []).filter(function(id){ return id !== churchId; });
+    if (typeof window.fdSyncFollowedButtons === 'function') window.fdSyncFollowedButtons();
   }
 
   // Event equivalent of applyFollowState, for the same reason it
@@ -43728,6 +43782,7 @@
     window.myFollowedEventIds = following
       ? (window.myFollowedEventIds || []).concat([eventId])
       : (window.myFollowedEventIds || []).filter(function(id){ return id !== eventId; });
+    if (typeof window.fdSyncFollowedButtons === 'function') window.fdSyncFollowedButtons();
   }
   window.applyEventFollowState = applyEventFollowState;
 
@@ -43738,6 +43793,7 @@
     window.myFollowedGroupIds = following
       ? (window.myFollowedGroupIds || []).concat([groupId])
       : (window.myFollowedGroupIds || []).filter(function(id){ return id !== groupId; });
+    if (typeof window.fdSyncFollowedButtons === 'function') window.fdSyncFollowedButtons();
   }
   window.applyGroupFollowState = applyGroupFollowState;
 
