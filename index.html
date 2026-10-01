@@ -5016,9 +5016,7 @@
   .group-row-meta > :not(:first-child)::before{
     content:'\00b7';opacity:.5;margin-right:8px;
   }
-  /* The count on the right of a group row, outside the flexible middle
-     so a long group name cannot push it off the edge. */
-  .group-row-count{flex-shrink:0;font-size:12px;color:var(--ink-mute);}
+
   /* .church-row-chev is gone from the markup -- the row says "View
      Church Profile" in words now. */
   .church-row .dir-card-profile-link{
@@ -13149,7 +13147,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v420 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v421 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13747,6 +13745,30 @@
   }
   window.followHeartCard = followHeartCard;
   window.followHeartRow = followHeartRow;
+
+  // The row shapes of the event and group hearts. Churches have had
+  // one since the List view shipped; events and groups were using the
+  // CARD heart in a row, which is why they sat vertically centred
+  // instead of in the corner -- measured at 63px down a 160px group
+  // row against 12px down a 129px church row.
+  //
+  // .follow-heart-row is not a different look, it is the same heart
+  // with align-self:flex-start, and its own comment says why: on a
+  // card the heart is in the top-right corner, and a row that centres
+  // it puts the same control somewhere else depending on which view
+  // you happen to be in.
+  //
+  // The class is all that changes. Every handler keys on
+  // data-follow-event-id / data-follow-group-id, so following still
+  // works exactly as before.
+  function followHeartEventRow(e){
+    return followHeartEvent(e).replace('class="follow-heart-card"', 'class="follow-heart-row"');
+  }
+  function followHeartGroupRow(g){
+    return followHeartGroup(g).replace('class="follow-heart-card"', 'class="follow-heart-row"');
+  }
+  window.followHeartEventRow = followHeartEventRow;
+  window.followHeartGroupRow = followHeartGroupRow;
 
   // A muted hue (0-359) for a church's placeholder thumbnail, keyed to
   // denomination so a directory of logoless churches isn't a wall of
@@ -15604,7 +15626,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-30-v420',
+      'build 2026-09-30-v421',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -17957,7 +17979,7 @@
       +   '</div>'
       +   (bits.length ? '<div class="event-row-meta">' + bits.join('') + '</div>' : '')
       + '</div>'
-      + followHeartEvent(e)
+      + followHeartEventRow(e)
       + '</div>';
   }
   window.eventRow = eventRow;
@@ -38966,9 +38988,17 @@
         // what somebody scanning a list is actually comparing: name,
         // church, when it meets, how big it is. Same component as a
         // church row now, rather than a flex container built by hand.
+        // The member count joins the meta line rather than sitting in
+        // the right-hand corner of its own. That corner belongs to the
+        // heart -- a church row puts nothing else there -- and the
+        // count is the same kind of fact as the church and the
+        // schedule beside it. Makes the group row structurally
+        // identical to a church row: name and tags, a meta line,
+        // directions, and the heart in the corner.
         var rbits = [];
         if (meta) rbits.push('<span>' + meta + '</span>');
         if (g.meeting_schedule) rbits.push('<span>' + escapeHtml(g.meeting_schedule) + '</span>');
+        rbits.push('<span>' + escapeHtml(groupsMemberCountLabel(g.member_count)) + '</span>');
         return '<div class="group-row" data-route="group" data-group-id="' + escapeHtml(g.id) + '">'
           + '<div class="group-row-main">'
           +   '<div class="group-row-head">'
@@ -38978,8 +39008,7 @@
           +   (rbits.length ? '<div class="group-row-meta">' + rbits.join('') + '</div>' : '')
           +   (dirHtml ? '<div class="dir-card-actions">' + dirHtml + '</div>' : '')
           + '</div>'
-          + '<div class="group-row-count">' + escapeHtml(groupsMemberCountLabel(g.member_count)) + '</div>'
-          + heart
+          + followHeartGroupRow(g)
           + '</div>';
       }
 
