@@ -6722,7 +6722,13 @@
   .church-hero h1{margin:0;line-height:1.12;}
   /* Lower and a little closer in: it was riding 6px above the
      baseline, which read as floating away from the word. */
-  .church-hero h1 #church-partner-badge{margin-left:7px;vertical-align:-1px;}
+  /* vertical-align, not margin: it is an inline box on the name's own
+     line, so this is what sets where it rides against the text. 3px
+     puts its middle on the cap-height middle rather than the
+     baseline, which is where the eye expects it beside capitals. */
+  .church-hero h1 #church-partner-badge{margin-left:7px;vertical-align:3px;}
+  /* The last word and the tick travel together. */
+  #church-name-tail{white-space:nowrap;}
   .church-hero-details{margin-top:10px;}
   /* .info-row is written for the light page -- --ink-soft on paper.
      In here it would be dark text on the navy banner, which is the
@@ -6759,6 +6765,9 @@
   .church-hero-contact .church-hero-details{flex:1;min-width:0;}
   .church-hero-grid{
     display:grid;grid-template-columns:repeat(2,42px);gap:8px;flex-shrink:0;
+    /* Dropped a little so the block sits against the body of the
+       contact lines rather than hard against the first one. */
+    margin-top:6px;
   }
   /* The slot is a plain div holding the heart, so it has to be told to
      fill its cell. */
@@ -9292,7 +9301,7 @@
                writing the h1's textContent would delete the tick. The
                tick carries no text, so #church-name.textContent is
                still exactly the name for the code that reads it. -->
-          <h1 id="church-name"><span id="church-name-text"></span><span id="church-partner-badge" hidden data-i18n-title="church.partnerBadge" title="FaithDock Partner" data-i18n-aria="church.partnerBadge" aria-label="FaithDock Partner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span></h1>
+          <h1 id="church-name"><span id="church-name-text"></span><span id="church-name-tail"></span><span id="church-partner-badge" hidden data-i18n-title="church.partnerBadge" title="FaithDock Partner" data-i18n-aria="church.partnerBadge" aria-label="FaithDock Partner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span></h1>
         </div>
         <div id="church-unclaimed-banner" style="display:none;margin-top:14px;background:rgba(201,162,39,0.16);border:1px solid var(--gold);border-radius:12px;padding:14px 16px;max-width:480px;">
           <div style="font-weight:700;font-size:15px;color:#fff;margin-bottom:4px;" data-i18n="church.claimCtaHeadline">Is this your church? Claim your free FaithDock profile.</div>
@@ -13451,7 +13460,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v429 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-10-01-v430 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -15944,7 +15953,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-30-v429',
+      'build 2026-10-01-v430',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -16889,9 +16898,25 @@
   }
 
   function populateChurchPage(c){
-    // The span, not the h1 -- the h1 also holds the partner tick, and
-    // writing its textContent would delete it.
-    document.getElementById('church-name-text').textContent = displayChurchName(c.name);
+    // Split so the LAST WORD and the tick cannot be separated. Being
+    // inline was not enough on its own: a name ending "of San
+    // Antonio" fills the 260px title column to within 29px, so the
+    // tick wrapped onto a line of its own -- the exact thing moving
+    // it inside the h1 was meant to stop.
+    //
+    // The tail span is nowrap and holds both. Setting its text wipes
+    // the tick out of it, so the tick goes back in afterwards; it is
+    // the same element throughout, so whatever hidden state
+    // populateChurchPage gave it survives. #church-name.textContent is
+    // still the whole name, in order, for the code that reads it.
+    var fdName = displayChurchName(c.name);
+    var fdCut = fdName.lastIndexOf(' ');
+    var fdHead = document.getElementById('church-name-text');
+    var fdTail = document.getElementById('church-name-tail');
+    var fdTick = document.getElementById('church-partner-badge');
+    fdHead.textContent = fdCut > 0 ? fdName.slice(0, fdCut + 1) : '';
+    fdTail.textContent = fdCut > 0 ? fdName.slice(fdCut + 1) : fdName;
+    if (fdTick) fdTail.appendChild(fdTick);
     document.getElementById('church-eyebrow').textContent = c.tag ? translateDenomination(c.tag) : window.t('church.genericLabel');
 
     var logoImgEl = document.getElementById('church-logo-img');
