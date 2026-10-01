@@ -7852,6 +7852,7 @@
        Same arithmetic, different numbers because that row is taller and
        carries a border. */
     .dir-results-col .fd-panel[data-browse-panel="events"] .event-tab-row{margin-top:6px;margin-bottom:14px;}
+    .dir-results-col .fd-panel[data-browse-panel="events"] .event-tab-row.fd-filter-row{margin-top:3px;margin-bottom:8px;}
     /* .fd-quick-row prefix because this block sits ABOVE the base
        .fd-quick-btn rule in the file and would otherwise lose the tie. */
     .fd-quick-row{gap:14px;}
@@ -7937,10 +7938,6 @@
   .fd-quick-row.fd-filter-row .fd-quick-btn{font-size:12px;padding:6px 9px;}
   .fd-quick-row.fd-filter-row .fd-quick-toggle{padding:6px 8px;}
 
-  /* What the events list is narrowed to, said in words, the way the
-     churches list says "Near ...". Same element shape so the two look
-     like one idea rather than two. */
-  .fd-events-summary{margin:-4px 0 12px;}
 
   /* Coloured by family rather than all gold. Every chip being the
      same colour made four of them read as one long thing; a light
@@ -13687,7 +13684,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-10-01-v445 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-10-01-v446 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -16559,7 +16556,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-10-01-v445',
+      'build 2026-10-01-v446',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
