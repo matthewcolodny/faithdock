@@ -7867,8 +7867,8 @@
      than a character in the label, so it is not translated, not
      selectable and not read out as part of the name. */
   .fd-quick-btn::after{
-    content:'';display:inline-block;width:6px;height:6px;margin-left:7px;
-    border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;
+    content:'';display:inline-block;width:4.5px;height:4.5px;margin-left:6px;
+    border-right:1.3px solid currentColor;border-bottom:1.3px solid currentColor;
     transform:translateY(-2px) rotate(45deg);
   }
   .fd-quick-btn[aria-expanded="true"]::after{transform:translateY(1px) rotate(-135deg);}
@@ -13586,7 +13586,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-10-01-v439 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-10-01-v440 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -15293,6 +15293,10 @@
   function fdFilterPanels(){
     return document.querySelectorAll('#page-directory .filter-panel');
   }
+  // No wrapper: this script is top level, so the declaration below
+  // IS window.fdAnyFilterOpen. Assigning a wrapper over it replaced
+  // the function with something that called itself -- stack overflow
+  // on the first filter window opened.
   function fdAnyFilterOpen(){
     var ps = fdFilterPanels();
     for (var i = 0; i < ps.length; i++) {
@@ -15611,8 +15615,15 @@
     // Location lights like the other two. It was the only one of the
     // three that stayed grey while narrowing the list, because its
     // state lives in dirUserLat/Lng rather than in a checkbox.
+    // Keyed on the location FIELD, not on fdLocationLabel. That label
+    // is set by the quiet geolocation attempt on load, so the button
+    // lit itself on every visit whether or not anyone had chosen a
+    // location -- which is what was reported. The field is the same
+    // source the "Near ..." line reads, so the button and the sentence
+    // now agree: if one is there, so is the other.
+    var locEl = document.getElementById('dir-location-input');
     var l = document.querySelector('[data-church-tab="location"]');
-    if (l) l.classList.toggle('fd-quick-on', !!window.fdLocationLabel);
+    if (l) l.classList.toggle('fd-quick-on', !!(locEl && locEl.value.trim()));
   }
   window.fdSyncQuickButtons = fdSyncQuickButtons;
 
@@ -15810,6 +15821,10 @@
   document.addEventListener('click', function(ev){
     var el = ev.target.closest && ev.target.closest('[data-fd-share],[data-fd-share-event]');
     if (!el) return;
+    // A window is open, so this click belongs to closing it. Returning
+    // without stopping anything lets the close-on-outside-click
+    // handler have it, which is the whole point of that first tap.
+    if (window.fdAnyFilterOpen && window.fdAnyFilterOpen()) return;
     ev.preventDefault();
     ev.stopPropagation();
     ev.stopImmediatePropagation();
@@ -15824,6 +15839,12 @@
   document.addEventListener('click', function(ev){
     var el = ev.target.closest && ev.target.closest('[data-fd-directions]');
     if (!el) return;
+    // Same as the share mark above: with a filter window open, the
+    // first tap anywhere outside it closes it and does nothing else.
+    // Directions was leaving for Google Maps instead, because this
+    // handler is in capture and stops the event dead before the
+    // close-on-outside handler ever sees it.
+    if (window.fdAnyFilterOpen && window.fdAnyFilterOpen()) return;
     ev.preventDefault();
     ev.stopPropagation();
     ev.stopImmediatePropagation();
@@ -16231,7 +16252,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-10-01-v439',
+      'build 2026-10-01-v440',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
