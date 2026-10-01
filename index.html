@@ -4383,7 +4383,7 @@
      sat on the full-page profile as a stray x in the corner. The
      sheet rule that reveals it is (1,1,0) and still wins wherever it
      applies. */
-  #fd-church-sheet-close{display:none;}
+  .fd-sheet-close{display:none;}
 
   /* ---- HERO ---- */
   .hero{background:var(--brand);color:#EDEBE2;padding:84px 0 96px;position:relative;overflow:hidden;}
@@ -5559,7 +5559,11 @@
      The page keeps its own markup and its own populate function --
      nothing here is a second copy of the profile. The only difference
      is where the box is. */
-  body.fd-church-sheet #page-church{
+  /* .fd-as-sheet is put on whichever page is being shown this way,
+     so the box is described once and an event card opens exactly as a
+     church card does. What stays keyed to #page-church below is the
+     church profile's own content, not the window around it. */
+  .page.fd-as-sheet{
     position:fixed;z-index:45;
     /* Inset on every side, not flush to the screen. The browse view
        stays visible all the way around it, so the profile reads as
@@ -5586,14 +5590,14 @@
   }
   /* The banner inside it has square corners of its own and would
      otherwise poke through the rounded ones. */
-  body.fd-church-sheet #page-church > .banner{border-radius:15px 15px 0 0;}
+  .page.fd-as-sheet > .banner{border-radius:15px 15px 0 0;}
   @keyframes fd-church-sheet-rise{
     from{transform:translateY(18px);opacity:0;}
     to{transform:none;opacity:1;}
   }
   /* The browse view underneath must not scroll with it. */
-  body.fd-church-sheet{overflow:hidden;}
-  body.fd-church-sheet #fd-church-sheet-close{
+  body.fd-detail-sheet{overflow:hidden;}
+  .page.fd-as-sheet > .fd-sheet-close{
     display:flex;align-items:center;justify-content:center;
     /* On the card's own top-right corner, inside its inset. */
     position:fixed;top:calc(var(--fd-nav-h,56px) + 20px);right:20px;z-index:46;
@@ -5602,7 +5606,7 @@
     cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.2);
     -webkit-tap-highlight-color:transparent;
   }
-  body.fd-church-sheet #fd-church-sheet-close svg{width:18px;height:18px;}
+  .page.fd-as-sheet > .fd-sheet-close svg{width:18px;height:18px;}
   .fd-sheet-head{touch-action:none;}
   .dir-results-col .fd-quick-row,
   .dir-results-col .event-tab-row{touch-action:pan-x;}
@@ -6697,12 +6701,12 @@
   .banner{background:var(--brand);color:#fff;padding:52px 0 44px;}
   /* 52/44 is right for a full page with a window's worth of room
      above it. In the card it is most of a screen before the name. */
-  body.fd-church-sheet #page-church > .banner{padding:22px 0 20px;flex:0 0 auto;}
+  body.fd-detail-sheet #page-church > .banner{padding:22px 0 20px;flex:0 0 auto;}
   #page-church > .back-link{
     width:100%;max-width:1080px;margin-left:auto;margin-right:auto;
     padding:0 28px;box-sizing:border-box;
   }
-  body.fd-church-sheet #page-church > .back-link{margin-top:auto;margin-bottom:18px;}
+  body.fd-detail-sheet #page-church > .back-link{margin-top:auto;margin-bottom:18px;}
   .banner .wrap{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:18px;}
   .banner h1{color:#fff;font-size:34px;}
   .banner .sub{color:#B9C0CE;font-size:14.5px;margin-top:8px;display:flex;gap:18px;flex-wrap:wrap;}
@@ -6857,29 +6861,29 @@
      fit 412px in a line, and a tab you have to discover by swiping is
      a tab most people never find -- the same reasoning the By
      Category window's tabs already follow. */
-  body.fd-church-sheet #page-church .tabs{
+  body.fd-detail-sheet #page-church .tabs{
     flex-wrap:wrap;overflow-x:visible;margin-top:14px;row-gap:0;
     /* Centred, and tight enough that the four remaining tabs fit one
        line at 412px. The 26px right margin on each tab is what pushed
        Ministries onto a second row. */
     justify-content:center;gap:0;
   }
-  body.fd-church-sheet #page-church .tab{
+  body.fd-detail-sheet #page-church .tab{
     margin-right:0;padding:10px 11px;font-size:13.5px;
   }
   /* Location goes on the phone. Its address is three lines up in the
      hero and its map is the browse map, which is directly behind this
      card -- closing it shows the pin. On a full page there is no map
      behind anything, so the tab stays. */
-  body.fd-church-sheet #page-church .tabs [data-church-tab="location"]{display:none;}
+  body.fd-detail-sheet #page-church .tabs [data-church-tab="location"]{display:none;}
   /* People goes too. Who is connected to a church belongs on the
      reader's own dashboard, beside their events, groups and giving --
      not in a card about the church. */
-  body.fd-church-sheet #page-church .tabs [data-church-tab="people"]{display:none;}
+  body.fd-detail-sheet #page-church .tabs [data-church-tab="people"]{display:none;}
   /* Nothing between the tabs and the first card. .content-block's 28px
      top margin was written for a full page. */
-  body.fd-church-sheet #page-church .content-block{margin-top:14px;}
-  body.fd-church-sheet #page-church .church-tab-panel > .grid{margin-top:0;}
+  body.fd-detail-sheet #page-church .content-block{margin-top:14px;}
+  body.fd-detail-sheet #page-church .church-tab-panel > .grid{margin-top:0;}
   .tab{padding:12px 4px;margin-right:26px;font-size:14.5px;font-weight:500;color:var(--ink-mute);border-bottom:2px solid transparent;cursor:pointer;flex-shrink:0;white-space:nowrap;}
   .tab.active{color:var(--ink);border-bottom:2px solid var(--gold);}
 
@@ -6909,8 +6913,8 @@
      style on the element, which no rule could beat -- in the card
      that produced two half-width cards with three words per line. */
   #church-event-grid{grid-template-columns:1fr 1fr;}
-  body.fd-church-sheet #page-church .church-tab-panel .grid,
-  body.fd-church-sheet #page-church #church-event-grid{
+  body.fd-detail-sheet #page-church .church-tab-panel .grid,
+  body.fd-detail-sheet #page-church #church-event-grid{
     grid-template-columns:1fr;gap:10px;
   }
   /* Ministry and group entries inside the card are compact rows
@@ -6922,9 +6926,9 @@
   .fd-plain-row:last-child{border-bottom:0;}
   .fd-plain-row h4{font-size:15px;margin:0 0 2px;}
   .fd-plain-row p{font-size:13.5px;color:var(--ink-soft);margin:0;}
-  body.fd-church-sheet #page-church .group-card{padding:12px 14px;margin-bottom:8px;}
-  body.fd-church-sheet #page-church .group-card h4{font-size:15px;margin-bottom:2px;}
-  body.fd-church-sheet #page-church .group-card p{font-size:13px;margin-bottom:0;}
+  body.fd-detail-sheet #page-church .group-card{padding:12px 14px;margin-bottom:8px;}
+  body.fd-detail-sheet #page-church .group-card h4{font-size:15px;margin-bottom:2px;}
+  body.fd-detail-sheet #page-church .group-card p{font-size:13px;margin-bottom:0;}
   @media (max-width:860px){.two-col{grid-template-columns:1fr;}}
 
   .back-link{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;font-weight:500;color:var(--ink-mute);margin-top:26px;}
@@ -9351,7 +9355,7 @@
        browse view; on its own page there is nothing to close back to
        and the "Back to directory" link at the foot is the right
        control. -->
-  <button type="button" id="fd-church-sheet-close" aria-label="Close" data-i18n-aria="common.close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  <button type="button" class="fd-sheet-close" aria-label="Close" data-i18n-aria="common.close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
   <div class="banner">
     <div class="wrap church-hero">
       <div class="church-hero-main">
@@ -9520,6 +9524,9 @@
 
 <!-- ================= EVENT DETAIL ================= -->
 <section class="page" id="page-event">
+  <!-- Same control as the church profile's: only drawn when this page
+       is being shown as a window over the browse view. -->
+  <button type="button" class="fd-sheet-close" aria-label="Close" data-i18n-aria="common.close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
   <!-- Reported directly: refreshing an event page "sputters" -- briefly
        showing "Hosted by (blank)", no title, no details, and the role
        radios, before everything settles. Cause: populateEventPage() runs
@@ -13527,7 +13534,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-10-01-v436 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-10-01-v437 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -14170,6 +14177,20 @@
       + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg></span>';
   }
   window.fdShareHtml = fdShareHtml;
+
+  // The event flavour. Same mark, same handler, different route --
+  // data-fd-share-event rather than data-fd-share, so one listener can
+  // tell which kind of link to build.
+  function fdShareEventHtml(e){
+    if (!e || !e.real || !e.id) return '';
+    var label = window.t('church.share');
+    return '<span class="dir-card-share" role="button" tabindex="0"'
+      + ' data-fd-share-event="' + escapeHtml(e.id) + '"'
+      + ' data-fd-share-title="' + escapeHtml(e.title || '') + '"'
+      + ' title="' + escapeHtml(label) + '" aria-label="' + escapeHtml(label) + '">'
+      + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg></span>';
+  }
+  window.fdShareEventHtml = fdShareEventHtml;
 
   function followHeartRow(c){
     if (!c || !c.real || !c.id) return '';
@@ -15665,11 +15686,14 @@
   // own button: the platform sheet where there is one, the clipboard
   // everywhere else, and the link is the hash route the profile lives
   // at so what arrives opens the church rather than the home page.
-  window.fdShareChurch = async function(churchName, markEl){
-    if (!churchName) return;
-    var url = location.origin + location.pathname + '#church/' + encodeURIComponent(churchName);
+  // Share any route. A church and an event differ only in the hash
+  // they build, so the sheet, the clipboard and the confirmation live
+  // here once and a group will need no new code at all.
+  window.fdShareLink = async function(hash, title, markEl){
+    if (!hash) return;
+    var url = location.origin + location.pathname + hash;
     try {
-      if (navigator.share) { await navigator.share({ title: churchName, url: url }); return; }
+      if (navigator.share) { await navigator.share({ title: title || document.title, url: url }); return; }
       await navigator.clipboard.writeText(url);
       // The mark confirms itself for a moment. There is no toast
       // helper in this app -- I assumed one and it would have left a
@@ -15688,17 +15712,24 @@
     }
   };
 
+  window.fdShareChurch = function(churchName, markEl){
+    if (!churchName) return;
+    return window.fdShareLink('#church/' + encodeURIComponent(churchName), churchName, markEl);
+  };
+
   // Capture and stopped dead, for the same reason Directions is: the
   // card is an <a>, and the phone's card handler is on document in
   // capture too -- so without this, sharing would also open the
   // church underneath it.
   document.addEventListener('click', function(ev){
-    var el = ev.target.closest && ev.target.closest('[data-fd-share]');
+    var el = ev.target.closest && ev.target.closest('[data-fd-share],[data-fd-share-event]');
     if (!el) return;
     ev.preventDefault();
     ev.stopPropagation();
     ev.stopImmediatePropagation();
-    window.fdShareChurch(el.getAttribute('data-fd-share'), el);
+    var evId = el.getAttribute('data-fd-share-event');
+    if (evId) window.fdShareLink('#event/' + encodeURIComponent(evId), el.getAttribute('data-fd-share-title'), el);
+    else window.fdShareChurch(el.getAttribute('data-fd-share'), el);
   }, true);
 
   // Directions. Capture, and it stops the event: the card is an <a>
@@ -16114,7 +16145,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-10-01-v436',
+      'build 2026-10-01-v437',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -18535,6 +18566,7 @@
       + '<div class="dir-card-foot">'
       + '<div class="card-tags">' + eventTags + '</div>'
       + eventHeart
+      + fdShareEventHtml(e)
       + '</div>';
     var lookupKey = e.real ? e.id : e.title;
     if(e.clickable || e.real){
@@ -18789,7 +18821,10 @@
     // link or a cold load has nothing behind it to stay on, so that is
     // still an ordinary page.
     var fdDirPage = document.getElementById('page-directory');
-    var asChurchSheet = (pageRoute === 'church')
+    // Events as well as churches. Both are things you open FROM the
+    // browse view and expect to come back from, which is the whole
+    // argument for a window rather than a page.
+    var asChurchSheet = (pageRoute === 'church' || pageRoute === 'event')
       && window.innerWidth <= 980
       && !!fdDirPage && fdDirPage.classList.contains('active');
 
@@ -18804,7 +18839,7 @@
       var fdHdr = document.querySelector('header.site');
       var fdHdrBottom = fdHdr ? Math.max(0, fdHdr.getBoundingClientRect().bottom) : 56;
       document.documentElement.style.setProperty('--fd-nav-h', Math.round(fdHdrBottom) + 'px');
-      document.body.classList.add('fd-church-sheet');
+      document.body.classList.add('fd-detail-sheet');
       // The directory keeps its .active -- that is the whole point --
       // so the loop that clears every page is skipped here.
     } else {
@@ -18818,17 +18853,25 @@
       // The remembered pick is reset with it, so reopening the same
       // church is highlight-then-open again rather than a single tap
       // that opens something with no border ever shown.
-      if (document.body.classList.contains('fd-church-sheet')) {
+      if (document.body.classList.contains('fd-detail-sheet')) {
         window.fdDirPickedChurch = null;
         window.fdDirTapAt = 0;
         var fdHot = document.querySelectorAll('.dir-card-hot');
         for (var fh = 0; fh < fdHot.length; fh++) fdHot[fh].classList.remove('dir-card-hot');
       }
-      document.body.classList.remove('fd-church-sheet');
+      document.body.classList.remove('fd-detail-sheet');
+      var fdWasSheet = document.querySelectorAll('.page.fd-as-sheet');
+      for (var fw = 0; fw < fdWasSheet.length; fw++) fdWasSheet[fw].classList.remove('fd-as-sheet');
       for(var i=0;i<pages.length;i++){ pages[i].classList.remove('active'); }
     }
     var target = document.getElementById('page-'+pageRoute);
     if(target) target.classList.add('active');
+    // After target exists. This sat above, where the var declaration
+    // is hoisted but not yet assigned -- so it read undefined, the class
+    // was never added, and the church profile rendered as a plain page
+    // inside a body that said a window was open. No error, just a
+    // window that had stopped being one.
+    if (target && asChurchSheet) target.classList.add('fd-as-sheet');
     // After .active, so the panels are measurable and the map can be
     // told its size. fromRoute, or it would rewrite the hash go() is
     // in the middle of setting.
@@ -26240,8 +26283,8 @@
   // it keeps working, and swallowing a tap on it would make it look
   // broken.
   document.addEventListener('click', function(ev){
-    if (!document.body.classList.contains('fd-church-sheet')) return;
-    var sheet = document.getElementById('page-church');
+    if (!document.body.classList.contains('fd-detail-sheet')) return;
+    var sheet = document.querySelector('.page.fd-as-sheet');
     if (sheet && sheet.contains(ev.target)) return;
     if (ev.target.closest && ev.target.closest('header.site')) return;
     // A modal opened FROM the card sits above it and is not inside it,
@@ -26258,7 +26301,10 @@
     // Tapping a different card while a profile is open now switches to
     // it rather than closing back to the list, which is also the right
     // answer.
+    // Either grid: a tap on a card is what OPENS a window, so it must
+    // never also be read as a tap outside one.
     if (ev.target.closest && ev.target.closest('#directory-grid')) return;
+    if (ev.target.closest && ev.target.closest('#events-grid')) return;
     ev.preventDefault();
     ev.stopPropagation();
     ev.stopImmediatePropagation();
@@ -26285,17 +26331,19 @@
     });
   }
 
-  var fdChurchSheetCloseBtn = document.getElementById('fd-church-sheet-close');
-  if (fdChurchSheetCloseBtn) {
-    fdChurchSheetCloseBtn.addEventListener('click', function(){
+  // Delegated: there are two of these now, one per page that can be
+  // shown as a window, and a third would need no wiring at all.
+  document.addEventListener('click', function(ev){
+    if (!ev.target.closest || !ev.target.closest('.fd-sheet-close')) return;
+    (function(){
       // A cold load straight onto #church/... has no entry to pop, and
       // nothing opens the sheet in that case -- but if it ever did,
       // falling forward is better than doing nothing.
       if (window.history.length > 1) window.history.back();
       else if (typeof window.go === 'function') window.go('directory');
       else location.hash = '#directory';
-    });
-  }
+    })();
+  });
 
   var heroBrowseBtn = document.getElementById('hero-browse-btn');
   if (heroBrowseBtn) {
