@@ -9386,8 +9386,8 @@
         <button class="event-tab-btn fd-quick-btn fd-quick-toggle" type="button" data-fd-home="events" data-i18n-title="filters.faithHome" title="Faith Home" aria-pressed="false" style="display:none;"><svg viewBox="0 0 24 24"><path d="M12 3.4L3.6 10.4V20a1 1 0 0 0 1 1h4.9v-5.4h5V21h4.9a1 1 0 0 0 1-1v-9.6z"/></svg></button>
       </div>
     </div>
-    <div class="fd-search-summary fd-events-summary" id="events-search-summary" hidden></div>
     <div class="fd-filter-chips" data-fd-filter-chips="events" hidden></div>
+    <div class="fd-search-summary fd-events-summary" id="events-search-summary" hidden></div>
     <div class="event-tab-row fd-quick-row">
       <button class="event-tab-btn active" id="event-tab-all" data-event-tab="all" data-i18n="events.tabAll">All</button>
       <button class="event-tab-btn" id="event-tab-today" data-event-tab="today" data-i18n="events.tabToday">Today</button>
@@ -9434,8 +9434,8 @@
           <button class="event-tab-btn fd-quick-btn fd-quick-toggle" type="button" data-fd-home="groups" data-i18n-title="filters.faithHome" title="Faith Home" aria-pressed="false" style="display:none;"><svg viewBox="0 0 24 24"><path d="M12 3.4L3.6 10.4V20a1 1 0 0 0 1 1h4.9v-5.4h5V21h4.9a1 1 0 0 0 1-1v-9.6z"/></svg></button>
         </div>
       </div>
-      <div class="fd-search-summary" id="groups-search-summary" hidden></div>
       <div class="fd-filter-chips" data-fd-filter-chips="groups" hidden></div>
+      <div class="fd-search-summary" id="groups-search-summary" hidden></div>
       <div class="event-tab-row fd-quick-row" id="group-tab-row">
         <button class="event-tab-btn active" type="button" data-group-tab="all" data-i18n="filters.all">All</button>
       </div>
@@ -13684,7 +13684,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-10-01-v446 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-10-01-v447 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -15298,6 +15298,9 @@
     }
 
     fdSyncFilterPills(tab);
+    // The tab you are arriving at may have been painted before the
+    // location resolved. Cheap: no query, just the sentence.
+    if (window.fdRenderSearchSummary) window.fdRenderSearchSummary();
 
     // One map, drawn from the churches, behind all three tabs -- so
     // the churches have to be fetched by whoever gets here first.
@@ -16556,7 +16559,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-10-01-v446',
+      'build 2026-10-01-v447',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -22917,6 +22920,7 @@
   // -- the events answer to "Near ...". Date used to stay grey however
   // narrow the range was, which left the one filter you cannot see at
   // a glance as the one with no mark.
+  window.fdEventsDateLabel = fdEventsDateLabel;
   function fdEventsDateLabel(){
     var when = document.getElementById('filter-when');
     var from = document.getElementById('filter-date-from');
@@ -22967,8 +22971,7 @@
 
     if (typeof window.fdSyncFollowedButtons === 'function') window.fdSyncFollowedButtons();
 
-    fdPaintSummary(document.getElementById('events-search-summary'),
-      fdSummaryParts({ dateLabel: dateLabel }));
+    if (window.fdRenderSearchSummary) window.fdRenderSearchSummary();
   }
   window.fdSyncEventsQuick = fdSyncEventsQuick;
 
@@ -23807,9 +23810,7 @@
     if (glb) glb.classList.toggle('fd-quick-on', !!(locEl && locEl.value.trim()));
     var gdb = document.querySelector('[data-group-filter="denominations"]');
     if (gdb) gdb.classList.toggle('fd-quick-on', typeof fdDenomUncheckedCount === 'function' && fdDenomUncheckedCount() > 0);
-    if (typeof fdPaintSummary === 'function') {
-      fdPaintSummary(document.getElementById('groups-search-summary'), fdSummaryParts({}));
-    }
+    if (window.fdRenderSearchSummary) window.fdRenderSearchSummary();
     if (typeof window.fdSyncFollowedButtons === 'function') window.fdSyncFollowedButtons();
     fdRenderFilterChips();
   }
@@ -48736,6 +48737,16 @@
   });
 
   function fdRenderSearchSummary(){
+    // All three, every time. They read one location, so painting one
+    // and not the others is what let them disagree. No query behind
+    // any of it, so there is nothing to spend.
+    fdPaintSummary(document.getElementById('events-search-summary'), fdSummaryParts({
+      dateLabel: (typeof window.fdEventsDateLabel === 'function') ? window.fdEventsDateLabel() : ''
+    }));
+    fdPaintSummary(document.getElementById('groups-search-summary'), fdSummaryParts({}));
+    fdRenderChurchesSummary();
+  }
+  function fdRenderChurchesSummary(){
     // The quick buttons are re-read here as well as from the chips.
     // fdSyncQuickButtons only ever ran from fdRenderFilterChips, which
     // fires when a TAG changes -- so the Location button, whose state
