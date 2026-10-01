@@ -61,12 +61,19 @@
 --
 -- Backwards compatible: same ten arguments and the same result as 120,
 -- so this REPLACES rather than drops, and nothing has to be re-granted.
+--
+-- NO SEMICOLON INSIDE A STRING LITERAL anywhere in this file. The
+-- Supabase SQL Editor splits a script on semicolons without noticing
+-- it is inside quotes, so one in the comment-on text below cut that
+-- statement in half and everything after it arrived as an
+-- unterminated fragment -- reported as "syntax error at end of input"
+-- at LINE 0. 120 ran first time because it had no comment-on at all.
 
 -- ---------------------------------------------------------------------
 alter table groups add column if not exists meeting_anchor_date date;
 
 comment on column groups.meeting_anchor_date is
-  'First meeting of a biweekly series; every 14th day from it is a meeting. Not used by weekly or by the first/second/third/fourth/last ordinals, which say which occurrence on their own. Null falls back to weekday-only matching.';
+  'First meeting of a biweekly series -- every 14th day from it is a meeting. Not used by weekly or by the first/second/third/fourth/last ordinals, which say which occurrence on their own. Null falls back to weekday-only matching.';
 
 -- Biweekly only. Everything else carries its own rule.
 update groups g

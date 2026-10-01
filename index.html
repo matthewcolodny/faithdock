@@ -9028,6 +9028,21 @@
       <button type="button" class="fd-tab" role="tab" aria-selected="false" data-browse-tab="events" data-i18n="nav.events">Events</button>
       <button type="button" class="fd-tab" role="tab" aria-selected="false" data-browse-tab="groups" data-i18n="nav.groups">Groups</button>
     </div>
+    <div class="event-tab-row fd-quick-row fd-filter-row" id="fd-filter-row">
+      <div class="fd-quick-end">
+        <button class="event-tab-btn fd-quick-btn" type="button" aria-expanded="false" data-fd-filter="location" data-i18n="filters.byLocation">Location</button>
+        <button class="event-tab-btn fd-quick-btn" type="button" aria-expanded="false" data-fd-filter="categories" data-i18n="filters.byCategory">Category</button>
+        <button class="event-tab-btn fd-quick-btn" type="button" aria-expanded="false" data-fd-filter="denominations" data-i18n="filters.byDenomination">Denomination</button>
+        <button class="event-tab-btn fd-quick-btn fd-quick-toggle" type="button" data-fd-followed="1" data-i18n-title="filters.followed" title="Followed" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M12 20.5l-7.1-7.1a4.6 4.6 0 0 1 6.5-6.5l.6.6.6-.6a4.6 4.6 0 0 1 6.5 6.5z"/></svg></button>
+        <button class="event-tab-btn fd-quick-btn fd-quick-toggle" type="button" data-fd-home="1" data-i18n-title="filters.faithHome" title="Faith Home" aria-pressed="false" style="display:none;"><svg viewBox="0 0 24 24"><path d="M12 3.4L3.6 10.4V20a1 1 0 0 0 1 1h4.9v-5.4h5V21h4.9a1 1 0 0 0 1-1v-9.6z"/></svg></button>
+      </div>
+    </div>
+    <!-- Everything currently narrowing the list, as chips you can take
+         off. One host: the filters are the shell's, so what is on is
+         the same question whichever tab you are looking at. The only
+         per-tab part is which extra chips belong -- church categories
+         or group tags -- and that reads the tab it is drawn for. -->
+    <div class="fd-filter-chips" data-fd-filter-chips hidden></div>
     <div class="directory-layout">
       <div class="fd-panel is-on" data-browse-panel="churches" style="display:contents;">
       <aside class="filter-panel" data-filter-for="churches">
@@ -9039,7 +9054,7 @@
              off. Built by fdRenderFilterChips from the same checkboxes
              the search reads, so there is nothing here to keep in step
              by hand. Empty and hidden when nothing is narrowing it. -->
-        <div id="dir-filter-chips" class="fd-filter-chips" data-fd-filter-chips="churches" hidden></div>
+        <div id="dir-filter-chips" class="fd-filter-chips" data-fd-filter-chips hidden></div>
         <button type="button" class="filter-panel-toggle" id="dir-filter-toggle" aria-expanded="false" aria-controls="dir-filter-body">
           <span data-i18n="filters.filterSearches">Filter searches</span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
@@ -9320,24 +9335,6 @@
              longer hidden in the filter panel, so the filter is still
              reachable -- it just is not one of the four things worth a
              button of its own. -->
-        <div class="event-tab-row fd-quick-row fd-filter-row" id="church-tab-row">
-          <!-- All has gone. It was never a filter of its own, only the
-               absence of the other three, and the one thing it did do
-               -- clear the search -- is what Clear location and Clear
-               tags are for. What it was really saying is said in
-               words now, above the location line. -->
-          <div class="fd-quick-end">
-            <button class="event-tab-btn fd-quick-btn" type="button" aria-expanded="false" data-church-tab="location" data-i18n="filters.byLocation">By Location</button>
-            <button class="event-tab-btn fd-quick-btn" type="button" aria-expanded="false" data-church-tab="categories" data-i18n="filters.byCategory">By Category</button>
-            <button class="event-tab-btn fd-quick-btn" type="button" aria-expanded="false" data-church-tab="denominations" data-i18n="filters.byDenomination">Denomination</button>
-            <button class="event-tab-btn fd-quick-btn fd-quick-toggle" type="button" data-fd-followed="churches" data-i18n-title="filters.followed" title="Followed" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M12 20.5l-7.1-7.1a4.6 4.6 0 0 1 6.5-6.5l.6.6.6-.6a4.6 4.6 0 0 1 6.5 6.5z"/></svg></button>
-            <button class="event-tab-btn fd-quick-btn fd-quick-toggle" type="button" data-fd-home="churches" data-i18n-title="filters.faithHome" title="Faith Home" aria-pressed="false" style="display:none;"><svg viewBox="0 0 24 24"><path d="M12 3.4L3.6 10.4V20a1 1 0 0 0 1 1h4.9v-5.4h5V21h4.9a1 1 0 0 0 1-1v-9.6z"/></svg></button>
-          </div>
-        </div>
-        <!-- Everything currently narrowing the list, in the sheet where
-             the results are, not only inside the filter window you would
-             have to open to see it. Same chips, same x, one renderer. -->
-        <div class="fd-filter-chips" data-fd-filter-chips="churches" hidden></div>
         <!-- Shown until the first result set lands. The sheet used to
              open on nothing at all for as long as the query took, which
              read as "no churches here" rather than as "not yet". Removed
@@ -9362,16 +9359,6 @@
          question goes second, so the filters row is first. Location is
          the browse shell's one location -- the same field the churches
          row opens -- because where you are is not a per-tab fact. -->
-    <div class="event-tab-row fd-quick-row fd-filter-row">
-      <div class="fd-quick-end">
-        <button class="event-tab-btn fd-quick-btn" type="button" aria-expanded="false" data-event-filter="location" data-i18n="filters.byLocation">Location</button>
-        <button class="event-tab-btn fd-quick-btn" type="button" aria-expanded="false" data-event-filter="categories" data-i18n="filters.byCategory">Category</button>
-        <button class="event-tab-btn fd-quick-btn" type="button" aria-expanded="false" data-event-filter="denominations" data-i18n="filters.byDenomination">Denomination</button>
-        <button class="event-tab-btn fd-quick-btn fd-quick-toggle" type="button" data-fd-followed="events" data-i18n-title="filters.followed" title="Followed" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M12 20.5l-7.1-7.1a4.6 4.6 0 0 1 6.5-6.5l.6.6.6-.6a4.6 4.6 0 0 1 6.5 6.5z"/></svg></button>
-        <button class="event-tab-btn fd-quick-btn fd-quick-toggle" type="button" data-fd-home="events" data-i18n-title="filters.faithHome" title="Faith Home" aria-pressed="false" style="display:none;"><svg viewBox="0 0 24 24"><path d="M12 3.4L3.6 10.4V20a1 1 0 0 0 1 1h4.9v-5.4h5V21h4.9a1 1 0 0 0 1-1v-9.6z"/></svg></button>
-      </div>
-    </div>
-    <div class="fd-filter-chips" data-fd-filter-chips="events" hidden></div>
     <div class="event-tab-row fd-quick-row">
       <button class="event-tab-btn active" id="event-tab-all" data-event-tab="all" data-i18n="events.tabAll">All</button>
       <button class="event-tab-btn" id="event-tab-today" data-event-tab="today" data-i18n="events.tabToday">Today</button>
@@ -9409,16 +9396,6 @@
            shell's own -- a group's denomination is its host church's,
            so the control is the churches one rather than a second copy
            that could disagree with it. -->
-      <div class="event-tab-row fd-quick-row fd-filter-row" id="group-filter-row">
-        <div class="fd-quick-end">
-          <button class="event-tab-btn fd-quick-btn" type="button" aria-expanded="false" data-group-filter="location" data-i18n="filters.byLocation">Location</button>
-          <button class="event-tab-btn fd-quick-btn" type="button" aria-expanded="false" data-group-tab="categories" data-i18n="filters.byCategory">Category</button>
-          <button class="event-tab-btn fd-quick-btn" type="button" aria-expanded="false" data-group-filter="denominations" data-i18n="filters.byDenomination">Denomination</button>
-          <button class="event-tab-btn fd-quick-btn fd-quick-toggle" type="button" data-fd-followed="groups" data-i18n-title="filters.followed" title="Followed" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M12 20.5l-7.1-7.1a4.6 4.6 0 0 1 6.5-6.5l.6.6.6-.6a4.6 4.6 0 0 1 6.5 6.5z"/></svg></button>
-          <button class="event-tab-btn fd-quick-btn fd-quick-toggle" type="button" data-fd-home="groups" data-i18n-title="filters.faithHome" title="Faith Home" aria-pressed="false" style="display:none;"><svg viewBox="0 0 24 24"><path d="M12 3.4L3.6 10.4V20a1 1 0 0 0 1 1h4.9v-5.4h5V21h4.9a1 1 0 0 0 1-1v-9.6z"/></svg></button>
-        </div>
-      </div>
-      <div class="fd-filter-chips" data-fd-filter-chips="groups" hidden></div>
       <div class="event-tab-row fd-quick-row" id="group-tab-row">
         <button class="event-tab-btn active" type="button" data-group-date="all" data-i18n="filters.all">All</button>
         <button class="event-tab-btn" type="button" data-group-date="today" data-i18n="events.tabToday">Today</button>
@@ -13672,7 +13649,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-10-01-v449 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-10-01-v450 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -15568,7 +15545,9 @@
         + ' aria-label="' + escapeHtml(window.t('filters.removeFilter')) + '">' + FD_CHIP_X + '</button></span>';
     });
     for (var h = 0; h < hosts.length; h++) {
-      var scope = hosts[h].getAttribute('data-fd-filter-chips') || 'churches';
+      // One host per place the chips are shown, and all of them belong
+      // to whichever tab is on -- the filters are the shell's.
+      var scope = (typeof fdBrowseTab === 'string') ? fdBrowseTab : 'churches';
       var mine = parts.concat(scope === 'groups' ? groupTagParts
         : (scope === 'events' ? [] : churchCatParts));
       if (datePart && scope !== 'churches') mine = [datePart].concat(mine);
@@ -15707,9 +15686,20 @@
     window.fdCategoriesEnabled = on;
     fdApplyCategoriesFlag();
   }
+  // Hidden only on Churches, where platform_flags.church_categories
+  // governs: Events and Groups have category lists of their own that
+  // the flag says nothing about. One button for three lists means it
+  // can no longer simply hide the button.
+  function fdSyncCategoryButton(){
+    var btn = document.querySelector('[data-fd-filter="categories"]');
+    if (!btn) return;
+    var onChurches = ((typeof fdBrowseTab === 'string') ? fdBrowseTab : 'churches') === 'churches';
+    btn.style.display = (window.fdCategoriesEnabled || !onChurches) ? '' : 'none';
+  }
+  window.fdSyncCategoryButton = fdSyncCategoryButton;
+
   function fdApplyCategoriesFlag(){
-    var btn = document.querySelector('[data-church-tab="categories"]');
-    if (btn) btn.style.display = window.fdCategoriesEnabled ? '' : 'none';
+    fdSyncCategoryButton();
     if (window.fdCategoriesEnabled) {
       fdRenderCategoryFilter();
     } else if (fdChosenCategories().length) {
@@ -15736,12 +15726,19 @@
     var byCat = (window.fdChosenCategories ? window.fdChosenCategories().length : 0) > 0;
     var fb = document.getElementById('dir-filter-followed-churches');
     var faithHome = !!(fb && fb.checked);
-    var d = document.querySelector('[data-church-tab="denominations"]');
+    var d = document.querySelector('[data-fd-filter="denominations"]');
     if (d) d.classList.toggle('fd-quick-on', byDenom);
-    var c = document.querySelector('[data-church-tab="categories"]');
+    // Category is lit by whichever list the tab on screen is using.
+    var tabNow = (typeof fdBrowseTab === 'string') ? fdBrowseTab : 'churches';
+    if (tabNow === 'events') {
+      var ec = document.querySelectorAll('.category-filter'), ecOff = 0;
+      for (var ei = 0; ei < ec.length; ei++) if (!ec[ei].checked) ecOff++;
+      byCat = ecOff > 0;
+    } else if (tabNow === 'groups') {
+      byCat = (typeof fdChosenGroupTags === 'function') && fdChosenGroupTags().length > 0;
+    }
+    var c = document.querySelector('[data-fd-filter="categories"]');
     if (c) c.classList.toggle('fd-quick-on', byCat);
-    var f = document.querySelector('[data-church-tab="faith-home"]');
-    if (f) f.classList.toggle('active', faithHome);
     // Location lights like the other two. It was the only one of the
     // three that stayed grey while narrowing the list, because its
     // state lives in dirUserLat/Lng rather than in a checkbox.
@@ -15752,8 +15749,9 @@
     // source the "Near ..." line reads, so the button and the sentence
     // now agree: if one is there, so is the other.
     var locEl = document.getElementById('dir-location-input');
-    var l = document.querySelector('[data-church-tab="location"]');
+    var l = document.querySelector('[data-fd-filter="location"]');
     if (l) l.classList.toggle('fd-quick-on', !!(locEl && locEl.value.trim()));
+    fdSyncCategoryButton();
     if (typeof window.fdSyncFollowedButtons === 'function') window.fdSyncFollowedButtons();
   }
   window.fdSyncQuickButtons = fdSyncQuickButtons;
@@ -15857,8 +15855,8 @@
   function fdClearFaithHome(){
     var fb = document.getElementById('dir-filter-followed-churches');
     if (fb && fb.checked) { fb.checked = false; fb.dispatchEvent(new Event('change', { bubbles: true })); }
-    var fh = document.querySelector('[data-church-tab="faith-home"]');
-    if (fh) fh.classList.remove('active');
+    var fh = document.querySelector('[data-fd-home]');
+    if (fh) fh.classList.remove('fd-quick-on');
   }
   // Everything the browse shell is narrowing by, cleared. Called when
   // the signed-in person changes.
@@ -16169,9 +16167,10 @@
     // A control that owns an overlay is never an outside tap, whichever
     // overlay is currently up.
     if (t.closest('.filter-panel')) return;
-    if (t.closest('[data-church-tab]')) return;
+    if (t.closest('[data-fd-filter]')) return;
     if (t.closest('#dir-filter-icon-btn')) return;
     if (t.closest('#events-dates-btn')) return;
+    if (t.closest('#groups-dates-btn')) return;
     if (nav && nav.contains(t)) return;
     if (burger && burger.contains(t)) return;
     if (filterOpen) { fdCloseFilterPanels(); fdSyncFilterHistory(); }
@@ -16181,84 +16180,18 @@
     ev.stopImmediatePropagation();
   }, true);
 
-  (function wireChurchTabs(){
-    function panel(){
-      return document.querySelector('.filter-panel[data-filter-for="churches"]');
-    }
-    function openScoped(cls, btn){
-      var pn = panel();
-      if (!pn) return;
-      var already = pn.classList.contains(cls);
-      // Shuts the map's own filter window too, so the two cannot stack.
-      fdCloseFilterPanels();
-      if (!already) {
-        pn.classList.add(cls);
-        btn.setAttribute('aria-expanded', 'true');
-        var row = btn.closest('.event-tab-row');
-        if (row && pn.offsetParent) pn.style.top = (row.offsetTop + row.offsetHeight + 6) + 'px';
-        fdRenderFilterChips();
-      }
-      fdSyncFilterHistory();
-    }
-    document.addEventListener('click', function(ev){
-      var btn = ev.target.closest && ev.target.closest('[data-church-tab]');
-      if (!btn) return;
-      ev.preventDefault();
-      ev.stopPropagation();
-      var which = btn.getAttribute('data-church-tab');
-      if (which === 'denominations') { openScoped('fd-denoms-open', btn); return; }
-      if (which === 'categories')    { openScoped('fd-cats-open', btn); return; }
-      if (which === 'location') {
-        openScoped('fd-loc-open', btn);
-        var li = document.getElementById('filter-location-input');
-        if (li) setTimeout(function(){ li.focus(); }, 60);
-        return;
-      }
-      fdCloseFilterPanels();
-      fdSyncFilterHistory();
-      if (which === 'all') {
-        // Back to every church: the denominations all on, no tags, no
-        // Faith Home. One button that undoes whichever of the three was
-        // used, which is the only thing All can usefully mean.
-        fdRestoreAllDenoms();
-        fdClearFaithHome();
-        var cats = document.querySelectorAll('.fd-cat-filter:checked');
-        for (var ai = 0; ai < cats.length; ai++) cats[ai].checked = false;
-        window.fdCategoryChurchIds = null;
-        fdRenderFilterChips();
-        if (typeof window.renderDirectory === 'function') window.renderDirectory();
-        return;
-      }
-      if (which !== 'faith-home') return;
-      // Faith Home is the one that toggles: pressing it again is how you
-      // get back to every church, now that there is no All to press.
-      var followed = document.getElementById('dir-filter-followed-churches');
-      var on = !btn.classList.contains('active');
-      if (followed && followed.checked !== on) {
-        followed.checked = on;
-        followed.dispatchEvent(new Event('change', { bubbles: true }));
-      }
-      // The mark comes from fdSyncQuickButtons reading the checkbox, not
-      // from here, so All and Faith Home cannot disagree about which of
-      // them is lit.
-      fdRenderFilterChips();
-      if (typeof window.renderDirectory === 'function') window.renderDirectory();
-    });
-  })();
+  // wireChurchTabs lived here, wiring the churches copy of the filter
+  // row. There is one row now and one handler below; [data-church-tab]
+  // belongs to the church profile's tab strip alone again.
 
-  // Location and Denomination on the Events and Groups rows.
+  // The one filter row, for all three tabs.
   //
-  // Location opens the CHURCHES panel's By Location view, because there
-  // is one location in this shell -- dirUserLat/dirUserLng, which the
-  // events search already reads and which loadGroupsSearch now reads
-  // too. A second location field per tab would be two controls for one
-  // fact, and they would disagree the moment anyone used both.
-  //
-  // Denomination differs by tab: Events has its own checkbox list that
-  // search_events resolves to church ids, so it opens the events panel;
-  // Groups has none, and a group's denomination IS its host church's,
-  // so it opens the churches list and loadGroupsSearch reads the same
-  // boxes. Nothing is duplicated, so nothing can fall out of step.
+  // Location and Denomination open the same window whichever tab is
+  // on, because there is one of each in this shell: dirUserLat/Lng,
+  // and the churches denomination boxes that renderEvents and
+  // loadGroupsSearch both read. Category is the only one whose window
+  // depends on the tab, because it is the only one asking about a
+  // different kind of thing on each.
   //
   // Only reachable at <=980, where wireMobileDirectory has moved every
   // panel up to be a child of #page-directory. Above that the panels
@@ -16279,26 +16212,36 @@
       fdSyncFilterHistory();
     }
     document.addEventListener('click', function(ev){
-      var btn = ev.target.closest && ev.target.closest('[data-event-filter],[data-group-filter]');
+      var btn = ev.target.closest && ev.target.closest('[data-fd-filter]');
       if (!btn) return;
       ev.preventDefault();
       ev.stopPropagation();
-      var which = btn.getAttribute('data-event-filter') || btn.getAttribute('data-group-filter');
+      var which = btn.getAttribute('data-fd-filter');
+      // Location and Denomination are the shell's, and there is one of
+      // each, so they always open the same window.
       if (which === 'location') {
         openOn('.filter-panel[data-filter-for="churches"]', 'fd-loc-open', btn);
         var li = document.getElementById('filter-location-input');
         if (li) setTimeout(function(){ li.focus(); }, 60);
         return;
       }
-      if (which === 'categories') {
-        // Only Events arrives here: Groups' Category button is still
-        // data-group-tab, wired with the rest of that row.
-        openOn('.filter-panel[data-filter-for="events"]', 'fd-ecats-open', btn);
+      if (which === 'denominations') {
+        openOn('.filter-panel[data-filter-for="churches"]', 'fd-denoms-open', btn);
         return;
       }
-      if (which !== 'denominations') return;
-      // Both tabs open the same list now -- see renderEvents.
-      openOn('.filter-panel[data-filter-for="churches"]', 'fd-denoms-open', btn);
+      if (which !== 'categories') return;
+      // Category is the one that genuinely differs: three different
+      // lists of three different things. The button is the same; what
+      // is behind it is not.
+      var tab = (typeof fdBrowseTab === 'string') ? fdBrowseTab : 'churches';
+      if (tab === 'events') {
+        openOn('.filter-panel[data-filter-for="events"]', 'fd-ecats-open', btn);
+      } else if (tab === 'groups') {
+        if (typeof fdRenderGroupFilter === 'function') fdRenderGroupFilter();
+        openOn('.filter-panel[data-filter-for="groups"]', 'open', btn);
+      } else {
+        openOn('.filter-panel[data-filter-for="churches"]', 'fd-cats-open', btn);
+      }
     });
   })();
 
@@ -16582,7 +16525,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-10-01-v449',
+      'build 2026-10-01-v450',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -22980,21 +22923,11 @@
 
     var locEl = document.getElementById('dir-location-input');
     var locv = locEl ? locEl.value.trim() : '';
-    var lb = document.querySelector('[data-event-filter="location"]');
-    if (lb) lb.classList.toggle('fd-quick-on', !!locv);
+
 
     var boxes = document.querySelectorAll('#filter-denom-checks .denom-filter');
     var off = 0;
     for (var i = 0; i < boxes.length; i++) if (!boxes[i].checked) off++;
-    var dbn = document.querySelector('[data-event-filter="denominations"]');
-    if (dbn) dbn.classList.toggle('fd-quick-on', off > 0);
-
-    var cats = document.querySelectorAll('.category-filter');
-    var catsOff = 0;
-    for (var ci = 0; ci < cats.length; ci++) if (!cats[ci].checked) catsOff++;
-    var cbn = document.querySelector('[data-event-filter="categories"]');
-    if (cbn) cbn.classList.toggle('fd-quick-on', catsOff > 0);
-
     if (typeof window.fdSyncFollowedButtons === 'function') window.fdSyncFollowedButtons();
 
     if (window.fdRenderFilterChips) window.fdRenderFilterChips();
@@ -23808,16 +23741,10 @@
 
   function fdRenderGroupChips(){
     var picked = fdChosenGroupTags();
-    var catBtn = document.querySelector('[data-group-tab="categories"]');
-    if (catBtn) catBtn.classList.toggle('fd-quick-on', !!picked.length);
+    // The row's marks are fdSyncQuickButtons' job now -- one row, one
+    // place that reads it.
     if (typeof fdSyncDateTabs === 'function') fdSyncDateTabs();
-    // The other three in the row read the same sources their windows
-    // write to, so the marks cannot disagree with the list.
-    var locEl = document.getElementById('dir-location-input');
-    var glb = document.querySelector('[data-group-filter="location"]');
-    if (glb) glb.classList.toggle('fd-quick-on', !!(locEl && locEl.value.trim()));
-    var gdb = document.querySelector('[data-group-filter="denominations"]');
-    if (gdb) gdb.classList.toggle('fd-quick-on', typeof fdDenomUncheckedCount === 'function' && fdDenomUncheckedCount() > 0);
+    if (typeof fdSyncQuickButtons === 'function') fdSyncQuickButtons();
     if (window.fdRenderSearchSummary) window.fdRenderSearchSummary();
     if (typeof window.fdSyncFollowedButtons === 'function') window.fdSyncFollowedButtons();
     fdRenderFilterChips();
@@ -23913,26 +23840,6 @@
       btn.setAttribute('aria-expanded', 'true');
       var row = btn.closest('.event-tab-row');
       if (row && panel.offsetParent) panel.style.top = (row.offsetTop + row.offsetHeight + 6) + 'px';
-    }
-    if (window.fdSyncFilterHistory) window.fdSyncFilterHistory();
-  });
-
-  // The groups row: By Category opens the groups panel.
-  document.addEventListener('click', function(ev){
-    var btn = ev.target.closest && ev.target.closest('[data-group-tab]');
-    if (!btn) return;
-    ev.preventDefault();
-    ev.stopPropagation();
-    var which = btn.getAttribute('data-group-tab');
-    var pn = document.querySelector('.filter-panel[data-filter-for="groups"]');
-    fdRenderGroupFilter();
-    var already = pn && pn.classList.contains('open');
-    if (window.fdCloseFilterPanels) window.fdCloseFilterPanels();
-    if (pn && !already) {
-      pn.classList.add('open');
-      btn.setAttribute('aria-expanded', 'true');
-      var row = btn.closest('.event-tab-row');
-      if (row && pn.offsetParent) pn.style.top = (row.offsetTop + row.offsetHeight + 6) + 'px';
     }
     if (window.fdSyncFilterHistory) window.fdSyncFilterHistory();
   });
@@ -26496,6 +26403,10 @@
     // implementation is the only way that stays true.
     window.fdLocationLabel = label;
     window.fdPaintLocationHeadings();
+    // The chips read this field, so they have to be told it changed.
+    // No query behind it -- see the comment above this function for
+    // why that distinction is the whole point.
+    if (window.fdRenderFilterChips) window.fdRenderFilterChips();
   }
   window.applyDirLocationLabel = applyDirLocationLabel;
   // Renames the place already being searched, without searching again.
