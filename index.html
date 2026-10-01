@@ -9056,7 +9056,7 @@
              off. Built by fdRenderFilterChips from the same checkboxes
              the search reads, so there is nothing here to keep in step
              by hand. Empty and hidden when nothing is narrowing it. -->
-        <div id="dir-filter-chips" class="fd-filter-chips" hidden></div>
+        <div id="dir-filter-chips" class="fd-filter-chips" data-fd-filter-chips="churches" hidden></div>
         <button type="button" class="filter-panel-toggle" id="dir-filter-toggle" aria-expanded="false" aria-controls="dir-filter-body">
           <span data-i18n="filters.filterSearches">Filter searches</span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
@@ -9354,7 +9354,7 @@
         <!-- Everything currently narrowing the list, in the sheet where
              the results are, not only inside the filter window you would
              have to open to see it. Same chips, same x, one renderer. -->
-        <div class="fd-filter-chips" data-fd-filter-chips hidden></div>
+        <div class="fd-filter-chips" data-fd-filter-chips="churches" hidden></div>
         <!-- Shown until the first result set lands. The sheet used to
              open on nothing at all for as long as the query took, which
              read as "no churches here" rather than as "not yet". Removed
@@ -9390,6 +9390,7 @@
       </div>
     </div>
     <div class="fd-search-summary fd-events-summary" id="events-search-summary" hidden></div>
+    <div class="fd-filter-chips" data-fd-filter-chips="events" hidden></div>
     <div class="event-tab-row fd-quick-row">
       <button class="event-tab-btn active" id="event-tab-all" data-event-tab="all" data-i18n="events.tabAll">All</button>
       <button class="event-tab-btn" id="event-tab-today" data-event-tab="today" data-i18n="events.tabToday">Today</button>
@@ -9436,11 +9437,11 @@
           <button class="event-tab-btn fd-quick-btn fd-quick-toggle" type="button" data-fd-home="groups" data-i18n-title="filters.faithHome" title="Faith Home" aria-pressed="false" style="display:none;"><svg viewBox="0 0 24 24"><path d="M12 3.4L3.6 10.4V20a1 1 0 0 0 1 1h4.9v-5.4h5V21h4.9a1 1 0 0 0 1-1v-9.6z"/></svg></button>
         </div>
       </div>
+      <div class="fd-search-summary" id="groups-search-summary" hidden></div>
+      <div class="fd-filter-chips" data-fd-filter-chips="groups" hidden></div>
       <div class="event-tab-row fd-quick-row" id="group-tab-row">
         <button class="event-tab-btn active" type="button" data-group-tab="all" data-i18n="filters.all">All</button>
       </div>
-      <div class="fd-search-summary" id="groups-search-summary" hidden></div>
-      <div class="fd-filter-chips" data-fd-group-chips hidden></div>
       <div id="groups-results" style="margin-top:16px;">
         <p style="color:var(--ink-mute);font-size:14px;" data-i18n="common.loading">Loading...</p>
       </div>
@@ -13686,7 +13687,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-10-01-v444 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-10-01-v445 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -15513,8 +15514,14 @@
     // Every host, not just the one in the filter panel: the sheet shows
     // the same chips under the quick row, so what is narrowing the list
     // is visible without opening the window that set it.
-    var hosts = document.querySelectorAll('#dir-filter-chips, [data-fd-filter-chips]');
+    var hosts = document.querySelectorAll('[data-fd-filter-chips]');
     if (!hosts.length) return;
+    // Shared first. The keyword, the denomination, Following and Faith
+    // Home are the shell's, not one tab's -- they carry across, so
+    // their chips have to as well, or a filter you set on Churches is
+    // invisible the moment you look at Events. What is NOT shared is
+    // appended per host below: church categories belong to churches
+    // and group tags to groups.
     var parts = [];
     // The keyword is a filter too, and it was the odd one out -- said
     // in a sentence above the results while everything else was a chip
@@ -15533,11 +15540,6 @@
         + '<button type="button" data-chip-denom="' + escapeHtml(c.value) + '"'
         + ' aria-label="' + escapeHtml(window.t('filters.removeFilter')) + '">' + FD_CHIP_X + '</button></span>');
     });
-    fdChosenCategories().forEach(function(slug){
-      parts.push('<span class="fd-filter-chip fd-chip-hue" style="--chip-hue:' + fdTagHue(slug) + ';">' + escapeHtml(window.fdChurchTagLabel(slug))
-        + '<button type="button" data-chip-cat="' + escapeHtml(slug) + '"'
-        + ' aria-label="' + escapeHtml(window.t('filters.removeFilter')) + '">' + FD_CHIP_X + '</button></span>');
-    });
     var followed = document.getElementById('dir-filter-followed-churches');
     if (followed && followed.checked) {
       parts.push('<span class="fd-filter-chip">' + escapeHtml(window.t('filters.following'))
@@ -15550,15 +15552,28 @@
         + ' aria-label="' + escapeHtml(window.t('filters.removeFilter')) + '">' + FD_CHIP_X + '</button></span>');
     }
     fdSyncQuickButtons();
-    if (parts.length > 1) {
-      parts.push('<button type="button" class="fd-filter-chip-clear" data-chip-clear="1">'
-        + escapeHtml(window.t('filters.clearAll')) + '</button>');
-    }
-    var html = parts.join('');
+    // The tab-specific ones.
+    var churchCatParts = fdChosenCategories().map(function(slug){
+      return '<span class="fd-filter-chip fd-chip-hue" style="--chip-hue:' + fdTagHue(slug) + ';">' + escapeHtml(window.fdChurchTagLabel(slug))
+        + '<button type="button" data-chip-cat="' + escapeHtml(slug) + '"'
+        + ' aria-label="' + escapeHtml(window.t('filters.removeFilter')) + '">' + FD_CHIP_X + '</button></span>';
+    });
+    var groupTagParts = (typeof fdChosenGroupTags === 'function' ? fdChosenGroupTags() : []).map(function(slug){
+      return '<span class="fd-filter-chip fd-chip-hue" style="--chip-hue:' + fdTagHue(slug) + ';">' + escapeHtml(window.fdGroupTagLabel(slug))
+        + '<button type="button" data-gchip="' + escapeHtml(slug) + '"'
+        + ' aria-label="' + escapeHtml(window.t('filters.removeFilter')) + '">' + FD_CHIP_X + '</button></span>';
+    });
     for (var h = 0; h < hosts.length; h++) {
-      hosts[h].innerHTML = parts.length ? html : '';
-      hosts[h].hidden = !parts.length;
-      if (parts.length && !hosts[h].dataset.fdChipsWired) {
+      var scope = hosts[h].getAttribute('data-fd-filter-chips') || 'churches';
+      var mine = parts.concat(scope === 'groups' ? groupTagParts
+        : (scope === 'events' ? [] : churchCatParts));
+      if (mine.length > 1) {
+        mine = mine.concat('<button type="button" class="fd-filter-chip-clear" data-chip-clear="1">'
+          + escapeHtml(window.t('filters.clearAll')) + '</button>');
+      }
+      hosts[h].innerHTML = mine.length ? mine.join('') : '';
+      hosts[h].hidden = !mine.length;
+      if (mine.length && !hosts[h].dataset.fdChipsWired) {
         hosts[h].dataset.fdChipsWired = '1';
         hosts[h].addEventListener('click', fdHandleChipClick);
       }
@@ -15884,11 +15899,28 @@
     var cats = document.querySelectorAll('.fd-cat-filter:checked');
     for (var ci = 0; ci < cats.length; ci++) cats[ci].checked = false;
     window.fdCategoryChurchIds = null;
+    var gcats = document.querySelectorAll('.fd-gcat-filter:checked');
+    for (var gi = 0; gi < gcats.length; gi++) gcats[gi].checked = false;
+    window.fdGroupTagFilter = null;
+    if (typeof fdSetFollowedState === 'function') fdSetFollowedState(false);
+    if (typeof fdSetHomeState === 'function') fdSetHomeState(false);
+    if (typeof fdSyncFollowedButtons === 'function') fdSyncFollowedButtons();
     fdRenderFilterChips();
   }
   window.fdClearAllChurchFilters = fdClearAllChurchFilters;
 
   function fdHandleChipClick(ev){
+    var xg = ev.target.closest && ev.target.closest('[data-gchip]');
+    if (xg) {
+      ev.preventDefault(); ev.stopPropagation();
+      var gslug = xg.getAttribute('data-gchip');
+      var gboxes = document.querySelectorAll('.fd-gcat-filter');
+      for (var gi = 0; gi < gboxes.length; gi++) {
+        if (gboxes[gi].value === gslug) gboxes[gi].checked = false;
+      }
+      if (typeof window.fdApplyGroupTagFilter === 'function') window.fdApplyGroupTagFilter();
+      return;
+    }
     var xd = ev.target.closest && ev.target.closest('[data-chip-denom]');
     if (xd) {
       ev.preventDefault(); ev.stopPropagation();
@@ -15907,8 +15939,8 @@
       }
       if (fdChosenDenoms().length === 0) fdRestoreAllDenoms();
       if (typeof window.updateDenomDropdownLabel === 'function') window.updateDenomDropdownLabel();
-      fdRenderFilterChips();
-      if (typeof window.renderDirectory === 'function') window.renderDirectory();
+      // Three lists read these boxes now.
+      fdRerunAllBrowse();
       return;
     }
     var xc = ev.target.closest && ev.target.closest('[data-chip-cat]');
@@ -15926,9 +15958,8 @@
         kwi.value = '';
         if (typeof window.syncDirKeywordClearBtn === 'function') window.syncDirKeywordClearBtn();
       }
-      fdRenderFilterChips();
       if (window.fdRenderSearchSummary) window.fdRenderSearchSummary();
-      if (typeof window.renderDirectory === 'function') window.renderDirectory();
+      fdRerunAllBrowse();
       return;
     }
     if (ev.target.closest && ev.target.closest('[data-chip-home]')) {
@@ -15948,7 +15979,7 @@
     if (ev.target.closest && ev.target.closest('[data-chip-clear]')) {
       ev.preventDefault(); ev.stopPropagation();
       fdClearAllChurchFilters();
-      if (typeof window.renderDirectory === 'function') window.renderDirectory();
+      fdRerunAllBrowse();
     }
   }
 
@@ -16528,7 +16559,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-10-01-v444',
+      'build 2026-10-01-v445',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -23767,8 +23798,6 @@
   window.fdApplyGroupTagFilter = fdApplyGroupTagFilter;
 
   function fdRenderGroupChips(){
-    var host = document.querySelector('[data-fd-group-chips]');
-    if (!host) return;
     var picked = fdChosenGroupTags();
     var allBtn = document.querySelector('[data-group-tab="all"]');
     var catBtn = document.querySelector('[data-group-tab="categories"]');
@@ -23785,33 +23814,7 @@
       fdPaintSummary(document.getElementById('groups-search-summary'), fdSummaryParts({}));
     }
     if (typeof window.fdSyncFollowedButtons === 'function') window.fdSyncFollowedButtons();
-    if (!picked.length) { host.hidden = true; host.innerHTML = ''; return; }
-    var parts = picked.map(function(slug){
-      return '<span class="fd-filter-chip fd-chip-hue" style="--chip-hue:' + fdTagHue(slug) + ';">' + escapeHtml(window.fdGroupTagLabel(slug))
-        + '<button type="button" data-gchip="' + escapeHtml(slug) + '"'
-        + ' aria-label="' + escapeHtml(window.t('filters.removeFilter')) + '">' + FD_CHIP_X + '</button></span>';
-    });
-    if (parts.length > 1) {
-      parts.push('<button type="button" class="fd-filter-chip-clear" data-gchip-clear="1">'
-        + escapeHtml(window.t('filters.clearAll')) + '</button>');
-    }
-    host.innerHTML = parts.join('');
-    host.hidden = false;
-    if (!host.dataset.fdWired) {
-      host.dataset.fdWired = '1';
-      host.addEventListener('click', function(ev){
-        var one = ev.target.closest && ev.target.closest('[data-gchip]');
-        var all = ev.target.closest && ev.target.closest('[data-gchip-clear]');
-        if (!one && !all) return;
-        ev.preventDefault();
-        ev.stopPropagation();
-        var boxes = document.querySelectorAll('.fd-gcat-filter');
-        for (var i = 0; i < boxes.length; i++) {
-          if (all || boxes[i].value === one.getAttribute('data-gchip')) boxes[i].checked = false;
-        }
-        fdApplyGroupTagFilter();
-      });
-    }
+    fdRenderFilterChips();
   }
   window.fdRenderGroupChips = fdRenderGroupChips;
 
