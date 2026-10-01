@@ -7930,12 +7930,33 @@
   /* Directions rides the distance line now, so it is one of the row's
      items rather than a block under it. */
   .meta-row .dir-card-directions{margin-left:10px;}
-  /* A marker, not a button: there is nothing to press. */
+  /* Beside the name, not in the row of controls: a mark saying this
+     one is yours. Solid gold, and sized to the text rather than to
+     the buttons it used to sit with. */
   .fd-home-badge{
     display:inline-flex;align-items:center;justify-content:center;
-    width:34px;height:34px;flex-shrink:0;color:var(--gold-ink);
+    width:17px;height:17px;flex-shrink:0;color:var(--gold);
+    margin-left:6px;vertical-align:-2px;
   }
-  .fd-home-badge svg{width:19px;height:19px;}
+  .fd-home-badge svg{width:15px;height:15px;display:block;}
+  /* A name and its mark travel together. */
+  .fd-nowrap{white-space:nowrap;}
+
+  /* Share: a mark, not a button -- no border and no fill, so it does
+     not compete with the card it sits on. Same 34px touch box the
+     heart has, so the two are the same size to a thumb. */
+  .dir-card-share{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:34px;height:34px;flex-shrink:0;cursor:pointer;
+    color:#8A8A8A;-webkit-tap-highlight-color:transparent;
+  }
+  .dir-card-share svg{width:17px;height:17px;}
+  .dir-card-share:hover{color:var(--ink);}
+  /* Copied: the mark goes gold and swaps to a tick for a moment. */
+  .dir-card-share.is-copied{color:var(--gold-ink);}
+  .dir-card-share.is-copied svg{display:none;}
+  .dir-card-share.is-copied::after{content:'✓';font-size:15px;font-weight:700;}
+  html[data-theme="dark"] .dir-card-share{color:var(--gold);}
   /* Not bold and not underlined. It sits on the distance line beside
      the fact it belongs to, and at 600 with a rule under it the one
      word outweighed the church's own name. The gold still says it is
@@ -13501,7 +13522,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-10-01-v434 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-10-01-v435 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -14109,13 +14130,41 @@
   // A quiet marker, not a control: this is the reader's own Church
   // Home and there is nothing to press. Drawn next to the heart so the
   // two facts about your relationship with a church sit together.
+  // Solid rather than drawn, and half the size it was: beside a name
+  // it is a mark, not an icon in a row of icons, and an outline at
+  // 34px read as a third control sitting next to the heart.
   function fdChurchHomeBadge(c){
     if (!c || !c.id || !window.myChurchHomeId || window.myChurchHomeId !== c.id) return '';
     var label = window.t('churchHome.thisIsYourChurchHome');
     return '<span class="fd-home-badge" title="' + escapeHtml(label) + '" aria-label="' + escapeHtml(label) + '">'
-      + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V21h14V9.8"/></svg></span>';
+      + '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3 2.5 10.6V21h7v-5.5h5V21h7V10.6L12 3z"/></svg></span>';
   }
   window.fdChurchHomeBadge = fdChurchHomeBadge;
+
+  // A name with a mark bound to its last word, so the mark can never
+  // wrap onto a line of its own. Same reasoning as the partner tick
+  // inside the profile card's h1, and the same fix.
+  function fdNameWithMark(name, markHtml){
+    if (!markHtml) return escapeHtml(name);
+    var cut = String(name).lastIndexOf(' ');
+    if (cut <= 0) return '<span class="fd-nowrap">' + escapeHtml(name) + markHtml + '</span>';
+    return escapeHtml(name.slice(0, cut + 1))
+      + '<span class="fd-nowrap">' + escapeHtml(name.slice(cut + 1)) + markHtml + '</span>';
+  }
+  window.fdNameWithMark = fdNameWithMark;
+
+  // Share, as a plain clickable mark rather than a button: it sits in
+  // a row of marks on a card, and a bordered control there would
+  // compete with the card itself.
+  function fdShareHtml(c){
+    if (!c || !c.name) return '';
+    var label = window.t('church.share');
+    return '<span class="dir-card-share" role="button" tabindex="0"'
+      + ' data-fd-share="' + escapeHtml(c.name) + '"'
+      + ' title="' + escapeHtml(label) + '" aria-label="' + escapeHtml(label) + '">'
+      + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg></span>';
+  }
+  window.fdShareHtml = fdShareHtml;
 
   function followHeartRow(c){
     if (!c || !c.real || !c.id) return '';
@@ -14202,7 +14251,7 @@
     var inner = ''
       + thumb
       + '<div class="card-body">'
-      + '<h3>' + escapeHtml(displayChurchName(c.name)) + '</h3>'
+      + '<h3>' + fdNameWithMark(displayChurchName(c.name), fdChurchHomeBadge(c)) + '</h3>'
       + '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/></svg><span>' + escapeHtml(distText) + '</span>'
       + fdDirectionsHtml(c) + '</div>'
       + '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><span>' + escapeHtml(fdBindTimeMeridiem(formatChurchNextText(c.next, (c.rawServiceTimes || []).length))) + '</span></div>'
@@ -14215,8 +14264,8 @@
       // will need when they arrive.
       + '<div class="dir-card-foot">'
       + '<div class="card-tags"><span class="tag sage">' + escapeHtml(translateDenomination(c.tag)) + '</span></div>'
-      + fdChurchHomeBadge(c)
       + badge
+      + fdShareHtml(c)
       + '</div>';
     if(clickable){
       // The href is encodeURIComponent'd (already safe), but
@@ -14252,7 +14301,7 @@
     var inner = ''
       + '<div class="church-row-main">'
       + '<div class="church-row-head">'
-      + '<span class="church-row-name">' + escapeHtml(displayChurchName(c.name)) + '</span>'
+      + '<span class="church-row-name">' + fdNameWithMark(displayChurchName(c.name), fdChurchHomeBadge(c)) + '</span>'
       + '<span class="tag sage">' + escapeHtml(translateDenomination(c.tag)) + '</span>'
       + '</div>'
       + (bits.length ? '<div class="church-row-meta">' + bits.join('') + '</div>' : '')
@@ -14263,8 +14312,8 @@
       // second one inside it was the same destination twice.
       + (fdDirectionsHtml(c) ? '<div class="dir-card-actions">' + fdDirectionsHtml(c) + '</div>' : '')
       + '</div>'
-      + fdChurchHomeBadge(c)
-      + followHeartRow(c);
+      + followHeartRow(c)
+      + fdShareHtml(c);
     return '<a class="church-row" style="--thumb-hue:' + denomHue(c.tag) + ';" href="#church/' + encodeURIComponent(c.name) + '" data-route="church" data-church-name="' + escapeHtml(c.name) + '">' + inner + '</a>';
   }
   window.churchRow = churchRow;
@@ -15599,6 +15648,46 @@
     if (window.fdEventsInfo) window.fdEventsInfo.close();
   }, true);
 
+  // Share, from a card. One routine, shared with the profile card's
+  // own button: the platform sheet where there is one, the clipboard
+  // everywhere else, and the link is the hash route the profile lives
+  // at so what arrives opens the church rather than the home page.
+  window.fdShareChurch = async function(churchName, markEl){
+    if (!churchName) return;
+    var url = location.origin + location.pathname + '#church/' + encodeURIComponent(churchName);
+    try {
+      if (navigator.share) { await navigator.share({ title: churchName, url: url }); return; }
+      await navigator.clipboard.writeText(url);
+      // The mark confirms itself for a moment. There is no toast
+      // helper in this app -- I assumed one and it would have left a
+      // copy with no feedback at all on desktop, where there is no
+      // share sheet to appear.
+      if (markEl) {
+        markEl.classList.add('is-copied');
+        markEl.title = window.t('church.linkCopied');
+        setTimeout(function(){
+          markEl.classList.remove('is-copied');
+          markEl.title = window.t('church.share');
+        }, 1400);
+      }
+    } catch (e) {
+      // A cancelled share sheet throws AbortError. Not a failure.
+    }
+  };
+
+  // Capture and stopped dead, for the same reason Directions is: the
+  // card is an <a>, and the phone's card handler is on document in
+  // capture too -- so without this, sharing would also open the
+  // church underneath it.
+  document.addEventListener('click', function(ev){
+    var el = ev.target.closest && ev.target.closest('[data-fd-share]');
+    if (!el) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    ev.stopImmediatePropagation();
+    window.fdShareChurch(el.getAttribute('data-fd-share'), el);
+  }, true);
+
   // Directions. Capture, and it stops the event: the card is an <a>
   // and the phone's card handler is on document in capture too, so a
   // tap here would otherwise also open the church.
@@ -16012,7 +16101,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-10-01-v434',
+      'build 2026-10-01-v435',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -26166,19 +26255,11 @@
       var nameEl = document.getElementById('church-name');
       var churchName = nameEl ? nameEl.textContent.trim() : '';
       if (!churchName) return;
-      var url = location.origin + location.pathname + '#church/' + encodeURIComponent(churchName);
-      var statusEl = document.getElementById('church-home-status');
-      try {
-        if (navigator.share) { await navigator.share({ title: churchName, url: url }); return; }
-        await navigator.clipboard.writeText(url);
-        if (statusEl) {
-          statusEl.textContent = window.t('church.linkCopied');
-          statusEl.style.color = 'var(--sage)';
-          statusEl.style.display = 'block';
-        }
-      } catch (e) {
-        // A cancelled share sheet throws AbortError, which is not a
-        // failure and must not be reported as one.
+      // The same routine the cards use, so there is one definition of
+      // what sharing a church means.
+      if (typeof window.fdShareChurch === 'function') {
+        await window.fdShareChurch(churchName);
+        return;
       }
     });
   }
