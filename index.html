@@ -5105,6 +5105,44 @@
      of where .field ends up in the stylesheet. */
   .search-field-wrap input.field{padding-left:38px;}
   .search-field-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--ink-mute);pointer-events:none;display:flex;}
+  /* One magnifier, not two. Typing used to reveal a SECOND gold circle
+     at the other end of the bar while this one sat there greyed --
+     now this one becomes the gold circle.
+
+     The 30px box and the input's 40px left padding are both on at
+     rest, so going gold changes a colour and nothing moves. Measured
+     first: the icon was 14px at left:8 with text starting at 32, so a
+     30px circle at left:4 ends at 34 and clears the text by 6.
+
+     After the mobile rule that sets left:8px, and at the same
+     specificity, so this wins on order. */
+  .hero-search-bar .search-field-icon{
+    left:4px;width:30px;height:30px;border-radius:50%;
+    align-items:center;justify-content:center;
+    transition:background-color .12s ease,color .12s ease;
+  }
+  .hero-search-bar input{padding-left:40px;}
+  /* Typing hides the decorative magnifier and puts the REAL submit
+     button in its place, as a gold circle the same size. One
+     magnifying glass either way, which is the point -- before this,
+     typing revealed a second one at the far end of the bar while this
+     one sat there greyed.
+     
+     The gold is on the button rather than on this span because the
+     span would not take a background at all -- not from a rule, and
+     not from an inline style either, with no !important anywhere that
+     matches it. el.matches() also returns false against every rule in
+     the sheet for it, including its own class, while those same rules
+     are plainly applying. Something on this page makes that one
+     element untrustworthy to style directly; the button has always
+     painted gold, so the button does the work. */
+  .hero-search-bar.fd-has-query .search-field-icon{display:none;}
+  .hero-search-bar{position:relative;}
+  .hero-search-bar > #hero-browse-btn{
+    position:absolute;left:10px;top:50%;transform:translateY(-50%);
+    width:30px;height:30px;margin-left:0;z-index:2;
+  }
+  .hero-search-bar > #hero-browse-btn svg{width:15px;height:15px;}
   .search-field-icon svg{width:16px;height:16px;}
   /* Clear ("x") button for the Directory/Events keyword AND location
      search fields specifically -- a dedicated class, not a blanket
@@ -6688,12 +6726,27 @@
      which is exactly where the close button sits, so the heart was
      rendering underneath it. Reported as "the heart doesn't show up
      even when logged in", and it was there the whole time. */
-  .church-hero-actions #church-follow-heart-slot{position:static;margin-left:auto;}
+  /* No margin-left:auto any more -- the heart is the fourth icon in
+     the row, not something pinned to the far end of it. */
+  .church-hero-actions #church-follow-heart-slot{position:static;}
+  /* The heart is drawn for the light page, so it needs the same
+     treatment the detail rows did to be visible on navy. */
+  .church-hero-actions .follow-heart-profile{
+    width:42px;height:42px;border:1px solid #566180;border-radius:10px;
+  }
+  .church-hero-actions .follow-heart-profile svg{width:19px;height:19px;stroke:#fff;}
+  .church-hero-actions .follow-heart-profile[data-following="true"] svg{fill:#F0A8C4;stroke:#F0A8C4;}
 
-  /* Details left, the two icon actions stacked on the right. */
-  .church-hero-contact{display:flex;align-items:flex-start;gap:14px;}
-  .church-hero-contact .church-hero-details{flex:1;min-width:0;}
-  .church-hero-quick{display:flex;flex-direction:column;gap:8px;flex-shrink:0;}
+  /* Church Home reads its state from data-state, which
+     checkChurchHomeStatus already sets, rather than from a label it no
+     longer has room for. */
+  #church-home-btn[data-state="is-home"]{
+    background:var(--gold);border-color:var(--gold);color:var(--brand);
+  }
+  #church-home-btn[data-state="pending"]{border-color:var(--gold);color:var(--gold);}
+  #church-home-btn:disabled{opacity:.45;cursor:default;}
+
+  /* All four actions on one row under the address. */
   .fd-icon-btn{
     width:42px;height:42px;display:inline-flex;align-items:center;justify-content:center;
     background:transparent;border:1px solid #566180;border-radius:10px;
@@ -9209,7 +9262,6 @@
              so this is the same two actions in none of the height.
              The labels survive as the tooltip and the accessible name,
              both still translated. -->
-        <div class="church-hero-contact">
         <div class="church-hero-details">
           <div class="info-row" id="church-service-times" style="display:none;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> </div>
           <div class="info-row" id="church-address"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/></svg> </div>
@@ -9220,16 +9272,17 @@
             <a id="church-instagram-link" href="#" target="_blank" rel="noopener noreferrer" style="display:none;color:var(--ink-mute);"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg></a>
           </div>
         </div>
-        <div class="church-hero-quick">
+      </div>
+      <!-- All four actions as icons on one row under the address.
+           Church Home is an icon too now, which is why its label is
+           carried on title/aria rather than as text: checkChurchHomeStatus
+           writes the label from five places and textContent would wipe
+           the svg. Its state is read from data-state, which that
+           function already sets. -->
+      <div class="church-hero-actions">
           <button type="button" class="fd-icon-btn" id="church-message-btn" onclick="openContactChurchModal()" data-i18n-title="church.message" title="Message" data-i18n-aria="church.message" aria-label="Message"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg></button>
           <button type="button" class="fd-icon-btn" id="church-top-give-btn" onclick="openRealGiveTab()" data-i18n-title="church.give" title="Give" data-i18n-aria="church.give" aria-label="Give"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12v9H4v-9"/><rect x="2" y="7" width="20" height="5" rx="1"/><path d="M12 21V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></button>
-        </div>
-        </div>
-      </div>
-      <!-- Church Home and the follow heart. Message and Give moved up
-           beside the address. -->
-      <div class="church-hero-actions">
-        <button class="export-btn" id="church-home-btn" data-i18n="churchHome.makeThisMyChurchHome">Make this my Church Home</button>
+        <button type="button" class="fd-icon-btn" id="church-home-btn" data-i18n-title="churchHome.makeThisMyChurchHome" title="Make this my Church Home" data-i18n-aria="churchHome.makeThisMyChurchHome" aria-label="Make this my Church Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V21h14V9.8"/><path d="M9.2 14.6l2 2 3.6-3.8"/></svg></button>
         <div id="church-follow-heart-slot"></div>
       </div>
       <!-- Leaving still gets its own control rather than being a
@@ -13364,7 +13417,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v426 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v427 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -15843,7 +15896,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-30-v426',
+      'build 2026-09-30-v427',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -23420,8 +23473,16 @@
   function fdSyncHeroSubmit(){
     var kw = document.getElementById('hero-keyword-input');
     var btn = document.getElementById('hero-browse-btn');
-    if (!kw || !btn) return;
-    btn.hidden = !kw.value.trim();
+    if (!kw) return;
+    var has = !!kw.value.trim();
+    // The bar's own magnifier is the submit now, so the separate
+    // circle at the far end stays hidden -- it was a second
+    // magnifying glass appearing beside the one already sitting
+    // there. Kept in the DOM because Enter in the field routes
+    // through the same handler it does.
+    if (btn) btn.hidden = !has;
+    var bar = kw.closest('.hero-search-bar');
+    if (bar) bar.classList.toggle('fd-has-query', has);
   }
   window.fdSyncHeroSubmit = fdSyncHeroSubmit;
   window.syncHeroKeywordClearBtn = wireSearchClearBtn('hero-keyword-input', 'hero-keyword-clear-btn', fdSyncHeroSubmit);
@@ -42808,8 +42869,13 @@
     ev.preventDefault();
     ev.stopPropagation();
 
-    var { data: userData } = await supabase.auth.getUser();
-    if (!userData.user) {
+    // Reported as the heart turning pink slowly. The flip below was
+    // already optimistic, but it sat behind an awaited getUser() --
+    // so on a cold cache nothing happened on screen until a round
+    // trip had finished. window.isSignedIn is already known, so the
+    // only case that still has to wait is the one where we are about
+    // to show a login prompt instead of a pink heart.
+    if (window.isSignedIn === false) {
       showLoginRequired(window.t('loginRequired.followChurch'));
       return;
     }
@@ -42826,6 +42892,17 @@
     // blindly.
     applyFollowState(churchId, nowFollowing);
     matchingHearts.forEach(function(el){ el.disabled = true; });
+    // Now the identity, after the paint. If it turns out there is no
+    // session the flip is undone and the prompt shown, which is the
+    // same outcome as before -- just no longer at the cost of making
+    // every signed-in toggle wait for it.
+    var { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) {
+      applyFollowState(churchId, wasFollowing);
+      matchingHearts.forEach(function(el){ el.disabled = false; });
+      showLoginRequired(window.t('loginRequired.followChurch'));
+      return;
+    }
     var writeResult = nowFollowing
       ? await supabase.from('church_follows').insert({ user_id: userData.user.id, church_id: churchId })
       : await supabase.from('church_follows').delete().eq('user_id', userData.user.id).eq('church_id', churchId);
@@ -49055,6 +49132,14 @@
   // is what "congregation member" means everywhere else in the app
   // (group leader eligibility, etc.) — a real database fact, not
   // just a UI label.
+  // The button is an icon, so its label lives on the tooltip and the
+  // accessible name. textContent would replace the svg with words --
+  // which is exactly what five separate writes in here used to do.
+  function fdSetChurchHomeLabel(btn, text){
+    btn.title = text;
+    btn.setAttribute('aria-label', text);
+  }
+
   async function checkChurchHomeStatus(churchId){
     var btn = document.getElementById('church-home-btn');
     var statusEl = document.getElementById('church-home-status');
@@ -49063,7 +49148,7 @@
 
     var { data: userData } = await supabase.auth.getUser();
     if (!userData.user) {
-      btn.textContent = window.t('churchHome.makeThisMyChurchHome');
+      fdSetChurchHomeLabel(btn, window.t('churchHome.makeThisMyChurchHome'));
       btn.setAttribute('data-state', 'signed-out');
       return;
     }
@@ -49089,7 +49174,7 @@
       // and "waiting" was previously a dead end with no way out of it.
       // Cancelling a request you made yourself needs no confirm step --
       // nothing has been granted yet, so there's nothing to lose by it.
-      btn.textContent = window.t('churchHome.cancelRequest');
+      fdSetChurchHomeLabel(btn, window.t('churchHome.cancelRequest'));
       btn.classList.remove('btn-registered');
       btn.disabled = false;
       btn.setAttribute('data-state', 'pending');
@@ -49100,7 +49185,7 @@
     if (leaveBtn) leaveBtn.style.display = 'none';
 
     if (currentHomeChurchId === churchId) {
-      btn.textContent = '✓ ' + window.t('churchHome.thisIsYourChurchHome');
+      fdSetChurchHomeLabel(btn, window.t('churchHome.thisIsYourChurchHome'));
       btn.classList.add('btn-registered');
       btn.setAttribute('data-state', 'is-home');
       // Deliberately inert once you're a member: this reads as a badge
@@ -49110,11 +49195,11 @@
       btn.disabled = true;
       if (leaveBtn) leaveBtn.style.display = 'inline-flex';
     } else if (currentHomeChurchId) {
-      btn.textContent = window.t('churchHome.makeThisMyChurchHome');
+      fdSetChurchHomeLabel(btn, window.t('churchHome.makeThisMyChurchHome'));
       btn.classList.remove('btn-registered');
       btn.setAttribute('data-state', 'has-other-home');
     } else {
-      btn.textContent = window.t('churchHome.makeThisMyChurchHome');
+      fdSetChurchHomeLabel(btn, window.t('churchHome.makeThisMyChurchHome'));
       btn.classList.remove('btn-registered');
       btn.setAttribute('data-state', 'no-home');
     }
