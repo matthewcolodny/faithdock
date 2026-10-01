@@ -523,7 +523,8 @@
       'search.groupPlaces': 'Places',
       'dir.summaryMatching': 'Matching {q}.',
       'dir.summaryNear': 'Near {q}.',
-      'dir.clearSearch': 'Clear search',
+      'dir.clearSearch': 'Clear location',
+      'dir.showingAll': 'Showing all churches in the area',
       'dir.searching': 'Searching...', 'dir.couldNotFindLocation': "Couldn't find that location — try a different search.",
       'dir.enterCityOrAddress': 'Enter a city or address',
       'auth.signupTab': 'Sign up', 'auth.loginTab': 'Log in', 'auth.fullName': 'Full name', 'auth.email': 'Email',
@@ -558,7 +559,7 @@
       'filters.within10': 'Within 10 miles', 'filters.within25': 'Within 25 miles', 'filters.hasEvents': 'Has events',
       'filters.anyTime': 'Any time', 'filters.next7': 'Next 7 days', 'filters.next14': 'Next 14 days', 'filters.next30': 'Next 30 days',
       'filters.reset': 'Reset filters', 'filters.type': 'Type', 'filters.openToAnyone': 'Open to anyone',
-      'filters.dates': 'Dates', 'filters.all': 'All', 'filters.denominations': 'Denominations', 'filters.categories': 'Categories', 'filters.faithHome': 'Faith Home', 'filters.byDenomination': 'By Denomination', 'filters.byDate': 'By Date', 'filters.byLocation': 'By Location', 'filters.mapHeading': 'Map', 'filters.showOtherPlaces': 'Show shops, restaurants and other places', 'filters.byCategory': 'By Category', 'filters.clearAll': 'Clear all', 'filters.removeFilter': 'Remove this filter', 'filters.membersOnly': 'Members only', 'filters.noSignupNeeded': 'No signup needed', 'filters.category': 'Category',
+      'filters.dates': 'Dates', 'filters.all': 'All', 'filters.denominations': 'Denominations', 'filters.categories': 'Categories', 'filters.faithHome': 'Faith Home', 'filters.byDenomination': 'Denomination', 'filters.byDate': 'Date', 'filters.byLocation': 'Location', 'filters.mapHeading': 'Map', 'filters.showOtherPlaces': 'Show shops, restaurants and other places', 'filters.byCategory': 'Category', 'filters.clearAll': 'Clear tags', 'filters.removeFilter': 'Remove this filter', 'filters.membersOnly': 'Members only', 'filters.noSignupNeeded': 'No signup needed', 'filters.category': 'Category',
       'filters.noCategoriesYet': 'No categories yet.', 'filters.noEventsMatch': 'No events match these filters. Try widening your search.',
       'filters.filterSearches': 'Filter searches',
       'filters.noneSelected': 'None selected', 'filters.allSelected': 'All selected', 'filters.nSelected': 'selected',
@@ -1924,7 +1925,8 @@
       'search.groupPlaces': 'Lugares',
       'dir.summaryMatching': 'Que coincidan con {q}.',
       'dir.summaryNear': 'Cerca de {q}.',
-      'dir.clearSearch': 'Borrar búsqueda',
+      'dir.clearSearch': 'Borrar ubicación',
+      'dir.showingAll': 'Mostrando todas las iglesias de la zona',
       'dir.searching': 'Buscando...', 'dir.couldNotFindLocation': 'No pudimos encontrar esa ubicación — intenta con otra búsqueda.',
       'dir.enterCityOrAddress': 'Ingresa una ciudad o dirección',
       'auth.signupTab': 'Registrarse', 'auth.loginTab': 'Iniciar sesión', 'auth.fullName': 'Nombre completo', 'auth.email': 'Correo electrónico',
@@ -1955,7 +1957,7 @@
       'filters.within10': 'A menos de 10 millas', 'filters.within25': 'A menos de 25 millas', 'filters.hasEvents': 'Con eventos',
       'filters.anyTime': 'Cualquier momento', 'filters.next7': 'Próximos 7 días', 'filters.next14': 'Próximos 14 días', 'filters.next30': 'Próximos 30 días',
       'filters.reset': 'Restablecer filtros', 'filters.type': 'Tipo', 'filters.openToAnyone': 'Abierto a todos',
-      'filters.dates': 'Fechas', 'filters.all': 'Todas', 'filters.denominations': 'Denominaciones', 'filters.categories': 'Categorías', 'filters.faithHome': 'Mi comunidad', 'filters.byDenomination': 'Por denominación', 'filters.byDate': 'Por fecha', 'filters.byLocation': 'Por ubicación', 'filters.mapHeading': 'Mapa', 'filters.showOtherPlaces': 'Mostrar tiendas, restaurantes y otros lugares', 'filters.byCategory': 'Por categoría', 'filters.clearAll': 'Quitar todos', 'filters.removeFilter': 'Quitar este filtro', 'filters.membersOnly': 'Solo miembros', 'filters.noSignupNeeded': 'No requiere inscripción', 'filters.category': 'Categoría',
+      'filters.dates': 'Fechas', 'filters.all': 'Todas', 'filters.denominations': 'Denominaciones', 'filters.categories': 'Categorías', 'filters.faithHome': 'Mi comunidad', 'filters.byDenomination': 'Denominación', 'filters.byDate': 'Fecha', 'filters.byLocation': 'Ubicación', 'filters.mapHeading': 'Mapa', 'filters.showOtherPlaces': 'Mostrar tiendas, restaurantes y otros lugares', 'filters.byCategory': 'Categoría', 'filters.clearAll': 'Quitar etiquetas', 'filters.removeFilter': 'Quitar este filtro', 'filters.membersOnly': 'Solo miembros', 'filters.noSignupNeeded': 'No requiere inscripción', 'filters.category': 'Categoría',
       'filters.noCategoriesYet': 'Aún no hay categorías.', 'filters.noEventsMatch': 'Ningún evento coincide con estos filtros. Intenta ampliar tu búsqueda.',
       'filters.filterSearches': 'Filtrar búsqueda',
       'filters.noneSelected': 'Ninguna seleccionada', 'filters.allSelected': 'Todas seleccionadas', 'filters.nSelected': 'seleccionadas',
@@ -5059,6 +5061,15 @@
   .tag.clay{background:var(--clay-bg);color:var(--clay);}
   .tag.gold{background:var(--gold-bg);color:var(--gold-ink);}
   .tag.neutral{background:var(--paper);color:var(--ink-soft);border:1px solid var(--line);}
+  /* The same hue the card's own accent uses. */
+  .tag.fd-denom-tag{
+    background:hsl(var(--chip-hue,220) 52% 93%);
+    color:hsl(var(--chip-hue,220) 45% 30%);
+  }
+  html[data-theme="dark"] .tag.fd-denom-tag{
+    background:hsl(var(--chip-hue,220) 28% 20%);
+    color:hsl(var(--chip-hue,220) 60% 80%);
+  }
   .card-body h3{font-size:18px;margin:10px 0 4px;}
   /* align-items:flex-start, because the service line wraps to two and
      a centred icon then floats against the middle of them. */
@@ -5218,7 +5229,7 @@
      reached there; the panel sitting inline at the top of the sheet was
      a second way in, and it pushed the first card off the screen. */
   @media (max-width:980px){ .dir-results-col .directory-layout .filter-panel{display:none;} }
-  .filter-panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px;position:sticky;top:92px;}
+  .filter-panel{background:var(--card);border:1px solid var(--gold);border-radius:var(--radius);padding:22px;position:sticky;top:92px;}
 
   /* ---- Directory results map -------------------------------------
      Full-bleed, above the page heading, and pinned under the nav so it
@@ -7852,6 +7863,15 @@
     border:1px solid var(--line);border-radius:999px;padding:7px 13px;
     background:var(--card);color:var(--ink);
   }
+  /* A chevron saying "this opens something". Generated content rather
+     than a character in the label, so it is not translated, not
+     selectable and not read out as part of the name. */
+  .fd-quick-btn::after{
+    content:'';display:inline-block;width:6px;height:6px;margin-left:7px;
+    border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;
+    transform:translateY(-2px) rotate(45deg);
+  }
+  .fd-quick-btn[aria-expanded="true"]::after{transform:translateY(1px) rotate(-135deg);}
   /* Gold fill means this button is narrowing the list right now -- the
      point being that you can see you have filtered without opening
      anything. Merely having the window open is a gold OUTLINE, because
@@ -7863,6 +7883,27 @@
     border-color:var(--gold);background:var(--gold-bg);color:var(--gold-ink);
   }
   .fd-quick-btn:hover{border-color:var(--gold);}
+
+  /* Coloured by family rather than all gold. Every chip being the
+     same colour made four of them read as one long thing; a light
+     wash per family makes "two denominations and two categories"
+     visible without reading a word of it.
+
+     Light background, dark text of the same hue -- the pairing the
+     denomination thumbs already use, so a Baptist chip and a Baptist
+     card are the same blue. */
+  .fd-filter-chip.fd-chip-hue{
+    background:hsl(var(--chip-hue,45) 52% 93%);
+    color:hsl(var(--chip-hue,45) 45% 30%);
+    border-color:hsl(var(--chip-hue,45) 40% 82%);
+  }
+  .fd-filter-chip.fd-chip-hue button{color:hsl(var(--chip-hue,45) 40% 42%);}
+  html[data-theme="dark"] .fd-filter-chip.fd-chip-hue{
+    background:hsl(var(--chip-hue,45) 28% 20%);
+    color:hsl(var(--chip-hue,45) 60% 80%);
+    border-color:hsl(var(--chip-hue,45) 30% 32%);
+  }
+  html[data-theme="dark"] .fd-filter-chip.fd-chip-hue button{color:hsl(var(--chip-hue,45) 50% 72%);}
 
   /* The chips at the top of a filter window. */
   /* A heading per kind, in the same list. Not clickable, and skipped by
@@ -7901,6 +7942,10 @@
     cursor:pointer;-webkit-tap-highlight-color:transparent;
   }
   .fd-search-summary button:hover{color:var(--ink);border-color:var(--ink-mute);}
+  /* One fact per line: what the list is showing, then where. */
+  .fd-summary-line{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .fd-summary-line + .fd-summary-line{margin-top:4px;}
+  .fd-summary-all{color:var(--ink-mute);font-size:13.5px;}
   /* Sits over the right-hand end of the field it belongs to. Only
      there once something is typed, because until then there is nothing
      to add. */
@@ -7987,7 +8032,10 @@
   .fd-panel-close{
     position:absolute;top:10px;right:10px;width:30px;height:30px;
     display:none;align-items:center;justify-content:center;
-    background:none;border:0;border-radius:50%;cursor:pointer;color:var(--ink-mute);
+    background:none;border:0;border-radius:50%;cursor:pointer;
+    /* Gold, matching the window's own edge. It was --ink-mute, which
+       on a gold-bordered panel read as the one grey thing on it. */
+    color:var(--gold);
     -webkit-tap-highlight-color:transparent;
   }
   .fd-panel-close svg{width:15px;height:15px;display:block;}
@@ -9219,7 +9267,11 @@
              reachable -- it just is not one of the four things worth a
              button of its own. -->
         <div class="event-tab-row fd-quick-row" id="church-tab-row">
-          <button class="event-tab-btn active" type="button" data-church-tab="all" data-i18n="filters.all">All</button>
+          <!-- All has gone. It was never a filter of its own, only the
+               absence of the other three, and the one thing it did do
+               -- clear the search -- is what Clear location and Clear
+               tags are for. What it was really saying is said in
+               words now, above the location line. -->
           <div class="fd-quick-end">
             <button class="event-tab-btn fd-quick-btn" type="button" aria-expanded="false" data-church-tab="location" data-i18n="filters.byLocation">By Location</button>
             <button class="event-tab-btn fd-quick-btn" type="button" aria-expanded="false" data-church-tab="categories" data-i18n="filters.byCategory">By Category</button>
@@ -13534,7 +13586,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-10-01-v437 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-10-01-v438 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -14234,6 +14286,22 @@
     'methodist': 155, 'non-denominational': 45, 'pentecostal': 350,
     'presbyterian': 190, 'other': 255
   };
+  // Categories are coloured by FAMILY, not one hue each: the slugs are
+  // prefixed (welcome:, lang:, music:, type:, programs:) and that
+  // prefix is the thing worth telling apart at a glance. Hashed rather
+  // than listed so a new family gets a colour without anyone editing
+  // a table -- the same approach denomHue already takes for an
+  // unrecognised denomination.
+  function fdTagHue(slug){
+    var key = String(slug == null ? '' : slug);
+    var at = key.indexOf(':');
+    key = (at > 0 ? key.slice(0, at) : key).toLowerCase();
+    var h = 0;
+    for (var i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) % 360;
+    return h;
+  }
+  window.fdTagHue = fdTagHue;
+
   function denomHue(denom){
     var key = String(denom == null ? '' : denom).trim().toLowerCase();
     if (!key || key === '-' || key === '—') return 220;
@@ -14289,7 +14357,7 @@
       // edge -- which is also the room language and category tags
       // will need when they arrive.
       + '<div class="dir-card-foot">'
-      + '<div class="card-tags"><span class="tag sage">' + escapeHtml(translateDenomination(c.tag)) + '</span></div>'
+      + '<div class="card-tags"><span class="tag fd-denom-tag" style="--chip-hue:' + denomHue(c.tag) + ';">' + escapeHtml(translateDenomination(c.tag)) + '</span></div>'
       + badge
       + fdShareHtml(c)
       + '</div>';
@@ -14721,8 +14789,24 @@
     if (!btn) return;
     if (dirAreaFadeTimer) { clearTimeout(dirAreaFadeTimer); dirAreaFadeTimer = null; }
     if (!on) { btn.hidden = true; btn.classList.remove('is-faded'); return; }
-    btn.hidden = false;
-    btn.classList.remove('is-faded');
+    // Shown faded, then un-faded on the next frame, so the same
+    // transition that takes it away also brings it in. Unhiding alone
+    // put it on screen in one frame, which is the abruptness that was
+    // reported -- the fade only ever applied on the way out.
+    //
+    // Two frames, not one: the first commits display:block with
+    // opacity 0, and a style change in the same frame as the unhide
+    // would be collapsed into the same computed pass and animate
+    // nothing.
+    if (btn.hidden) {
+      btn.classList.add('is-faded');
+      btn.hidden = false;
+      requestAnimationFrame(function(){
+        requestAnimationFrame(function(){ btn.classList.remove('is-faded'); });
+      });
+    } else {
+      btn.classList.remove('is-faded');
+    }
     dirAreaFadeTimer = setTimeout(function(){
       dirAreaFadeTimer = null;
       var b = document.getElementById('dir-search-area');
@@ -15333,13 +15417,15 @@
         + '<button type="button" data-chip-keyword="1"'
         + ' aria-label="' + escapeHtml(window.t('filters.removeFilter')) + '">' + FD_CHIP_X + '</button></span>');
     }
+    // A denomination chip carries the hue its cards carry, so the
+    // filter and the results agree about what Baptist looks like.
     fdChosenDenoms().forEach(function(c){
-      parts.push('<span class="fd-filter-chip">' + escapeHtml(c.label)
+      parts.push('<span class="fd-filter-chip fd-chip-hue" style="--chip-hue:' + denomHue(c.value) + ';">' + escapeHtml(c.label)
         + '<button type="button" data-chip-denom="' + escapeHtml(c.value) + '"'
         + ' aria-label="' + escapeHtml(window.t('filters.removeFilter')) + '">' + FD_CHIP_X + '</button></span>');
     });
     fdChosenCategories().forEach(function(slug){
-      parts.push('<span class="fd-filter-chip">' + escapeHtml(window.fdChurchTagLabel(slug))
+      parts.push('<span class="fd-filter-chip fd-chip-hue" style="--chip-hue:' + fdTagHue(slug) + ';">' + escapeHtml(window.fdChurchTagLabel(slug))
         + '<button type="button" data-chip-cat="' + escapeHtml(slug) + '"'
         + ' aria-label="' + escapeHtml(window.t('filters.removeFilter')) + '">' + FD_CHIP_X + '</button></span>');
     });
@@ -15522,11 +15608,11 @@
     if (c) c.classList.toggle('fd-quick-on', byCat);
     var f = document.querySelector('[data-church-tab="faith-home"]');
     if (f) f.classList.toggle('active', faithHome);
-    // All is not a filter of its own -- it is the absence of the other
-    // three. Lighting it from the actual state rather than from having
-    // been clicked is what stops it sitting lit next to a narrowed list.
-    var a = document.querySelector('[data-church-tab="all"]');
-    if (a) a.classList.toggle('active', !byDenom && !byCat && !faithHome);
+    // Location lights like the other two. It was the only one of the
+    // three that stayed grey while narrowing the list, because its
+    // state lives in dirUserLat/Lng rather than in a checkbox.
+    var l = document.querySelector('[data-church-tab="location"]');
+    if (l) l.classList.toggle('fd-quick-on', !!window.fdLocationLabel);
   }
   window.fdSyncQuickButtons = fdSyncQuickButtons;
 
@@ -16145,7 +16231,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-10-01-v437',
+      'build 2026-10-01-v438',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -23266,7 +23352,7 @@
     if (catBtn) catBtn.classList.toggle('fd-quick-on', !!picked.length);
     if (!picked.length) { host.hidden = true; host.innerHTML = ''; return; }
     var parts = picked.map(function(slug){
-      return '<span class="fd-filter-chip">' + escapeHtml(window.fdGroupTagLabel(slug))
+      return '<span class="fd-filter-chip fd-chip-hue" style="--chip-hue:' + fdTagHue(slug) + ';">' + escapeHtml(window.fdGroupTagLabel(slug))
         + '<button type="button" data-gchip="' + escapeHtml(slug) + '"'
         + ' aria-label="' + escapeHtml(window.t('filters.removeFilter')) + '">' + FD_CHIP_X + '</button></span>';
     });
@@ -48066,17 +48152,26 @@
     var loc = document.getElementById('dir-location-input');
     var kwv = kw ? kw.value.trim() : '';
     var locv = loc ? loc.value.trim() : '';
-    // Still shown when only a keyword is set: Clear search is the way
-    // out of everything at once, and it should not vanish just because
-    // the one filter left is the keyword.
-    if (!kwv && !locv) { host.hidden = true; host.innerHTML = ''; return; }
-    // The keyword is a chip now, so only the location is said here --
-    // saying it twice, once as a sentence and once as a chip, was the
-    // thing that made two filters feel like four.
-    var bits = [];
-    if (locv) bits.push(window.t('dir.summaryNear').replace('{q}', '<strong>' + escapeHtml(locv) + '</strong>'));
-    host.innerHTML = '<span>' + bits.join(' ') + '</span>'
-      + '<button type="button" id="dir-clear-search">' + escapeHtml(window.t('dir.clearSearch')) + '</button>';
+    // What All used to say, said in words. With no tags ticked the
+    // list IS everything in the area, and a button that announced
+    // that was a control for a state rather than a thing you do.
+    // Above the location, because the location narrows what "the
+    // area" means.
+    var anyTag = ((window.fdChosenCategories ? window.fdChosenCategories().length : 0) > 0)
+      || (typeof fdDenomUncheckedCount === 'function' && fdDenomUncheckedCount() > 0)
+      || !!kwv
+      || !!(document.getElementById('dir-filter-followed-churches') || {}).checked;
+
+    var lines = [];
+    if (!anyTag) lines.push('<span class="fd-summary-all">' + escapeHtml(window.t('dir.showingAll')) + '</span>');
+    // Only the location is said as a sentence; the keyword is a chip,
+    // and saying it twice was what made two filters feel like four.
+    if (locv) {
+      lines.push('<span>' + window.t('dir.summaryNear').replace('{q}', '<strong>' + escapeHtml(locv) + '</strong>') + '</span>'
+        + '<button type="button" id="dir-clear-search">' + escapeHtml(window.t('dir.clearSearch')) + '</button>');
+    }
+    if (!lines.length) { host.hidden = true; host.innerHTML = ''; return; }
+    host.innerHTML = lines.map(function(l){ return '<div class="fd-summary-line">' + l + '</div>'; }).join('');
     host.hidden = false;
   }
   window.fdRenderSearchSummary = fdRenderSearchSummary;
