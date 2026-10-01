@@ -13586,7 +13586,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-10-01-v440 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-10-01-v441 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -16252,7 +16252,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-10-01-v440',
+      'build 2026-10-01-v441',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -48180,6 +48180,20 @@
   // on screen saying so, a second search silently ran inside the first
   // and the only way out was the back button.
   function fdRenderSearchSummary(){
+    // The quick buttons are re-read here as well as from the chips.
+    // fdSyncQuickButtons only ever ran from fdRenderFilterChips, which
+    // fires when a TAG changes -- so the Location button, whose state
+    // lives in the location field, was always showing the answer to
+    // the previous question. On load the field filled after the last
+    // sync and the button stayed grey with a location set; on Clear
+    // location the sync ran before the field emptied and the button
+    // lit with none. Exactly inverted, both times, which is what
+    // reading one thing on another thing's schedule looks like.
+    //
+    // This function runs on every location change, because it is what
+    // writes the "Near ..." line, so the button and the sentence can
+    // no longer disagree.
+    if (typeof fdSyncQuickButtons === 'function') fdSyncQuickButtons();
     var host = document.getElementById('dir-search-summary');
     if (!host) return;
     var kw = document.getElementById('dir-keyword-input');
