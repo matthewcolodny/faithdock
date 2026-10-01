@@ -5497,6 +5497,17 @@
     -webkit-overflow-scrolling:touch;
     background:var(--paper);border:1px solid var(--gold);
     box-shadow:0 12px 40px rgba(0,0,0,.34);
+    /* section.page carries padding-bottom:100px so a full page clears
+       the footer. In a card there is no footer below it, and that
+       100px was the whole of the gap under Back to directory --
+       margin-top:auto was working the entire time and pushing it to
+       the bottom of a content box that ended 100px early. */
+    padding-bottom:0;
+    /* A column, so the content can push Back to directory to the
+       bottom edge instead of leaving it stranded under a short
+       description. It still scrolls normally once there is more
+       content than room. */
+    display:flex;flex-direction:column;
     animation:fd-church-sheet-rise .22s ease-out;
   }
   /* The banner inside it has square corners of its own and would
@@ -6616,7 +6627,12 @@
   .banner{background:var(--brand);color:#fff;padding:52px 0 44px;}
   /* 52/44 is right for a full page with a window's worth of room
      above it. In the card it is most of a screen before the name. */
-  body.fd-church-sheet #page-church > .banner{padding:22px 0 20px;}
+  body.fd-church-sheet #page-church > .banner{padding:22px 0 20px;flex:0 0 auto;}
+  #page-church > .back-link{
+    width:100%;max-width:1080px;margin-left:auto;margin-right:auto;
+    padding:0 28px;box-sizing:border-box;
+  }
+  body.fd-church-sheet #page-church > .back-link{margin-top:auto;margin-bottom:18px;}
   .banner .wrap{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:18px;}
   .banner h1{color:#fff;font-size:34px;}
   .banner .sub{color:#B9C0CE;font-size:14.5px;margin-top:8px;display:flex;gap:18px;flex-wrap:wrap;}
@@ -6666,7 +6682,47 @@
     color:#fff;border-color:#566180;padding:11px 18px;font-size:14.5px;
   }
   /* The heart takes the right-hand end of the same row. */
-  .church-hero-actions #church-follow-heart-slot{margin-left:auto;}
+  /* position:static is the fix, not margin-left. The slot carries
+     position:absolute;top:14px;right:14px from when it lived in the
+     white card's corner -- in the hero that is the CARD's corner,
+     which is exactly where the close button sits, so the heart was
+     rendering underneath it. Reported as "the heart doesn't show up
+     even when logged in", and it was there the whole time. */
+  .church-hero-actions #church-follow-heart-slot{position:static;margin-left:auto;}
+
+  /* Details left, the two icon actions stacked on the right. */
+  .church-hero-contact{display:flex;align-items:flex-start;gap:14px;}
+  .church-hero-contact .church-hero-details{flex:1;min-width:0;}
+  .church-hero-quick{display:flex;flex-direction:column;gap:8px;flex-shrink:0;}
+  .fd-icon-btn{
+    width:42px;height:42px;display:inline-flex;align-items:center;justify-content:center;
+    background:transparent;border:1px solid #566180;border-radius:10px;
+    color:#fff;cursor:pointer;padding:0;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .fd-icon-btn svg{width:19px;height:19px;}
+  .fd-icon-btn:hover{border-color:var(--gold);color:var(--gold);}
+
+  /* The name and its partner tick share a line. */
+  .church-hero-name-row{display:flex;align-items:center;gap:9px;flex-wrap:wrap;}
+  .church-hero-name-row h1{margin:0;}
+  #church-partner-badge{
+    width:22px;height:22px;border-radius:50%;
+    background:var(--gold);color:var(--brand);
+    text-align:center;line-height:22px;flex-shrink:0;
+  }
+  #church-partner-badge svg{width:12px;height:12px;vertical-align:middle;}
+
+  /* Underlined text, not a button. It is the one destructive thing on
+     the card and it should not look like one of the three things you
+     came to do. */
+  .church-hero-foot{margin-top:10px;}
+  #church-leave-btn{
+    background:none;border:none;padding:0;cursor:pointer;
+    font:inherit;font-size:12.5px;color:#8FA0C4;
+    text-decoration:underline;text-underline-offset:3px;
+  }
+  #church-leave-btn:hover{color:#fff;}
   #church-home-status{margin-top:8px;}
   .btn-gold{background:var(--gold);color:var(--brand);border:none;padding:12px 22px;border-radius:9px;font-weight:600;font-size:14.5px;}
   .btn-outline{background:transparent;border:1px solid #566180;color:#fff;padding:11px 20px;border-radius:9px;font-weight:500;font-size:14.5px;margin-right:10px;}
@@ -6696,7 +6752,19 @@
      Category window's tabs already follow. */
   body.fd-church-sheet #page-church .tabs{
     flex-wrap:wrap;overflow-x:visible;margin-top:14px;row-gap:0;
+    /* Centred, and tight enough that the four remaining tabs fit one
+       line at 412px. The 26px right margin on each tab is what pushed
+       Ministries onto a second row. */
+    justify-content:center;gap:0;
   }
+  body.fd-church-sheet #page-church .tab{
+    margin-right:0;padding:10px 11px;font-size:13.5px;
+  }
+  /* Location goes on the phone. Its address is three lines up in the
+     hero and its map is the browse map, which is directly behind this
+     card -- closing it shows the pin. On a full page there is no map
+     behind anything, so the tab stays. */
+  body.fd-church-sheet #page-church .tabs [data-church-tab="location"]{display:none;}
   .tab{padding:12px 4px;margin-right:26px;font-size:14.5px;font-weight:500;color:var(--ink-mute);border-bottom:2px solid transparent;cursor:pointer;flex-shrink:0;white-space:nowrap;}
   .tab.active{color:var(--ink);border-bottom:2px solid var(--gold);}
 
@@ -6723,6 +6791,13 @@
 
   /* ---- sign up ---- */
   .auth-wrap{max-width:420px;margin:70px auto;padding:0 16px;}
+  /* 70px of air above the card, plus 36px of padding inside it, put
+     the Log in / Sign up toggle a third of the way down a phone
+     screen -- and the Continue button below the fold. */
+  @media (max-width:600px){
+    .auth-wrap{margin:16px auto;}
+    .auth-card{padding:20px;}
+  }
   .auth-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:36px;}
   /* Confirmed via DevTools that this card's real content width is
      only 216px on a common mobile viewport — Turnstile's "flexible"
@@ -9099,8 +9174,18 @@
           <div id="church-logo-img" style="display:none;"></div>
           <div class="church-hero-title">
             <div class="eyebrow" style="color:#8FA0C4;" id="church-eyebrow"></div>
-            <h1 id="church-name"></h1>
-            <span id="church-partner-badge" style="display:none;font-size:13px;font-weight:600;color:var(--gold-ink);background:var(--gold-bg);padding:4px 10px;border-radius:20px;margin-right:6px;"><svg viewBox="0 0 24 24" fill="currentColor" style="width:12px;height:12px;vertical-align:-1px;margin-right:3px;"><path d="M12 2l2.9 6.3L22 9.3l-5 4.9 1.2 7.1L12 17.8l-6.2 3.5L7 14.2 2 9.3l7.1-1L12 2z"/></svg><span data-i18n="church.partnerBadge">FaithDock Partner</span></span>
+            <!-- The partner badge is a tick in a circle beside the
+                 name rather than a pill on a line of its own: it is a
+                 one-bit fact and it was costing a whole row. The
+                 wording survives as the title and the accessible name,
+                 so it is still readable and still translated --
+                 populateChurchPage sets display to inline-block, which
+                 is why the tick is centred with line-height rather
+                 than with flex. -->
+            <div class="church-hero-name-row">
+              <h1 id="church-name"></h1>
+              <span id="church-partner-badge" style="display:none;" data-i18n-title="church.partnerBadge" title="FaithDock Partner" data-i18n-aria="church.partnerBadge" aria-label="FaithDock Partner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
+            </div>
           </div>
         </div>
         <div id="church-unclaimed-banner" style="display:none;margin-top:14px;background:rgba(201,162,39,0.16);border:1px solid var(--gold);border-radius:12px;padding:14px 16px;max-width:480px;">
@@ -9117,6 +9202,14 @@
         <!-- Service times, address, phone, website and socials, moved
              up from the white card. Same rows, same ids, same handlers
              -- only the place changed. -->
+        <!-- The address and the two things you can do with it share a
+             row: details on the left, Message and Give stacked on the
+             right. Two full-width labelled buttons were a whole row of
+             their own under an address that only half fills its line,
+             so this is the same two actions in none of the height.
+             The labels survive as the tooltip and the accessible name,
+             both still translated. -->
+        <div class="church-hero-contact">
         <div class="church-hero-details">
           <div class="info-row" id="church-service-times" style="display:none;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> </div>
           <div class="info-row" id="church-address"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/></svg> </div>
@@ -9127,25 +9220,30 @@
             <a id="church-instagram-link" href="#" target="_blank" rel="noopener noreferrer" style="display:none;color:var(--ink-mute);"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg></a>
           </div>
         </div>
+        <div class="church-hero-quick">
+          <button type="button" class="fd-icon-btn" id="church-message-btn" onclick="openContactChurchModal()" data-i18n-title="church.message" title="Message" data-i18n-aria="church.message" aria-label="Message"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg></button>
+          <button type="button" class="fd-icon-btn" id="church-top-give-btn" onclick="openRealGiveTab()" data-i18n-title="church.give" title="Give" data-i18n-aria="church.give" aria-label="Give"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12v9H4v-9"/><rect x="2" y="7" width="20" height="5" rx="1"/><path d="M12 21V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></button>
+        </div>
+        </div>
       </div>
-      <!-- One row: the three things you can do, and the heart on the
-           right. Make this my Church Home used to be a full-width
-           button at the foot of the side card, which put the strongest
-           action on the page furthest from the name. -->
+      <!-- Church Home and the follow heart. Message and Give moved up
+           beside the address. -->
       <div class="church-hero-actions">
-        <button class="btn-outline" id="church-message-btn" style="margin-right:0;" onclick="openContactChurchModal()" data-i18n="church.message">Message</button>
-        <button class="btn-outline" style="margin-right:0;" id="church-top-give-btn" onclick="openRealGiveTab()" data-i18n="church.give">Give</button>
         <button class="export-btn" id="church-home-btn" data-i18n="churchHome.makeThisMyChurchHome">Make this my Church Home</button>
-        <!-- Leaving gets its own button rather than being a second
-             meaning for clicking the status button. Once you're a
-             member that button is a statement of fact, not a toggle --
-             clicking your own membership badge to destroy it is the
-             kind of thing people do by accident. Shown only in the
-             is-home state; checkChurchHomeStatus() owns that. -->
-        <button class="export-btn" id="church-leave-btn" style="display:none;color:var(--clay);" data-i18n="leaveChurch.button">Leave church</button>
         <div id="church-follow-heart-slot"></div>
       </div>
-      <div id="church-home-status" style="display:none;font-size:12px;color:#8FA0C4;"></div>
+      <!-- Leaving still gets its own control rather than being a
+           second meaning for clicking the status button -- clicking
+           your own membership badge to destroy it is the kind of thing
+           people do by accident. But it is underlined text on a line
+           of its own now, not a bordered button sitting level with
+           Message and Give, where it read as one of the things you
+           came here to do. Shown only in the is-home state;
+           checkChurchHomeStatus() owns that. -->
+      <div class="church-hero-foot">
+        <button type="button" id="church-leave-btn" style="display:none;" data-i18n="leaveChurch.button">Leave church</button>
+        <div id="church-home-status" style="display:none;font-size:12px;color:#8FA0C4;"></div>
+      </div>
     </div>
   </div>
   <div class="wrap">
@@ -9246,8 +9344,15 @@
       <a href="#" id="church-bottom-claim-btn" style="color:inherit;font-weight:700;border-bottom:1px solid var(--gold-ink);cursor:pointer;" data-i18n="church.claimThisChurch">Claim this church</a>
       <span data-i18n="church.unclaimedNoticeEnd">to manage it yourself.</span>
     </div>
-    <a href="#directory" data-route="directory" class="back-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg> <span data-i18n="church.backToDirectory">Back to directory</span></a>
   </div>
+  <!-- A child of the card, not of .wrap. As the card's last flex
+       item its margin-top:auto drops it to the bottom edge; inside
+       .wrap it stopped 99px short, because .wrap would not take the
+       free space however it was told to -- an identical probe div
+       appended to the card grew into that space immediately, so the
+       container was never the problem. It keeps .wrap's own
+       max-width, centring and padding so the full page is unchanged. -->
+  <a href="#directory" data-route="directory" class="back-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg> <span data-i18n="church.backToDirectory">Back to directory</span></a>
 </section>
 
 <!-- ================= EVENT DETAIL ================= -->
@@ -13259,7 +13364,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v425 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v426 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -15738,7 +15843,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-30-v425',
+      'build 2026-09-30-v426',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
