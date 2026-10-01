@@ -802,6 +802,13 @@
       'church.unclaimedNoticeLead': 'See something incorrect? This is an unclaimed, community-sourced listing. Email us at',
       'church.unclaimedNoticeMid': 'to report an issue, or', 'church.unclaimedNoticeEnd': 'to manage it yourself.',
       'church.statusDirectoryListing': 'Directory listing', 'church.managedByChurch': 'Managed by this church', 'church.partnerBadge': 'FaithDock Partner',
+      'church.regularService': 'Regular Service', 'church.regularServices': 'Regular Services',
+      'leaveChurch.left': 'You have left this church.',
+      'churchHome.confirmYes': 'Yes',
+      'churchHome.confirmJoinTitle': 'Make this your Church Home?',
+      'churchHome.confirmJoinBody': 'Your request goes to the church, and they decide whether to approve it.',
+      'churchHome.confirmCancelTitle': 'Cancel your request?',
+      'churchHome.confirmCancelBody': 'You can ask again at any time.',
       'church.setAsChurchHome': 'Set as your Church Home!',
       'give.supportMinistry': "Support this church's ministry directly — donations go straight to their account.",
       'give.whatIsThisFor': 'What is this gift for?', 'give.generalFund': 'General Fund',
@@ -2191,6 +2198,13 @@
       'church.unclaimedNoticeLead': '¿Ves algo incorrecto? Este es un listado comunitario sin reclamar. Escríbenos a',
       'church.unclaimedNoticeMid': 'para reportar un problema, o', 'church.unclaimedNoticeEnd': 'para administrarlo tú mismo.',
       'church.statusDirectoryListing': 'Listado del directorio', 'church.managedByChurch': 'Gestionada por esta iglesia', 'church.partnerBadge': 'Socia de FaithDock',
+      'church.regularService': 'Servicio habitual', 'church.regularServices': 'Servicios habituales',
+      'leaveChurch.left': 'Has dejado esta iglesia.',
+      'churchHome.confirmYes': 'Sí',
+      'churchHome.confirmJoinTitle': '¿Marcar como tu Iglesia de Origen?',
+      'churchHome.confirmJoinBody': 'Tu solicitud va a la iglesia, y ellos deciden si la aprueban.',
+      'churchHome.confirmCancelTitle': '¿Cancelar tu solicitud?',
+      'churchHome.confirmCancelBody': 'Puedes volver a solicitarlo cuando quieras.',
       'church.setAsChurchHome': '¡Establecida como tu Iglesia Principal!',
       'give.supportMinistry': 'Apoya el ministerio de esta iglesia directamente — las donaciones van directo a su cuenta.',
       'give.whatIsThisFor': '¿Para qué es esta donación?', 'give.generalFund': 'Fondo General',
@@ -6693,17 +6707,20 @@
   /* Logo beside the name rather than above a card three screens down.
      Square, because it is an avatar here and not a card header. */
   .church-hero-head{display:flex;align-items:flex-start;gap:14px;}
+  .church-hero-head #church-logo-img{margin-top:2px;}
   #church-logo-img{
     width:62px;height:62px;flex:0 0 62px;border-radius:12px;
     background-color:#fff;background-size:contain;background-repeat:no-repeat;
     background-position:center;background-origin:content-box;
     padding:7px;box-sizing:border-box;
   }
-  .church-hero-title{min-width:0;flex:1;}
+
   /* 18px above and below the denomination was most of the air at the
      top of the card. */
-  .church-hero-title .eyebrow{margin-bottom:4px;}
-  .church-hero-title h1{margin:0 0 6px;line-height:1.1;}
+  .church-hero .eyebrow{margin-bottom:8px;}
+  /* The tick is inside the h1 so it flows with the last word. */
+  .church-hero h1{margin:0;line-height:1.12;}
+  .church-hero h1 #church-partner-badge{margin-left:9px;vertical-align:6px;}
   .church-hero-details{margin-top:10px;}
   /* .info-row is written for the light page -- --ink-soft on paper.
      In here it would be dark text on the navy banner, which is the
@@ -6711,14 +6728,6 @@
   .church-hero-details .info-row{color:#C7CCD8;margin-bottom:6px;font-size:14px;}
   .church-hero-details .info-row svg{width:16px;height:16px;flex-shrink:0;stroke:#8FA0C4;}
   .church-hero-details .info-row a{color:#fff;}
-  .church-hero-actions{
-    display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:14px;
-  }
-  .church-hero-actions .btn-outline{margin-right:0;}
-  /* .export-btn is var(--ink) on transparent -- invisible on navy. */
-  .church-hero-actions .export-btn{
-    color:#fff;border-color:#566180;padding:11px 18px;font-size:14.5px;
-  }
   /* The heart takes the right-hand end of the same row. */
   /* position:static is the fix, not margin-left. The slot carries
      position:absolute;top:14px;right:14px from when it lived in the
@@ -6726,16 +6735,10 @@
      which is exactly where the close button sits, so the heart was
      rendering underneath it. Reported as "the heart doesn't show up
      even when logged in", and it was there the whole time. */
-  /* No margin-left:auto any more -- the heart is the fourth icon in
-     the row, not something pinned to the far end of it. */
-  .church-hero-actions #church-follow-heart-slot{position:static;}
-  /* The heart is drawn for the light page, so it needs the same
-     treatment the detail rows did to be visible on navy. */
-  .church-hero-actions .follow-heart-profile{
-    width:42px;height:42px;border:1px solid #566180;border-radius:10px;
-  }
-  .church-hero-actions .follow-heart-profile svg{width:19px;height:19px;stroke:#fff;}
-  .church-hero-actions .follow-heart-profile[data-following="true"] svg{fill:#F0A8C4;stroke:#F0A8C4;}
+  /* position:static is the fix: the slot carries absolute positioning
+     from when it lived in the white card's corner, which in here is
+     the card's corner -- behind the close button. */
+  #church-follow-heart-slot{position:static;}
 
   /* Church Home reads its state from data-state, which
      checkChurchHomeStatus already sets, rather than from a label it no
@@ -6746,7 +6749,31 @@
   #church-home-btn[data-state="pending"]{border-color:var(--gold);color:var(--gold);}
   #church-home-btn:disabled{opacity:.45;cursor:default;}
 
-  /* All four actions on one row under the address. */
+  /* Contact on the left, the four actions as a 2x2 block on its
+     right: home and follow on top, give and message under them. They
+     were a row of their own below the address, and that row is what
+     held the tabs down the card. */
+  .church-hero-contact{display:flex;align-items:flex-start;gap:14px;}
+  .church-hero-contact .church-hero-details{flex:1;min-width:0;}
+  .church-hero-grid{
+    display:grid;grid-template-columns:repeat(2,42px);gap:8px;flex-shrink:0;
+  }
+  /* The slot is a plain div holding the heart, so it has to be told to
+     fill its cell. */
+  .church-hero-grid #church-follow-heart-slot{width:42px;height:42px;}
+  .church-hero-grid .follow-heart-profile{
+    width:42px;height:42px;border:1px solid #566180;border-radius:10px;
+  }
+  .church-hero-grid .follow-heart-profile svg{width:19px;height:19px;stroke:#fff;}
+  .church-hero-grid .follow-heart-profile[data-following="true"] svg{fill:#F0A8C4;stroke:#F0A8C4;}
+
+  /* Managed by this church, under the phone, in the brand gold. */
+  #church-managed-line{margin-top:8px;font-size:13px;color:var(--gold);}
+
+  /* The service row is two lines behind one icon, like the address, so
+     the icon has to sit at the top of them rather than centred. */
+  .church-hero-details .info-row{align-items:flex-start;}
+  .church-hero-details .info-row svg{margin-top:2px;}
   .fd-icon-btn{
     width:42px;height:42px;display:inline-flex;align-items:center;justify-content:center;
     background:transparent;border:1px solid #566180;border-radius:10px;
@@ -6757,8 +6784,6 @@
   .fd-icon-btn:hover{border-color:var(--gold);color:var(--gold);}
 
   /* The name and its partner tick share a line. */
-  .church-hero-name-row{display:flex;align-items:center;gap:9px;flex-wrap:wrap;}
-  .church-hero-name-row h1{margin:0;}
   #church-partner-badge{
     width:22px;height:22px;border-radius:50%;
     background:var(--gold);color:var(--brand);
@@ -6769,13 +6794,6 @@
   /* Underlined text, not a button. It is the one destructive thing on
      the card and it should not look like one of the three things you
      came to do. */
-  .church-hero-foot{margin-top:10px;}
-  #church-leave-btn{
-    background:none;border:none;padding:0;cursor:pointer;
-    font:inherit;font-size:12.5px;color:#8FA0C4;
-    text-decoration:underline;text-underline-offset:3px;
-  }
-  #church-leave-btn:hover{color:#fff;}
   #church-home-status{margin-top:8px;}
   .btn-gold{background:var(--gold);color:var(--brand);border:none;padding:12px 22px;border-radius:9px;font-weight:600;font-size:14.5px;}
   .btn-outline{background:transparent;border:1px solid #566180;color:#fff;padding:11px 20px;border-radius:9px;font-weight:500;font-size:14.5px;margin-right:10px;}
@@ -6818,6 +6836,14 @@
      card -- closing it shows the pin. On a full page there is no map
      behind anything, so the tab stays. */
   body.fd-church-sheet #page-church .tabs [data-church-tab="location"]{display:none;}
+  /* People goes too. Who is connected to a church belongs on the
+     reader's own dashboard, beside their events, groups and giving --
+     not in a card about the church. */
+  body.fd-church-sheet #page-church .tabs [data-church-tab="people"]{display:none;}
+  /* Nothing between the tabs and the first card. .content-block's 28px
+     top margin was written for a full page. */
+  body.fd-church-sheet #page-church .content-block{margin-top:14px;}
+  body.fd-church-sheet #page-church .church-tab-panel > .grid{margin-top:0;}
   .tab{padding:12px 4px;margin-right:26px;font-size:14.5px;font-weight:500;color:var(--ink-mute);border-bottom:2px solid transparent;cursor:pointer;flex-shrink:0;white-space:nowrap;}
   .tab.active{color:var(--ink);border-bottom:2px solid var(--gold);}
 
@@ -6837,6 +6863,26 @@
      nothing in it now, so the content would otherwise stop 300px and
      a 44px gutter short of the right edge. */
   #page-church .two-col{grid-template-columns:1fr;gap:0;}
+  /* The event, group and ministry grids inside the card are one
+     column of horizontal cards, not two columns of tall ones -- the
+     same shape the browse list uses, and the reason that shape exists
+     is this width. .fd-results-grid is what the compact-card
+     container query keys on, which is why these grids are given it
+     rather than a rule of their own. */
+  /* Two columns on a full page, one in the card. It was an inline
+     style on the element, which no rule could beat -- in the card
+     that produced two half-width cards with three words per line. */
+  #church-event-grid{grid-template-columns:1fr 1fr;}
+  body.fd-church-sheet #page-church .church-tab-panel .grid,
+  body.fd-church-sheet #page-church #church-event-grid{
+    grid-template-columns:1fr;gap:10px;
+  }
+  /* Ministry and group entries inside the card are compact rows
+     rather than tall boxes -- they have no picture, so the height was
+     all padding. */
+  body.fd-church-sheet #page-church .group-card{padding:12px 14px;margin-bottom:8px;}
+  body.fd-church-sheet #page-church .group-card h4{font-size:15px;margin-bottom:2px;}
+  body.fd-church-sheet #page-church .group-card p{font-size:13px;margin-bottom:0;}
   @media (max-width:860px){.two-col{grid-template-columns:1fr;}}
 
   .back-link{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;font-weight:500;color:var(--ink-mute);margin-top:26px;}
@@ -9219,82 +9265,55 @@
   <div class="banner">
     <div class="wrap church-hero">
       <div class="church-hero-main">
-        <!-- The logo moved here from the white Details card, which no
-             longer exists -- it is the church's face and belongs beside
-             its name, not three screens down. Square rather than the
-             16/9 it had as a card header. -->
+        <!-- The denomination takes its own line at the left edge, above
+             the logo, so the name starts level with it. -->
+        <div class="eyebrow" style="color:#8FA0C4;" id="church-eyebrow"></div>
         <div class="church-hero-head">
           <div id="church-logo-img" style="display:none;"></div>
-          <div class="church-hero-title">
-            <div class="eyebrow" style="color:#8FA0C4;" id="church-eyebrow"></div>
-            <!-- The partner badge is a tick in a circle beside the
-                 name rather than a pill on a line of its own: it is a
-                 one-bit fact and it was costing a whole row. The
-                 wording survives as the title and the accessible name,
-                 so it is still readable and still translated --
-                 populateChurchPage sets display to inline-block, which
-                 is why the tick is centred with line-height rather
-                 than with flex. -->
-            <div class="church-hero-name-row">
-              <h1 id="church-name"></h1>
-              <span id="church-partner-badge" style="display:none;" data-i18n-title="church.partnerBadge" title="FaithDock Partner" data-i18n-aria="church.partnerBadge" aria-label="FaithDock Partner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
-            </div>
-          </div>
+          <!-- The partner tick lives INSIDE the h1 so it flows with the
+               last word instead of wrapping onto a line of its own when
+               the name is long -- which is what "Catholic Church of San
+               Antonio" did. The name goes into its own span because
+               writing the h1's textContent would delete the tick. The
+               tick carries no text, so #church-name.textContent is
+               still exactly the name for the code that reads it. -->
+          <h1 id="church-name"><span id="church-name-text"></span><span id="church-partner-badge" style="display:none;" data-i18n-title="church.partnerBadge" title="FaithDock Partner" data-i18n-aria="church.partnerBadge" aria-label="FaithDock Partner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span></h1>
         </div>
         <div id="church-unclaimed-banner" style="display:none;margin-top:14px;background:rgba(201,162,39,0.16);border:1px solid var(--gold);border-radius:12px;padding:14px 16px;max-width:480px;">
           <div style="font-weight:700;font-size:15px;color:#fff;margin-bottom:4px;" data-i18n="church.claimCtaHeadline">Is this your church? Claim your free FaithDock profile.</div>
           <div style="font-size:13px;color:#C7CCD8;margin-bottom:10px;" data-i18n="church.unclaimedNotice">This is a community directory listing — the church hasn't set it up yet.</div>
           <button class="btn-gold" id="church-claim-btn" style="padding:8px 18px;font-size:13px;" data-i18n="church.claimThisChurch">Claim this church</button>
         </div>
+        <!-- Distance only; the service line that used to sit here said
+             the same thing as the clock row below it. -->
         <div class="sub">
           <span id="church-dist"></span>
-          <span id="church-next"></span>
           <span id="church-home-count"></span>
         </div>
-        <div id="church-managed-line" style="display:none;margin-top:6px;font-size:13px;color:#8FA0C4;" data-i18n="church.managedByChurch">Managed by this church</div>
-        <!-- Service times, address, phone, website and socials, moved
-             up from the white card. Same rows, same ids, same handlers
-             -- only the place changed. -->
-        <!-- The address and the two things you can do with it share a
-             row: details on the left, Message and Give stacked on the
-             right. Two full-width labelled buttons were a whole row of
-             their own under an address that only half fills its line,
-             so this is the same two actions in none of the height.
-             The labels survive as the tooltip and the accessible name,
-             both still translated. -->
-        <div class="church-hero-details">
-          <div class="info-row" id="church-service-times" style="display:none;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> </div>
-          <div class="info-row" id="church-address"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/></svg> </div>
-          <div class="info-row" id="church-phone-row" style="display:none;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.1-8.7A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .3 2 .7 2.9a2 2 0 0 1-.4 2.1L8.1 10a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.4 1.9.6 2.9.7a2 2 0 0 1 1.7 2Z"/></svg> <a id="church-phone-link" href="#" style="color:inherit;border-bottom:1px solid var(--gold);"></a></div>
-          <div class="info-row" id="church-website-row" style="display:none;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20z"/></svg> <a id="church-website-link" href="#" target="_blank" rel="noopener" style="color:inherit;border-bottom:1px solid var(--gold);" data-i18n="rc.website">Website</a></div>
-          <div id="church-social-row" style="display:none;gap:10px;margin-top:10px;">
+        <!-- Contact on the left, the four actions as a 2x2 block on the
+             right: they were a full row of their own under an address
+             that half fills its line, and that row is what kept the
+             tabs down the card. -->
+        <div class="church-hero-contact">
+          <div class="church-hero-details">
+<div class="info-row" id="church-service-times" style="display:none;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> </div>
+<div class="info-row" id="church-address"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/></svg> </div>
+<div class="info-row" id="church-phone-row" style="display:none;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.1-8.7A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .3 2 .7 2.9a2 2 0 0 1-.4 2.1L8.1 10a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.4 1.9.6 2.9.7a2 2 0 0 1 1.7 2Z"/></svg> <a id="church-phone-link" href="#" style="color:inherit;border-bottom:1px solid var(--gold);"></a></div>
+<div class="info-row" id="church-website-row" style="display:none;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20z"/></svg> <a id="church-website-link" href="#" target="_blank" rel="noopener" style="color:inherit;border-bottom:1px solid var(--gold);" data-i18n="rc.website">Website</a></div>
+<div id="church-social-row" style="display:none;gap:10px;margin-top:10px;">
             <a id="church-facebook-link" href="#" target="_blank" rel="noopener noreferrer" style="display:none;color:var(--ink-mute);"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M22 12a10 10 0 1 0-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.4 2.9h-2.4v7A10 10 0 0 0 22 12Z"/></svg></a>
             <a id="church-instagram-link" href="#" target="_blank" rel="noopener noreferrer" style="display:none;color:var(--ink-mute);"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg></a>
           </div>
+            <!-- Under the phone, in the brand gold. -->
+            <div id="church-managed-line" style="display:none;" data-i18n="church.managedByChurch">Managed by this church</div>
+          </div>
+          <div class="church-hero-grid">
+<button type="button" class="fd-icon-btn" id="church-home-btn" data-i18n-title="churchHome.makeThisMyChurchHome" title="Make this my Church Home" data-i18n-aria="churchHome.makeThisMyChurchHome" aria-label="Make this my Church Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V21h14V9.8"/><path d="M9.2 14.6l2 2 3.6-3.8"/></svg></button>
+            <div id="church-follow-heart-slot"></div>
+<button type="button" class="fd-icon-btn" id="church-top-give-btn" onclick="openRealGiveTab()" data-i18n-title="church.give" title="Give" data-i18n-aria="church.give" aria-label="Give"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12v9H4v-9"/><rect x="2" y="7" width="20" height="5" rx="1"/><path d="M12 21V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></button>
+<button type="button" class="fd-icon-btn" id="church-message-btn" onclick="openContactChurchModal()" data-i18n-title="church.message" title="Message" data-i18n-aria="church.message" aria-label="Message"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg></button>
+          </div>
         </div>
-      </div>
-      <!-- All four actions as icons on one row under the address.
-           Church Home is an icon too now, which is why its label is
-           carried on title/aria rather than as text: checkChurchHomeStatus
-           writes the label from five places and textContent would wipe
-           the svg. Its state is read from data-state, which that
-           function already sets. -->
-      <div class="church-hero-actions">
-          <button type="button" class="fd-icon-btn" id="church-message-btn" onclick="openContactChurchModal()" data-i18n-title="church.message" title="Message" data-i18n-aria="church.message" aria-label="Message"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg></button>
-          <button type="button" class="fd-icon-btn" id="church-top-give-btn" onclick="openRealGiveTab()" data-i18n-title="church.give" title="Give" data-i18n-aria="church.give" aria-label="Give"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12v9H4v-9"/><rect x="2" y="7" width="20" height="5" rx="1"/><path d="M12 21V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></button>
-        <button type="button" class="fd-icon-btn" id="church-home-btn" data-i18n-title="churchHome.makeThisMyChurchHome" title="Make this my Church Home" data-i18n-aria="churchHome.makeThisMyChurchHome" aria-label="Make this my Church Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V21h14V9.8"/><path d="M9.2 14.6l2 2 3.6-3.8"/></svg></button>
-        <div id="church-follow-heart-slot"></div>
-      </div>
-      <!-- Leaving still gets its own control rather than being a
-           second meaning for clicking the status button -- clicking
-           your own membership badge to destroy it is the kind of thing
-           people do by accident. But it is underlined text on a line
-           of its own now, not a bordered button sitting level with
-           Message and Give, where it read as one of the things you
-           came here to do. Shown only in the is-home state;
-           checkChurchHomeStatus() owns that. -->
-      <div class="church-hero-foot">
-        <button type="button" id="church-leave-btn" style="display:none;" data-i18n="leaveChurch.button">Leave church</button>
         <div id="church-home-status" style="display:none;font-size:12px;color:#8FA0C4;"></div>
       </div>
     </div>
@@ -9326,7 +9345,7 @@
                below). The bottom-of-page unclaimed notice already
                covers "claim this church" for an unclaimed listing, so a
                second, tab-specific pivot here was redundant. -->
-          <div class="grid" style="grid-template-columns:1fr 1fr;" id="church-event-grid"></div>
+          <div class="grid" id="church-event-grid"></div>
           <p id="church-no-events" style="display:none;font-size:14px;color:var(--ink-mute);" data-i18n="church.noUpcomingEventsPosted">No events posted yet.</p>
         </div>
         <div id="church-tab-groups" class="church-tab-panel" style="display:none;">
@@ -13417,7 +13436,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v427 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v428 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -13605,6 +13624,20 @@
   </div>
 </div>
 
+<!-- Joining and cancelling a request. Leaving has its own
+     (#leave-church-modal) and switching has #switch-church-home-modal;
+     this one covers the two that had no confirm at all, now that the
+     single button is the only way to make any of these happen. Its
+     title and body are written at call time -- one modal rather than
+     two more that differ by a sentence. -->
+<div class="modal-overlay" id="church-home-confirm-modal">
+  <div class="modal-card">
+    <h3 style="font-family:'Fraunces';font-size:20px;margin-bottom:10px;" id="church-home-confirm-title"></h3>
+    <p style="font-size:14px;color:var(--ink-mute);margin-bottom:20px;" id="church-home-confirm-body"></p>
+    <button class="btn-gold" id="church-home-confirm-btn" style="width:100%;justify-content:center;" data-i18n="churchHome.confirmYes">Yes</button>
+    <button class="export-btn" id="church-home-confirm-cancel-btn" style="width:100%;justify-content:center;margin-top:8px;" data-i18n="switchHome.cancel">Cancel</button>
+  </div>
+</div>
 <div class="modal-overlay" id="switch-church-home-modal">
   <div class="modal-card">
     <h3 style="font-family:'Fraunces';font-size:20px;margin-bottom:10px;" data-i18n="switchHome.title">Switch Church Home?</h3>
@@ -15896,7 +15929,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-30-v427',
+      'build 2026-09-30-v428',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -16841,7 +16874,9 @@
   }
 
   function populateChurchPage(c){
-    document.getElementById('church-name').textContent = displayChurchName(c.name);
+    // The span, not the h1 -- the h1 also holds the partner tick, and
+    // writing its textContent would delete it.
+    document.getElementById('church-name-text').textContent = displayChurchName(c.name);
     document.getElementById('church-eyebrow').textContent = c.tag ? translateDenomination(c.tag) : window.t('church.genericLabel');
 
     var logoImgEl = document.getElementById('church-logo-img');
@@ -16915,10 +16950,17 @@
     if (ministriesTab) ministriesTab.style.display = (c.ministriesEnabled !== false) ? '' : 'none';
 
     if (typeof computeChurchDistance === 'function') computeChurchDistance(c);
-    var distText = formatChurchDistanceText(c.dist);
+    // Only a real distance. formatChurchDistanceText falls back to
+    // "Set your location to see distance", which is an instruction
+    // rather than a fact about this church and was asked to go.
+    // == null is not enough: with no location computeChurchDistance
+    // leaves this NaN, which is not null and sails through into the
+    // placeholder text.
+    var distText = (c.dist == null || isNaN(c.dist)) ? '' : formatChurchDistanceText(c.dist);
     document.getElementById('church-dist').textContent = distText;
     document.getElementById('church-dist').style.display = distText ? 'inline' : 'none';
-    document.getElementById('church-next').textContent = formatChurchNextText(c.next, (c.rawServiceTimes || []).length);
+    // The "Regular services are at ..." line is gone with #church-next:
+    // the clock row below says the same thing, in a better shape.
 
     var homeCountEl = document.getElementById('church-home-count');
     if (c.homeCount) { homeCountEl.textContent = c.homeCount; homeCountEl.style.display = 'inline'; }
@@ -16929,9 +16971,19 @@
     if (c.description2) { desc2El.textContent = c.description2; desc2El.style.display = 'block'; }
     else { desc2El.style.display = 'none'; }
 
+    // Two lines behind one icon, exactly like the address: a label on
+    // top and the value under it. Plural follows the data -- one
+    // service reads "Regular Service", more than one "Regular
+    // Services" -- counted from the raw times rather than guessed from
+    // the formatted string.
     var serviceTimesEl = document.getElementById('church-service-times');
     if (c.serviceTimesLabel) {
-      serviceTimesEl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> ' + c.serviceTimesLabel;
+      var svcCount = (c.rawServiceTimes || []).length;
+      var svcHeading = svcCount === 1
+        ? window.t('church.regularService')
+        : window.t('church.regularServices');
+      serviceTimesEl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> <span>'
+        + escapeHtml(svcHeading) + '<br>' + escapeHtml(c.serviceTimesLabel) + '</span>';
       serviceTimesEl.style.display = 'flex';
     } else {
       serviceTimesEl.style.display = 'none';
@@ -16939,7 +16991,7 @@
 
     // Street on line 1, "City, ST ZIP" on line 2 (split at the first
     // comma) so the city never breaks mid-word in the narrow side panel.
-    var addrText = c.address ? titleCaseAddress(c.address) : 'Address not listed yet';
+    var addrText = c.address ? fdFixAddressAcronyms(titleCaseAddress(c.address)) : 'Address not listed yet';
     var commaAt = addrText.indexOf(',');
     var addrHtml = commaAt > 0
       ? addrText.slice(0, commaAt).trim() + '<br>' + addrText.slice(commaAt + 1).trim()
@@ -17607,6 +17659,19 @@
   function capitalizeAddressWord(w){
     return w.toLowerCase().replace(/(^|['-])([a-z])/g, function(m, sep, ch){ return sep + ch.toUpperCase(); });
   }
+
+  // Country and state abbreviations come back from title-casing as
+  // "Usa", which is not how anybody writes it. Applied after the
+  // general pass rather than inside it, so the list stays one obvious
+  // place to add to.
+  var FD_ADDR_ACRONYMS = ['USA', 'US', 'UK', 'PO', 'NE', 'NW', 'SE', 'SW'];
+  function fdFixAddressAcronyms(text){
+    return String(text || '').replace(/\b[A-Za-z]{2,3}\b/g, function(w){
+      var up = w.toUpperCase();
+      return FD_ADDR_ACRONYMS.indexOf(up) !== -1 ? up : w;
+    });
+  }
+  window.fdFixAddressAcronyms = fdFixAddressAcronyms;
 
   function titleCaseAddress(address){
     if (!address) return address;
@@ -25898,6 +25963,11 @@
     var sheet = document.getElementById('page-church');
     if (sheet && sheet.contains(ev.target)) return;
     if (ev.target.closest && ev.target.closest('header.site')) return;
+    // A modal opened FROM the card sits above it and is not inside it,
+    // so without this the first tap on "Yes, switch" closed the card
+    // and never reached the button. Reported as the switch window
+    // letting things behind it fire.
+    if (ev.target.closest && ev.target.closest('.modal-overlay')) return;
     ev.preventDefault();
     ev.stopPropagation();
     ev.stopImmediatePropagation();
@@ -49165,8 +49235,6 @@
     var approvedHome = (homeRows || []).filter(function(r){ return r.status === 'approved'; })[0];
     var currentHomeChurchId = approvedHome ? approvedHome.church_id : null;
 
-    var leaveBtn = document.getElementById('church-leave-btn');
-
     // Pending is its own state, not a quieter version of "you're in" --
     // membership now means the church actually said yes (migration 035).
     if (thisChurchRow && thisChurchRow.status === 'pending') {
@@ -49178,22 +49246,18 @@
       btn.classList.remove('btn-registered');
       btn.disabled = false;
       btn.setAttribute('data-state', 'pending');
-      if (leaveBtn) leaveBtn.style.display = 'none';
       return;
     }
     btn.disabled = false;
-    if (leaveBtn) leaveBtn.style.display = 'none';
 
     if (currentHomeChurchId === churchId) {
       fdSetChurchHomeLabel(btn, window.t('churchHome.thisIsYourChurchHome'));
       btn.classList.add('btn-registered');
       btn.setAttribute('data-state', 'is-home');
-      // Deliberately inert once you're a member: this reads as a badge
-      // saying "you're in", and a badge that destroys what it describes
-      // when clicked is an accident waiting to happen. Leaving is the
-      // separate button below, behind a confirm.
-      btn.disabled = true;
-      if (leaveBtn) leaveBtn.style.display = 'inline-flex';
+      // A toggle now, not a badge. The separate Leave church control
+      // is gone, so this is the only way out -- which is safe because
+      // every transition goes through a confirm, including this one.
+      btn.disabled = false;
     } else if (currentHomeChurchId) {
       fdSetChurchHomeLabel(btn, window.t('churchHome.makeThisMyChurchHome'));
       btn.classList.remove('btn-registered');
@@ -49210,6 +49274,34 @@
   // site's own modal styling instead of the browser's default
   // "faithdock.com says..." popup, which looks like a stray system
   // alert rather than part of the product.
+  // Same shape as the two beside it. The copy depends on which way
+  // the toggle is going, so it is set here rather than living in the
+  // markup.
+  function fdConfirmChurchHome(state){
+    return new Promise(function(resolve){
+      var modal = document.getElementById('church-home-confirm-modal');
+      if (!modal) { resolve(true); return; }
+      var leaving = (state === 'pending');
+      document.getElementById('church-home-confirm-title').textContent =
+        window.t(leaving ? 'churchHome.confirmCancelTitle' : 'churchHome.confirmJoinTitle');
+      document.getElementById('church-home-confirm-body').textContent =
+        window.t(leaving ? 'churchHome.confirmCancelBody' : 'churchHome.confirmJoinBody');
+      modal.classList.add('open');
+      var confirmBtn = document.getElementById('church-home-confirm-btn');
+      var cancelBtn = document.getElementById('church-home-confirm-cancel-btn');
+      function cleanup(result){
+        modal.classList.remove('open');
+        confirmBtn.removeEventListener('click', onConfirm);
+        cancelBtn.removeEventListener('click', onCancel);
+        resolve(result);
+      }
+      function onConfirm(){ cleanup(true); }
+      function onCancel(){ cleanup(false); }
+      confirmBtn.addEventListener('click', onConfirm);
+      cancelBtn.addEventListener('click', onCancel);
+    });
+  }
+
   function confirmSwitchChurchHome(){
     return new Promise(function(resolve){
       var modal = document.getElementById('switch-church-home-modal');
@@ -49316,6 +49408,35 @@
       // handled here any more: this button is inert once you're a
       // member, and leaving lives on its own button behind a confirm,
       // so that clicking your own "you're in" badge can't destroy it.
+      // Every transition is confirmed. The button is a toggle with no
+      // separate Leave control beside it, so a mis-tap on it is the
+      // only way to lose a membership -- and the one that grants it is
+      // worth a beat too, since it sends a request to a real church.
+      var confirmed = (state === 'is-home')
+        ? await confirmLeaveChurch()
+        : (state === 'has-other-home')
+          ? await confirmSwitchChurchHome()
+          : await fdConfirmChurchHome(state);
+      if (!confirmed) return;
+
+      // Leaving, from the same button that joined.
+      if (state === 'is-home') {
+        churchHomeBtn.disabled = true;
+        var leftResult = await supabase.rpc('leave_church', { target_church_id: matched.id });
+        churchHomeBtn.disabled = false;
+        if (leftResult.error) {
+          statusEl.textContent = leftResult.error.message;
+          statusEl.style.color = 'var(--clay)';
+          statusEl.style.display = 'block';
+          return;
+        }
+        statusEl.textContent = window.t('leaveChurch.left');
+        statusEl.style.color = 'var(--sage)';
+        statusEl.style.display = 'block';
+        checkChurchHomeStatus(matched.id);
+        return;
+      }
+
       if (state === 'pending') {
         churchHomeBtn.disabled = true;
         // RPC, not a client-side delete: church_memberships' policies
@@ -49340,8 +49461,6 @@
       }
 
       if (state === 'has-other-home') {
-        var confirmSwitch = await confirmSwitchChurchHome();
-        if (!confirmSwitch) return;
         // Same reasoning as leaving above: the old church's row is
         // deleted rather than left behind at is_permanent = false,
         // which previously kept you listed as their member forever
