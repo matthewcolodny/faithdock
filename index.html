@@ -5486,12 +5486,22 @@
      nothing here is a second copy of the profile. The only difference
      is where the box is. */
   body.fd-church-sheet #page-church{
-    position:fixed;left:0;right:0;top:var(--fd-nav-h,56px);bottom:0;
-    z-index:45;overflow-y:auto;-webkit-overflow-scrolling:touch;
-    background:var(--paper);
-    box-shadow:0 -12px 32px rgba(0,0,0,.28);
+    position:fixed;z-index:45;
+    /* Inset on every side, not flush to the screen. The browse view
+       stays visible all the way around it, so the profile reads as
+       something opened ON TOP of the list rather than as a place you
+       navigated to -- which is the point of opening it here at all. */
+    left:10px;right:10px;bottom:10px;
+    top:calc(var(--fd-nav-h,56px) + 10px);
+    border-radius:16px;overflow:hidden auto;
+    -webkit-overflow-scrolling:touch;
+    background:var(--paper);border:1px solid var(--line);
+    box-shadow:0 12px 40px rgba(0,0,0,.34);
     animation:fd-church-sheet-rise .22s ease-out;
   }
+  /* The banner inside it has square corners of its own and would
+     otherwise poke through the rounded ones. */
+  body.fd-church-sheet #page-church > .banner{border-radius:15px 15px 0 0;}
   @keyframes fd-church-sheet-rise{
     from{transform:translateY(18px);opacity:0;}
     to{transform:none;opacity:1;}
@@ -5500,7 +5510,8 @@
   body.fd-church-sheet{overflow:hidden;}
   body.fd-church-sheet #fd-church-sheet-close{
     display:flex;align-items:center;justify-content:center;
-    position:fixed;top:calc(var(--fd-nav-h,56px) + 10px);right:12px;z-index:46;
+    /* On the card's own top-right corner, inside its inset. */
+    position:fixed;top:calc(var(--fd-nav-h,56px) + 20px);right:20px;z-index:46;
     width:38px;height:38px;padding:0;border-radius:50%;
     background:var(--card);border:1px solid var(--line);color:var(--ink);
     cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.2);
@@ -13198,7 +13209,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v423 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v424 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -15677,7 +15688,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-30-v423',
+      'build 2026-09-30-v424',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -21375,11 +21386,36 @@
   // standard way to force the style change to be committed so the
   // re-added class counts as a change. Cheap, and only on a repaint of
   // a three-card grid.
+  // The hero grids flashed several times on load. This function was
+  // why: it takes fd-grid-in off, rewrites, forces a reflow and puts
+  // it back, which REPLAYS the entry animation on every call -- and
+  // these get called more than once per load by design. The home
+  // route paints them on arrival, then geolocation resolves and
+  // paints them again with distances, and a language or auth change
+  // paints them a third time. Three animations, two of which are
+  // showing content that had already arrived.
+  //
+  // Two changes. Identical output does not touch the DOM at all, so
+  // the auth and language passes that change nothing are now free.
+  // And the entrance plays once per grid: a later update swaps the
+  // content quietly, because an animation is how something ARRIVES
+  // and the second paint is the same list with better numbers in it.
+  //
+  // Keyed on the element rather than a flag, so each grid is counted
+  // separately and nothing leaks when one is removed.
+  var fdGridLastHtml = new WeakMap();
   function paintGrid(el, html){
-    el.classList.remove('fd-grid-in');
+    var prev = fdGridLastHtml.get(el);
+    if (prev === html) return;
+    fdGridLastHtml.set(el, html);
+    if (prev === undefined) {
+      el.classList.remove('fd-grid-in');
+      el.innerHTML = html;
+      void el.offsetWidth;
+      el.classList.add('fd-grid-in');
+      return;
+    }
     el.innerHTML = html;
-    void el.offsetWidth;
-    el.classList.add('fd-grid-in');
   }
 
   async function renderHomeChurches(){
@@ -25624,6 +25660,36 @@
   // added, so Back and the x do the same thing -- and the hash change
   // it causes routes through go() as usual, which is what removes the
   // class and puts the pages back.
+  function fdCloseChurchSheet(){
+    if (window.history.length > 1) window.history.back();
+    else if (typeof window.go === 'function') window.go('directory');
+    else location.hash = '#directory';
+  }
+
+  // Tapping the browse view around the card closes it, the same way
+  // tapping outside a filter window does -- now that the card is
+  // inset there is somewhere to tap, and a floating card you cannot
+  // dismiss by tapping beside it is the thing people try first.
+  //
+  // Capture, and it stops the event dead: the first tap outside must
+  // CLOSE and nothing else. Without this it would also land on
+  // whatever card or control sits under it, which was reported on the
+  // filter windows and fixed there the same way.
+  //
+  // The nav is excluded. It stays visible above the card precisely so
+  // it keeps working, and swallowing a tap on it would make it look
+  // broken.
+  document.addEventListener('click', function(ev){
+    if (!document.body.classList.contains('fd-church-sheet')) return;
+    var sheet = document.getElementById('page-church');
+    if (sheet && sheet.contains(ev.target)) return;
+    if (ev.target.closest && ev.target.closest('header.site')) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    ev.stopImmediatePropagation();
+    fdCloseChurchSheet();
+  }, true);
+
   var fdChurchSheetCloseBtn = document.getElementById('fd-church-sheet-close');
   if (fdChurchSheetCloseBtn) {
     fdChurchSheetCloseBtn.addEventListener('click', function(){
