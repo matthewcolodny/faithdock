@@ -13122,7 +13122,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v418 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v419 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -14470,6 +14470,52 @@
   var fdBrowseTabPrev = 'churches';
   var fdBrowseTab = 'churches';
   var FD_TAB_ORDER = ['churches', 'events', 'groups'];
+
+  // The vanishing tab, attempt two.
+  //
+  // Reported as "holding down for a second seems to highlight the text
+  // and make it disappear", and v418's user-select:none on these
+  // controls was not enough on the reporter's phone.
+  //
+  // What the geometry says, twice now: the tab keeps its full width
+  // and stops painting. Both times the two surviving tabs sat exactly
+  // half the missing tab's width off centre -- 44px when Churches
+  // went, 34px when Groups did -- which is a row of three with one
+  // member drawing nothing, not a row of two. So nothing is being
+  // hidden, removed or shrunk, and no amount of measuring the layout
+  // was ever going to find it: by the time it is measurable the box is
+  // already correct.
+  //
+  // That shape is the Android long-press LIFT. A press-and-hold
+  // selects the label, and the selection can then be dragged -- the
+  // browser paints the text into a floating drag image and hides the
+  // original underneath while it is held. "Highlight the text and make
+  // it disappear" is a literal description of it.
+  //
+  // user-select:none should stop the selection that enables the lift,
+  // and evidently does not on every Android browser, so the two
+  // follow-on paths are refused directly. Capture phase, because the
+  // card and panel handlers downstream call stopPropagation.
+  //
+  // It cannot be reproduced here: a synthetic PointerEvent does not
+  // make a user-agent start a selection, so dispatching one proves
+  // only that our own JS leaves the tabs alone -- which was already
+  // known. This is the standard set of preventions rather than a
+  // verified fix, and if it survives them the labels have to become
+  // generated content, which a browser cannot select or lift at all.
+  function fdBlockChromeGestures(ev){
+    var t = ev.target;
+    if (!t || !t.closest) return;
+    // Only the chrome. Card text, addresses and descriptions stay
+    // selectable -- those are worth copying, and none of them is
+    // something you drag.
+    if (t.closest('.fd-sheet-head, .fd-tabs, .fd-quick-row, .dir-view-toggle, .fd-filter-chips, .fd-cat-tabs')) {
+      ev.preventDefault();
+    }
+  }
+  document.addEventListener('selectstart', fdBlockChromeGestures, true);
+  document.addEventListener('dragstart', fdBlockChromeGestures, true);
+  document.addEventListener('contextmenu', fdBlockChromeGestures, true);
   // A tab is only offered when there is a panel behind it. Groups has
   // not been folded in yet, and a tab that hides every panel and shows
   // nothing is worse than no tab. Removing this is not needed when it
@@ -15531,7 +15577,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-30-v418',
+      'build 2026-09-30-v419',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
