@@ -13586,7 +13586,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-10-01-v438 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-10-01-v439 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -16231,7 +16231,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-10-01-v438',
+      'build 2026-10-01-v439',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -18529,12 +18529,25 @@
     if (recurrenceRule) lines.push('RRULE:' + recurrenceRule);
     lines.push('END:VEVENT', 'END:VCALENDAR');
 
-    var blob = new Blob([lines.join('\r\n')], { type: 'text/calendar' });
+    // charset on the type: a bare text/calendar is something Android
+    // may decline to open at all.
+    var blob = new Blob([lines.join('\r\n')], { type: 'text/calendar;charset=utf-8' });
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
     a.href = url; a.download = filename;
+    a.rel = 'noopener';
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    // NOT revoked on the next line, which is what it used to do.
+    // Revoking synchronously after click() pulls the blob out from
+    // under a download that has not begun reading it yet: the browser
+    // resolves the url, finds nothing, and does nothing at all --
+    // silently, with no error. That is the reported symptom, and it
+    // shows up on a phone long before it shows up on a desktop, where
+    // the read usually wins the race.
+    //
+    // A minute is far longer than a 400-byte file needs and costs one
+    // live object until then.
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 60000);
   }
   window.openGoogleCalendarLink = openGoogleCalendarLink;
   window.downloadIcsFile = downloadIcsFile;
