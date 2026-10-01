@@ -5005,17 +5005,21 @@
   .church-row-main,.event-row-main,.group-row-main{flex:1;min-width:0;}
   .church-row-head,.event-row-head,.group-row-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
   .church-row-name,.event-row-name,.group-row-name{font-family:'Fraunces';font-size:15.5px;font-weight:600;color:var(--ink);}
-  .church-row-meta,.event-row-meta,.group-row-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;color:var(--ink-mute);font-size:12.5px;margin-top:4px;}
+  /* No separator character. A middot between flex items can only ever
+     be attached to the item before it or the item after it, so it
+     either dangles at the end of a wrapped line or leads the next one
+     like a bullet -- and CSS cannot suppress one only at a wrap point.
+     Both were reported. Wider spacing separates the facts without a
+     glyph that has to belong to one of them: 18px of column gap
+     against a 2px row gap, so a wrap reads as a new line rather than
+     as more of the same one. */
+  .church-row-meta,.event-row-meta,.group-row-meta{display:flex;align-items:baseline;gap:2px 18px;flex-wrap:wrap;color:var(--ink-mute);font-size:12.5px;margin-top:4px;}
   /* Drawn by the span that FOLLOWS it rather than standing between the
      two as a flex item of its own. As an item it could be pushed to
      the end of a wrapped line and left dangling there with nothing
      after it -- visible on any row narrow enough to wrap, which on a
      phone is most of them. Part of the next span, it wraps with it. */
-  .church-row-meta > :not(:first-child)::before,
-  .event-row-meta > :not(:first-child)::before,
-  .group-row-meta > :not(:first-child)::before{
-    content:'\00b7';opacity:.5;margin-right:8px;
-  }
+
 
   /* .church-row-chev is gone from the markup -- the row says "View
      Church Profile" in words now. */
@@ -13147,7 +13151,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v421 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v422 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -15626,7 +15630,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-30-v421',
+      'build 2026-09-30-v422',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -38996,7 +39000,9 @@
         // identical to a church row: name and tags, a meta line,
         // directions, and the heart in the corner.
         var rbits = [];
-        if (meta) rbits.push('<span>' + meta + '</span>');
+        if (g.church_name) rbits.push('<span>' + escapeHtml(g.church_name) + '</span>');
+        if (where) rbits.push('<span>' + escapeHtml(where) + '</span>');
+        if (dist) rbits.push('<span>' + escapeHtml(dist) + '</span>');
         if (g.meeting_schedule) rbits.push('<span>' + escapeHtml(g.meeting_schedule) + '</span>');
         rbits.push('<span>' + escapeHtml(groupsMemberCountLabel(g.member_count)) + '</span>');
         return '<div class="group-row" data-route="group" data-group-id="' + escapeHtml(g.id) + '">'
