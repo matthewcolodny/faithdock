@@ -5356,6 +5356,16 @@
     .fd-results-grid .church-card .meta-row,
     .fd-results-grid .event-card .meta-row,
     .fd-results-grid .group-card--tile .meta-row{margin-bottom:3px;}
+    /* Both columns, so the tags sit under the picture instead of
+       beside it. The card's own 12px padding is the inset here, so
+       the foot adds none of its own. */
+    .fd-results-grid .church-card .dir-card-foot{
+      grid-column:1 / -1;padding:0;margin-top:8px;
+    }
+    /* The picture drops a little, so it sits against the name rather
+       than hard against the card's top edge now that the tags have
+       moved out from beside it. */
+    .fd-results-grid .church-card .thumb{margin-top:4px;}
     /* The tag stack is what made an event card tall. Side by side in the
        compact card, wrapping only when it truly cannot fit. */
     .fd-results-grid .event-card .card-tags{flex-wrap:wrap;}
@@ -7900,9 +7910,15 @@
   .fd-loc-inline:hover{color:var(--ink);border-color:var(--ink-mute);}
   .fd-loc-inline.is-busy{opacity:.55;}
   .dir-card-actions{display:flex;flex-wrap:wrap;align-items:baseline;gap:14px;margin-top:4px;}
-  /* Denomination on the left, the two markers on the right. */
-  .dir-card-foot{display:flex;align-items:center;gap:8px;margin-top:10px;}
-  .dir-card-foot .card-tags{flex:1;min-width:0;}
+  /* Denomination on the left, the two markers on the right. A sibling
+     of .card-body rather than a child, so it starts at the card's
+     edge; it carries the body's own horizontal padding to line up
+     with it. */
+  .dir-card-foot{
+    display:flex;align-items:center;gap:8px;
+    padding:0 18px 16px;margin-top:10px;
+  }
+  .dir-card-foot .card-tags{flex:1;min-width:0;display:flex;flex-wrap:wrap;gap:6px;}
   /* Directions rides the distance line now, so it is one of the row's
      items rather than a block under it. */
   .meta-row .dir-card-directions{margin-left:10px;}
@@ -13471,7 +13487,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-10-01-v431 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-10-01-v432 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -14176,11 +14192,17 @@
       + '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/></svg><span>' + escapeHtml(distText) + '</span>'
       + fdDirectionsHtml(c) + '</div>'
       + '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><span>' + escapeHtml(fdBindTimeMeridiem(formatChurchNextText(c.next, (c.rawServiceTimes || []).length))) + '</span></div>'
+      + '</div>'
+      // Outside .card-body on purpose. The body is the second column
+      // of the compact card, so a foot inside it starts 76px in,
+      // under the name rather than under the picture. Out here it can
+      // span both columns and the tags begin at the card's own left
+      // edge -- which is also the room language and category tags
+      // will need when they arrive.
       + '<div class="dir-card-foot">'
       + '<div class="card-tags"><span class="tag sage">' + escapeHtml(translateDenomination(c.tag)) + '</span></div>'
       + fdChurchHomeBadge(c)
       + badge
-      + '</div>'
       + '</div>';
     if(clickable){
       // The href is encodeURIComponent'd (already safe), but
@@ -15976,7 +15998,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-10-01-v431',
+      'build 2026-10-01-v432',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
