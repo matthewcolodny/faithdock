@@ -1,59 +1,74 @@
 -- 121_group_meeting_anchor.sql
 --
--- Makes the date filter 120 added EXACT for biweekly and monthly
--- groups. 120 matched them on weekday alone -- a monthly group showed
--- for every Wednesday in the range -- because nothing in the table
--- said WHICH Wednesday. This adds the missing fact and uses it.
---
--- Probed before writing, 2026-10-01:
---
---   created_at  timestamptz, populated on 8 of 8 rows, earliest
---               2026-09-30
---   the three without an anchor:
---     Men's Prayer Breakfast  monthly  Saturday   created 2026-09-30
---     Saturday Serve Team     biweekly Saturday   created 2026-09-30
---     Seniors Book Club       monthly  Wednesday  created 2026-09-30
+-- Makes the date filter 120 added EXACT. 120 matched every recurring
+-- group on its weekday alone, so a group that meets once a month
+-- showed for all four of them.
 --
 -- ---------------------------------------------------------------------
--- What the anchor is, and what it is not
+-- REWRITTEN before it was ever run. The first version of this file was
+-- wrong, and wrong in a way that would have hidden groups rather than
+-- over-showing them. Recording why, because the mistake is instructive.
 --
--- meeting_anchor_date is the first meeting of the series. From it the
--- rest follows: biweekly is every fourteenth day from it, monthly is
--- the same weekday-of-month ordinal as it.
+-- I probed the DATA and wrote against what came back:
 --
--- For rows that already exist there is NOTHING to recover -- no column
--- records when a series started -- so the backfill is a derivation,
--- not a fact: the first matching weekday on or after created_at. For
--- the three above that is a guess, and it is worth checking: the
--- verify block at the bottom prints what each one got. The form will
--- ask for new groups, so this guess applies to these rows only.
+--   meeting_recurrence: weekly x5, biweekly x1, monthly x2
 --
--- The trap the probe caught: 2026-09-30 is a WEDNESDAY, so Seniors
--- Book Club -- monthly on Wednesday -- anchors on day 30 of the
--- month, which is the FIFTH Wednesday. Most months have four. Matched
--- literally, that group would almost never appear, which is a worse
--- answer than the over-inclusive one 120 gave.
+-- and concluded that monthly groups carry no ordinal, so an anchor
+-- column was needed to work out which Wednesday they meet.
 --
--- So a fifth occurrence is read as "the last one in the month", which
--- is how scheduling tools treat it and is a real schedule someone
--- might keep. Ordinals one to four are matched exactly; every month
--- has at least four of every weekday, so those never go missing.
+-- I had not probed the FORM. index.html's group editor offers:
 --
--- Rows with no anchor fall back to 120's weekday-only behaviour rather
--- than vanishing. Over-inclusive is still the safer error: a list that
--- says a group may meet then sends someone to a page with the real
--- schedule, while hiding one that does meet gives them no way to find
+--   once | weekly | first | second | third | fourth | last
+--
+-- There is no "biweekly" and no "monthly" in it. The ordinal is in the
+-- recurrence value itself -- "every 2nd Tuesday" is stored as
+-- 'second' -- so for anything the app can create, no anchor is needed
+-- at all. biweekly and monthly are LEGACY values on three old rows.
+--
+-- The first version handled only 'biweekly' and 'monthly'. Every group
+-- made with the current form would have fallen through all of its
+-- branches and matched NO date, disappearing from Today, This weekend
+-- and every range. That is the failure a data-only probe could not
+-- show, and reading the writer is what caught it.
+--
+-- ---------------------------------------------------------------------
+-- What this does now
+--
+--   once                      the one date in meeting_date
+--   weekly                    every matching weekday
+--   first/second/third/fourth that ordinal weekday of the month
+--   last                      the last matching weekday of the month
+--   biweekly  (legacy, 1 row) every 14 days from meeting_anchor_date
+--   monthly   (legacy, 2 rows) weekday only -- see below
+--
+-- 'monthly' says which weekday but not which one of them, and nothing
+-- in the table can recover it. Those two rows keep 120's
+-- over-inclusive behaviour rather than being guessed at. The fix is
+-- not SQL: open each one in the group editor and re-save it, which
+-- rewrites meeting_recurrence to a real ordinal and makes it exact
+-- from then on. The verify block names them.
+--
+-- Over-inclusive stays the deliberate choice for anything unknown. A
+-- list saying a group may meet then sends someone to a page with the
+-- real schedule; hiding one that does meet gives them no way to find
 -- out.
+--
+-- meeting_anchor_date is added for biweekly, which is the one pattern
+-- that genuinely cannot be derived -- "every other Saturday" needs to
+-- know which Saturday the series started on. Backfilled from
+-- created_at, which is a derivation and not a fact, so the verify
+-- block prints it.
+--
+-- Backwards compatible: same ten arguments and the same result as 120,
+-- so this REPLACES rather than drops, and nothing has to be re-granted.
 
 -- ---------------------------------------------------------------------
 alter table groups add column if not exists meeting_anchor_date date;
 
 comment on column groups.meeting_anchor_date is
-  'First meeting of a recurring series. Biweekly repeats every 14 days from it; monthly repeats on the same weekday ordinal as it, where a 5th occurrence means the last one in the month. Null falls back to weekday-only matching.';
+  'First meeting of a biweekly series; every 14th day from it is a meeting. Not used by weekly or by the first/second/third/fourth/last ordinals, which say which occurrence on their own. Null falls back to weekday-only matching.';
 
--- The backfill. Recurring rows only -- a one-off already carries its
--- date in meeting_date -- and only where it is still null, so running
--- this twice changes nothing.
+-- Biweekly only. Everything else carries its own rule.
 update groups g
    set meeting_anchor_date = (
      select d::date
@@ -66,15 +81,11 @@ update groups g
       limit 1
    )
  where g.meeting_anchor_date is null
+   and g.meeting_recurrence = 'biweekly'
    and g.meeting_day_of_week is not null
-   and g.meeting_date is null
    and g.created_at is not null;
 
 -- ---------------------------------------------------------------------
--- The function. Same ten arguments and the same result as 120, so this
--- REPLACES rather than drops and recreates -- no overload is possible
--- and nothing has to be re-granted. The guard only checks that what is
--- live is what this was written against.
 do $$
 declare
   n_overloads int;
@@ -178,8 +189,6 @@ as $fn$
       and coalesce(c.is_hidden, false) = false
       and coalesce(c.groups_enabled, true) = true
       and (p_church_ids is null or g.church_id = any(p_church_ids))
-      -- Overlap, not containment: ticking three categories means "any
-      -- of these", which is what the chips above the list say.
       and (p_group_tags is null or cardinality(p_group_tags) = 0
            or g.group_tags && p_group_tags)
       and (
@@ -188,13 +197,12 @@ as $fn$
         or g.description ilike '%' || p_keyword || '%'
         or c.name ilike '%' || p_keyword || '%'
       )
-      -- ---- the date range, exactly -----------------------------------
+      -- ---- the date range -------------------------------------------
       -- A group's date is a rule, not a date, so this asks whether an
       -- OCCURRENCE falls inside the range. Either bound alone is a
       -- filter; neither is no filter. An open end is clamped to a year
-      -- so the series is always bounded -- every recurrence pattern
-      -- here repeats within 31 days, so a longer window answers
-      -- nothing a shorter one does not.
+      -- so the series is bounded -- every pattern here repeats within
+      -- 31 days, so a longer window answers nothing a shorter one does.
       and (
         (p_from_date is null and p_to_date is null)
         or exists (
@@ -218,39 +226,52 @@ as $fn$
                       when 2 then 'Tuesday'   when 3 then 'Wednesday'
                       when 4 then 'Thursday'  when 5 then 'Friday'
                       else 'Saturday' end
-                -- The series has started and has not ended.
-                and (g.meeting_anchor_date is null
-                     or gs.d::date >= g.meeting_anchor_date)
                 and (g.meeting_repeat_until is null
                      or gs.d::date <= g.meeting_repeat_until)
                 and (
-                  -- Weekly is every one of them, so the weekday match
-                  -- above is the whole answer.
+                  -- Every one of them.
                   coalesce(g.meeting_recurrence, 'weekly') = 'weekly'
-                  -- No anchor: fall back to 120's weekday-only match
-                  -- rather than hiding the group.
-                  or g.meeting_anchor_date is null
-                  -- Every fourteenth day from the first meeting.
+
+                  -- The ordinal is the recurrence value itself. This is
+                  -- what the group editor writes, so it covers every
+                  -- group the app can create.
+                  or (
+                    g.meeting_recurrence in ('first','second','third','fourth')
+                    and ceil(extract(day from gs.d) / 7.0) = case g.meeting_recurrence
+                          when 'first' then 1 when 'second' then 2
+                          when 'third' then 3 else 4 end
+                  )
+                  -- Adding a week would leave the month, so this is the
+                  -- last one in it.
+                  or (
+                    g.meeting_recurrence = 'last'
+                    and extract(day from gs.d) + 7 >
+                        extract(day from (date_trunc('month', gs.d) + interval '1 month' - interval '1 day'))
+                  )
+
+                  -- Legacy. 'biweekly' is not in the editor and cannot
+                  -- be derived, so it rides on the anchor.
                   or (
                     g.meeting_recurrence = 'biweekly'
+                    and g.meeting_anchor_date is not null
+                    and gs.d::date >= g.meeting_anchor_date
                     and ((gs.d::date - g.meeting_anchor_date) % 14) = 0
                   )
-                  -- The same weekday ordinal as the first meeting --
-                  -- "the second Tuesday", "the last Wednesday".
-                  or (
-                    g.meeting_recurrence = 'monthly'
-                    and case
-                      when ceil(extract(day from g.meeting_anchor_date) / 7.0) >= 5
-                        -- The anchor landed on a fifth occurrence,
-                        -- which most months do not have. Read as the
-                        -- LAST one: adding a week would leave the
-                        -- month. See the header for why.
-                        then extract(day from gs.d) + 7 >
-                             extract(day from (date_trunc('month', gs.d) + interval '1 month' - interval '1 day'))
-                      else ceil(extract(day from gs.d) / 7.0)
-                           = ceil(extract(day from g.meeting_anchor_date) / 7.0)
-                    end
-                  )
+
+                  -- Legacy. 'monthly' names a weekday and not which one
+                  -- of them, and nothing in the table can recover it.
+                  -- Keeps 120's weekday-only match rather than a guess;
+                  -- re-saving the group in the editor rewrites it to a
+                  -- real ordinal and it becomes exact.
+                  or g.meeting_recurrence = 'monthly'
+
+                  -- Anything else unrecognised: show it rather than
+                  -- hide it. This is the branch whose absence would
+                  -- have made every first/second/third/fourth/last
+                  -- group vanish.
+                  or g.meeting_recurrence is not null
+                     and g.meeting_recurrence not in
+                         ('weekly','once','first','second','third','fourth','last','biweekly')
                 )
               )
             )
@@ -258,8 +279,6 @@ as $fn$
             -- type is not recorded: a date[] renders as YYYY-MM-DD and
             -- a text[] of ISO dates matches the same way, and anything
             -- else never matches -- the same answer as not checking.
-            -- It can drop an occurrence that is really cancelled; it
-            -- can never drop one that is not.
             and not (
               coalesce(g.meeting_exceptions::text[], '{}'::text[])
                 @> array[to_char(gs.d, 'YYYY-MM-DD')]
@@ -299,26 +318,25 @@ $fn$;
 -- null in the SQL Editor. One union-all'd select with a section
 -- column: the editor returns only the LAST statement's result.
 --
--- READ THE "anchor backfill" ROWS. Those three dates are derived from
--- created_at, not recorded, and they are the only part of this that is
--- a guess. "ordinal 5 (last)" on Seniors Book Club is expected.
+-- The rows to actually read:
+--   "re-save these"  the legacy monthly groups, still weekday-only
+--   "biweekly anchor" the one derived date in here
 do $$ begin perform set_config('role', 'anon', true); end $$;
 
-select 'anchor backfill' as section,
-       name || ' | ' || coalesce(meeting_recurrence, 'weekly')
-       || ' | ' || coalesce(meeting_day_of_week, '-')
-       || ' | anchor ' || coalesce(meeting_anchor_date::text, '(none)')
-       || case
-            when meeting_anchor_date is null then ''
-            when ceil(extract(day from meeting_anchor_date) / 7.0) >= 5
-              then ' | ordinal 5 (last)'
-            else ' | ordinal ' || ceil(extract(day from meeting_anchor_date) / 7.0)::text
-          end as detail
-  from public.groups
+select 'recurrence in use' as section,
+       coalesce(meeting_recurrence, '(null)') || '  x' || count(*)::text as detail
+  from public.groups group by meeting_recurrence
 union all
-select 'no anchor left', count(*)::text
+select 're-save these',
+       name || ' | monthly on ' || coalesce(meeting_day_of_week, '-')
+       || ' | still weekday-only'
   from public.groups
- where meeting_anchor_date is null and meeting_date is null
+ where meeting_recurrence = 'monthly'
+union all
+select 'biweekly anchor',
+       name || ' | anchor ' || coalesce(meeting_anchor_date::text, '(none)')
+  from public.groups
+ where meeting_recurrence = 'biweekly'
 union all
 select 'no dates -> all rows', count(*)::text
   from search_groups(p_limit => 100)
@@ -327,19 +345,11 @@ select 'today', count(*)::text
   from search_groups(p_limit => 100,
                      p_from_date => current_date, p_to_date => current_date)
 union all
-select 'next 7 days', count(*)::text
+select 'this coming saturday', count(*)::text
   from search_groups(p_limit => 100,
-                     p_from_date => current_date, p_to_date => current_date + 6)
+                     p_from_date => current_date + ((6 - extract(dow from current_date)::int + 7) % 7),
+                     p_to_date   => current_date + ((6 - extract(dow from current_date)::int + 7) % 7))
 union all
-select 'next 14 days', count(*)::text
-  from search_groups(p_limit => 100,
-                     p_from_date => current_date, p_to_date => current_date + 13)
-union all
--- The point of the whole migration: over a single month a monthly
--- group must appear ONCE, not four times. This counts rows, so it
--- cannot show that on its own -- but next-7 vs next-14 vs next-31
--- rising in steps rather than jumping straight to the total is what
--- "exact" looks like from here.
 select 'next 31 days', count(*)::text
   from search_groups(p_limit => 100,
                      p_from_date => current_date, p_to_date => current_date + 30)

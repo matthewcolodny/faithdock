@@ -8095,7 +8095,7 @@
   .filter-panel.fd-ecats-open .fd-panel-close,
   .filter-panel.fd-loc-open .fd-panel-close,
   .filter-panel.fd-dates-open .fd-panel-close{display:flex;}
-  .fd-filter-chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px;}
+  .fd-filter-chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 14px;}
   .fd-filter-chips[hidden]{display:none;}
   .fd-filter-chip{
     display:inline-flex;align-items:center;gap:5px;
@@ -9420,7 +9420,12 @@
       </div>
       <div class="fd-filter-chips" data-fd-filter-chips="groups" hidden></div>
       <div class="event-tab-row fd-quick-row" id="group-tab-row">
-        <button class="event-tab-btn active" type="button" data-group-tab="all" data-i18n="filters.all">All</button>
+        <button class="event-tab-btn active" type="button" data-group-date="all" data-i18n="filters.all">All</button>
+        <button class="event-tab-btn" type="button" data-group-date="today" data-i18n="events.tabToday">Today</button>
+        <button class="event-tab-btn" type="button" data-group-date="weekend" data-i18n="events.tabWeekend">This weekend</button>
+        <div class="fd-quick-end">
+          <button type="button" id="groups-dates-btn" class="event-tab-btn fd-quick-btn" aria-expanded="false" data-i18n-title="events.when" title="Date" data-i18n="filters.byDate">Date</button>
+        </div>
       </div>
       <div id="groups-results" style="margin-top:16px;">
         <p style="color:var(--ink-mute);font-size:14px;" data-i18n="common.loading">Loading...</p>
@@ -13667,7 +13672,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-10-01-v448 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-10-01-v449 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -16577,7 +16582,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-10-01-v448',
+      'build 2026-10-01-v449',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -22969,6 +22974,9 @@
     var dateLabel = fdEventsDateLabel();
     var db = document.getElementById('events-dates-btn');
     if (db) db.classList.toggle('fd-quick-on', !!dateLabel);
+    var gdb2 = document.getElementById('groups-dates-btn');
+    if (gdb2) gdb2.classList.toggle('fd-quick-on', !!dateLabel);
+    if (typeof fdSyncDateTabs === 'function') fdSyncDateTabs();
 
     var locEl = document.getElementById('dir-location-input');
     var locv = locEl ? locEl.value.trim() : '';
@@ -23800,10 +23808,9 @@
 
   function fdRenderGroupChips(){
     var picked = fdChosenGroupTags();
-    var allBtn = document.querySelector('[data-group-tab="all"]');
     var catBtn = document.querySelector('[data-group-tab="categories"]');
-    if (allBtn) allBtn.classList.toggle('active', !picked.length);
     if (catBtn) catBtn.classList.toggle('fd-quick-on', !!picked.length);
+    if (typeof fdSyncDateTabs === 'function') fdSyncDateTabs();
     // The other three in the row read the same sources their windows
     // write to, so the marks cannot disagree with the list.
     var locEl = document.getElementById('dir-location-input');
@@ -23826,7 +23833,91 @@
     fdApplyGroupTagFilter();
   }
 
-  // The groups row: All clears, By Category opens the groups panel.
+  // Which of All / Today / This weekend is lit, on BOTH rows, read
+  // from the fields rather than remembered. The two rows drive one set
+  // of date inputs, so a range picked on Events has to show on Groups
+  // and the other way round -- remembering it per row is how they
+  // would come to disagree. A custom range lights none of the three,
+  // which is honest: it is not one of them.
+  function fdDateTabName(){
+    var from = document.getElementById('filter-date-from');
+    var to = document.getElementById('filter-date-to');
+    var when = document.getElementById('filter-when');
+    var fv = from ? from.value : '', tv = to ? to.value : '';
+    var wv = when ? parseInt(when.value, 10) || 0 : 0;
+    if (!fv && !tv && !wv) return 'all';
+    if (!fv || !tv) return '';
+    var today = new Date().toISOString().slice(0, 10);
+    if (fv === today && tv === today) return 'today';
+    if (window.FaithDockPureLogic && window.FaithDockPureLogic.computeWeekendRange) {
+      var r = window.FaithDockPureLogic.computeWeekendRange(new Date());
+      if (fv === r.saturday.toISOString().slice(0, 10)
+          && tv === r.sunday.toISOString().slice(0, 10)) return 'weekend';
+    }
+    return '';
+  }
+  function fdSyncDateTabs(){
+    var name = fdDateTabName();
+    var ev = document.querySelectorAll('[data-event-tab]');
+    for (var i = 0; i < ev.length; i++) {
+      ev[i].classList.toggle('active', ev[i].getAttribute('data-event-tab') === name);
+    }
+    var gr = document.querySelectorAll('[data-group-date]');
+    for (var j = 0; j < gr.length; j++) {
+      gr[j].classList.toggle('active', gr[j].getAttribute('data-group-date') === name);
+    }
+  }
+  window.fdSyncDateTabs = fdSyncDateTabs;
+
+  document.addEventListener('click', function(ev){
+    var btn = ev.target.closest && ev.target.closest('[data-group-date]');
+    if (!btn) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    if (window.fdCloseFilterPanels) window.fdCloseFilterPanels();
+    var which = btn.getAttribute('data-group-date');
+    var from = document.getElementById('filter-date-from');
+    var to = document.getElementById('filter-date-to');
+    var when = document.getElementById('filter-when');
+    if (when) when.value = '0';
+    if (which === 'all') {
+      if (from) from.value = '';
+      if (to) to.value = '';
+    } else if (which === 'today') {
+      var t = new Date().toISOString().slice(0, 10);
+      if (from) from.value = t;
+      if (to) to.value = t;
+    } else if (which === 'weekend') {
+      var r = window.FaithDockPureLogic.computeWeekendRange(new Date());
+      if (from) from.value = r.saturday.toISOString().slice(0, 10);
+      if (to) to.value = r.sunday.toISOString().slice(0, 10);
+    }
+    fdSyncDateTabs();
+    if (window.fdRerunAllBrowse) window.fdRerunAllBrowse();
+    if (window.fdSyncFilterHistory) window.fdSyncFilterHistory();
+  });
+
+  // Groups' Date button opens the same When group Events' one does --
+  // one set of date controls, reached from either row.
+  document.addEventListener('click', function(ev){
+    var btn = ev.target.closest && ev.target.closest('#groups-dates-btn');
+    if (!btn) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    var panel = document.querySelector('.filter-panel[data-filter-for="events"]');
+    if (!panel) return;
+    var already = panel.classList.contains('fd-dates-open');
+    if (window.fdCloseFilterPanels) window.fdCloseFilterPanels();
+    if (!already) {
+      panel.classList.add('fd-dates-open');
+      btn.setAttribute('aria-expanded', 'true');
+      var row = btn.closest('.event-tab-row');
+      if (row && panel.offsetParent) panel.style.top = (row.offsetTop + row.offsetHeight + 6) + 'px';
+    }
+    if (window.fdSyncFilterHistory) window.fdSyncFilterHistory();
+  });
+
+  // The groups row: By Category opens the groups panel.
   document.addEventListener('click', function(ev){
     var btn = ev.target.closest && ev.target.closest('[data-group-tab]');
     if (!btn) return;
@@ -23834,14 +23925,6 @@
     ev.stopPropagation();
     var which = btn.getAttribute('data-group-tab');
     var pn = document.querySelector('.filter-panel[data-filter-for="groups"]');
-    if (which === 'all') {
-      if (window.fdCloseFilterPanels) window.fdCloseFilterPanels();
-      var boxes = document.querySelectorAll('.fd-gcat-filter');
-      for (var i = 0; i < boxes.length; i++) boxes[i].checked = false;
-      fdApplyGroupTagFilter();
-      if (window.fdSyncFilterHistory) window.fdSyncFilterHistory();
-      return;
-    }
     fdRenderGroupFilter();
     var already = pn && pn.classList.contains('open');
     if (window.fdCloseFilterPanels) window.fdCloseFilterPanels();
@@ -24449,6 +24532,11 @@
     }
     if(ev.target.classList.contains('type-filter') || ev.target.classList.contains('category-filter') || ev.target.id === 'filter-when' || ev.target.id === 'filter-date-from' || ev.target.id === 'filter-date-to' || ev.target.id === 'events-filter-distance'){
       renderEvents();
+      // The date fields are shared with the Groups row now, and that
+      // window can be opened from it.
+      if (ev.target.id === 'filter-when' || ev.target.id === 'filter-date-from' || ev.target.id === 'filter-date-to') {
+        if (typeof window.fdRefreshGroupsIfShowing === 'function') window.fdRefreshGroupsIfShowing();
+      }
     }
   });
 
@@ -40432,6 +40520,25 @@
     var gLat = (window.dirUserLat != null) ? window.dirUserLat : groupsSearchLat;
     var gLng = (window.dirUserLng != null) ? window.dirUserLng : groupsSearchLng;
 
+    // The shell's date range -- the same three fields the Events row
+    // reads, so a range picked on either row is the range both lists
+    // answer. search_groups got p_from_date/p_to_date in migration
+    // 120; a group's date is a rule rather than a row, so the function
+    // works out whether an occurrence falls inside the range.
+    var gWhenEl = document.getElementById('filter-when');
+    var gFromEl = document.getElementById('filter-date-from');
+    var gToEl = document.getElementById('filter-date-to');
+    var gFrom = gFromEl ? gFromEl.value : '';
+    var gTo = gToEl ? gToEl.value : '';
+    var gWhenN = gWhenEl ? (parseInt(gWhenEl.value, 10) || 0) : 0;
+    // An explicit range wins over Next N days, the same order
+    // renderEvents resolves the two in.
+    if (!gFrom && !gTo && gWhenN > 0) {
+      var gToday = new Date();
+      gFrom = gToday.toISOString().slice(0, 10);
+      gTo = new Date(gToday.getTime() + (gWhenN - 1) * 86400000).toISOString().slice(0, 10);
+    }
+
     // A group's denomination is its host church's, so the filter is a
     // church-id list -- the same shape search_events needs, resolved
     // the same way, from the same boxes the Churches tab uses. There
@@ -40506,7 +40613,9 @@
       p_max_distance_miles: null,
       p_limit: GROUPS_PAGE_SIZE,
       p_offset: groupsSearchOffset,
-      p_group_tags: window.fdGroupTagFilter || null
+      p_group_tags: window.fdGroupTagFilter || null,
+      p_from_date: gFrom || null,
+      p_to_date: gTo || null
     });
     if (myGeneration !== groupsSearchGeneration) return;
 
@@ -40543,7 +40652,7 @@
         + escapeHtml(
             (window.fdGroupsFollowedOnly && !(window.myFollowedGroupIds || []).length)
               ? window.t('filters.noFollowedGroups')
-              : ((keyword || gChurchIds || window.fdGroupTagFilter)
+              : ((keyword || gChurchIds || window.fdGroupTagFilter || gFrom || gTo)
                   ? window.t('groupsPage.noneFound')
                   : window.t('groupsPage.noneAtAll'))) + '</p>';
       return;
