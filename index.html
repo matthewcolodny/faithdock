@@ -803,6 +803,7 @@
       'church.unclaimedNoticeMid': 'to report an issue, or', 'church.unclaimedNoticeEnd': 'to manage it yourself.',
       'church.statusDirectoryListing': 'Directory listing', 'church.managedByChurch': 'Managed by this church', 'church.partnerBadge': 'FaithDock Partner',
       'church.regularService': 'Regular Service', 'church.regularServices': 'Regular Services',
+      'church.share': 'Share', 'church.linkCopied': 'Link copied.',
       'leaveChurch.left': 'You have left this church.',
       'churchHome.confirmYes': 'Yes',
       'churchHome.confirmJoinTitle': 'Make this your Church Home?',
@@ -2199,6 +2200,7 @@
       'church.unclaimedNoticeMid': 'para reportar un problema, o', 'church.unclaimedNoticeEnd': 'para administrarlo tú mismo.',
       'church.statusDirectoryListing': 'Listado del directorio', 'church.managedByChurch': 'Gestionada por esta iglesia', 'church.partnerBadge': 'Socia de FaithDock',
       'church.regularService': 'Servicio habitual', 'church.regularServices': 'Servicios habituales',
+      'church.share': 'Compartir', 'church.linkCopied': 'Enlace copiado.',
       'leaveChurch.left': 'Has dejado esta iglesia.',
       'churchHome.confirmYes': 'Sí',
       'churchHome.confirmJoinTitle': '¿Marcar como tu Iglesia de Origen?',
@@ -4672,7 +4674,10 @@
   }
   .church-card:hover, .event-card:hover, .group-card--tile:hover{border-color:var(--gold);transform:translateY(-2px);}
   /* Drawn on the phone only, where the card no longer navigates on tap. */
-  .dir-card-profile-link{display:none;}
+  /* View Church Profile is gone from both card shapes: the card is
+     the link now -- a second tap on the one you already picked opens
+     it -- so a separate target inside it was the same destination
+     twice. These rules go with it. */
   .thumb{
     aspect-ratio:16/9;background:linear-gradient(135deg,#EFEADA,#E3DCC4);position:relative;
     display:flex;align-items:center;justify-content:center;
@@ -5044,10 +5049,6 @@
 
   /* .church-row-chev is gone from the markup -- the row says "View
      Church Profile" in words now. */
-  .church-row .dir-card-profile-link{
-    display:inline-block;
-    color:var(--gold-ink);border-bottom:1px solid var(--gold);
-  }
   .card-body{padding:18px;}
   .tag{
     display:inline-block;font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.05em;
@@ -5059,7 +5060,10 @@
   .tag.gold{background:var(--gold-bg);color:var(--gold-ink);}
   .tag.neutral{background:var(--paper);color:var(--ink-soft);border:1px solid var(--line);}
   .card-body h3{font-size:18px;margin:10px 0 4px;}
-  .meta-row{display:flex;align-items:center;gap:6px;color:var(--ink-mute);font-size:13.5px;margin-top:6px;}
+  /* align-items:flex-start, because the service line wraps to two and
+     a centred icon then floats against the middle of them. */
+  .meta-row{display:flex;align-items:flex-start;gap:6px;color:var(--ink-mute);font-size:13.5px;margin-top:3px;line-height:1.35;}
+  .meta-row > svg{flex-shrink:0;margin-top:2px;}
   .meta-row svg{width:14px;height:14px;flex-shrink:0;}
 
   /* ---- loading skeletons ----------------------------------------
@@ -6087,12 +6091,6 @@
        gets the horizontal card from the container query above -- one
        definition instead of two that have to be kept saying the same
        thing. What stays below is about touch, not width. */
-    /* The tap target for the profile, now that the card itself is not
-       one. Inline-block so it is only as wide as its own text. */
-    .fd-shell.active .fd-results-grid .dir-card-profile-link{
-      display:inline-block;
-      color:var(--gold-ink);border-bottom:1px solid var(--gold);
-    }
     /* No lift on tap -- there is no hover on a phone, and the transform
        fires on tap and leaves the card shifted. */
     .fd-shell.active .fd-results-grid .church-card:hover{transform:none;}
@@ -7902,6 +7900,18 @@
   .fd-loc-inline:hover{color:var(--ink);border-color:var(--ink-mute);}
   .fd-loc-inline.is-busy{opacity:.55;}
   .dir-card-actions{display:flex;flex-wrap:wrap;align-items:baseline;gap:14px;margin-top:4px;}
+  /* Denomination on the left, the two markers on the right. */
+  .dir-card-foot{display:flex;align-items:center;gap:8px;margin-top:10px;}
+  .dir-card-foot .card-tags{flex:1;min-width:0;}
+  /* Directions rides the distance line now, so it is one of the row's
+     items rather than a block under it. */
+  .meta-row .dir-card-directions{margin-left:10px;}
+  /* A marker, not a button: there is nothing to press. */
+  .fd-home-badge{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:34px;height:34px;flex-shrink:0;color:var(--gold-ink);
+  }
+  .fd-home-badge svg{width:19px;height:19px;}
   .dir-card-directions{
     font-size:13.5px;font-weight:600;color:var(--gold-ink);cursor:pointer;
     border-bottom:1px solid var(--gold);padding-bottom:2px;
@@ -9332,6 +9342,7 @@
             <div id="church-managed-line" style="display:none;" data-i18n="church.managedByChurch">Managed by this church</div>
           </div>
           <div class="church-hero-grid">
+            <button type="button" class="fd-icon-btn" id="church-share-btn" data-i18n-title="church.share" title="Share" data-i18n-aria="church.share" aria-label="Share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg></button>
 <button type="button" class="fd-icon-btn" id="church-home-btn" data-i18n-title="churchHome.makeThisMyChurchHome" title="Make this my Church Home" data-i18n-aria="churchHome.makeThisMyChurchHome" aria-label="Make this my Church Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V21h14V9.8"/><path d="M9.2 14.6l2 2 3.6-3.8"/></svg></button>
             <div id="church-follow-heart-slot"></div>
 <button type="button" class="fd-icon-btn" id="church-top-give-btn" onclick="openRealGiveTab()" data-i18n-title="church.give" title="Give" data-i18n-aria="church.give" aria-label="Give"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12v9H4v-9"/><rect x="2" y="7" width="20" height="5" rx="1"/><path d="M12 21V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></button>
@@ -13460,7 +13471,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-10-01-v430 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-10-01-v431 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -14065,6 +14076,17 @@
   }
   window.followHeartGroup = followHeartGroup;
 
+  // A quiet marker, not a control: this is the reader's own Church
+  // Home and there is nothing to press. Drawn next to the heart so the
+  // two facts about your relationship with a church sit together.
+  function fdChurchHomeBadge(c){
+    if (!c || !c.id || !window.myChurchHomeId || window.myChurchHomeId !== c.id) return '';
+    var label = window.t('churchHome.thisIsYourChurchHome');
+    return '<span class="fd-home-badge" title="' + escapeHtml(label) + '" aria-label="' + escapeHtml(label) + '">'
+      + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V21h14V9.8"/></svg></span>';
+  }
+  window.fdChurchHomeBadge = fdChurchHomeBadge;
+
   function followHeartRow(c){
     if (!c || !c.real || !c.id) return '';
     var isFollowing = !!(window.myFollowedChurchIds && window.myFollowedChurchIds.indexOf(c.id) !== -1);
@@ -14136,26 +14158,28 @@
     var thumb = safeLogo
       ? '<div class="thumb" style="background-image:url(\'' + escapeHtml(safeLogo) + '\');background-size:contain;background-repeat:no-repeat;background-position:center;background-color:#fff;background-origin:content-box;padding:16px;box-sizing:border-box;"></div>'
       : '<div class="thumb thumb--denom" style="--thumb-hue:' + denomHue(c.tag) + ';">' + buildingIcon + '</div>';
+    // Name first, then the two facts worth scanning, then the
+    // denomination and the two markers along the foot. The tag used to
+    // head the card with the heart beside it, which put the least
+    // specific thing about a church above its name.
+    //
+    // Directions sits on the distance line: both answer "where", and
+    // it was a row of its own underneath for one short word.
+    //
+    // The next event is gone. It is another church's event title on a
+    // church card -- interesting once, noise on every card, and the
+    // Events tab is one tap away.
     var inner = ''
       + thumb
       + '<div class="card-body">'
-      // Tag and heart share one flex row so the heart lands level with
-      // the tag rather than above it -- see .card-tag-row's comment.
-      + '<div class="card-tag-row">'
-      + '<div class="card-tags"><span class="tag sage">' + escapeHtml(translateDenomination(c.tag)) + '</span></div>'
-      + badge
-      + '</div>'
       + '<h3>' + escapeHtml(displayChurchName(c.name)) + '</h3>'
-      + '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/></svg>' + escapeHtml(distText) + '</div>'
-      + '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>' + escapeHtml(formatChurchNextText(c.next, (c.rawServiceTimes || []).length)) + '</div>'
-      // nextEvent.title is another church's EVENT title arriving on a
-      // church card -- second-hand user data, and easy to miss when
-      // thinking only about "this church's own fields".
-      + (c.nextEvent ? '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>' + escapeHtml(formatChurchNextEventText(c.nextEvent)) + '</div>' : '')
-      + '<div class="dir-card-actions">'
-      + '<span class="dir-card-profile-link" data-i18n="dir.viewProfile">'
-      + escapeHtml(window.t('dir.viewProfile')) + '</span>'
-      + fdDirectionsHtml(c)
+      + '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/></svg><span>' + escapeHtml(distText) + '</span>'
+      + fdDirectionsHtml(c) + '</div>'
+      + '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><span>' + escapeHtml(fdBindTimeMeridiem(formatChurchNextText(c.next, (c.rawServiceTimes || []).length))) + '</span></div>'
+      + '<div class="dir-card-foot">'
+      + '<div class="card-tags"><span class="tag sage">' + escapeHtml(translateDenomination(c.tag)) + '</span></div>'
+      + fdChurchHomeBadge(c)
+      + badge
       + '</div>'
       + '</div>';
     if(clickable){
@@ -14199,12 +14223,11 @@
       // Same span, same rules as the card: a <span> because the row is
       // already an <a> and a nested anchor is invalid, and the phone
       // handler lets this one through so it still reaches the row's href.
-      + '<div class="dir-card-actions">'
-      + '<span class="dir-card-profile-link" data-i18n="dir.viewProfile">'
-      + escapeHtml(window.t('dir.viewProfile')) + '</span>'
-      + fdDirectionsHtml(c)
+      // Directions only. The row IS the link to the profile now, so a
+      // second one inside it was the same destination twice.
+      + (fdDirectionsHtml(c) ? '<div class="dir-card-actions">' + fdDirectionsHtml(c) + '</div>' : '')
       + '</div>'
-      + '</div>'
+      + fdChurchHomeBadge(c)
       + followHeartRow(c);
     return '<a class="church-row" style="--thumb-hue:' + denomHue(c.tag) + ';" href="#church/' + encodeURIComponent(c.name) + '" data-route="church" data-church-name="' + escapeHtml(c.name) + '">' + inner + '</a>';
   }
@@ -14455,7 +14478,7 @@
       '<a href="#church/' + encodeURIComponent(c.name) + '" data-route="church" ' +
       'data-church-name="' + escapeHtml(c.name) + '" ' +
       'style="font-weight:600;color:#16233F;">' + escapeHtml(displayChurchName(c.name)) + '</a>' +
-      (c.address ? '<div style="color:#6b6b6b;margin-top:3px;">' + escapeHtml(titleCaseAddress(c.address)) + '</div>' : '') +
+      (c.address ? '<div style="color:#6b6b6b;margin-top:3px;">' + escapeHtml(window.fdFixAddressAcronyms ? window.fdFixAddressAcronyms(titleCaseAddress(c.address)) : titleCaseAddress(c.address)) + '</div>' : '') +
       (window.fdDirectionsHtml ? window.fdDirectionsHtml(c) : '') +
       '</div>');
     dirInfo.open({ map: dirMap, anchor: marker });
@@ -15953,7 +15976,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-10-01-v430',
+      'build 2026-10-01-v431',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -16171,6 +16194,14 @@
       if (!dirFocusMarker(name) && dirInfo) dirInfo.close();
     }
     function clear(){
+      // A tap on a touch screen synthesises mouseover and then, a
+      // moment later, mouseleave -- so this ran right after every tap
+      // and took the highlight away with it. Measured: the card was
+      // lit immediately after the tap and unlit 900ms later with
+      // nothing else touched. The highlight is the whole affordance
+      // for "tap again to open", so it has to outlive the gesture
+      // that created it.
+      if (window.fdDirTapAt && (Date.now() - window.fdDirTapAt) < 1500) return;
       dirHoveredName = null;
       if (dirInfo) dirInfo.close();
       dirClearHotCard();
@@ -16301,15 +16332,11 @@
     // it. Capturing at document runs before it, and stopPropagation
     // means it never runs at all. Bound to document rather than the
     // grid so it also survives the grid being re-rendered.
-    document.addEventListener('click', function(ev){
+    document.addEventListener('click', async function(ev){
       if (window.innerWidth > 980) return;
       if (!ev.target.closest || !ev.target.closest('#directory-grid')) return;
       var card = ev.target.closest('[data-church-name]');
       if (!card) return;
-      // The two things inside the card that keep their own behaviour.
-      // Returning here lets the click carry on to the delegate, which
-      // is how the profile link navigates at all.
-      if (ev.target.closest('.dir-card-profile-link')) return;
       // [data-follow-church-id], not a class: the card's heart and the
       // list row's heart are .follow-heart-card and .follow-heart-row,
       // and naming one of them silently broke the other. The attribute
@@ -16327,6 +16354,37 @@
       if (fb) fb.setAttribute('aria-expanded', 'false');
       if (window.fdSyncFilterHistory) window.fdSyncFilterHistory();
       var name = String(card.getAttribute('data-church-name') || '').toLowerCase();
+      // Tapping the card you already picked opens it. The first tap
+      // still means "show me this one on the map" -- that is why the
+      // card does not navigate on a phone -- but a second tap on a
+      // card that is already picked has nothing else it could mean,
+      // so View Church Profile no longer needs to be a separate
+      // target inside it.
+      //
+      // Keyed on the remembered name rather than on .dir-card-hot:
+      // the class is also driven by hover, and anything that clears
+      // it between the two taps would turn the second tap into
+      // another first one.
+      var alreadyPicked = (window.fdDirPickedChurch === name);
+      window.fdDirPickedChurch = name;
+      window.fdDirTapAt = Date.now();
+      if (alreadyPicked) {
+        var openName = card.getAttribute('data-church-name') || '';
+        // The same two steps the [data-route="church"] delegate takes,
+        // in the same order: find the church and fill the page, THEN
+        // navigate. go() on its own only reveals the page -- it does
+        // not populate it -- so calling it alone opened a profile card
+        // with no name, no address and no tabs' worth of content.
+        if (typeof window.findOrFetchChurchByName === 'function') {
+          var openMatch = await window.findOrFetchChurchByName(openName);
+          if (openMatch && typeof window.populateChurchPage === 'function') {
+            window.populateChurchPage(openMatch);
+          }
+        }
+        if (typeof window.go === 'function') window.go('church/' + encodeURIComponent(openName));
+        else location.hash = '#church/' + encodeURIComponent(openName);
+        return;
+      }
       dirHoveredName = name;
       dirClearHotCard();
       card.classList.add('dir-card-hot');
@@ -26029,11 +26087,49 @@
     // and never reached the button. Reported as the switch window
     // letting things behind it fire.
     if (ev.target.closest && ev.target.closest('.modal-overlay')) return;
+    // A tap on a browse card is what OPENS a profile, so it must never
+    // also be read as a tap outside one. Both handlers sit on document
+    // in capture, and the card's stopPropagation does not stop another
+    // listener on the SAME node -- so the card opened the sheet and
+    // this closed it again in the same event. Measured as go() being
+    // called with 'church/...' and then immediately 'directory'.
+    // Tapping a different card while a profile is open now switches to
+    // it rather than closing back to the list, which is also the right
+    // answer.
+    if (ev.target.closest && ev.target.closest('#directory-grid')) return;
     ev.preventDefault();
     ev.stopPropagation();
     ev.stopImmediatePropagation();
     fdCloseChurchSheet();
   }, true);
+
+  // Share. The platform sheet where there is one -- that is where
+  // people expect to pick Messages or WhatsApp -- and the clipboard
+  // everywhere else, which is every desktop browser. The link is the
+  // same hash route the card itself lives at, so what arrives opens
+  // the profile rather than the home page.
+  var fdChurchShareBtn = document.getElementById('church-share-btn');
+  if (fdChurchShareBtn) {
+    fdChurchShareBtn.addEventListener('click', async function(){
+      var nameEl = document.getElementById('church-name');
+      var churchName = nameEl ? nameEl.textContent.trim() : '';
+      if (!churchName) return;
+      var url = location.origin + location.pathname + '#church/' + encodeURIComponent(churchName);
+      var statusEl = document.getElementById('church-home-status');
+      try {
+        if (navigator.share) { await navigator.share({ title: churchName, url: url }); return; }
+        await navigator.clipboard.writeText(url);
+        if (statusEl) {
+          statusEl.textContent = window.t('church.linkCopied');
+          statusEl.style.color = 'var(--sage)';
+          statusEl.style.display = 'block';
+        }
+      } catch (e) {
+        // A cancelled share sheet throws AbortError, which is not a
+        // failure and must not be reported as one.
+      }
+    });
+  }
 
   var fdChurchSheetCloseBtn = document.getElementById('fd-church-sheet-close');
   if (fdChurchSheetCloseBtn) {
