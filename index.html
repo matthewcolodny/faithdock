@@ -5370,7 +5370,7 @@
     /* The picture drops a little, so it sits against the name rather
        than hard against the card's top edge now that the tags have
        moved out from beside it. */
-    .fd-results-grid .church-card .thumb{margin-top:4px;}
+    .fd-results-grid .church-card .thumb{margin-top:9px;}
     /* The tag stack is what made an event card tall. Side by side in the
        compact card, wrapping only when it truly cannot fit. */
     .fd-results-grid .event-card .card-tags{flex-wrap:wrap;}
@@ -13501,7 +13501,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-10-01-v433 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-10-01-v434 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -16012,7 +16012,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-10-01-v433',
+      'build 2026-10-01-v434',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -18698,6 +18698,22 @@
       // The directory keeps its .active -- that is the whole point --
       // so the loop that clears every page is skipped here.
     } else {
+      // Closing the profile ends the selection that opened it. The
+      // border outlived the card by about a second: the only thing
+      // that cleared it was a stray mouseleave arriving after the
+      // 1500ms tap guard expired, so it read as a delayed fade rather
+      // than as part of closing. Cleared here, in the same frame the
+      // card goes.
+      //
+      // The remembered pick is reset with it, so reopening the same
+      // church is highlight-then-open again rather than a single tap
+      // that opens something with no border ever shown.
+      if (document.body.classList.contains('fd-church-sheet')) {
+        window.fdDirPickedChurch = null;
+        window.fdDirTapAt = 0;
+        var fdHot = document.querySelectorAll('.dir-card-hot');
+        for (var fh = 0; fh < fdHot.length; fh++) fdHot[fh].classList.remove('dir-card-hot');
+      }
       document.body.classList.remove('fd-church-sheet');
       for(var i=0;i<pages.length;i++){ pages[i].classList.remove('active'); }
     }
