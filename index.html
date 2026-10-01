@@ -5532,6 +5532,33 @@
     position:absolute;left:8px;top:50%;transform:translateY(-50%);margin:0;
   }
   .fd-sheet-head .fd-tab{color:#EDEBE2;}
+  /* THE VANISHING TAB. Five reports, three wrong diagnoses, and it was
+     a colour the whole time.
+
+     .fd-tab:hover sets color:var(--ink), and --ink is #16233F, which
+     is EXACTLY this header's background (measured: computed bg
+     rgb(22,35,63) = #16233F). On the light page that rule is correct
+     -- dark ink on paper. In here it paints the label in the
+     background colour and the tab goes blank.
+
+     It won on source order, not specificity: .fd-sheet-head .fd-tab
+     above and .fd-tab:hover are both (0,2,0), and :hover is 42 lines
+     further down the sheet. This selector is (0,3,0), so it cannot
+     lose that way again.
+
+     Why it looked like anything but a colour:
+       * the box keeps its full width, so every measurement of the
+         layout came back perfect and sent me looking for a missing
+         element three times;
+       * only ever ONE tab, because :hover is on one;
+       * never the ACTIVE tab, because .fd-sheet-head .fd-tab.is-on is
+         (0,3,0) and already outranks :hover -- that is the detail that
+         finally named it;
+       * only after a press-and-hold, because a touch device leaves
+         :hover stuck on what you last touched until you tap elsewhere;
+       * never reproducible from a synthetic click, which sets no
+         hover state at all. */
+  .fd-sheet-head .fd-tab:hover{color:#fff;}
   .fd-sheet-head .fd-tab.is-on{
     background:var(--paper);color:var(--gold);box-shadow:none;
     border-color:transparent;
@@ -13122,7 +13149,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v419 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-09-30-v420 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -15577,7 +15604,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-09-30-v419',
+      'build 2026-09-30-v420',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
