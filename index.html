@@ -7986,22 +7986,8 @@
   .fd-sugg-txt{min-width:0;display:flex;flex-direction:column;gap:1px;}
   .fd-sugg-label{overflow:hidden;text-overflow:ellipsis;}
   .fd-sugg-sub{font-size:12px;color:var(--ink-mute);}
-  .fd-search-summary{
-    display:flex;flex-wrap:wrap;align-items:baseline;
-    column-gap:10px;row-gap:3px;
-    margin:0 0 12px;font-size:13px;color:var(--ink-mute);line-height:1.5;
-  }
-  .fd-search-summary strong{color:var(--ink);font-weight:600;}
-  .fd-search-summary button{
-    background:none;border:1px solid var(--line);border-radius:999px;
-    padding:4px 11px;font-size:12.5px;font-weight:600;color:var(--ink-mute);
-    cursor:pointer;-webkit-tap-highlight-color:transparent;
-  }
-  .fd-search-summary button:hover{color:var(--ink);border-color:var(--ink-mute);}
-  /* The pills keep their own box but hang off the same baseline as the
-     words they belong to. */
-  .fd-search-summary button{align-self:baseline;}
-  .fd-summary-part{display:inline-flex;align-items:baseline;gap:8px;}
+  /* .fd-search-summary and .fd-summary-part lived here. The line
+     they styled is a pair of chips now. */
   /* Sits over the right-hand end of the field it belongs to. Only
      there once something is typed, because until then there is nothing
      to add. */
@@ -9360,7 +9346,6 @@
              keyword and a location both persist once set, and together
              they narrow twice over -- which is fine as long as you can
              see it and undo it without navigating away. -->
-        <div id="dir-search-summary" class="fd-search-summary" hidden></div>
         <div id="directory-loading" class="fd-card-skeletons" aria-hidden="true">
           <div class="fd-skel-card"></div><div class="fd-skel-card"></div><div class="fd-skel-card"></div>
         </div>
@@ -9387,7 +9372,6 @@
       </div>
     </div>
     <div class="fd-filter-chips" data-fd-filter-chips="events" hidden></div>
-    <div class="fd-search-summary fd-events-summary" id="events-search-summary" hidden></div>
     <div class="event-tab-row fd-quick-row">
       <button class="event-tab-btn active" id="event-tab-all" data-event-tab="all" data-i18n="events.tabAll">All</button>
       <button class="event-tab-btn" id="event-tab-today" data-event-tab="today" data-i18n="events.tabToday">Today</button>
@@ -9435,7 +9419,6 @@
         </div>
       </div>
       <div class="fd-filter-chips" data-fd-filter-chips="groups" hidden></div>
-      <div class="fd-search-summary" id="groups-search-summary" hidden></div>
       <div class="event-tab-row fd-quick-row" id="group-tab-row">
         <button class="event-tab-btn active" type="button" data-group-tab="all" data-i18n="filters.all">All</button>
       </div>
@@ -13684,7 +13667,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-10-01-v447 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-10-01-v448 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -15298,9 +15281,9 @@
     }
 
     fdSyncFilterPills(tab);
-    // The tab you are arriving at may have been painted before the
-    // location resolved. Cheap: no query, just the sentence.
-    if (window.fdRenderSearchSummary) window.fdRenderSearchSummary();
+    // The tab you are arriving at may have been drawn before the
+    // location resolved. Cheap: no query, just the chips.
+    if (window.fdRenderFilterChips) window.fdRenderFilterChips();
 
     // One map, drawn from the churches, behind all three tabs -- so
     // the churches have to be fetched by whoever gets here first.
@@ -15526,6 +15509,13 @@
     // The keyword is a filter too, and it was the odd one out -- said
     // in a sentence above the results while everything else was a chip
     // you could take off. Now it is a chip you can take off.
+    var locEl2 = document.getElementById('dir-location-input');
+    var locVal = locEl2 ? locEl2.value.trim() : '';
+    if (locVal) {
+      parts.push('<span class="fd-filter-chip">' + escapeHtml(window.t('dir.summaryNear').replace('{q}', locVal).replace(/\.$/, ''))
+        + '<button type="button" data-chip-loc="1"'
+        + ' aria-label="' + escapeHtml(window.t('filters.removeFilter')) + '">' + FD_CHIP_X + '</button></span>');
+    }
     var kwEl = document.getElementById('dir-keyword-input');
     var kwVal = kwEl ? kwEl.value.trim() : '';
     if (kwVal) {
@@ -15553,6 +15543,15 @@
     }
     fdSyncQuickButtons();
     // The tab-specific ones.
+    // Dates belong to the two tabs that have them. Churches has no
+    // date filter, so a date chip there would be a control for
+    // something that is not narrowing the list in front of you.
+    var dateLabel = (typeof window.fdEventsDateLabel === 'function') ? window.fdEventsDateLabel() : '';
+    var datePart = dateLabel
+      ? '<span class="fd-filter-chip">' + escapeHtml(dateLabel)
+        + '<button type="button" data-chip-dates="1"'
+        + ' aria-label="' + escapeHtml(window.t('filters.removeFilter')) + '">' + FD_CHIP_X + '</button></span>'
+      : null;
     var churchCatParts = fdChosenCategories().map(function(slug){
       return '<span class="fd-filter-chip fd-chip-hue" style="--chip-hue:' + fdTagHue(slug) + ';">' + escapeHtml(window.fdChurchTagLabel(slug))
         + '<button type="button" data-chip-cat="' + escapeHtml(slug) + '"'
@@ -15567,6 +15566,7 @@
       var scope = hosts[h].getAttribute('data-fd-filter-chips') || 'churches';
       var mine = parts.concat(scope === 'groups' ? groupTagParts
         : (scope === 'events' ? [] : churchCatParts));
+      if (datePart && scope !== 'churches') mine = [datePart].concat(mine);
       if (mine.length > 1) {
         mine = mine.concat('<button type="button" class="fd-filter-chip-clear" data-chip-clear="1">'
           + escapeHtml(window.t('filters.clearAll')) + '</button>');
@@ -15910,6 +15910,24 @@
   window.fdClearAllChurchFilters = fdClearAllChurchFilters;
 
   function fdHandleChipClick(ev){
+    if (ev.target.closest && ev.target.closest('[data-chip-loc]')) {
+      ev.preventDefault(); ev.stopPropagation();
+      // The same door the location field's own x uses, so the label,
+      // the coordinates and the remembered choice all reset once.
+      if (typeof window.clearDirLocation === 'function') window.clearDirLocation();
+      return;
+    }
+    if (ev.target.closest && ev.target.closest('[data-chip-dates]')) {
+      ev.preventDefault(); ev.stopPropagation();
+      var w = document.getElementById('filter-when');
+      var df = document.getElementById('filter-date-from');
+      var dt = document.getElementById('filter-date-to');
+      if (w) w.value = '0';
+      if (df) df.value = '';
+      if (dt) dt.value = '';
+      fdRerunAllBrowse();
+      return;
+    }
     var xg = ev.target.closest && ev.target.closest('[data-gchip]');
     if (xg) {
       ev.preventDefault(); ev.stopPropagation();
@@ -16559,7 +16577,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-10-01-v447',
+      'build 2026-10-01-v448',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -22971,26 +22989,9 @@
 
     if (typeof window.fdSyncFollowedButtons === 'function') window.fdSyncFollowedButtons();
 
-    if (window.fdRenderSearchSummary) window.fdRenderSearchSummary();
+    if (window.fdRenderFilterChips) window.fdRenderFilterChips();
   }
   window.fdSyncEventsQuick = fdSyncEventsQuick;
-
-  // Clearing the range puts every date control back to its default and
-  // re-runs the search, so the button, the line and the list all stop
-  // saying it at the same moment.
-  document.addEventListener('click', function(ev){
-    if (!ev.target.closest || !ev.target.closest('#events-clear-dates')) return;
-    ev.preventDefault();
-    ev.stopPropagation();
-    var when = document.getElementById('filter-when');
-    var from = document.getElementById('filter-date-from');
-    var to = document.getElementById('filter-date-to');
-    if (when) when.value = '0';
-    if (from) from.value = '';
-    if (to) to.value = '';
-    if (typeof window.renderEvents === 'function') window.renderEvents();
-    fdSyncEventsQuick();
-  });
 
   async function renderEvents(append){
     fdSyncEventsQuick();
@@ -23814,6 +23815,8 @@
     if (typeof window.fdSyncFollowedButtons === 'function') window.fdSyncFollowedButtons();
     fdRenderFilterChips();
   }
+  // Nothing calls this for chips any more -- fdRenderFilterChips does
+  // them all -- but it still carries the groups row's own marks.
   window.fdRenderGroupChips = fdRenderGroupChips;
 
   function fdApplyGroupTagPick(slug){
@@ -48693,82 +48696,21 @@
   // right, you usually want to adjust one of them -- but with nothing
   // on screen saying so, a second search silently ran inside the first
   // and the only way out was the back button.
-  // What the list is narrowed to, in words, for whichever tab is
-  // asking. Churches, Events and Groups all read the same location, so
-  // they say it the same way and clear it the same way rather than
-  // each growing its own sentence.
+  // The "Near ..." line and the date range used to live here, as a
+  // sentence with a button beneath a row of chips that are also
+  // filters with a button. Two shapes for one idea -- and the
+  // sentence was the one that kept going stale, because it had a
+  // renderer and a paint schedule of its own. Both are chips now, in
+  // the row that was already there, so there is one renderer, one
+  // schedule and nothing left to disagree.
   //
-  // Flat parts, not nested rows -- see .fd-search-summary for why.
-  function fdSummaryParts(opts){
-    var parts = [];
-    var loc = document.getElementById('dir-location-input');
-    var locv = loc ? loc.value.trim() : '';
-    if (locv) {
-      parts.push('<span class="fd-summary-part">'
-        + '<span>' + window.t('dir.summaryNear').replace('{q}', '<strong>' + escapeHtml(locv) + '</strong>') + '</span>'
-        + '<button type="button" class="fd-clear-location">' + escapeHtml(window.t('dir.clearSearch')) + '</button>'
-        + '</span>');
-    }
-    if (opts && opts.dateLabel) {
-      parts.push('<span class="fd-summary-part">'
-        + '<span>' + window.t('filters.summaryDates').replace('{q}', '<strong>' + escapeHtml(opts.dateLabel) + '</strong>') + '</span>'
-        + '<button type="button" id="events-clear-dates">' + escapeHtml(window.t('filters.clearDates')) + '</button>'
-        + '</span>');
-    }
-    return parts;
-  }
-  function fdPaintSummary(host, parts){
-    if (!host) return;
-    if (!parts.length) { host.hidden = true; host.innerHTML = ''; return; }
-    host.innerHTML = parts.join('');
-    host.hidden = false;
-  }
-  window.fdSummaryParts = fdSummaryParts;
-  window.fdPaintSummary = fdPaintSummary;
-
-  // Clear location, from any tab's copy of the line. It was an id on
-  // the churches one; three tabs show it now, and three elements
-  // cannot share an id.
-  document.addEventListener('click', function(ev){
-    if (!ev.target.closest || !ev.target.closest('.fd-clear-location')) return;
-    ev.preventDefault();
-    ev.stopPropagation();
-    if (typeof window.clearDirLocation === 'function') window.clearDirLocation();
-  });
-
-  function fdRenderSearchSummary(){
-    // All three, every time. They read one location, so painting one
-    // and not the others is what let them disagree. No query behind
-    // any of it, so there is nothing to spend.
-    fdPaintSummary(document.getElementById('events-search-summary'), fdSummaryParts({
-      dateLabel: (typeof window.fdEventsDateLabel === 'function') ? window.fdEventsDateLabel() : ''
-    }));
-    fdPaintSummary(document.getElementById('groups-search-summary'), fdSummaryParts({}));
-    fdRenderChurchesSummary();
-  }
-  function fdRenderChurchesSummary(){
-    // The quick buttons are re-read here as well as from the chips.
-    // fdSyncQuickButtons only ever ran from fdRenderFilterChips, which
-    // fires when a TAG changes -- so the Location button, whose state
-    // lives in the location field, was always showing the answer to
-    // the previous question. On load the field filled after the last
-    // sync and the button stayed grey with a location set; on Clear
-    // location the sync ran before the field emptied and the button
-    // lit with none. Exactly inverted, both times, which is what
-    // reading one thing on another thing's schedule looks like.
-    //
-    // This function runs on every location change, because it is what
-    // writes the "Near ..." line, so the button and the sentence can
-    // no longer disagree.
-    if (typeof fdSyncQuickButtons === 'function') fdSyncQuickButtons();
-    var host = document.getElementById('dir-search-summary');
-    if (!host) return;
-    // "Showing all churches in the area" has gone. It was a sentence
-    // that appeared precisely when nothing was being filtered, which
-    // is the one time the line has nothing to say.
-    fdPaintSummary(host, fdSummaryParts({}));
-  }
-  window.fdRenderSearchSummary = fdRenderSearchSummary;
+  // The name survives because eight call sites use it, and they are
+  // the ones that matter: every place a location is applied, cleared
+  // or geocoded. They ask for "the filters, redrawn", which is what
+  // this does.
+  window.fdRenderSearchSummary = function(){
+    if (window.fdRenderFilterChips) window.fdRenderFilterChips();
+  };
 
 
   // Every flip is written to a local log first. A church that is shown
