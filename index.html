@@ -5360,8 +5360,13 @@
        beside it. The card's own 12px padding is the inset here, so
        the foot adds none of its own. */
     .fd-results-grid .church-card .dir-card-foot{
-      grid-column:1 / -1;padding:0;margin-top:8px;
+      grid-column:1 / -1;padding:0;margin-top:0;
     }
+    /* The compact card's 12px gap applies to rows as well as columns,
+       and the foot is on a row of its own -- so that gap, plus the
+       foot's own margin, was the space under the service times. 4px
+       between the rows, 12px still between the picture and the body. */
+    .fd-results-grid .church-card{row-gap:4px;}
     /* The picture drops a little, so it sits against the name rather
        than hard against the card's top edge now that the tags have
        moved out from beside it. */
@@ -7914,9 +7919,12 @@
      of .card-body rather than a child, so it starts at the card's
      edge; it carries the body's own horizontal padding to line up
      with it. */
+  /* gap:2px, not 8: the tag block is flex:1 so the only gap anyone
+     sees is the one between the house and the heart, and each of
+     those already carries its own padding. */
   .dir-card-foot{
-    display:flex;align-items:center;gap:8px;
-    padding:0 18px 16px;margin-top:10px;
+    display:flex;align-items:center;gap:2px;
+    padding:0 18px 16px;margin-top:4px;
   }
   .dir-card-foot .card-tags{flex:1;min-width:0;display:flex;flex-wrap:wrap;gap:6px;}
   /* Directions rides the distance line now, so it is one of the row's
@@ -7928,17 +7936,23 @@
     width:34px;height:34px;flex-shrink:0;color:var(--gold-ink);
   }
   .fd-home-badge svg{width:19px;height:19px;}
+  /* Not bold and not underlined. It sits on the distance line beside
+     the fact it belongs to, and at 600 with a rule under it the one
+     word outweighed the church's own name. The gold still says it is
+     a link. */
   .dir-card-directions{
-    font-size:13.5px;font-weight:600;color:var(--gold-ink);cursor:pointer;
-    border-bottom:1px solid var(--gold);padding-bottom:2px;
+    font-size:13.5px;font-weight:500;color:var(--gold-ink);cursor:pointer;
+    border-bottom:0;padding-bottom:0;
     -webkit-tap-highlight-color:transparent;
   }
   .dir-card-directions:hover{color:var(--ink);}
   /* In the bubble it sits on its own line under the address. */
   .fd-iw .dir-card-directions{display:inline-block;margin-top:6px;}
+  /* Only Directions lives in this row now -- View Church Profile is
+     gone -- so the weight and the 2px the underline needed go with it. */
   .dir-card-actions > *{
-    font-size:13px;line-height:1.6;font-weight:600;
-    margin:0;padding:0 0 2px;
+    font-size:13px;line-height:1.6;font-weight:500;
+    margin:0;padding:0;
   }
   .fd-panel-close{
     position:absolute;top:10px;right:10px;width:30px;height:30px;
@@ -13487,7 +13501,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-10-01-v432 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-10-01-v433 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -15998,7 +16012,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-10-01-v432',
+      'build 2026-10-01-v433',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
