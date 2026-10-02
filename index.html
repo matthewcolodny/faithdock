@@ -4293,59 +4293,76 @@
     background:var(--gold);color:var(--brand);font-size:12.5px;font-weight:700;letter-spacing:.02em;
   }
 
-  @media (max-width:860px){
-    .hamburger{display:block;}
-    .nav-quick{display:contents;}
-    /* A route in the icon row must not also be in the panel -- two
-       ways to the same page in one menu reads as two different pages.
+  /* The nav collapses when it does not FIT, not at a width someone
+     guessed. It used to be @media (max-width:860px), and between 861
+     and the width the bar actually needs every page overflowed
+     sideways -- measured at 109px on a 900px window.
 
-       Marked at runtime from the icon row itself rather than listed
-       here by name. The named version said directory and events;
-       Groups got an icon and nobody added it, so it appeared in both
-       places until it was reported. A list that has to be kept in
-       step with another list is the recurring bug in this file, so
-       this one asks the bar instead of remembering it. */
-    nav.links > a[data-in-quick-bar]{display:none;}
-    /* Dropped from the menu for church staff and owners, on phones
-       only. They have already converted, so the pitch is not doing
-       anything for them, and the phone menu is where every wasted row
-       actually costs something. The page itself is untouched and still
-       reachable -- the footer sitemap links it, and so does the
-       desktop nav, which has the room. */
-    nav.links > a.nav-hide-mobile{display:none;}
-    /* The user menu stops being a dropdown inside a dropdown: the
-       bubble disappears and its items render inline as part of the
-       one panel. No second markup to keep in step -- the same list
-       serves both layouts. */
-    #nav-user-menu{position:static;margin-top:0;}
-    #nav-user-bubble{display:none;}
-    #nav-user-dropdown{
-      display:block;position:static;background:none;border:none;box-shadow:none;
-      padding:0;min-width:0;border-radius:0;
-    }
-    #nav-user-dropdown a{
-      color:#CBD2DE;padding:14px 4px;border-radius:0;font-size:15px;
-      border-bottom:1px solid rgba(255,255,255,0.08);
-    }
-    #nav-user-dropdown a:hover{background:none;color:#fff;}
-    nav.links{
-      /* 100%, not 72px. 72 is the DESKTOP navbar height; this breakpoint
-         makes the bar 56px, so the drawer hung 16px below it and the map
-         showed through the gap. Percentage of header.site, which is
-         position:sticky and therefore the containing block -- so it also
-         stays flush when the invite banner comes and goes. */
-      display:none;position:absolute;top:100%;left:0;right:0;background:var(--brand);
-      flex-direction:column;align-items:stretch;padding:8px 24px 20px;gap:0;
-      border-top:1px solid rgba(255,255,255,0.1);box-shadow:0 12px 24px rgba(0,0,0,0.25);
-    }
-    nav.links.open{display:flex;}
-    nav.links a{padding:14px 4px;border-bottom:1px solid rgba(255,255,255,0.08);border-radius:0;}
-    nav.links a.active{border-bottom:1px solid var(--gold);}
-    #nav-user-menu{margin-top:14px;}
-    #nav-toggle-group{margin:14px 0 0 !important;width:100%;}
-    #lang-toggle-btn{flex:1;text-align:center;}
-    #theme-toggle-btn{width:auto;flex:1;}
+     A single breakpoint cannot be right here, because what the bar
+     needs moves with its contents. Measured, all four real
+     combinations:
+
+       English, signed out            1038px
+       English, signed-in admin       1144px
+       Spanish, signed out            1109px
+       Spanish, signed-in admin       1228px
+
+     A breakpoint safe for the last one puts a hamburger on a 1200px
+     screen for everybody, to pay for a state one person is ever in.
+     So fdSyncNavFit measures what the bar needs and sets this class
+     when it will not fit -- see it for why measuring is safe while
+     the class is on. */
+  html.fd-nav-tight .hamburger{display:block;}
+  html.fd-nav-tight .nav-quick{display:contents;}
+  /* A route in the icon row must not also be in the panel -- two
+     ways to the same page in one menu reads as two different pages.
+
+     Marked at runtime from the icon row itself rather than listed
+     here by name. The named version said directory and events;
+     Groups got an icon and nobody added it, so it appeared in both
+     places until it was reported. A list that has to be kept in
+     step with another list is the recurring bug in this file, so
+     this one asks the bar instead of remembering it. */
+  html.fd-nav-tight nav.links > a[data-in-quick-bar]{display:none;}
+  /* Dropped from the menu for church staff and owners, on phones
+     only. They have already converted, so the pitch is not doing
+     anything for them, and the phone menu is where every wasted row
+     actually costs something. The page itself is untouched and still
+     reachable -- the footer sitemap links it, and so does the
+     desktop nav, which has the room. */
+  html.fd-nav-tight nav.links > a.nav-hide-mobile{display:none;}
+  /* The user menu stops being a dropdown inside a dropdown: the
+     bubble disappears and its items render inline as part of the
+     one panel. No second markup to keep in step -- the same list
+     serves both layouts. */
+  html.fd-nav-tight #nav-user-menu{position:static;margin-top:0;}
+  html.fd-nav-tight #nav-user-bubble{display:none;}
+  html.fd-nav-tight #nav-user-dropdown{
+    display:block;position:static;background:none;border:none;box-shadow:none;
+    padding:0;min-width:0;border-radius:0;
   }
+  html.fd-nav-tight #nav-user-dropdown a{
+    color:#CBD2DE;padding:14px 4px;border-radius:0;font-size:15px;
+    border-bottom:1px solid rgba(255,255,255,0.08);
+  }
+  html.fd-nav-tight #nav-user-dropdown a:hover{background:none;color:#fff;}
+  html.fd-nav-tight nav.links{
+    /* 100%, not 72px. 72 is the DESKTOP navbar height; this breakpoint
+       makes the bar 56px, so the drawer hung 16px below it and the map
+       showed through the gap. Percentage of header.site, which is
+       position:sticky and therefore the containing block -- so it also
+       stays flush when the invite banner comes and goes. */
+    display:none;position:absolute;top:100%;left:0;right:0;background:var(--brand);
+    flex-direction:column;align-items:stretch;padding:8px 24px 20px;gap:0;
+    border-top:1px solid rgba(255,255,255,0.1);box-shadow:0 12px 24px rgba(0,0,0,0.25);
+  }
+  html.fd-nav-tight nav.links.open{display:flex;}
+  html.fd-nav-tight nav.links a{padding:14px 4px;border-bottom:1px solid rgba(255,255,255,0.08);border-radius:0;}
+  html.fd-nav-tight nav.links a.active{border-bottom:1px solid var(--gold);}
+  html.fd-nav-tight #nav-user-menu{margin-top:14px;}
+  html.fd-nav-tight #nav-toggle-group{margin:14px 0 0 !important;width:100%;}
+  html.fd-nav-tight #lang-toggle-btn{flex:1;text-align:center;}
+  html.fd-nav-tight #theme-toggle-btn{width:auto;flex:1;}
 
   .nav-search{
     display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.08);
@@ -8808,6 +8825,70 @@
     <button type="button" id="nav-panel-submit" class="btn-gold" data-i18n="nav.searchSubmit">Search</button>
   </div>
 </header>
+<script>
+/* Does the nav bar fit? Runs here, right after the header, rather than
+   on DOMContentLoaded -- this document is 52,000 lines and waiting for
+   all of it would show an overflowing bar first.
+
+   Measuring has to be done with fd-nav-tight OFF, because that class
+   turns the link row into a drawer and a drawer has no width to
+   measure. Left alone that is an oscillation: too narrow, collapse,
+   now it fits, expand, repeat. Removing and re-adding the class inside
+   one synchronous function costs a second layout and never a paint, so
+   nothing flickers and the answer is always about the same layout. */
+(function(){
+  var raf = 0;
+  function measure(){
+    var bar = document.querySelector('header.site .navbar');
+    if (!bar) return;
+    var html = document.documentElement;
+    var was = html.classList.contains('fd-nav-tight');
+    if (was) html.classList.remove('fd-nav-tight');
+    var need = 0;
+    for (var i = 0; i < bar.children.length; i++) {
+      var c = bar.children[i], cs = getComputedStyle(c);
+      if (cs.display === 'none') continue;
+      need += c.getBoundingClientRect().width
+            + (parseFloat(cs.marginLeft) || 0) + (parseFloat(cs.marginRight) || 0);
+    }
+    var bs = getComputedStyle(bar);
+    var avail = bar.clientWidth - (parseFloat(bs.paddingLeft) || 0) - (parseFloat(bs.paddingRight) || 0);
+    // A pixel of slack: sub-pixel text widths round up and a bar that
+    // fits exactly should not collapse.
+    html.classList.toggle('fd-nav-tight', need > avail + 1);
+  }
+  function fdSyncNavFit(){
+    if (raf) return;
+    raf = requestAnimationFrame(function(){ raf = 0; measure(); });
+  }
+  window.fdSyncNavFit = fdSyncNavFit;
+  // The uncoalesced one, for anything that needs the answer now.
+  window.fdMeasureNavFit = measure;
+  measure();
+  addEventListener('resize', fdSyncNavFit);
+  // requestAnimationFrame does not run while the page is hidden, so a
+  // resize that happens in a background tab leaves the callback queued
+  // rather than dropped -- it fires on return. This is the belt for
+  // the case where it was dropped instead.
+  addEventListener('visibilitychange', function(){
+    if (!document.hidden) measure();
+  });
+  // Fraunces changes every label's width when it lands, and so does
+  // switching language, signing in, or an Admin link appearing. The
+  // observer covers the last three without anything having to remember
+  // to call this.
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(fdSyncNavFit).catch(function(){});
+  }
+  var nav = document.getElementById('nav-links');
+  if (nav && window.MutationObserver) {
+    new MutationObserver(fdSyncNavFit).observe(nav, {
+      subtree: true, childList: true,
+      attributes: true, attributeFilter: ['style', 'class', 'hidden']
+    });
+  }
+})();
+</script>
 <script>
   // Runs during PARSE, inline, before first paint -- which is the only
   // place it can run and actually prevent the flash. The module script
@@ -13665,7 +13746,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-10-01-v451 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-10-01-v452 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -16574,7 +16655,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-10-01-v451',
+      'build 2026-10-01-v452',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
