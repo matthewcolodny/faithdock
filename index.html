@@ -5386,7 +5386,8 @@
        beside it. The card's own 12px padding is the inset here, so
        the foot adds none of its own. */
     .fd-results-grid .church-card .dir-card-foot,
-    .fd-results-grid .event-card .dir-card-foot{
+    .fd-results-grid .event-card .dir-card-foot,
+    .fd-results-grid .group-card--tile .dir-card-foot{
       grid-column:1 / -1;padding:0;margin-top:0;
     }
     /* The compact card's 12px gap applies to rows as well as columns,
@@ -13746,7 +13747,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-10-01-v452 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-10-01-v453 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -14403,6 +14404,18 @@
       + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg></span>';
   }
   window.fdShareEventHtml = fdShareEventHtml;
+
+  // And the group flavour. Third of three, same mark, same handler.
+  function fdShareGroupHtml(g){
+    if (!g || !g.id) return '';
+    var label = window.t('church.share');
+    return '<span class="dir-card-share" role="button" tabindex="0"'
+      + ' data-fd-share-group="' + escapeHtml(g.id) + '"'
+      + ' data-fd-share-title="' + escapeHtml(g.name || '') + '"'
+      + ' title="' + escapeHtml(label) + '" aria-label="' + escapeHtml(label) + '">'
+      + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg></span>';
+  }
+  window.fdShareGroupHtml = fdShareGroupHtml;
 
   function followHeartRow(c){
     if (!c || !c.real || !c.id) return '';
@@ -16205,7 +16218,7 @@
   // capture too -- so without this, sharing would also open the
   // church underneath it.
   document.addEventListener('click', function(ev){
-    var el = ev.target.closest && ev.target.closest('[data-fd-share],[data-fd-share-event]');
+    var el = ev.target.closest && ev.target.closest('[data-fd-share],[data-fd-share-event],[data-fd-share-group]');
     if (!el) return;
     // A window is open, so this click belongs to closing it. Returning
     // without stopping anything lets the close-on-outside-click
@@ -16215,7 +16228,9 @@
     ev.stopPropagation();
     ev.stopImmediatePropagation();
     var evId = el.getAttribute('data-fd-share-event');
+    var grId = el.getAttribute('data-fd-share-group');
     if (evId) window.fdShareLink('#event/' + encodeURIComponent(evId), el.getAttribute('data-fd-share-title'), el);
+    else if (grId) window.fdShareLink('#group/' + encodeURIComponent(grId), el.getAttribute('data-fd-share-title'), el);
     else window.fdShareChurch(el.getAttribute('data-fd-share'), el);
   }, true);
 
@@ -16655,7 +16670,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-10-01-v452',
+      'build 2026-10-01-v453',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -40489,44 +40504,55 @@
       var thumb = img
         ? '<div class="thumb" style="background-image:url(\'' + img + '\');background-size:cover;background-position:center;"></div>'
         : '<div class="thumb thumb--group">' + groupIcon + '</div>';
+      // The location line carries Directions, the way a church card's
+      // distance line does: both answer "where", and a row of its own
+      // for one short word was what the church card stopped doing.
+      var whereRow = (meta || dirHtml)
+        ? '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/></svg>'
+          + (meta ? '<span>' + meta + '</span>' : '') + dirHtml + '</div>'
+        : '';
       // Built as a church/event card is built, element for element:
       // thumb, then a body whose first row is the tags with the heart
       // beside them, then the name, then icon-led meta rows. It was
       // close before -- a bare <h4> and three differently-styled
       // <div>s -- which is exactly why it read as a different kind of
       // thing in the same grid.
+      // Element for element, a church card and an event card: picture,
+      // then a body that opens with the NAME, then icon-led meta rows,
+      // then whatever this kind of thing lets you do -- and a foot
+      // OUTSIDE the body carrying the tags, the heart and the share.
+      //
+      // The tags used to head the card with the heart beside them,
+      // which put the least specific thing about a group above its
+      // name. The churches stopped doing that; this is the same move.
+      //
+      // The foot is a sibling of .card-body, not a child, for the
+      // reason given on the church card: the body is the second column
+      // of the compact card, so a foot inside it starts 76px in, under
+      // the name rather than under the picture.
+      //
+      // Two things stay that a church card does not have, and both
+      // have a precedent on the EVENT card rather than being a group
+      // exception: the join button sits in the body where an event's
+      // Register sits, and the description stays because it is the
+      // only thing on the card that says what the group IS. A church
+      // is named after itself and an event says what it is in its
+      // title; "Tuesday Night" does not.
       return '<div class="group-card--tile" data-route="group" data-group-id="' + escapeHtml(g.id) + '" style="cursor:pointer;">'
         + thumb
         + '<div class="card-body">'
-        // A church card's tag is its denomination and an event's is when
-        // it is; a group's will be its format and its category, which
-        // search_groups does not return yet. A word like 'Groups' in the
-        // meantime is not a tag, it is the name of the list you are
-        // already looking at -- so with nothing true to say, the row
-        // holds the NAME instead of standing empty.
-        //
-        // Empty, it was 34px of blank space with the heart on the end,
-        // which started the name level with the bottom of the picture
-        // rather than the top. That is what "the default image is too
-        // high, doesn't look like a church card" was. This goes back to
-        // the tags-then-name shape on its own once the tags arrive.
-        +   ((visTag || fmtTag || catTag)
-              ? '<div class="card-tag-row">'
-                + '<div class="card-tags">' + catTag + fmtTag + visTag + '</div>'
-                + heart
-                + '</div>'
-                + '<h3>' + escapeHtml(g.name) + '</h3>'
-              : '<div class="card-tag-row">'
-                + '<h3 class="card-tag-row-title">' + escapeHtml(g.name) + '</h3>'
-                + heart
-                + '</div>')
-        +   (meta ? '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z"/></svg>' + meta + '</div>' : '')
-        +   (g.meeting_schedule ? '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>' + escapeHtml(g.meeting_schedule) + '</div>' : '')
-        +   '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg>' + escapeHtml(groupsMemberCountLabel(g.member_count)) + '</div>'
+        +   '<h3>' + escapeHtml(g.name) + '</h3>'
+        +   whereRow
+        +   (g.meeting_schedule ? '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><span>' + escapeHtml(g.meeting_schedule) + '</span></div>' : '')
+        +   '<div class="meta-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg><span>' + escapeHtml(groupsMemberCountLabel(g.member_count)) + '</span></div>'
         +   (g.description ? '<p class="group-card-desc">' + escapeHtml(g.description) + '</p>' : '')
-        +   (dirHtml ? '<div class="dir-card-actions">' + dirHtml + '</div>' : '')
         +   actionHtml
         +   '<div class="group-join-status" style="display:none;font-size:12px;color:var(--ink-mute);margin-top:6px;"></div>'
+        + '</div>'
+        + '<div class="dir-card-foot">'
+        +   '<div class="card-tags">' + catTag + fmtTag + visTag + '</div>'
+        +   heart
+        +   (window.fdShareGroupHtml ? window.fdShareGroupHtml(g) : '')
         + '</div>'
         + '</div>';
     }).join('');
