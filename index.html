@@ -7928,6 +7928,22 @@
      Scrolling rather than wrapping: wrapping put a single icon alone
      on a second line, which reads as a mistake, and the overflow it
      replaces is two pixels. */
+  /* Under the tab strip, which is itself sticky at the top of the
+     sheet. The five buttons are the same five on every tab, so
+     scrolling a list of churches past them is no reason to lose them.
+     --fd-head-h is the strip's measured height, set by
+     fdSyncStickyFilterRow: the strip holds a drag bar and three tabs
+     whose height moves with the font, so a number written here would
+     be wrong on somebody's phone.
+     Full bleed with the padding put back, the same trick .fd-sheet-head
+     uses, so the paper behind it reaches the sheet's edges and cards
+     do not show through at the sides as they pass under. */
+  .dir-results-col .fd-quick-row.fd-filter-row{
+    position:sticky;top:var(--fd-head-h,56px);z-index:3;
+    background:var(--paper);
+    margin-left:-14px;margin-right:-14px;
+    padding:4px 14px 6px;
+  }
   .fd-quick-row.fd-filter-row{overflow-x:auto;scrollbar-width:none;}
   .fd-quick-row.fd-filter-row::-webkit-scrollbar{display:none;}
   .fd-quick-row.fd-filter-row .fd-quick-btn{flex-shrink:0;}
@@ -13649,7 +13665,7 @@
     </div>
   </div>
 </div>
-<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-10-01-v450 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
+<footer><span data-i18n="footer.disclaimer">FaithDock — private testing</span> · build 2026-10-01-v451 · <a href="#privacy" data-route="privacy" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.privacy">Privacy</a> · <a href="#terms" data-route="terms" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.terms">Terms</a> · <a href="#ada" data-route="ada" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.accessibility">Accessibility</a> · <a href="#data-deletion" data-route="data-deletion" style="color:inherit;border-bottom:1px solid currentColor;" data-i18n="footer.dataDeletion">Delete my data</a> · <a href="#" id="footer-feedback-link" style="color:inherit;border-bottom:1px solid currentColor;cursor:pointer;" data-i18n="profile.sendFeedback">Send feedback</a></footer>
 
 <div class="modal-overlay" id="share-modal">
   <div class="modal-card">
@@ -15310,6 +15326,23 @@
   // On a phone the cards/list button and the sheet handle belong in the
   // tab strip: it is the one part of the sheet that does not scroll, and
   // both are controls for the sheet rather than for a card in it.
+  // The sticky row sits under the sticky strip, so it needs to know
+  // how tall the strip is. Measured rather than written down: the
+  // strip is a drag bar plus three tabs, and both move with the font
+  // size and the language.
+  function fdSyncStickyFilterRow(){
+    var col = document.querySelector('#page-directory .dir-results-col');
+    if (!col) return;
+    var head = document.querySelector('#page-directory .fd-sheet-head');
+    // No head means the phone layout has not been built, and the rule
+    // that reads this is inside the same breakpoint, so the value is
+    // unused rather than wrong.
+    var h = head ? Math.round(head.getBoundingClientRect().height) : 0;
+    col.style.setProperty('--fd-head-h', h + 'px');
+  }
+  window.fdSyncStickyFilterRow = fdSyncStickyFilterRow;
+  window.addEventListener('resize', fdSyncStickyFilterRow);
+
   function fdMoveSheetControlsIntoTabs(){
     if (window.innerWidth > 980) return;
     var tabs = document.querySelector('#page-directory .fd-tabs');
@@ -16197,6 +16230,20 @@
   // panel up to be a child of #page-directory. Above that the panels
   // are display:none inside the results column and filters live in the
   // pills over the map -- the same as the churches row has always been.
+  // Put an absolutely-positioned panel directly under a row, in the
+  // panel's own coordinate space. scrollTop is in there because the
+  // containing block may itself be a scroller: top is measured from
+  // its padding box in CONTENT coordinates, while both rects are in
+  // viewport ones.
+  function fdAnchorPanelUnder(pn, row){
+    if (!pn || !row || !pn.offsetParent) return;
+    var host = pn.offsetParent;
+    var r = row.getBoundingClientRect();
+    var h = host.getBoundingClientRect();
+    pn.style.top = Math.round(r.bottom - h.top + (host.scrollTop || 0) + 6) + 'px';
+  }
+  window.fdAnchorPanelUnder = fdAnchorPanelUnder;
+
   (function wireTabFilterButtons(){
     function openOn(sel, cls, btn){
       var pn = document.querySelector(sel);
@@ -16206,8 +16253,7 @@
       if (!already) {
         pn.classList.add(cls);
         btn.setAttribute('aria-expanded', 'true');
-        var row = btn.closest('.event-tab-row');
-        if (row && pn.offsetParent) pn.style.top = (row.offsetTop + row.offsetHeight + 6) + 'px';
+        fdAnchorPanelUnder(pn, btn.closest('.event-tab-row'));
       }
       fdSyncFilterHistory();
     }
@@ -16271,11 +16317,7 @@
       if (window.fdSyncFilterHistory) window.fdSyncFilterHistory();
       if (!open) return;
       // Sit it under the button that opened it.
-      var row = btn.closest('.event-tab-row');
-      if (row && panel.offsetParent) {
-        var top = row.offsetTop + row.offsetHeight + 6;
-        panel.style.top = top + 'px';
-      }
+      fdAnchorPanelUnder(panel, btn.closest('.event-tab-row'));
       var when = panel.querySelector('[data-i18n="events.when"]');
       if (when) when.scrollIntoView({ block: 'start' });
     });
@@ -16284,6 +16326,13 @@
   window.fdSetBrowseTab = fdSetBrowseTab;
   fdSyncBrowseTabsPresent();
   fdMoveSheetControlsIntoTabs();
+  // The strip exists now, so it can be measured. Again after fonts
+  // land, because Fraunces arriving changes the tabs' height and a
+  // sticky row an inch too high is worse than one that waits a frame.
+  fdSyncStickyFilterRow();
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(fdSyncStickyFilterRow).catch(function(){});
+  }
   document.addEventListener('click', function(ev){
     var t = ev.target.closest && ev.target.closest('.fd-tab');
     if (!t) return;
@@ -16525,7 +16574,7 @@
     var sheet = q('.dir-results-col');
     var head = document.getElementById('directory-head');
     var lines = [
-      'build 2026-10-01-v450',
+      'build 2026-10-01-v451',
       'w=' + window.innerWidth + ' h=' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || '?'),
       'mq<=980 ' + window.matchMedia('(max-width:980px)').matches,
       'body.cls ' + (document.body.className || '(none)'),
@@ -23838,8 +23887,7 @@
     if (!already) {
       panel.classList.add('fd-dates-open');
       btn.setAttribute('aria-expanded', 'true');
-      var row = btn.closest('.event-tab-row');
-      if (row && panel.offsetParent) panel.style.top = (row.offsetTop + row.offsetHeight + 6) + 'px';
+      window.fdAnchorPanelUnder(panel, btn.closest('.event-tab-row'));
     }
     if (window.fdSyncFilterHistory) window.fdSyncFilterHistory();
   });
@@ -43304,7 +43352,17 @@
     return { day: str.slice(0, at), time: tail };
   }
 
+  function fdSetGroupsNavBadge(count){
+    var el = document.getElementById('dash-groups-nav-badge');
+    if (!el) return;
+    if (count) { el.textContent = count; el.style.display = 'inline-block'; }
+    else { el.textContent = ''; el.style.display = 'none'; }
+  }
+
   async function loadDashboardGroups(){
+    // Before anything can return. The count belongs to one church, and
+    // this function is re-run for the new one on every switch.
+    fdSetGroupsNavBadge(0);
     var tbody = document.getElementById('groups-tbody');
     var countLabel = document.getElementById('groups-count-label');
     if (!tbody) return;
@@ -43425,11 +43483,7 @@
     }
     tbody.innerHTML = rowsHtml;
 
-    var navBadge = document.getElementById('dash-groups-nav-badge');
-    if (navBadge) {
-      if (totalPending) { navBadge.textContent = totalPending; navBadge.style.display = 'inline-block'; }
-      else { navBadge.style.display = 'none'; }
-    }
+    fdSetGroupsNavBadge(totalPending);
   }
   // ============================================================
   // The group detail card
